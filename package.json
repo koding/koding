@@ -1,0 +1,24 @@
+{
+  "author": "Koding, Inc. <victor@koding.com>",
+  "name": "kfmjs",
+  "description": "Koding repo",
+  "version": "0.7.0",
+  "homepage": "koding.com",
+  "repository": {
+    "type": "git",
+    "url": "git@kodingen.beanstalkapp.com:/kfmjs.git"
+  },
+  "main": "js/index.js",
+  "scripts" : {
+    "preinstall": "make -C src ",
+    "install" : "coffee -b -c -o js/ src/",
+    "preupdate": "make -C src ",
+    "update" : "coffee -b -c -o js/ src/"
+  },
+  "dependencies": {"coffee-script":"1.2.0"},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

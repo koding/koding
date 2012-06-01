@@ -1,0 +1,8 @@
+exports.authenticationError = 'authenticationError'
+exports.authorizationError = 'authorizationError'
+exports.downForMaintenanceError = 'downForMaintenanceError'
+exports.invalidTransparentRedirectHashError = 'invalidTransparentRedirectHashError'
+exports.notFoundError = 'notFoundError'
+exports.serverError = 'serverError'
+exports.unexpectedError = 'unexpectedError'
+exports.upgradeRequired = 'upgradeRequired'

@@ -1,0 +1,228 @@
+pbe::Database
+=============
+
+pbe::Database is a C++ SQL database API.  It is implemented as a wrapper around 
+PostgreSQL's libpq C client library.  Its objective is:
+
+- To support a "modern" C++ style with a concise convenient syntax.
+- To avoid the need to construct SQL queries in strings as far as possible.
+- To perform as much compile-time type checking as possible.
+- To have minimal overhead compared to raw libpq.
+
+The source code is somewhat commented, and you should consider the comments in 
+the source to be more more definitive, comprehensive and up-to-date than this 
+file.
+
+
+Usage
+-----
+
+Here's a very quick summary:
+
+  #include <Database.hh>
+  using namespace pbe;
+  ...
+  Database db("dbname=foo, username=blah");
+  Query<string,int> insert_thing(db,"insert into things(name,num) values ($1,$2)");
+  SingletonQuery<int, string> count_things(db,"select sum(num) from things where name=$1");
+  Transaction t(db);
+  insert_thing("table",1);
+  insert_thing("chair",4);
+  int n = count_things("bed");
+  t.commit();
+
+Now some more details:
+
+
+* 1. Connect to the database server.
+
+The pbe::Database object represents a connection to the database server.  Its 
+constructor takes a string which defines the connection parameters in the 
+standard PostgreSQL format.  See the PostgreSQL documentation for details.
+
+
+* 2. Declare queries.
+
+Queries are declared before use.  The query constructor takes a reference to the 
+database connection and the query's SQL string.  Template parameters specify the 
+C++ types of the parameters.  For example, in this example:
+
+  Query<string,int> insert_thing(db,"insert into things(name,num) values ($1,$2)");
+
+PostgreSQL is given a query string containing two placeholders for parameters, $1 
+and $2.  Their C++ types are string and int respectively.  Compile-time type 
+checking ensures that when the query is used the C++ parameters have (or are 
+convertible to) these types.  A mapping is built in from C++ types to PostgreSQL 
+types.  At present the mapping is as follows.  It is fairly straightforward to 
+add more types.
+
+  C++ Type      PostgreSQL type
+  --------      ---------------
+  std::string   TEXT
+  int           INT4
+  time_t        TIMESTAMP WITH TIME ZONE
+  float         FLOAT4
+
+The geneeral type 'Query', as shown above, should be used for
+- Queries that return multi-row, multi-column data.
+- Queries that reutrn no data (e.g. update, delete, create table etc.)
+
+The following variants are available for other cases.  They have the benefit of 
+additional type checking and the like.
+
+ColumnQuery<ResultType, Param1Type,...>
+- Use this for a query that returns a single column of results, and give the C++ 
+type for the result as the first template parameter.
+
+SingletonQuery<ResultType, Param1Type,...>
+- Use this for a query that returns a single value (one row, one column), e.g.
+"count(*)" or "select sum(...)".  The type of the result value is given as the 
+first template parameter.
+
+OptQuery<ResultType, Param1Type,...>
+- Use this fora query that returns either a single value as above or no results 
+at all.  Once again the result value is given as the first template parameter.
+
+One option for query declaration is to define a subclass of pbe::Database that 
+contains them.  The existence of the SQL database can then be hidden from the use 
+of the class:
+
+  class ThingList: public Database {
+  public:
+    Query<string,int>           add_thing;
+    SingletonQuery<int, string> count_things;
+    Query<string>               delete_thing;
+
+    ThingList():
+      Database("dbname=things"),
+      add_thing(*this, "insert into things(name,num) values ($1,$2)"),
+      count_things(*this, "select sum(num) from things where name=$1"),
+      delete_thing(*this, "delete from things where name=$1")
+    {}
+  };
+
+  ...
+  ThingList tl;
+  tl.add_thing("pen",25);
+  tl.add_thing("pencil",50);
+  tl.delete_thing("desk");
+  int num_lamps = tl.count_things("lamp");
+
+
+* 3. Use a transaction.
+
+To group a series of queries in a transaction, declare a Transaction object.  
+This takes a reference to the Database object as a constructor parameter.  A 
+BEGIN statement is executed when the Transaction object is constructed.  After 
+running your queries, call the Transaction's commit() method to execute a 
+COMMIT statement.
+
+If something goes wrong and an exception is thrown, the Transaction object's 
+destructor is called as it goes out of scope.  At this point a ROLLBACK statement 
+is executed.
+
+It is probably best to used additional { } to bind the Transaction tightly to the 
+queries it is protecting, i.e.
+
+  ...
+  {
+    Transaction t(db);
+    insert_thing(...);
+    ...more queries...
+    t.commit();
+  }
+  ...
+
+
+* 4. Run the queries.
+
+The Query objects are functors, i.e. they are objects that you can use as 
+functions.  (This is achieved by defining operator().)  For example:
+
+  insert_thing("table",1);
+
+The parameters are passed to PostgreSQL using libpq's binary parameter format.
+
+The query strings are passed to PostgreSQL the first time that they are used, 
+where they are stored as "prepared statements" for further uses.  The prepared 
+statements are freed ("deallocated") when the Query object goes out of scope.
+
+If for some reason you don't want to use prepared statements then you can use the 
+runonce() method:
+
+  insert_thing.runonce("table",1);
+
+This should have exactly the same behaviour as the normal case.
+
+(Note that although PostgreSQL only supports prepared statements and binary 
+parameters for SELECT, UPDATE, INSERT and DELETE statements, you don't need to 
+worry as this library detects other statements and treats them specially.)
+
+
+* 5. Get the results.
+
+The result of a general Query can be assigned to a Result object:
+
+  Query<int> q(db, "select a,b from t where c=$1");
+  Result r = q(99);
+
+The size of the result is available in the rows and cols members.  Individual 
+elements can be accessed using the get() method, which takes a row number and 
+either a column number or a column name, and the expected type as a template 
+parameter.  Type checking is performed; if you want to avoid this small overhead, 
+use get_nocheck().  There is also an is_null method:
+
+  string s = r.get<string>(0,0);
+  int a    = r.get<int>(1,"b");
+  if (!r.is_null(2,0)) {
+    ...
+  }
+
+The result of a ColumnQuery is a ColumnResult.  ColumnResult takes the result 
+type as a template parameter, and you access elements using ():
+
+  ColumnQuery<string> q(db, "select name from t");
+  ColumnResult<string> r = q();
+  string s = r(1);
+
+It is also a standard-library-compatible random-access container:
+
+  typedef ColumnResult<string> col_t;
+  col_t r = q();
+  for ( col_t::const_iterator i = r.begin();
+        i != r.end(); ++i ) {
+    cout << *i << "\n";
+  }
+
+SingletonResult is used for SingletonQueries.  It is convertible to the result 
+type itself, so you don't normally need to declare it; the exception would be if 
+you needed tu use is_null() first.
+
+  SingletonQuery<int, name> count_things(db,"select sum(num) from things where name=$1");
+  int n = count_things("bed");
+
+OptResult stores the result of an OptQuery.  The presence of a value can be 
+tested by calling the empty() method.  
+
+
+Instalation / Compilation
+-------------------------
+
+pbe::Database is part of libpbe, and you can build the library just by running 
+"make" at the top level.  But libpbe probably contains lots of stuff that you 
+don't want, so it may be easiest just to copy the Database files, and the few 
+other files that they depend on, into your own build environment.
+
+There is one significant external dependency which is Boost.  Version 1.33.1 
+works; I can't comment on other versions.
+
+
+License
+-------
+
+This is all licensed under the GPL.  I'm aware that this is different from 
+PostgreSQL itself; if you would like to see this use a different license, let me 
+know.
+
+
+

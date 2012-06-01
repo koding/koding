@@ -1,0 +1,132 @@
+/* FONTS */
+serif  = Georgia, Times New Roman, Serif
+sans   = Helvetica, Geneva, Arial
+lucida = "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif
+mono   = 'Monaco','Andale Mono','Courier New',monospace
+
+/* COLORS */
+light-green           = rgb(126,190,76)
+dark-green            = rgb(93,151,33)
+browser-bg            = rgb(248,248,248)
+k-orange              = #FF9200
+normal-text           = #222
+dimmed-text           = #666
+link-color            = #07c
+page-text             = #787878
+grouppage-link        = #f8b45f
+
+/* FUNCTIONS */
+
+mp0()
+  margin  0
+  padding 0
+
+vendor(a,b)
+  // cursor  pointer //temp
+  -webkit-{a}  b
+  -moz-{a}     b
+  -khtml-{a}   b
+  -o-{a}       b
+  -icab-{a}    b
+  {a}          b
+
+
+size()
+  width   arguments[0]
+  height  arguments[1]
+
+rounded()
+  // cursor  pointer //temp
+  vendor(border-radius,arguments)
+
+rounded-each()
+  // cursor  pointer //temp
+  -moz-border-radius-topleft          arguments[0]
+  -khtml-border-top-left-radius       arguments[0]
+  -webkit-border-top-left-radius      arguments[0]
+  border-top-left-radius              arguments[0]
+  
+  -moz-border-radius-topright:        arguments[1]
+  -khtml-border-top-right-radius:     arguments[1]
+  -webkit-border-top-right-radius:    arguments[1]
+  border-top-right-radius:            arguments[1]
+  
+  -moz-border-radius-bottomleft:      arguments[2]
+  -khtml-border-bottom-left-radius:   arguments[2]
+  -webkit-border-bottom-left-radius:  arguments[2]
+  border-bottom-left-radius:          arguments[2]
+  
+  -moz-border-radius-bottomright:     arguments[3]
+  -khtml-border-bottom-right-radius:  arguments[3]
+  -webkit-border-bottom-right-radius: arguments[3]
+  border-bottom-right-radius:         arguments[3]
+
+shadow()
+  // cursor  pointer //temp
+  vendor(box-shadow,arguments)
+
+gradient()
+  // background-color arguments[1]
+  background-image -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0])
+  background-image -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1]))
+  background-image -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1]))
+  background-image -o-linear-gradient(arguments[0], arguments[1]);
+
+gradient1()
+  // background-color arguments[1]
+  background-image -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
+  background-image -webkit-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  background-image -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  background-image -o-linear-gradient(arguments[0], arguments[1]);
+ 
+fl()
+  display block
+  float left
+
+fr()
+  display block
+  float right
+
+sprite()
+  bg  image,url("../images/_kd.sprites.png")
+  bg  color,transparent
+  bg  repeat,no-repeat
+
+
+noTextSelection()
+  vendor(user-select,none)
+
+bg(prop,args)
+  background-{prop} args
+
+hidden()
+  display     none
+  visibility  hidden
+
+visible()
+  display     block
+  visibility  visible
+
+borderBox()
+  vendor(box-sizing,border-box)
+contentBox()
+  vendor(box-sizing,content-box)
+
+blockMid()
+  display           inline-block
+  vertical-align    middle
+
+blockMidTop()
+  display           inline-block
+  vertical-align    top
+
+noTextDeco()
+  text-decoration     none
+  &:hover
+    text-decoration   none
+
+absPos()
+  top         arguments[0]
+  right       arguments[1]
+  bottom      arguments[2]
+  left        arguments[3]

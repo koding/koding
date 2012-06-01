@@ -1,0 +1,149 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+/* 
+**  KDModal STYLES
+*/
+.kdmodal
+  position            absolute
+  background-color    browser-bg
+  z-index             10001
+  left                -9999px
+  shadow(0 3px 15px #444)
+  rounded(5px)
+  .kdmodal-title
+    color             k-orange
+    font-size         16px
+    line-height       30px
+    background-color  rgba(0,0,0,.05)
+    margin            2px
+    padding           2px 10px
+    border-bottom     1px solid rgba(0,0,0,.1)
+    // cursor            move
+    rounded(3px 3px 0 0)
+
+  .kdmodal-content
+    font-size         12px
+    line-height       18px
+    margin            2px
+    padding           2px 10px
+    position          relative
+    overflow          visible
+
+    span.hint
+      color             #7e6b3d
+      background-color  #ffefce
+      display           block
+      line-height       25px
+      margin            5px 0
+      padding           0 10px
+      border            1px dashed #dfd4b3
+      font-style        italic
+      font-size         .9em
+
+  a.close-icon
+    position          absolute
+    cursor            pointer
+    display           block
+    top               8px
+    right             5px
+    line-height       24px
+    text-align        center
+    font-size         14px
+    text-decoration   none
+    color             #444
+    size(20px,24px)
+    &:hover
+      color           k-orange
+
+  .kdmodal-buttons,.button-field
+    height            auto
+    border-top        1px solid #ddd
+    background-color  #eee
+    bottom            0
+    rounded(0,0,5px,5px)
+    
+    .kdbutton
+      padding-right   10px
+      padding-left    10px
+      margin-right    0
+      width           auto
+      margin-left     6px
+      fr()
+  .button-field
+    border-top-width  0
+
+.kdmodal.with-buttons
+  .kdmodal-content
+    margin-bottom     50px
+
+.kdmodal.fx
+  visibility            hidden
+  opacity               0
+  vendor(transition,opacity 0.15s linear)
+  // -webkit-transform     scale(3) translate(0, 0)
+  // -moz-transform        scale(.1) translate(0, 0)
+  // -o-transform          scale(.7) translate(0, 0)
+  // -ms-transform         scale(.7) translate(0, 0)
+  // transform             scale(.7) translate(0, 0)
+
+  // vendor                transform-origin,center center
+
+  // -webkit-transition    -webkit-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  // -moz-transition       -moz-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  // -o-transition         -o-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  // -ms-transition        -ms-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  // transition            transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  &.active
+    visibility          visible
+    opacity             1
+    // vendor              transform,scale(1)
+    // vendor              transition-delay,0s
+
+
+.kdmodal
+  .kdmodal-content
+    .kdtabview,
+    .kdtabpaneview
+      overflow              visible
+    .kdtabhandlecontainer
+      padding-top           0
+      background            linear-gradient(top, #555 0%,#666 93.7%)
+      height                22px
+      padding               0 10px
+      shadow                inset 0 2px 5px rgba(0,0,0,.1)
+      borderBox()
+      .kdtabhandle          
+        // border              1px solid transparent
+        border-width        0
+        height              21px
+        line-height         21px
+        color               #ddd
+        font-size           11px
+        padding             0 10px
+        min-width           100px
+        width               auto!important
+        borderBox()
+        rounded(0)
+        b
+          margin-right      0
+        &.active            
+          // border-color      #ccc
+          height            21px
+          background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
+          color             #fff
+          text-shadow       0 -1px 0 rgba(0,0,0,.05)
+          shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
+          b
+            font-weight       600
+          
+.button-pre-box
+  position              absolute
+  left                  10px
+  top                   5px
+  line-height           33px
+  height                33px
+  color                 #B0B0B0
+  text-shadow           0 1px 1px #FBFBFB

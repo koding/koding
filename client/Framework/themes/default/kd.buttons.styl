@@ -1,0 +1,463 @@
+@import "./client/Framework/themes/default/kdfn"
+
+/*
+
+* button types
+================
+* - small-gray
+* - small-blue
+* - clean-gray
+* - clean-red
+* - cupid-green
+* - transparent
+
+**  KDButton STYLES
+*/
+
+.kdbutton
+  position          relative
+  outline           none
+  vertical-align    top
+  noTextSelection()
+  &:focus
+    border          1px solid rgba(125,190,241,1)
+    shadow          0 0 3px rgba(125,190,241,.7)
+  &.with-icon
+    .icon
+      margin          0 5px 0 -4px
+      padding         3px 2px 2px 3px
+      fl()
+  &.icon-only
+    width             auto
+    // padding-left      5px
+    // padding-right     5px
+    .icon
+      margin          0
+      padding         0
+      border          none
+      display         block
+      bg              color,transparent
+  &.auto-width
+    width             auto!important
+  &.with-menu
+    padding-right     25px!important
+
+.kdbuttonwithmenu-wrapper
+  position          relative
+  display           inline-block
+  size              auto,auto
+
+  button
+    margin          0!important
+
+  .chevron-arrow-separator
+    position        absolute
+    top             0
+    right           20px
+    border-left     1px solid #bbb
+    size            0,100%
+    
+  .chevron-arrow
+    display         block
+    position        absolute
+    top             0
+    right           0
+    size            20px,20px        
+    sprite()
+    bg              position,-80px -280px    
+
+.kdview.kdcontextmenu.kdbuttonmenu
+  width               auto
+  min-width           0
+  rounded        3px 0 3px 3px
+  .chevron-arrow-ghost-wrapper
+    position          absolute
+    top               -21px
+    right             -1px
+    border            1px solid #A7A7A7
+    border-width      1px 1px 0 1px
+    bg                color,white
+    overflow          hidden
+  
+    .chevron-arrow-ghost
+      display         block
+      size            20px,20px        
+      sprite()
+      bg              position,-80px -260px
+  &.top-menu
+    rounded      3px 3px 3px 0
+    .chevron-arrow-ghost-wrapper
+      top             initial
+      bottom          -21px
+      right           -1px
+      border          1px solid #A7A7A7
+      border-width    0 1px 1px 1px
+  &.small-gray
+    .chevron-arrow-ghost-wrapper
+      rounded    0 10px 0 0
+    &.top-menu
+      .chevron-arrow-ghost-wrapper
+        rounded  0 0 0 10px
+  &.clean-gray,&.clean-red
+    .chevron-arrow-ghost-wrapper
+      rounded    0 3px 0 0
+      .chevron-arrow-ghost
+        margin-top    4px
+    &.top-menu
+      .chevron-arrow-ghost-wrapper
+        rounded  0 0 0 3px
+  &.cupid-green
+    .chevron-arrow-ghost-wrapper
+      rounded    0 3px 0 0
+      .chevron-arrow-ghost
+        margin-top    3px
+    &.top-menu
+      .chevron-arrow-ghost-wrapper
+        rounded  0 0 0 3px    
+
+
+/* disabled button styles
+   works with this markup: <button disabled="disabled">Submit</button>
+*******************************************************************************/
+button.kdbutton[disabled]
+button.kdbutton[disabled]:hover
+button.kdbutton[disabled]:active
+  box-shadow      none
+  color           #aaa
+  cursor          not-allowed
+  text-shadow     none
+  shadow(none)
+  gradient(none,none)
+  bg(color,#999)
+
+
+
+
+/* small gray
+*******************************************************************************/
+button.small-gray
+  border            1px solid #ccc
+  border-color      #ccc #ccc #bbb #ccc
+  color             #333
+  font-size         11px
+  font-weight       normal
+  line-height       1
+  padding           3px 12px 4px 12px
+  text-align        center
+  text-shadow       0 1px 0 #eee
+  size              auto,20px
+  gradient          #eee,#ccc
+  rounded           10px
+  vendor(background-clip,padding-box)
+  &:hover
+    border          1px solid #bbb
+    border-color    #bbb #bbb #999 #bbb
+    cursor          pointer
+    text-shadow     0 1px 0 #ddd
+    gradient        #ddd,#bbb
+  &:active
+    border          1px solid #aaa
+    border-bottom   1px solid #888
+    shadow          inset 0 0 5px 2px #aaa\, 0 1px 0 0 #eee
+  &.icon-only
+    padding         3px 5px 4px 6px
+  &.with-icon         
+    span.icon         
+      padding       2px 2px 1px 3px
+      border        none
+      margin-right  2px
+      bg            color,transparent
+
+button[disabled].small-gray, 
+button[disabled].small-gray:hover,
+button[disabled].small-gray:active
+  border            1px solid #c5c5c5
+  border-color      #c5c5c5 #cecece #d9d9d9 #cecece
+  color             #8f8f8f
+  text-shadow       0 -1px 1px #ebebeb
+  gradient          #f3f3f3,#dadada
+  shadow            none
+
+button.small-gray::-moz-focus-inner
+  border            0
+  padding           0
+
+
+/* dark
+*******************************************************************************/
+button.dark
+  border            1px solid #ccc
+  border-color      #4B4B4B
+  color             #fff
+  font-size         11px
+  font-weight       normal
+  line-height       1
+  padding           3px 12px 4px 12px
+  text-align        center
+  text-shadow       0 -1px 0 rgba(0,0,0,.3)
+  size              auto,auto
+  gradient          #2E2E2E,#171717
+  rounded           3px
+  vendor            background-clip,padding-box
+  &:hover
+    border-color    #5B5B5B
+    gradient        #3E3E3E,#272727
+  &:active
+    border-color    #3B3B3B
+    gradient        #1E1E1E,#070707
+    shadow          inset 0 0 5px 2px #000
+  &.icon-only
+    padding         2px 3px
+  &.with-icon
+    span.icon
+      padding       2px 2px 1px 3px
+      border        none
+      margin-right  2px
+      bg            color,transparent
+
+button[disabled].dark, 
+button[disabled].dark:hover,
+button[disabled].dark:active
+  color             #8f8f8f
+
+button.dark::-moz-focus-inner
+  border            0
+  padding           0
+
+
+
+/* small blue
+*******************************************************************************/
+button.small-blue
+  border            1px solid #4081af
+  border-color      #4081af #20559a #2e69a3 #2e69a3
+  color             #fff
+  // font-family       "lucida grande", sans-serif
+  font-size         11px
+  font-weight       normal
+  line-height       1
+  padding           3px 12px 4px 12px
+  text-align        center
+  text-shadow       0 -1px 1px #3275bc
+  width             auto
+  gradient(#52a8e8,#377ad0)
+  rounded(10px)
+  shadow(inset 0 1px 0 0 #72b9eb\, 0 1px 2px 0 #b3b3b3)
+  vendor(background-clip,padding-box)
+  &:hover
+    border          1px solid #2a73a6
+    border-color    #2a73a6 #165899 #07428f #165899
+    cursor          pointer
+    text-shadow     0 -1px 1px #1d62ab
+    gradient(#3e9ee5,#206bcb)
+    shadow(inset 0 1px 0 0 #62b1e9)
+  &:active
+    border          1px solid #154c8c
+    border-bottom   1px solid #0e408e
+    text-shadow     0 -1px 1px #2361a4
+    bg(color,#3282d3)
+    shadow(inset 0 0 6px 3px #1657b5\, 0 1px 0 0 #fff)
+
+button[disabled].small-blue,
+button[disabled].small-blue:hover,
+button[disabled].small-blue:active
+  border            1px solid #c5c5c5
+  border-color      #c5c5c5 #cecece #d9d9d9 #cecece
+  color             #8f8f8f
+  text-shadow       0 -1px 1px #ebebeb
+  gradient(#f3f3f3,#dadada)
+  shadow(none)
+
+button.small-blue::-moz-focus-inner
+  border            0
+  padding           0
+
+
+
+
+/* clean gray
+*******************************************************************************/
+button.clean-gray
+  border            1px solid #ccc
+  border-color      #ccc #ccc #bbb #ccc
+  color             #333
+  font-size         11px
+  font-weight       bold
+  padding           4px 8px 3px 8px
+  text-align        center
+  text-shadow       0 1px 0 #eee
+  width             auto
+  gradient          rgba(247,247,245,1),rgba(210,210,208,1)
+  rounded           3px
+  &:hover
+    border          1px solid #bbb
+    border-color    #bbb #bbb #999 #bbb
+    cursor          pointer
+    text-shadow     0 1px 0 #ddd
+    gradient(#ddd,#bbb)
+  &:active
+    border          1px solid #aaa
+    border-bottom   1px solid #888
+    shadow(inset 0 0 5px 2px #aaa\, 0 1px 0 0 #eee)
+  &.icon-only
+    padding         2px 3px
+  &.with-icon
+    span.icon
+      padding       2px 2px 1px 3px
+      margin-right  2px
+      bg            color,transparent
+
+.kdbuttonwithmenu-wrapper.clean-gray
+  .chevron-arrow
+    top             4px
+
+
+
+
+/* clean red
+*******************************************************************************/
+button.clean-red
+  border            1px solid #c63929
+  border-color      #c63929 #c63929 #b51700 #c63929
+  color             #fff
+  // font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       1
+  padding           8px 0
+  text-align        center
+  text-shadow       0px -1px 0 rgba(0, 0, 0, .3)
+  width             150px
+  gradient(#ee432e,#c63929)
+  rounded(3px)
+  &:hover
+    border          1px solid #b51700
+    border-color    #b51700 #b51700 #999 #b51700
+    cursor          pointer
+    text-shadow     0 1px 0 rgba(0, 0, 0, .3)
+    gradient(#ee432e,#b51700)
+  &:active
+    border          1px solid #b51700
+    border-bottom   1px solid #951700
+    shadow(inset 0 0 5px 2px #b51700)
+
+.kdbuttonwithmenu-wrapper.clean-red
+  .chevron-arrow
+    top             4px
+  .chevron-arrow-separator
+    border-left     1px solid brown
+
+
+
+
+/* cupid green (inspired by okcupid.com)
+*******************************************************************************/
+button.cupid-green
+  border            1px solid #63a62f
+  border-color      #63a62f #63a62f #5b992b #63a62f
+  color             #fff
+  // font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       1
+  padding           7px 0 8px 0
+  text-align        center
+  text-shadow       0 -1px 0 #4c9021
+  width             150px
+  gradient(#7fbf4d,#63a62f)
+  rounded(3px)
+  shadow(inset 0 1px 0 0 #96ca6d)
+  &:hover
+    cursor          pointer
+    gradient(#76b347,#5e9e2e)
+    shadow(inset 0 1px 0 0 #8dbf67)
+  &:active
+    border          1px solid #5b992b
+    border-bottom   1px solid #538c27
+    shadow(inset 0 0 8px 4px #548c29\, 0 1px 0 0 #eee)
+.kdbuttonwithmenu-wrapper.cupid-green
+  .chevron-arrow
+    top             4px
+  .chevron-arrow-separator
+    border-left     1px solid #668471
+
+
+
+
+/* transparent
+*******************************************************************************/
+button.transparent
+  border            none
+  color             #333
+  // font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       11px
+  padding           3px 8px 4px 8px
+  text-align        center
+  text-shadow       0 1px 0 #eee
+  width             auto
+  height            auto!important
+  bg(color,transparent)
+  rounded(9px)
+  &:hover
+    cursor          pointer
+    color           white
+    text-shadow     0 1px 0 #000
+    shadow(inset 0 0 1px 0 #000)
+    gradient(#666,#888)
+  &:active
+    gradient(#444,#666)
+    shadow(inset 0 0 2px 1px #000)
+    
+
+
+
+
+.kdview.kdbuttongroup
+  display             inline-block
+  shadow              0 1px 0 rgba(255,255,255,.8)
+  size                auto, auto
+  rounded             3px
+  >button
+    border            1px solid #ccc
+    border-width      1px 0
+    border-color      #ccc #ccc #bbb #ccc
+    color             #333
+    font-size         11px
+    font-weight       bold
+    padding           3px 8px 4px 8px
+    text-align        center
+    text-shadow       0 1px 0 #eee
+    width             auto
+    gradient          rgba(247,247,245,1),rgba(210,210,208,1)
+    rounded           0
+    &:hover
+      border-color    #bbb #bbb #999 #bbb
+      cursor          pointer
+      text-shadow     0 1px 0 #ddd
+      gradient        #ddd, #bbb
+    &.active
+    &:active
+      color           #eee
+      text-shadow     0 1px 0 #333
+      gradient        #686868, #9a9a9a
+      border-color    #585858 #5a5a5a #858585 #5a5a5a
+      shadow          inset 0 0 6px 2px rgba(0,0,0,.3)
+    &.icon-only
+      padding         2px 3px
+    &.with-icon
+      span.icon
+        padding       2px 2px 1px 3px
+        margin-right  2px
+        bg            color,transparent
+
+  >button:first-child
+    border-width    1px
+    rounded         3px 0 0 3px
+
+  >button:last-child
+    border-width    1px
+    rounded         0 3px 3px 0
+
+

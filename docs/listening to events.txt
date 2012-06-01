@@ -1,0 +1,60 @@
+For view A to listen to view A's event:
+
+  override appropriate function in view A class:
+
+    e.g.
+
+    keyDown:(event)->
+      doSomething()
+      yes #propagate event on through the DOM
+
+    mouseUp:(event)->
+      @blah()
+      no #stop propagation of event through the DOM
+    
+  currently supported event types: check handleEvent in KDView.coffee (add more as necessary):
+    handleEvent:(event)->
+      switch event.type
+        when "keydown" then @keyDown event
+        when "mouseup" then @mouseUp event
+        when "mousedown" then @mouseDown event
+  
+For view B to listen to view A's event: <>-denotes optional
+
+  @listenTo <["mousedown","keydown"]>,callback,<viewA>
+
+
+For view B to listen to events only from views of class C:
+
+  Then
+    @listenTo <["classCMousedown","classCKeydown"]>,callback
+
+
+Turn off posting of events from class D:
+  override in view D class:
+    notifiesOthers:(event)->#notifies the rest of the code when event happens?
+      no
+
+
+===========================================
+
+Keyboard Events:
+To receive keyboard events, view A must be the "key view" in window controller:
+  (@getSingleton "windowController").setKeyView viewA
+
+To prevent view B from ever becoming key:
+  override in view B class:
+    acceptsKeyStatus:()->#can become the key view
+      yes
+
+To make view B modal (doesn't let anything else become the key view):
+  override in view B class:
+    resignsKeyStatus:()->#allows click on other element to make them key instead of this one (i.e. is modal?)
+      yes
+
+
+============================================
+
+Callback:
+callback(publishingInstance,value)
+for mouse, key events, value=event

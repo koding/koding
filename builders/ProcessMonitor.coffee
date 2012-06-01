@@ -1,0 +1,121 @@
+fs                = require 'fs'
+sys               = require 'sys'
+{spawn, exec}     = require 'child_process'
+{EventEmitter}    = require 'events'
+log4js            = require "./node_modules/log4js"
+log               = log4js.getLogger("[ProcessMonitor]")
+util              = require 'util'
+_                 = require './node_modules/underscore'
+
+class ProcessMonitor extends EventEmitter
+  
+  constructor:(options)->
+    @options = options ? {run:""}
+    @nodeServer = {}
+    @attachListeners()
+    @flags =
+      restart : no
+      restartInterval : 1000
+    @startProcess() if @options?.start?
+    
+  attachListeners:->
+    @on "processDidExit",(code)=>
+      if @flags.restart
+        process.nextTick =>
+          @startProcess() 
+          @flags.restart = no
+
+  setRunCommand:(run)->
+    @options.run = run
+  
+  monitorResourceUsage:(interval=5000)->
+    # dont use this.
+    setInterval ()=>
+      log.info util.inspect @nodeServer.memoryUsage()
+    ,interval
+    
+  restartProcess : (options)->
+    log.info "Restarting the process..."
+    @flags.restart = yes
+    @stopProcess()
+
+  pickUpTheErrorLine:(err)->
+    try
+      a = err.split("\n")
+      for i,k in a
+        if i.match("at ") and i.match(":")
+          erroneousLine = i
+          break
+          
+      b = erroneousLine.split(":")
+      path    = if b[0].match(/\(/) then (b[0].split "(")[1] else (b[0].replace(/^\s*|\s*$/g, '').split " ")[1]
+      lineNr  = b[1]*1
+      column  = if b[2].match(/\)/) then (b[2].split ")")[0]*1 else b[2]*1
+    
+      file    = (fs.readFileSync path,'utf-8').split("\n")
+
+      if /.coffee$/.test path
+        cs    = require 'coffee-script'
+        file  = cs.compile file, bare: yes
+
+      pointer = ""
+      for i in [0..column-1]
+        pointer += " "
+      pointer += "^"
+      a.splice k,0,file[lineNr-5]
+      a.splice k+1,0,file[lineNr-4]
+      a.splice k+2,0,file[lineNr-3]
+      a.splice k+3,0,file[lineNr-2]
+      a.splice k+4,0,file[lineNr-1]
+      a.splice k+5,0,pointer
+      a.splice k+6,0,file[lineNr]
+      a.splice k+7,0,file[lineNr+1]
+      a.splice k+8,0,file[lineNr+2]      
+      r = a#[0..k+9]
+
+      return r.join("\n")
+    catch e
+      log.warn "for this error,pickUpTheErrorLine() failed to show you the line @ProcessMonitor, you're on your own."
+      return err
+  
+  hideAnnoyingEventEmitterLog:(data)->
+    str = "(ignored annoying eventemitter 11 listeners added shit.)"
+    if data.match "EventEmitter memory leak detected." then return str
+    if data.match "at EventEmitter.<anonymous>" then return str
+    return data
+  startProcess : _.throttle ()->
+    cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
+    cmd = "NODE_PATH=$NODE_PATH:#{__dirname}/../our_modules;#{cmd}"
+    log.info "Starting the process $>#{cmd}"
+    @nodeServer         = exec cmd
+    @nodeServer.stdout.on 'data', (data)=> 
+      if data.match "Error"
+        data = @pickUpTheErrorLine(data)
+      
+      # data = @hideAnnoyingEventEmitterLog data
+      log.info "#{data}".replace /\n+$/, ''
+
+        
+    @nodeServer.stderr.on 'data', (data)-> 
+      log.info "#{data}".replace /\n+$/, ''
+    @nodeServer.on        'exit', (code)=>
+      if @flags.forever?
+        log.warn "Forever is on, I'm restarting in 1 sec."
+        @flags.restart = yes
+      @emit "processDidExit",code
+    
+      log.info "Process id: #{@nodeServer.pid} did exit with the exit code: #{code}"
+  ,1000
+    
+  stopProcess : ()->
+    log.info "Stopping the process..."
+    if @nodeServer.kill?
+      @nodeServer.kill "SIGTERM"
+    else
+      log.warn "There is no running process. Stop failed."
+
+module.exports = ProcessMonitor
+
+# test:
+# a = new ProcessMonitor run:["coffee",["./ServerTest.coffee"]],start:yes
+# setInterval (()->a.restartProcess()),4000

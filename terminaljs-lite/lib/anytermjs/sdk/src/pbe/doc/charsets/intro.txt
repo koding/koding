@@ -1,0 +1,192 @@
+Character Sets - Introduction
+=============================
+
+This is a bottom-up file-by-file introduction to the character-set functionality in the 
+include/charsets/ directory.
+
+char_t.hh
+---------
+
+This defines defined-size character types char8_t, char16_t and char32_t.
+
+Something similar is proposed for C++0x (see N1823).  That doesn't include char8_t; does 
+that mean that char is certain to be 8 bits?  Even so, I think that char8_t is a useful 
+alias.
+
+
+charset_t.hh
+------------
+
+This defines an enum, charset_t, to name character sets.
+
+It is populated with a large number of character set names and aliases automatically 
+generated from tha IANA character sets registrations.  See the file names.txt for more 
+information about this automatic processing.
+
+
+charset_names.hh
+----------------
+
+This file provides facilities to convert between the charset_t enum and textual 
+character set names (in ASCII).  This is also based on automatically-generated tables
+from the IANA data.
+
+
+charset_traits.hh
+-----------------
+
+This declares a class template, charset_traits<charset_t>, which can be specialised for 
+each character set.  Each specialisation indicates:
+
+- The unit and character types, which differ for character sets variable-length 
+  encodings.
+- A state type, for those character sets that have a "shift state".
+- Booleans to indicate characteristics such as whether the character set is an ASCII 
+  superset, and so on.
+- For variable-length encodings, various functions for encoding and decoding.  (More 
+  about this below.)
+
+More will probably be added, for example constants to indicate the maximum or 
+typical number of units per character.
+
+
+utf8.hh
+-------
+
+This provides a specialisation of charset_traits for utf8, including the encoding and 
+decoding functions.
+
+Similar files will be needed for UTF-16, iso-2022, GB18030, Big5, Shift-JIS etc.
+
+
+const_character_iterator.hh
+---------------------------
+
+This defines an iterator adaptor, using boost::iterator_adapter, that takes an iterator 
+over a sequence of units and provides a const iterator over its characters.  It does 
+this using the encoding and decoding functions from the charset_traits, which have 
+trivial implementations for fixed-length character sets.
+
+The iterator is bidirectional, not random access.
+
+
+character_output_iterator.hh
+----------------------------
+
+This defines a second iterator adaptor that provides a mutable character iterator from a 
+mutable unit iterator.  It is an output iterator, and would normally be used with a 
+back-insertion iterator that appends to the sequence of units.
+
+
+charset_char_traits.hh
+----------------------
+
+This provides per-character-set classes compatible with std::char_traits.
+
+
+error_policy.hh
+---------------
+
+When an error occurs during conversion, an error_policy indicates what should happen.  
+This file supplies two error policies, error_policy_throw and 
+error_policy_return_sentinel.
+
+
+char_conv.hh
+------------
+
+Class char_conv converts a single character from one character set to another.  The 
+input and output character sets, and an error policy, are indicated by template 
+parameters, and (partial) specialisation will be used to provide conversions for 
+particular character set pairs.
+
+The default class attempts to convert in two steps via UCS4.
+
+Static booleans could be added to indicate whether the conversion is 
+losslessly-reversible, and so on - "character set pair traits", in effect.
+
+
+conv/ascii.hh
+-------------
+
+Provides trivial conversion between ASCII and Unicode.
+
+
+conv/unicode.hh
+---------------
+
+Provides trivial conversion between the different Unicode character sets.
+
+
+conv/iso8859.hh
+---------------
+
+Provides conversion to and from the ISO 8859-n character sets.  Conversion for 8859-1 is 
+trivial.  For the other character sets, automatically generated tables from the Unicode 
+mapping data are used.  Tables for 8859-to-Unicode are built in; the sparser tables 
+for the reverse conversion are generated from them when first needed.
+
+
+char_converter.hh
+-----------------
+
+This is a simple wrapper around char_conv that uses a stateful functor to track the 
+shift state from one invocation to the next.
+
+
+sequence_conv.hh
+----------------
+
+This converts a sequence of characters using a similar interface to char_conv.  Its default 
+implementation invokes char_conv repeatedly to do the work.
+
+Specialisations of this will be provided for fast conversion of contiguous-in-memory data.
+
+
+sequence_converter.hh
+---------------------
+
+This is a simple wrpapper around sequence_conv that uses a stateful functor to track the 
+shift state from one invocation to the next.
+
+
+string_adaptor.hh
+-----------------
+
+This provides an adaptor that provides character-at-a-time access to a string of units.  It 
+stores a reference to the underlying string.
+
+There is still a lot of work to do here.  In particular, in each instance where a std::string 
+member takes or returns a position we have the choice to use
+1. A unit poisition.
+2. A character position.
+3. An iterator.
+
+There are pros and cons to each.
+
+There's also the question of over-writing the middle of a string.
+
+
+cs_string.hh
+------------
+
+A string tagged with its character set.  This is implemented using string_adaptor plus an 
+owned unit-string.  Again, lots still to be decided.
+
+
+
+STILL TO DO
+===========
+
+I still plan to add:
+
+- Fallback character conversion using iconv.
+
+- Optimisation for conversion of contiguous-in-memory data.
+
+- Conversion from one cs_string to another.
+
+- Typedefs for common string and character types, e.g. utf8_string.
+
+- Worry about all those places where I do comparisons on char values that may or
+  may not be signed....

@@ -1,0 +1,81 @@
+Character Set Names
+===================
+
+A typical entry from the IANA character set listing at 
+http://www.iana.org/assignments/character-sets is as follows:
+
+Name: ANSI_X3.4-1968                                   [RFC1345,KXS2]
+MIBenum: 3
+Source: ECMA registry
+Alias: iso-ir-6
+Alias: ANSI_X3.4-1986
+Alias: ISO_646.irv:1991
+Alias: ASCII
+Alias: ISO646-US
+Alias: US-ASCII (preferred MIME name)
+Alias: us
+Alias: IBM367
+Alias: cp367
+Alias: csASCII
+
+Based on this, three things are needed:
+- A set of valid C++ identifiers that can be used in the charset_t enumeration.
+- An ASCII string that should be output when the character set's name must be printed.
+- A set of ASCII strings that should be recognised when the character set's name is 
+  input.
+
+The following rules are applied:
+
+
+charset_t enumeration members
+-----------------------------
+
+The Name: and all Alias: lines are used.  All punctuation characters are replaced by 
+underscores; all adjacent punctuation characters are compressed to one, and any trailing 
+punctuation characters are trimmed (?).  Letters are mapped to lower case.  This results 
+for the example above in the following:
+
+ansi_x3_4_1968
+iso_ir_6
+ansi_x3_4_1986
+iso_646_irv_1991
+ascii
+iso646_us
+us_ascii
+us
+ibm367
+cp367
+csascii
+
+Variants are then produced with underscores omitted [but not underscores that separate 
+numbers on both sides]:
+
+ansi_x3_4_1968	ansix3_4_1968
+iso_ir_6	iso_ir6	isoir_6	isoir6
+ansi_x3_4_1986	ansix3_4_1986
+iso_646_irv_1991	iso_646_irv1991	iso_646irv_1991	iso_646irv1991
+	iso646_irv_1991	iso646_irv1991	iso646irv_1991	isi646irv1991
+ascii
+iso646_us	iso646us
+us_ascii	usascii
+us
+ibm367
+cp367
+csascii
+
+
+ASCII Output
+------------
+
+Two functions convert to ASCII: charset_name uses the string from the Name: line in 
+the description (ANSI_X3.4-1968 in this case) and charset_mime_name uses any "preferred 
+MIME name" that is specified (US-ASCII in this case).
+
+
+ASCII Input
+-----------
+
+The name is looked up in a similar table to the one used for enumerations above; the 
+lookup is insensitive to case and to punctuation.
+
+

@@ -1,0 +1,19 @@
+*** iana_character_sets.orig	2008-02-14 22:42:58.000000000 +0000
+--- iana_character_sets	2008-02-14 22:43:36.000000000 +0000
+***************
+*** 899,910 ****
+--- 899,912 ----
+  Source: the 2-octet Basic Multilingual Plane, aka Unicode
+          this needs to specify network byte order: the standard
+          does not specify (it is a 16-bit integer space)
++ Alias: UCS-2
+  Alias: csUnicode
+  
+  Name: ISO-10646-UCS-4
+  MIBenum: 1001
+  Source: the full code space. (same comment about byte order,
+          these are 31-bit numbers.
++ Alias: UCS-4
+  Alias: csUCS4
+  
+  Name: ISO-10646-UCS-Basic

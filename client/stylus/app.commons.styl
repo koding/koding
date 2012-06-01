@@ -1,0 +1,1218 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+@css {
+/*  
+COMMONS stylesheet
+app.commons.styl
+*/
+}
+p.warning
+  padding               8px 35px 8px 14px
+  margin-bottom         10px
+  text-shadow           0 1px 0 rgba(255, 255, 255, 0.5)
+  rounded               3px
+  &.info
+    bg                  color,#D9EDF7
+    border              1px solid #BCE8F1
+    color               #3A87AD
+  
+.input-with-extras
+  border                1px solid #c3c3c3
+  position              relative
+  // margin                10px 0
+  size                  auto,34px
+  rounded               5px
+  shadow                inset 0 1px 2px rgba(0,0,0,.1)
+  bg                    color,white
+  display               block
+  &.validation-error
+    border-color        red
+  > span.icon
+    position            absolute
+    display             block
+    top                 6px
+    left                9px
+    size                20px,20px
+    padding             0
+    margin              0 2px
+    border              none
+    bg                  color,transparent
+    visibility          hidden
+
+  input.kdinput.text
+    border              none
+    shadow              none
+    outline             none
+    padding             8px 38px 6px 10px
+    size                100%,100%
+    bg                  color,transparent
+    line-height         14px
+    borderBox()         
+    &:focus             
+      outline           none
+      border            none
+      shadow            none
+                        
+  button.kdbutton       
+    position            absolute
+    right               7px
+    top                 6px
+    margin              0
+    padding             4px 7px 3px 7px
+    min-width           24px
+    min-height          22px
+    line-height         20px
+    width               27px // added for firefox bug
+    height              23px // added for firefox bug
+    color               #666
+    &.with-icon         
+      padding           0 2px
+    span.icon           
+      position          relative
+      display           block
+      padding           0
+      margin            0
+      border            none
+      visibility        visible
+      margin            0px auto
+      display           inline-block
+      size              20px,20px
+      sprite()
+      bg                position,20px 20px
+      // THESE ARE BUTTON ICON SPRITES - inside the buttons
+      &.plus
+        bg              position,-120px -440px
+      &.activity        
+        bg              position,-160px -440px
+      &.search          
+        bg              position,-100px -440px
+                        
+  &.big                 
+    size                auto,34px
+                        
+  &.focus               
+    border              1px solid rgba(125,190,241,1)
+    shadow              0 0 3px rgba(125,190,241,.7)
+
+
+  &.with-icon
+
+    input.kdinput.text
+      padding         8px 38px 6px 40px
+
+    > span.icon
+      visible()
+      sprite()
+
+      // THESE ARE MAIN ICON SPRITES - left side of the inputview
+      &.search
+        bg            position,-100px -440px
+      &.members
+        bg            position,-100px -340px
+      &.wrench
+        bg            position,-100px -360px
+      &.location
+        bg            position,-100px -380px
+      &.chat
+        bg            position,-180px -500px
+      &.find
+        bg            position,-180px -420px
+
+
+//
+// BUTTON ICONS
+//
+button.kdbutton.with-icon
+  // width       auto
+  // min-width   150px
+//   padding       8px 8px 8px 0
+//   line-height   14px
+
+button.kdbutton.with-icon,button.kdbutton.icon-only
+  span.icon
+    sprite()
+    bg(position,20px 20px)
+    size(20px,20px)
+    position        relative
+
+    &.cog
+      bg            position,-60px -300px
+    &.cog-white
+      bg            position,-80px -300px
+    &.search
+      bg            position,-100px -480px
+    &.preview
+      bg            position,-160px -480px
+    &.check
+      bg            position,-62px -400px
+    &.plus-orange
+      bg            position,-120px -361px
+    &.plus-black
+      bg            position,-100px -560px
+
+/* editor-button
+*******************************************************************************/
+button.editor-button
+  // font-family       Droid
+  font-weight       normal
+  padding           6px 13px
+  text-shadow       0 1px 0 white
+  width             auto
+  shadow            0 1px 0 white
+  height            24px
+  line-height       12px
+  &:hover
+    border          1px solid #bbb
+    border-color    #bbb #bbb #999 #bbb
+    cursor          pointer
+    text-shadow     0 1px 0 #eee
+    background      linear-gradient(top, #ddd 0%,#bbb 100%)
+  &:active
+    border          1px solid #aaa
+    border-bottom   1px solid #888
+    shadow          inset 0 0 5px 2px #aaa\, 0 1px 0 0 #eee
+  &.icon-only
+    padding         1px 4px 1px 4px
+    height          20px
+    width           19px
+    size(19px,20px)
+    contentBox()
+  &.small
+    padding         4px 5px 3px 5px
+
+.kdbuttonwithmenu-wrapper.editor-button
+  button
+    padding-right   33px!important
+  .chevron-arrow
+    top             2px
+  &.small
+    .chevron-arrow
+      top           0
+
+.kdview.kdcontextmenu.kdbuttonmenu
+  &.editor-button
+    .chevron-arrow-ghost-wrapper
+      .chevron-arrow-ghost
+        margin-top  2px
+  &.small
+    .chevron-arrow-ghost-wrapper
+      .chevron-arrow-ghost
+        margin-top  0
+        
+
+/* editor-advanced-settings-menu-button
+*******************************************************************************/
+.kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
+  button.editor-advanced-settings-menu
+    text-indent       -1000px
+    padding           0!important
+    margin            0
+    size              20px,20px
+    shadow            none
+    border            none
+    bg                color,transparent
+    gradient          none
+    rounded           3px
+    &:hover
+      border          none
+      cursor          pointer
+      gradient        transparent,transparent
+    &:active
+      border          none
+      shadow          none
+    &.icon-only
+      height          18px
+      padding         0
+      contentBox()
+    &.small
+      padding         0
+    span.icon
+      left            0
+      margin          0
+      padding         0
+      position        absolute
+      size            17px,17px
+      top             0
+    
+  .chevron-arrow,.chevron-arrow-separator
+    hidden()
+
+.kdview.kdcontextmenu.kdbuttonmenu
+  &.editor-advanced-settings-menu
+    .chevron-arrow-ghost-wrapper
+      border-color    #bababa
+      .chevron-arrow-ghost
+        margin-top    0
+        bg            position,-60px -300px
+        bg            color,#f5f5f5
+        
+
+// CREDIT CARD INPUT VIEW
+
+.credit-card-input-view
+  display           inline-block
+  size              auto,auto
+  span.icon
+    position        absolute
+    top             2px
+    right           18px
+    sprite()
+    bg(position,20px 20px)
+    size(30px,20px)
+    &.visa
+      bg(position,-40px -440px)
+    &.mastercard
+      bg(position,-70px -440px)
+    &.discover
+      bg(position,-40px -460px)
+    &.amex
+      bg(position,-70px -460px)
+
+.ttag
+  padding             3px 6px
+  // bg                  color, #E80
+  bg                  color, linkColor1
+  color               white!important
+  rounded             3px
+  margin-right        5px
+  font-size           10px
+  line-height         10px
+  font-weight         700
+  text-transform      none
+  // vertical-align      top
+  display             inline-block
+  noTextDeco()
+  
+  > span
+    display             inline-block
+    margin              -2px 0 2px 0
+    line-height         1
+
+.link-group
+  display             inline-block
+
+.small-text
+  font-size       80%
+
+// .kdlistview-tags.kdautocompletelist
+// .form-actions-holder
+//   .kdview.kdlistview.kdautocompletelist 
+//     .kdautocompletelistitem
+//       .ttag
+//         color         white
+//         margin-right  0
+//       &:hover,
+//       &.active
+//         color         #444
+//         bg            color,rgba(238, 136, 0, .2)
+//         text-shadow   none
+//         .ttag
+//           shadow      0 1px 1px rgba(0, 0, 0, .05)
+//           color       white
+//           text-shadow none
+// 
+//   .kdautocompleteinputwrapper
+//     button
+//       position        absolute
+//       right           2px
+//       top             2px
+//       
+//     a.add-tag-link
+//       position        absolute
+//       right           5px
+//       top             5px
+//       color           linkColor1
+
+
+/* orange
+*******************************************************************************/
+
+button.koding-orange
+  border            1px solid rgba(0, 0, 0, 0.72)
+  color             #fff
+  font-size         11px
+  font-weight       600
+  line-height       1
+  padding           10px 15px
+  text-align        center
+  text-shadow       0 -1px 0 rgba(0, 0, 0, 0.38)
+  width             auto
+  shadow            0 1px 0 rgba(255, 255, 255, 0.23)
+  rounded           4px
+  background        linear-gradient(top,  #ffa615 0%,#c56121 84.7%)
+  &:hover
+    shadow          0 0 9px 1px rgba(255, 169, 0, 0.5)\,0 1px 0 rgba(255, 255, 255, 0.23)
+  &:active
+    background      linear-gradient(bottom,  #ffa615 0%,#c56121 100%)
+    shadow          inset 0 0 3px 1px rgba(0,0,0,.3)\,0 1px 0 rgba(255, 255, 255, 0.23)
+  &.loading:active
+    cursor          not-allowed
+    background      linear-gradient(top,  #ffa615 0%,#c56121 84.7%)
+    shadow          0 1px 0 rgba(255, 255, 255, 0.23)
+    
+
+/* blue
+*******************************************************************************/
+
+button.koding-blue
+  border            1px solid rgba(0, 0, 0, 0.72)
+  color             #fff
+  font-size         11px
+  font-weight       600
+  line-height       1
+  padding           10px 15px
+  text-align        center
+  text-shadow       0 -1px 0 rgba(0, 0, 0, 0.38)
+  width             auto
+  shadow            0 1px 0 rgba(255, 255, 255, 0.23)
+  rounded           4px
+  background        linear-gradient(top, #98C6F5 0%,#3197DE 84.7%)
+  &:hover
+    shadow          0 0 9px 1px rgba(146, 193, 245, 0.5)\,0 1px 0 rgba(255, 255, 255, 0.23)
+    // background      linear-gradient(top, #98C6F5 0%,#3197DE 100%)
+  &:active
+    background      linear-gradient(bottom, #98C6F5 0%,#3197DE 84.7%)
+    shadow          inset 0 0 3px 1px rgba(0,0,0,.3)\,0 1px 0 rgba(255, 255, 255, 0.23)
+
+/* follow-btn
+*******************************************************************************/
+
+button.follow-btn
+  border            1px solid #ddd
+  border-bottom-color    #cfcfcf
+  color             #7f7f7f
+  font-size         11px
+  width             80px
+  line-height       12px
+  padding           5px 5px 4px 5px
+  text-align        center
+  text-shadow       0 1px 0 #fff
+  font-weight       700
+  vertical-align    inherit
+  background        linear-gradient(top,  white 0%,#e6e5e5 94%)
+  shadow(0 1px 0 rgb(255, 255, 255))
+  rounded(3px,3px,3px,3px)
+
+  &:hover
+    background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+    border               1px solid #ddd
+    border-bottom-color  #cfcfcf
+    -moz-box-shadow      0 1px 0 #fff
+    -webkit-box-shadow   0 1px 0 #fff
+    box-shadow           0 1px 0 #fff
+    
+  &:active
+    background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+    border               1px solid #afafaf
+    border-bottom        1px solid #ddd
+    -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+  
+  &:before
+    content              url(../images/follow.png)
+    margin               0 6px 0 0 
+    vertical-align       middle
+
+
+
+/* following-btn
+*******************************************************************************/
+
+button.following-btn
+  border            1px solid #de7f08
+  border-bottom-color    #9D4E12
+  color             #fff
+  font-size         11px
+  width             80px
+  line-height       12px
+  padding           5px 5px 6px 5px
+  text-align        center
+  text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+  font-weight       700
+  background        linear-gradient(top,  #ffa615 30%,#c56121 90%)
+  shadow(0 1px 0 rgb(255, 255, 255))
+  rounded(3px,3px,3px,3px)
+
+  &:hover
+    background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+    color             #fff
+    border            1px solid #de7f08
+    border-bottom-color    #e08302
+    text-inder        -6000px
+    shadow(0 1px 0 rgb(255, 255, 255))
+    
+  &:active
+    background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+    color             #fff
+    border            1px solid #de7f08
+    border-bottom-color    #e08302
+    -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+
+  &:before
+    content              none
+    margin               0
+
+
+/* following-topics
+*******************************************************************************/
+
+button.following-topic
+  border            1px solid #ddd
+  color             #7f7f7f
+  font-size         11px
+  width             80px
+  line-height       12px
+  padding           5px 5px 6px 5px
+  text-align        center
+  text-shadow       none
+  font-weight       700
+  background        #fff
+  shadow(0 1px 0 rgb(255, 255, 255))
+  rounded           3px
+
+  &:hover
+    background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+    color             #fff
+    border            1px solid #de7f08
+    border-bottom-color    #e08302
+    shadow(0 1px 0 rgb(255, 255, 255))
+    
+  &:active
+    background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+    color             #fff
+    border            1px solid #de7f08
+    border-bottom-color    #e08302
+    -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+    box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+
+  &:before
+    content              none
+    margin               0
+
+
+/* kdwhite-btn
+*******************************************************************************/
+
+.kdwhitebtn
+  display                 inline-block
+  cursor                  pointer
+  text-align              center
+  padding                 7px 12px 7px 12px 
+  line-height             9px
+  background              linear-gradient(top, white 0%,#e6e5e5 93.7%)
+  border                  1px solid #ddd
+  border-bottom-color     #cfcfcf
+  text-decoration         none
+  color                   #666
+  text-shadow             0 1px 0 #fff
+  line-height             auto
+  overflow                hidden
+  margin-bottom           0px
+  font-size               11px
+  shadow                  0 1px 0 rgb(255, 255, 255)
+  rounded                 3px
+  &:hover
+    background            linear-gradient(top, #E9E8E8 0%,#D7D4D4 93.7%)
+    shadow                0 1px 0 #fff
+  &:active
+    border                1px solid #afafaf
+    border-bottom         1px solid #ddd
+    background            linear-gradient(top, #E9E8E8 0%,#D7D4D4 93.7%)
+    shadow                inset 0 2px 1px rgba(0, 0, 0, 0.13)
+
+
+
+button.new-item-button
+  border            1px solid #eee
+  color             #333
+  font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       11px
+  padding           3px 8px 4px 8px
+  text-align        center
+  width             auto
+  height            auto!important
+  top               20px
+  bg(color,#FFC)
+  margin-left       0
+  rounded           9px
+  &:hover
+    cursor          pointer
+    color           white
+    text-shadow     0 1px 0 #000
+    shadow(inset 0 0 1px 0 #000)
+    gradient(#666,#888)
+  &:active
+    gradient(#444,#666)
+    shadow(inset 0 0 2px 1px #000)
+
+button.save-edit-button
+  z-index           10
+  top               40px
+  fr()
+  border            1px solid #63a62f
+  border-color      #63a62f #63a62f #5b992b #63a62f
+  color             #fff
+  font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       1
+  padding           3px 12px 4px 12px
+  text-align        center
+  text-shadow       0 -1px 0 #4c9021
+  size(auto,20px)
+  gradient(#7fbf4d,#63a62f)
+  rounded           10px
+  shadow(inset 0 1px 0 0 #96ca6d)
+  &:hover
+    cursor          pointer
+    gradient(#76b347,#5e9e2e)
+    shadow(inset 0 1px 0 0 #8dbf67)
+  &:active
+    border          1px solid #5b992b
+    border-bottom   1px solid #538c27
+    shadow(inset 0 0 8px 4px #548c29\, 0 1px 0 0 #eee)
+
+button.cancel-edit-button
+  z-index           10
+  top               60px
+  border            1px solid #fff
+  color             #333
+  font-family       lucida
+  font-size         11px
+  font-weight       bold
+  line-height       11px
+  padding           3px 8px 4px 8px
+  text-align        center
+  width             auto
+  height            auto!important
+  margin-right      0
+  fr()
+  bg(color,transparent)
+  rounded           9px
+  &:hover
+    cursor          pointer
+    color           white
+    text-shadow     0 1px 0 #000
+    shadow(inset 0 0 1px 0 #000)
+    gradient(#666,#888)
+  &:active
+    gradient(#444,#666)
+    shadow(inset 0 0 2px 1px #000)
+
+.modal-clean-gray
+  border            1px solid #ccc
+  border-color      #787878 #787878 #6c6c6c #787878
+  color             #5e5e5e
+  font-size         12px
+  font-weight       normal
+  line-height       1
+  padding           5px 12px
+  text-align        center
+  text-shadow       0 1px 0 #f1f1f0
+  width             150px
+  background        linear-gradient(top, #f7f7f5 0%,#a2a2a2 100%)
+  rounded           3px
+  &.w-loader
+    padding         5px 20px!important
+  &:hover
+    border          1px solid #bbb
+    border-color    #bbb #bbb #999 #bbb
+    cursor          pointer
+    text-shadow     0 1px 0 #ddd
+    background      linear-gradient(top, #ddd 0%,#bbb 100%)
+  &:active
+    border          1px solid #aaa
+    border-bottom   1px solid #888
+    shadow(inset 0 0 5px 2px #aaa\, 0 1px 0 0 #eee)
+
+.modal-clean-red
+    border            1px solid #ccc
+    border-color      #c63929 #c63929 #b51700 #c63929
+    color             #fff
+    font-size         12px
+    font-weight       normal
+    line-height       1
+    padding           5px 12px !important
+    text-align        center
+    text-shadow       0px -1px 0 rgba(0, 0, 0, .3)
+    width             150px
+    background        linear-gradient(top, #ee432e 0%,#c63929 100%)
+    rounded           3px
+    &:hover
+      border          1px solid #b51700
+      border-color    #b51700 #b51700 #999 #b51700
+      cursor          pointer
+      text-shadow     0 1px 0 rgba(0, 0, 0, .3)
+      // gradient(#ee432e,#b51700)
+    &:active
+      border          1px solid #b51700
+      border-bottom   1px solid #951700
+      shadow(inset 0 0 5px 2px #b51700)
+
+.modal-cancel
+  border            none
+  line-height       15px !important
+  color             rgb(176, 176, 176)
+  text-shadow       0 1px 1px #fbfbfb
+  display           inline-block
+  vertical-align    middle
+  padding           6px
+  bg(color,transparent) !important
+  &:hover
+    color           #787878
+
+
+
+
+.small-loader
+  opacity         .5
+  display         inline-block
+  padding         0!important
+  bg(image,url("../images/small-loader.gif"))
+  bg(color,transparent)
+  bg(repeat,no-repeat)
+  bg(position,0 0)
+  size(10px!important,10px!important)
+  &.white
+    bg(image,url("../images/small-loader-white.gif"))
+
+.right-overflow
+  width           auto
+  display         block
+  overflow        hidden
+
+.avatarview
+  display         block
+  min-width       10px
+  min-height      10px
+  bg              position,center center
+  bg              repeat,no-repeat
+
+.avatar
+  min-width       10px
+  min-height      10px
+  fl()
+  &.s40
+    size          40px,40px
+  &.s50
+    size          50px,50px
+  &.s60
+    size          60px,60px
+  &.s90
+    size          90px,90px
+  &.s94
+    size          94px,94px
+  &.s140
+    size          140px,140px
+
+
+
+//
+// KDModalView Override Styles
+//
+
+.kdmodal
+  padding                 7px 7px 7px 7px 
+  border                  1px solid rgba(255,255,255,.3)
+  shadow                  none !important
+  bg(color,rgba(0,0,0,.2))
+  .kdmodal-shadow
+    shadow(0 0 45px 15px rgba(0,0,0,.4))
+  .kdmodal-inner
+    height                auto
+    rounded               3px
+    bg(color,white)
+    .kdmodal-title
+      height              50px
+      font-size           15px
+      color               #474646
+      line-height         15px
+      margin              0
+      padding             0
+      span.title
+        height            100%
+        blockMid()
+        line-height       50px
+        padding-left      20px
+    .close-icon
+      right               23px
+      top                 23px
+      z-index             10
+      bg                  position,-80px -220px
+      &:hover
+        bg                position,-80px -240px
+    .kdmodal-content
+      margin              0
+      padding             0
+      line-height         1
+      border-bottom       none
+  .kdmodal-buttons
+    height              43px
+    width               auto
+    borderBox()
+    .modal-clean-gray,.modal-clean-red,.modal-cancel
+      margin            10px 10px 7px -2px
+  .kdmodal.with-buttons
+    position            relative !important
+    top                 -43px
+  .modalformline
+    border-bottom       1px solid #e5e5e5
+    padding             11px 20px 11px 20px
+    size                auto,auto
+    // borderBox()
+    &:last-child
+      border-bottom     none
+    label 
+      min-width         90px
+      blockMid()
+    input,textarea
+      min-width         160px
+      margin-right      15px
+      border            1px solid #c9c9c9
+      // text-shadow       1px 0 0 #d3d3d3
+      color             #282521 !important
+      line-height       14px
+      blockMidTop()
+    .kdinputswitch-ry
+      float             right
+      margin-top        0
+    .select
+      margin-right      10px
+    p
+      line-height       22px
+
+    div.kdselectbox
+      span.title
+        line-height     23px
+        height          22px
+    .linkholder
+      padding           0 0 10px 0
+      display           inline-block
+      width             200px
+      a
+        display         block
+        cursor          pointer
+        margin-bottom   5px
+  .help-heart
+    top               -34px
+    left              10px
+    width             180px
+
+ 
+.kddialog-buttons
+  .modal-clean-gray
+    margin              10px 10px 0 0
+
+.application-page
+  .kddialog-buttons
+    .modal-clean-gray
+      margin            10px 10px 10px 0
+      
+    .modal-cancel
+      margin            9px 5px 0 0
+
+/* sitewide help */
+.help-heart
+  color                 #c5c5c5
+  height                auto!important
+  span
+    margin-right        6px
+    size(20px,20px)
+    sprite()
+    bg(position,-100px -500px)
+    fl()
+
+  > div
+    font-size           9px
+    overflow            hidden
+    // width               100px // breaks the link in modals to two lines. -sinan.
+    // fl()
+    a
+      font-size         11px
+      text-decoration   none
+      color             #ffbb60
+    cite
+      font-style          normal
+      display             block
+
+  &:hover
+    color               #000
+    cursor              pointer
+    a
+      color             #ff9202
+      text-decoration   underline
+    span
+      sprite()
+      bg(position,-120px -500px)
+
+.feeder-tabs
+  width                     auto
+  border-left               1px solid #e8e8e8
+  borderBox()
+
+.common-inner-nav
+  width                     auto!important
+  padding                   6px 14px 19px 0px
+  margin                    0 0 0 14px
+  min-height                350px
+  borderBox()
+  .list
+    height                  auto
+    padding                 9px
+    border-bottom           1px solid #f5f5f5
+    borderBox()
+    h4
+      font-size             9px
+      border                none
+      line-height           20px
+      color                 #9f9d9a
+      margin-bottom         4px
+      span
+        margin              0
+      .arrow
+        position            absolute
+        top                 0
+        right               0
+        blockMid()
+        size(20px,20px)
+        sprite()
+        bg(position,-140px -500px)
+    .feed,.showme,.actions
+      padding-bottom        18px
+    ul
+      margin                0
+      width                 93px
+    li
+      color               #7C603B
+      line-height         16px
+      margin-bottom       6px
+      font-size           12px
+      a
+        color               #7c603b
+        display             block
+        font-weight         normal
+        cursor              pointer
+        text-decoration     none
+        &:hover
+          color               #299FC6
+          font-weight         normal
+      a.active
+        color               linkColor1
+        font-weight         bold
+    li.selected
+      a
+        color #FF9200
+        font-weight bold
+
+  .list.feed
+    border-bottom         1px solid #f2f2f2
+  .list.showme
+    padding               19px 9px 15px 9px
+  .actions-sort,.actions-tags
+    height              34px
+    border-top          1px solid #f2f2f2
+    padding             6px 9px 6px 9px
+    h4
+      margin-bottom     4px
+      cursor            pointer
+      cursor            pointer
+      height            20px
+      span
+        display         inline-block
+  .actions-tags
+    border-bottom         1px solid #f2f2f2
+    margin-bottom         30px
+  .actions-sort.active,.actions-tags.active
+    height              auto
+  .help-heart
+    position            absolute
+    bottom              10px
+  > button
+    display             block
+    width               100%
+    margin              9px 0
+
+.langtags
+  -webkit-font-smoothing          antialiased
+  span
+    display       inline-block
+    padding       0 6px 0 6px
+    line-height   17px
+    font-size     10px
+    font-weight   800
+    rounded       5px
+    color         white
+  span.color1   
+    bg(color,#a75375)
+  span.color2   
+    bg(color,#ab4113)
+  span.color3   
+    bg(color,#f38903)
+  span.color4   
+    bg(color,#419234)
+  span.color5   
+    bg(color,#b36643)
+  .kdlistitemview-default
+    width               auto
+    margin-right        5px
+    blockMid()
+
+
+.kdsplitview-panel.toggling
+  .generic-menu-toggler
+    position          absolute
+    right             2px
+    top               3px
+    z-index           2
+    size              10px,10px
+    cursor            pointer
+    sprite()
+    bg                position,-60px -320px
+    opacity           .4
+  &.collapsed
+    cursor            pointer
+    z-index           10
+    overflow          hidden //removing scrollbars to be able to click on right side of collapsed panel to be able to expand it
+    .generic-menu-toggler
+      bg              position,-80px -320px
+      right           0px
+    &:hover
+      bg              color,rgba(255, 146, 0, 0.2)
+      shadow          1px 0 2px rgba(0, 0, 0, 0.1)
+      border-right    1px solid #ddd
+
+
+
+
+.tags-selected-item-wrapper
+  .kdview.kdautocompletedlistitem
+    bg                color,#E80
+    border            none
+    margin-right      5px
+    margin-bottom     5px
+    padding           0 20px 0 0
+    line-height       18px
+    height            18px
+    rounded           3px
+    &:hover
+      color           white
+      bg              color,#0A92BA
+      .ttag
+        bg            color,#0A92BA
+    .ttag
+      color           white
+      margin-right    0
+      cursor          pointer
+      &:hover
+        color         white
+    .close-icon
+      bg              position, -60px -241px  
+
+
+
+figure.code-container
+  position              relative
+  pre
+    padding             10px 10px 0 10px
+    margin              0
+    overflow            visible
+    size                auto,auto
+    bg                  color,#2E2E2E
+    rounded             4px
+    code
+      max-height        250px
+      overflow          auto
+      padding           6px 6px 15px 6px
+      bg                color,transparent
+  > strong
+    position          absolute
+    right             -1px
+    top               7px
+    color             #fff
+    padding           3px 12px 4px 12px
+    bg                color,#ff9200
+    font-size         10px
+    line-height       10px
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.35)
+    text-transform    uppercase
+    shadow            0 1px 1px rgba(0, 0, 0, 0.54)
+  .button-bar
+    bg                color,#1E1E1E
+    height            37px
+    border-top        1px solid rgba(255, 255, 255, 0.4)
+    rounded           0 0 4px 4px
+    button
+      margin          5px 0 0 5px
+
+
+/* feed messages */
+.activity
+  .pane-message
+    margin              75px 0 -75px 0
+    
+.pane-message
+  bg                  color,#FFF7DA
+  box-shadow          inset 0 0 5px rgba(0, 0, 0, 0.17)
+  box-sizing          border-box
+  color               #777
+  font-size           12px
+  height              auto
+  padding             15px 17px 10px 17px
+  text-align          left
+  text-shadow         0 1px 0 white
+  
+  cite
+    sprite()
+    bg                  position, 0 -670px
+    // display             inline-block
+    height              20px
+    margin-right        12px
+    vertical-align      middle
+    width               20px
+    fl()
+    
+  .close-btn
+    sprite()
+    bg                  position, -80px -240px
+    cursor              pointer
+    height              20px
+    vertical-align      middle
+    width               20px
+    position            absolute
+    right               20px
+    top                 10px
+    
+  .message-internals
+    overflow            hidden
+    width               auto
+    margin-right        30px
+    max-width           500px
+    p
+      margin-bottom     5px
+      line-height       140%
+      strong
+        color           #666
+    
+
+
+
+
+
+// /*   
+//   Animation tests
+// */
+
+
+// /* follow-btn-transition
+// *******************************************************************************/
+
+// // @keyframes flip
+// //   0%
+// //     padding 0
+// //   50%
+// //     padding 0 20px
+// //     background-color    rgba(255,0,0,0.2)
+// //   100%
+// //     padding 0 100px
+// //     background-color    rgba(255,0,0,0.9)
+
+
+// button.follow-btn-clone
+//   border            1px solid #ddd
+//   border-bottom-color    #cfcfcf
+//   color             #7f7f7f
+//   font-size         11px
+//   width             120px
+//   line-height       12px
+//   padding           5px 5px 4px 5px
+//   text-align        center
+//   text-shadow       0 1px 0 #fff
+//   font-weight       700
+//   vertical-align    inherit
+//   background        linear-gradient(top,  white 0%,#e6e5e5 94%)
+//   shadow(0 1px 0 rgb(255, 255, 255))
+//   rounded(3px,3px,3px,3px)
+//   transition        all .3s linear
+
+//   &:hover
+//     background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
+//     border               1px solid #afafaf
+//     border-bottom        1px solid #ddd
+//     -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+//     -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+//     box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+  
+//   &:before
+//     content              url(../images/follow.png)
+//     margin               0 6px 0 0 
+//     vertical-align       middle
+
+
+// /* following-btn
+// *******************************************************************************/
+
+// button.following-btn-clone
+//   border            1px solid #de7f08
+//   border-bottom-color    #9D4E12
+//   color             #fff
+//   font-size         11px
+//   width             80px
+//   line-height       12px
+//   padding           5px 5px 6px 5px
+//   text-align        center
+//   text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
+//   font-weight       700
+//   background        linear-gradient(top,  #ffa615 30%,#c56121 90%)
+//   shadow(0 1px 0 rgb(255, 255, 255))
+//   rounded(3px,3px,3px,3px)
+//   transition        all 3s linear
+
+//   &:hover
+//     background        linear-gradient(top, #c56121 30%,#e08302 90%)
+//     border            1px solid #de7f08
+//     border-bottom-color    #e08302
+//     -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+//     -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+//     box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
+
+//   &:before
+//     content              none
+//     margin               0
+
+// /* ****************************************************************************** */
+
+// button.koding-orange-clone
+//   border            1px solid rgba(0, 0, 0, 0.72)
+//   color             #fff
+//   font-size         11px
+//   font-weight       600
+//   line-height       1
+//   padding           10px 15px
+//   text-align        center
+//   text-shadow       0 -1px 0 rgba(0, 0, 0, 0.38)
+//   width             auto
+//   shadow    0 1px 0 rgba(255, 255, 255, 0.23)
+//   rounded(4px)
+//   background        linear-gradient(top,  #ffa615 0%,#c56121 84.7%)
+//   transition        all 3s linear
+
+//   &:hover
+//     background        linear-gradient(top,  #c56121 0%,#ffa615 84.7%)
+
+
+
+
+

@@ -1,0 +1,30 @@
+nginx configuration:
+
+1) map  $http_host  $backend_ip_addr  {
+           default <some web server addr>; #sets a value for the second variable when the value of the first variable cannot be found.
+
+           include /etc/nginx/conf.d/hosting_upstream_map;
+   }
+
+/etc/nginx/conf.d/hosting_upstream_map:
+    <backend_vhost_name0> <backend_web_server0>;
+    <backend_vhost_name1> <backend_web_server0>;
+    <backend_vhost_name2> <backend_web_server0>;
+    ....
+    <backend_vhost_name10> <backend_web_server1>;
+    <backend_vhost_name11> <backend_web_server2>;
+    <backend_vhost_name12> <backend_web_server3>;
+
+
+2) proxy_pass should be second variable from map module:
+
+location / {
+                   proxy_set_header X-Forwarded-Host $host;
+                   proxy_set_header X-Forwarded-Server $host;
+                   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                   proxy_set_header Host $host;
+                   proxy_redirect off;
+                   proxy_connect_timeout 30;
+                   proxy_read_timeout 30;
+                   proxy_pass http://$backend_ip_addr;
+       }

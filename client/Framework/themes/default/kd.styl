@@ -1,0 +1,522 @@
+@import "./client/Framework/themes/default/kdfn"
+
+@css {
+/*  
+KD FRAMEWORK stylesheet starts
+kd.styl
+*/
+}
+
+body,html
+  size(100%,100%)
+
+/* 
+**  KDView STYLES --
+*/
+
+.kdview
+  position relative
+  overflow hidden
+  size(100%,100%)
+
+span.hint
+  color             #7e6b3d
+  line-height       2em
+  font-style        italic
+  font-size         .8em
+
+.border-box
+  borderBox()
+
+.content-box
+  contentBox()
+
+.fl
+  fl()
+.fr
+  fr()
+.lowercase
+  text-transform    lowercase
+/* 
+**  KDHeaderView STYLES
+*/
+h1.kdheaderview,h2.kdheaderview,h3.kdheaderview,h4.kdheaderview
+  font-weight normal
+  color #444
+  border-bottom 1px solid #ddd
+/*
+  span
+    margin 0 15px
+*/
+h1.kdheaderview
+  font-size 20px
+  line-height 40px
+  height 40px
+
+h2.kdheaderview
+  font-size 16px
+  line-height 31px
+  height 31px
+  span
+    margin 0 10px
+
+h3.kdheaderview
+  font-size 14px
+  line-height 25px
+  height 25px
+  span
+    margin 0 10px
+
+h4.kdheaderview
+  font-size 12px
+  line-height 20px
+  height 20px
+  width auto
+  span
+    margin 0 5px
+
+/* 
+**  KDSplitView STYLES
+*/
+.kdsplitview
+  position    relative
+  size        100%,100%
+  .kdsplitview-panel
+    overflow auto
+  >.kdsplitview-resizer
+    left 0
+    top 0
+    position absolute
+    z-index 9999
+    noTextSelection()
+    &:hover
+      background-color rgba(0,0,0,.2)
+  &.min-width-reached
+    overflow auto
+
+.kdsplitview-vertical
+  >.kdsplitview-panel
+    position absolute
+    size(50%,100%)
+  >.kdsplitview-resizer
+    cursor ew-resize
+    background rgba(0,0,0,.1) url("../images/left.resizer.ver.png") no-repeat 50% 50%
+    size(10px,100%)
+
+.kdsplitview-horizontal
+  >.kdsplitview-panel
+    position absolute
+    size(100%,50%)
+  >.kdsplitview-resizer
+    cursor ns-resize
+    background rgba(0,0,0,.1) url("../images/left.resizer.hor.png") no-repeat 50% 50%
+    size(100%,10px)
+
+.resize-in-action
+  noTextSelection()
+
+/* 
+**  KDTabView STYLES
+*/
+.kdview.kdhiddentab
+  position  absolute
+  left      -10000px!important
+
+.kdtabhandlecontainer
+  padding-top 10px
+  border-bottom 1px solid #ddd
+  background-color browser-bg
+  overflow visible
+  height 30px
+
+  .kdtabhandle
+    position        relative
+    color           k-orange
+    line-height     30px
+    padding         0 25px 0 15px
+    cursor          pointer
+    border          1px solid transparent
+    border-width    1px 1px 0
+    rounded    3px,3px,0,0
+    size            auto,29px
+    borderBox()
+    fl()
+    &:hover
+      size          auto,28px
+      bg            color,avatar-border-color
+    // &:first-child
+    //   margin-left   15px
+    b
+      font-weight   normal
+      text-overflow ellipsis;
+      white-space   nowrap
+      overflow      hidden
+      width         auto
+      display       inline-block
+        
+  .kdtabhandle.hide-close-icon
+    padding 0 15px 1px 15px
+    span.close-tab
+      display none
+
+  .kdtabhandle.hidden
+    hidden()
+
+  .kdtabhandle.active
+    color #222
+    padding-bottom: 1px
+    border 1px solid #ddd
+    border-width 1px 1px 0
+    background-color #fff
+    size(auto,29px)
+    z-index 1
+    
+    span.close-tab
+      bg          position,-80px -220px
+      &:hover
+        bg        position,-80px -240px
+
+.kdtabhandlecontainer.hide-close-icons
+  span.close-tab
+    display none
+  .kdtabhandle
+    padding 0 15px 1px 15px
+
+.kdtabview.subtabs
+  .kdtabhandlecontainer
+    padding 5px 0 2px 0
+    font-size .85em
+    border-bottom 1px solid #eee
+    background-color white
+    overflow visible
+    height 20px
+    .kdtabhandle
+      position relative
+      color k-orange
+      line-height 20px
+      padding 0 25px 0 15px
+      cursor pointer
+      border none
+      fl()
+      size(auto,20px)
+      &:hover
+        size(auto,20px)
+        background-color white
+      &:first-child
+        margin-left 15px
+
+      b
+        font-weight normal
+
+    .kdtabhandle.active
+      color #222
+      padding-bottom none
+      border none
+      size(auto,20px)
+      z-index 1
+      b
+        font-weight bold
+
+/* 
+**  KDListView STYLES
+*/
+.kdview.kdlistview
+  size(auto,auto)
+
+.kdview.listview-wrapper
+  .lazy-loader
+    text-align        center
+    line-height       40px
+    .kdview.kdloader
+      margin          0 0 -4px 4px
+
+.kdlistview-sorter
+  border-bottom       1px solid #eee
+  margin              0 20px 7px 20px
+  line-height         30px
+  size(auto,30px)
+  span.sort-by
+    margin            0 10px 0 0
+    font-style        italic
+    color             #aaa
+    font-size         .9em
+    font-family       serif
+  a
+    font-size         .85em
+    padding           0 10px 0 0
+    margin            0 10px 0 0
+    color             k-orange
+    text-decoration   none
+    border-right      1px solid #ddd
+    &:hover
+      text-decoration   underline
+    &:last-child
+      border-right      none
+      
+  a.active
+    color             normal-text
+
+.kdview.kdlistitemview
+  .kdlistitemview-default-content
+    padding 10px
+    color #888
+    font-size .9em
+    background-color rgba(224, 197, 137,.4)
+    b
+      color k-orange
+
+      
+/* 
+**  KDAutoComplete STYLES
+*/
+.kdautocomplete.listview-wrapper
+  position          absolute
+  border            1px solid #ddd
+  border            1px solid rgba(125,190,241,1)
+  border-top        1px solid #f2f2f2
+  margin            -1px 0 0 4px
+  z-index           20000
+  size              auto,auto
+  bg                color,white
+  shadow            0,3px,6px,rgba(0,0,0,.1)
+  rounded      0,0,5px,5px
+  .kdview.kdlistview.kdautocompletelist      
+    padding           5px 0
+    .kdautocompletelistitem
+      padding         0 5px
+      border          none
+      cursor          pointer
+      line-height     27px
+      bg(color,transparent)
+      borderBox()
+    .kdautocompletelistitem.active
+      color           white
+      text-shadow     0 1px 0 rgba(0,0,0,.5)
+      bg(color,rgba(125,190,241,1))
+      shadow(0,0,1px,rgba(0,0,0,.2),inset)
+
+.kdautocompleteinputwrapper
+  position            relative
+  display             block
+  background          #fff
+  // border              1px solid #ccc
+  outline             none
+  rounded(4px)
+  shadow(0,1px,0,white)
+  borderBox()
+  // &:hover
+  //   border            1px solid #aaa
+  &.input-with-extras
+
+    input.kdinput.text
+      height          22px
+      padding         2px 40px 2px 2px 
+      // border          none
+      shadow(none)
+      fl()
+      &:hover
+        border none
+      &:focus
+        shadow(none)
+        border none
+
+// .kdautocompleteinputwrapper.focus
+//   border            1px solid rgba(125,190,241,1)
+//   shadow(0,0,3px,rgba(125,190,241,.7))
+
+.kdautocompletedlistitemwrapper
+  fl()
+.kdview.kdautocompletedlistitem
+  margin            1px 0 0 1px
+  font-size         11px
+  color             link-color
+  line-height       20px
+  padding           0 20px 0 8px
+  border            1px solid rgba(204,217,225,1)
+  bg                color,rgba(224,237,245,.9)
+  size              auto,20px
+  rounded           3px
+  fl()
+  span.close-icon
+    position        absolute
+    right           0
+    top             0
+    cursor          pointer
+    
+    
+
+    
+/* 
+**  KDNotification STYLES
+*/
+.kdnotificationholder
+  position absolute
+  left -9999px
+  size(100%,100%)
+
+.kdnotification
+  position            absolute
+  background-color    rgba(0,0,0,.4)
+  padding             10px 30px 10px 10px
+  z-index             20001
+  rounded             5px
+  .kdnotification-title
+    color             white
+    font-size         24px
+    line-height       36px
+    margin            2px
+    padding           2px 10px
+    font-weight       bold
+    fl()
+
+  .kdnotification-content
+    font-size         12px
+    line-height       36px
+    margin            5px 2px 2px
+    padding           2px 10px
+    color             white
+    fl()
+
+  .kdnotification-timer
+    position          absolute
+    top               21px
+    right             25px
+    color             white
+    line-height       15px
+    text-align        center
+    font-size         15px
+    size              20px,24px
+
+  a.kdnotification-close
+    position              absolute
+    cursor                pointer
+    display               block
+    top                   24px
+    right                 5px
+    line-height           24px
+    text-align            center
+    font-size             24px
+    text-decoration       none
+    color                 white
+    size                  20px,24px
+    &:hover               
+      text-shadow         0 1px 0 #444
+
+  &.tray
+  &.growl
+    background-color      rgba(0,0,0,.4)
+    .kdnotification-title
+      font-size           18px
+      line-height         28px
+      float               none
+
+    .kdnotification-content
+      margin-top          0
+      font-size           11px
+      line-height         20px
+      float               none
+
+    a.kdnotification-close
+      top                 18px
+      right               5px
+      line-height         24px
+      font-size           18px
+      size                20px,18px
+      &:hover
+        text-shadow       0 1px 0 #444
+    &.mini
+      padding             5px
+      rounded             5px
+      .kdnotification-title
+        font-size         12px
+        line-height       16px
+        font-weight       normal
+        float             none
+
+      .kdnotification-content
+        margin-top        0
+        font-size         10px
+        line-height       14px
+        float             none
+      
+  &.mini
+    rounded               0 0 5px 5px
+    padding               1px
+    shadow                0 0px 1px 1px  rgba(255,255,255,0.1)\, inset 0 0px 2px #000
+    .kdnotification-title
+      font-size           12px
+      line-height         16px
+      font-weight         normal
+      float               none
+
+    .kdnotification-content
+      margin-top          0
+      font-size           10px
+      line-height         14px
+      float               none
+    &.error
+      background        rgba(185, 74, 72, 0.9)
+      font-weight       600
+    &.success
+      background        rgba(70, 136, 71, .8)
+      font-weight       600
+    
+
+
+
+/* 
+**  KDOverlay STYLES
+*/
+.kdoverlay
+  position absolute
+  top 0
+  left 0
+  z-index 10000
+  background rgba(0,0,0,.2)
+  size(100%,100%)
+
+.kdoverlay.transparent
+  background transparent
+
+
+
+/*
+  Global styles
+*/
+span.close-tab,.close-icon
+  position      absolute
+  display       block
+  right         0
+  top           2px
+  overflow      hidden
+  size          20px,20px
+  cursor        pointer
+  sprite()
+  bg          position,-60px -220px
+  &:hover
+    bg        position,-60px -240px
+
+span.close-btn-x
+  position      absolute
+  display       block
+  right         0
+  top           2px
+  overflow      hidden
+  size          20px,20px
+  sprite()
+  bg          position,-60px -220px
+  &:hover
+    cursor    pointer
+    bg        position,-60px -240px
+
+
+.kdview.kdloader
+  display             inline-block
+  span
+    size              100%,100%
+    > *
+      vertical-align  top
+
+/**/
+/* GENERIC STYLES */
+/**/

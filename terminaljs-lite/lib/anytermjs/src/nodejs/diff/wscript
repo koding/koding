@@ -1,0 +1,23 @@
+import Options
+from os import unlink, symlink, popen
+from os.path import exists 
+
+srcdir = "."
+blddir = "../../../build/app/src/nodejs/diff"
+VERSION = "0.0.1"
+
+def set_options(opt):
+  opt.tool_options("compiler_cxx")
+
+def configure(conf):
+  conf.check_tool("compiler_cxx")
+  conf.check_tool("node_addon")
+
+def build(bld):
+  obj = bld.new_task_gen("cxx", "shlib", "node_addon")
+  obj.target = "diff"
+  obj.source = "src/diff.cpp"
+  obj.install_path ="../../../nodejs/lib"
+  obj.cxxflags = ["-g","-I../../../libraries/log/include","-I../../../libraries/terminal/include","-I../../../libraries/diff/include","-I../../../../sdk/include","-I../../../../sdk/include/pbe","-I../../../../../src/nodejs/common/src"]
+  obj.linkflags = ["-g","-lpthread","-lutil","-L../../../libraries/diff/lib","-ldiff","-L../../../libraries/terminal/lib","-lterm","-L../../../libraries/log/lib","-llog","-L../../../../sdk/lib.static/boost","-lboost_thread-mt","-lboost_system-mt","-lboost_log-mt","-lboost_filesystem-mt","-L../../../../sdk/lib.static/pbe","-lpbe"]
+

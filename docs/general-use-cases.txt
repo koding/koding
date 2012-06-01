@@ -1,0 +1,124 @@
+1 Chat page, peer to peer
+  1.1 Messaging
+    a. Click person from the left sidebar to start chat with that person. Chat window will appear.
+    b. Type the message in appeared textbox of the chat window.
+    c. Press "enter" button to send the message. The new message should appear in the messages list.
+    
+  1.2 Adding person to the chat
+    a. Open the chat window
+    b. Drag any person from the left sidebar and drop him in the chat window area. 
+        In the messages list you will see a message that you added a new person to the chat.
+        Also the new user will appear in user list of this chat.
+    c. If you dropping the user for the first time in the chat window then this chat will be marked as group
+        chat and shown in the left sidebar along with users.
+    
+  1.3 Removing group chat
+    a. Press remove button on the chat you want to remove. It should dissapear immediately.
+    b. All persons in the chat will be notified that you have left the chat.
+    
+    
+2 Chat page, irc
+  2.1 Messaging
+    a. Click any channel in the left sidebar. The new chat window will appear.
+        It will contain messages area, channels' users and textbox.
+    b. Type the message in the textbox and press enter. The new message should appear and all irc
+        users will see it.
+        
+  2.2 Leaving channel
+    a. Just close the tab by "x" button
+    
+  2.3 Searching for particular channel
+    a. Set focus in the textbox above the channels list
+    b. Type something. Channels list will change as you type reflecting your request.
+    c. Clear the field to see the whole channels list.
+    
+  2.4 Joining to the channel not in the channels list
+    a. Swith to "Console" tab
+    b. Set focus to the textbox in this tab
+    c. Type IRC join command. eg: /join #kodingen
+    
+3 Ace editor
+  a. Open new editor by clicking "+" button from the applications list under the "Ace" title.
+    The new ace editor should appear on the left side and filetree on the right side.
+    
+  3.1 Loading a file
+    a. Navigate to necessary folder in the filetree (Double click will open the folder)
+    b. Select any text file from the filetree and make double click on it.
+    c. New tab should be created with the name of the file and its content in the editor.
+      Ace editor should recognize the extenstion of the file and switch correct highlight 
+      syntax. eg: File with the name app.coffee will be recognized as coffee script file.
+    
+  3.2 Saving the file
+    a. Press Command+S (Ctrl+S for windows) or "Save" button from the ace menu.
+    b. if file is new, editor will suggest to type the name of the file, in other case file will be just
+      saved.
+    
+  3.3 Adding content of other file into current opened file
+    a. Open a file
+    b. Navigate to necessary folder in the filetree
+    c. Drag file into edit area. Content of the dragged file will appear at the cursor position
+    
+  3.4 Compiling
+    a. Some of the syntaxes support compiling (right now only coffee script). To compile the current 
+      opened file press command+B
+    b. new modal window will appear with the compile result
+    c. It is possible to compile only part of the code. To do that just select the code you want
+      to compile and press command+B.
+      
+  3.5 Executing
+    a. As compile feature this one supported by some syntaxes. Right now only javascript.
+    b. To execute the file just press Command+E
+    c. Depends on what code do you will see the result.
+    
+  3.6 Searching
+    a. Press command+F (or "Find/Replace" button from the ace menu) to open the search panel 
+    b. Type something in the search field and press enter
+    c. To show next search entry press Command+G
+    
+  3.7 Bottom bar controls
+    a. "Line" - contains the current line in the editor
+    b. "Column" - contains the current column in the editor
+    c. First select shows available highlight syntaxes. Change of this causes change of current syntax.
+    d. Second select shows available themes. Change of this causes change of active theme.
+    e. Third select shows available text sizes. Change of this causes change of editor font size
+    f. Fourth select shows available tab sizes. Change of this causes change of editor's text tab size.
+    g. Advanced setting button opens up modal window with preferences which are not shown in the bottom bar.
+      Each of the options cause immidiate reflection in the editor.
+    
+    
+4. Registration
+  *** is not yet in the master ***
+  
+5. User's profile info (the one which shown when I click at someones name)
+  *** a lot of bugs for making review ***
+  
+6. Groups
+  *** still contain bugs which we have to solve before the qa guys will find something ***
+
+7. Settings
+  *** cant make walkthrough because nothing works for me, I guess I need to do tests on kodingen server ***
+  
+8. Inbox
+  *** still has bugs ***
+  
+9. App store
+  *** looks like it is not yet ready ***
+  
+10 Shell
+  a. Open new shell by clicking "+" button from the applications list under the "Shell" title.
+    The new shell should appear on the left side and filetrees on the right side (servers - right now
+    emulated by local fs).
+  b. Type any command in the shell and press enter.
+  c. If you drag & drop folder or file in the shell the path/name of the item will be typed in
+  
+11. Activity page
+  *** still contain bugs ***
+  
+      
+      
+      
+    
+    
+    
+  
+    

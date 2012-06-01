@@ -1,0 +1,1 @@
+class FsErrorNotificationView extends CommonNotificationView

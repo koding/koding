@@ -1,0 +1,24 @@
+div.class, div.function {
+    background-color: #eef;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccd;
+}
+div.class > div, div.function > div {
+    padding: 10px;
+    margin: 0;
+}
+div.class .header, div.function .header {
+    background-color: #ddf;
+    border-radius: 7px;
+}
+div.header h3 {
+    display: inline;
+}
+a.parent {
+    color: #779;
+}
+div.method {
+    padding: 0 10px;
+    border-top: 1px solid #ccd;
+}

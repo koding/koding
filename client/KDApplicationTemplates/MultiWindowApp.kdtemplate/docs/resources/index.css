@@ -1,0 +1,20 @@
+#modulelist {
+    list-style-type: none;
+    padding-left: 5px;
+}
+div.module {
+    background-color: #eef;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccd;
+}
+div.module > div {
+    padding: 10px;
+    margin: 0;
+}
+div.module .header {
+    background-color: #ddf;
+}
+div.header h3 {
+    display: inline;
+}

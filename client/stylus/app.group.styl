@@ -1,0 +1,216 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+
+
+#group-content
+  height            100%
+  width             64%
+  margin            15px
+  min-width         370px
+  overflow          auto !important
+  height            2000px
+  a
+    color           grouppage-link
+  #group-left-pane, #group-right-pane
+    padding           10px 40px 0 5px
+    borderBox()
+    .kdview
+      overflow        visible
+      height          auto
+   
+  #group-left-pane
+    //bg(color,aqua)
+    width                 70%
+    overflow              visible
+    padding-left          50px
+    height                100%
+    fl()
+    .group-meta
+      margin-top            20px
+      img
+        width               160px
+        height              150px
+        position            relative
+        border              1px solid white
+        margin              0 25px 10px 0
+        blockMidTop()
+        shadow(0px 0px 8px 1px #c5c5c5)
+      > div
+        width               70%
+        blockMidTop()
+      h2
+        font-weight         bold
+        font-size           36px
+        line-height         30px
+        color               #000
+        margin-bottom       18px
+      p
+        line-height         23px
+        font-size           14px
+        color               #7c7c7c
+        margin-bottom       18px    
+      .group-privacy
+        span
+          padding           3px 8px
+          color             #229ee3
+          bg(color,#ebf7fe)
+          rounded(3px,3px,3px,3px)
+          shadow(0 1px 1px 0 #b9e4fc)
+    //group-meta
+  //group-left-pane
+  #group-right-pane
+    //bg(color,orange)
+    display               inline-block
+    width                 20%
+    padding-top           45px
+    height                100%
+    
+    section
+      padding-bottom      20px
+      margin-bottom       20px 
+      border-bottom       1px solid #bfbfbf
+      &:last-child
+        border-bottom     none
+      h4
+        margin-bottom     10px
+        color             #7f7f7f
+        font-weight       normal
+        font-size         11px
+    .subscribe
+      border-bottom       none
+      padding-bottom      0
+      div
+        color             #0a90e0
+        text-decoration   none
+        padding           6px 10px
+        display           inline-block
+        rounded(4px,4px,4px,4px)
+        bg(color,#f2f2f2)
+        cite
+          font-style      normal
+          font-size       11px
+          blockMid()
+        span
+          cursor          pointer
+          margin-left     5px
+          padding         4px 5px
+          line-height     8px
+          font-size       12px
+          font-weight     bold
+          color           #f2f2f2
+          blockMid()
+          rounded(10px,10px,10px,10px)
+          width(12px,12px)
+          bg(color,#ddd)
+        shadow(0 2px 2px 0 #e3e3e3)
+    .stats
+      ul
+        list-style        none
+        mp0()
+        color               #2e2d2a
+        li
+          padding             5px 
+          border-bottom       1px solid #eeeeee
+          &:last-child
+            border-bottom     none
+      cite
+        font-style        normal
+      span
+        margin-right      20px
+        blockMid()
+        size(20px,20px)
+      .members span
+        sprite()
+        bg(position,-140px -440px)
+      .shared span
+        sprite()
+        bg(position,-100px -460px)
+      .activity span
+        sprite()
+        bg(position,-100px -420px)
+    .tags
+      .langtags span
+        margin-bottom     3px
+    .links
+      ul
+        mp0()
+        list-style            none
+        a
+          text-decoration     none
+    .moderators
+      ul
+        mp0()
+        list-style        none
+        li
+          blockMid()
+//group-content-layout
+
+.test-btn
+  // bg(color,lightBlue)
+  width                 auto
+  height                auto
+  position              absolute
+  left                  0
+  top                   0
+
+.list-filter
+  margin                20px 0
+  //padding               10px
+  color                 #acacac
+  position              relative
+  font-size             10px
+  bg(color,#f2f2f2)
+  rounded(4px,4px,4px,4px)
+  div,span,a
+    blockMid()
+  a.filtered
+    color               grouppage-link
+    shadow(inset 0 1px 1px 0 #d7d7d7)
+    bg(color,white)
+    rounded(4px,4px,4px,4px)
+    border-right        none
+  a
+    color               #9c9b9b
+    padding             2px 6px
+    font-size           12px
+    line-height         12px
+    text-decoration     none
+    blockMid()
+  .sort 
+    float               right
+    display             inine-block
+    span
+      margin-right      10px
+  > span
+    blockMid()
+    width               55px
+
+.list-filter.kdlistview-sorter
+    width                 100%
+    padding               3px 10px 3px 15px
+    height                35px
+    borderBox()
+    span
+      text-shadow         0px 1px 1px #fff
+    a 
+      color               #eba63c
+      padding             5px 6px
+      font-size           13px
+      // border              1px solid #e9e9e9
+      gradient            #f1f1f1,#fefefe
+      shadow              inset 0 1px 1px -1px rgba(0,0,0,0.2)
+      blockMid()
+
+
+
+
+
+
+
+
+
+
+
+
+
+

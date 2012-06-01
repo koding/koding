@@ -1,0 +1,34 @@
+@import "./client/Framework/themes/default/kdfn"
+
+/* 
+**  KDScrollView STYLES
+*/
+
+.kdscrollview
+  overflow      auto
+  &.has-own-scrollbars
+    overflow      hidden!important
+    .kdscrolltrack
+      position      absolute
+      right         0
+      z-index       1000
+      &.ver
+        top         0
+        size        13px,100%
+        .kdscrollthumb
+          size      7px,auto
+          cursor    -webkit-ns-resize
+      &.hor
+        bottom      0
+        size        100%,13px
+        .kdscrollthumb
+          size      auto,7px
+          cursor    -webkit-we-resize
+
+      .kdscrollthumb
+        margin      3px
+        cursor      move
+        bg          color,rgba(0,0,0,.3)
+        rounded     3px
+      
+

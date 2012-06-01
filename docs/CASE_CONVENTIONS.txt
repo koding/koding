@@ -1,0 +1,18 @@
+Case Conventions
+
+The following case conventions should be observed while writing code for kfmjs:
+
+- Identifiers and properties will be camelCase, and will start with a lowercase letter.
+- Class names and singletons will be CamelCase, and will start with an uppercase letter.
+- "Namespace" prefixes will be two letters and most and will be uppercase
+- Underscores should be used in class names to denote "encapsulated subclasses" where the underlying schema of the data is defined in the "encapsulating superclass".  They should be named according to this simple convention:
+  
+  [EncapsulatingSuperclass]_[SubclassType]
+
+- Acronyms are also camelCase, meaning that you should say e.g. "someId" not "someID"
+- Exceptions:
+  - MySQL
+  - PostgreSQL
+  - MongoDB
+  - CouchDB
+  - FTP

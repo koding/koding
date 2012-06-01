@@ -1,0 +1,563 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+active-color = rgb(246,162,32)
+finderDimmedColor1 = #cccccc
+finderDimmedColor2 = #c2c2c2
+@css {
+/*  
+FINDER stylesheet
+app.finder.styl
+*/
+}
+
+#finder-holder
+  .nfinder
+    > div
+      padding           10px 0
+      borderBox()
+    ul
+      margin-left       0
+      &.drop-target
+        background      rgba(136, 183, 214, 0.13)
+
+.nfinder
+  .no-context-menu
+    .kdlistitemview-finderitem
+      .chevron-arrow
+        hidden()
+
+#finder-panel
+  .kdnotification.filetree.mini
+    shadow              0 1px 3px rgba(0, 0, 0, 0.3)
+    rounded             2px
+    margin-top          35px
+    .kdnotification-title
+      text-shadow       none
+      font-size         10px
+      line-height       10px
+      padding           0 10px
+
+selectedNeighbor()
+  border-top-color  #E6981E
+  background        finderSelectedColor1
+
+dimmed()
+  border-color      #ccc transparent #c2c2c2 transparent
+  color             #282828
+  text-shadow       none
+  background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
+
+dimmedNeighbor()
+  border-top-color  finderDimmedColor1
+  background        finderDimmedColor2
+
+.jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
+  selectedNeighbor()
+  &.dimmed
+    dimmedNeighbor()
+
+.kdlistitemview-finderitem
+  height              auto
+  min-height          22px
+  border              1px solid transparent
+  border-width        1px 0
+  font-size           11px
+  color               #282828
+  noTextSelection()
+
+  &:first-child
+    margin-top 0px
+
+  .chevron-arrow
+    position          absolute
+    top               1px
+    right             10px
+    z-index           1
+    float             none
+    display           none
+    size              16px,16px
+    margin            0
+    sprite()          
+    bg                position,-180px -360px
+
+  &.selected
+    border            1px solid #F6A220
+    border-width      1px 0
+    color             white
+    text-shadow       0 -1px 0 rgba(0,0,0,0.22)
+    background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+    .title
+      color white
+      text-shadow none
+    &+.selected
+      selectedNeighbor()
+      &.dimmed
+        dimmedNeighbor()
+    &+.jtreeview
+      .kdlistitemview-finderitem
+        &:first-child
+          &.selected
+            selectedNeighbor()
+            &.dimmed
+              dimmedNeighbor()
+    &.dimmed
+      dimmed()
+
+  &.unsaved
+    span.icon
+      color           black!important
+      font-size       14px
+      text-indent     -2px
+      line-height     10px
+      vertical-align  top
+      &:before
+        content       "*"
+    
+
+  &.selected
+    span.chevron-arrow
+      display       block
+      bg            position,-180px -380px
+
+  &:hover
+    span.chevron-arrow
+      display       block
+
+  &.expanded
+    > div
+      span.icon
+        bg          position,-40px -120px
+
+  &.being-inline-edited
+    .chevron-arrow
+      hidden()
+
+  &.being-deleted
+    border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
+    background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
+    height            22px
+    .kdview.delete-container
+      padding         0 10px
+    label
+      color           white
+    button.kdbutton
+      margin          2px 15px 0 0
+      padding         2px 4px 2px 4px
+      width           auto
+      font-weight     normal
+      fr()
+  
+  &.items-hovering
+    background        rgba(136, 183, 214, 0.25)
+    text-shadow       none
+
+  &.drop-target
+    background        rgb(136, 183, 214)
+    color             white
+    text-shadow       none
+
+  a.cancel
+    position        absolute
+    size            15px, 15px
+    bg              position, -82px -222px
+    right           5px
+    top             3px
+    sprite()
+    &:focus
+    &:active
+      bg            position, -62px -242px
+
+  > div
+    line-height       22px
+    height            100%
+    width             auto
+    .title
+      font-weight     normal
+      width           auto
+      margin-right    26px
+      display         block
+      overflow        hidden
+
+    form
+      height          22px
+
+    input.kdinput.text
+      margin          2px 5px 0 0
+      height          17px
+      line-height     1em
+      border          none
+      shadow          inset 0 1px 1px rgba(0,0,0,.44)
+      rounded         2px
+      fl()
+
+    button.kdbutton
+      margin          2px 10px 0 0
+      padding         2px 4px 2px 4px
+      width           auto
+      font-weight     normal
+      fr()
+
+    .arrow
+      sprite()
+      fl()
+
+    .kdloader
+      margin        2px 3px
+      fl()
+
+    &.rename-container
+      height        22px
+      padding-right 25px
+      input.hitenterview
+        bg          image, none
+        width       100%
+        margin      2px 0
+      a.cancel
+        bg          position, -62px -242px
+      
+        
+
+.drop-helper
+  position          absolute
+  border            2px solid finderSelectedColor1
+  rounded           4px
+
+
+
+
+#finder-panel
+  position          absolute
+  overflow          auto
+  size              208px,100%
+  top               0
+  left              160px
+  text-shadow       1px 1px 1px #fcfcfc
+  z-index           3
+  leftTransition()
+  bg(image,url("../images/finder-back.gif"))
+  bg(repeat,repeat)
+  bg(position,left top)
+  bg(color,#e2e2e2) //new design background
+  &.expanded
+    left            52px
+    #finder-holder
+      overflow              auto
+    
+  #finder-holder
+    height                  auto
+    overflow                hidden
+
+  .finder-settings-border
+    position                relative
+    margin                  0 auto
+    width                   85%
+    top                     1px
+    border-top              1px solid rgba(255,255,255,.5)
+    background-image        url("../images/finder-resizer-handle.gif")
+    background-repeat       no-repeat
+    background-position     center 7px
+    height                  13px
+    shadow(0 -1px 0 rgba(0,0,0,.05))
+    bg(color,transparent)
+  
+  button.kdbutton.add-project
+    font-weight     normal
+    padding         5px 8px
+    width           auto
+  
+  .separator
+    border-top      1px solid #d9d9d9
+    border-bottom   1px solid #f2f2f2
+    margin          0 20px
+  
+
+#finder-header-holder
+  size              auto,45px
+  h2.kdheaderview
+    font-size       13px
+    font-weight     bold
+    color           rgba(78, 78, 78, .90)
+    text-shadow     0 1px 0 white
+    line-height     43px
+    margin          0 20px
+    size            auto,43px
+    border-bottom   1px solid rgba(0,0,0,.05)
+    shadow(0 1px 0 rgba(255,255,255,.5))
+    
+
+#finder-bottom-controls
+  position                  absolute
+  bottom                    0
+  margin                    0 
+  size                      auto,auto
+  ul                        
+    margin                  1px 20px
+    padding                 20px 0
+    overflow                hidden
+    border-top                1px solid rgba(255,255,255,.5)
+    shadow(0 -1px 0 rgba(0,0,0,.05) )
+    li                      
+      margin                0 0 5px 0
+      padding               0 
+      cursor                pointer
+      width                 160px
+      span.icon             
+        margin-right        10px
+        blockMid()
+        size(17px,20px)
+     a
+      color                 #444
+      text-decoration       none
+      &:hover
+        color               linkColor1
+      span.terminal
+        sprite()
+        bg(position,-100px -300px)
+      span.resources
+        sprite()
+        bg(position,-120px -300px)
+      span.cog
+        sprite()
+        bg(position,-140px -300px)
+      
+/* 
+**  Overriding Treeview STYLES
+*/
+.kdtreeitemview
+
+  .title
+    /*text-transform  uppercase*/
+    font-weight     bold
+    text-shadow     0 1px 0 white
+    color           #444
+    &:hover
+      color         #222
+      
+#finder > .kdview.kdtreeitemview:first-child .finder-item
+  margin-left   17px
+    
+.kdtreeview-filetree
+  .kdtreeitemview
+    height        auto
+    border        1px solid transparent
+    border-width  1px 0
+    font-size     11px
+    color         #282828
+    // min-width:    150px
+    noTextSelection()
+
+    &:first-child
+      margin-top 0px
+
+    .chevron-arrow
+      position      absolute
+      top           1px
+      right         10px
+      z-index       1
+      float         none
+      display       none
+      size          16px,16px
+      margin        0
+      sprite()
+      bg            position,-180px -360px
+
+    &.selected
+      border        1px solid #F6A220
+      border-width  1px 0
+      color         white
+      text-shadow   0 -1px 0 rgba(0,0,0,0.22)
+      background    linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+      .title
+        color white
+        text-shadow none
+
+    &.selected.dimmed
+      border-color      #ccc transparent #c2c2c2 transparent
+      color             #282828
+      text-shadow       none
+      background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
+  
+    &.unsaved
+      span.icon
+        color           black!important
+        font-size       14px
+        text-indent     -2px
+        line-height     10px
+        vertical-align  top
+        &:before
+          content       "*"
+        // bg              color,black
+        // opacity         .5
+      // border-left       5px solid #333
+      // borderBox()
+      // font-weight   bold
+      // color         #282828
+      // text-shadow   none
+      
+
+    &.selected
+      span.chevron-arrow
+        display       block
+        bg            position,-180px -380px
+
+    &:hover
+      span.chevron-arrow
+        display       block
+
+    &.folder.expanded
+      .finder-item
+        span.icon
+          bg          position,-40px -120px
+  
+    &.being-inline-edited
+      .chevron-arrow
+        hidden()
+  
+    &.being-deleted
+      border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
+      background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
+      height            22px
+      .kdview.delete-container
+        margin          0!important
+      span.icon
+        display         none
+      label
+        position        absolute
+        color           white
+        font-size       12px
+        top             2px
+        left            10px
+      button.kdbutton
+        margin          2px 10px 0 0
+        padding         2px 4px 2px 4px
+        width           auto
+        font-weight     normal
+        fr()
+      a.cancel
+        color           white
+        line-height     24px
+        margin-right    10px
+
+  .drop-helper
+    position          absolute
+    border            2px solid finderSelectedColor1
+    rounded           4px
+  
+
+.finder-item
+  line-height       22px
+  height            100%
+  width             auto
+  .title
+    font-weight     normal
+    width           auto
+    margin-right    26px
+    display         block
+    overflow        hidden
+  .title.unsaved
+    font-style      italic
+
+  form
+    height          22px
+
+  input.kdinput.text
+    margin          2px 5px 0 0
+    height          17px
+    line-height     1em
+    border          none
+    shadow          inset 0 1px 1px rgba(0,0,0,.44)
+    rounded         2px
+    fl()
+
+  button.kdbutton
+    margin          2px 10px 0 0
+    padding         2px 4px 2px 4px
+    width           auto
+    font-weight     normal
+    fr()
+
+  .icon
+  .arrow
+    sprite()
+    fl()
+
+  .kdloader
+    margin        2px 3px
+    fl()
+
+  .icon
+    margin        2px 3px
+    size          16px,16px
+    
+  .section-title 
+    span.icon.domain
+      bg          position,-40px -40px
+    span.icon.ftp
+      bg          position,-40px -60px
+
+.file-container
+  .folder
+  .mount
+  .file
+  .section
+    font-size       11px
+    span.icon
+      margin        2px 3px
+      size          16px,16px
+      sprite()
+      fl()
+  .folder
+  .mount
+    span.icon
+      bg            position,-40px -100px
+    span.icon.application
+      bg            position,-40px -320px
+  .file
+    span.icon
+      bg            position,-40px -140px
+      &.code
+        bg          position,-40px -180px
+      &.image
+        bg          position,-40px -200px
+      &.archive
+        bg          position,-40px -220px
+      &.new-file
+        bg          position,-40px -240px
+      &.video
+        bg          position,-40px -260px
+      &.sound
+        bg          position,-40px -280px
+      &.text
+        bg          position,-40px -300px
+
+  
+.finder-drag-container
+  position          absolute
+  width             208px
+  
+  .drag-helper
+    height            22px
+    margin-bottom     1px
+    background        linear-gradient(top, rgba(208, 137, 27,.95) 0%, rgba(246, 162, 32,.95) 50%)
+    color             white
+    font-size         11px
+    rounded           4px
+    text-shadow       0 -1px 0 rgba(0,0,0,0.22)
+    shadow            0,2px,5px,rgba(0,0,0,.2)
+    borderBox()
+    &.multiple-items
+      padding-left    5px
+    
+    .title
+      display         inline-block
+      margin-right    0
+
+
+
+
+
+
+

@@ -1,0 +1,6 @@
+Because we're using jquery drag/drop as the engine for our KD drag and drop, we need a way to distinguish between general drags (e.g. a custom scrollbar)
+  and KD drags. We do this by defining a pasteboard() function in the drag source which contains the information being dragged (e.g. file data object if a finder item is dragged
+If the pasteboard doesn't exist, we will ignore the dragged object in KDView::_dropAccept. otherwise it will be sent to the overridden dropAccept of the KDView subclass.
+dropAccept can get the pasteboard by item.data('KDPasteboard')
+
+Using Drag and Drop: override isDraggable()/isDroppable for class, or set @<dragging|dropping>Enabled on an instance

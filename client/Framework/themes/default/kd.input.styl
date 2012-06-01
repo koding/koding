@@ -1,0 +1,382 @@
+@import "./client/Framework/themes/default/kdfn"
+
+/* 
+**  KDInput STYLES
+*/
+label.kdlabel
+  line-height 1.8em
+  margin-right 5px
+  color #888
+  clear both
+
+input.kdinput.text,textarea.kdinput.text
+  display             block
+  border              1px solid #d7d7d7
+  outline             none
+  height              24px
+  line-height         20px
+  padding             2px
+  bg                  color,white
+  rounded             4px
+  shadow              0,1px,0,white
+  borderBox()
+  &:hover
+    border            1px solid #aaa
+  &:focus
+    border            1px solid rgba(125,190,241,1)
+    shadow            0 0 3px rgba(125,190,241,.7)
+
+textarea.kdinput.text
+  height              auto
+textarea.kdinput.text.monospace
+  font-family         mono
+.kdinput.hitenterview
+  resize              none
+  overflow            hidden
+  bg(image,url("../images/kd.hitenterview.inactive.png"))
+  bg(color,transparent)
+  bg(repeat,no-repeat)
+  bg(position,right bottom)
+  &.active
+    bg(image,url("../images/kd.hitenterview.active.png"))
+label.kdlabel
+  .hitenterview-toggle
+    font-family       sans
+    font-size         11px
+    text-transform    none
+    text-decoration   underline
+
+input.kdinput.text.validation-error,textarea.kdinput.text.validation-error
+  border-color red
+
+input.kdinput.checkbox  
+  &:focus
+    shadow(0,0,3px,rgba(125,190,241,.7))
+
+select.kdinput.select
+  position            relative
+  border              1px solid #ddd
+  font-size           12px
+  line-height         25px
+  padding-top         5px
+  margin              0
+  color               #444
+  outline             none
+  bg                  color,#f2f2f2
+  rounded             4px
+  shadow              0 1px 0 white
+  size                auto,25px
+  &:hover
+    border            1px solid #ccc
+  &:focus
+    border            1px solid rgba(125,190,241,1)
+    shadow            0,0,3px,rgba(125,190,241,.7)
+
+div.kdselectbox
+  position            relative
+  z-index             100
+  overflow            hidden
+  font-size           11px
+  border              1px solid #cfcfcf
+  display             inline-block
+  vertical-align      middle
+  padding             0
+  background          -moz-linear-gradient(270deg, white 0%, #e6e5e5 93.7%) no-repeat right transparent
+  background          -webkit-gradient(linear, left top, left bottom, from(white), color-stop(0.937, #e6e5e5)) no-repeat right transparent
+  rounded             3px
+  shadow              0 1px 0 rgba(255, 255, 255, 0.69)
+  &.focus
+    outline           none
+    shadow            0 1px 0 rgba(255, 255, 255, 0.67)\, 0 0 15px #f4ad11
+    border            1px solid #f6a238
+
+  select
+    position          absolute
+    cursor            pointer
+    display           block
+    vendor            appearance,none
+    opacity           0.00001
+    top               0
+    left              0
+    size              100%,100%
+    z-index           100
+    
+
+  span.title
+    display           block
+    color             #666
+    line-height       auto
+    text-decoration   none
+    text-shadow       0 1px 0 #ffffff
+    size              auto,24px
+    line-height       25px
+    padding           0 20px 0 8px
+    z-index           0
+
+  span.arrows
+    position          absolute
+    z-index           0
+    size              20px,20px
+    top               2px
+    right             0
+    opacity           .8
+    sprite()
+    bg                position,-60px -280px
+    
+    
+
+.kd-radio-holder
+  line-height 20px
+
+  input
+    margin-right 5px
+
+// #####
+// # KD Switch
+// #####
+
+.kdinputswitch
+  background          transparent url("../images/switch_anim_orange_large1.png") no-repeat left bottom
+  overflow            hidden
+  margin              3px
+  cursor              pointer
+  size(59px,20px)
+  fr()
+.kdinputswitch.off
+  background-position left bottom
+
+.kdinputswitch.on
+  background-position left top
+
+// #####
+// # Ryan's Switch
+// #####
+
+.kdinputswitch-ry
+  font-family           sans
+  width                 60px
+  a
+    display             inline-block
+    border              1px solid #cfcfcf
+    font-size           9px
+    font-weight         bold
+    color               #b6b6b6
+    line-height         8px
+    text-align          center
+    padding             7px 0px 6px 0px
+    text-decoration     none
+    text-shadow         0 1px 0 #ffffff
+    text-transform      uppercase
+    size                28px,auto
+    rounded             0 1px 0 rgba(255, 255, 255, 0.69)
+    gradient1           #e6e5e5,85.3%,white,23.9%
+    shadow              0 1px 0 rgba(255, 255, 255, 0.69)
+    &:hover
+      gradient1         white,100%,#e6e5e5,15.3%
+      color             #918f8c
+      text-shadow       0 1px 0 #ffffff
+      shadow            inset 0 1px 1px -1px rgba(0,0,0,0.32)
+      border-top-color  #b9b9b9
+    &.active
+      border-color      #e2963f
+      color             #ffffff
+      text-shadow       0 -1px 0 #b97e42
+      shadow            0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12)
+      gradient1         #f49f3f,82.7%,#e18931,30%
+      &.off
+        color               rgb(140,140,140)
+        gradient1           white,85.9%,#e6e5e5,23.3%
+        border              1px solid #cfcfcf
+        text-shadow         0 0 0 #ccc
+        shadow              0 1px 0 rgba(255,255,255,0.69), inset 0 3px 6px -5px rgba(0,0,0,0.69)
+        // gradient1       rgb(199,81,29),100%,rgb(168,70,25),44%
+    &.off
+      // border-left       1px solid rgba(51, 51, 51, 0.15)
+      letter-spacing    0px
+      rounded           0 2px 2px 0
+    &.on
+      border-right      1px solid rgba(51, 51, 51, 0.15)
+      rounded           2px 0 0 2px
+  &.big
+    width               76px
+    a
+      font-size         11px
+      padding           9px 0px
+      width             36px
+      
+
+
+  
+.kdview.kdfileupload
+  min-width         340px
+  
+  .kdfileuploadlist,.kdfileuploadthumblist
+    margin          5px 0
+    span.file-size
+      line-height   1.4em
+      font-size     .9em
+      color         dimmed-text
+      margin-right  20px
+      fr()
+    span.file-title
+      line-height   1.4em
+    span.iconic.x
+      position      absolute
+      display       block
+      top           3px
+      right         0
+      cursor        pointer
+      line-height   21px
+      text-align    center
+      size(16px,16px)
+      &:hover
+        color       k-orange
+  
+  .kdfileuploadthumblist
+    p.meta
+      margin        0 5px
+      fl()
+      span
+        display     block
+        float       none
+        &.close-icon
+          top       3px
+          right     3px
+    img.thumb
+      border        1px solid #ddd
+      size(32px,32px)
+      fl()
+
+  .kdfileuploadarea
+    border          1px solid #ddd
+    height          58px
+    shadow(0,0,5px,rgba(0,0,0,.2),inset)
+    rounded(4px)
+    borderBox()
+    span
+      display       block
+      height        58px
+      line-height   58px
+      text-align    center
+      color         dimmed-text
+      font-size     1.2em
+    span.info
+      position      absolute
+      top           0
+      right         0
+      display       block
+      width         16px
+      height        20px
+      line-height   20px
+      text-align    center
+      color         dimmed-text
+      font-size     1.2em
+      cursor        pointer
+    
+
+  .kdfileuploadarea.hover
+    border 1px solid rgba(125,190,241,1)
+    shadow(0,0,3px,rgba(125,190,241,.7),inset)
+    span
+      color         link-color
+
+.dragInAction
+  .kdview.kdfileupload
+    .kdfileuploadarea
+      bg              color,rgba(125,190,241,.2)
+      border 1px dashed rgba(125,190,241,1)
+      shadow(0,0,3px,rgba(125,190,241,.7),inset)
+      span
+        color         link-color
+
+
+/* INPUT HINT */
+.kdinputwrapper
+  position          relative
+span.kdinputhint
+  position          absolute
+  top               0
+  left              0
+
+
+
+/*
+  
+  † GRAVEYARD †
+
+  .switch a {
+
+  	width: 28px;
+  	border: 1px solid #cfcfcf;
+  	font-size: 9px;
+  	display: inline-block;
+  	text-align: center;
+  	padding: 7px 0px 6px 0px; 
+  	text-decoration: none;
+  	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.239, white), color-stop(0.853, #e6e5e5));
+  	background-image: -moz-linear-gradient(270deg, white 23.9%, #e6e5e5 85.3%);
+  	color: #b6b6b6;
+  	text-shadow: 0 1px 0 #ffffff;
+  	text-transform: uppercase;
+  	line-height: 8px;
+  	-moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69);
+  	-webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69);
+  	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69);
+  	font-weight: bold;
+
+
+  	}
+
+  .switch a:hover {
+
+
+  	text-decoration: none;
+  	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.153, #e6e5e5), to(white));
+  	background-image: -moz-linear-gradient(270deg, #e6e5e5 15.3%, white 100%);
+  	color: #918f8c;
+  	text-shadow: 0 1px 0 #ffffff;
+  	text-transform: uppercase;
+  	line-height: 8px;
+  	-moz-box-shadow: inset 0 1px 1px hsla(0, 0%, 0%, 0.32);
+  	-webkit-box-shadow: inset 0 1px 1px hsla(0, 0%, 0%, 0.32);
+  	box-shadow: inset 0 1px 1px hsla(0, 0%, 0%, 0.32);
+  	border-top-color: #b9b9b9;
+  }
+
+
+
+  .switch a.active {
+  	background-image: -webkit-gradient(linear, left bottom, left top, color-stop(0.673, #f49f3f), to(#e18931));
+  	background-image: -moz-linear-gradient(90deg, #f49f3f 67.3%, #e18931 100%);
+  	border-color: #e2963f;
+  	color: #ffffff;
+  	text-shadow: 0 -1px 0 #b97e42;
+  	-moz-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12);
+  	-webkit-box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12);
+  	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12);
+  }
+
+  .switch a.switchon {
+  	-moz-border-radius-topleft: 2px;
+  	-moz-border-radius-topright: 0px;
+  	-moz-border-radius-bottomright: 0px;
+  	-moz-border-radius-bottomleft: 2px;
+  	-webkit-border-radius: 2px 0px 0px 2px;
+  	border-radius: 2px 0px 0px 2px;
+  	border-right: 1px solid rgba(51, 51, 51, 0.15);
+
+  }
+
+  .switch a.switchoff {
+  	-moz-border-radius-topleft: 0px;
+  	-moz-border-radius-topright: 2px;
+  	-moz-border-radius-bottomright: 2px;
+  	-moz-border-radius-bottomleft: 0px;
+  	-webkit-border-radius: 0px 2px 2px 0px;
+  	border-radius: 0px 2px 2px 0px;
+  	border-left: 1px solid rgba(51, 51, 51, 0.15);
+  	letter-spacing: 0px;
+  }
+  
+  
+*/

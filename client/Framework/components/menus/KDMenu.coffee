@@ -1,0 +1,1 @@
+class KDMenu extends KDListView

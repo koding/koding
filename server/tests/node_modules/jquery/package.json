@@ -1,0 +1,15 @@
+{
+    "name": "jquery"
+  , "description": "jQuery: The Write Less, Do More, JavaScript Library (packaged for Node.JS)"
+  , "url": "http://jquery.com"
+  , "keywords": ["util", "dom", "jquery"]
+  , "author": "John Resig <jeresig@gmail.com>"
+  , "contributors": []
+  , "dependencies": {
+        "jsdom": ">=0.2.0"
+      , "htmlparser": ">= 1.7.3"
+    }
+  , "lib"           : "."
+  , "main"          : "./node-jquery.js"
+  , "version"       : "1.6.3"
+}

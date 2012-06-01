@@ -1,0 +1,1 @@
+class KDInputController extends KDViewController

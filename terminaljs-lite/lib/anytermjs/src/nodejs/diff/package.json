@@ -1,0 +1,8 @@
+{
+  "name": "diff",
+  "version": "0.1",
+  "main": "./lib/diff.node",
+  "description": "Diff tool",
+  "modules" : { "test" : "./test" },
+  "directories": {"lib": "./lib", "test": "./test"}
+}

@@ -1,0 +1,143 @@
+@import "./client/Framework/themes/default/kdfn"
+/* 
+**  JTREE STYLES
+*/
+
+.kdview.jtreeview
+  display               none
+  // height                0
+  // vendor                transition, height .15s ease-in-out
+  &.expanded
+    display             block
+    height              auto
+
+
+.kdlistitemview-jtreeitem
+  height                auto
+  noTextSelection()
+  &.selected
+    color             #fc2145
+  span.icon
+    size              10px,10px
+    margin            4px 0 0 3px
+    borderBox()
+    fl()
+  &.has-sub-items
+    span.icon
+      border            5px solid transparent
+      border-left-color #666
+  &.expanded          
+    span.icon         
+      margin            6px 3px 0 0
+      border-left-color transparent
+      border-top-color  #666
+
+.drag-helper-list
+  position              absolute
+  top                   0
+  left                  0
+
+/* 
+**  KDTREE STYLES
+*/
+.kdtreeview
+  overflow auto
+
+.kdtreeitemview.default
+  height                  auto
+  // disabled volkan
+  // width                inherit
+  font-size               11px
+  noTextSelection()
+      
+  &:first-child
+    margin-top            0px
+  .title
+    // margin                1px 0
+    // padding               1px 3px
+    // border                1px solid transparent
+    // border-width          1px 0
+    // color                 #282828
+    // line-height           14px
+    // text-decoration       none
+    // rounded(4px)
+    // fl()
+    &:hover
+      text-decoration     underline
+  
+  ////moved to app.treeview.styl
+  // span,a,.title
+  //   fl()
+  // 
+  // span.icon
+  // span.arrow
+  //   sprite()
+  //   margin 2px 3px
+  //   size(16px,16px)
+  // 
+  // span.arrow
+  //   bg(position,20px 20px)
+  //   margin 2px 0 0 3px
+  //   size(10px,16px)
+
+.kdtreeitemview.default.has-subitems
+  span.arrow
+    bg(position,-40px -20px)
+
+.kdtreeitemview.default.has-subitems.expanded
+  span.arrow
+    bg(position,-40px 0)
+
+.kdtreeitemview.default.selected
+  .title
+    //border 1px solid transparent volkan
+    //border-width 1px 0
+    //color white
+    //text-shadow 0 1px 0 #282828 volkan
+    //gradient(#1A82F7,#009cff) volkan
+
+.kdtreeitemview.default.selected.dimmed
+  .title
+    border-color #bbb transparent #8597b9 transparent
+    gradient(gray,silver)
+
+
+.sub-tree-wrapper
+  .kdtreeitemview >*
+    margin-left 10px
+
+  .sub-tree-wrapper
+    .kdtreeitemview >*
+      margin-left 20px
+
+    .sub-tree-wrapper
+      .kdtreeitemview >*
+        margin-left 30px
+
+      .sub-tree-wrapper
+        .kdtreeitemview >*
+          margin-left 40px
+
+        .sub-tree-wrapper
+          .kdtreeitemview >*
+            margin-left 50px
+
+          .sub-tree-wrapper
+            .kdtreeitemview >*
+              margin-left 60px
+
+            .sub-tree-wrapper
+              .kdtreeitemview >*
+                margin-left 70px
+
+              .sub-tree-wrapper
+                .kdtreeitemview >*
+                  margin-left 80px
+
+                .sub-tree-wrapper
+                  .kdtreeitemview >*
+                    margin-left 90px
+
+                  .sub-tree-wrapper
+                    .kdtreeitemview >*
+                      margin-left 100px

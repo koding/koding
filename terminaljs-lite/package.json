@@ -1,0 +1,24 @@
+{
+  "author": "Victor Bucataru <victor@koding.com>",
+  "name": "terminaljs-lite",
+  "description": "terminal nodejs module lite",
+  "version": "0.0.4-2050",
+  "homepage": "koding.com",
+  "repository": {
+    "type": "git",
+    "url": "git@kodingen.beanstalkapp.com:/kfmjs.git"
+  },
+  "main": "js/index.js",
+  "scripts" : {
+    "preinstall": "make -C src ",
+    "install" : "coffee -b -c -o js/ src/",
+    "preupdate": "make -C src ",
+    "update" : "coffee -b -c -o js/ src/"
+  },
+  "dependencies": {"coffee-script":"1.2.0"},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>BSoD'd</title>
+
+<meta name="language" content="en">
+
+<style type="text/css">
+
+@charset "utf-8";
+
+* {
+    margin: 0;
+}
+
+html{
+    height: 100%;
+}
+
+body{
+    background: #0000aa;
+    color: #ffffff;
+    font-family: courier;
+    font-size: 12pt;
+    text-align: left;
+    height: 100%;
+}
+
+.wrapper{
+    min-height: 100%;
+    height: auto;
+    height: 100%;
+    margin: 0 5pt -18pt;
+}
+
+.bsod{
+    position: absolute;
+       left: 0;
+       width: 50%;
+}
+
+.footer, .push {
+    margin-left: 5pt;
+    height: 18pt;
+}
+
+a {
+    color: #FFF;
+}
+
+.large_font {
+    font-size: 18pt;
+    font-weight:bold;
+}
+
+</style>
+
+<script type="text/javascript">
+
+var stage = 0;
+var dumpPercent = 0;
+var stageTimer;
+var dumpTimer;
+
+
+setTimeout(function() {
+  return location.assign("http://localhost:3000");
+}, 2000);
+
+function stageTimerFunc(){
+    switch(stage){
+        case 0:
+            document.getElementById('timed').innerHTML = "Collecting data for crash dump ...";
+            break;
+        case 1: 
+            document.getElementById('timed').innerHTML = "Collecting data for crash dump ...<br />Initializing disk for crash dump ...";
+            break;
+        case 2:
+            document.getElementById('timed').innerHTML = "Collecting data for crash dump ...<br />Initializing disk for crash dump ...<br />Beginning dump of physical memory.";
+            break;
+        case 3:
+            document.getElementById('timed').innerHTML = "Collecting data for crash dump ...<br />Initializing disk for crash dump ...<br />Beginning dump of physical memory.<br />Dumping physical memory to disk: <span  id='timer'>0</span>"
+            dumpTimer = setTimeout("dumpTimerFunc()",500);
+            break;
+    }
+    
+    if(stage != 3){
+        stageTimer = setTimeout("stageTimerFunc()",300);
+        stage ++;
+    }
+}
+
+function dumpTimerFunc(){
+    dumpPercent = dumpPercent + 5;
+    document.getElementById('timer').innerHTML = dumpPercent;
+    if(dumpPercent < 100){
+        dumpTimer = setTimeout("dumpTimerFunc()",700);
+    }
+}
+
+</script>
+
+</head>
+    <body>
+        <div class="wrapper">
+            <div class="bsod">
+                <br />
+                A problem has been detected and Windows has been shut down to prevent damage
+                <br />
+                to your computer.
+                <br /><br />
+                If this is the first time you've seen this Stop error screen,
+                <br />
+                restart your computer. If this screen appears again, follow
+                <br />
+                these steps:
+                <br /><br />
+                Check to make sure any new hardware or software is properly installed.
+                <br />
+                If this is a new installation, ask your hardware or software manufacturer
+                <br />
+                for any Windows updates you might need.
+                <br />
+                <br />
+                If problems continue, disable or remove any newly installed hardware
+                <br />
+                or software. Disable BIOS memory options such as caching or shadowing.
+                <br />
+                If you need to use Safe Mode to remove or disable components, restart
+                <br />
+                your computer, press F8 to select Advanced Startup options, and then
+                <br />
+                select Safe Mode.
+                <br /><br />
+                Technical information:
+                <br /><br />
+                *** STOP: 0x00000050 (0xFD3094C2,0x00000001,0xFBFE7617,0x00000000)
+                <br /><br />
+                *** &nbsp;&nbsp;&nbsp;SPCMDCON.SYS - Address FBFE7617 base at FBFE5000, DateStamp 3d6dd67c
+                <br /><br />
+                <span id="timed">
+                </span>
+                <script type="text/javascript">
+                stageTimerFunc();
+                </script>
+            </div>
+            <div class="push"></div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,971 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "./client/stylus/app.fonts"
+@import "nib/gradients"
+@import "nib/vendor"
+
+active-color = rgb(246,162,32)
+
+@css {
+/*
+ __  __      _____       ____        ______      __  __      ____ 
+/\ \/\ \    /\  __`\    /\  _`\     /\__  _\    /\ \/\ \    /\  _`\
+\ \ \/'/'   \ \ \/\ \   \ \ \/\ \   \/_/\ \/    \ \ `\\ \   \ \ \ \_\
+ \ \ , <     \ \ \ \ \   \ \ \ \ \     \ \ \     \ \ , ` \   \ \ \___
+  \ \ \\`\    \ \ \_\ \   \ \ \_\ \     \_\ \__   \ \ \`\ \   \ \ \/, \
+   \ \_\ \_\   \ \_____\   \ \____/     /\_____\   \ \_\ \_\   \ \____/
+    \/_/\/_/    \/_____/    \/___/      \/_____/    \/_/\/_/    \/___/
+
+stylesheet
+app.styl 
+*/
+}
+
+body
+  font-family         "Open Sans", Helvetica, sans-serif
+  background-color    #393630
+  background-image    url(../images/koding-bg.png)
+  background-repeat   repeat-x
+  font-weight         400
+  overflow            hidden
+  &.login,
+  &.loading
+    bg                image,url("../images/koding-new-bg.png")
+
+  >.kdloader
+    display           block
+    position          absolute
+    left              50%
+    top               50%
+    margin            -200px 0 0 -200px
+
+  .user-item.drag-helper
+    position          absolute
+    background-color  #5a9ae3
+    padding           2px 8px
+    font-size         11px
+    text-shadow       0 1px 0 #282828
+    rounded           8px
+    shadow            0,2px,5px,rgba(0,0,0,.2)
+    img
+      width           15px
+      height          15px
+      fl()
+    .title-user-item
+      padding         1px
+      margin-left     3px
+      fl()
+
+  .drop-is-acceptable
+    gradient        light-green, dark-green
+  
+  .kdlistitemview-members.ui-draggable-dragging
+    width           auto
+    overflow        auto
+    height          auto
+  
+  input,textarea,button,select,option
+    font-weight     400
+
+/* moz hack for font weights */
+@css {
+  @-moz-document url-prefix() {
+    #account-content-wrapper h2.kdheaderview {
+      font-weight:300;
+    }
+    .langtags span {
+      font-weight:700;
+      line-height:16px
+    }
+  }
+}
+
+#kdmaincontainer
+  > header
+    margin            0
+    bg                color,transparent
+    size              100%,51px
+    .button-holder
+      width           auto
+      padding         10px
+      borderBox()
+      fr()
+      button
+        margin-left   10px
+    #what-you-should-know-link
+      color           #999
+      font-size       10px
+      position        absolute
+      top             10px
+      right           10px
+      display         none
+      noTextDeco()
+      span
+        size          20px,12px
+        bg            position, -60px -224px
+        fr()
+        sprite()
+        &:hover
+          bg          position, -60px -244px
+          
+      &:hover
+        color         white
+  > section
+    overflow          visible
+    display           block
+
+body.loggedIn
+  #kdmaincontainer
+    > header
+      #what-you-should-know-link
+        display           block
+
+.what-you-should-know-modal
+  ul
+    list-style      circle
+  li
+    margin          5px 0 0 0
+    line-height     1.4em
+
+#koding-logo
+  position            absolute
+  display             block
+  top                 12px
+  left                16px
+  text-indent         -9999px
+  size                120px,30px
+  bg                  position,-240px -40px
+  sprite()
+
+#sidebar-panel
+  position            absolute
+  top                 0
+  left                0
+  z-index             0
+
+#content-panel
+  position            absolute
+  top                 0
+  left                0
+  width               100%
+  z-index             200
+  overflow            visible
+  bg                  color,white
+  z-index             1
+  shadow              0 3px 4px 3px rgba(0,0,0,.15)
+  leftTransition()
+  &.no-shadow
+    shadow            none
+  &.with-finder
+    left              260px
+  &.social
+    left              160px
+  &.no-anim
+    vendor            transition, none!important
+// body.loggedIn
+//   #content-panel
+//     left              160px
+//     &.with-finder
+//       left            260px
+
+
+/* 
+**  Navigation & Application Menu STYLES
+*/
+
+.navigation-menu
+  margin                0 0 25px 0
+  overflow              visible
+
+  .kdlistitemview
+    border              1px solid transparent
+    border-width        1px 0
+    cursor              pointer
+    margin              0 6px 0 0
+    overflow            visible
+
+  &.kdlistview-acc-navigation
+    margin                16px 0 15px 0
+    .kdlistitemview.navigation-item
+      min-width         135px
+      .title
+        padding-top     3px
+        margin-top      -1px
+        font-size       11px
+        line-height     18px
+
+#avatar-area
+  overflow              visible
+  background            -webkit-radial-gradient(circle, white,#ddd)
+  background            -moz-radial-gradient(circle, white,#ddd)
+  background            -ms-radial-gradient(circle, white,#ddd)
+  borderBox()
+  margin-bottom         23px
+  .avatar-image-wrapper
+    position            relative
+    bg                  size, 160px auto
+    bg                  position,center center
+    bg                  repeat,no-repeat
+    shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
+    size                100%,76px
+    h3
+      position          absolute
+      left              0
+      top               -24px
+      color             hsla(355, 100%, 100%, 0.8)
+      font-size         12px
+      line-height       24px
+      size              100%,24px
+      min-width         164px
+      padding           0 5px
+      font-weight       normal
+      text-align        center
+      text-shadow       0 -1px 0 hsla(355, 0%, 20%, 22)
+      bg                color,hsla(0, 3%, 6%, 0.5)
+      borderBox()
+      a
+        color             #f18932
+        text-decoration   none
+  
+/* collapsed sidebar state */
+#main-nav-wrapper.collapsed
+  .avatar-image-wrapper
+    h3
+      display             none
+  .actions
+    width                 161px
+    a.notifications
+      .count
+        left              -2px !important
+        top               -74px !important
+    a.messages
+      .count
+        left              -42px !important
+        top               -50px !important
+
+span.main-nav-icon
+  fl()
+  margin -1px 18px 0 0
+  sprite()
+  bg(position,0 -120px)
+  size(20px,20px)
+
+  &.home
+    bg(position,0 0)
+  &.activity           
+    bg(position,0 -80px) //new bubbles
+  &.members
+    bg(position,0 -60px)
+  &.groups
+    bg(position,0 -60px)
+  &.questions-answers
+    bg(position,0 -80px)
+  &.app-store
+    bg(position,0 -100px)
+  &.my-apps
+    bg(position,0 -220px)
+  &.settings
+    bg(position,0 -320px)
+  &.about
+    bg(position,0 -340px)
+  &.app
+    bg(position,0 -140px)
+  &.server-manager
+    bg(position,0 -240px)
+  &.teams
+    bg(position,0 -260px)
+  &.databases
+    bg(position,0 -280px)
+  &.backups
+    bg(position,0 -300px)
+  &.apps
+    bg(position,0 -300px)
+  &.develop
+    bg(position,0 -400px)
+  &.topics
+    bg(position,0 -480px)
+  &.account
+    bg(position,0 -420px)
+  &.logout
+    bg(position,0 -440px)
+  &.login
+    bg(position,0 -460px)
+  &.beta-feedback
+    bg(position,0 -500px)
+  &.demos
+    bg(position,0 -100px)
+  &.invite-friends
+    margin        1px 20px 1px 3px
+    rounded       2px
+    bg            color,linkColor1
+    color         white
+    font-size     10px
+    line-height   16px
+    min-width     15px
+    font-weight   700
+    text-align    center
+    size          auto,16px
+    bg            image,none
+
+.kdlistitemview.selected
+  span.main-nav-icon
+    &.home
+      bg(position,-20px 0px)
+    &.activity
+      bg(position,-20px -80px)
+    &.topics
+      bg(position,-20px -480px)
+    &.members
+      bg(position,-20px -60px)
+    &.develop
+      bg(position,-20px -400px)
+    &.apps
+      bg(position,-20px -300px)
+    &.demos
+      bg(position,-20px -100px)
+
+#main-nav
+  .kdlistitemview.selected
+    border                1px solid transparent
+    border-width          1px 0
+    border-color          transparent
+    margin                0 10px 0 0
+    text-shadow           0 1px 0 #fff
+    cursor                pointer
+    bg                    color,rgba(0, 0, 0, 0.20)
+    .title
+      font-weight         600!important
+      color               white!important
+      bg                  image,none
+      bg                  color,transparent
+      text-shadow         none
+      &:hover
+        color             white
+        text-decoration   none
+
+
+
+.navigation-item
+  min-width         135px
+  a 
+    text-decoration     none
+    &:hover
+      text-decoration        none
+  .arrow
+    fl()
+  .title
+    margin          0
+    padding         1px 0 1px 15px
+    font-weight     300!important 
+    font-size       14px
+    line-height     20px
+    overflow        hidden
+    color           rgb(173, 173, 173)!important
+    text-shadow     none!important
+    display         block
+    &:hover
+      text-decoration        none
+
+#main-tab-view
+  overflow        hidden!important
+  z-index         1
+  bg              color, white
+
+#main-tab-handle-holder
+  position            absolute
+  top                 0
+  left                0
+  padding             0
+  margin              0
+  border              none
+  overflow            hidden
+  size                100%,25px
+  z-index             0
+  bg                  color,transparent
+  vendor              transition, top .3s linear
+  .kdtabhandle        
+    color             rgba(255,255,255,0.85)
+    line-height       23px
+    font-size         11px
+    padding           0 5px 0 10px
+    size              128px,25px
+    border            1px solid rgba(255,255,255,.15)
+    border-right      1px solid transparent
+    overflow          hidden
+    cursor            pointer
+    text-shadow       0 -1px 0 rgba(0,0,0,.61)
+    bg                color,rgba(255,255,255,.2)
+    gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+    rounded           0
+    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+    > div
+      margin-right    14px
+      b                 
+        z-index       0
+        font-weight   normal
+        text-overflow ellipsis
+        white-space   nowrap
+        overflow      hidden
+        width         100%
+        margin-right  0
+        display       block
+      
+    span.close-tab
+      z-index     10
+      bg          color,transparent
+      
+    &:hover
+      bg          color,rgba(255,255,255,.3)
+
+    &.first
+      rounded       3px 0 0 0
+      margin-left   0
+
+    &.last
+      border-right  1px solid rgba(255,255,255,.15)
+      rounded       0 3px 0 0
+      margin-left   0
+    
+    &.first.last
+      rounded       3px 3px 0 0
+
+    &.active
+      color         black
+      text-shadow   none
+      bg            color,white
+      gradient      white,white
+      shadow        none
+      span.close-tab
+        bg          color,transparent
+
+    &.plus
+      span.icon
+        margin      1px 5px 0 -5px
+        size        20px,20px
+        sprite()
+        bg          position,-60px -260px
+        fl()
+      &:hover
+        bg          color,rgba(255,255,255,.3)
+        color       rgba(255, 255, 255, 0.9)
+      &.last
+        width       25px
+        padding     0 5px 0 7px
+        b
+          hidden()
+      &.last.first
+        width       142px
+        b
+          width     auto
+          visible()
+
+.avatararea-popup
+  height                auto
+  border                none
+  position              absolute
+  overflow              visible
+  top                   153px
+  left                  0
+  z-index               1000
+  width                 280px
+  visibility            hidden
+  opacity               0
+  transition            opacity ease-out .2s, visibility ease-out .2s
+  // transform             scale(0.01) skew(89deg) translate(100px,-100px)
+  // transform-origin      left top
+  &.active
+    visibility          visible
+    opacity             1
+    // transform           scale(1) skew(0deg)
+    transition-delay    0s
+  
+  .kdview.kdlistview
+    margin              0
+  .tab
+    border              1px solid #d2d2d2
+    border-bottom       none
+    position            relative
+    top                 -26px
+    text-align          center
+    z-index             1
+    rounded        3px,3px,0,0
+    size                52px,28px
+    bg                  color,white
+    span
+      margin-top        4px
+      size              20px,20px
+      sprite()
+      blockMid()
+  .content
+    border              1px solid #d2d2d2
+    margin-top          -27px
+    shadow              0 0 21px 10px rgba(0,0,0,0.18) 
+    rounded        0,3px,3px,3px
+    size                280px,auto
+    bg                  color,white
+    borderBox()
+
+  &.status-update
+    left                -1px
+    .tab
+      span
+        bg(position,-100px -540px)
+    .content
+      height              99px !important
+      .hitenterview
+        border-width      0!important
+        size              100%,100%
+        padding           10px
+        color             #5a5a5a
+        font-size         10px
+        borderBox()
+
+  &.notifications
+    left                52px
+    .tab 
+      span
+        bg(position,-120px -540px)
+
+  &.messages
+    left                105px
+    .tab 
+      span
+        bg(position,-140px -540px)
+
+  &.friends-followers
+    left                162px
+    .tab 
+      span
+        bg(position,-140px -540px)
+  
+  .sublink
+    border-top            1px solid #e0e0df
+    font-size             11px
+    padding               7px 12px
+    font-weight           600
+    width                 auto
+    rounded(0,0,3px,3px)
+    bg(color,#f8f8f8)
+  .sublink a
+    color                 #0991be
+    text-decoration       none
+  
+  .input-with-extras
+    textarea 
+      font-size             12px !important
+      color                 #5a5a5a !important
+    
+    
+.avatararea-popup-list
+  margin              0
+  li
+    border-bottom       1px solid #e0e0df
+    padding             8px 10px
+    list-style          none
+    font-size           11px
+    line-height         15px
+    color               #8e8e8e
+    borderBox() 
+    span.avatar
+      border            1px solid #e3e3e3
+      padding           1px
+      margin-right      10px
+      display           block
+      bg                size, cover
+      bg                position, center
+      size(40px,40px)
+      fl()
+    &.unread
+      background        rgba(250, 239, 223, .5)
+      border-left       3px solid #ff9200
+      padding           8px 10px 8px 7px
+    p
+      max-height        46px
+      overflow          hidden
+      color             #8e8e8e
+      span.profile      
+        color           linkColor1
+    a
+      color             linkColor1
+      text-decoration   none
+      font-weight       600
+      &:hover           
+        text-decoration underline
+      span
+        color           linkColor1
+    footer
+      span
+        color             #8e8e8e
+        margin-top        0px
+        font-size         10px
+        blockMid()        
+      time
+        color             #8e8e8e
+        margin-top        6px
+        font-size         10px
+        blockMid()
+        span.profile
+          margin-top        -5px      
+      span                
+        color             #393939
+
+/* 
+**  LEFT SIDEBAR STYLES
+*/
+
+#sidebar
+  #main-nav
+    size              160px,auto
+    min-height        100%
+    overflow          hidden  
+    .avatar-placeholder
+      height          76px
+      bg              color,transparent
+      overflow        visible
+      vendor          transition, margin-left .3s linear
+      &.collapsed
+        margin-left   -54px
+        
+    .actions          
+      height          27px
+      border-top      1px solid #403d37
+      overflow        visible
+      margin          0 0 23px 0
+
+    a.status-update,
+    a.notifications,
+    a.messages,
+    a.profile
+      position          relative
+      border-right      1px solid #403d37
+      text-align        center
+      display           block
+      text-decoration   none
+      bg                color,rgba(0,0,0,0.2)
+      size              33.3%,27px
+      borderBox()
+      fl()
+      &:hover
+        bg(color,rgba(0,0,0,0.4))
+      span.icon
+        margin-top      4px
+        sprite()
+        bg(repeat,repeat)
+        size(20px,20px)
+        blockMid()
+    .status-update
+      span.icon
+        bg(position,-100px -520px)
+      &:hover
+        span.icon
+          bg(position,-100px -540px)
+    .count
+      position          absolute
+      top               -16px
+      left              0
+      width             100%
+      padding           0px
+      font-size         10px
+      text-align        center
+      line-height       12px
+      opacity           0
+      z-index           2
+      vendor            transition,opacity .4s linear
+      &.in
+        opacity         1
+      cite
+        font-style      normal
+        text-shadow     0 -1px 0 rgb(173, 103, 0, 0.5)
+        padding         2px 3px 1px 3px
+        display         inline-block
+        min-width       11px
+        color           white
+        letter-spacing  0px
+        margin          0 auto
+        rounded    3px,3px,0,0
+        bg              color,linkColor1
+      .arrow-wrap
+        display         block
+        text-align      center
+        .arrow
+          display       block
+          margin        0 auto
+          sprite()
+          bg            position,-185px -549px
+          size          7px,3px
+
+    .notifications
+      span.icon
+        bg(position,-120px -520px)
+      &:hover
+        span.icon
+          bg(position,-120px -540px)
+    .messages
+      span.icon
+        bg(position,-140px -520px)
+      &:hover
+        span.icon
+          bg(position,-140px -540px)
+    .profile
+      span.icon
+        bg(position,-160px -520px)
+        border-right      none      !important
+      &:hover
+        span.icon
+          bg(position,-160px -540px)
+    .avatar-separator
+      text-align            center
+      margin                0 11px
+      border-top            1px solid rgba(44,41,36,.5)
+      border-bottom         1px solid rgba(255,255,255,.07)
+      line-height           11px
+      size                  auto,auto
+
+
+.kdview.kdlistitemview
+  position            relative
+  clear               both
+  &:last-child
+    border-bottom   none
+  &:hover
+    .list-item-arrow
+        display     block
+
+  .list-item-arrow
+    position absolute
+    display none
+    text-decoration none
+    color #ddd
+    text-align center
+    font-size 18px
+    line-height 20px
+    cursor pointer
+    top 10px
+    right 5px
+    size(20px,20px)
+    &:hover
+      color k-orange
+
+  p.item-content-body
+    margin            10px 8px 0 28px
+    font-size         12px
+    color             #444
+    padding           6px 0
+    position          relative
+    min-width         9px
+  
+  div.member-title
+    margin-bottom     0
+    span.short-desc
+      color         #888
+      font-size     .8em
+      font-style    italic
+    em
+      font-style    italic
+      color         #999
+      font-size     11px
+      font-family   sans
+
+
+// button icons
+.follow-button-icon
+  display           inline-block
+  vertical-align    middle
+  border            none !important
+  size(20px,20px)
+  background-color  transparent !important
+  bg(image,url("../images/_kd.sprites.png")) !important
+  bg(position,-120px -340px) !important
+  .title 
+      blockMid() !important
+
+  .short-desc
+    margin            5px 0
+    padding           5px
+    max-width         188px
+    border-top        1px solid #eee
+    color             dimmed-text
+    font-size         .9em
+    background-color  browser-bg
+  p
+    color             #b2b2b2
+    font-size         16px
+
+/* COMMON HEADING */
+.kdheaderview
+  &.header-view-section
+    border-bottom       1px solid rgb(225,225,225)
+    height              76px
+    line-height         1
+    overflow            visible
+    bg                  color,rgb(244,244,244)
+  .section-title
+    margin              29px 0 0 25px
+    letter-spacing      0
+    font-size           18px
+    padding             0
+    margin              0
+    font-weight         300
+    padding             30px 0px 0px 25px
+    line-height         18px
+    text-shadow         0px 1px 0px rgba(255,255,255,1)
+    color               #222
+    fl()
+
+
+// Coming soon pages
+.coming-soon-page.comingsoon-overlay
+  position            absolute
+  left                0
+  top                 0
+  width               100%!important
+  height              100%!important
+  z-index             4
+  background          linear-gradient(top,  rgba(247,247,247,.87) 0%,rgba(173,173,173,.85) 100%)
+  .comingsoon
+    background        transparent
+
+.comingsoon
+  height               100%
+  text-align           left
+  padding              40px 
+  text-shadow          0 1px 0 rgba(255,255,255,.9)
+  background           linear-gradient(top,  rgba(247,247,247,.47) 0%,rgba(173,173,173,1) 100%)
+
+  h1, h2, p
+    max-width           550px
+    transition          all .2s linear
+    -o-transition       all .2s linear
+    -moz-transition     all .2s linear
+    -webkit-transition  all .2s linear
+    background          transparent!important
+  img
+    margin              0 20px 29px 0
+    float               left
+  h1
+    color               #222
+    font-size           32px
+    font-weight         700
+    margin-bottom       6px
+    display             inline-block
+  h2
+    font-weight             400
+    color                   #999
+    text-shadow             0 1px 0 rgba(255,255,255,0.9) !important
+    margin-bottom           30px
+    padding-bottom          30px
+    font-size               18px
+    border-bottom           1px solid rgba(0,0,0,0.1)
+    -moz-box-shadow         0 1px 0 rgba(255, 255, 255, 0.6)
+    -webkit-box-shadow      0 1px 0 rgba(255, 255, 255, 0.6)
+    box-shadow              0 1px 0 rgba(255, 255, 255, 0.6)
+  p
+    font-size     14px
+    color         #666
+    line-height   22px
+
+
+.ui-resizable 
+  position: relative
+.ui-resizable-handle 
+  position: absolute
+  font-size: 0.1px
+  z-index: 99999
+  display: block
+.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle 
+  display: none
+.ui-resizable-n 
+  cursor: n-resize
+  height: 7px
+  width: 100%
+  top: -5px
+  left: 0
+.ui-resizable-s 
+  cursor: s-resize
+  height: 7px
+  width: 100%
+  bottom: -5px
+  left: 0
+.ui-resizable-e 
+  cursor: e-resize
+  width: 7px
+  right: -5px
+  top: 0
+  height: 100%
+.ui-resizable-w 
+  cursor: w-resize
+  width: 7px
+  left: -5px
+  top: 0
+  height: 100%
+.ui-resizable-se 
+  cursor: se-resize
+  width: 12px
+  height: 12px
+  right: 1px
+  bottom: 1px
+.ui-resizable-sw 
+  cursor: sw-resize
+  width: 9px
+  height: 9px
+  left: -5px
+  bottom: -5px
+.ui-resizable-nw 
+  cursor: nw-resize
+  width: 9px
+  height: 9px
+  left: -5px
+  top: -5px
+.ui-resizable-ne 
+  cursor: ne-resize
+  width: 9px
+  height: 9px
+  right: -5px
+  top: -5px
+
+
+
+// invitation modal
+.kdmodal.invitation-modal
+  .kdinput
+    width         365px
+    &[readonly=readonly]
+      bg          color,#f5f5f5
+
+  textarea.kdinput
+    height        80px
+  
+  .modal-hint
+    height        auto
+    gradient      #333333,#454546
+    p
+      color       white
+      margin      15px 20px 0
+      line-height 19px
+      &:last-child
+        margin    15px 20px
+    cite
+      font-size   11px
+      color       linkColor1
+      font-style  normal
+  span.invite-icon
+    bg            position,-480px -80px
+    size          40px,20px
+    margin        15px 5px 15px -10px
+    sprite()
+    fl()
+  .invite-hint
+    position      absolute
+    size          auto, 27px
+    line-height   27px
+    overflow      visible
+    font-size     11px
+    span
+      padding     0 5px
+      rounded     2px
+      bg          color,linkColor1
+      color       white
+
+
+
+

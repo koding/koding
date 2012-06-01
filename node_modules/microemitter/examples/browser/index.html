@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <title>Micro EventEmitter in-browser test</title>
+  <script src="../../index.js"></script>
+  <script>
+  var ee, listener;
+  
+  ee = new EventEmitter;
+  
+  console.log(ee);
+  
+  listener = function listener() {
+    console.log(arguments);
+  };
+  
+  ee.on('foobar', listener);
+  ee.on('foobar', listener); // whoops!
+  
+  ee.on('barfood', listener);
+  
+  ee.emit('foobar', 'yo yo', 123);
+  
+  ee.off('foobar', listener);
+  
+  ee.emit('foobar', 'yo yo, yo', 1234);
+  ee.emit('barfood', 'yo yo ma', 12345);
+  
+  </script>
+<body>

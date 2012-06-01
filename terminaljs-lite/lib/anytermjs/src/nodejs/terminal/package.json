@@ -1,0 +1,8 @@
+{
+  "name": "terminal",
+  "version": "0.1",
+  "main": "./lib/terminal.node",
+  "description": "Terminal emulator",
+  "modules" : { "test" : "./tests" },
+  "directories": {"lib": "./lib", "test": "./tests"}
+}

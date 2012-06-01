@@ -1,0 +1,6 @@
+K 13
+svn:externals
+V 55
+runner svn://arbitracker.org/arbitTestRunner/trunk/src
+
+END

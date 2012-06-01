@@ -1,0 +1,306 @@
+###
+
+How to define KDData instance variables
+
+in the constructor:
+###
+class blah extends KDData
+	constructor:(options,data)->
+		@setInstanceVariables
+			instanceVariable1Items:
+				singular : "instanceVariable1Item"
+				methods :
+					someApiCallNameLikeFetch : 
+						apiCall : 'fetchBlah'
+						apiParams : (args)-> limit : args.limit, sort : -1
+						returnedDataPreProcess : (dataItems)->
+						returnedDataInit : (preProcessedDataItem)->
+            returnedDataPostProcess : (initializedDataItems)->
+            returnedDataChangeType : "refresh"
+					someOtherApiCallNameLikeRemove : 
+						apiCall : (args, callback)=>
+							@invokeServerSide
+								pathExists:
+									params:				
+										path:				targetPath
+									middleware:		(err, params, pathExists, next)->
+										if pathExists
+											pathExists = not confirm "Replace existing item \"#{params.path}\"?"
+										unless pathExists then next()
+								move:						
+									params:				{sourcePath, targetPath}
+								ls:							
+									params:				
+										relativePath:				targetBase
+									middleware:		(err, params, result)=> callback result
+			instanceVariable2Item:
+				methods :
+					someApiCallNameLikeFetch : 
+						apiCall : (args, callback)=>
+							@persist
+								action : "fetch"
+								dataPath : "servers"
+							, args, ()=>
+								callback @servers.openvz
+					someOtherApiCallNameLikeRemove :
+
+###
+Notes:
+
+singular :
+  optional : yes
+  default value: name of instance variable, e.g. "instanceVariable1"
+  explanation:  use for instance variables that represent an array of data, it is used to make call for initialization functions on individual items semantically correct
+methods :
+  optional : using @listenTo generally requires a method named "fetch", receiving broadcasts requires a "receive" method, other methods are optional based on your use
+  explanation : an object defining the different api calls that can be made to fetch/receive/manipulate the instance variable
+apiCall :
+  optional : yes
+  default value : method name + capitalized instance variable name- e.g. someApiCallNameLikeFetchInstanceVariable1Items
+  explanation : this can be a:
+    string: defines the task function name to be passed to KDData::invokeServerSide. In this case, apiParams will be used if it is there to populate the params of invokeServerSide
+      or
+    function (args, callback):
+      can contain a call to KDData::invokeServerSide with multiple apiCalls and middleware. Final middleware should callback returned data
+        or
+      can contain any other function, e.g. if one instance variable gets its fetch by fetching another. Should callback returned data
+apiParams :
+  optional : yes and is ignored if apiCall is a function
+  default value : undefined
+  explanation : a function that takes the args to KDData::persist and returns the params object to be passed to KDData::invokeServerSide
+returnedDataPreProcess :
+  optional : yes
+  default value : @["preProcess" + instance variable name], e.g. @preProcessInstanceVariable1Items if that function exists, otherwise undefined
+  explanation : a function that is passed the returned data from apiCall and does stuff before returnedDataInit
+returnedDataInit :
+  optional : yes
+  default value : @["initialize" + singular form of instance variable name], e.g. @initializeVariable1Item if that function exists, otherwise undefined
+  explanation : a function that is passed each item in returned data (if it is an array of items) from returnedDataPreProcess. Should initialize client-side data objects and return them. Takes the returned items and assigns them to blah.instanceVariable1Items based on returnedDataChangeType
+returnedDataPostProcess :
+  optional : yes
+  default value : @["postProcess" + instance variable name], e.g. @postProcessInstanceVariable1Items if that function exists, otherwise undefined
+  explanation : a function that is passed the returned data from returnedDataInit, does stuff to it before callbacks and propagateEvents are fired with the data. If returnedDataChangeType is 'manual', should assign the data to the instance variable and return one of 'refresh', 'addStart', 'addEnd', 'removeStart', 'removeEnd', 'remove'
+returnedDataChangeType :
+  optional : no
+  possible values : 'refresh', 'addStart', 'addEnd', 'removeFrom', 'manual', 'none'
+  explanation : defines how the returned data is assigned to the actual instance variable, e.g. blah.instanceVariable1Items and also the dataChangeType value of the propagated event
+    refresh : blah.instanceVariable1Items = postProcessedData
+    addStart : blah.instanceVariable1Items = postProcessedData.concat blah.instanceVariable1Items
+    addEnd : blah.instanceVariable1Items = blah.instanceVariable1Items.concat postProcessedData
+    removeStart : TBD
+    removeEnd : TBD
+    remove : for item in postProcessedData
+      blah.instanceVariable1Items.splice blah.instanceVariable1Items.indexOf item,1
+    manual : assign the returned data to the instance variable in returnedDataPostProcess. returnedDataPostProcess has to return one of the other possible value to be the dataChangeType of the propagated event
+    none : no propagation or callback takes place, preprocess, initialization, and postprocess take place then return
+      
+
+
+@setInstanceVariables
+  activities:
+    singular : 'activity'
+    methods:
+      fetch:
+        apiCall : 'fetchActivities'
+        apiParams : ({filters}={})=>
+          params = limit : 50
+          if filters? then params.filters = filters
+          params
+        returnedDataInit : @initializeActivity
+        returnedDataPostProcess : @activitiesPostProcess
+        returnedDataChangeType: 'refresh' #'addStart', 'addEnd', 'removeStart', 'removeEnd', 'remove'
+      filter:
+        apiCall : 'fetchActivities'
+        apiParams : ({type})=>
+          limit : 50
+          filters : if ($.isArray type) then type else [type]
+        returnedDataPreProcess : ()->
+          @allActivities or= []
+          @allActivities.concat @activities
+        returnedDataInit : @initializeActivity
+        returnedDataPostProcess : @activitiesPostProcess
+        returnedDataChangeType: 'refresh'
+      pageDown:
+        apiCall : 'fetchActivities'
+        apiParams : ({filters}={})=>
+          params = limit : 5
+          skip: @activities.length
+          if filters? then params.filters = filters
+          params
+        returnedDataInit : @initializeActivity
+        returnedDataPostProcess : @activitiesPostProcess
+        returnedDataChangeType: 'addEnd'
+      receive:
+        refresh:null
+        addTo:
+          returnedDataInit : @initializeActivity
+          returnedDataChangeType : 'addStart'
+        remove:null
+
+
+
+
+KDDataListViewController-
+
+new KDDataListViewController null, (<path:"Data.alkdf", source:>someKDDataObject)
+path is optional, defaults to "Data"
+
+@source is the KDData instance being listened to
+# @items is an associative array {} -we're not doing this (yet?)
+setData (options.source, options.path)
+
+
+KDDataListItemView-
+
+new KDDataListItemView null,  (<path:"Data.alkdf", source:>someKDDataObject)
+same as KDDataListViewController
+refreshPartial gets set as @listenTo callback
+
+
+
+
+
+in fetchData
+@someData = [] or {} is there so that even if no data is returned, we know fetch has already occurred
+
+
+
+
+KDData-
+  @changeId() overwrites whatever is in the cache (if anything)
+  otherwise, pass id to options.id of constructor to load cache
+  cache should be up to date always (broadcasting) so no reason to worry about losing data when taking cache instead of new
+
+
+###
+broadcasting:
+Saleem Abdul Hamid 1:48 PM 
+hey chris- is my understanding about broadcast.origin.id correct:
+if a message gets a new reply, origin.id would be the message id
+if a database gets modified, origin.id would be the database id 
+if an account profile changes, origin.id would be the account id
+?
+Christopher Thorn 1:53 PM 
+hi
+1:53 PM
+sorry
+1:54 PM
+i guess i hadn't thought of using the origin id to refer to the message, but that makes sense
+1:55 PM
+I guess then if somebody has a certain message onscreen then they are temporarily added to that channel.
+1:55 PM
+the channel of the message
+1:55 PM
+so that if anybody adds a comment the client receives the broadcast
+Saleem Abdul Hamid 1:58 PM 
+I'm writing the code for a standardized way of receiving broadcasts and routing them to their appropriate data object
+It's very similar to the @listenTo for data objects- if the broadcast.type (or path, I haven't decided exactly) starts with "Data." then it should get routed automatically to a KDData object with the appropriate id
+Christopher Thorn 1:59 PM 
+ok...  do you think it's a good idea to remove offscreen listeners?
+1:59 PM
+otherwise i think it is going to have a lot of overhead
+2:00 PM
+i can only imagine how exponential that would get
+2:01 PM
+maybe it wouldn't be so bad
+Saleem Abdul Hamid 2:01 PM 
+I guess that's a (necessary) optimization that can be done several ways
+Christopher Thorn 2:01 PM 
+if somebody was commenting on a message every second
+2:01 PM
+or even more frequently
+2:01 PM
+it would be bad to push that to 100s of clients
+2:02 PM
+or 1000s or whatever
+2:03 PM
+but if we limited that to onscreen messages only, it would be a lot better
+Saleem Abdul Hamid 2:04 PM 
+or not exactly "onscreen" but any client that had that message data cached?
+Christopher Thorn 2:04 PM 
+maybe...  it depends what's being sent
+2:04 PM
+because with a message and a comment
+2:04 PM
+a comment is an embedded document inside a message
+2:04 PM
+and say somebody is not looking at that message at the moment
+2:05 PM
+there's no reason to load all the comments in real time if the person isn't looking, if the contents of the comment themselves are not also being sent along with the broadcast
+2:06 PM
+so maybe a better approach would be to have a listener that pays attetntion to when a message's UI goes on and offscreen, and when it comes back on, if there are comments waiting it could run and grab them all at once
+Saleem Abdul Hamid 2:09 PM 
+yeah, I think that's already how it would work, in real time just the comment id's would load, when the UI goes onscreen, the id's that don't have data cached would fetch it
+2:09 PM
+how will you know which client to push data to? do we have to register with a particular channel, or will it happen automatically when we fetch that piece of data or what?
+Christopher Thorn 2:09 PM 
+that's what i mean
+2:10 PM
+we need to join and unjoin channels temporarily
+2:10 PM
+while something is onscreen
+Saleem Abdul Hamid 2:10 PM 
+yeah, so I'm asking implementation-wise
+2:10 PM
+that's something we have to initiate client-side?
+Christopher Thorn 2:10 PM 
+you have a an event handler
+2:11 PM
+and you call an API on the server that will subscribe/unsubscribe to channel
+Saleem Abdul Hamid 2:11 PM 
+and channels are uniquely identified by origin.id?
+Christopher Thorn 2:11 PM 
+channels are the module id
+2:12 PM
+so it might not be an origin id
+2:12 PM
+but it usually is or something
+2:12 PM
+once again it depends what you are talking about
+2:13 PM
+the channel id is the id of what the channel is "about"
+Saleem Abdul Hamid 2:13 PM 
+alright got it- module id is what I'm looking for anyway
+Christopher Thorn 2:13 PM 
+yeah
+2:13 PM
+take this example
+2:13 PM
+you are following me
+2:13 PM
+so you get realtime notifications about my account
+2:14 PM
+so you join the channel that is named after my mongoid
+2:14 PM
+theoretically, it would be possible for a broadcast that is sent on my channel to have an origin id that is not my mongo id
+2:15 PM
+...or not to have an origin id at all
+Saleem Abdul Hamid 2:15 PM 
+like if someone else with "administrative powers" changed your profile.fullname, e.g.?
+Christopher Thorn 2:15 PM 
+i can't think of a practical example
+2:16 PM
+but that doesn't mean that there aren't any
+2:16 PM
+ok i thought of one
+2:16 PM
+easy breezy
+2:16 PM
+the idea of a chat room
+2:16 PM
+right?  the channel id is the chat room
+2:16 PM
+the origin ids are whoever is chatting
+Saleem Abdul Hamid 2:17 PM 
+right, got it
+Christopher Thorn 2:23 PM 
+(i just learned about the three-finger gesture to switch between conversations in skype)
+Saleem Abdul Hamid 2:25 PM 
+so the basic architecture is simple:
+KDData object with particular mongoid subscribes to channel with that mongoid
+Broadcast received with that channel id gets routed to KDData object to modify data
+
+Then there's some optimization as far as whether data object not on screen should remain subscribed, or unsubscribe, or "lightly" subscribed to get marked as "dirty" while not loading the complete data
+I think the client side architecture is flexible enough to handle any of those on a case-by-case basis
+Christopher Thorn 2:26 PM 
+ok sounds good.
