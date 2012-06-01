@@ -1,0 +1,1 @@
+BONGO_MQ = new Pusher 'a19c8bf6d2cad6c7a006', {encrypted: yes}

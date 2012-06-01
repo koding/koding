@@ -1,0 +1,132 @@
+/* browser/anyterm.css
+   This file is part of Anyterm; see http://anyterm.org/
+   (C) 2005-2008 Philip Endecott
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2 of the License, or
+   any later version.
+   
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+   
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
+
+
+/* These are the background colours: */
+.a { background-color: #000000; }  /* black   */
+.b { background-color: #cd0000; }  /* red     */  
+.c { background-color: #00cd00; }  /* green   */
+.d { background-color: #cdcd00; }  /* yellow  */
+.e { background-color: #0000cd; }  /* blue    */
+.f { background-color: #cd00cd; }  /* magenta */
+.g { background-color: #00cdcd; }  /* cyan    */
+.h { background-color: #e5e5e5; }  /* white   */
+
+/* These are the foreground colours used when bold mode is NOT enabled.
+   They're the same as the background colours. */
+.i { color: #000000; }  /* black   */
+.j { color: #cd0000; }  /* red     */  
+.k { color: #00cd00; }  /* green   */
+.l { color: #cdcd00; }  /* yellow  */
+.m { color: #0000cd; }  /* blue    */
+.n { color: #cd00cd; }  /* magenta */
+.o { color: #00cdcd; }  /* cyan    */
+.p { color: #e5e5e5; }  /* white   */
+
+/* These are the brighter foreground colours used when bold mode IS enabled.
+   The business with !important and .p .z is because the .p default is set
+   on the enclosing term element; I can't see a better way to get the desired
+   behaviour. */
+.z.i        { color: #4d4d4d !important; }  /* black   */
+.z.j        { color: #ff0000 !important; }  /* red     */
+.z.k        { color: #00ff00 !important; }  /* green   */
+.z.l        { color: #ffff00 !important; }  /* yellow  */
+.z.m        { color: #0000ff !important; }  /* blue    */
+.z.n        { color: #ff00ff !important; }  /* magenta */
+.z.o        { color: #00ffff !important; }  /* cyan    */
+.z.p, .p .z { color: #ffffff; }             /* white   */
+
+/* If you want a black-on-white colour scheme like xterm, rather than the
+   default white-on-black, you need to change the lines for black and white
+   above to something like the following:
+   .a { background-color: #ffffff; }
+   .h { background-color: #000000; }
+   .i { color: #e5e5e5; }
+   .p { color: #000000; }
+   .z.i        { color: #ffffff !important; }
+   .z.p, .p .z { color: #000000; }
+*/
+
+/* If the following rule is enabled, bold mode will actually use a bold font.
+   This is not a good idea in general as the bold font will probably be wider
+   than the normal font, messing up the layout, at least for some subset of
+   the character set.  So it's commented out; bold characters will be 
+   distinguished only by their brighter colours (above) */
+/* .z { font-weight: bold; } */
+
+/* The cursor.  You can make it blink if you really want to (on some browsers). */
+.cursor {
+  border: 1px solid red;
+  margin: -1px;
+/*text-decoration: blink;*/
+}
+
+
+/* Properties for the page outside the terminal: */
+
+body {
+  background-color: white;
+  /* Don't like the white background?  How about this:
+     background-color: #222222;
+  */
+}
+
+noscript {
+  /* This is for the message that users see if they don't have Javascript
+     enabled.  We want it to be visible whatever the page background colour
+     (above) is set to, so we give it its own background colour. */
+  color: black;
+  background-color: white;
+}
+
+
+/* The remaining definitions determine the appearance of the frame around the
+   terminal, its title bar, and buttons: */
+
+.termframe {
+  float: left;
+  background-color: rgb(63,63,161);
+  padding: 0.4ex;
+}
+
+.termframe p {
+  margin: 0;
+  color: white;
+  font-weight: bold;
+  font-family: sans-serif;
+}
+
+.termframe a {
+  cursor: pointer;
+}
+
+img.button { 
+  margin: 0 3px;
+  cursor: pointer;
+  vertical-align: top;
+}
+
+.term {
+  margin: 0.4ex 0 0 0;
+  padding: 1px;
+
+  overflow: auto;
+  overflow-x: visible;
+}
+

@@ -1,0 +1,187 @@
+###
+  todo:
+   
+    - make save dialog a view with pistachio
+    - put listeners in methods
+    - make this splittable
+    
+###
+
+class AceView extends JView
+
+  constructor:(options, file)->
+
+    super
+    @listenWindowResize()
+
+    @saveButton = new KDButtonViewWithMenu
+      title         : "Save"
+      style         : "clean-gray editor-button save-menu"
+      delegate      : @
+      menu          : [@getSaveMenu()]
+      callback      : ()=> file.emit "ace.requests.save", @ace.getContents()
+    
+    @caretPosition = new KDCustomHTMLView
+      tagName       : "div"
+      cssClass      : "caret-position section"
+      partial       : "<span>1</span>:<span>1</span>"
+
+    @ace = new Ace {}, file
+
+    @advancedSettings = new KDButtonViewWithMenu
+      style         : 'editor-advanced-settings-menu'
+      icon          : yes
+      iconOnly      : yes
+      iconClass     : "cog"
+      type          : "contextmenu"
+      delegate      : @ace
+      subItemClass  : AceSettingsView
+      click         : (pubInst, event)-> @contextMenu event
+      menu          : [@getAdvancedSettingsMenuItems()]
+
+      
+    publicUrlCheck = /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/
+    @previewButton = new KDButtonView
+      style     : "clean-gray editor-button"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "preview"
+      callback  : =>
+        publicPath = file.path.replace publicUrlCheck, 'http://$1/$2'
+        return if publicPath is file.path
+        appManager.openFileWithApplication publicPath, "Viewer"
+
+    unless publicUrlCheck.test(file.path) then @previewButton.hide()
+    
+    ###
+    SET LISTENERS
+    ###
+    
+    @advancedSettings.on "ace.changeSetting", (setting, value)=>
+      @ace["set#{setting.capitalize()}"]? value
+    
+    @advancedSettings.emit "ace.settingsView.setDefaults", @ace
+    
+    $spans = @caretPosition.$('span')
+
+    @ace.on "ace.change.cursor", (cursor)=>
+      $spans.eq(0).text ++cursor.row
+      $spans.eq(1).text ++cursor.column
+
+    file.on "ace.requests.saveAs", (contents)=>
+      @openSaveDialog()
+
+    file.on "ace.requests.save", (contents)=>
+      if /localfile:/.test file.path
+        @openSaveDialog()
+      else
+        file.emit "file.requests.save", contents
+    
+    file.on "fs.remotefile.created", =>
+      if publicUrlCheck.test(file.path) then @previewButton.show()
+      
+
+  viewAppended:->
+
+    super
+    @_windowDidResize()
+
+  pistachio:->
+
+    """
+    <div class="kdview editor-header">
+      <div class="kdview header-buttons">
+        {{> @previewButton}}
+        {{> @saveButton}}
+      </div>
+    </div>
+    <div class="kdview editor-main">
+      {{> @ace}}
+      <div class="editor-bottom-bar clearfix">
+        {{> @caretPosition}}
+        {{> @advancedSettings}}
+      </div>
+    </div>
+    """
+
+  getAdvancedSettingsMenuItems:->
+
+    items : [
+      { type : 'customView', view : new AceSettingsView (delegate : @)}
+    ]                                           
+
+  getSaveMenu:->
+
+    items : [
+      title : "Save as..."
+      id    : 13
+      parentId : null
+      callback : => 
+        @openSaveDialog()
+    ]
+
+  _windowDidResize:->
+
+    height = @getHeight() - 10
+    editorHeight = height - @$('.editor-header').height()
+    bottomBarHeight = @$('.editor-bottom-bar').height()
+    @$('.editor-main').height editorHeight
+    @ace.setHeight editorHeight - bottomBarHeight
+
+  openSaveDialog: (callback) ->
+
+    file = @getData()
+    @addSubView saveDialog = new KDDialogView
+      cssClass      : "save-as-dialog"
+      duration      : 200
+      topOffset     : 0
+      overlay       : yes
+      height        : "auto"
+      buttons       :
+        Save        :
+          style     : "modal-clean-gray"
+          callback  : ()=>
+            [node] = @finderController.treeController.selectedNodes
+            name   = @inputFileName.inputGetValue()
+            
+            if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
+              @_message 'Wrong file name', "Please type valid file name"
+              return
+            parent = node.getData()
+            file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+            saveDialog.hide()
+        Cancel :
+          style     : "modal-cancel"
+          callback  : ()->
+            saveDialog.hide()
+
+    saveDialog.addSubView wrapper = new KDView
+      cssClass : "kddialog-wrapper"
+
+    wrapper.addSubView form = new KDFormView
+
+    form.addSubView labelFileName = new KDLabelView
+      title : "Filename:"
+
+    form.addSubView @inputFileName = inputFileName = new KDInputView 
+      label        : labelFileName
+      defaultValue : file.name
+
+    form.addSubView labelFinder = new KDLabelView
+      title : "Select a folder:"
+
+    saveDialog.show()
+    inputFileName.inputSetFocus()
+
+    @finderController = new NFinderController
+      treeItemClass     : NFinderItem 
+      nodeIdPath        : "path"
+      nodeParentIdPath  : "parentPath"
+      dragdrop          : yes
+      foldersOnly       : yes
+      contextMenu       : no
+    finder = @finderController.getView()
+
+    form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null
+    finderWrapper.addSubView finder
+    finderWrapper.setHeight 200

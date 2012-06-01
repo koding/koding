@@ -1,0 +1,354 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+
+
+
+section.drag
+  size            100px, 100px
+  background      pink
+  margin          50px
+  fl()
+  &.drag-started
+    background    hotPink
+
+section.drop
+  size            200px, 200px
+  background      cyan
+  fl()
+
+// Ryans Stuff for Dev landing page
+
+.devlanding
+  text-align           center
+  background           #ffffff
+  background           -moz-radial-gradient(center, ellipse cover, #ffffff 0%, #d9d9d9 100%)
+  background           -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9))
+  background           -webkit-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
+  background           -o-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
+  background           -ms-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
+  background           radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%)
+  position             relative
+  border               6px solid #fff
+  shadow               inset 0 0 2px rgba(0, 0, 0, 0.25)
+  borderBox()
+  
+  .devlandingholder
+    text-align             center
+  .getstartedheader
+    background             transparent
+    border                 none
+    text-align             center
+    height                 auto
+    padding-top            20px
+    margin-bottom          40px
+    .section-title
+      color                #34312e
+      text-align           center
+      font-size            18px
+      font-weight          600
+      float                none
+      em
+        display            block
+        padding-top        5px
+        font-size          13px
+        color              #6a645e
+        font-weight        normal
+        font-style         normal
+  
+  // .editorlauncher
+  //   background           #ffffff
+  //   background           -moz-radial-gradient(center, ellipse cover, #ffffff 0%, #d9d9d9 100%);
+  //   background           -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9));
+  //   background           -webkit-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
+  //   background           -o-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
+  //   background           -ms-radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
+  //   background           radial-gradient(center, ellipse cover, #ffffff 0%,#d9d9d9 100%);
+  
+  .editorlauncher
+    margin          0 auto
+    width           95%
+    text-align      center
+    
+  
+  .editoritem
+    width                20%
+    max-width            200px
+    padding              20px
+    vendor               transition, width .2s ease-out
+    clear                none
+    text-align           center
+    display              inline-block
+    position             relative
+    -webkit-transition   all .3s ease-in-out
+    -moz-transition      all .3s ease-in-out
+    -o-transition        all .3s ease-in-out
+    transition           all .3s ease-in-out
+    rounded(4px)
+    borderBox()
+    &:hover
+      background    rgba(255,255,255,0.5)
+      shadow        0 0 20px rgba(0, 0, 0, 0.25)
+    &.appcataloglink
+      strong
+        font-weight  normal
+    &.soon
+      img
+        opacity       .5
+      strong
+        opacity       .5
+      em
+        opacity       .5
+      &:after
+        content     'Coming Soon'
+        opacity              0
+        display              none
+        visibility           none
+        -webkit-transition   opacity .3s linear
+        -moz-transition      opacity .3s linear
+        -o-transition        opacity .3s linear
+        transition           opacity .3s linear
+        position    absolute
+        bottom      -20px
+        left        0px
+        padding     5px 0px
+        color       #ff9200
+        width       100%
+        background  #000
+        rounded(0,0,4px,4px)
+      &:hover:after
+        display     block
+        opacity     1
+        visibility  visible
+    a
+      color              #333
+      text-decoration    none
+      display            block
+          
+    img
+      max-width          100%
+      padding            10% 5%
+      display            block
+      margin             0 auto
+      borderBox()
+    strong
+      display            block
+    em
+      font-style         normal
+      font-size          85%
+      color              #666
+
+  .recentfiles
+    position             absolute
+    height               116px
+    bottom               -116px
+    width                100%
+    background           #fff
+    shadow               -2px 0 2px rgba(0, 0, 0, 0.25)
+    border               1px solid rgba(0,0,0,0.1)
+    text-align           left
+    vendor               transition, all .3s ease-in-out
+    borderBox()
+    &.expanded
+      bottom             0px
+    ul                   
+      margin             0
+      li                  
+        display          block
+        margin           0
+        float            left
+        width            20%
+        a
+          font-size      11px
+          line-height    20px
+          display        block
+          padding        12px 20px
+          color          #ff9200
+          height         44px
+          overflow       hidden
+          color          #333
+          border-right   1px solid rgba(0,0,0,0.075)
+          border-bottom  1px solid rgba(0,0,0,0.075)
+          -webkit-transition   all .1s ease-in-out
+          -moz-transition      all .1s ease-in-out
+          -o-transition        all .1s ease-in-out
+          transition           all .1s ease-in-out
+          borderBox()
+          &:hover
+            background   #ff9200
+            color        #fff
+    span.icon.code 
+      background-position   -40px -180px
+      line-height           14px
+      margin-right          5px
+
+  
+  .workspaces
+    height                 80px
+    position               absolute
+    width                  100%
+    bottom                 -146px
+    text-align             center
+    vendor                 transition, all .5s ease-in-out
+    &.expanded
+      bottom               126px
+    h4
+      text-shadow          0 1px 0 #FFF
+      font-weight          400
+      margin               0 0 20px 0
+    .workspaceholder
+      margin                 0 auto
+      text-align             center
+      img
+        margin-right       15px
+        &:last-child
+          margin-right       0px
+    .aspace 
+      width                 41px
+      height                31px
+      shadow                0px 0px 1px rgba(0,0,0,0.3)
+      background            #fff
+      padding               2px 2px
+      display               inline-block
+      margin-right          10px
+      cursor                pointer
+      vendor                transition, all .3s ease-in-out
+      borderBox()
+      rounded(3px)
+      &:hover 
+        shadow              0px 0px 8px rgba(0,0,0,0.3)
+        .aview 
+          background        #ff9200
+      &:last-child
+        margin-right        0px
+    .aview 
+      background            #d7d6d5
+      display               block
+      width                 50%
+      vendor                transition, all .3s ease-in-out
+      borderBox()
+      rounded(2px)
+    .sp1
+      .v1 
+        float               left
+        height              27px
+      .v2
+        float               right
+        height              27px
+    .sp2
+      .v1
+        float               left
+        height              13px
+        margin-bottom       1px
+      .v2
+        float               right
+        height              13px
+        margin-bottom       1px
+      .v3
+        display             block
+        height              13px
+        width               100%
+        clear               both
+    .sp3
+      .v1
+        float               left
+        height              13px
+      .v2
+        float               right
+        height              13px
+      .v3
+        display             block
+        height              13px
+        width               100%
+        clear               both
+        margin-bottom       1px
+    .sp4
+      .v1
+        margin-bottom       1px
+        height              13px
+      .v2
+        height              13px
+      .v3
+        display             block
+        height              27px
+        float               right
+    .sp5
+      .v1
+        margin-bottom       1px
+        height              13px
+        float               right
+      .v2
+        height              13px
+        float               right
+        clear               right
+      .v3
+        display             block
+        height              27px
+    .sp6
+      .v1
+        margin-bottom       1px
+        height              13px
+      .v2
+        height              13px
+      .v3
+        display             block
+        height              13px
+        float               right
+        margin-bottom       1px
+      .v4
+        display             block
+        height              13px
+        float               right
+        clear               right
+
+
+
+
+
+
+
+// Sinans stuff
+
+.kdview.content-area-pane.demoflipping > div
+  vendor(perspective,1800)
+  .kdview.card
+    position          absolute
+    margin            10% 20%
+    
+    borderBox()
+    size(300px,80%)
+    vendor(transform-style,preserve-3d)
+    vendor(transition-duration,1s)
+    -webkit-transition-property   -webkit-transform
+    -moz-transition-property      -moz-transform
+    -o-transition-property        -o-transform
+    -khtml-transition-property    -khtml-transform
+    transition-property           transform
+    shadow(0 5px 15px #333)
+
+    &.flipped
+      vendor(transform, rotateY( 180deg ))
+    &.leave-flipped
+      vendor(transform-origin,center center)
+
+    &.artistic-flipped
+      vendor(transform-origin,right center)
+      vendor(transform, translateX( -100% ) rotateY( 180deg ))
+    &.leave-artistic-flipped
+      vendor(transform-origin,right center)
+
+    &.leave-salto
+      vendor(transform-origin,right center)
+    &.salto
+      vendor(transform-origin,right center)
+      vendor(transform, rotateZ( 180deg ) rotateY( 180deg ))
+      shadow(0 -5px 15px #333)
+      .kdview.face.back
+        vendor(transform,rotateY( 180deg ) rotateZ( 180deg ))
+    .kdview.face
+      position        absolute
+      vendor(backface-visibility,hidden)
+      &.front
+        gradient(#ddd,#aaa)
+      &.back
+        vendor(transform,rotateY( 180deg ))
+        gradient(#f2f2f2,#ddd)

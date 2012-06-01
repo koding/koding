@@ -1,0 +1,1 @@
+class SearchResultItemsController extends KDTreeViewController

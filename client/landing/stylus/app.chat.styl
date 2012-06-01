@@ -1,0 +1,343 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+ 
+@css {
+/*  
+IRC CHAT stylesheet
+app.chat.styl
+*/
+}
+
+.irc-chat-module
+  position                    absolute
+  right                       0
+  bottom                      0
+  z-index                     1
+  overflow                    visible
+  border-top                  1px solid #adadad
+  shadow(0 -1px 1px 0px white)
+  size(100%,35px)
+  gradient(#f7f7f6,#c2c2c2)
+
+  .friends-teams-container
+    position                  absolute
+    left                      370px
+    top                       -256px
+    z-index                   0
+    overflow                  hidden
+    size(220px,255px)
+
+  .channels-container
+    position                  absolute
+    left                      710px
+    top                       -256px
+    z-index                   0
+    overflow                  hidden
+    size(220px,255px)
+  
+  .chat-container
+    position                  absolute
+    right                     60px
+    top                       -256px
+    z-index                   2
+    overflow                  hidden
+    size(420px,255px)
+
+  .friends-container
+    border-bottom         1px solid #dcdcdc
+    
+    .teams-container
+      height          auto
+
+  .channels-list
+    position                relative
+
+  .grouped-sidebar
+    position                  absolute
+    overflow fidden
+
+    /* 
+        there can be a bug for cross-browser wise
+        we are overriding KDView's position:relative 
+        with position:absolute but inner elements behaves
+        like we have position relative
+     */
+
+    right                     0
+    top                       -631px
+    z-index                   1
+    bg(image,url("../images/dark-linen.gif"))
+    size(520px,630px)
+
+    .left-shadow
+      position            absolute
+      left                -12px
+      width               12px
+      bg(color,transparent)
+      shadow(0 0 15px rgba(0,0,0,0.3))
+
+    .left-pane
+      position            absolute
+      left                12px
+      top                 12px
+      width               306px
+      // border              1px solid lightBlue
+      > div
+        height            auto
+        bg(color,#fff)
+        
+    .right-pane
+      width               190px
+      position            absolute
+      right               0
+      // border              1px solid lightBlue
+      bg(color,#eeeeec)
+      shadow(0 0 15px rgba(0,0,0,0.3))
+      > div
+        height            auto
+    
+    .chat-header-container
+      border              1px solid #eeeeec !important
+      border-top          1px solid white !important
+    
+    .search-container
+      height          30px
+      bottom          5
+      form.input-with-extras
+        margin        1px 10px
+    
+    .grouped-sidebar-item
+      > div
+        padding-bottom       40px
+
+  .dock-single-chatBox
+    border-left           1px solid white
+    border-right          1px solid #d3d3d3
+    padding               0px 10px
+    fr()
+    size(auto,35px)
+    > span, > cite
+      height              auto
+      font-style          normal
+      position            static
+      margin-top          10px
+      float               left
+      font-size           12px
+      line-height         19px
+    .close-btn-x
+      height              18px
+      margin-right        -4px
+      margin-left         15px
+    > span
+      margin              9px 5px 0 0
+  
+  .chat-body
+    margin                0 10px
+    width                 auto
+
+  .square-icon
+    border-left           1px solid #efefef
+    border-right          1px solid #cacaca
+    cursor                pointer
+    fr()
+    size(33px,35px)
+    span
+      width               20px
+      height              20px
+      display             block
+      margin              0 auto
+      float               none
+      margin-top          9px
+    span.settings
+      sprite()
+      bg(position,-180px -440px)
+    span.friends
+      sprite()
+      bg(position,-180px -460px)
+    span.channels
+      sprite()
+      bg(position,-200px -440px)
+
+  .conversation-item
+    border-bottom         1px solid #f2f2f2
+    padding               10px 0
+    // margin                0 10px
+    display               table
+    span
+      color               #9f9f9f
+      text-transform      uppercase
+      font-size           9px
+      display             table-cell
+      line-height         15px
+      padding-right       10px
+      width               11%
+      text-align          right
+    p
+      font-size           11px
+      display             table-cell
+      color               #505050
+      width               84%
+    &:last-child
+      border-bottom       none
+      
+  .chat-header-container
+    width                   auto
+    height                  28px
+    border                  1px solid #eeeeec
+    bg(color,#d6d6d4)
+    h4.chat-header
+      font-size             11px
+      color                 #797979
+      line-height           30px
+      padding               0 15px 0 10px
+      float                 left
+      white-space           nowrap
+      border-bottom         none
+      span
+        margin              0
+      
+    .indicator
+      float         left
+      margin        5px -8px 0 7px
+      size(12px,16px)
+
+  ul.status-list
+    margin                12px 0 0 0
+    padding               0 17px 5px 17px
+    size(auto,auto)
+    overflow              visible
+    list-style            none
+    li
+      height                auto
+      margin-bottom         4px
+      overflow              visible
+      cursor                pointer
+      color                 #000
+      position              relative
+      strong
+        margin-top          1px
+        font-weight         normal
+        blockMid()
+      .group-status
+        position      absolute
+        height        20px
+        width         20px
+        right         0
+        top           -2px
+        opacity       .5
+        sprite()
+        bg(position,-140px -440px)
+
+  .active-box 
+    .chat-header-container
+      border            1px solid white
+      bg(color,#E5E5E5)
+    h4
+      font-size         12px !important
+      font-weight       bold
+      color             #000 !important
+      
+  .active-box.flyoutBox > div
+      bg(color,#fff)
+
+  .flyoutBox > div
+    margin                  15px 15px 0 15px
+    position                relative
+    rounded(3px,3px,3px,3px)
+    size(auto,255px)
+    shadow(0px 0px 18px 0px rgba(0, 0, 0, 0.4))
+    bg(color,#eee)
+  
+  .flyoutBox .chat-header-container
+    rounded(3px,3px,0,0)
+
+  .search-container
+    position              absolute
+    left                  0
+    bottom                10px
+    height                39px
+    form.input-with-extras
+      margin                0px 11px
+      height                26px !important
+      contentBox()
+      span.icon
+        top                 3px
+      input
+        padding-top         7px
+
+  .status
+    .away,.busy,.available
+      margin-right        5px
+      size(10px,10px)
+      blockMid()
+      rounded(50px,50px,50px,50px)
+      shadow(0 1px 1px 0px white)
+    .away
+      bg(color,finderSelectedColor1)
+    .busy
+      bg(color,#b90000)
+    .available
+      bg(color,#359402)
+    .online
+      color               #359402
+      font-size           14px
+      text-shadow         0 1px 1px white
+    .offline
+      color               #949494
+      font-size           14px
+      text-shadow         0 1px 1px white
+  
+  .new-message
+    .status
+      margin-right    10px
+      span
+        color         white
+        padding       2px 4px
+        font-size     9px
+        bg(color,finderSelectedColor1)
+        rounded(3px)
+
+  .irc-channels.online-list
+    border-bottom         1px solid #dcdcdc
+    .status
+      top                   2px
+      position              relative
+      margin-right          6px
+        
+  .irc-channels.offline-list
+    .status
+      top                   2px
+      position              relative
+      margin-right          6px
+
+  .chat-actions
+    float                 right !important
+    display               inline-block
+    width                 auto
+    height                20px
+    padding               5px 5px 0 0
+    .arrow-icon
+      float               right
+      cursor              pointer
+      margin              5px 0 0 5px
+      size(10px,10px)
+      sprite()
+      bg(position,-186px -405px)
+    .close-btn-holder
+      margin              -3px 0 0 5px
+      float               right
+      width               20px
+    .group-icon
+      float               right
+      size(20px,20px)
+      blockMid()
+      sprite()
+      bg(position,-180px -480px)  
+    
+
+
+
+
+
+
+

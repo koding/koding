@@ -1,0 +1,107 @@
+class FSHelper
+
+  systemFilesRegExp = 
+    ///
+    \s\.cagefs
+    ///
+  
+  parseFile = (parentPath, outputLine) ->
+
+    [permissions, size, user, group, mode, date, time, timezone, rest...] = outputLine.replace(/\t+/gi, ' ').replace(/\s+/ig, ' ').split ' '
+
+    if type is 'symLink'
+      [path, linkPath] = (rest.join ' ').split /\ ->\ \//
+    else
+      path = rest.join ' '
+
+    createdAt = getDateInstance date, time, timezone
+    type      = FSHelper.fileTypes[permissions[0]]
+    mode      = __utils.symbolsPermissionToOctal(permissions)
+    path      = parentPath + '/' + path
+    path      = if type is 'folder' then path.substr(0, path.length - 1) else path
+    name      = getFileName path
+    return { size, user, group, createdAt, mode, type, parentPath, path, name }
+  
+  getDateInstance = (date, time, timezone) ->
+
+    unixTime  = Date.parse "#{date}T#{time}"
+    date      = new Date unixTime
+    hoursDiff = parseInt("#{timezone[1]}" + "#{timezone[2]}", 10)
+    minsDiff  = parseInt("#{timezone[3]}" + "#{timezone[4]}", 10)
+    hoursDiff = hoursDiff*60*60*1000
+    minsDiff  = minsDiff*60*1000
+    totalDiff = hoursDiff + minsDiff
+    totalDiff = if timezone[0] is '-' then -totalDiff else totalDiff
+    date.setTime date.getTime() + totalDiff
+    return date
+
+  @getFileNameFromPath = getFileName = (path)->
+
+    path.split('/').pop()
+
+  @parseLsOutput = (parentPaths, response) ->
+
+    data = []
+    return data unless response
+    strings = response.split '\n\n'
+    for string in strings
+      lines = string.split '\n'
+      if strings.length > 1
+        [parentPath, itemCount] = lines.splice(0,4)
+        parentPath = parentPath.replace /\:$/, ''
+      else
+        [itemCount] = lines.splice(0,3)
+        parentPath = parentPaths[0]
+      for line in lines when line
+        unless systemFilesRegExp.test line
+          data.push FSHelper.createFile parseFile parentPath, line
+    data
+    
+  
+  @createFileFromPath = (path, type = "file")->
+
+    return warn "pass a path to create a file instance" unless path
+    
+    return @createFile {
+      path
+      name : getFileName path
+      type
+    }
+  
+  @createFile = (data)->
+
+    unless data and data.type and data.path
+      return warn "pass a path and type to create a file instance" 
+
+    constructor = switch data.type
+      when "folder" then FSFolder
+      when "mount"  then FSMount
+      else FSFile
+    
+    return new constructor data
+
+  @isValidFileName = (name) ->
+
+    /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name)
+    
+  @escapeFilePath = (name) ->
+
+    name  = name.replace /\'/g, '\\\''
+    name  = name.replace /\"/g, '\\"'
+    ' "' + name + '" '
+  
+  @fileTypes =
+
+    '-' : 'file'
+    d   : 'folder'
+    l   : 'symLink'
+    p   : 'namedPipe'
+    s   : 'socket'
+    c   : 'characterDevice'
+    b   : 'blockDevice'
+    D   : 'door'
+  
+  @parseStat = (fileData, response)->
+
+    permissions = response.match(/Access: \([0-9]*\/(..........)/)[1]
+    fileData.mode = __utils.symbolsPermissionToOctal permissions
