@@ -1,5 +1,7 @@
 class RegisterInlineForm extends LoginViewInlineForm
+
   constructor:->
+
     super
     @firstName = new LoginInputView
       cssClass        : "half-size"
@@ -111,6 +113,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             minLength : "Password is required and should at least be 8 characters."
 
     @passwordConfirm = new LoginInputView
+      cssClass        : "password-confirm"
       inputOptions    :
         name          : "passwordConfirm"
         type          : "password"
@@ -181,16 +184,18 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   showOldUserFeedback:->
     
+    @parent.setClass "taller"
     @username.setClass "kodingen"
-    @passwordConfirm.$().slideUp 100
+    @passwordConfirm.setHeight 0
     @$('p.kodingen-user-notification b').text "#{@username.input.inputGetValue()}"
-    @$('p.kodingen-user-notification').slideDown 100
+    @$('p.kodingen-user-notification').height 54
 
   hideOldUserFeedback:->
     
+    @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
-    @$('p.kodingen-user-notification').slideUp 100
-    @passwordConfirm.$().slideDown 100
+    @$('p.kodingen-user-notification').height 0
+    @passwordConfirm.setHeight 32
 
   userAvatarFeedback:(input)->
 
@@ -235,7 +240,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     <div>{{> @password}}</div>
     <div>
       {{> @passwordConfirm}}
-      <p class='kodingen-user-notification' style='display:none'>
+      <p class='kodingen-user-notification'>
         <b>This</b> is a Kodingen username, if you own this 
         account please type your Kodingen password above to unlock your old
         username for the new Koding.

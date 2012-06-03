@@ -49,6 +49,10 @@ class NavigationBetaFeedbackLink extends NavigationLink
   
   partial:(data)->
       $ "<a class='title' href='#{data.link}' target='_blank'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>"
+  
+  mouseDown:(event)->
+    event.stopPropagation()
+    no
 
 class NavigationInviteLink extends NavigationLink
   
@@ -157,7 +161,7 @@ class NavigationInviteLink extends NavigationLink
         @modal = null
     
     inviteForm = modal.modalTabs.forms["Invite Friends"]
-    inviteForm.on "ValidationFailed", => inviteForm.buttons["Send"].hideLoader()
+    inviteForm.on "FormValidationFailed", => inviteForm.buttons["Send"].hideLoader()
 
     modalHint = new KDView
       cssClass  : "modal-hint"

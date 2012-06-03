@@ -5,7 +5,7 @@ class LoginViewInlineForm extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-    @on "ValidationFailed", => @button.hideLoader()
+    @on "FormValidationFailed", => @button.hideLoader()
 
   pistachio:->
 
