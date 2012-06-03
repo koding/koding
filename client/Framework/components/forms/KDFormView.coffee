@@ -1,5 +1,20 @@
 class KDFormView extends KDView
+
+  findChildInputs = (parent)->
+
+    inputs   = []
+    subViews = parent.getSubViews()
+
+    if subViews.length > 0
+      subViews.forEach (subView)->
+        inputs.push subView if subView instanceof KDInputView
+        inputs = inputs.concat findChildInputs subView
+
+    return inputs
   
+  ###
+  INSTANCE LEVEL
+  ###
   constructor:(options,data)->
     options = $.extend
       callback    : noop       # a Function
@@ -73,49 +88,78 @@ class KDFormView extends KDView
     @$()[0].reset()
   
   submit:(event)=>
+
     if event
       event.stopPropagation()
       event.preventDefault()
-    inputArray = @getDomElement().find "input,select,button,textarea"
-    inputItemInstances = []
-    for inputItem in inputArray
-      inputItem = $(inputItem).closest(".kdinput")[0] if $(inputItem).hasClass "no-kdinput"
-      kdview = KD.getKDViewInstanceFromDomElement inputItem
-      inputItemInstances.push kdview if kdview
-    # SIMPLIFY THIS
-    validators = for inputItemInstance in inputItemInstances
-      f = (validator) ->
-        (callback) ->
-          if validator?
-            validator.validateAsync (data) =>
-              callback null, data
-          else
-            callback null, yes # inputs which not contain validator are valid
-      f inputItemInstance.inputValidator
-
-    async.parallel validators, (err, resultSet) =>
-
-      resultSet = for results in resultSet
-        results.join '.' if $.isArray results
-      resultSet = resultSet.join '|'
     
-      if resultSet.search(/false/) < 0
-        # log "form submit passed validation!"
-        callback = @formGetCallback()
-        if callback?
-          # log "there is callback",@getDomElement().serializeArray(),@
-          formData = $.extend {},@getCustomData()
-          for inputData in @getDomElement().serializeArray()
-            formData[inputData.name] = inputData.value
+    inputs = findChildInputs @
+    
+    @valid = yes
+    for input in inputs
+      if input.getOptions().validate
+        input.validate()
+        @valid = no if input.valid is no
 
-          callback.call @, formData,event
-        @valid = yes
-      else
-        warn "form submit failed validation!"
-        @propagateEvent KDEventType : "ValidationFailed"
-        @valid = no
+    if @valid
+      log "form is valid"
+    else
+      warn "form submit failed validation!"
+      @emit "ValidationFailed"
+      
 
-    return no #propagations leads to window refresh
+
+
+
+
+
+
+
+
+
+
+
+
+    # 
+    # for inputItem in inputArray
+    #   inputItem = $(inputItem).closest(".kdinput")[0] if $(inputItem).hasClass "no-kdinput"
+    #   kdview = KD.getKDViewInstanceFromDomElement inputItem
+    #   inputItemInstances.push kdview if kdview
+    # 
+    # # SIMPLIFY THIS
+    # validators = for inputItemInstance in inputItemInstances
+    #   f = (validator) ->
+    #     (callback) ->
+    #       if validator?
+    #         validator.validateAsync (data) =>
+    #           callback null, data
+    #       else
+    #         callback null, yes # inputs which not contain validator are valid
+    #   f inputItemInstance.inputValidator
+    # 
+    # async.parallel validators, (err, resultSet) =>
+    # 
+    #   resultSet = for results in resultSet
+    #     results.join '.' if $.isArray results
+    #   resultSet = resultSet.join '|'
+    # 
+    #   if resultSet.search(/false/) < 0
+    #     # log "form submit passed validation!"
+    #     callback = @formGetCallback()
+    #     if callback?
+    #       # log "there is callback",@getDomElement().serializeArray(),@
+    #       formData = $.extend {},@getCustomData()
+    #       for inputData in @getDomElement().serializeArray()
+    #         formData[inputData.name] = inputData.value
+    # 
+    #       callback.call @, formData,event
+    #     @valid = yes
+    #   else
+    #     warn "form submit failed validation!"
+    #     @propagateEvent KDEventType : "ValidationFailed"
+    #     @valid = no
+
+    # return no #propagations leads to window refresh
 
   focusFirstElement:->
     @$("input,select,button,textarea").first().trigger "focus"

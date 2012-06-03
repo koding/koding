@@ -114,8 +114,6 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Members.kdapplication"     : Members12345
       "./client/app/Applications/StartTab.kdapplication"    : StartTab12345
       "./client/app/Applications/Home.kdapplication"        : Home12345
-      "./client/app/Applications/Login.kdapplication"       : Login12345
-      "./client/app/Applications/Register.kdapplication"    : Register12345
       "./client/app/Applications/Account.kdapplication"     : Account12345
       "./client/app/Applications/Environment.kdapplication" : Environment12345
       "./client/app/Applications/Apps.kdapplication"        : Apps12345

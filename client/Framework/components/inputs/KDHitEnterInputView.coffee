@@ -55,7 +55,7 @@ class KDHitEnterInputView extends KDInputView
     if event.which is 13 and (event.altKey or event.shiftKey) isnt true and @enterKeyEnabled
       @inputValidator.validate @, event if @getOptions().validate
       @handleEvent type : "EnterPerformed"
-      if @inputValidationPassed
+      if @valid
         @blur()
         @getOptions().callback?.call @,@inputGetValue()
       no

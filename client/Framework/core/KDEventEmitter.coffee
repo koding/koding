@@ -1,7 +1,7 @@
 #
 # KDEventEmitter
 # author : devrim - 12/27/2011
-#
+# refactored : sinan - 05/2012
 
 class KDEventEmitter
   @KDEventEmitterEvents = {}
@@ -37,10 +37,7 @@ class KDEventEmitter
   constructor:()->
     @KDEventEmitterEvents  = {}
     @_e = @KDEventEmitterEvents[@constructor.name] = {}
-    
-  # nextTick: (fn) ->
-  #   setTimeout fn, 0
-     
+         
   emit : (event, args...)->
 
     @_e[event] ?= []
@@ -56,9 +53,7 @@ class KDEventEmitter
     listenerStack = listenerStack.concat @_e[event].slice(0)
     
     listenerStack.forEach (listener)=>
-      listener.apply null,args 
-      # @nextTick ->
-      #   listener.apply null,args 
+      listener.apply @,args 
 
   on : (event,callback) ->
     @_e[event] ?= []

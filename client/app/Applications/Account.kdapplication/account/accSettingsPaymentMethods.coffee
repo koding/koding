@@ -166,38 +166,33 @@ class AccountCreditCardForm extends KDFormView
   
 class AccountCreditCardInput extends KDView
   InputView = class CCInput extends KDInputView
-    # inputSetValidationResult:(didPass,message)->
+    # setValidationResult:(didPass,message)->
     #   if didPass
-    #     @inputValidationPassed = yes
+    #     @valid = yes
     #     @inputValidationMessage = message if message
     #     @inputClearValidationError()
     #     @inputValidationNotification.destroy() if @inputValidationNotification?
     #   else
-    #     @inputValidationPassed = no
+    #     @valid = no
     #     @inputValidationMessage = message
-    #     @inputShowValidationError message
+    #     @showValidationError message
 
   viewAppended:->
     @setClass "credit-card-input-view"
     @addSubView @input = new CCInput
-      name        : "card-number"
-      placeholder : "xxxx xxxx xxxx xxxx"
-      validate    : 
-        event       : "blur"
-        rules       : "creditCard"
-        messages    :
-          creditCard  : null
+      name            : "card-number"
+      placeholder     : "xxxx xxxx xxxx xxxx"
+      validate        : 
+        event         : "blur"
+        rules         : "creditCard"
     
     @addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
     
-    @listenTo
-      KDEventTypes : "ValidatorHasToSay"
-      listenedToInstance : @input
-      callback:(pubInst,event)->
-        cardType = event.creditCardType.toLowerCase()
-        $icon = icon.$()
-        $icon.removeClass "visa mastercard discover amex"
-        $icon.addClass cardType
+    @input.on "CreditCardTypeIdentified", (type)=>
+      cardType = event.creditCardType.toLowerCase()
+      $icon = icon.$()
+      $icon.removeClass "visa mastercard discover amex"
+      $icon.addClass cardType
         # iconWrapper.$(".icon.#{cardType}").fadeIn 100,()->
         #   iconWrapper.$(".icon.#{cardType}").siblings().fadeOut 100
         # log event.creditCardType
@@ -262,6 +257,5 @@ class AccountPaymentMethodsListItem extends KDListItemView
     #   <div class='swappableish swappable-wrapper posstatic'>
     #   </div>
     # """    
-    
     
     

@@ -196,6 +196,9 @@ __utils =
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
+  nextTick: (fn) ->
+    setTimeout fn, 0
+
   ###
   //     Underscore.js 1.3.1
   //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
