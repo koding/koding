@@ -30,9 +30,18 @@ class MySQL
   escapeDbName = (str)->    
     return str.replace /[^\w\d]/,""    
 
-  constructor : (@config)->
-    @mysqlClient = mysql.createClient @config.databases.mysql
+  appendKodingUsername = (username, str)->
 
+    #
+    # this will make sure aleksey_aleksey_dbname never happens.
+    # corner case, if aleksey wants to create aleksey_aleksey_dbname that won't work either :)
+    # f that for now tho.
+    #
+    str ?= ""
+    if str.substr(0,username.length+1) is username+"_"
+      return str
+    else
+      return username+"_"+str
     
   uniqueId = (length=8) ->
 
@@ -40,6 +49,8 @@ class MySQL
     id += Math.random().toString(36).substr(2) while id.length < length
     id.substr 0, length
 
+  constructor : (@config)->
+    @mysqlClient = mysql.createClient @config.databases.mysql
     
   createUser : (options,callback)->
 
@@ -53,7 +64,14 @@ class MySQL
     #   dbUser   : String     # database user
     #   dbPass   : String     # database pass
 
-    {dbUser,dbPass,dbName} = options
+    {username,dbUser,dbPass,dbName} = options
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #
+    dbName = appendKodingUsername username,dbName
+    dbUser = appendKodingUsername username,dbUser
+    # -------------------------------
 
     dbConf =
       dbName : escape(dbName ? "myDB"+uniqueId())
@@ -69,6 +87,23 @@ class MySQL
         log.debug "[OK] user #{dbConf.dbUser} for db #{dbConf.dbName} with pass #{dbConf.dbPass} is created"
         callback null, dbConf
 
+  databaseList :(options,callback)->
+
+    #
+    # this will return the databases of a koding user (not mysql user)
+    # it depends on correctly set database names since MySQL has no notion of 'owner'
+    # make sure we always create dbs with [username].myName (e.g. devrim.myDbName), 
+    # then we will count them using this function.
+    #
+
+    # options =
+    #   username : koding user that makes the call
+    #
+    
+    {username} = options
+    sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}_%'"
+    @mysqlClient.query sql,callback
+  
   createDatabase : (options,callback)->
 
     #
@@ -77,43 +112,67 @@ class MySQL
 
     #
     # options =
+    #   username : koding user that makes the call
     #   dbUser   :
     #   dbPass   :
     #   dbName   : String     # database name
     #
 
-    {dbUser,dbName} = options
+    {username,dbUser,dbName} = options
     
     dbUser = escape dbUser
     dbName = escape dbName
     
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #
+    dbName = appendKodingUsername username,dbName
+    dbUser = appendKodingUsername username,dbUser
+    #
+    # we only create aleksey_myDbName kind of databases (dot is not safe to use)
+    # so we can count how many databases this user already has.
+    # if user is granted permission to another database
+    # we know how many he owns, how many he can access separately.
+    # -------------------------------    
+    
     sendResult = (err,result)=>
       result.host = @config.databases.mysql.host          
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
-
-    @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
-      if err?.number is mysql.ERROR_DB_CREATE_EXISTS
-        log.error e = "[ERROR] database #{dbName} exists"
-        callback e
-      else if err?
-        log.error e = "[ERROR] can't create database: #{err.message}"
-        callback e
+  
+    dbCount = (username) ->
+      @databaseList {username},(err,data)->
+        if err then callback err
+        else
+          callback null,data.length
+  
+    dbCount username,(err,dbNr)=>
+      unless err
+        unless dbNr < 5
+          @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
+            if err?.number is mysql.ERROR_DB_CREATE_EXISTS
+              log.error e = "[ERROR] database #{dbName} exists"
+              callback e
+            else if err?
+              log.error e = "[ERROR] can't create database: #{err.message}"
+              callback e
+            else
+              log.info "[OK] database #{dbName} for user #{dbUser} created"
+              @createUser options,(error,result)=>
+                if error?
+                  # rollback - we don't want inaccessible databases created.
+                  @removeDatabase options,(error2,res)=>
+                    if err
+                      log.error e = "two errors:1-#{error2} 2-#{err}"
+                      callback e
+                    else
+                      res.completedWithErrors = error
+                      sendResult null,res
+                else
+                  sendResult null,result
+        else
+          callback "You exceeded your quota, please delete one before adding a new one."
       else
-        log.info "[OK] database #{dbName} for user #{dbUser} created"
-        @createUser options,(error,result)=>
-          if error?
-            # rollback - we don't want inaccessible databases created.
-            @removeDatabase options,(error2,res)=>
-              if err
-                log.error e = "two errors:1-#{error2} 2-#{err}"
-                callback e
-              else
-                res.completedWithErrors = error
-                sendResult null,res
-          else
-            sendResult null,result
-    
-
+        callback "There was an error completing this request, please try again later."
 
   changePassword : (options,callback)->
 
@@ -127,9 +186,17 @@ class MySQL
     #   newPassword : String # new password
     #
 
-    {dbUser,newPassword} = options
+    {username,dbUser,newPassword} = options
     dbUser      = escape dbUser
     newPassword = escape newPassword
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #  
+    unless dbUser.substr(0,username.length+1) is username+"_"
+      return callback "You can only change password of a database user that you own."
+    # -------------------------------
+    
     # update user set password=PASSWORD("NEW-PASSWORD-HERE") where User='tom'
     sql = "USE mysql; update user set password=PASSWORD('#{newPassword}') where User='#{dbUser}'; flush privileges"
     @mysqlClient.query sql,(err)=>
@@ -151,8 +218,17 @@ class MySQL
     #   dbUser      : String # database username
     #
 
-    {dbUser}  = options
+    {username, dbUser}  = options
     dbUser    = escape dbUser
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #  
+    unless dbUser.substr(0,username.length+1) is username+"_"
+      return callback "You can only remove a database user that you own."
+    # -------------------------------
+
+    
     @mysqlClient.query "DROP USER #{dbUser}",(err)=>
       if err?
         log.error e = "[ERROR] can't remove user #{dbUser}: #{err}"
@@ -173,8 +249,16 @@ class MySQL
     #   dbName   : String # database name
     #
 
-    {dbUser,dbName} = options
+    {username,dbUser,dbName} = options
     dbName          = escape dbName
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #  
+    unless dbUser.substr(0,username.length+1) is username+"_" and dbName.substr(0,username.length+1) is username+"_"
+      return callback "You can only remove a database that you own."
+    # -------------------------------
+
     
     @removeUser options,(error,result)=>
       log.warn e = "can't remove the user:#{dbUser}, trying to drop the database anyway. #{error ? ''}" if error
@@ -251,18 +335,13 @@ class MySQL
   #           log.info r = "[OK] database dump for #{dbName} created in #{backupDir}/#{dbName}-#{timeStamp}.sql"
   #           callback? null,r
 
-  test:((options,callback)->
-     @mysqlClient.query "SELECT user FROM mysql.user",(err,data)->
-      console.log arguments
-  )()
-
 
 mySQL = new MySQL config
 
 module.exports = mySQL
 
 
-
+# mySQL.test()
 
 ###
 options =
