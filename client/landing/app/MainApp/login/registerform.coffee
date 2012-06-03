@@ -1,3 +1,9 @@
+###
+  todo:
+    - fix password confirmation bug on kodingen username case
+###
+
+
 class RegisterInlineForm extends LoginViewInlineForm
 
   constructor:->
@@ -121,9 +127,11 @@ class RegisterInlineForm extends LoginViewInlineForm
         validate      :
           event       : "blur"
           rules       :
+            required  : yes
             match     : @password.input
           messages    :
             match     : "Password confirmation doesn't match!"
+            match     : "Password confirmation is required!"
 
     @button = new KDButtonView
       title         : "REGISTER"
@@ -241,7 +249,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     <div>
       {{> @passwordConfirm}}
       <p class='kodingen-user-notification'>
-        <b>This</b> is a Kodingen username, if you own this 
+        <b>This</b> is a reserved Kodingen username, if you own this 
         account please type your Kodingen password above to unlock your old
         username for the new Koding.
       </p>

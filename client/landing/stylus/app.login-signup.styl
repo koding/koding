@@ -42,6 +42,8 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       height              193px
+    .rcf .kdnotification.mini.register
+      top                 174px!important
 
   &.reset
     .rsf
@@ -267,7 +269,7 @@ app.login-signup.styl
       
     p
       size              78%, 0
-      margin            0 auto 5px auto
+      margin            0 auto
       color             #f2f2f2
       font-size         10px
       line-height       18px
@@ -280,7 +282,8 @@ app.login-signup.styl
       borderBox()
 
   .password-confirm
-    vendor            transition, height .15s ease-out
+    margin-bottom       0!important
+    vendor              transition, height .15s ease-out
 
   input.kdinput.text                 
     padding             7px 6px 7px 6px
@@ -332,7 +335,7 @@ app.login-signup.styl
     position            relative
     text-align          left
     color               #B4B3B3
-    margin              0 auto
+    margin              5px auto 0 auto
     rounded             4px
     width               78%
     line-height         36px
