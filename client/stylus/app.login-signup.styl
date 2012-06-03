@@ -32,7 +32,7 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       width               400px
-      height              521px
+      height              481px
 
   &.recover
     .rcf
@@ -116,6 +116,23 @@ app.login-signup.styl
     margin                0 auto 10px auto
     width                 78%
     font-size             11px
+
+  .kdnotification.mini.register
+    top                   232px!important
+    padding               0
+    rounded               3px
+    shadow                none
+    background            transparent
+
+    .kdnotification-title
+      font-size           10px
+      line-height         10px
+      padding             0
+      color               #ccc
+      
+      img
+        margin            0px 3px 0 0
+        vertical-align    bottom
     
 .login-box-header
   position                relative
@@ -215,12 +232,12 @@ app.login-signup.styl
   height                  auto
 
 .login-form
-  
-  > div
+
+  >div
     position              relative
     text-align            center
 
-    > .kdview
+    .kdview
       width               78%
       margin              0 auto 5px auto
       height              31px
@@ -230,22 +247,21 @@ app.login-signup.styl
         width             38.5%
         &:first-child
           margin-right    1%
-  
-    .kdview
+
       &.validation-error
         .validation-icon
           bg              position, -80px -480px
-          opacity         1
+          opacity         .3
 
       &.validation-passed
         .validation-icon
           bg              position, -80px -500px
-          opacity         1
+          opacity         .5
       &.kodingen
         .validation-icon
           bg              position, -480px -40px!important
           opacity         1
-
+      
     p
       width             78%
       margin            0 auto 5px auto
@@ -291,33 +307,20 @@ app.login-signup.styl
     opacity             0
     sprite()
 
-  .kdloader
+  .kdloader.input-laoder
     position            absolute
     right               28px
     top                 8px
 
   .avatarview
-    // position            absolute
-    // right               69px
-    // top                 4px
-    border              1px solid transparent
+    position            absolute
+    right               69px
+    top                 4px
+    border              1px solid #ccc
     rounded             2px
-    padding             2px
-    margin              1px 5px 5px 11%
-    shadow              0 1px 0 rgba(255, 255, 255, .1)\, 0 0 3px rgba(0, 0, 0, .4) inset
-    bg                  color, rgba(0, 0, 0, 0.2)
+    padding             1px
     fl()
-
-  section
-    text-align          left
-    height              72px
-    margin              0 11% 0 0
-
-    > .kdview
-      height            auto
-      margin            0 0 5px 0
-      overflow          visible
-    
+  
   
   .invitation-field     
     position            relative

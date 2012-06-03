@@ -93,20 +93,22 @@ class KDFormView extends KDView
       event.stopPropagation()
       event.preventDefault()
     
-    inputs = findChildInputs @
-    
-    @valid = yes
-    for input in inputs
-      if input.getOptions().validate
-        input.validate()
-        @valid = no if input.valid is no
+    inputs      = findChildInputs @
+    validInputs = []
+    inputCount  = 0
 
-    if @valid
-      log "form is valid"
-    else
-      warn "form submit failed validation!"
-      @emit "ValidationFailed"
-      
+    inputs.forEach (input)=>
+      if input.getOptions().validate
+        input.once "ValidationResult", (result)=>
+          inputCount++
+          validInputs.push input if result
+          if inputs.length is validInputs.length
+            log "form is valid"
+            @emit "FormValidationPassed"
+          else
+            warn "form submit failed validation!"
+            @emit "FormValidationFailed"
+        input.validate null, event
 
 
 

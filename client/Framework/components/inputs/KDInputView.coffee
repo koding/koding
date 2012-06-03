@@ -228,12 +228,13 @@ class KDInputView extends KDView
     ruleSet = @getOptions().validate
 
     rulesToBeValidated.forEach (rule)=>
-      result = if KDInputValidator["rule#{rule.capitalize()}"]?
-        KDInputValidator["rule#{rule.capitalize()}"] @, event
+      if KDInputValidator["rule#{rule.capitalize()}"]?
+        result = KDInputValidator["rule#{rule.capitalize()}"] @, event
+        @setValidationResult rule, result
       else if "function" is typeof ruleSet.rules[rule]
         ruleSet.rules[rule] @, event
 
-      @setValidationResult rule, result
+      
 
     # 
     # validators = for rule in @ruleChain
@@ -269,8 +270,10 @@ class KDInputView extends KDView
       @validationResults[rule] = err
       @showValidationError err if @getOptions().validationNotifications
       @emit "ValidationError", err
+      @emit "ValidationResult", no
       @valid = no
     else
+      @emit "ValidationResult", yes
       @validationResults[rule] = null
     
     allClear = yes
@@ -280,6 +283,7 @@ class KDInputView extends KDView
     if allClear
       @emit "ValidationPassed"
       @valid = yes
+
 
   showValidationError:(message)->
 

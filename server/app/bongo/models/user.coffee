@@ -19,7 +19,7 @@ class JUser extends jraphical.Module
     sharedMethods   :
       instance      : []
       static        : [
-        'login','logout','register','usernameAvailable','changePassword'
+        'login','logout','register','usernameAvailable','emailAvailable','changePassword'
         'fetchUser','setDefaultHash','whoami'
       ]
 
@@ -307,21 +307,35 @@ class JUser extends jraphical.Module
   @changePassword = bongo.secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
   
-  @usernameAvailable =(username, callback)->
-    username += ''
-    @count {username}, (err, count)->
+  @emailAvailable = (email, callback)->
+    @count {email}, (err, count)->
       if err
         callback err
       else if count is 1
-        callback err, no
+        callback null, no
       else
+        callback null, yes
+
+  @usernameAvailable = (username, callback)->
+    username += ''
+    r =
+      kodingUser   : no
+      kodingenUser : no
+    
+    @count {username}, (err, count)->
+      if err
+        callback err
+      else
+        r.kodingUser = if count is 1 then yes else no
         require('https').get
           hostname  : 'kodingen.com'
           path      : "/bridge.php?username=#{username}"
         , (res)->
           res.setEncoding 'utf-8'
-          res.on 'data', (chunk)-> callback null, !+chunk
-          res.on 'error', (err)-> callback err
+          res.on 'data', (chunk)->
+            r.kodingenUser = if !+chunk then no else yes
+            callback null, r
+          res.on 'error', (err)-> callback err, r
   
   changePassword:(newPassword, callback)->
     salt = createSalt()
