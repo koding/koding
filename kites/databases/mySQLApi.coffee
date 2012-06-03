@@ -3,21 +3,14 @@ log4js = require 'log4js'
 fs     = require 'fs'
 path   = require 'path'
 {exec} = require 'child_process'
-
+config = require("./config").mysql
 
 logFile = '/var/log/node/MySQLApi.log'
 log     = log4js.addAppender log4js.fileAppender(logFile), "[MySQLApi]"
 log     = log4js.getLogger('[MySQLApi]')
 
 
-config =
-  usersPath : '/Users/'
-  backupDir : '/Backups/mysql'
-  databases :
-    mysql   :
-      host     : 'mysql1.beta.service.aws.koding.com'
-      user     : 'system'
-      password : 'dlkadlakdlka'
+
 
 class MySQL
 
@@ -195,76 +188,81 @@ class MySQL
           callback null,r
 
 
-  checkBackupDir : (options,callback)->
-
-    #
-    # this method will check backupDir
-    # if doesn't exists  - create it
-    #
-
-    #
-    # options =
-    #   username : String # Kodingen username
-    #   dbName   : String # database name
-    #   dbUser   : String # database username
-    #   dbPass   : String # database name
-
-    {username,dbName} = options
-
-    # first check /Users/<username>/Backups/mysql/<dbName>
-    backupDir = path.join @config.usersPath,username,@config.backupDir,dbName
-    fs.stat backupDir,(err,stats)->
-      if err?
-        log.debug "[ERROR] backup directory #{backupDir} doesn't exists -> creating"
-        child = exec "su -l #{username} -c 'mkdir -p #{backupDir}'",(err,stdout,stderr)->
-          if err?
-            log.error e = "[ERROR] can't create backup dir #{backupDir}: #{stderr}"
-            callback? e
-          else
-            log.info "[OK] backup directory #{backupDir} created -> creating backup"
-            callback null,backupDir
-      else
-        log.debug "[OK] directory #{backupDir} exitsts -> creating backup"
-        callback? null,backupDir
-
-
-  backupDatabase : (options,callback)->
-
-    #
-    # this method will create backup of mysql database to the /Users/<username>/Backups/
-    #
-
-    #
-    # options =
-    #   username : String # Kodingen username
-    #   dbName   : String # database name
-    #   dbUser   : String # database username
-    #   dbPass   : String # database name
-
-    {username,dbName,dbUser,dbPass} = options
-
-    d = new Date()
-    timeStamp = "#{d.getFullYear()}-#{d.getMonth()+1}-#{d.getDay()}-#{d.getHours()}-#{d.getMinutes()}-#{d.getSeconds()}"
-    @checkBackupDir options,(error,backupDir)=>
-      if error?
-        callabck? error
-      else
-        # TODO: permissions
-        child = exec "/usr/bin/mysqldump -h #{@config.databases.mysql.host}  --opt -u '#{dbUser}' -p'#{dbPass}' '#{dbName}' > #{backupDir}/'#{dbName}'-#{timeStamp}.sql",(err,stdout,stderr)->
-          if err?
-            log.error e = "[ERROR] can't create database dump for #{dbName} : #{stderr}"
-            callback? e
-          else
-            log.info r = "[OK] database dump for #{dbName} created in #{backupDir}/#{dbName}-#{timeStamp}.sql"
-            callback? null,r
+  # checkBackupDir : (options,callback)->
+  # 
+  #   #
+  #   # this method will check backupDir
+  #   # if doesn't exists  - create it
+  #   #
+  # 
+  #   #
+  #   # options =
+  #   #   username : String # Kodingen username
+  #   #   dbName   : String # database name
+  #   #   dbUser   : String # database username
+  #   #   dbPass   : String # database name
+  # 
+  #   {username,dbName} = options
+  # 
+  #   # first check /Users/<username>/Backups/mysql/<dbName>
+  #   backupDir = path.join @config.usersPath,username,@config.backupDir,dbName
+  #   fs.stat backupDir,(err,stats)->
+  #     if err?
+  #       log.debug "[ERROR] backup directory #{backupDir} doesn't exists -> creating"
+  #       child = exec "su -l #{username} -c 'mkdir -p #{backupDir}'",(err,stdout,stderr)->
+  #         if err?
+  #           log.error e = "[ERROR] can't create backup dir #{backupDir}: #{stderr}"
+  #           callback? e
+  #         else
+  #           log.info "[OK] backup directory #{backupDir} created -> creating backup"
+  #           callback null,backupDir
+  #     else
+  #       log.debug "[OK] directory #{backupDir} exitsts -> creating backup"
+  #       callback? null,backupDir
 
 
+  # backupDatabase : (options,callback)->
+  # 
+  #   #
+  #   # this method will create backup of mysql database to the /Users/<username>/Backups/
+  #   #
+  # 
+  #   #
+  #   # options =
+  #   #   username : String # Kodingen username
+  #   #   dbName   : String # database name
+  #   #   dbUser   : String # database username
+  #   #   dbPass   : String # database name
+  # 
+  #   {username,dbName,dbUser,dbPass} = options
+  # 
+  #   d = new Date()
+  #   timeStamp = "#{d.getFullYear()}-#{d.getMonth()+1}-#{d.getDay()}-#{d.getHours()}-#{d.getMinutes()}-#{d.getSeconds()}"
+  #   @checkBackupDir options,(error,backupDir)=>
+  #     if error?
+  #       callabck? error
+  #     else
+  #       # TODO: permissions
+  #       child = exec "/usr/bin/mysqldump -h #{@config.databases.mysql.host}  --opt -u '#{dbUser}' -p'#{dbPass}' '#{dbName}' > #{backupDir}/'#{dbName}'-#{timeStamp}.sql",(err,stdout,stderr)->
+  #         if err?
+  #           log.error e = "[ERROR] can't create database dump for #{dbName} : #{stderr}"
+  #           callback? e
+  #         else
+  #           log.info r = "[OK] database dump for #{dbName} created in #{backupDir}/#{dbName}-#{timeStamp}.sql"
+  #           callback? null,r
 
+  test:((options,callback)->
+     @mysqlClient.query "SELECT user FROM mysql.user",(err,data)->
+      console.log arguments
+  )()
 
 
 mySQL = new MySQL config
 
 module.exports = mySQL
+
+
+
 
 ###
 options =

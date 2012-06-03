@@ -1,17 +1,12 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
+config  = require('config').mongo
 
 
 logFile = '/var/log/node/MongoDBApi.log'
 log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
 
-config =
-  databases :
-    mongodb   :
-      host     : 'mongo1.beta.service.aws.koding.com'
-      user     : 'admin'
-      password : '22t78skhdlksaje1'
 
 class MongoDB
 
