@@ -1,5 +1,7 @@
 class RecoverInlineForm extends LoginViewInlineForm
+
   constructor:->
+
     super
     @usernameOrEmail = new LoginInputView
       inputOptions    :
@@ -20,6 +22,7 @@ class RecoverInlineForm extends LoginViewInlineForm
         diameter  : 21
     
   pistachio:->
+
     """
     <div>{{> @usernameOrEmail}}</div>
     <div>{{> @button}}</div>

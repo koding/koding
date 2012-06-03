@@ -2,7 +2,7 @@ class RegisterInlineForm extends LoginViewInlineForm
   constructor:->
     super
     @firstName = new LoginInputView
-      # cssClass        : "half-size"
+      cssClass        : "half-size"
       inputOptions    :
         name          : "firstName"
         placeholder   : "Your first name"
@@ -14,7 +14,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : "Please enter your first name."
 
     @lastName = new LoginInputView
-      # cssClass        : "half-size"
+      cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
         placeholder   : "Your last name"
@@ -25,7 +25,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your last name."
 
-    @email = new LoginInputView
+    @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
@@ -34,6 +34,21 @@ class RegisterInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
             email     : yes
+            available : (input, event)=>
+              return if event?.which is 9
+              input.setValidationResult "available", null
+              email = input.inputGetValue()
+              if input.valid
+                @email.loader.show()
+                bongo.api.JUser.emailAvailable email, (err, response)=>
+                  @email.loader.hide()
+                  if err then warn err
+                  else
+                    if response
+                      input.setValidationResult "available", null
+                    else
+                      input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
+              return
           messages    :
             required  : "Please enter your email address."
             email     : "That doesn't seem like a valid email address."
@@ -43,12 +58,12 @@ class RegisterInlineForm extends LoginViewInlineForm
     
     @avatar = new AvatarStaticView
       size        :
-        width     : 60
-        height    : 60
+        width     : 20
+        height    : 20
     , profile     : 
         hash      : md5.digest "there is no such email"
         firstName : "New koding user"
-
+    @avatar.hide()
 
     @username = new LoginInputViewWithLoader
       inputOptions       :
@@ -134,27 +149,34 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   usernameCheck:(input, event)->
 
+    return if event?.which is 9
+
     clearTimeout usernameCheckTimer
     input.setValidationResult "usernameCheck", null
+    name = input.inputGetValue()
 
     if input.valid
       usernameCheckTimer = setTimeout =>
         @username.loader.show()
-        setTimeout =>
+        bongo.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
-          if event.which is 91
-            input.setValidationResult "usernameCheck", "Sorry, \"#{input.inputGetValue()}\" is already taken!"
-            @hideOldUserFeedback()
-          else if event.which is 18
-            @showOldUserFeedback()
+          {kodingUser, kodingenUser} = response
+          if err
+            if response?.kodingUser
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              @hideOldUserFeedback()
           else
-            @hideOldUserFeedback()
-            input.setValidationResult "usernameCheck", null
-        ,1000
+            if kodingenUser
+              @showOldUserFeedback()
+            else if kodingUser
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              @hideOldUserFeedback()
+            else
+              @hideOldUserFeedback()
+              input.setValidationResult "usernameCheck", null
       ,800
     else
       @hideOldUserFeedback()
-
     return
 
   showOldUserFeedback:->
@@ -178,6 +200,13 @@ class RegisterInlineForm extends LoginViewInlineForm
           hash      : md5.digest input.inputGetValue()
           firstName : "New koding user"
       @avatar.render()
+      @showUserAvatar()
+    else
+      @hideUserAvatar()
+
+  showUserAvatar:-> @avatar.show()
+
+  hideUserAvatar:-> @avatar.hide()
 
   viewAppended:()->
 
@@ -198,15 +227,10 @@ class RegisterInlineForm extends LoginViewInlineForm
           @$('.invited-by').addClass('hidden')
 
   pistachio:->
+
     """
-    <div>
-      {{> @avatar}}
-      <section class='right-overflow'>
-        {{> @firstName}}
-        {{> @lastName}}
-      </section>
-    </div>
-    <div>{{> @email}}</div>
+    <div>{{> @firstName}}{{> @lastName}}</div>
+    <div>{{> @email}}{{> @avatar}}</div>
     <div>{{> @username}}</div>
     <div>{{> @password}}</div>
     <div>
