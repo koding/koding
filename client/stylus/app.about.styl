@@ -35,7 +35,7 @@ app.about.styl
   footer.kdview
     size                    auto,40px
     padding                 20px
-    bg                      color,#333
+    gradient                #222,#36332F
     border-top              5px solid #ff9200
 
 .kdview.about-pane
@@ -69,6 +69,7 @@ app.about.styl
     overflow              visible
     
     h2
+      color                 #111
       line-height           55px
       font-size             36px
       margin                0 0 29px 0
@@ -76,7 +77,7 @@ app.about.styl
       size                  auto,auto
       
     h3
-      color                 #000
+      color                 #111
       font-size             24px
       margin                24px 0
       size                  auto,auto
@@ -88,9 +89,8 @@ app.about.styl
       
     p
       color                 #444
-      font-size             16px
+      font-size             14px
       max-width             700px
-      size                  auto,auto
       margin                16px 0
       line-height           1.5
       
@@ -121,6 +121,8 @@ app.about.styl
         display             inline-block
         padding-right       24px
         width               auto
+        &:hover
+          text-decoration   underline
                             
       &:after               
         content             ""

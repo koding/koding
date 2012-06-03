@@ -407,7 +407,7 @@ app.home.styl
   > footer
     size              auto,40px
     padding           20px
-    bg                color,#333
+    gradient          #222,#36332F
     
 .kdmodal.screenshot-modal
   background        none
@@ -431,54 +431,51 @@ app.home.styl
     img
       width             100%
 
-
-.content-display-wrapper .content-display footer
-footer
-  .home-footer-link-holder-left
+footer.home
+  .footer-left
     size              auto, auto
     float             left
-    
-    .kdview.about-pane .footer-fb-link
+    overflow          visible
+  
     .footer-fb-link
-      sprite()
-      bg                position,-160px -100px
+    .footer-tw-link
       color             white
       display           inline-block
       font-weight       600
-      margin-right      8px
+      margin            8px 8px 0 0
       overflow          hidden
-      padding-top       32px
-      size              32px,0
-      noTextDeco()
-  
-    .kdview.about-pane .footer-tw-link
-    .footer-tw-link
+      size              24px,24px
+      text-indent       -9999px
+      overflow          hidden
+      shadow            0 1px 0 #111
+      rounded           3px
       sprite()
-      bg                position,-160px -180px
-      display           inline-block
-      margin-right      8px
-      overflow          hidden
-      padding-top       32px
-      size              32px,0
-      noTextDeco()
 
-.content-display-wrapper .content-display footer
-footer    
-  .home-footer-button-holder-right    
+    .footer-fb-link
+      bg                position,-100px -268px
+      &:hover
+        bg              position,-40px -368px
+    .footer-tw-link
+      bg                position,-129px -240px
+      &:hover
+        bg              position,-69px -340px
+
+  .footer-right    
     size              auto, auto
     float             right
-    
-    .kdview.about-pane a
+  
     a
-      color             #fff
+      color             #888
       display           inline-block
-      font-size         14px
+      font-size         12px
       font-weight       600
-      margin-right      24px
-      padding           9px 0
+      margin-left       16px
+      line-height       40px
       size              auto,auto
-      text-shadow       none
-      noTextDeco()
+      text-decoration   none
+      text-shadow       0 1px 0 #111
+      &:hover
+        color           linkColor1
   
       
 // .kodingen-home-wrapper

@@ -109,35 +109,17 @@ class AboutView extends KDScrollView
     @leftSide.addSubView locationView = new KDView
       cssClass    : 'location'
 
-    locationView.addSubView para = new KDView
+    locationView.addSubView new KDCustomHTMLView
       tagName     : 'p'
       cssClass    : 'loc-first'
-      partial     : "<strong>We're located at SOMA district in San Francisco, California.</strong>"
+      partial     : "<strong>We're located at SOMA district in<br/> San Francisco, California.</strong>"
 
-    locationView.addSubView para = new KDView
+    locationView.addSubView new KDCustomHTMLView
       tagName     : 'p'
-      partial     : "Koding, Inc<br />153 Townsend St, Suite 90xx<br />San Francisco, CA 94107"
+      partial     : '<a href="http://goo.gl/maps/XGWr" target="_blank">Koding, Inc<br />153 Townsend St, Suite 90xx<br />San Francisco, CA 94107</a>'
 
-    locationView.addSubView para = new KDView
-      tagName     : 'p'
-      
-    # para.addSubView contact = new KDView
-      # tagName     : 'a'
-      # partial     : 'Contact Us'
-      # click       :(event)-> noop
-
-    para.addSubView map = new KDView
-      tagName     : 'a'
-      partial     : 'Google Map'
-      attributes  :
-        href        : 'http://g.co/maps/q5zn3'
-        target      : '_blank'
-        
-    @leftSide.addSubView firstLine = new KDView
-      cssClass    : 'first-line'
-        
-    @leftSide.addSubView secondLine = new KDView
-      cssClass    : 'second-line'
+    @leftSide.addSubView firstLine = new KDView cssClass    : 'first-line'
+    @leftSide.addSubView secondLine = new KDView cssClass    : 'second-line'
   
     
   putTeam:->
