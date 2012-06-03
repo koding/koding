@@ -155,13 +155,9 @@ class NavigationInviteLink extends NavigationLink
       listenedToInstance : modal
       callback           : =>
         @modal = null
-
-    @listenTo 
-      KDEventTypes       : "ValidationFailed"
-      listenedToInstance : modal.modalTabs.forms["Invite Friends"]
-      callback           : =>
-        modal.modalTabs.forms["Invite Friends"].buttons["Send"].hideLoader()
-
+    
+    inviteForm = modal.modalTabs.forms["Invite Friends"]
+    inviteForm.on "ValidationFailed", => inviteForm.buttons["Send"].hideLoader()
 
     modalHint = new KDView
       cssClass  : "modal-hint"

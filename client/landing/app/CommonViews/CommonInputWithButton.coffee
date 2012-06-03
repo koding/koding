@@ -30,27 +30,18 @@ class CommonView_InputWithButton extends KDFormView
       button.type     or= "submit"
       @addSubView @button = new KDButtonView button
   
-    form = @
     @listenTo
       KDEventTypes : "focus"
       listenedToInstance : @input
-      callback : ()-> form.setClass "focus"
+      callback : => @setClass "focus"
       
     @listenTo
       KDEventTypes : "blur"
       listenedToInstance : @input
-      callback : ()-> 
-        form.unsetClass "focus"
-        @inputClearValidationErrorStyle()
+      callback : => form.unsetClass "focus validation-error"
       
-    @input.on "ValidationError",@inputSetValidationErrorStyle
-    @input.on "ValidationPassed",@inputClearValidationErrorStyle
-
-  inputSetValidationErrorStyle:()=>
-    @setClass "validation-error"
-
-  inputClearValidationErrorStyle:()=>
-    @unsetClass "validation-error"
+    @input.on "ValidationError", => @setClass "validation-error"
+    @input.on "ValidationPassed", => @unsetClass "validation-error"
 
   inputGetValue:()-> 
 

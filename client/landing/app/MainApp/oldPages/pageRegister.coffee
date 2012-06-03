@@ -306,7 +306,7 @@ class RegisterFormTemplate extends KDFormView
     now.usernameAvailable value, (available)->
       available = !!available and !!value
       publishingInstance.valid = available
-      publishingInstance.inputSetValidationResult available, publishingInstance.getOptions().validate.messages.userProvidedFn
+      publishingInstance.setValidationResult available, publishingInstance.getOptions().validate.messages.userProvidedFn
       callback available
 
   extendFields:(fields)->
