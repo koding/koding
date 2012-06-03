@@ -47,7 +47,7 @@ class LoginInputView extends JView
       title     : "#{img}#{msg}" or "#{img}seems invalid!"
       type      : "mini"
       cssClass  : "register"
-      container : @parent.parent
+      container : @parent
       duration  : 0
     
 class LoginInputViewWithLoader extends LoginInputView

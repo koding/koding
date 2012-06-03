@@ -102,72 +102,23 @@ class KDFormView extends KDView
         input.once "ValidationResult", (result)=>
           inputCount++
           validInputs.push input if result
-          if inputs.length is validInputs.length
-            log "form is valid"
-            @emit "FormValidationPassed"
-          else
-            warn "form submit failed validation!"
-            @emit "FormValidationFailed"
+          if inputs.length is inputCount
+            if inputs.length is validInputs.length
+              @valid = yes
+              formData = $.extend {}, @getCustomData()
+              formData[inputView.inputName] = inputView.inputGetValue() for inputView in inputs
+              @formGetCallback()?.call @, formData, event
+              @emit "FormValidationPassed"
+            else
+              @valid = no
+              @emit "FormValidationFailed"
         input.validate null, event
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # 
-    # for inputItem in inputArray
-    #   inputItem = $(inputItem).closest(".kdinput")[0] if $(inputItem).hasClass "no-kdinput"
-    #   kdview = KD.getKDViewInstanceFromDomElement inputItem
-    #   inputItemInstances.push kdview if kdview
-    # 
-    # # SIMPLIFY THIS
-    # validators = for inputItemInstance in inputItemInstances
-    #   f = (validator) ->
-    #     (callback) ->
-    #       if validator?
-    #         validator.validateAsync (data) =>
-    #           callback null, data
-    #       else
-    #         callback null, yes # inputs which not contain validator are valid
-    #   f inputItemInstance.inputValidator
-    # 
-    # async.parallel validators, (err, resultSet) =>
-    # 
-    #   resultSet = for results in resultSet
-    #     results.join '.' if $.isArray results
-    #   resultSet = resultSet.join '|'
-    # 
-    #   if resultSet.search(/false/) < 0
-    #     # log "form submit passed validation!"
-    #     callback = @formGetCallback()
-    #     if callback?
-    #       # log "there is callback",@getDomElement().serializeArray(),@
-    #       formData = $.extend {},@getCustomData()
-    #       for inputData in @getDomElement().serializeArray()
-    #         formData[inputData.name] = inputData.value
-    # 
-    #       callback.call @, formData,event
-    #     @valid = yes
-    #   else
-    #     warn "form submit failed validation!"
-    #     @propagateEvent KDEventType : "ValidationFailed"
-    #     @valid = no
-
-    # return no #propagations leads to window refresh
 
   focusFirstElement:->
     @$("input,select,button,textarea").first().trigger "focus"
     
     
-  formSetCallback:(callback)->
-    @formCallback = callback
+  formSetCallback:(callback)-> @formCallback = callback
+
   formGetCallback:()-> @formCallback
   
