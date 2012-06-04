@@ -11,16 +11,16 @@ class Editor_BottomBar_ThemeSelector extends Editor_BottomBar_Section
       KDEventTypes: 'EditorAsksToSetTheme'
       listenedToInstance: @getCodeField()
       callback: (pubInst, event) =>
-        select.inputSetValue event.theme
+        select.setValue event.theme
 
     @listenTo
       KDEventTypes:'change'
       listenedToInstance: select
       callback: (pubInst, event) =>
-        @handleEvent type: 'EditorChangeTheme', theme: select.inputGetValue()
+        @handleEvent type: 'EditorChangeTheme', theme: select.getValue()
 
-        @getCodeField().setTheme select.inputGetValue()
-        @getCodeField().saveThemeForExtension select.inputGetValue()
+        @getCodeField().setTheme select.getValue()
+        @getCodeField().saveThemeForExtension select.getValue()
 
     @addSubView select
 

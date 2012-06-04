@@ -33,7 +33,7 @@ class Editor_SearchForm extends KDView
       callback : ()->
         delegate.handleEvent
           type    : "EditorFind",
-          search  : inputSearch.inputGetValue()
+          search  : inputSearch.getValue()
 
     form.addSubView inputReplace = new KDInputView
       name        : "replace-phrase"
@@ -44,8 +44,8 @@ class Editor_SearchForm extends KDView
       callback : ()->
         delegate.handleEvent
           type    : "EditorReplace"
-          search  : inputSearch.inputGetValue()
-          replace : inputReplace.inputGetValue()
+          search  : inputSearch.getValue()
+          replace : inputReplace.getValue()
           all     : no
 
     form.addSubView replaceAllButton = new KDButtonView
@@ -56,8 +56,8 @@ class Editor_SearchForm extends KDView
       callback : ()->
         delegate.handleEvent
           type    : "EditorReplace"
-          search  : inputSearch.inputGetValue()
-          replace : inputReplace.inputGetValue()
+          search  : inputSearch.getValue()
+          replace : inputReplace.getValue()
           all     : yes
 
     # form.addSubView closeButton = new KDButtonView

@@ -72,9 +72,9 @@ class PageRegister extends KDView
       form.addCustomData "authId"       , user.authId
       form.addCustomData "accessToken"  , user.accessToken
       form.addCustomData "accessSecret" , user.accessSecret
-      form.inputUsername.inputSetValue    user.username
-      form.inputFullname.inputSetValue    user.fullname
-      form.inputEmail.inputSetValue       user.email# "#{user.username}@facebook.com"
+      form.inputUsername.setValue    user.username
+      form.inputFullname.setValue    user.fullname
+      form.inputEmail.setValue       user.email# "#{user.username}@facebook.com"
       @registerFacebook.splitView form
     @registerLists.showPane @registerFacebook
 
@@ -86,8 +86,8 @@ class PageRegister extends KDView
       form.addCustomData "authId"       , user.authId
       form.addCustomData "accessToken"  , user.accessToken
       form.addCustomData "accessSecret" , user.accessSecret
-      form.inputUsername.inputSetValue    user.username
-      form.inputFullname.inputSetValue    user.fullname
+      form.inputUsername.setValue    user.username
+      form.inputFullname.setValue    user.fullname
       @registerTwitter.splitView form
     @registerLists.showPane @registerTwitter
 
@@ -99,8 +99,8 @@ class PageRegister extends KDView
       form.addCustomData "authId"       , user.authId
       form.addCustomData "accessToken"  , user.accessToken
       form.addCustomData "accessSecret" , user.accessSecret
-      form.inputUsername.inputSetValue    user.username
-      form.inputEmail.inputSetValue       user.email
+      form.inputUsername.setValue    user.username
+      form.inputEmail.setValue       user.email
       @registerGoogle.splitView form
     @registerLists.showPane @registerGoogle
 
@@ -114,8 +114,8 @@ class PageRegister extends KDView
       form.addCustomData "accessSecret" , user.accessSecret
       form.addCustomData "karmaVal"     , user.karmaVal
       form.addCustomData "karmaId"     , user.karmaId
-      form.inputUsername.inputSetValue    user.username
-      form.inputEmail.inputSetValue       user.email
+      form.inputUsername.setValue    user.username
+      form.inputEmail.setValue       user.email
       @registerGithub.splitView form
     @registerLists.showPane @registerGithub
 
@@ -127,8 +127,8 @@ class PageRegister extends KDView
       form.addCustomData "authId"       , user.authId
       form.addCustomData "accessToken"  , user.accessToken
       form.addCustomData "accessSecret" , user.accessSecret
-      form.inputUsername.inputSetValue    user.username
-      form.inputEmail.inputSetValue       user.email
+      form.inputUsername.setValue    user.username
+      form.inputEmail.setValue       user.email
       @registerDropbox.splitView form
     @registerLists.showPane @registerDropbox
 
@@ -295,14 +295,14 @@ class RegisterFormTemplate extends KDFormView
         title        : "Drop a picture of you!"
     @addSubView kdFileUpload
 
-    @inputFullname.inputSetValue "test name"
-    @inputEmail.inputSetValue "testmail@mail.ru"
+    @inputFullname.setValue "test name"
+    @inputEmail.setValue "testmail@mail.ru"
 
 
 
   userProvidedFn : (publishingInstance,event,callback)->
     return yes until callback?
-    value = publishingInstance.inputGetValue()
+    value = publishingInstance.getValue()
     now.usernameAvailable value, (available)->
       available = !!available and !!value
       publishingInstance.valid = available
@@ -364,7 +364,7 @@ class RegisterFormDefault extends RegisterFormTemplate
 
     @extendFields fields
 
-    @inputUsername.inputSetValue "user241234qw53"
+    @inputUsername.setValue "user241234qw53"
 
 
 

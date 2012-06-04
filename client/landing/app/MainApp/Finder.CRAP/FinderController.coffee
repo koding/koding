@@ -793,11 +793,11 @@ class FinderController extends KDTreeViewController
       cssClass: "clearfix"
       callback: (formData,event)=>
         event.preventDefault()
-        if @getCommand().isValidFileName(input.inputGetValue())
+        if @getCommand().isValidFileName(input.getValue())
           itemData = itemView.getData()
-          itemData.renameTo input.inputGetValue()
+          itemData.renameTo input.getValue()
           @confirmRename itemView
-          # @getCommand().emit 'fs.rename.start', {fileData: itemData, fileView: itemView, path:(@pathForItem itemView), newName: input.inputGetValue()}
+          # @getCommand().emit 'fs.rename.start', {fileData: itemData, fileView: itemView, path:(@pathForItem itemView), newName: input.getValue()}
           itemView.unsetClass "being-inline-edited"
           @makeItemSelected itemView,null
         else
@@ -811,7 +811,7 @@ class FinderController extends KDTreeViewController
       title : buttonTitle or 'Rename'
     button.hide()
         
-    input.inputSetValue itemView.getData().name
+    input.setValue itemView.getData().name
     form.addSubView input
     form.addSubView button
     
@@ -821,7 +821,7 @@ class FinderController extends KDTreeViewController
     
     @makeItemSelected itemView
     setTimeout ->
-      input.inputSetFocus()
+      input.setFocus()
     , 0
     
   setPermissions: (itemView, {permissions, recursive}) ->

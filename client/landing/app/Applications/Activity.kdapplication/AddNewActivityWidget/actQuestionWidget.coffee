@@ -6,8 +6,8 @@ class ActivityQuestionWidget extends KDFormView
     no
 
   reset:=>
-    @inputQuestionTitle.inputSetValue ''
-    @inputContent.inputSetValue ''
+    @inputQuestionTitle.setValue ''
+    @inputContent.setValue ''
     @addTags.input.clear()
     
   viewAppended:()->

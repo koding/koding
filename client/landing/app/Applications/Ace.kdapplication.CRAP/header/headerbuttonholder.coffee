@@ -1,6 +1,6 @@
 class Editor_HeaderButtons extends KDView
   triggerInputAutoSave:(pubInst,event)=>
-    @inputAutoSave.inputSetValue event.state
+    @inputAutoSave.setValue event.state
 
   viewAppended:()->
     aceView  = @getDelegate()

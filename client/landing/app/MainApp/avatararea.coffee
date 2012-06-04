@@ -174,7 +174,7 @@ class AvatarPopupShareStatus extends AvatarPopup
     if (visitor = KD.getSingleton('mainController').getVisitor())
       {profile} = visitor.currentDelegate
       if @statusField.getOptions().placeholder is ""
-        @statusField.inputSetPlaceHolder "What's new, #{profile.firstName}?"
+        @statusField.setPlaceHolder "What's new, #{profile.firstName}?"
     
   viewAppended:->
     super()
@@ -198,8 +198,8 @@ class AvatarPopupShareStatus extends AvatarPopup
           duration : 5000
           timer    : yes
           overlay  : yes
-        @statusField.inputSetValue ""
-        @statusField.inputSetPlaceHolder reply.body
+        @statusField.setValue ""
+        @statusField.setPlaceHolder reply.body
         @hide()
         
       else

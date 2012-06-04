@@ -6,8 +6,8 @@ class ActivityDiscussionWidget extends KDFormView
     no
 
   reset:=>
-    @inputDiscussionTitle.inputSetValue ''
-    @inputContent.inputSetValue ''
+    @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
     @addTags.input.clear()
 
   viewAppended:()->

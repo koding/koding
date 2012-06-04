@@ -55,7 +55,7 @@ class NSetPermissionsView extends JView
       title     : "Set"
       callback  : =>
         permissions = @getOctalPermissions()
-        recursive   = @recursive.inputGetValue() or no
+        recursive   = @recursive.getValue() or no
         file        = @getData()
         file.chmod {permissions, recursive}, (err,res)=>
           unless err
@@ -85,7 +85,7 @@ class NSetPermissionsView extends JView
   getBinaryOfGroup: (group) ->
     binary = ''
     for switcher in @switches[group]
-      binary += if switcher.inputGetValue() then '1' else 0
+      binary += if switcher.getValue() then '1' else 0
     binary
     
   getOctalPermissions: ->

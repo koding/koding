@@ -13,7 +13,7 @@ class CommonView_InputWithButton extends KDFormView
 
   viewAppended:()->
     
-    {icon,input,button} = @options
+    {icon,input,button} = @getOptions()
 
     if icon
       @setClass "with-icon"
@@ -38,18 +38,18 @@ class CommonView_InputWithButton extends KDFormView
     @listenTo
       KDEventTypes : "blur"
       listenedToInstance : @input
-      callback : => form.unsetClass "focus validation-error"
+      callback : => @unsetClass "focus validation-error"
       
     @input.on "ValidationError", => @setClass "validation-error"
     @input.on "ValidationPassed", => @unsetClass "validation-error"
 
-  inputGetValue:()-> 
+  getValue:()-> 
 
-    @input.inputGetValue()
+    @input.getValue()
 
-  inputSetValue:(value)->
+  setValue:(value)->
 
-    @input.inputSetValue value
+    @input.setValue value
 
 
 class CommonView_AddTagView extends NoAutocompleteMultipleListView
