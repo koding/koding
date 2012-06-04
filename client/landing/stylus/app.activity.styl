@@ -357,45 +357,6 @@ button.kdbutton.dark
 // * ACTIVITY PAGE UPDATE WIDGET STYLES
 // *
 
-.activity-update-widget-wrapper
-  height                auto
-  position              absolute
-  overflow              visible
-.widget-holder
-  overflow              visible
-  min-height            75px
-  borderBox()           
-  .widget-back          
-    width               100%
-    height              74px
-    position            absolute
-    bg                  color, white
-    left                0
-    top                 0
-    z-index             0
-    &.gradient
-      border-bottom     1px solid rgb(229,229,229)
-      shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
-      gradient          rgb(255,255,255),rgb(242,242,242)
-
-  .button-wrapper
-    position            absolute
-    top                 20px
-    left                16px
-    z-index             4
-    size(auto!important,35px)
-    .chevron-arrow-separator
-      display           none
-    .chevron-arrow
-      top               50%
-      margin-top        -9px
-      margin-right      5px
-      opacity           .6
-    .title
-      font-size         11px
-      blockMid()
-
-
 .update-options.codesnip
   .ace 
     height                  250px !important
@@ -542,12 +503,10 @@ button.kdbutton.dark
     height                  auto
       
 .code-snip-holder
-  // max-width                 560px
-  // overflow                  hidden
   padding                   10px
   bg                        color,rgba(51,51,51,1)
   rounded                   4px
-  height                    115px
+  height                    90px
   borderBox()
   .kdview.kdloader
     display                 block
@@ -670,13 +629,52 @@ button.activity-status-context
     &.codesnip
       bg(position,-140px -420px)
 
+.activity-update-widget-wrapper
+  height                auto
+  position              absolute
+  overflow              visible
+.widget-holder
+  overflow              visible
+  min-height            75px
+  borderBox()           
+  .widget-back          
+    width               100%
+    height              74px
+    position            absolute
+    bg                  color, white
+    left                0
+    top                 0
+    z-index             0
+    &.gradient
+      border-bottom     1px solid rgb(229,229,229)
+      shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
+      gradient          rgb(255,255,255),rgb(242,242,242)
+
+  .chevron-arrow-separator
+    display           none
+  .chevron-arrow
+    top               50%
+    margin-top        -9px
+    margin-right      5px
+    opacity           .6
+  .title
+    font-size         11px
+    blockMid()
+
+.activity-status-context.kdbuttonwithmenu-wrapper
+  position            absolute
+  top                 20px
+  left                16px
+  z-index             4
+  size                auto!important,35px
+
 .activity-status-context
   .chevron-arrow-ghost-wrapper
     width               30px
     rounded        0 3px 0 0
     .chevron-arrow-ghost
       margin            6px 0 0 6px
-    
+  
   .icon
     margin-right        7px
     sprite()
@@ -687,7 +685,8 @@ button.activity-status-context
     padding                 0 10px !important
   .context-menu-item a
     blockMid()
-  .update  
+
+  .update
     .icon
       bg(position,-140px -320px)
     &:hover
@@ -724,12 +723,12 @@ button.activity-status-context
       .icon
         bg(position,-160px -420px)
   
-  .hoverhook /* hover hook for context menu */
-    cursor            pointer !important
-    margin            0
-    padding           0
-    &:hover
-      cursor            pointer !important
+  // .hoverhook /* hover hook for context menu */
+  //   cursor            pointer !important
+  //   margin            0
+  //   padding           0
+  //   &:hover
+  //     cursor            pointer !important
 
 .kdcontextmenu
   .kdcontextmenutreeview
