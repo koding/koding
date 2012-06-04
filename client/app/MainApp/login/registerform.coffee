@@ -1,6 +1,5 @@
 ###
   todo:
-    - fix password confirmation bug on kodingen username case
 ###
 
 
@@ -56,6 +55,7 @@ class RegisterInlineForm extends LoginViewInlineForm
                       input.setValidationResult "available", null
                     else
                       input.setValidationResult "available", "Sorry, \"#{email}\" is already in use!"
+                    @userAvatarFeedback input
               return
           messages    :
             required  : "Please enter your email address."
@@ -63,7 +63,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         blur          : (input, event)=>
           @utils.nextTick =>
             @userAvatarFeedback input
-    
+
     @avatar = new AvatarStaticView
       size        :
         width     : 20
@@ -117,6 +117,9 @@ class RegisterInlineForm extends LoginViewInlineForm
             minLength : 8
           messages    :
             minLength : "Password is required and should at least be 8 characters."
+        change        : (input, event)=>
+          if @kodingenUser
+            @passwordConfirm.input.setValue input.getValue()
 
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
@@ -132,6 +135,11 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             match     : "Password confirmation doesn't match!"
             match     : "Password confirmation is required!"
+        focus         : (input, event)=>
+          if @kodingenUser
+            input.setValue @password.input.getValue()
+            @invitationCode.input.$().focus()
+          
 
     @button = new KDButtonView
       title         : "REGISTER"
@@ -192,6 +200,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   showOldUserFeedback:->
     
+    @kodingenUser = yes
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @passwordConfirm.setHeight 0
@@ -200,6 +209,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   hideOldUserFeedback:->
     
+    @kodingenUser = no
     @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
     @$('p.kodingen-user-notification').height 0
