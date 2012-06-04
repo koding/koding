@@ -156,8 +156,19 @@ class KDInputView extends KDView
   setValue:(value)->
     @getDomElement().val(value) if value?
 
+  _prevVal = null
+
   setCase:(forceCase)->
-    @setClass forceCase
+
+    @listenTo
+      KDEventTypes       : [ "keyup", "blur" ]
+      listenedToInstance : @
+      callback           : =>
+        val = @getValue()
+        return if val is _prevVal
+        @setValue val
+        _prevVal = val
+    
   
   setValidation:(ruleSet)->
 
