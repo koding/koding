@@ -30,7 +30,7 @@ class AccountSshKeyForm extends KDFormView
       type         : "textarea"
       name         : "sshkey"
 
-    keyTextarea.inputSetValue @data.key if @data
+    keyTextarea.setValue @data.key if @data
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"

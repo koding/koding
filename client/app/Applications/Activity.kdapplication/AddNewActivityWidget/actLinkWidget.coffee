@@ -6,8 +6,8 @@ class ActivityLinkWidget extends KDFormView
     no
 
   reset:=>
-    @inputLinkTitle.inputSetValue ''
-    @inputLink.inputSetValue ''
+    @inputLinkTitle.setValue ''
+    @inputLink.setValue ''
     @addTags.input.clear()
     
   viewAppended:()->

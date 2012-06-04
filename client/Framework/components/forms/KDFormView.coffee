@@ -106,7 +106,7 @@ class KDFormView extends KDView
             if inputs.length is validInputs.length
               @valid = yes
               formData = $.extend {}, @getCustomData()
-              formData[inputView.inputName] = inputView.inputGetValue() for inputView in inputs
+              formData[inputView.inputName] = inputView.getValue() for inputView in inputs
               @formGetCallback()?.call @, formData, event
               @emit "FormValidationPassed"
             else

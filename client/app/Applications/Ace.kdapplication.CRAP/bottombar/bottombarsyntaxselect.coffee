@@ -10,16 +10,16 @@ class Editor_BottomBar_SyntaxSelector extends Editor_BottomBar_Section
       KDEventTypes: 'EditorAsksToSetSyntax'
       listenedToInstance: @getDelegate().getDelegate()
       callback: (pubInst, event) =>
-        select.inputSetValue event.syntax
+        select.setValue event.syntax
 
     @listenTo
       KDEventTypes:'change'
       listenedToInstance: select
       callback: (pubInst, event) =>
-        @handleEvent type: 'EditorChangeSyntax', selectsyntax: select.inputGetValue()
+        @handleEvent type: 'EditorChangeSyntax', selectsyntax: select.getValue()
 
-        @getCodeField().setSyntax select.inputGetValue()
-        @getCodeField().saveSyntaxForExtension select.inputGetValue()
+        @getCodeField().setSyntax select.getValue()
+        @getCodeField().saveSyntaxForExtension select.getValue()
 
     @addSubView select
 

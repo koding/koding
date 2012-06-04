@@ -47,7 +47,7 @@ class AceSettingsView extends KDTreeItemView
 
   setDefaultValues:(settings)->
 
-    @[key]?.inputSetDefaultValue value for key,value of settings
+    @[key]?.setDefaultValue value for key,value of settings
 
   viewAppended:->
 

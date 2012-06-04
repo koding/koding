@@ -121,7 +121,7 @@ class Shell12345 extends KDViewController
       data : @getView()
       
     appManager.addOpenTab @getView(), 'Shell.kdapplication'
-    @getView().input.inputSetFocus()
+    @getView().input.setFocus()
     
   initAndBringToFront:(options,callback)=>
     @initApplication options, =>

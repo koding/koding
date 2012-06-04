@@ -95,14 +95,14 @@ class ActivityCodeSnippetWidget extends KDFormView
   
   submit:=>
     @addCustomData "code", @ace.getContents()
-    @addCustomData "syntax", @syntaxSelect.inputGetValue()
+    @addCustomData "syntax", @syntaxSelect.getValue()
     super
 
   reset:=>
 
-    @inputCodeSnipTitle.inputSetValue ''
-    @inputDescription.inputSetValue ''
-    @syntaxSelect.inputSetValue 'javascript'
+    @inputCodeSnipTitle.setValue ''
+    @inputDescription.setValue ''
+    @syntaxSelect.setValue 'javascript'
     @tagController.reset()
     @ace.setContents "//your code snippet goes here..."
     @getDelegate().handleEvent type: 'ActivityUpdateWidgetShouldReset'

@@ -6,8 +6,8 @@ class ActivityTutorialWidget extends KDFormView
     no
 
   reset:=>
-    @inputTutorialTitle.inputSetValue ''
-    @inputContent.inputSetValue ''
+    @inputTutorialTitle.setValue ''
+    @inputContent.setValue ''
     @addTags.input.clear()
     
   viewAppended:()->

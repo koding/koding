@@ -48,7 +48,7 @@ class SetPermissionsView extends KDView
   getBinaryOfGroup: (group) ->
     binary = ''
     for switcher in @switchers[group]
-      binary += if switcher.inputGetValue() then '1' else 0
+      binary += if switcher.getValue() then '1' else 0
     binary
     
   getOctalPermissions: ->
@@ -118,7 +118,7 @@ class SetPermissionsView extends KDView
     @footer.addSubView button = new KDButtonView 
       title : "Set"
       callback: =>
-        @getDelegate().set @getOctalPermissions(), @recursive?.inputGetValue() or no
+        @getDelegate().set @getOctalPermissions(), @recursive?.getValue() or no
         @displayOldOctalPermissions()
         
     if @getOptions().file.getData().type is 'folder'

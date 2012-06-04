@@ -9,7 +9,7 @@ class FinderGlobalSearch extends KDModalView
   viewAppended: ->
     @setHeight 'auto'
     form    = new KDFormView callback: =>
-      @search @input.inputGetValue(), (error, results) =>
+      @search @input.getValue(), (error, results) =>
         _results = for path in results.found
           item = FS.create
             path: path

@@ -8,16 +8,16 @@ class Editor_BottomBar_TabSizeSelector extends Editor_BottomBar_Section
       KDEventTypes: 'EditorAsksToSetTabSize'
       listenedToInstance: @getCodeField()
       callback: (pubInst, event) =>
-        select.inputSetValue event.size
+        select.setValue event.size
 
     @listenTo
       KDEventTypes: 'change'
       listenedToInstance: select
       callback: (pubInst, event) =>
-        @handleEvent type: 'EditorChangeTabSize', size: select.inputGetValue()
+        @handleEvent type: 'EditorChangeTabSize', size: select.getValue()
 
-        @getCodeField().setTabSize select.inputGetValue()
-        @getCodeField().saveTabSizeForExtension select.inputGetValue()
+        @getCodeField().setTabSize select.getValue()
+        @getCodeField().saveTabSizeForExtension select.getValue()
 
     @addSubView select
 

@@ -13,7 +13,7 @@ class SaveDialogController extends KDViewController
           style     : "modal-clean-gray"
           callback  : ()=>
             items = @finderController.selectedItems
-            name  = @inputFileName.inputGetValue()
+            name  = @inputFileName.getValue()
             
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
@@ -43,7 +43,7 @@ class SaveDialogController extends KDViewController
 
     # mainView.createButton "Save", style : "cupid-green", callback : form.handleEvent({type : "submit"})
     mainView.show()
-    inputFileName.inputSetFocus()
+    inputFileName.setFocus()
 
     @finderController = new FinderController {}, {items : []}
 

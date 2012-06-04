@@ -95,8 +95,8 @@ class PageInbox extends KDView
       cssClass     : "sendMessageInput"
       placeholder  : "Just type and press enter.."
       callback     : ()=>
-        reply = @messageInputElement.inputGetValue()
-        @messageInputElement.inputSetValue ''
+        reply = @messageInputElement.getValue()
+        @messageInputElement.setValue ''
         @propagateEvent KDEventType: 'ReplyShouldBeSent', {message: @messageInputElement.getData(), reply}
 
     @listenTo 

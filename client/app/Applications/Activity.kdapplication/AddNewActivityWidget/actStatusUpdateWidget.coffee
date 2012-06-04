@@ -1,5 +1,7 @@
 class ActivityStatusUpdateWidget extends CommonView_InputWithButton
+
   constructor:(options,data)->
+
     options = $.extend
       icon            : null
       button          :

@@ -15,8 +15,8 @@ class EditorAdvancedSettings_ContextMenu extends KDContextMenuTreeViewController
         item.addSubView input = new KDInputView
           defaultValue  : data.default?()
         input.registerListener KDEventTypes : 'Keyup', listener : @, callback :->
-          value = input.inputGetValue()
-          if isNaN value then input.inputSetValue data.default?() else data.callback? value
+          value = input.getValue()
+          if isNaN value then input.setValue data.default?() else data.callback? value
         item
       when 'select'
         item.addSubView selectBox = new KDSelectBox
@@ -67,12 +67,12 @@ class EditorAdvancedSettings_ContextMenu extends KDContextMenuTreeViewController
           KDEventTypes: 'change'
           listenedToInstance: softWrapInput
           callback: (pubInst, event) ->
-            data.callback softWrapInput.inputGetValue()
+            data.callback softWrapInput.getValue()
         item
       when 'element'
         item = new (@getOptions().subItemClass ? KDTreeItemView) options, data
         item.addSubView data.element
-        data.element.input?.inputSetValue data.default?()
+        data.element.input?.setValue data.default?()
         item
       else
         super

@@ -10,38 +10,38 @@ class KDRySwitch extends KDInputView
     ,options  
     super options
     @setClass options.size
-    @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@inputGetName()}'/>"
+    @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
   setDomElement:(cssClass)->
     @domElement = $ "<div class='kdinput kdinputswitch-ry off #{cssClass}'><a href='#' class='on' title='turn on'>ON</a><a href='#' class='off' title='turn off'>OFF</a></div>"
 
-  inputSetDefaultValue:(value) ->
+  setDefaultValue:(value) ->
     switch value
-      when on,"on","true","yes",1 then @_inputSetDefaultValue on
-      else @_inputSetDefaultValue off
+      when on,"on","true","yes",1 then @_setDefaultValue on
+      else @_setDefaultValue off
 
-  inputGetDefaultValue:()-> @inputDefaultValue
+  getDefaultValue:()-> @inputDefaultValue
 
-  inputGetValue:()-> @getDomElement().find("input").eq(0).is ":checked"
-  inputSetValue:(value)->
+  getValue:()-> @getDomElement().find("input").eq(0).is ":checked"
+  setValue:(value)->
     switch value
-      when on   then @_inputSetOn()
-      when off  then @_inputSetOff()
+      when on   then @_setOn()
+      when off  then @_setOff()
       
-  _inputSetDefaultValue: (val) ->
+  _setDefaultValue: (val) ->
     setTimeout =>
       val = !!val
-      if val then @_inputSetOn no else @_inputSetOff no
+      if val then @_setOn no else @_setOff no
     , 0
 
-  _inputSetOff:(wCallback = yes)->
+  _setOff:(wCallback = yes)->
     @inputDefaultValue = off
     @getDomElement().find("input").eq(0).attr "checked",no
     @$('a.on').removeClass('active')
     @$('a.off').addClass('active')
     @switchStateChanged() if wCallback
 
-  _inputSetOn:(wCallback = yes)->
+  _setOn:(wCallback = yes)->
     @inputDefaultValue = on
     @getDomElement().find("input").eq(0).attr "checked",yes
     @$('a.off').removeClass('active')
@@ -49,12 +49,12 @@ class KDRySwitch extends KDInputView
     @switchStateChanged() if wCallback
 
   switchStateChanged:()->
-    # log "new state of #{@inputGetName()} is #{@inputGetValue()}",@inputGetCallback()?
-    @inputGetCallback().call @,@inputGetValue() if @inputGetCallback()?
+    # log "new state of #{@getName()} is #{@getValue()}",@getCallback()?
+    @getCallback().call @,@getValue() if @getCallback()?
 
   mouseDown:(event)->
     if $(event.target).is('a.on')
-      @inputSetValue on
+      @setValue on
     else if $(event.target).is('a.off')
-      @inputSetValue off
+      @setValue off
     # no

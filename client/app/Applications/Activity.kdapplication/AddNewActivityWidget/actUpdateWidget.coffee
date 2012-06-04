@@ -18,7 +18,7 @@ class ActivityUpdateWidgetController extends KDViewController
       paneName    : "update"
       mainContent : _asuw
     _asuw.formSetCallback (formData)=>
-      _asuw.input.inputSetValue ''
+      _asuw.input.setValue ''
       @updateWidgetSubmit formData
 
     mainView.addWidgetPanes

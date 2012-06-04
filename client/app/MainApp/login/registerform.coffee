@@ -45,7 +45,7 @@ class RegisterInlineForm extends LoginViewInlineForm
             available : (input, event)=>
               return if event?.which is 9
               input.setValidationResult "available", null
-              email = input.inputGetValue()
+              email = input.getValue()
               if input.valid
                 @email.loader.show()
                 bongo.api.JUser.emailAvailable email, (err, response)=>
@@ -164,7 +164,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
     clearTimeout usernameCheckTimer
     input.setValidationResult "usernameCheck", null
-    name = input.inputGetValue()
+    name = input.getValue()
 
     if input.valid
       usernameCheckTimer = setTimeout =>
@@ -195,7 +195,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @passwordConfirm.setHeight 0
-    @$('p.kodingen-user-notification b').text "#{@username.input.inputGetValue()}"
+    @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
     @$('p.kodingen-user-notification').height 54
 
   hideOldUserFeedback:->
@@ -210,7 +210,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     if input.valid
       @avatar.setData 
         profile     : 
-          hash      : md5.digest input.inputGetValue()
+          hash      : md5.digest input.getValue()
           firstName : "New koding user"
       @avatar.render()
       @showUserAvatar()
@@ -231,8 +231,8 @@ class RegisterInlineForm extends LoginViewInlineForm
         @$('.invitation-field').addClass('hidden')
         @$('.invited-by').removeClass('hidden')
         {origin} = invite
-        @invitationCode.input.inputSetValue invite.code
-        @email.input.inputSetValue invite.inviteeEmail
+        @invitationCode.input.setValue invite.code
+        @email.input.setValue invite.inviteeEmail
         if origin instanceof bongo.api.JAccount
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, origin), '.invited-by .wrapper'
           @addSubView new ProfileTextView({}, origin), '.invited-by .wrapper'

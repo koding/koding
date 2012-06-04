@@ -142,7 +142,7 @@ class AceView extends JView
           style     : "modal-clean-gray"
           callback  : ()=>
             [node] = @finderController.treeController.selectedNodes
-            name   = @inputFileName.inputGetValue()
+            name   = @inputFileName.getValue()
             
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
@@ -171,7 +171,7 @@ class AceView extends JView
       title : "Select a folder:"
 
     saveDialog.show()
-    inputFileName.inputSetFocus()
+    inputFileName.setFocus()
 
     @finderController = new NFinderController
       treeItemClass     : NFinderItem 
