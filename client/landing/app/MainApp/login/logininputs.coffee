@@ -6,8 +6,9 @@ class LoginInputView extends JView
     inputOptions or= {}
     iconOptions  or= {}
     inputOptions.validationNotifications = no
-    iconOptions.tagName  = iconOptions.tagName  or "span"
-    iconOptions.cssClass = iconOptions.cssClass or "validation-icon"
+    iconOptions.tagName    = iconOptions.tagName  or "span"
+    iconOptions.cssClass   = iconOptions.cssClass or "validation-icon"
+    iconOptions.bind       = "mouseenter"
     delete options.inputOptions
     delete options.iconOptions
 
@@ -15,6 +16,13 @@ class LoginInputView extends JView
 
     @input = new KDInputView inputOptions, data
     @icon  = new KDCustomHTMLView iconOptions, data
+    
+    @listenTo 
+      KDEventTypes       : "mouseenter"
+      listenedToInstance : @icon
+      callback           : =>
+        if @$().hasClass "validation-error"
+          @input.validate()
 
     @input.on "ValidationError", (err)=> @decorateValidation err
     @input.on "ValidationPassed", => @decorateValidation()
