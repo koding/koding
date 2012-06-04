@@ -273,14 +273,15 @@ Includes =
 
         # ACTIVITY VIEWS          
         activityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
-        updateWidget                : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actUpdateWidget.coffee"
-        updateWidgetDropd           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actUpdateWidgetDropDown.coffee"
-        actStatusWidget             : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actStatusUpdateWidget.coffee"
-        actQuestionWidget           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actQuestionWidget.coffee"
-        actCodeSnipWidget           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actCodeSnipWidget.coffee"
-        actLinkWidget               : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actLinkWidget.coffee"
-        actTutoWidget               : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actTutorialWidget.coffee"
-        actDiscussWidget            : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actDiscussionWidget.coffee"
+        activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
+        activityWidget              : "./client/app/Applications/Activity.kdapplication/widgets/widgetview.coffee"
+        activityWidgetButton        : "./client/app/Applications/Activity.kdapplication/widgets/widgetbutton.coffee"
+        statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
+        questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
+        codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
+        linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
+        tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
         # Activity commons
         actActions                  : "./client/app/Applications/Activity.kdapplication/ActivityActions.coffee"
         # Activity content displays
