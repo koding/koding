@@ -83,8 +83,6 @@ class KDAutoCompleteController extends KDViewController
       listener      : @
       callback      : =>
         view = @getView()
-        # view.focus()
-        window.inputView = view.$input()
         view.$input().trigger('focus')
     
     dropdownListView.registerListener
@@ -201,10 +199,8 @@ class KDAutoCompleteController extends KDViewController
       @getSingleton("windowController").setKeyView null
       new KDNotificationView
         type      : "mini"
-        # title     : "Oops! You can't do that."
         title   : "You can add up to #{@getOptions().selectedItemsLimit} items!"
         duration  : 4000
-        # showTimer : yes
     
     @hideDropdown()
   
@@ -234,7 +230,7 @@ class KDAutoCompleteController extends KDViewController
           return yes
     no
   
-  addHiddenInputItem:(name,value)->
+  addHiddenInputItem:(name, value)->
     @itemWrapper.addSubView @hiddenInputs[name] = new KDInputView
       type          : "hidden"
       name          : name

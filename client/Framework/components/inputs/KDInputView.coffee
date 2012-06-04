@@ -105,20 +105,15 @@ class KDInputView extends KDView
 
   getLabel:()-> @inputLabel
 
-  setCallback:()->
-    @inputCallback = @options.callback
+  setCallback:()-> @inputCallback = @options.callback
 
-  getCallback:()-> 
-    @inputCallback
+  getCallback:()-> @inputCallback
 
-  setType:(type = "text")->
-    @inputType = type
+  setType:(type = "text")-> @inputType = type
 
-  getType:()-> 
-    @inputType
+  getType:()-> @inputType
 
-  getName:()->
-    @inputName
+  getName:()-> @inputName
   
   setFocus:()->
     (@getSingleton "windowController").setKeyView @

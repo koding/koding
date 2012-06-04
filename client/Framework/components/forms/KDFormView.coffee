@@ -22,7 +22,7 @@ class KDFormView extends KDView
     ,options
     super options,data
     @valid = null
-    @formSetCallback options.callback
+    @setCallback options.callback
     @customData = {}
   
   childAppended:(child)->
@@ -83,9 +83,14 @@ class KDFormView extends KDView
       formData[inputData.name] = inputData.value
         
     formData
+
+  focusFirstElement:-> findChildInputs(@)[0].$().trigger "focus"
+    
+  setCallback:(callback)-> @formCallback = callback
+
+  getCallback:()-> @formCallback
   
-  reset:=>
-    @$()[0].reset()
+  reset:=> @$()[0].reset()
   
   submit:(event)=>
 
@@ -93,32 +98,46 @@ class KDFormView extends KDView
       event.stopPropagation()
       event.preventDefault()
     
-    inputs      = findChildInputs @
-    validInputs = []
-    inputCount  = 0
+    @once "FormValidationFinished", =>
+      if @valid
+        @getCallback()?.call @, formData, event
+        @emit "FormValidationPassed"
+      else
+        @emit "FormValidationFailed"
 
+    inputs         = findChildInputs @
+    validatedCount = 0
+    validInputs    = []
+    toBeValidated  = []
+    formData       = {}
+    @valid         = yes
+
+    # put to be validated inputs in a queue
     inputs.forEach (input)=>
       if input.getOptions().validate
-        input.once "ValidationResult", (result)=>
-          inputCount++
-          validInputs.push input if result
-          if inputs.length is inputCount
-            if inputs.length is validInputs.length
-              @valid = yes
-              formData = $.extend {}, @getCustomData()
-              formData[inputView.inputName] = inputView.getValue() for inputView in inputs
-              @formGetCallback()?.call @, formData, event
-              @emit "FormValidationPassed"
-            else
-              @valid = no
-              @emit "FormValidationFailed"
-        input.validate null, event
+        toBeValidated.push input
+      else
+        # put regular input values to formdata
+        formData[input.getName()] = input.getValue() if input.getName()
 
-  focusFirstElement:->
-    @$("input,select,button,textarea").first().trigger "focus"
-    
-    
-  formSetCallback:(callback)-> @formCallback = callback
+    toBeValidated.forEach (input)=>
+      # wait for the validation result of each input
+      input.once "ValidationResult", (result)=>
+        validatedCount++
+        validInputs.push input if result
+        # check if all inputs were validated
+        if toBeValidated.length is validatedCount
+          # check if all inputs were valid
+          if toBeValidated.length is validInputs.length
+            # put valid inputs to formdata
+            formData = $.extend formData, @getCustomData()
+            for inputView in toBeValidated
+              formData[inputView.getName()] = inputView.getValue()
+          else
+            @valid = no
+          # tell validation was finished
+          @emit "FormValidationFinished"
+      input.validate null, event
 
-  formGetCallback:()-> @formCallback
-  
+    # if no validation is required mimic as all were validated
+    @emit "FormValidationFinished" if toBeValidated.length is 0

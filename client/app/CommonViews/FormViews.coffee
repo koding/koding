@@ -328,7 +328,7 @@ class PersonalFormSkillTagView extends KDFormView
 
     @memberData.skillTags or= []
     
-    @formSetCallback (formElements)=>
+    @setCallback (formElements)=>
       tagIds = formElements.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
       @memberData.addTags 'skillTags', tagIds, (err)-> debugger
 

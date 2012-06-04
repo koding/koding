@@ -30,7 +30,10 @@ class JCodeSnip extends JPost
         content   : data.code
         syntax    : data.syntax
       }]
-      meta        : data.meta
+      meta        : null
+      # meta        : data.meta
+      
+          
     
     JPost.create.call @, client, codeSnip, callback
   
