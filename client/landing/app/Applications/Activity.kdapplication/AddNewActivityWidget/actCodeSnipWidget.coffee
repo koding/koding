@@ -5,12 +5,12 @@ class ActivityCodeSnippetWidget extends KDFormView
     super
 
     @inputCodeSnipTitle = new KDInputView
-      name        : "title"
-      placeholder : "Give a title to your code snippet..."
-      validate  :
-        rules     : 
-          required : yes
-        messages  :
+      name          : "title"
+      placeholder   : "Give a title to your code snippet..."
+      validate      :
+        rules       : 
+          required  : yes
+        messages    :
           required  : "Code snippet title is required!"
 
     @inputCodeSnipTitle.registerListener
@@ -89,13 +89,15 @@ class ActivityCodeSnippetWidget extends KDFormView
       title : "Syntax:"
 
     @syntaxSelect = new KDSelectBox
+      name          : "syntax"
       selectOptions : __aceSettings.syntaxes
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
+    
   
   submit:=>
+
     @addCustomData "code", @ace.getContents()
-    @addCustomData "syntax", @syntaxSelect.getValue()
     super
 
   reset:=>

@@ -1,11 +1,8 @@
 class ActivityUpdateWidgetController extends KDViewController
   loadView:(mainView)->
-    controller = @
-    # TODO: What's with the _unc? (Unhelpful Naming Convention) C.T.
 
-    _asuw = new ActivityStatusUpdateWidget
+    updateWidget = new ActivityStatusUpdateWidget
       cssClass : "status-update-input"
-      
     
     mainView.registerListener
       KDEventTypes  : "AutoCompleteNeedsTagData"
@@ -14,44 +11,45 @@ class ActivityUpdateWidgetController extends KDViewController
         {callback,inputValue,blacklist} = event
         @fetchAutoCompleteDataForTags inputValue,blacklist,callback
     
-    mainView.addWidgetPanes
+    mainView.addWidgetPane
       paneName    : "update"
-      mainContent : _asuw
-    _asuw.formSetCallback (formData)=>
-      _asuw.input.setValue ''
+      mainContent : updateWidget
+
+    updateWidget.setCallback (formData)=>
+      updateWidget.input.setValue ''
       @updateWidgetSubmit formData
 
-    mainView.addWidgetPanes
+    mainView.addWidgetPane
       paneName    : "question"
-      mainContent : _aqw = new ActivityQuestionWidget 
+      mainContent : questionWidget = new ActivityQuestionWidget 
         callback  : @questionWidgetSubmit
 
-    codeSnippetPane = mainView.addWidgetPanes
+    codeSnippetPane = mainView.addWidgetPane
       paneName    : "codesnip"
-      mainContent : _acsw = new ActivityCodeSnippetWidget 
-        callback  : (data)->
-          controller.codeSnippetWidgetSubmit data, (success)=>
-            @reset() if success
+      mainContent : codeWidget = new ActivityCodeSnippetWidget 
         delegate  : mainView
+        callback  : (data)=>
+          @codeSnippetWidgetSubmit data, (success)=>
+            codeWidget.reset() if success
 
-    mainView.addWidgetPanes
+    mainView.addWidgetPane
       paneName    : "link"
-      mainContent : _alw = new ActivityLinkWidget 
+      mainContent : linkWidget = new ActivityLinkWidget 
         callback  : @linkWidgetSubmit
 
-    mainView.addWidgetPanes
+    mainView.addWidgetPane
       paneName    : "tutorial"
-      mainContent : _atw = new ActivityTutorialWidget 
+      mainContent : tutorialWidget = new ActivityTutorialWidget 
         callback  : @tutorialWidgetSubmit
 
-    mainView.addWidgetPanes
+    mainView.addWidgetPane
       paneName    : "discussion"
-      mainContent : _atw = new ActivityDiscussionWidget 
+      mainContent : discussionWidget = new ActivityDiscussionWidget 
         callback  : @discussionWidgetSubmit
 
     mainView.showPane "update"
 
-    codeSnippetPane.registerListener KDEventTypes : 'PaneDidShow', listener : @, callback : -> _acsw.widgetShown()
+    codeSnippetPane.registerListener KDEventTypes : 'PaneDidShow', listener : @, callback : -> codeWidget.widgetShown()
 
 
   updateWidgetSubmit:(data)->
@@ -67,15 +65,14 @@ class ActivityUpdateWidgetController extends KDViewController
 
   codeSnippetWidgetSubmit:(data, callback)->
 
-    bongo.api.JCodeSnip.create data, (err,codesnip) =>
+    bongo.api.JCodeSnip.create data, (err, codesnip) =>
 
-      unless err
+      if err
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        callback no
+      else
         @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
         callback yes
-      else
-        new KDNotificationView title : "There was an error, try again later!"
-        callback no
-    return @
 
   questionWidgetSubmit:(data)->
     log 'creating question', data
@@ -139,10 +136,11 @@ class ActivityUpdateWidget extends KDView
           @windowController.removeLayer @mainInputTabs
           @handleEvent type : "ActivityUpdateWidgetShouldReset"
 
-  addWidgetPanes:(options)->
+  addWidgetPane:(options)->
     {paneName,mainContent} = options
     
-    @mainInputTabs.addPane main = new KDTabPaneView name : paneName 
+    @mainInputTabs.addPane main = new KDTabPaneView
+      name : paneName 
     main.addSubView mainContent if mainContent?
     return main
 
