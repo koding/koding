@@ -148,7 +148,7 @@ class Activity12345 extends AppController
   
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
-    $.ajax 'https://api.koding.com/1.0'
+    $.ajax 'https://api.koding.com/1.1'
       data      :
         data    : JSON.stringify(options)
         env     : KD.env
