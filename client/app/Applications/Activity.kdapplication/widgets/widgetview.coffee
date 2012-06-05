@@ -79,6 +79,7 @@ class ActivityUpdateWidget extends KDView
         {
           title       : "Ask a Question"
           type        : "default question disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "question", treeItem.getData().title
         }             
         {             
@@ -89,16 +90,19 @@ class ActivityUpdateWidget extends KDView
         {             
           title       : "Start a Discussion"
           type        : "default discussion disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
         }             
         {             
           title       : "Link"
+          disabled    : yes
           type        : "default link disabledForBeta"
           callback    : (treeItem, event)=> @changeTab "link", treeItem.getData().title
         }             
         {             
           title       : "Tutorial"
           type        : "default tutorial disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
         }
       ]
