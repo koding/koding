@@ -654,26 +654,23 @@ class KDView extends KDObject
     # @$overlay = null
     @handleEvent type : "OverlayRemoved"
 
-  setTooltip:(options)->
-    options = $.extend
-      title     : "Default tooltip title!"
-      placement : "above"
-      offset    : 0
-      delayIn   : 300
-      html      : yes
-      animate   : yes
-      selector  : null
-    ,options
+  setTooltip:(o = {})->
+    
+    o.title     or= "Default tooltip title!"
+    o.placement or= "above"
+    o.offset    or= 0
+    o.delayIn   or= 300
+    o.html      or= yes
+    o.animate   or= yes
+    o.selector  or= null
 
     @listenTo 
       KDEventTypes        : "viewAppended"
       listenedToInstance  : @
       callback            : =>
-        # if options.selector
         # log "get rid of this timeout there should be an event after template update"
-        setTimeout =>
-          @$(options.selector).twipsy options
-        ,1
+        @utils.nextTick =>
+          @$(o.selector).twipsy o
   
   listenWindowResize:->
     

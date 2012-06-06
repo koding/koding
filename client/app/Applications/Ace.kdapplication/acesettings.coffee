@@ -7,21 +7,6 @@ __aceSettings =
       options : 
         bare  : on
 
-  syntaxExtensionAssociations: 
-    php:          ['php', 'phtml']
-    css:          ['css']
-    javascript:   ['js']
-    coffee:       ['coffee']
-    c:            ['c_cpp']
-    html:         ['html', 'htm', 'xhtml']
-    java:         ['j', 'java']
-    perl:         ['perl']
-    python:       ['pyth']
-    ruby:         ['rb']
-    svg:          ['svg']
-    xml:          ['xml']
-    scss:         ['scss']
-  
   softWrapOptions: [
       value: 'off'
       title: 'Off'
@@ -216,9 +201,9 @@ __aceSettings =
     ].sort (a, b) ->
       if a.title < b.title then -1 else 1
 
-  modesByName :
+  syntaxAssociations :
 
-    coffee    : ["CoffeeScript" , "coffee|^Cakefile"]
+    coffee    : ["CoffeeScript" , "coffee|Cakefile"]
     coldfusion: ["ColdFusion"   , "cfm"]
     csharp    : ["C#"           , "cs"]
     css       : ["CSS"          , "css"]
