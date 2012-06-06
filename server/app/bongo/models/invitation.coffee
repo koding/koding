@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['byCode','__sendBetaInvites']#,'__createBetaInvites']#['create','createMultiuse','byCode','grant']# '__createMultiuse','__createBetaInvites', '__sendBetaInvites','__attemptToFixChrisFuckup'
+      static        : ['byCode']#'__sendBetaInvites','__createBetaInvites']#['create','createMultiuse','byCode','grant']# '__createMultiuse','__createBetaInvites', '__sendBetaInvites','__attemptToFixChrisFuckup'
     schema          :
       code          : String
       inviteeEmail  : String
