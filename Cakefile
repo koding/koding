@@ -109,24 +109,25 @@ targetPaths =
     else
       return "prod"
   prodPostBuildSteps : (options,callback)->
-    if targetPaths.whichEnv(options) is "prod"
-      prompt.start()
-      prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
-        if result.p is 'yes'
-          log.info "syncing recently built static files with static files server"
-          rsync = exec "rm -rf /opt/kfmjs/website && cp -fr ./website /opt/kfmjs/",(err,stdout,stderr)->
-            if err or stderr
-              log.error "SYNCING FAILED, THIS IS NOT GOOD. SITE MIGHT BE BROKEN RIGHT NOW. FIX THE PROBLEM AND REBUILD IMMEDIATELY"
-            else
-              log.info "sync complete."
-              callback? null
-          rsync.stdout.on 'data', (data)=> 
-            log.info "#{data}".replace /\n+$/, ''
-          rsync.stderr.on 'data', (data)-> 
-            log.info "#{data}".replace /\n+$/, ''          
-        else
-          log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
-          callback? null
+    callback null
+    # if targetPaths.whichEnv(options) is "prod"
+    #   prompt.start()
+    #   prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
+    #     if result.p is 'yes'
+    #       log.info "syncing recently built static files with static files server"
+    #       rsync = exec "rm -rf /opt/kfmjs/website && cp -fr ./website /opt/kfmjs/",(err,stdout,stderr)->
+    #         if err or stderr
+    #           log.error "SYNCING FAILED, THIS IS NOT GOOD. SITE MIGHT BE BROKEN RIGHT NOW. FIX THE PROBLEM AND REBUILD IMMEDIATELY"
+    #         else
+    #           log.info "sync complete."
+    #           callback? null
+    #       rsync.stdout.on 'data', (data)=> 
+    #         log.info "#{data}".replace /\n+$/, ''
+    #       rsync.stderr.on 'data', (data)-> 
+    #         log.info "#{data}".replace /\n+$/, ''          
+    #     else
+    #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
+    #       callback? null
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
