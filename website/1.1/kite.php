@@ -16,12 +16,15 @@ class Kite {
       $session = get_session();
       $username = isset($session['username']) ? $session['username'] : 'kc';
       $args = array(
-        'toDo'      => $method,
-        'withArgs'  => $arguments,
-        'username'  => $username,
+        'data' => json_encode(array(
+          'toDo'      => $method,
+          'withArgs'  => $arguments[0],
+          'username'  => $username,          
+        )),
       );
-      error_log('trying to load '.$this->uri);
+      error_log('connecting to '.$this->uri);
       $res = @file_get_contents($this->uri.'?'.http_build_query($args));
+      error_log('got a response: '.$res);
       return isset($res) ? $res : array('error' => 503, 'uri' => $uri);
     }
   }

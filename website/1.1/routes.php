@@ -97,7 +97,25 @@ $router->add_route('/kite/connect', function () {
   else okay();
 });
 
-// $router->add_route('/devrim', function () {
-//   //print file_get_contents('http://www.google.com');
-//   okay();
-// });
+$router->add_route('/kite/disconnect', function () {
+  # TODO: this is a temporary measure to protect the API until we have real
+  # api keys.  Replace with something stronger.
+  $secret     = '8daafc24b27ab396d32751f6a8cf2964';
+  $token      = $_REQUEST['token'];
+  $uri        = $_REQUEST['uri'];
+  $kite_name  = $_REQUEST['kiteName'];
+  
+  if ($token != sha1($uri.$secret)) {
+    error_log('unauthorized attempt to send kite/disconnect.');
+    access_denied();
+  }
+  else {
+    $kite_controller = get_kite_controller();
+    $kite_controller->remove_kite($kite_name, $uri);
+    okay();
+  }
+});
+
+$router->add_route('/info', function () {
+  phpinfo();
+});

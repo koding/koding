@@ -103,7 +103,6 @@ function get_mongo_db_name () {
 function get_mongo_db () {
   $db = get_mongo_db_name();
   $connection_string = get_mongo_host().'/'.$db;
-  error_log($connection_string);
   @$mongo = new Mongo($connection_string, array('persist' => 'api'));
   if(!isset($mongo)) {
     access_denied(2);
