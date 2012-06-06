@@ -35,8 +35,6 @@ class JAccount extends Followable
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
-        'answerToLifeTheUniverseAndEverything'
-        #temp -> did not think much on it just wrote it- sinan 29 april 2012
         'fetchFollowedTopics', 'tellKite2', 'fetchNonce','fetchKiteChannelId'
       ]
     schema                  :
@@ -179,8 +177,6 @@ class JAccount extends Followable
                 callback err
               else
                 callback null, nonce
-  
-  answerToLifeTheUniverseAndEverything:(callback)-> callback 42
   
   fetchKiteIds: bongo.secure ({connection}, options, callback)->
     {kiteName} = options
