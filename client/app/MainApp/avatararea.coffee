@@ -184,26 +184,25 @@ class AvatarPopupShareStatus extends AvatarPopup
       validate      :
         rules       :
           required  : yes
-      callback      : @updateStatus
+      callback      : (status)=> @updateStatus status
 
 
-  updateStatus:(status)=> 
+  updateStatus:(status)->
+
     bongo.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
           type     : 'growl'
-          title    : 'Your status updated!'
-          content  : reply.body
-          duration : 5000
-          timer    : yes
-          overlay  : yes
+          cssClass : 'mini'
+          title    : 'Message posted!'
+          duration : 2000
         @statusField.setValue ""
         @statusField.setPlaceHolder reply.body
         @hide()
         
       else
-        new KDNotificationView title : "There was an error, try again later!"
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
         @hide()
         
 # avatar popup box Notifications
