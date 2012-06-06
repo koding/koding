@@ -194,25 +194,7 @@ task 'build', 'optimized version for deployment', (options)->
   targetPaths.server = options.target ? "/tmp/kd-server.js"
   
   {dontStart,uglify,database} = options
-  if dontStart and uglify and database isnt "vpn"
-    prompt.start()
-    prompt.get [{message:"I see -sud. Are you deploying this thing? yes/no",name:'p'}],  (err, result) ->
-      if result.p is 'yes'
-        log.info "ok. got it."
-        prompt.get [{message:"Seems like current version is #{version}, should i bump it up by 0.0.1 (safer!), or keep going ? up/keep",name:'p'}],  (err, result) ->
-          if result.p is "keep"
-            build()
-          else if result.p is "up"
-            vr  = version.split "."
-            version = vr[0]+"."+vr[1]+"."+(vr[2]*1+1)
-            targetPaths.version = version
-            fs.writeFileSync ".revision",version
-            log.info "DEPLOYING VERSION: #{version} DON'T FORGET TO UPDATE LOCAL .revision FILE! (IMPORTANT)"
-            build options
-      else
-        build options
-  else
-    build options
+  build options
   
   
   
