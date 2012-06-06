@@ -31,7 +31,7 @@ AccountMixin = do ->
           # type    : 'POST'
       
       getKiteUri =(kiteName)->
-        "https://api.koding.com/1.1/kite/#{kiteName}"
+        "https://api.koding.com/1.0/kite/#{kiteName}"
       
       sendCommand =(kiteName, args, callbackId)->
         scrubber = new Scrubber localStore
