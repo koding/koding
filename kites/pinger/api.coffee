@@ -30,7 +30,7 @@ module.exports = new Kite 'pinger'
           .digest('hex')
         request.get {
           uri: apiUri
-          qs: {env: 'vpn', kiteName, uri, token}
+          qs: {kiteName, uri, token}
         }, -> callback()
       else
         console.log "#{kiteName} has responded to ping"
