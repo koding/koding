@@ -3,8 +3,8 @@ class CommonView_InputWithButton extends KDFormView
   constructor:(options = {},data)->
 
     options = $.extend
-      button    : null          # an Object of KDButtonView instance
-      input     : null          # an Object of KDInputView instance -type text, password or textarea
+      button    : null          # a KDButtonView instance
+      input     : null          # a KDInputView instance -type text, password or textarea
       icon      : null          # a String of cssClass of icon in a span
       cssClass  : ""
     ,options
