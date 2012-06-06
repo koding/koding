@@ -8,11 +8,11 @@ catch e
   console.log e
 
 
-log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
 
 
 
-module.exports = new Kite
+module.exports = new Kite 'terminaljs'
   
   _connect:-> console.log "connect:",arguments
   
