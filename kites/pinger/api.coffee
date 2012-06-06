@@ -24,13 +24,13 @@ module.exports = new Kite 'pinger'
       if err
         @stopPinging {uri}, callback
         # TODO: this is the callback to the api server:
-        apiUri = 'https://api.koding.com/1.1/kite/disconnect'
+        apiUri = 'https://api.koding.com/1.0/kite/disconnect'
         token = crypto.createHash('sha1')
           .update(uri+secret)
           .digest('hex')
         request.get {
           uri: apiUri
-          qs: {env: 'vpn', kiteName, uri, token}
+          qs: {kiteName, uri, token}
         }, -> callback()
       else
         console.log "#{kiteName} has responded to ping"

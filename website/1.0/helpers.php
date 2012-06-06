@@ -115,7 +115,7 @@ function get_kite_controller () {
   if (isset($kite_controller)) {
     return $kite_controller;
   }
-  $kite_controller = new KiteController('/opt/kfmjs/config/kite_config.json', get_mongo_db());
+  $kite_controller = new KiteController('/mnt/storage0/koding/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }
 

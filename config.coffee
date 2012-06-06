@@ -28,7 +28,7 @@ kiteConfig =
 # this needs to live here, because process.pid needs to belong to kfmjs not to Cakefile.
 # yes there is a way to move this over, but not now.
 
-if require("os").platform is 'linux'
-  require("fs").writeFile "/var/run/node/kfmjs.pid","#{process.pid}",(err)->
+if require("os").platform() is 'linux'
+  require("fs").writeFile "/var/run/node/koding.pid",process.pid,(err)->
     if err?
       console.log "[WARN] Can't write pid to /var/run/node/kfmjs.pid. monit can't watch this process."
