@@ -20,4 +20,5 @@ class JSession extends bongo.Model
       type        : Date
       get         : -> new Date
     nonce         : String
+    nonces        : [String]
     tokens        : [JToken]

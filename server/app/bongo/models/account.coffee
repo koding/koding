@@ -38,6 +38,7 @@ class JAccount extends Followable
         'answerToLifeTheUniverseAndEverything'
         #temp -> did not think much on it just wrote it- sinan 29 april 2012
         'fetchFollowedTopics', 'tellKite2', 'fetchNonce','fetchKiteChannelId'
+        'fetchNonces'
       ]
     schema                  :
       skillTags             : [String]
@@ -168,7 +169,6 @@ class JAccount extends Followable
       callback new KodingError 'Access denied.'
     else
       client.connection.remote.fetchClientId (clientId)->
-        console.log 'clientId', clientId
         JSession.one {clientId}, (err, session)->
           if err
             callback err
@@ -180,6 +180,23 @@ class JAccount extends Followable
               else
                 callback null, nonce
   
+  fetchNonces: bongo.secure (client, callback)->
+    {delegate} = client.connection
+    unless @equals delegate
+      callback new KodingError 'Access denied.'
+    else
+      client.connection.remote.fetchClientId (clientId)->
+        JSession.one {clientId}, (err, session)->
+          if err
+            callback err
+          else
+            nonces = (hat() for i in [0...10])
+            session.update $addToSet: nonces: $each: nonces, (err)->
+              if err
+                callback err
+              else
+                callback null, nonces
+
   answerToLifeTheUniverseAndEverything:(callback)-> callback 42
   
   fetchKiteIds: bongo.secure ({connection}, options, callback)->
