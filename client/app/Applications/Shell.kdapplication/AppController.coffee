@@ -141,12 +141,13 @@ class Shell12345 extends KDViewController
     @resetMessageCounter()
 
   applyStyleSheet:(callback)->
-    $.ajax
-      dataType:'text'
-      url:"#{KD.staticFilesBaseUrl}/js/KDApplications/Shell.kdapplication/app.css?#{KD.version}"
-      success: (css)->
-        $("<style type='text/css'>#{css}</style>").appendTo("head");
-        callback?()
+    callback?()
+    # $.ajax
+    #   dataType:'text'
+    #   url:"#{KD.staticFilesBaseUrl}/js/KDApplications/Shell.kdapplication/app.css?#{KD.version}"
+    #   success: (css)->
+    #     $("<style type='text/css'>#{css}</style>").appendTo("head");
+    #     callback?()
 
   getKiteIds : (options,callback)->
     @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->

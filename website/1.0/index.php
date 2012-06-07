@@ -47,7 +47,7 @@ try {
 }
 
 
-$route = str_replace('/1.0', '', $_GET['q']);
+$route = preg_replace('/^\/1.0/', '', $_GET['q']);
 if (!$route || !$router->handle_route($route)) {
   switch ($query['data']['collection']){
 

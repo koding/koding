@@ -35,8 +35,6 @@ class JAccount extends Followable
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
-        'answerToLifeTheUniverseAndEverything'
-        #temp -> did not think much on it just wrote it- sinan 29 april 2012
         'fetchFollowedTopics', 'tellKite2', 'fetchNonce','fetchKiteChannelId'
         'fetchNonces'
       ]
@@ -246,7 +244,7 @@ class JAccount extends Followable
             args.requesterId      = client.connection.remoteId
             args.subscriberCount  = channel.getAt('subscribers')?.length or 0
             # uri = "http://localhost:1337/?data=#{
-            uri = "https://api.koding.com/1.1/kite/sharedHosting?data=#{
+            uri = "https://api.koding.com/1.0/kite/sharedHosting?data=#{
               encodeURIComponent JSON.stringify args
             }"
             nodeRequest uri, (err, response, body)->

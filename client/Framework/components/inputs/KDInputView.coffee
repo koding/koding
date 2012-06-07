@@ -279,7 +279,7 @@ class KDInputView extends KDView
     @checkTabKey event if @inputTabKeyEnabled
     
   focus:->
-
+    
     @getSingleton("windowController").setKeyView @
 
   blur:->
