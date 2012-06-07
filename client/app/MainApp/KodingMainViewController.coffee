@@ -126,8 +126,10 @@ class MainController extends KDController
       if event.pageName is 'Logout'
         bongo.api.JUser.logout ->
           new KDNotificationView
-            title   : "Come back soon!"
-            duration: 1000
+            cssClass  : "login"
+            title     : "<span></span>Come back soon!"
+            # content   : "Successfully logged out."
+            duration  : 2000
       else
         @goToPage pubInst, event
 
