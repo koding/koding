@@ -162,9 +162,19 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
-
+    @on "SubmitFailed", (msg)=>
+      if msg is "Wrong password"
+        @passwordConfirm.input.setValue ''
+        @password.input.setValue ''
+        @password.input.validate()
 
   usernameCheckTimer = null
+  
+  reset:->
+
+    inputs = KDFormView.findChildInputs @
+    input.clearValidationFeedback() for input in inputs
+    super
 
   usernameCheck:(input, event)->
 
@@ -185,11 +195,15 @@ class RegisterInlineForm extends LoginViewInlineForm
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
               @hideOldUserFeedback()
           else
-            if kodingenUser
-              @showOldUserFeedback()
+            if kodingUser and kodingenUser
+              # log "contact support"
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
+              @hideOldUserFeedback()
             else if kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
               @hideOldUserFeedback()
+            else if kodingenUser
+              @showOldUserFeedback()
             else
               @hideOldUserFeedback()
               input.setValidationResult "usernameCheck", null
@@ -200,6 +214,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   showOldUserFeedback:->
     
+    @addCustomData "kodingenUser", "on"
     @kodingenUser = yes
     @parent.setClass "taller"
     @username.setClass "kodingen"
@@ -209,6 +224,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   hideOldUserFeedback:->
     
+    @removeCustomData "kodingenUser"
     @kodingenUser = no
     @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
