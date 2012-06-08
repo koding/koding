@@ -11,7 +11,7 @@ class cloudlinux::install_cagefs {
     }
     exec { "enable":
         command => "/usr/sbin/cagefsctl --enable-all",
-        require => [Package["cagefs"],Class["cloudlinux::register"]]
+        require => Package["cagefs"],
         onlyif => "/usr/sbin/cagefsctl --display-user-mode | /bin/grep 'Disable All'"
     }
 }
