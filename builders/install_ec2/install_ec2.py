@@ -11,6 +11,7 @@ from boto.ec2.connection import EC2Connection
 from boto.ec2 import blockdevicemapping
 from pprint import pprint
 from time import sleep
+import syslog
 import argparse
 import sys
 import route53
@@ -34,7 +35,7 @@ security_groups = ['koding']
 #security_groups = ['internal']
 #security_groups = ['smtp']
 
-
+syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
 
 region  = regions(aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
@@ -86,7 +87,8 @@ def getSystemAddr(id):
         if i.__dict__['id'] == id:
             return i.__dict__['public_dns_name']
     else:
-        sys.stderr.write("Can't find Instance")
+        sys.stderr.write("getSystemAddr: Can't find instance")
+        syslog.syslog(syslog.LOG_ERR,"getSystemAddr: Can't find instance")
         return False
 
 def createVolume(size,fqdn):
@@ -98,10 +100,12 @@ def createVolume(size,fqdn):
 
 def attachVolume(volumeID,instanceID):
     if ec2.attach_volume(volumeID,instanceID,"/dev/sdc"):
-        sys.stdout.write("Volume attached\n")
+        #sys.stdout.write("Volume attached\n")
+        syslog.syslog(syslog.LOG_INFO,"attachVolume: volume attached")
         return True
     else:
-        sys.stderr.write("Cant't attach volume\n")
+        sys.stderr.write("Cant't attach volume")
+        syslog.syslog(syslog.LOG_ERR,"attachVolume: Can't attach volume")
         return False
 
 
@@ -166,6 +170,7 @@ if __name__ == "__main__":
         fqdn = route53.createCNAMErecord(fqdn, addr)
     else:
         sys.stderr.write("server type %s is not supported" % args.type) 
+        syslog.syslog(syslog.LOG_ERR, "server type %s is not supported" % args.type)
         sys.exit(1)
 
 
