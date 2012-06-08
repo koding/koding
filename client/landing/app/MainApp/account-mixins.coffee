@@ -1,7 +1,9 @@
 AccountMixin = do ->
   
   init:(api)->
-    {JAccount} = api
+    {JAccount, JGuest} = api
+    
+    JGuest::fetchNonce = ->
     
     nonces = []
     
