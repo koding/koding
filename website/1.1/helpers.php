@@ -21,13 +21,10 @@ function get_session () {
   if (!isset($_REQUEST['n'])) {
     return NULL;
   }
+  error_log('session error '.$_COOKIE['clientId'].' '.$_REQUEST['n']);
   $session = $db->jSessions->findOne(array(
     'tokens.token'  => $_COOKIE['clientId'],
     'nonces'        => $_REQUEST['n'],
-  ), array(
-    '_id'       => 1,
-    'username'  => 1,
-    'tokens'    => 1,
   ));
   $db->jSessions->update(array(
     '_id' => $session['_id'],
@@ -104,6 +101,7 @@ function get_mongo_host () {
 
 function get_mongo_db_name () {
   global $env;
+  print $env;
   $db_names = array(
     'vpn'   => 'kodingen',
     'beta'  => 'beta_koding',
