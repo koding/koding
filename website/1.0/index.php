@@ -47,7 +47,7 @@ try {
 }
 
 
-$route = preg_replace('/^\/'.array_pop(explode('/', dirname(__FILE__))).'/', '', $_GET['q']);
+$route = preg_replace('/^\/1.0/', '', $_GET['q']);
 if (!$route || !$router->handle_route($route)) {
   switch ($query['data']['collection']){
 

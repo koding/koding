@@ -63,18 +63,15 @@ $router->add_route('/login', function () {
     access_denied(1);
   }
   $db = get_mongo_db();
-  $session = $db->jSessions->findOne(array('nonces' => $nonce));
-  
-  error_log('session '.var_export($session, TRUE));
-  
+  $session = $db->jSessions->findOne(array('nonce' => $nonce));
   if (!isset($session)) {
     access_denied(3);
   }
   $db->jSessions->update(array(
-    'nonces' => $nonce,
+    'nonce' => $nonce,
   ), array(
-    '$pull' => array(
-      'nonces' => $nonce,
+    '$unset' => array(
+      'nonce' => 1,
     ),
   ));
   $token = get_token($session);
@@ -117,10 +114,6 @@ $router->add_route('/kite/disconnect', function () {
     $kite_controller->remove_kite($kite_name, $uri);
     okay();
   }
-});
-
-$router->add_route('/test', function () {
-  var_export($_COOKIE);
 });
 
 $router->add_route('/info', function () {
