@@ -11,12 +11,10 @@ from boto.ec2.connection import EC2Connection
 from boto.ec2 import blockdevicemapping
 from pprint import pprint
 from time import sleep
-import puppet
 import argparse
 import sys
 import route53
 import config
-import cloudlinux
 
 
 
@@ -137,15 +135,6 @@ def attachElasticIP(instacneID):
         else:
             sys.stderr.write("Can't attach public IP %s\n" % r.__dict__['public_ip'] )
             return False
-
-def installPuppetEc2(ip,fqdn):
-    puppet.installPuppet(ip,fqdn)
-    #puppet.signHostOnPuppet(fqdn)
-    if puppet.signHostWithPuppetAPI(fqdn):
-        return True
-    else:
-        return
-
 
 if __name__ == "__main__":
 
