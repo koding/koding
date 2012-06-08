@@ -34,6 +34,8 @@ class LinkView extends KDCustomHTMLView
     bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
       @setData origin
       @render()
+      @$().attr "href","/#!/#{origin.profile.nickname}" 
+      # @$().twipsy title : "@#{origin.profile.nickname}", placement : "left"
 
   viewAppended:->
     @setTemplate @pistachio()

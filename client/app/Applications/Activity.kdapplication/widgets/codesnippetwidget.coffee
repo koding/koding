@@ -41,12 +41,9 @@ class ActivityCodeSnippetWidget extends KDFormView
       title : "Add Tags:"
 
     @cancelBtn = new KDButtonView
-      title : "Cancel"
-      style : "modal-cancel"
-      callback  :(event)=>
-        event.stopPropagation()
-        event.preventDefault()
-        @reset()
+      title    : "Cancel"
+      style    : "modal-cancel"
+      callback : => @reset()
   
     @submitBtn = new KDButtonView
       style : "clean-gray"
@@ -81,7 +78,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         {inputValue} = args
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        updateWidget.propagateEvent KDEventType : "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
+        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
     
     @tagAutoComplete = @tagController.getView()
     
@@ -101,13 +98,12 @@ class ActivityCodeSnippetWidget extends KDFormView
     super
 
   reset:=>
-
+    
     @inputCodeSnipTitle.setValue ''
     @inputDescription.setValue ''
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
     @ace.setContents "//your code snippet goes here..."
-    @getDelegate().handleEvent type: 'ActivityUpdateWidgetShouldReset'
 
   widgetShown:->
 
@@ -137,6 +133,8 @@ class ActivityCodeSnippetWidget extends KDFormView
       
       @on "codeSnip.changeSyntax", (syntax)=>
         @ace.setSyntax syntax
+    else
+      @refreshEditorView()
 
   refreshEditorView:->
     lines = @ace.editor.selection.doc.$lines
@@ -157,9 +155,13 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   pistachio:->
     """
-    <div class="form-headline">{{> @inputCodeSnipTitle}}</div>
     <div class="form-actions-mask">
       <div class="form-actions-holder">
+        <div class="formline">
+          <div>
+            {{> @inputCodeSnipTitle}}
+          </div>
+        </div>
         <div class="formline">
           {{> @labelDescription}}
           <div>

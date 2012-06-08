@@ -1,6 +1,6 @@
 class KDFormView extends KDView
 
-  findChildInputs = (parent)->
+  @findChildInputs = (parent)->
 
     inputs   = []
     subViews = parent.getSubViews()
@@ -8,7 +8,7 @@ class KDFormView extends KDView
     if subViews.length > 0
       subViews.forEach (subView)->
         inputs.push subView if subView instanceof KDInputView
-        inputs = inputs.concat findChildInputs subView
+        inputs = inputs.concat KDFormView.findChildInputs subView
 
     return inputs
   
@@ -84,7 +84,7 @@ class KDFormView extends KDView
         
     formData
 
-  focusFirstElement:-> findChildInputs(@)[0].$().trigger "focus"
+  focusFirstElement:-> KDFormView.findChildInputs(@)[0].$().trigger "focus"
     
   setCallback:(callback)-> @formCallback = callback
 
@@ -105,7 +105,7 @@ class KDFormView extends KDView
       else
         @emit "FormValidationFailed"
 
-    inputs         = findChildInputs @
+    inputs         = KDFormView.findChildInputs @
     validatedCount = 0
     validInputs    = []
     toBeValidated  = []

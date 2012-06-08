@@ -118,12 +118,19 @@ class NFinderTreeController extends JTreeViewController
   toggleFolder:(nodeView, callback)->
     
     if nodeView.expanded then @collapseFolder nodeView, callback else @expandFolder nodeView, callback
-    
+  
   expandFolder:(nodeView, callback)->
     
     return if nodeView.isLoading or nodeView.expanded
-    nodeData = nodeView.getData()
-    nodeData.fetchContents (files)=>
+    folder = nodeView.getData()
+
+    folder.failTimer = setTimeout =>
+      @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
+      folder.emit "fs.nothing.finished", []
+    , 10000
+
+    folder.fetchContents (files)=>
+      clearTimeout folder.failTimer
       nodeView.expand()
       @initTree files
       callback? nodeView
@@ -479,6 +486,8 @@ class NFinderTreeController extends JTreeViewController
   notification = null
 
   notify:(msg, style, details)->
+    
+    return unless @getView().parent?.parent?.parent
 
     notification.destroy() if notification
     

@@ -137,17 +137,19 @@ class LoginView extends KDScrollView
           duration  : 4500
 
   doRegister:(formElements)->
+    {kodingenUser} = formElements
     formElements.agree = 'on'
     bongo.api.JUser.register formElements, (error, result)=>
       @registerForm.button.hideLoader()
       if error
-        new KDNotificationView
-          title   : 'Error' + error
-          duration: 3000
+        {message} = error
+        @registerForm.emit "SubmitFailed", message
       else
         new KDNotificationView
-          title   : 'Good to go!'
-          duration: 1000
+          cssClass  : "login"
+          title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
+          # content   : 'Successfully registered!'
+          duration  : 2000
         setTimeout =>
           @animateToForm "login"
           @registerForm.reset()
@@ -164,8 +166,10 @@ class LoginView extends KDScrollView
           duration: 1000
       else
         new KDNotificationView
-          title   : "Successfully logged in!"
-          duration: 1000
+          cssClass  : "login"
+          title     : "<span></span>Happy Coding!"
+          # content   : "Successfully logged in."
+          duration  : 2000
         @loginForm.reset()
 
   

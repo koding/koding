@@ -2,20 +2,18 @@ class ActivityUpdateWidgetController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.registerListener
-      KDEventTypes  : "AutoCompleteNeedsTagData"
-      listener      : @
-      callback      : (pubInst,event)=> 
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteDataForTags inputValue,blacklist,callback
-    
     mainView.addWidgetPane
       paneName    : "update"
       mainContent : updateWidget = new ActivityStatusUpdateWidget
-        cssClass  : "status-update-input"
+        cssClass  : "status-widget"
         callback  : (formData)=>
-          updateWidget.input.setValue ''
-          @updateWidgetSubmit formData
+          updateWidget.switchToSmallView()
+          @updateWidgetSubmit formData, (err, activity)=>
+            unless err
+              updateWidget.reset()
+            else
+              mainView.mainInputTabs.showPaneByName "update"
+        
 
     mainView.addWidgetPane
       paneName    : "question"
@@ -27,8 +25,12 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : codeWidget = new ActivityCodeSnippetWidget 
         delegate  : mainView
         callback  : (data)=>
-          @codeSnippetWidgetSubmit data, (success)=>
-            codeWidget.reset() if success
+          mainView.resetWidgets()
+          @codeSnippetWidgetSubmit data, (err, activity)=>
+            unless err
+              codeWidget.reset()
+            else
+              mainView.mainInputTabs.showPaneByName "codesnip"
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -53,32 +55,23 @@ class ActivityUpdateWidgetController extends KDViewController
       callback     : -> codeWidget.widgetShown()
 
 
-  updateWidgetSubmit:(data)->
+  updateWidgetSubmit:(data, callback)->
 
-    bongo.api.JStatusUpdate.create data, (err,activity)=>
+    bongo.api.JStatusUpdate.create data, (err, activity)=>
+      callback err, activity
       unless err
         @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
       else
-        new KDNotificationView title : "There was an error, try again later!"
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
 
     bongo.api.JCodeSnip.create data, (err, codesnip) =>
-
+      callback err, codesnip
       if err
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        callback no
       else
         @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
-        callback yes
-
-  fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
-      unless err
-        callback? tags
-      else
-        log "there was an error fetching topics"
 
   questionWidgetSubmit:(data)->
     log 'creating question', data

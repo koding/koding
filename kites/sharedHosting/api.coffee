@@ -16,7 +16,7 @@ log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.lo
 
 
 
-module.exports = new Kite
+module.exports = new Kite 'sharedHosting'
    
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout

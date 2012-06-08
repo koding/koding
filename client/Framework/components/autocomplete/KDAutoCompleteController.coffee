@@ -208,12 +208,9 @@ class KDAutoCompleteController extends KDViewController
     {outputWrapper} = @getOptions()
     if outputWrapper instanceof KDView
       @itemWrapper = outputWrapper
-    else if outputWrapper
-      @itemWrapper = @getView()[outputWrapper]
-    else 
+    else
       @itemWrapper = @getView()
-    
-  
+
   isItemAlreadySelected:(data)->
     {itemDataPath,customCompare,isCaseSensitive} = @getOptions()
     suggested = JsPath.getAt data, itemDataPath
@@ -391,8 +388,8 @@ class KDAutoComplete extends KDInputView
   mouseDown: ->
     @focus()
 
-  setDomElement:()->
-    @domElement = $ "<div class='kdautocompleteinputwrapper clearfix'><div class='kdautocompletedlistitemwrapper clearfix'></div><input type='text' class='kdinput text'/></div>"
+  setDomElement:->
+    @domElement = $ "<div class='kdautocompletewrapper clearfix'><input type='text' class='kdinput text'/></div>"
 
   setDomId:()->
     @$input().attr "id",@getDomId()
