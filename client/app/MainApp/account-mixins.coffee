@@ -45,8 +45,9 @@ AccountMixin = do ->
               data  : data
               env   : if KD.env is 'dev' then 'vpn' else 'beta'
               n     : nonce
-            dataType: 'jsonp'
-            # type    : 'POST'
+            type    : 'POST'
+            xhrFields:
+              withCredentials: yes
       
       getKiteUri =(kiteName)->
         "https://api.koding.com/1.1/kite/#{kiteName}"
