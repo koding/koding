@@ -53,7 +53,7 @@ class KiteController extends KDController
     options.toDo     or= "executeCommand"
     options.withArgs or= {}
     {command} = options.withArgs
-    log "new command issued to the kites!", command
+    # log "new command issued to the kites!", command
     @account.tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
   

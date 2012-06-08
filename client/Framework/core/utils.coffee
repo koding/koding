@@ -196,6 +196,13 @@ __utils =
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
+  getParentPath :(path)->
+    
+    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
+    parentPath = path.split('/')
+    parentPath.pop()
+    return parentPath.join('/')
+
   nextTick: (fn) ->
     setTimeout fn, 0
 
