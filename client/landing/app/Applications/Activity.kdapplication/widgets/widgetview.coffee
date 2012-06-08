@@ -1,10 +1,13 @@
 class ActivityUpdateWidget extends KDView
+
   constructor:->
+
     super
     @windowController = @getSingleton('windowController')
     @listenWindowResize()
     
   setMainSections:->
+
     @addSubView widgetWrapper = new KDView
       cssClass : 'widget-holder clearfix'
 
@@ -51,17 +54,23 @@ class ActivityUpdateWidget extends KDView
 
     @mainInputTabs.hideHandleContainer()
 
-    @mainInputTabs.addSubView @gradientBack = new KDCustomHTMLView
-      tagName  : 'div'
-      cssClass : 'widget-back gradient'
+    @on "WidgetTabChanged", (tabName)=>
+      @windowController.addLayer @mainInputTabs
+
+    @mainInputTabs.on "ResetWidgets", => @resetWidgets()
 
     @listenTo
       KDEventTypes        : 'ReceivedClickElsewhere'
       listenedToInstance  : @mainInputTabs
       callback            : (pubInst,event)=>
         unless $(event.target).closest('.activity-status-context').length > 0
-          @windowController.removeLayer @mainInputTabs
-          @changeTab "update", "Status Update"
+          @resetWidgets()
+  
+  resetWidgets:->
+    @windowController.removeLayer @mainInputTabs
+    @changeTab "update", "Status Update"
+    @mainInputTabs.emit "MainInputTabsReset"
+    @_windowDidResize()
 
   addWidgetPane:(options)->
 
@@ -77,12 +86,7 @@ class ActivityUpdateWidget extends KDView
     @showPane tabName
     @widgetButton.decorateButton tabName, title
     @_windowDidResize()
-
-    if tabName is 'update'
-      @gradientBack.setClass 'gradient'
-    else
-      @windowController.addLayer @mainInputTabs
-      @gradientBack.unsetClass 'gradient'
+    @emit "WidgetTabChanged", tabName
 
   showPane:(paneName)->
 
@@ -114,6 +118,7 @@ class ActivityUpdateWidget extends KDView
         {
           title       : "Ask a Question"
           type        : "default question disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "question", treeItem.getData().title
         }             
         {             
@@ -124,16 +129,19 @@ class ActivityUpdateWidget extends KDView
         {             
           title       : "Start a Discussion"
           type        : "default discussion disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
         }             
         {             
           title       : "Link"
+          disabled    : yes
           type        : "default link disabledForBeta"
           callback    : (treeItem, event)=> @changeTab "link", treeItem.getData().title
         }             
         {             
           title       : "Tutorial"
           type        : "default tutorial disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
         }
       ]
