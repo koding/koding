@@ -66,24 +66,12 @@ node webnode inherits base {
 
 node /^web\d+\.prod\.system\.aws\.koding\.com$/  inherits webnode {
 }    
-node "web1.beta.system.aws.koding.com"  inherits webnode {
-       include gluster_client
-       include nfs_client
-       #include cachefilesd
 
-       bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
-}    
-node "web2.beta.system.aws.koding.com"  inherits webnode {
-       include gluster_client
-       include nfs_client
-       #include cachefilesd
-       bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
-}    
-
-node "web3.beta.system.aws.koding.com"  inherits webnode {
+node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {
        include gluster_client
        #include nfs_client
        #include cachefilesd
-       bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
+
+      #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
 }    
 
