@@ -18,6 +18,9 @@ function handle_vacated_channel($type, $event, $ms) {
 
 function get_session () {
   $db = get_mongo_db();
+  if (!isset($_REQUEST['n'])) {
+    return NULL;
+  }
   $session = $db->jSessions->findOne(array(
     'tokens.token'  => $_COOKIE['clientId'],
     'nonces'        => $_REQUEST['n'],
