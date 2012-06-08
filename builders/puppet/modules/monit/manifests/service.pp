@@ -5,7 +5,7 @@ class monit::service {
         hasstatus => true,
         hasrestart => true,
         enable => true,
-        require => [Class["monit::config"],Class["deploy_from_s3::deploy"]]
+        require => [Class["monit::config"],Class["gluster_client"],Class["nodejs_rpm::install"]]
     }
  }else{
      service { "monit":

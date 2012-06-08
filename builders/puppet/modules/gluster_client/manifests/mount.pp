@@ -17,7 +17,7 @@ class gluster_client::mount {
         #options => "nodiratime,noatime,fsc,ac,vers=3,rsize=32768,wsize=32768,tcp,intr,async",
         options => "acl,log-level=WARNING,direct-io-mode=disable,_netdev",
         target  => '/etc/fstab',
-        require => [Class['nfs_client'],File['/mnt/storage0'],Class['gluster_client::gluster_packages']]
+        require => [File['/mnt/storage0'],Class['gluster_client::gluster_packages']]
     }
 
 
