@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_GET['env']) ? $_GET['env'] : 'beta';
+$env = isset($_GET['env']) ? $_GET['env'] : 'vpn';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function handle_vacated_channel($type, $event, $ms) {
@@ -18,15 +18,26 @@ function handle_vacated_channel($type, $event, $ms) {
 
 function get_session () {
   $db = get_mongo_db();
+  if (!isset($_REQUEST['n'])) {
+    return NULL;
+  }
   $session = $db->jSessions->findOne(array(
-    'tokens.token' => $_COOKIE['clientId'],
+    'tokens.token'  => $_COOKIE['clientId'],
+    'nonces'        => $_REQUEST['n'],
   ), array(
+    '_id'       => 1,
     'username'  => 1,
     'tokens'    => 1,
   ));
+  $db->jSessions->update(array(
+    '_id' => $session['_id'],
+  ), array(
+    '$pull' => array(
+      'nonces' => $_REQUEST['nonce']
+    ),
+  ));
   return $session;
 }
-
 
 function require_valid_session () {
   $session = get_session();
