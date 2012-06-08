@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_GET['env']) ? $_GET['env'] : 'vpn';
+$env = isset($_GET['env']) ? $_GET['env'] : 'beta';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function handle_vacated_channel($type, $event, $ms) {
@@ -18,16 +18,13 @@ function handle_vacated_channel($type, $event, $ms) {
 
 function get_session () {
   $db = get_mongo_db();
+  error_log('session error '.$_COOKIE['clientId'].' '.$_REQUEST['n']);
   if (!isset($_REQUEST['n'])) {
     return NULL;
   }
   $session = $db->jSessions->findOne(array(
     'tokens.token'  => $_COOKIE['clientId'],
     'nonces'        => $_REQUEST['n'],
-  ), array(
-    '_id'       => 1,
-    'username'  => 1,
-    'tokens'    => 1,
   ));
   $db->jSessions->update(array(
     '_id' => $session['_id'],
@@ -41,6 +38,7 @@ function get_session () {
 
 function require_valid_session () {
   $session = get_session();
+  error_log('found a session');
   $token = get_token($session);
   if (time() > $token['expires']->sec) {
     error_log('expired token! '.var_export($token, TRUE));
@@ -71,7 +69,9 @@ function jsonp_respond ($ob) {
 }
 
 function json_respond ($ob) {
-  header('Access-Control-Allow-Origin: *');
+  header('Access-Control-Allow-Origin: https://beta.koding.com');
+  header('Access-Control-Allow-Credentials: true');
+  header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
   header('Content-type: text/javascript');
   $out = is_array($ob) ? json_encode($ob) : $ob;
   print $out;
@@ -80,6 +80,7 @@ function json_respond ($ob) {
 
 function access_denied ($msg=NULL) {
   global $respond;
+  error_log('403 => '.$msg);
   header('HTTP/1.0 403 Forbidden');
   $response = array('error' => 403);
   if (isset($msg)) {
@@ -104,6 +105,7 @@ function get_mongo_host () {
 
 function get_mongo_db_name () {
   global $env;
+  error_log($env);
   $db_names = array(
     'vpn'   => 'kodingen',
     'beta'  => 'beta_koding',
