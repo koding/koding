@@ -22,22 +22,21 @@ class FSFile extends FSItem
 
   saveAs:(contents, name, parentPath, callback)->
     
+    log "saveAs"
+    
     oldPath = @path
-    FSItem.getSafePath "#{parentPath}/#{name}", (err, response)=>
+    newPath = "#{parentPath}/#{name}"
+    @emit "fs.saveAs.started"
+    FSItem.getSafePath "#{newPath}", (err, response)=>
       if err
         callback? err, response
         warn err
       else
-        @path       = response
-        @parentPath = parentPath
-        @name       = response.split('/').pop()
-        @save contents
-        @once "fs.save.finished", (err, res)=>
+        newFile = FSHelper.createFileFromPath response
+        newFile.save contents, (err, res)=>
           if err then warn err
           else
-            FSItem.emit "fs.remotefile.created", @
-            @emit "fs.remotefile.created", oldPath
-        
+            @emit "fs.saveAs.finished", newFile, @
 
   save:(contents, callback)->
 

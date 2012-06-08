@@ -17,6 +17,7 @@ class NFinderController extends KDViewController
       addOrphansToRoot  : options.addOrphansToRoot   ? no
       putDepthInfo      : options.putDepthInfo       ? yes
       contextMenu       : options.contextMenu        ? yes
+      fsListeners       : options.fsListeners        ? no
       delegate          : @
 
     @treeController = new NFinderTreeController treeOptions, []
