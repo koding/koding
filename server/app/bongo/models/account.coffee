@@ -244,7 +244,7 @@ class JAccount extends Followable
             args.requesterId      = client.connection.remoteId
             args.subscriberCount  = channel.getAt('subscribers')?.length or 0
             # uri = "http://localhost:1337/?data=#{
-            uri = "https://api.koding.com/1.1/kite/sharedHosting?data=#{
+            uri = "https://api.koding.com/1.0/kite/sharedHosting?data=#{
               encodeURIComponent JSON.stringify args
             }"
             nodeRequest uri, (err, response, body)->
