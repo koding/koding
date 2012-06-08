@@ -106,10 +106,14 @@ def attachVolume(volumeID,instanceID):
 
 
 
-def launchInstance(fqdn, instance_type, ami_id = centos_id):
+def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
 
-    user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
-        
+    reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
+    if type == "hosting":
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network && %s" % (fqdn,fqdn,reg)
+    else:
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
+
     reservation = ec2.run_instances(
         image_id = ami_id,
         key_name = key_name,
@@ -151,13 +155,13 @@ if __name__ == "__main__":
     if args.type == "hosting":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.ec2type, cloudlinux_id)
+        id = launchInstance(fqdn, args.type, args.ec2type, cloudlinux_id)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
     elif args.type == "webserver":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.ec2type)
+        id = launchInstance(fqdn, args.type, args.ec2type)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
     else:
