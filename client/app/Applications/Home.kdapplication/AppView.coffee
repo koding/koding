@@ -46,10 +46,11 @@ class HomeMainView extends KDScrollView
   putFooter:->
 
     @addSubView @footer = new MainPageFooterView
-      tagName     : 'footer'
-      delegate    : @
+      tagName  : 'footer'
+      delegate : @
+      cssClass : 'home'
     ,
-      about       : no
+      about    : no
 
     return @footer
   

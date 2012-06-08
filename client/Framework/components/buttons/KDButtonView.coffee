@@ -118,13 +118,11 @@ class KDButtonView extends KDView
     @unsetClass "loading"
     @loader.hide()
   
-  disable:()->
-    @$().attr "disabled",yes
-  enable:()->
-    @$().attr "disabled",no
+  disable:-> @$().attr "disabled",yes
+
+  enable:-> @$().attr "disabled",no
   
-  focus:->
-    @$().trigger "focus"
+  focus:-> @$().trigger "focus"
   
   click:(event)->
     if @loader and @loader.active

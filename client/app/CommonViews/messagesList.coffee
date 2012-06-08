@@ -61,7 +61,7 @@ class MessagesListController extends KDListViewController
         callback? items
 
 
-  instantiateListItems:(items)->
+  instantiateListItems:(items = [])->
     listView = @getListView()
     items.forEach (itemModel) =>
       itemView = listView.itemClass delegate : listView,itemModel

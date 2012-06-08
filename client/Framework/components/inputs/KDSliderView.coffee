@@ -1,6 +1,6 @@
 class KDSliderView extends KDInputView
   constructor:(options)->
-    @inputSetType "slider"
+    @setType "slider"
     super options
     inputViewOptions = $.extend {type : "hidden"},options
     @addSubView @hiddenInput = new KDInputView inputViewOptions
@@ -9,9 +9,9 @@ class KDSliderView extends KDInputView
   setDomElement:(cssClass)->
     @domElement = $ "<div class='kdinput kdinputslider #{cssClass}'></div>"
 
-  inputSetDefaultValue:(value) ->
+  setDefaultValue:(value) ->
 
-  inputGetValue:()-> @
-  inputSetValue:(value)->
+  getValue:()-> @
+  setValue:(value)->
 
 class KDSliderViewHandle extends KDView

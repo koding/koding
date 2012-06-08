@@ -99,22 +99,22 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
   resetInputValue:->
     {profile} = @memberData
-    @firstName.inputSetValue profile.firstName 
-    @lastName.inputSetValue profile.lastName 
+    @firstName.setValue profile.firstName 
+    @lastName.setValue profile.lastName 
 
   attachListeners:->
     @listenTo
       KDEventTypes        : 'keyup'
       listenedToInstance  : @firstName
       callback:(pubInst, events)->
-        newWidth = if pubInst.inputGetValue().length < 3 then 3 else if pubInst.inputGetValue().length > 12 then 12 else pubInst.inputGetValue().length
+        newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
     
     @listenTo
       KDEventTypes        : 'keyup'
       listenedToInstance  : @lastName
       callback:(pubInst, events)->
-        newWidth = if pubInst.inputGetValue().length < 3 then 3 else if pubInst.inputGetValue().length > 12 then 12 else pubInst.inputGetValue().length
+        newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
        
   formCallback:(formElements)->
@@ -216,7 +216,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
   resetInputValue:->
     {profile} = @memberData
-    @aboutInput.inputSetValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
+    @aboutInput.setValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
 
   formCallback:(formElements)->
     {profile} = @memberData
@@ -275,7 +275,7 @@ class PersonalFormLocationView extends AbstractPersonalFormView
     
   resetInputValue:->
     {profile} = @memberData
-    @location.inputSetValue @memberData.locationTags[0] or 'Earth' 
+    @location.setValue @memberData.locationTags[0] or 'Earth' 
 
   formCallback:(formElements)->
     {locationTags} = formElements
@@ -328,7 +328,7 @@ class PersonalFormSkillTagView extends KDFormView
 
     @memberData.skillTags or= []
     
-    @formSetCallback (formElements)=>
+    @setCallback (formElements)=>
       tagIds = formElements.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
       @memberData.addTags 'skillTags', tagIds, (err)-> debugger
 
@@ -434,68 +434,3 @@ class SkillTagAutoCompletedItem extends KDAutoCompletedItem
     @getDelegate().removeFromSubmitQueue @ if $(event.target).is('span.close-icon')
     @getDelegate().getView().$input().trigger
 
-
-  
-class PersonalFormAvatarView extends AbstractPersonalFormView
-  constructor:(options, data)->
-    @memberData = data
-    options = $.extend
-      cssClass      : 'profileavatar-form'
-      callback      : @formCallback 
-    , options
-    super options, null
-    @avatarImg = new AvatarSwapView 
-      size:
-        width: 90
-        height: 90
-    , @memberData
-
-    @cancelButton = new KDButtonView
-      style : "clean-red"
-      title : "Cancel"
-      size:
-        width : 'auto'
-      callback:=>
-        @unsetClass 'active'
-        @avatarImg.swapAvatarView.destroy()
-    
-  pistachio:->
-    """
-      {{> @avatarImg}}{{> @cancelButton}}{{> @saveButton}}
-    """
-
-  setListeners:->
-    @listenTo 
-      KDEventTypes        : "ReceivedClickElsewhere"
-      listenedToInstance  : @
-      callback:(pubInst, event)->
-        @avatarImg.swapAvatarView.destroy()
-        @unsetClass 'active'
-        @windowController.removeLayer @
-
-    @listenTo
-      KDEventTypes        : 'DragEnterOnWindow'
-      listenedToInstance  : @windowController
-      callback:(pubInst, event)->
-        if not @$().hasClass 'active'
-          @windowController.addLayer @
-          @setClass 'active' 
-          @avatarImg.setFileUpload()
-
-    @listenTo
-      KDEventTypes        : 'DragExitOnWindow'
-      listenedToInstance  : @windowController
-      callback:(pubInst, event)->
-        @avatarImg.swapAvatarView.destroy()
-        @unsetClass 'active'
-        @windowController.removeLayer @
-      
-  mouseDown:(event)->
-    @windowController.addLayer @
-    if not @$().hasClass 'active'
-      @setClass 'active' 
-    @avatarImg.setFileUpload()
-    
-  formCallback:(formElements)->
-
-   

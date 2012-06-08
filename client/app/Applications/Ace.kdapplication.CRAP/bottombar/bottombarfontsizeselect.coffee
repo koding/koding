@@ -10,16 +10,16 @@ class Editor_BottomBar_FontSizeSelector extends Editor_BottomBar_Section
       KDEventTypes: 'EditorAsksToSetFontSize'
       listenedToInstance: codeField
       callback: (pubInst, event) =>
-        select.inputSetValue event.size
+        select.setValue event.size
 
     @listenTo
       KDEventTypes: 'change'
       listenedToInstance: select
       callback: (pubInst, event) =>
-        @handleEvent type: 'EditorChangeFontSize', size: select.inputGetValue()
+        @handleEvent type: 'EditorChangeFontSize', size: select.getValue()
 
-        @getCodeField().setFontSize select.inputGetValue()
-        @getCodeField().saveFontSizeForExtension select.inputGetValue()
+        @getCodeField().setFontSize select.getValue()
+        @getCodeField().saveFontSizeForExtension select.getValue()
 
     @addSubView select
 

@@ -68,8 +68,8 @@ AccountSettingLists.develop.databases = class AccountDatabaseList extends KDList
           "On Koding" :
             callback      : => 
               @addDatabase
-                type : modal.modalTabs.forms["On Koding"].inputs.Type.inputGetValue()
-                name : modal.modalTabs.forms["On Koding"].inputs.Name.inputGetValue()          
+                type : modal.modalTabs.forms["On Koding"].inputs.Type.getValue()
+                name : modal.modalTabs.forms["On Koding"].inputs.Name.getValue()          
             buttons :
               "Create":
                 title         : "Next"

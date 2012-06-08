@@ -20,7 +20,8 @@ class ContentDisplayControllerAbout extends KDViewController
     , @getData()
 
     mainView.addSubView @footer = new MainPageFooterView
-      tagName : 'footer'
+      tagName  : 'footer'
+      cssClass : 'home'
     ,         
       about   : yes
 

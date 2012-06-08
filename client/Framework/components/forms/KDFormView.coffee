@@ -1,5 +1,20 @@
 class KDFormView extends KDView
+
+  @findChildInputs = (parent)->
+
+    inputs   = []
+    subViews = parent.getSubViews()
+
+    if subViews.length > 0
+      subViews.forEach (subView)->
+        inputs.push subView if subView instanceof KDInputView
+        inputs = inputs.concat KDFormView.findChildInputs subView
+
+    return inputs
   
+  ###
+  INSTANCE LEVEL
+  ###
   constructor:(options,data)->
     options = $.extend
       callback    : noop       # a Function
@@ -7,7 +22,7 @@ class KDFormView extends KDView
     ,options
     super options,data
     @valid = null
-    @formSetCallback options.callback
+    @setCallback options.callback
     @customData = {}
   
   childAppended:(child)->
@@ -68,60 +83,61 @@ class KDFormView extends KDView
       formData[inputData.name] = inputData.value
         
     formData
+
+  focusFirstElement:-> KDFormView.findChildInputs(@)[0].$().trigger "focus"
+    
+  setCallback:(callback)-> @formCallback = callback
+
+  getCallback:()-> @formCallback
   
-  reset:=>
-    @$()[0].reset()
+  reset:=> @$()[0].reset()
   
   submit:(event)=>
+
     if event
       event.stopPropagation()
       event.preventDefault()
-    inputArray = @getDomElement().find "input,select,button,textarea"
-    inputItemInstances = []
-    for inputItem in inputArray
-      inputItem = $(inputItem).closest(".kdinput")[0] if $(inputItem).hasClass "no-kdinput"
-      kdview = KD.getKDViewInstanceFromDomElement inputItem
-      inputItemInstances.push kdview if kdview
-    # SIMPLIFY THIS
-    validators = for inputItemInstance in inputItemInstances
-      f = (validator) ->
-        (callback) ->
-          if validator?
-            validator.validateAsync (data) =>
-              callback null, data
-          else
-            callback null, yes # inputs which not contain validator are valid
-      f inputItemInstance.inputValidator
-
-    async.parallel validators, (err, resultSet) =>
-
-      resultSet = for results in resultSet
-        results.join '.' if $.isArray results
-      resultSet = resultSet.join '|'
     
-      if resultSet.search(/false/) < 0
-        # log "form submit passed validation!"
-        callback = @formGetCallback()
-        if callback?
-          # log "there is callback",@getDomElement().serializeArray(),@
-          formData = $.extend {},@getCustomData()
-          for inputData in @getDomElement().serializeArray()
-            formData[inputData.name] = inputData.value
-
-          callback.call @, formData,event
-        @valid = yes
+    @once "FormValidationFinished", =>
+      if @valid
+        @getCallback()?.call @, formData, event
+        @emit "FormValidationPassed"
       else
-        warn "form submit failed validation!"
-        @propagateEvent KDEventType : "ValidationFailed"
-        @valid = no
+        @emit "FormValidationFailed"
 
-    return no #propagations leads to window refresh
+    inputs         = KDFormView.findChildInputs @
+    validatedCount = 0
+    validInputs    = []
+    toBeValidated  = []
+    formData       = {}
+    @valid         = yes
 
-  focusFirstElement:->
-    @$("input,select,button,textarea").first().trigger "focus"
-    
-    
-  formSetCallback:(callback)->
-    @formCallback = callback
-  formGetCallback:()-> @formCallback
-  
+    # put to be validated inputs in a queue
+    inputs.forEach (input)=>
+      if input.getOptions().validate
+        toBeValidated.push input
+      else
+        # put regular input values to formdata
+        formData[input.getName()] = input.getValue() if input.getName()
+
+    toBeValidated.forEach (input)=>
+      # wait for the validation result of each input
+      input.once "ValidationResult", (result)=>
+        validatedCount++
+        validInputs.push input if result
+        # check if all inputs were validated
+        if toBeValidated.length is validatedCount
+          # check if all inputs were valid
+          if toBeValidated.length is validInputs.length
+            # put valid inputs to formdata
+            formData = $.extend formData, @getCustomData()
+            for inputView in toBeValidated
+              formData[inputView.getName()] = inputView.getValue()
+          else
+            @valid = no
+          # tell validation was finished
+          @emit "FormValidationFinished"
+      input.validate null, event
+
+    # if no validation is required mimic as all were validated
+    @emit "FormValidationFinished" if toBeValidated.length is 0

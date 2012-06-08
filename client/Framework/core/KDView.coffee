@@ -402,26 +402,17 @@ class KDView extends KDObject
 
     return subView
 
-  getSubViews:(type)->
+  getSubViews:->
     ###
     FIX: NEEDS REFACTORING
     used in @destroy 
     not always sub views stored in @subviews but in @items, @itemsOrdered etc
     see KDListView KDTreeView etc. and fix it.
     ###
-    if type?
-      subViews = for subView in @subViews
-        subView if subView instanceof type
-      if @itemsOrdered?
-        items = for item in @itemsOrdered
-          item if item instanceof type
-        subViews = subViews.concat [].slice.call items
-      subViews
-    else
-      subViews = @subViews
-      if @items?
-        subViews = subViews.concat [].slice.call @items
-      subViews
+    subViews = @subViews
+    if @items?
+      subViews = subViews.concat [].slice.call @items
+    subViews
       
   removeSubView:(subViewInstance)->
     for subView,i in @subViews
@@ -663,26 +654,23 @@ class KDView extends KDObject
     # @$overlay = null
     @handleEvent type : "OverlayRemoved"
 
-  setTooltip:(options)->
-    options = $.extend
-      title     : "Default tooltip title!"
-      placement : "above"
-      offset    : 0
-      delayIn   : 300
-      html      : yes
-      animate   : yes
-      selector  : null
-    ,options
+  setTooltip:(o = {})->
+    
+    o.title     or= "Default tooltip title!"
+    o.placement or= "above"
+    o.offset    or= 0
+    o.delayIn   or= 300
+    o.html      or= yes
+    o.animate   or= yes
+    o.selector  or= null
 
     @listenTo 
       KDEventTypes        : "viewAppended"
       listenedToInstance  : @
       callback            : =>
-        # if options.selector
         # log "get rid of this timeout there should be an event after template update"
-        setTimeout =>
-          @$(options.selector).twipsy options
-        ,1
+        @utils.nextTick =>
+          @$(o.selector).twipsy o
   
   listenWindowResize:->
     

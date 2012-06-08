@@ -1,0 +1,8 @@
+# Uncomment the following line to disable automatic DKIM key creation
+AUTOCREATE_DKIM_KEYS=NO
+#
+# Uncomment the following line to set the default DKIM selector
+DKIM_SELECTOR=mail
+#
+# Uncomment the following to set the default DKIM key directory
+DKIM_KEYDIR=/etc/opendkim/keys

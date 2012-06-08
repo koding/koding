@@ -169,7 +169,7 @@ class CommentView extends KDView
       KDEventTypes : "CommentLinkReceivedClick"
       listenedToInstance : @commentList
       callback : =>
-        @commentForm.commentInput.inputSetFocus()
+        @commentForm.commentInput.setFocus()
 
     @listenTo
       KDEventTypes : "CommentViewShouldReset"
@@ -417,7 +417,7 @@ class NewCommentForm extends KDView
       callback:           @commentInputReceivedBlur
 
   commentPosted:()->
-    @commentInput.inputSetValue ""
+    @commentInput.setValue ""
     @resetCommentField()
 
   makeCommentFieldActive:()->
@@ -430,7 +430,7 @@ class NewCommentForm extends KDView
   otherCommentInputReceivedFocus:(instance)->
     if instance isnt @commentInput
       commentForm = @commentInput.getDelegate()
-      commentForm.resetCommentField() if $.trim(@commentInput.inputGetValue()) is ""
+      commentForm.resetCommentField() if $.trim(@commentInput.getValue()) is ""
 
   commentInputReceivedFocus:()->
     # log 'focus event'
@@ -452,14 +452,14 @@ class NewCommentForm extends KDView
     no
 
   commentInputReceivedBlur:()->
-    if @commentInput.inputGetValue() is ""
+    if @commentInput.getValue() is ""
       @resetCommentField() 
     no
 
   commentInputReceivedEnter:(instance,event)=>
     if KD.isLoggedIn()
-      reply = @commentInput.inputGetValue()
-      @commentInput.inputSetValue ''
+      reply = @commentInput.getValue()
+      @commentInput.setValue ''
       @commentInput.blur()
       @commentInput.$().blur()
       @getDelegate().propagateEvent KDEventType: 'CommentSubmitted', reply

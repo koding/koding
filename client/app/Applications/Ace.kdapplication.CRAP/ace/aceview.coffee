@@ -103,7 +103,7 @@ class AceView extends KDView
           style     : "modal-clean-gray"
           callback  : ()=>
             [node] = @finderController.treeController.selectedNodes
-            name   = @inputFileName.inputGetValue()
+            name   = @inputFileName.getValue()
             
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
@@ -130,7 +130,7 @@ class AceView extends KDView
 
     # saveDialog.createButton "Save", style : "cupid-green", callback : form.handleEvent({type : "submit"})
     saveDialog.show()
-    inputFileName.inputSetFocus()
+    inputFileName.setFocus()
 
     @finderController = new NFinderController
       treeItemClass     : NFinderItem 

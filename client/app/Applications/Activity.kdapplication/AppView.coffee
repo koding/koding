@@ -13,10 +13,11 @@ class ActivitySplitView extends KDSplitView
   _windowDidResize:()=> 
     super
     welcomeHeaderHeight = @$().siblings('h1').outerHeight()
-    updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight()  # split margin top
-
-    @$().css "marginTop", updateWidgetHeight
-    @setHeight @parent.getHeight() - welcomeHeaderHeight - updateWidgetHeight
+    # updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight()  # split margin top
+    # 
+    @$().css
+      marginTop : 77 # updateWidgetHeight
+      height    : @parent.getHeight() - welcomeHeaderHeight - 77
 
 class ActivityInnerNavigation extends CommonInnerNavigation
   viewAppended:()->

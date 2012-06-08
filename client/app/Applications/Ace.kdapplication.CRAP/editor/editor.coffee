@@ -142,4 +142,4 @@ class Editor extends KDView
 
   searchFormDidShow:()->
     @doResize()
-    @searchForm.inputSearch.inputSetFocus()
+    @searchForm.inputSearch.setFocus()

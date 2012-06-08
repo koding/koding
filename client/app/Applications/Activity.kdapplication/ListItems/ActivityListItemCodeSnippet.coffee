@@ -58,14 +58,17 @@ class CodesnipActivityItemView extends ActivityItemChild
 class CodeSnippetView extends KDCustomHTMLView
   openFileIteration = 0
 
-  syntaxMap = ->
-    c_cpp       : "cpp"
-    html        : "xml"
-    latex       : 'tex'
-    markdown    : 'xml'
-    powershell  : 'bash'
-    coldfusion  : 'xml'
-    JSON        : 'javascript'
+  syntaxMap = (syntax)->
+    syntaxes =
+      c_cpp       : "cpp"
+      html        : "xml"
+      latex       : 'tex'
+      markdown    : 'xml'
+      powershell  : 'bash'
+      coldfusion  : 'xml'
+      json        : 'javascript'
+    
+    return syntaxes[syntax] or syntax
 
   syntaxHumanMap = ->
     c_cpp   : "c++"
@@ -87,11 +90,9 @@ class CodeSnippetView extends KDCustomHTMLView
     # @codeView.on 'sizes.height.change', ({height}) =>
     #   @$('.wrapper').height height
 
-    syntax or= 'javascript'
-
     @codeView = new KDCustomHTMLView
       tagName  : "code"
-      cssClass : syntaxMap()[syntax] or syntax
+      cssClass : syntaxMap(syntax?.toLowerCase())
       partial  : content
     
     @codeView.unsetClass "kdcustomhtml"
@@ -137,7 +138,9 @@ class CodeSnippetView extends KDCustomHTMLView
 
   viewAppended: ->
     snipView = @
-    syntax = syntaxMap()[unmapped = @getData().syntax] or unmapped
+    {syntax} = @getData()
+    syntax   = syntaxMap syntax
+
     @setTemplate @pistachio()
     @template.update()
     twOptions = (title) ->

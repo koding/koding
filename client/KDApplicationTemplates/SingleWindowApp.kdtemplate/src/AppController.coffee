@@ -74,7 +74,7 @@ class AppController extends KDViewController
         hiddenHandle:no
       data : @getView()
       
-    @getView().input.inputSetFocus()
+    @getView().input.setFocus()
     
   initAndBringToFront:(options,callback)=>
     ###

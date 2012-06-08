@@ -5,7 +5,7 @@ class MainPageFooterView extends KDView
   
   addLeftLinks:->
     @addSubView @linkHolder = new KDView
-      cssClass  : "home-footer-link-holder-left"
+      cssClass  : "footer-left"
     
     @linkHolder.addSubView new KDView
       tagName     : 'a'
@@ -25,7 +25,7 @@ class MainPageFooterView extends KDView
   
   addRightLinks:->
     @addSubView @buttonHolder = new KDView
-      cssClass  : "home-footer-button-holder-right"
+      cssClass  : "footer-right"
 
     mainController = @getSingleton('mainController')
 
@@ -33,7 +33,6 @@ class MainPageFooterView extends KDView
       @buttonHolder.addSubView new KDView
         tagName     : 'a'
         partial     : "About Koding"
-        cssClass    : 'home-footer-button-right'
         attributes  :
           href        : '#'
         click     : =>
@@ -43,7 +42,6 @@ class MainPageFooterView extends KDView
     @buttonHolder.addSubView new KDView
       tagName     : 'a'
       partial     : "Sign In"
-      cssClass    : 'home-footer-button-right'
       attributes  :
         href        : '#'
       click     : =>
@@ -53,7 +51,6 @@ class MainPageFooterView extends KDView
     @buttonHolder.addSubView new KDView
       tagName     : 'a'
       partial     : "Create an Account"
-      cssClass    : 'home-footer-button-right'
       attributes  :
         href        : '#'
       click     : =>

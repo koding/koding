@@ -1,0 +1,21 @@
+#%PAM-1.0
+# This file is auto-generated.
+# User changes will be destroyed the next time authconfig is run.
+auth        required      pam_env.so
+auth        sufficient    pam_fprintd.so
+auth        required      pam_deny.so
+
+account     required      pam_unix.so broken_shadow
+account     sufficient    pam_localuser.so
+account     sufficient    pam_succeed_if.so uid < 500 quiet
+account     [default=bad success=ok user_unknown=ignore] pam_sss.so
+account     required      pam_permit.so
+
+password    required      pam_deny.so
+
+session     optional      pam_keyinit.so revoke
+session     required      pam_limits.so
+session     optional      pam_mkhomedir.so
+session     [success=1 default=ignore] pam_succeed_if.so service in crond quiet use_uid
+session     required      pam_unix.so
+session     optional      pam_sss.so
