@@ -118,11 +118,3 @@ $router->add_route('/kite/disconnect', function () {
     okay();
   }
 });
-
-$router->add_route('/test', function () {
-  var_export($_COOKIE);
-});
-
-$router->add_route('/info', function () {
-  phpinfo();
-});
