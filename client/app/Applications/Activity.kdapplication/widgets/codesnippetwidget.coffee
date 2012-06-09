@@ -164,13 +164,8 @@ class ActivityCodeSnippetWidget extends KDFormView
         </div>
         <div class="formline">
           {{> @labelContent}}
+          {{> @syntaxSelect}}
           {{> @aceHolder}}
-        </div>
-        <div class="formline">
-          {{> @labelSyntax}}
-          <div class="ov">
-            {{> @syntaxSelect}}
-          </div>
         </div>
         <div class="formline">
           {{> @labelAddTags}}
