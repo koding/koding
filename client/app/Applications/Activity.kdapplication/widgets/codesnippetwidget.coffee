@@ -68,16 +68,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
     
     @tagAutoComplete = @tagController.getView()
-    
-    @labelSyntax = new KDLabelView
-      title : "Syntax:"
 
-    @syntaxSelect = new KDSelectBox
-      name          : "syntax"
-      selectOptions : __aceSettings.syntaxes
-      defaultValue  : "javascript"
-      callback      : (value) => @emit "codeSnip.changeSyntax", value
-  
   submit:=>
 
     @addCustomData "code", @ace.getContents()
@@ -117,7 +108,15 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @loader.show()
     @ace.destroy() if @ace
+    @syntaxSelect.destroy() if @syntaxSelect
+    
     @aceHolder.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
+    @aceHolder.addSubView @syntaxSelect = new KDSelectBox
+      name          : "syntax"
+      selectOptions : __aceSettings.syntaxes
+      defaultValue  : "javascript"
+      callback      : (value) => @emit "codeSnip.changeSyntax", value
+  
 
     @ace.on "ace.ready", =>
       @loader.destroy()
@@ -164,7 +163,6 @@ class ActivityCodeSnippetWidget extends KDFormView
         </div>
         <div class="formline">
           {{> @labelContent}}
-          {{> @syntaxSelect}}
           {{> @aceHolder}}
         </div>
         <div class="formline">
