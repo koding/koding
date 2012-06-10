@@ -167,21 +167,6 @@ String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
   getPageClass:(name)->
     @pageClasses[name]
 
-class BasicEmitter
-  constructor: ->
-    @_events = {}
-    
-  on: (eventType, callback) ->
-    unless @_events[eventType]
-      @_events[eventType] = []
-      
-    @_events[eventType].push callback
-    
-  emit: (eventType, args...) ->
-    return unless @_events[eventType]
-    for event in @_events[eventType]
-      event.apply @, args
-
 noop  = ->
 # KD.log   = log   = if console?.log   and (KD.debugStates.all or KD.debugStates.log)   then console.log.bind(console)   else noop
 # KD.warn  = warn  = if console?.warn  and (KD.debugStates.all or KD.debugStates.warn)  then console.warn.bind(console)  else noop
