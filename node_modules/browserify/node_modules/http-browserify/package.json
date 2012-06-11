@@ -1,0 +1,34 @@
+{
+    "name" : "http-browserify",
+    "version" : "0.1.1",
+    "description" : "http module compatability for browserify",
+    "main" : "index.js",
+    "browserify" : "index.js",
+    "directories" : {
+        "lib" : ".",
+        "example" : "example",
+        "test" : "test"
+    },
+    "devDependencies" : {
+        "express" : "2.5.x",
+        "browserify" : "1.9.x"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "http://github.com/substack/http-browserify.git"
+    },
+    "keywords" : [
+        "http",
+        "browserify",
+        "compatible",
+        "meatless",
+        "browser"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT/X11",
+    "engine" : { "node" : ">=0.4" }
+}

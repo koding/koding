@@ -33,18 +33,7 @@ class Demos12345 extends AppController
     ]
     
     t = new JTreeViewController 
-      addListsCollapsed : no
-      # treeItemClass     : NFinderItem 
-      # nodeIdPath        : "path"
-      # nodeParentIdPath  : "parentPath"
-      dragdrop          : yes
-      # foldersOnly       : no
-      # multipleSelection : yes
-      # addOrphansToRoot  : no
-      # putDepthInfo      : yes
-      # contextMenu       : yes
-      # fsListeners       : no
-      # delegate          : @
+      addListsCollapsed : yes
     , data
     mainView.addSubView t.getView()
     t.getView().$().height "auto"
