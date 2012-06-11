@@ -109,6 +109,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView.on "MainInputTabsReset", => @switchToSmallView()
 
   pistachio:->
+
     """
     {{> @smallInput}}
     <div>{{> @largeInput}}</div>
