@@ -32,9 +32,22 @@ class Demos12345 extends AppController
       { title : "title 20", id : 20, parentId: 1}
     ]
     
-    # t = new JTreeViewController 
-    #   addListsCollapsed : no
-    # , data
+    t = new JTreeViewController 
+      addListsCollapsed : no
+      # treeItemClass     : NFinderItem 
+      # nodeIdPath        : "path"
+      # nodeParentIdPath  : "parentPath"
+      dragdrop          : yes
+      # foldersOnly       : no
+      # multipleSelection : yes
+      # addOrphansToRoot  : no
+      # putDepthInfo      : yes
+      # contextMenu       : yes
+      # fsListeners       : no
+      # delegate          : @
+    , data
+    mainView.addSubView t.getView()
+    t.getView().$().height "auto"
     
     # mainView.addSubView form = new KDFormViewWithFields
     #   fields          :
@@ -85,8 +98,6 @@ class Demos12345 extends AppController
     #       callback : -> log "c"
 
     
-    # mainView.addSubView t.getView()
-    # t.getView().$().height "auto"
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dropee

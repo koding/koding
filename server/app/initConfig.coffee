@@ -93,7 +93,8 @@ dbUrl = switch process.argv[3] or 'local'
   when "sinan"
     "mongodb://localhost:27017/kodingen?auto_reconnect"
   when "vpn"
-    "mongodb://kodingen_user:Cvy3_exwb6JI@sysmongo.ct.dev.srv.kodingen.com:27017/kodingen?auto_reconnect"
+    "mongodb://kodingen_user:Cvy3_exwb6JI@10.70.15.2:27017/kodingen?auto_reconnect"
+    # "mongodb://kodingen_user:Cvy3_exwb6JI@sysmongo.ct.dev.srv.kodingen.com:27017/kodingen?auto_reconnect"
     # "mongodb://kodingen_user:Cvy3_exwb6JI@sysmongo.ct.dev.srv.kodingen.com:27017/kodingen?auto_reconnect"
     # "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
     #"mongodb://beta_koding_user::^j.tL9y8)f[zYGMZ@sysmongo.ct.dev.srv.kodingen.com/beta_koding"
@@ -101,7 +102,8 @@ dbUrl = switch process.argv[3] or 'local'
     "mongodb://beta_koding_user:lkalkslakslaksla1230000@db0.beta.system.aws.koding.com/beta_koding?auto_reconnect"
   when "wan"
     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
-
+  when "mongohq-dev"
+    "mongodb://dev:YzaCHWGkdL2r4f@staff.mongohq.com:10016/koding?auto_reconnect"
 # log "connecting to #{dbUrl}"
 #mongoose.connect dbUrl, dbCallback
 bongo.setClient dbUrl

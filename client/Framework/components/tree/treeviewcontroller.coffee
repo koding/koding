@@ -143,10 +143,10 @@ class JTreeViewController extends KDViewController
 
   addNode:(nodeData)->
 
-    log nodeData, "><AS>>ASD"
+    # log nodeData, "><AS>>ASD"
     nodeData = @repairIds nodeData
-    # return unless nodeData
-    log nodeData, "><AS>>ASD"
+    return unless nodeData
+    # log nodeData, "><AS>>ASD"
     @getData().push nodeData
     @addIndexedNode nodeData
     @registerListData nodeData
@@ -159,7 +159,7 @@ class JTreeViewController extends KDViewController
       @addSubList @nodes[parentId], parentId
 
     node = list.addItem nodeData
-    log node, ">>>>"
+    # log node, ">>>>"
     node
   
   removeNode:(id)->
@@ -335,7 +335,7 @@ class JTreeViewController extends KDViewController
 
 
     mouseEvents = ["dblclick", "click", "mousedown", "mouseup", "mouseenter", "mousemove"]
-
+    
     if @getOptions().contextMenu
       mouseEvents.push "contextmenu"
 
@@ -519,7 +519,7 @@ class JTreeViewController extends KDViewController
   mouseEnter:(nodeView, event)->
 
     clearTimeout @mouseDownTimer
-    if @mouseIsDown
+    if @mouseIsDown and @getOptions().multipleSelection
       @cancelDrag = yes
       @deselectAllNodes() unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
       @selectNodesByRange @mouseDownTempItem, nodeView
