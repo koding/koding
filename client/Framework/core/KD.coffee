@@ -27,7 +27,8 @@ String.prototype.decapitalize = ()->this.charAt(0).toLowerCase() + this.slice(1)
 String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
 
 # KD Global
-@KD = $.extend (@KD or {}), do ->
+KD = @KD or {}
+@KD = $.extend (KD), do ->
   # private member for tracking z-indexes
   zIndexContexts  = {}
   debugStates     : {}
@@ -35,6 +36,12 @@ String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
   singletons      : {}
   subscriptions   : []
   classes         : {}
+  
+  apiUri: switch KD.env
+    when 'beta'
+      'https://api.koding.com'
+    else
+      'https://dev-api.koding.com'
   
   whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
   
