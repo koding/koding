@@ -8,7 +8,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @smallInput = new KDInputView 
       cssClass      : "status-update-input"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       focus         : => @switchToLargeView()
@@ -16,7 +16,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       validate      :

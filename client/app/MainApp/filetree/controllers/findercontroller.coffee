@@ -35,7 +35,10 @@ class NFinderController extends KDViewController
         type: "mount"
       @treeController.initTree [mount]
       setTimeout =>
-        @treeController.performEnterKey @treeController.nodes[mount.path]
+        @treeController.expandFolder @treeController.nodes[mount.path], =>
+          @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html"], =>
+            @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}"], =>
+              @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}/httpdocs"]
       , 2000
 
   
