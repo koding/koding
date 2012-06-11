@@ -75,6 +75,7 @@ class JTreeViewController extends KDViewController
   ###
 
   initTree:(nodes)->
+    log nodes
     @addNode node for node in nodes
 
   logTreeStructure:->
@@ -141,9 +142,11 @@ class JTreeViewController extends KDViewController
   ###
 
   addNode:(nodeData)->
-    
+
+    log nodeData, "><AS>>ASD"
     nodeData = @repairIds nodeData
-    return unless nodeData
+    # return unless nodeData
+    log nodeData, "><AS>>ASD"
     @getData().push nodeData
     @addIndexedNode nodeData
     @registerListData nodeData
@@ -155,7 +158,9 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData
+    node = list.addItem nodeData
+    log node, ">>>>"
+    node
   
   removeNode:(id)->
 
