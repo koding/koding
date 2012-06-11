@@ -51,8 +51,8 @@ class AbstractPersonalFormView extends KDFormView
 
 
 class PersonalFormNameView extends AbstractPersonalFormView
+
   constructor:(options, data)->
-    @memberData = data
     
     options = $.extend
       cssClass    : 'profilename-form'
@@ -60,13 +60,14 @@ class PersonalFormNameView extends AbstractPersonalFormView
     , options
     super options, null
 
+    {@memberData} = options
     {profile} = @memberData
     @firstName = new KDInputView
       cssClass      : 'firstname editable'
-      defaultValue  : @utils.htmlDecode profile.firstName
+      defaultValue  : Encoder.htmlDecode profile.firstName
       name          : 'firstName'
       attributes    :
-        size        : @utils.htmlDecode(profile.firstName).length
+        size        : Encoder.htmlDecode(profile.firstName).length
       validate      : 
         rules       : 
           required  : yes
@@ -75,10 +76,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
     @lastName = new KDInputView
       cssClass      : 'lastname editable'
-      defaultValue  : @utils.htmlDecode profile.lastName
+      defaultValue  : Encoder.htmlDecode profile.lastName
       name          : 'lastName'
       attributes    :
-        size        : @utils.htmlDecode(profile.lastName).length
+        size        : Encoder.htmlDecode(profile.lastName).length
     
     @nameView = new ProfileTextView
       tagName       : "p"
@@ -99,8 +100,8 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
   resetInputValue:->
     {profile} = @memberData
-    @firstName.setValue @utils.htmlDecode profile.firstName 
-    @lastName.setValue @utils.htmlDecode profile.lastName 
+    @firstName.setValue Encoder.htmlDecode profile.firstName 
+    @lastName.setValue Encoder.htmlDecode profile.lastName 
 
   attachListeners:->
     @listenTo
@@ -132,12 +133,14 @@ class PersonalFormNameView extends AbstractPersonalFormView
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
+        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
         @unsetClass 'active' 
 
 class PersonalFormAboutWrapperView extends KDView
+
   constructor:(options, data)->
     options = $.extend
       cssClass    : 'personal-profile-about'
@@ -151,13 +154,14 @@ class PersonalFormAboutWrapperView extends KDView
     {profile} = @getData()
     profile.about or= "You haven't entered anything in your bio yet. Why not add something now?"
     
-    @formView = new PersonalFormAboutView {}, @getData()
+    memberData = data
+    @formView = new PersonalFormAboutView {memberData}
     
     @windowController = @getSingleton 'windowController'
     @listenTo 
       KDEventTypes        : "ReceivedClickElsewhere"
       listenedToInstance  : @
-      callback:(pubInst, event)->
+      callback            : (pubInst, event)->
         @unsetClass 'active'
         @formView.resetInputValue()
         @windowController.removeLayer @
@@ -181,16 +185,17 @@ class PersonalFormAboutWrapperView extends KDView
 
 
 class PersonalFormAboutView extends AbstractPersonalFormView
+
   constructor:(options, data)->
-    @memberData = data
-    
+
     options = $.extend
       cssClass  : 'profileabout-form'
       callback  : @formCallback
     , options
 
     super options, null
-    
+
+    {@memberData} = options
     {profile} = @memberData
     
     @aboutInput = new KDInputView
@@ -232,6 +237,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
+        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
@@ -242,13 +248,13 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
 class PersonalFormLocationView extends AbstractPersonalFormView
   constructor:(options, data)->
-    @memberData = data
     options = $.extend
       cssClass      : 'profilelocation-form'
       callback      : @formCallback 
     , options
     super options, data
     
+    {@memberData} = options
     @memberData.locationTags or= []
     
     @location = new KDInputView
@@ -295,6 +301,7 @@ class PersonalFormLocationView extends AbstractPersonalFormView
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
+        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
@@ -318,14 +325,15 @@ class LocationView extends KDCustomHTMLView
 
 
 class PersonalFormSkillTagView extends KDFormView
+
   constructor:(options, data)->
-    @memberData = data # bc we have a conflict on KDFormView::getData()
+
     options = $.extend
       cssClass  : "kdautocomplete-form"
     , options
 
     super options, null
-
+    {@memberData} = options
     @memberData.skillTags or= []
     
     @setCallback (formElements)=>
