@@ -35,7 +35,8 @@ class JAccount extends Followable
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
-        'fetchFollowedTopics', 'tellKite2', 'fetchNonce','fetchKiteChannelId'
+        'fetchFollowedTopics', 'tellKite2','fetchKiteChannelId'
+        'fetchNonces'
       ]
     schema                  :
       skillTags             : [String]
@@ -160,23 +161,41 @@ class JAccount extends Followable
     super options
     @kites = {}
   
-  fetchNonce: bongo.secure (client, callback)->
+  # fetchNonce: bongo.secure (client, callback)->
+  #   {delegate} = client.connection
+  #   unless @equals delegate
+  #     callback new KodingError 'Access denied.'
+  #   else
+  #     client.connection.remote.fetchClientId (clientId)->
+  #       JSession.one {clientId}, (err, session)->
+  #         if err
+  #           callback err
+  #         else
+  #           nonce = hat()
+  #           session.update $set: {nonce}, (err)->
+  #             if err
+  #               callback err
+  #             else
+  #               callback null, nonce
+  
+  fetchNonces: bongo.secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
       callback new KodingError 'Access denied.'
     else
       client.connection.remote.fetchClientId (clientId)->
-        console.log 'clientId', clientId
         JSession.one {clientId}, (err, session)->
           if err
             callback err
           else
-            nonce = hat()
-            session.update $set: {nonce}, (err)->
+            nonces = (hat() for i in [0...10])
+            session.update $addToSet: nonces: $each: nonces, (err)->
               if err
                 callback err
               else
-                callback null, nonce
+                callback null, nonces
+
+  answerToLifeTheUniverseAndEverything:(callback)-> callback 42
   
   fetchKiteIds: bongo.secure ({connection}, options, callback)->
     {kiteName} = options

@@ -133,7 +133,7 @@ class NFinderTreeController extends JTreeViewController
     folder.failTimer = setTimeout =>
       @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
       folder.emit "fs.nothing.finished", []
-    , 10000
+    , 5000
 
     folder.fetchContents (files)=>
       clearTimeout folder.failTimer

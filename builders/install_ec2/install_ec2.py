@@ -6,36 +6,63 @@
 #   createVolume() 
 #   attachVolume()   
 
+from boto.ec2 import regions
 from boto.ec2.connection import EC2Connection
+from boto.ec2 import blockdevicemapping
 from pprint import pprint
 from time import sleep
-import puppet
+import syslog
 import argparse
 import sys
 import route53
 import config
-import cloudlinux
-import json
 
 
-ami_id        = 'ami-41d00528' # RHEL6.2 64bit
+
+
+#ami_id        = 'ami-04ff246d' # RHEL6.2 64bit
+#ami_id        = 'ami-e565ba8c' # amazon ami
+#centos_id     = 'ami-441fc42d' # koding ami (centos)
+centos_id     = 'ami-c49030ad' # koding ami (centos)
+#cloudlinux_id = 'ami-9e18c3f7' # CloudLinux
+cloudlinux_id = 'ami-888f2fe1' # CloudLinux
 key_name      = 'koding'
-zone          = 'us-east-1a'
-instance_type = 'm1.small'
-security_groups = ['koding'] # koding
+zone          = 'us-east-1b'
+placement     = 'us-east-1'
+#instance_type = 'm1.small'
+#instance_type = 'm1.large'
+security_groups = ['koding']
+#security_groups = ['internal']
+#security_groups = ['smtp']
+
+syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
 
+region  = regions(aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
+for r in region:
+    if r.__dict__['name'] == placement:
+        location = r
+        break
 
-ec2 = EC2Connection(config.aws_access_key_id, config.aws_secret_access_key)
+ec2 = EC2Connection(config.aws_access_key_id, config.aws_secret_access_key,region=location)
+
+
+# set root device size
+#bdt = blockdevicemapping.BlockDeviceType(connection=ec2)
+#bdt.size = 20
+#bdm = blockdevicemapping.BlockDeviceMapping(connection=ec2)
+#bdm['/dev/sda'] = bdt
+
+
 
 
 def getVolumeStatus(id):
     r = ec2.get_all_volumes(filters={"volume-id":id})
     while not r.__dict__['status']:
-        sys.stdout.write("Creating volume...\n")
+        #sys.stdout.write("Creating volume...\n")
         getVolumeStatus(id)
     else:
-        sys.stdout.write("Volume has been created\n")
+        #sys.stdout.write("Volume has been created\n")
         return id
 
 def getInstanceStatus(id):
@@ -44,12 +71,13 @@ def getInstanceStatus(id):
     for i in instances:
         if i.__dict__['id'] == id:
             if i.__dict__['state'] != 'running':
-                sys.stdout.write('deploying...\n')
+                #sys.stdout.write('deploying...\n')
                 sleep(1)
                 getInstanceStatus(id)
             else:
-                sys.stdout.write(i.__dict__['public_dns_name']+"\n")
-                sys.stdout.write(i.__dict__['private_ip_address']+"\n")
+                #sys.stdout.write(i.__dict__['public_dns_name']+"\n")
+                #sys.stdout.write(i.__dict__['private_ip_address']+"\n")
+                return True
 
 def getSystemAddr(id):
 
@@ -59,31 +87,36 @@ def getSystemAddr(id):
         if i.__dict__['id'] == id:
             return i.__dict__['public_dns_name']
     else:
-        sys.stderr.write("Can't find Instance")
+        sys.stderr.write("getSystemAddr: Can't find instance")
+        syslog.syslog(syslog.LOG_ERR,"getSystemAddr: Can't find instance")
         return False
 
-def createVolume(size):
+def createVolume(size,fqdn):
     r = ec2.create_volume(size,zone)
     getVolumeStatus(r.__dict__['id'])
+    ec2.create_tags([r.__dict__['id']],{"Name":fqdn})
     return  r.__dict__['id']
 
 
 def attachVolume(volumeID,instanceID):
     if ec2.attach_volume(volumeID,instanceID,"/dev/sdc"):
-        sys.stdout.write("Volume attached\n")
+        #sys.stdout.write("Volume attached\n")
+        syslog.syslog(syslog.LOG_INFO,"attachVolume: volume attached")
         return True
     else:
-        sys.stderr.write("Cant't attach volume\n")
+        sys.stderr.write("Cant't attach volume")
+        syslog.syslog(syslog.LOG_ERR,"attachVolume: Can't attach volume")
         return False
 
 
 
-def launchInstance(kfmjs_version=None):
-    if kfmjs_version:
-        user_data = 'kfmjs_version:%s' % kfmjs_version
-        sys.stdout.write("Launching instance with kfmjs-%s.tar.gz\n" % kfmjs_version)
+def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
+
+    reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
+    if type == "hosting":
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network && %s" % (fqdn,fqdn,reg)
     else:
-        user_data = ''
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
 
     reservation = ec2.run_instances(
         image_id = ami_id,
@@ -91,9 +124,10 @@ def launchInstance(kfmjs_version=None):
         instance_type = instance_type,
         security_groups = security_groups,
         user_data  = user_data,
-        placement = zone
+        placement = zone,
+        #block_device_map = bdm,
     )
-
+    ec2.create_tags([reservation.__dict__['instances'][0].id],{"Name":fqdn})
     getInstanceStatus(reservation.__dict__['instances'][0].id)
     return reservation.__dict__['instances'][0].id
 
@@ -104,50 +138,47 @@ def attachElasticIP(instacneID):
     pprint(r.__dict__)
     if r.__dict__['public_ip']:
         if ec2.associate_address(instacneID,r.__dict__['public_ip']):
-            sys.stdout.write("Public IP %s has been attached\n" % r.__dict__['public_ip'] )
+            #sys.stdout.write("Public IP %s has been attached\n" % r.__dict__['public_ip'] )
             return r.__dict__['public_ip']
         else:
             sys.stderr.write("Can't attach public IP %s\n" % r.__dict__['public_ip'] )
             return False
 
-def installPuppetEc2(ip,fqdn):
-    puppet.installPuppet(ip,fqdn)
-    #puppet.signHostOnPuppet(fqdn)
-    if puppet.signHostWithPuppetAPI(fqdn):
-        return True
-    else:
-        return
-
-
 if __name__ == "__main__":
 
 
     parser = argparse.ArgumentParser(description="Create EC2")
-    parser.add_argument('--fqdn', dest='fqdn',help='specify FQDN',required=True)
-    parser.add_argument('--hosting', dest='hosting',action='store_true',help="install cloudlinux hosting server")
+    parser.add_argument('--type', dest='type',help='specify purpose of server (hosting or webserver currently supported)',required=True)
+    parser.add_argument('--env', dest='env',help='specify purpose of server (only "beta" currently supported)',required=True)
     parser.add_argument('--disk', dest='disk',help="disk size in GB")
-    parser.add_argument('--int', dest='int',action='store_true',help="only for internal usage")
-    parser.add_argument('--kfmjs', dest='kfmjs_version',help="specify kfmjs version ")
+    parser.add_argument('--pub', dest='pub',action='store_true',help="with elastic IP")
+    parser.add_argument('--ec2type', dest='ec2type',help="specify instance type",required=True)
     args = parser.parse_args()
 
 
-    id = launchInstance(args.kfmjs_version)
+    if args.type == "hosting":
+        fqdn = route53.get_new_name(args.type, args.env)
+        if not fqdn: sys.exit(1)
+        id = launchInstance(fqdn, args.type, args.ec2type, cloudlinux_id)
+        addr = getSystemAddr(id)
+        fqdn = route53.createCNAMErecord(fqdn, addr)
+    elif args.type == "webserver":
+        fqdn = route53.get_new_name(args.type, args.env)
+        if not fqdn: sys.exit(1)
+        id = launchInstance(fqdn, args.type, args.ec2type)
+        addr = getSystemAddr(id)
+        fqdn = route53.createCNAMErecord(fqdn, addr)
+    else:
+        sys.stderr.write("server type %s is not supported" % args.type) 
+        syslog.syslog(syslog.LOG_ERR, "server type %s is not supported" % args.type)
+        sys.exit(1)
+
+
 
     if args.disk:
-        volumeID   = createVolume(args.disk)
+        volumeID   = createVolume(args.disk,args.fqdn)
         attachVolume(volumeID,id)
-    if not args.int:
+    if args.pub:
         ip = attachElasticIP(id)
-        route53.createArecord(args.fqdn,ip)
-        installPuppetEc2(ip,args.fqdn)
-        if args.hosting: cloudlinux.convert(addr,args.fqdn)
-        if args.hosting: cloudlinux.reboot(addr)
-    else:
-        addr = getSystemAddr(id)
-        route53.createCNAMErecord(args.fqdn,addr)
-        print("Sshing to %s" % addr)
-        installPuppetEc2(addr,args.fqdn)
-        if args.hosting: cloudlinux.convert(addr,args.fqdn)
-        if args.hosting: cloudlinux.reboot(addr)
-
+        fqdn = route53.createArecord(fqdn, ip)
 

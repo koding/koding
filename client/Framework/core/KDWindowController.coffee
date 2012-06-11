@@ -38,13 +38,6 @@ class KDWindowController extends KDController
     index = @layers.indexOf(layer)
     @layers.splice index, 1
   
-  getStorage: (storageName) ->
-    storage = new KDLocalStorageSpace storageName
-    storage.setWritable yes #defines if storage is writable
-
-  destroyAllLocalStorages: ->
-    KDLocalStorageSpace.clear()
-
   bindEvents:()->
 
     $(window).bind "keydown keyup keypress",@key
