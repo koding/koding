@@ -32,10 +32,9 @@ class NFinderController extends KDViewController
       {nickname} = KD.whoami().profile
       mount      = FSHelper.createFile 
         name       : nickname
-        parentPath : "/"
+        # parentPath : "/"
         path       : "/Users/#{nickname}"
         type       : "mount"
-      log mount
       @treeController.initTree [mount]
       # setTimeout =>
       #   @treeController.expandFolder @treeController.nodes[mount.path], =>
