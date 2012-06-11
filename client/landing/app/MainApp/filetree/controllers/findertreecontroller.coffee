@@ -40,7 +40,8 @@ class NFinderTreeController extends JTreeViewController
     o = @getOptions()
     return if o.foldersOnly and nodeData.type is "file"
     # @setFileListeners nodeData if o.fsListeners
-    @setItemListeners super
+    item = super nodeData
+    # @setItemListeners item
 
   setItemListeners:(node)->
     

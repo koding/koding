@@ -226,7 +226,7 @@ class ApplicationManager extends KDObject
   getStorage: (appId, version, callback) ->
     notifyView = null
 
-    warn "System still trying to access application storage for #{appId}"
+    # warn "System still trying to access application storage for #{appId}"
     
     KD.whoami().fetchStorage {appId, version}, (error, storage) =>
       unless storage
