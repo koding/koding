@@ -26,7 +26,7 @@ class MainController extends KDController
         queue = []
   
   authorizeServices:(callback)->
-    KD.whoami().fetchNonce (err, nonce)->
+    KD.whoami().fetchNonce (nonce)->
       $.ajax
         url       : "https://api.koding.com/1.0/login"
         data      :
@@ -35,11 +35,14 @@ class MainController extends KDController
         dataType  : 'jsonp'
 
   deauthorizeServices:(callback)->
-    $.ajax
-      url       : 'https://api.koding.com/1.0/logout',
-      success	: callback
-      failure	: callback
-      dataType  : 'jsonp'
+    KD.whoami().fetchNonce (nonce)->
+      $.ajax
+        url       : 'https://api.koding.com/1.0/logout'
+        data      :
+          n       : nonce
+        success	  : callback
+        failure	  : callback
+        dataType  : 'jsonp'
   
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
@@ -97,7 +100,7 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
+      appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(publishingInstance,event)=>
