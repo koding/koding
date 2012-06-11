@@ -1,8 +1,8 @@
 check process koding
     with pidfile /var/run/node/koding.pid
-    start program = "/etc/monit.d/scripts/kfmjs.sh start"
+    start program = "/etc/monit.d/scripts/koding.sh start"
         with timeout 30 seconds
-    stop program = "/etc/monit.d/scripts/kfmjs.sh stop"
+    stop program = "/etc/monit.d/scripts/koding.sh stop"
         with timeout 30 seconds
 
     if changed pid then alert
