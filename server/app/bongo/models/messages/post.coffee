@@ -13,6 +13,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete'
       ]
     relationships     : 
       comment         : JComment
@@ -79,6 +80,12 @@ class JPost extends jraphical.Message
     
   unmark: secure ({connection:{delegate}}, flag, callback)->
     @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
+
+  delete: secure ({connection:{delegate}}, callback)->  
+    unless delegate.equals @getAt 'origin'
+      callback new KodingError 'Access denied!'
+    else
+      callback null, "OK, I'll delete it"
 
   like: secure ({connection}, callback)->
     {delegate} = connection
