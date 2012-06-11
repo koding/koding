@@ -54,3 +54,4 @@ client/app/stylus/*.js
 /node_modules/validator
 /node_modules/terminaljs-lite
 /node_modules/terminaljs-lite_
+/node_modules/.DS_Store

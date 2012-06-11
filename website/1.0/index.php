@@ -18,12 +18,19 @@ date_default_timezone_set(TIME_ZONE);
 $query = $_GET;
 $query['data'] = json_decode($query['data'],true);
 
-if ($query['env']=="dev"){
+if ($query['env']=="vpn"){
   $dbName = "kodingen";
   $dbHost = "184.173.138.98";
   $dbPort = "27017";
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
+}
+elseif ($query['env'] == "mongohq-dev") {
+  $dbName = "koding";
+  $dbHost = "staff.mongohq.com";
+  $dbPort = "10016";
+  $dbUser = "dev";
+  $dbPass = "YzaCHWGkdL2r4f";
 }
 else {
   $dbName = "beta_koding";

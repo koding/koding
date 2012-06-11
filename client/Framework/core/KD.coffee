@@ -27,7 +27,7 @@ String.prototype.decapitalize = ()->this.charAt(0).toLowerCase() + this.slice(1)
 String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
 
 # KD Global
-@KD = do ->
+@KD = $.extend (@KD or {}), do ->
   # private member for tracking z-indexes
   zIndexContexts  = {}
   debugStates     : {}
