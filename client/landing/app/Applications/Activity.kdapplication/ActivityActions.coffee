@@ -15,7 +15,7 @@ class ActivityActionsView extends KDView
     @likeCount    = new ActivityLikeCount     {}, activity
     @loader       = new KDLoaderView          size : width : 14 
     
-    @deleteBtn    = new ActivityActionLink    {partial : "Delete" }
+    @deleteLink    = new ActivityActionLink    {partial : "Delete" }
   
   viewAppended:->
     @setClass "activity-actions"
@@ -26,8 +26,8 @@ class ActivityActionsView extends KDView
 
   pistachio:->
     """
-    {{> @deleteBtn}}
     {{> @loader}}
+    {{> @deleteLink}}
     {{> @commentLink}}{{> @commentCount}} · 
     <span class='optional'>
     {{> @shareLink}} · 
@@ -61,7 +61,12 @@ class ActivityActionsView extends KDView
       listener      : @
       callback      : ->
         commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
-
+    
+    @deleteLink.registerListener
+      KDEventTypes  : 'click'
+      listener      : @
+      callback      : -> activity.delete (err)=>
+        @propagateEvent KDEventType: 'ActivityIsDeleted'
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
