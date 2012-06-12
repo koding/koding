@@ -426,7 +426,8 @@ button.kdbutton.dark
     margin                  10px 0 10px 0
                             
                             
-  .formline                 
+  .formline
+    position                relative
     width                   100%
     padding                 0 16px 18px 16px
     border-bottom           none
@@ -450,6 +451,26 @@ button.kdbutton.dark
 
     .ov
       overflow              visible
+
+    div.kdselectbox 
+      position              absolute
+      bottom                5px
+      right                 5px
+      background            rgb(36,36,36)
+      shadow                none      
+      font-size             10px
+      border                1px solid rgb(74,74,74)!important
+      span.title            
+        color               rgba(255, 255, 255,.7)
+        text-shadow         0 -1px 1px rgb(9,9,9)
+      &.focus               
+        outline             none
+        shadow              none!important
+        border              1px solid rgb(255,255,255)
+      span.arrows           
+        sprite()
+        bg                  position,-80px -200px!important
+    
 
 
   .formline.submit          
@@ -518,7 +539,7 @@ form.status-widget
   padding                   10px
   bg                        color,rgba(51,51,51,1)
   rounded                   4px
-  height                    90px
+  size                      auto, 90px
   borderBox()
   .kdview.kdloader
     display                 block
@@ -539,24 +560,7 @@ form.status-widget
   
   .bottom-right-wrapper
     float                 left
-  div.kdselectbox         
-    background            rgb(36,36,36)
-    shadow                none      
-    width                 90px
-    font-size             10px
-    border                1px solid rgb(74,74,74)!important
-    span.title            
-      color               rgba(255, 255, 255,.7)
-      text-shadow         0 -1px 1px rgb(9,9,9)
-    &.focus               
-      outline             none
-      shadow              none!important
-      border              1px solid rgb(255,255,255)
-    span.arrows           
-      sprite()
-      bg                  position,-80px -200px!important
-  
-    
+
   .editor-bottom-bar
     left                  -10px
     bottom                -35px
