@@ -198,6 +198,11 @@ __utils =
 
   nextTick: (fn) ->
     setTimeout fn, 0
+  
+  htmlDecode:(str)->
+    el = document.createElement('div')
+    el.innerHTML = str
+    return el.textContent
 
   ###
   //     Underscore.js 1.3.1

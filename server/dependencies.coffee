@@ -27,10 +27,17 @@ try
   dateFormat        = require 'dateformat'
   bitly             = new (require "bitly")('kodingen','R_677549f555489f455f7ff77496446ffa')
   
-  bongo.mq = bongo.Base::mq = new Pusher
-    appId   : 18240
-    key     : 'a19c8bf6d2cad6c7a006'
-    secret  : '51f7913fbb446767a9fb'
+  bongo.mq = bongo.Base::mq = switch process.argv[3]
+    when 'beta'
+      new Pusher
+        appId   : 18240
+        key     : 'a19c8bf6d2cad6c7a006'
+        secret  : '51f7913fbb446767a9fb'
+    else
+      new Pusher
+        appId   : 22120
+        key     : 'a6f121a130a44c7f5325'
+        secret  : '9a2f248630abaf977547'
 
 catch err
   console.log "Build failed!  Missing dependency! (You may have the wrong version!)"

@@ -49,8 +49,7 @@ if [ "$1" == "start" ]; then
 
 
 elif [ "$1" = "stop" ]; then
-    if  kill -9 $(cat ${PID_FILE}) ; then
-        sleep 5
+    if  kill $(cat ${PID_FILE}) ; then
         echo "process ${APP_FILE} killed with 9" >> ${LOG_FILE}
         rm ${PID_FILE}
     fi

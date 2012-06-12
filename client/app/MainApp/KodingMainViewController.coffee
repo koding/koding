@@ -28,7 +28,7 @@ class MainController extends KDController
   authorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
       $.ajax
-        url       : "https://api.koding.com/1.0/login"
+        url       : KD.apiUri+"/1.0/login"
         data      :
           n       : nonce
           env     : if KD.env is 'dev' then 'vpn' else 'beta'
@@ -37,7 +37,7 @@ class MainController extends KDController
   deauthorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
       $.ajax
-        url       : 'https://api.koding.com/1.0/logout'
+        url       : KD.apiUri+'https://api.koding.com/1.0/logout'
         data      :
           n       : nonce
         success	  : callback

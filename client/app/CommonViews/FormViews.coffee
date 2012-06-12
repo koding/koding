@@ -63,10 +63,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
     {profile} = @memberData
     @firstName = new KDInputView
       cssClass      : 'firstname editable'
-      defaultValue  : profile.firstName
+      defaultValue  : @utils.htmlDecode profile.firstName
       name          : 'firstName'
       attributes    :
-        size        : profile.firstName.length
+        size        : @utils.htmlDecode(profile.firstName).length
       validate      : 
         rules       : 
           required  : yes
@@ -75,10 +75,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
     @lastName = new KDInputView
       cssClass      : 'lastname editable'
-      defaultValue  : profile.lastName
+      defaultValue  : @utils.htmlDecode profile.lastName
       name          : 'lastName'
       attributes    :
-        size        : profile.lastName.length
+        size        : @utils.htmlDecode(profile.lastName).length
     
     @nameView = new ProfileTextView
       tagName       : "p"
@@ -99,8 +99,8 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
   resetInputValue:->
     {profile} = @memberData
-    @firstName.setValue profile.firstName 
-    @lastName.setValue profile.lastName 
+    @firstName.setValue @utils.htmlDecode profile.firstName 
+    @lastName.setValue @utils.htmlDecode profile.lastName 
 
   attachListeners:->
     @listenTo

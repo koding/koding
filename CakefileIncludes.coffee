@@ -139,7 +139,6 @@ Includes =
         JView               : "./client/Framework/core/JView.coffee"
         KDCustomHTMLView    : "./client/Framework/core/KDCustomHTMLView.coffee"
         KDScrollView        : "./client/Framework/core/KDScrollView.coffee"
-        KDLocalStorageCache : "./client/Framework/core/KDLocalStorageCache.coffee"
         KDRouter            : "./client/Framework/core/KDRouter.coffee"
 
         KDController        : "./client/Framework/core/KDController.coffee"
