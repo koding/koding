@@ -18,18 +18,25 @@ cd ${APP_DIR}
 CMD="/usr/bin/node --max-stack-size=1073741824 ${APP_FILE} ${APP_DIR} beta 3000"
 
 if [ "$1" == "start" ]; then
-    if [[ -e ${PID_FILE} ]] &&  ps aux | grep $(cat ${PID_FILE})|grep -v grep 1>>/dev/null 2>> ${LOG_FILE}; then
-        echo "failed to start $0. already running" >> ${LOG_FILE}
+    APP_PID=$(/usr/bin/pgrep -f ${APP_FILE})
+
+  
+    if [  ! -z ${APP_PID} ]; then
+        echo "failed to start ${APP_FILE}. already running with pid ${APP_PID}" >> ${LOG_FILE}
+	if [ ${APP_PID} -ne $(cat ${PID_FILE}) ]; then
+	    echo "pid in pidfile ${PID_FILE} is wrong. monit will not work"  >> ${LOG_FILE}
+	    echo "rewriting pidfile with current process pid" >> ${LOG_FILE}
+	    echo ${APP_PID} > ${PID_FILE}
+	    exit 0
+	fi
         exit 1
     fi
 
-    if [ -e ${PID_FILE} ];then
-        rm ${PID_FILE}
-    fi
+    [ -e ${PID_FILE} ] && rm ${PID_FILE}
 
     echo "starting with ${CMD}" >> ${LOG_FILE}
     ${CMD} >>${LOG_FILE} 2>&1 &
-    PID=$(pgrep -f ${APP_FILE})
+    PID=$(/usr/bin/pgrep -f ${APP_FILE})
     if [ -z ${PID} ];then
         echo "Can't start $0" >> ${LOG_FILE}
         /usr/bin/tail -n50  $LOG_FILE | /bin/mail -s $APP_FILE $ALERT_MAIL
@@ -50,3 +57,5 @@ elif [ "$1" = "stop" ]; then
 else
     echo "Usage: $0 start/stop"
 fi
+
+

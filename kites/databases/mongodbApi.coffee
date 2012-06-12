@@ -1,19 +1,27 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
+config  = require('config').mongo
 
 
 logFile = '/var/log/node/MongoDBApi.log'
 log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
 
-config =
-  databases :
-    mongodb   :
-      host     : 'mongo1.beta.service.aws.koding.com'
-      user     : 'admin'
-      password : '22t78skhdlksaje1'
 
 class MongoDB
+
+  appendKodingUsername = (username, str)->
+
+    #
+    # this will make sure aleksey_aleksey_dbname never happens.
+    # corner case, if aleksey wants to create aleksey_aleksey_dbname that won't work either :)
+    # f that for now tho.
+    #
+    str ?= ""
+    if str.substr(0,username.length+1) is username+"_"
+      return str
+    else
+      return username+"_"+str
 
   constructor : (@config)->
 
@@ -36,12 +44,25 @@ class MongoDB
 
     #
     # options =
+    #   username : koding user that makes the call    
     #   dbUser    : String # db username
     #   dbName    : String # database name
     #   dbPass    : String that holds the password
     #
 
-    {dbUser,dbName,dbPass} = options
+    {username,dbUser,dbName,dbPass} = options
+    
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #
+    dbName = appendKodingUsername username,dbName
+    dbUser = appendKodingUsername username,dbUser
+    #
+    # we only create aleksey_myDbName kind of databases (dot is not safe to use)
+    # so we can count how many databases this user already has.
+    # if user is granted permission to another database
+    # we know how many he owns, how many he can access separately.
+    # -------------------------------    
     
     dbConf = {dbName,dbUser,dbPass}
     dbConf.host = @config.databases.mongodb.host
@@ -83,7 +104,9 @@ class MongoDB
     #   newPassword     : String # new password
     #
 
-    {dbUser,dbName,dbPass,newPassword} = options
+    {username,dbUser,dbName,dbPass,newPassword} = options
+
+    checkIfStarts
 
     db = new mongo.Db dbName, @server
     db.open (err,db)=>

@@ -81,11 +81,12 @@ targetPaths =
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
-      
 
-    kdjs = kdjs + "\n KD.version = \"#{targetPaths.version}\";"
-    kdjs = kdjs + "\n KD.env = \"#{targetPaths.whichEnv(options)}\";"
-    kdjs = kdjs + "\n KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";"
+    kdjs =  "var KD = {};\n" +
+            "KD.version = \"#{targetPaths.version}\";\n" +
+            "KD.env = \"#{targetPaths.whichEnv(options)}\";\n" +
+            "KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";\n" +
+            kdjs
     
     # return callback null,kdjs+libraries
     unless options.uglify
@@ -99,15 +100,13 @@ targetPaths =
         
          
   useStaticFilesServer  : (options)->
-    if options.database is "vpn"
+    if options.database isnt "beta"
       return no
     else
       return yes
-  whichEnv : (options)->
-    if options.database is "vpn"
-      return "dev"
-    else
-      return "prod"
+
+  whichEnv : (options)-> options.database
+
   prodPostBuildSteps : (options,callback)->
     callback null
     # if targetPaths.whichEnv(options) is "prod"

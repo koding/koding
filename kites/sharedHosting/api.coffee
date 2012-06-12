@@ -12,9 +12,9 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
 
-log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
 
-
+console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
    
@@ -92,8 +92,7 @@ module.exports = new Kite 'sharedHosting'
       else
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.debug "[OK] func:checkUid: user's #{username} UID #{stdout} allowed"
-        callback? null
-  
+        callback? null  
   
   secureUser : (options,callback)->
     # put user to the secure env http://www.cloudlinux.com/docs/cagefs/

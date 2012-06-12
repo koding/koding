@@ -1015,3 +1015,19 @@ NameVirtualHost *:8080
     LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %s %b" vcommon
     CustomLog logs/api-access_log vcommon
 </VirtualHost>
+
+<VirtualHost *:8081>
+    DocumentRoot /home/cthorn/koding/website
+    ServerName <%= fqdn %>
+    ServerAlias dev-api.koding.com
+
+    <Directory /home/cthorn/koding/website >
+        AllowOverride None
+        EnableSendfile off
+        Options -FollowSymLinks
+    </Directory>
+
+    ErrorLog logs/dev-api-error_log
+    LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %s %b" vcommon
+    CustomLog logs/dev-api-access_log vcommon
+</VirtualHost>

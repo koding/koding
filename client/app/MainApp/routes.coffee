@@ -34,18 +34,29 @@ do ->
         new KDNotificationView
           title: 'Could not redeem invitation because you are already logged in.'
       else bongo.api.JInvitation.byCode inviteToken, (err, invite)->
-        debugger
         if err or !invite? or invite.status isnt 'active'
           new KDNotificationView
             title: 'Invalid invitation code!'
         else
           # TODO: DRY this one
-          $('body').addClass 'login'
-          mainController.loginScreen.show()
-          mainController.loginScreen.$().css marginTop : 0
-          mainController.loginScreen.hidden = no
-          mainController.loginScreen.animateToForm 'register'
-          mainController.propagateEvent KDEventType: 'InvitationReceived', invite
+          # $('body').addClass 'login'
+          setTimeout ->
+            new KDNotificationView
+              cssClass  : "login"
+              # type      : "mini"
+              title     : "Great, you received an invite, taking you to the register form."
+              # content   : "You received an invite, taking you to the register form!"
+              duration  : 3000
+            setTimeout ->
+              mainController.loginScreen.slideDown =>
+                mainController.loginScreen.animateToForm "register"
+                mainController.propagateEvent KDEventType: 'InvitationReceived', invite
+            , 3000
+          , 2000
+            # mainController.loginScreen.show()
+            # mainController.loginScreen.$().css marginTop : 0
+            # mainController.loginScreen.hidden = no
+            # mainController.loginScreen.animateToForm 'register'
         location.replace '#'
     
     '/verify/:confirmationToken': ({confirmationToken})->

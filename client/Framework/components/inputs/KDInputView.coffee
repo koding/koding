@@ -191,15 +191,20 @@ class KDInputView extends KDView
 
   validate:(rule, event = {})->
     
+    @ruleChain or= []
     rulesToBeValidated = if rule then [rule] else @ruleChain
     ruleSet = @getOptions().validate
-
-    rulesToBeValidated.forEach (rule)=>
-      if KDInputValidator["rule#{rule.capitalize()}"]?
-        result = KDInputValidator["rule#{rule.capitalize()}"] @, event
-        @setValidationResult rule, result
-      else if "function" is typeof ruleSet.rules[rule]
-        ruleSet.rules[rule] @, event
+    
+    if @ruleChain.length > 0
+      rulesToBeValidated.forEach (rule)=>
+        if KDInputValidator["rule#{rule.capitalize()}"]?
+          result = KDInputValidator["rule#{rule.capitalize()}"] @, event
+          @setValidationResult rule, result
+        else if "function" is typeof ruleSet.rules[rule]
+          ruleSet.rules[rule] @, event
+    else
+      @emit "ValidationPassed"
+      @valid = yes
 
   createRuleChain:(ruleSet)-> 
     

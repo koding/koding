@@ -14,6 +14,8 @@ class ActivityActionsView extends KDView
     @likeLink     = new ActivityActionLink    {partial : "Like" }
     @likeCount    = new ActivityLikeCount     {}, activity
     @loader       = new KDLoaderView          size : width : 14 
+    
+    @deleteBtn    = new ActivityActionLink    {partial : "Delete" }
   
   viewAppended:->
     @setClass "activity-actions"
@@ -24,6 +26,7 @@ class ActivityActionsView extends KDView
 
   pistachio:->
     """
+    {{> @deleteBtn}}
     {{> @loader}}
     {{> @commentLink}}{{> @commentCount}} · 
     <span class='optional'>

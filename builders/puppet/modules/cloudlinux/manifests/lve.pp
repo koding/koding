@@ -3,9 +3,7 @@
 #
 class cloudlinux::lve {
     package { "lve-utils":
-
         ensure => installed,
-        require => Class["cloudlinux::register"],
     }
     
     file { "/etc/container/ve.cfg":

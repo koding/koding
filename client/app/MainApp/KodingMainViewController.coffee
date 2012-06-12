@@ -26,20 +26,23 @@ class MainController extends KDController
         queue = []
   
   authorizeServices:(callback)->
-    KD.whoami().fetchNonce (err, nonce)->
+    KD.whoami().fetchNonce (nonce)->
       $.ajax
-        url       : "https://api.koding.com/1.0/login"
+        url       : KD.apiUri+"/1.0/login"
         data      :
           n       : nonce
           env     : if KD.env is 'dev' then 'vpn' else 'beta'
         dataType  : 'jsonp'
 
   deauthorizeServices:(callback)->
-    $.ajax
-      url       : 'https://api.koding.com/1.0/logout',
-      success	: callback
-      failure	: callback
-      dataType  : 'jsonp'
+    KD.whoami().fetchNonce (nonce)->
+      $.ajax
+        url       : KD.apiUri+'https://api.koding.com/1.0/logout'
+        data      :
+          n       : nonce
+        success	  : callback
+        failure	  : callback
+        dataType  : 'jsonp'
   
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
@@ -123,8 +126,10 @@ class MainController extends KDController
       if event.pageName is 'Logout'
         bongo.api.JUser.logout ->
           new KDNotificationView
-            title   : "Come back soon!"
-            duration: 1000
+            cssClass  : "login"
+            title     : "<span></span>Come back soon!"
+            # content   : "Successfully logged out."
+            duration  : 2000
       else
         @goToPage pubInst, event
 

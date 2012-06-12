@@ -50,6 +50,8 @@ node base {
                 "curl",
                 "perl-Digest-SHA1.x86_64",
                 "perl-Digest-HMAC.noarch",
+                "python-boto.noarch",
+                "python-argparse.noarch",
                 "make"]:
             ensure => present
             }

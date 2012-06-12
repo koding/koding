@@ -4,7 +4,6 @@
 class cloudlinux::pam_lve {
     package { "pam_lve":
         ensure => installed,
-        require => Class["cloudlinux::register"],
     }
     
     File {

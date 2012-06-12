@@ -11,12 +11,11 @@ from boto.ec2.connection import EC2Connection
 from boto.ec2 import blockdevicemapping
 from pprint import pprint
 from time import sleep
-import puppet
+import syslog
 import argparse
 import sys
 import route53
 import config
-import cloudlinux
 
 
 
@@ -36,7 +35,7 @@ security_groups = ['koding']
 #security_groups = ['internal']
 #security_groups = ['smtp']
 
-
+syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
 
 region  = regions(aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
@@ -88,7 +87,8 @@ def getSystemAddr(id):
         if i.__dict__['id'] == id:
             return i.__dict__['public_dns_name']
     else:
-        sys.stderr.write("Can't find Instance")
+        sys.stderr.write("getSystemAddr: Can't find instance")
+        syslog.syslog(syslog.LOG_ERR,"getSystemAddr: Can't find instance")
         return False
 
 def createVolume(size,fqdn):
@@ -100,18 +100,24 @@ def createVolume(size,fqdn):
 
 def attachVolume(volumeID,instanceID):
     if ec2.attach_volume(volumeID,instanceID,"/dev/sdc"):
-        sys.stdout.write("Volume attached\n")
+        #sys.stdout.write("Volume attached\n")
+        syslog.syslog(syslog.LOG_INFO,"attachVolume: volume attached")
         return True
     else:
-        sys.stderr.write("Cant't attach volume\n")
+        sys.stderr.write("Cant't attach volume")
+        syslog.syslog(syslog.LOG_ERR,"attachVolume: Can't attach volume")
         return False
 
 
 
-def launchInstance(fqdn, instance_type, ami_id = centos_id):
+def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
 
-    user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
-        
+    reg = "/usr/sbin/rhnreg_ks --force --activationkey 4555-b4507cea4885d1d0df2edf70ee0d52da"
+    if type == "hosting":
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network && %s" % (fqdn,fqdn,reg)
+    else:
+        user_data = "#!/bin/bash\n/sbin/sysctl -w kernel.hostname=%s ; sed -i 's/centos-ami/%s/' /etc/sysconfig/network" % (fqdn,fqdn)
+
     reservation = ec2.run_instances(
         image_id = ami_id,
         key_name = key_name,
@@ -138,15 +144,6 @@ def attachElasticIP(instacneID):
             sys.stderr.write("Can't attach public IP %s\n" % r.__dict__['public_ip'] )
             return False
 
-def installPuppetEc2(ip,fqdn):
-    puppet.installPuppet(ip,fqdn)
-    #puppet.signHostOnPuppet(fqdn)
-    if puppet.signHostWithPuppetAPI(fqdn):
-        return True
-    else:
-        return
-
-
 if __name__ == "__main__":
 
 
@@ -162,17 +159,18 @@ if __name__ == "__main__":
     if args.type == "hosting":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.ec2type, cloudlinux_id)
+        id = launchInstance(fqdn, args.type, args.ec2type, cloudlinux_id)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
     elif args.type == "webserver":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
-        id = launchInstance(fqdn, args.ec2type)
+        id = launchInstance(fqdn, args.type, args.ec2type)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
     else:
         sys.stderr.write("server type %s is not supported" % args.type) 
+        syslog.syslog(syslog.LOG_ERR, "server type %s is not supported" % args.type)
         sys.exit(1)
 
 

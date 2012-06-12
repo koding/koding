@@ -1,5 +1,5 @@
 check process kfmjs
-	with pidfile /var/run/node/kfmjs.pid
+	with pidfile /var/run/node/koding.pid
 	start program = "/etc/monit.d/scripts/kfmjs.sh start"
 		with timeout 30 seconds
 	stop program = "/etc/monit.d/scripts/kfmjs.sh stop"

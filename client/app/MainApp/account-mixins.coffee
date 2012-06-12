@@ -1,7 +1,25 @@
 AccountMixin = do ->
   
   init:(api)->
-    {JAccount} = api
+    {JAccount, JGuest} = api
+    
+    JGuest::fetchNonce = ->
+    
+    nonces = []
+    
+    fetchNonces = (callback)->
+      KD.whoami().fetchNonces (err, moreNonces)->
+        nonces = nonces.concat moreNonces
+        callback nonces
+    
+    fetchNonce = (callback)->
+      nonce = nonces.shift()
+      if nonce?
+        callback nonce
+      else
+        fetchNonces -> fetchNonce callback
+        
+    JAccount::fetchNonce = fetchNonce
     
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
@@ -21,17 +39,20 @@ AccountMixin = do ->
       remoteStore = new Store
       
       sendScrubbedCommand =(url, options)->
-        data = JSON.stringify(options)
-        $.ajax
-          url     : url
-          data    :
-            data  : data
-            env   : if KD.env is 'dev' then 'vpn' else 'beta'
-          dataType: 'jsonp'
-          # type    : 'POST'
+        fetchNonce (nonce)->
+          data = JSON.stringify(options)
+          $.ajax
+            url     : url
+            data    :
+              data  : data
+              env   : if KD.env is 'dev' then 'vpn' else 'beta'
+              n     : nonce
+            type    : 'POST'
+            xhrFields:
+              withCredentials: yes
       
       getKiteUri =(kiteName)->
-        "https://api.koding.com/1.0/kite/#{kiteName}"
+        KD.apiUri+"/1.0/kite/#{kiteName}"
       
       sendCommand =(kiteName, args, callbackId)->
         scrubber = new Scrubber localStore
