@@ -129,6 +129,7 @@ class JAccount extends Followable
   #       toDo      : '_disconnect'
   #     , ->
   
+  
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
 

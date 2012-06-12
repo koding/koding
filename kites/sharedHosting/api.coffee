@@ -68,12 +68,23 @@ module.exports = new Kite 'sharedHosting'
     # options =
     #   username : String  #username of the unix user
     #
-    {username} = options
+    {username,nrOfRecursion} = options
 
-    getuid = exec "/usr/bin/id -u #{username}", (err,stdout,stderr)->
+    getuid = exec "/usr/bin/id -u #{username}", (err,stdout,stderr)=>
       if err?
         log.error "[ERROR] unable to get user's UID: #{stderr}"
-        callback?  "[ERROR] unable to get user's UID: #{stderr}"
+        if nrOfRecursion is 1
+          callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+        else
+          @createSystemUser {username,fullName:username,password:hat()},(err,res)=>
+            unless err
+              log.info "User is just created, run the command again, it will work this time."
+              @checkUid {username,nrOfRecursion:1},callback
+            else
+              log.error "CANT CREATE THIS USER"
+              callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+
+          
       else if stdout < config.minAllowedUid
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.error e = "[ERROR]  min UID for commands is #{config.minAllowedUid}, your #{stdout}"
