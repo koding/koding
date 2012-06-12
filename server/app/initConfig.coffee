@@ -104,6 +104,8 @@ dbUrl = switch process.argv[3] or 'local'
   when "mongohq-dev"
     "mongodb://dev:YzaCHWGkdL2r4f@staff.mongohq.com:10016/koding?auto_reconnect"
 
+
+console.log 'connecting to '+dbUrl
 # log "connecting to #{dbUrl}"
 #mongoose.connect dbUrl, dbCallback
 bongo.setClient dbUrl
