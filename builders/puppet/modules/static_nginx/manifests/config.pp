@@ -19,6 +19,15 @@ class static_nginx::config {
         require => [Class["static_nginx::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["static_nginx::service"],
     }
+    
+    file { "/etc/nginx/conf.d/dev-api.koding.com.conf":
+        ensure  => file,
+        source  => "puppet:///modules/static_nginx/etc/conf.d/dev-api.koding.com.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["static_nginx::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["static_nginx::service"],
+    }
 
     file { "/etc/nginx/ssl":
         ensure => directory,
