@@ -55,14 +55,20 @@ class MemberProfile extends KDView
       style           : "kdwhitebtn profilefollowbtn"
       title           : "Follow"
       dataPath        : "followee"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        left          : 3
       states          : [
-        "Follow", (callback)-> 
+        "Follow", (callback)->
           memberData.follow (err, response)=>
+            @hideLoader()
             unless err
               @setClass 'following-btn'
               callback? null
         "Unfollow", (callback)->
           memberData.unfollow (err, response)=>
+            @hideLoader()
             unless err
               @unsetClass 'following-btn'
               callback? null
