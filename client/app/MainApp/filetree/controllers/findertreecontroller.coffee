@@ -41,26 +41,27 @@ class NFinderTreeController extends JTreeViewController
     return if o.foldersOnly and nodeData.type is "file"
     # @setFileListeners nodeData if o.fsListeners
     item = super nodeData
-    # @setItemListeners item
 
-  setItemListeners:(node)->
+  setItemListeners:(pubInst, node)->
     
-    node.on "folderNeedsToRefresh", (path)=>
+    super
 
-      log @nodes, @nodes[path], path
+    # node.on "folderNeedsToRefresh", (path)=>
     # 
-    # file.on "fs.saveAs.finished", (newFile, oldFile)=>
-    
-      log "fs.saveAs.finished", "+>>>>>"
-      
-      parentNode = @nodes[path]
-      if parentNode
-        if parentNode.expanded
-          @refreshFolder @nodes[path], =>
-            @selectNode @nodes[path]
-        else
-          @expandFolder @nodes[parentPath], =>
-            @selectNode @nodes[path]
+    #   log @nodes, @nodes[path], path
+    # # 
+    # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
+    # 
+    #   log "fs.saveAs.finished", "+>>>>>"
+    #   
+    #   parentNode = @nodes[path]
+    #   if parentNode
+    #     if parentNode.expanded
+    #       @refreshFolder @nodes[path], =>
+    #         @selectNode @nodes[path]
+    #     else
+    #       @expandFolder @nodes[parentPath], =>
+    #         @selectNode @nodes[path]
     
     # file.on "fs.remotefile.created", (oldPath)=>
     #   tc = @treeController

@@ -75,7 +75,7 @@ class JTreeViewController extends KDViewController
   ###
 
   initTree:(nodes)->
-    log nodes
+
     @addNode node for node in nodes
 
   logTreeStructure:->
@@ -158,9 +158,7 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    node = list.addItem nodeData
-    # log node, ">>>>"
-    node
+    list.addItem nodeData
   
   removeNode:(id)->
 
@@ -272,6 +270,7 @@ class JTreeViewController extends KDViewController
         type         : "jtree"
         subItemClass : options.treeItemClass
     , items : listItems
+
     @setListenersForList listId
     return @listControllers[listId]
   
@@ -328,6 +327,7 @@ class JTreeViewController extends KDViewController
       callback            : (treeview, event)=> @keyEventHappened event
 
   setItemListeners:(pubInst, nodeItem)->
+
     @listenTo 
       KDEventTypes       : "viewAppended"
       listenedToInstance : nodeItem.view
@@ -341,12 +341,11 @@ class JTreeViewController extends KDViewController
 
     if @getOptions().dragdrop
       mouseEvents = mouseEvents.concat ["dragstart", "dragenter", "dragleave", "dragend", "dragover", "drop"]
-
+    
     @listenTo
       KDEventTypes       : mouseEvents
       listenedToInstance : nodeItem.view
-      callback           : (pubInst, event)=>
-        @mouseEventHappened pubInst, event
+      callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
       
         
   ###
@@ -492,7 +491,6 @@ class JTreeViewController extends KDViewController
   
   mouseDown:(nodeView, event)->
 
-    # log event, event.type
     @lastEvent = event
     unless nodeView in @selectedNodes
       @mouseIsDown = yes
@@ -535,7 +533,6 @@ class JTreeViewController extends KDViewController
       event.stopPropagation()
       return no
     @dragIsActive = yes
-    log event, event.type
     e = event.originalEvent
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
     transferredData = (@getNodeId node.getData() for node in @selectedNodes)

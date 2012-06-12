@@ -54,9 +54,8 @@ class KDView extends KDObject
     o.tooltip     or= null      # an Object of twipsy options
     super o,data
     
-    # @$().wrap 
-    
     data?.on? 'update', => @render()
+
     @setInstanceVariables options
     @defaultInit options,data
     
