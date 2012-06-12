@@ -125,15 +125,15 @@ class PersonalFormNameView extends AbstractPersonalFormView
       @unsetClass 'active'
       return no
     
-    changes = $set:
+    query = $set:
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
-    @memberData.update changes, (err)=>
+
+    @memberData.update query, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
-        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
