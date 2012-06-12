@@ -1,5 +1,8 @@
 log = -> logger.info arguments...
 
+
+console.log "hello world5"
+
 # Core Nodejs libraries:
 {spawn, exec}   = require 'child_process'
 # crypto          = require 'crypto'
