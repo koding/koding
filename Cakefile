@@ -8,6 +8,7 @@ option '-D', '--debug', 'runs with node --debug'
 option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
+option '-z', '--useStatic', "specifies that files should be served from the static server"
 
 ProgressBar     = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -99,11 +100,7 @@ targetPaths =
           throw err
         
          
-  useStaticFilesServer  : (options)->
-    if options.database isnt "beta"
-      return no
-    else
-      return yes
+  useStaticFilesServer  : (options)-> !!options.useStatic
 
   whichEnv : (options)-> options.database
 
