@@ -39,14 +39,22 @@ class Demos12345 extends AppController
     # t.getView().$().height "auto"
     
     
-    mainView.addSubView a = new ProfileLinkView {},KD.whoami()
-    mainView.addSubView b = new KDButtonView
-      title     : "render"
-      callback  : -> 
-        log "being rendered"
-        a.render.call a
-    
-    KD.whoami().on "update", => log "data has changed"
+    # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
+    # mainView.addSubView b = new KDButtonView
+    #   title     : "render"
+    #   callback  : -> 
+    #     log "being rendered"
+    #     a.render.call a
+    # 
+
+    controller = new MembersListViewController
+      subItemClass : MembersListItemView
+    , items : [KD.whoami()]
+  
+    mainView.addSubView controller.getView()
+
+
+    # KD.whoami().on "update", => log "data has changed"
     
     
     # mainView.addSubView form = new KDFormViewWithFields

@@ -104,16 +104,56 @@ class LinkGroup extends KDCustomHTMLView
     tmpl = switch participants.length
       when 1 then "{{> @participant0}}"
       when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}, {{> @participant1}}#{if hasMore then ',' else ' and'} {{> @participant2}}"
+      when 3 then "{{> @participant0}} {{> @participant1}}#{if hasMore then ' ' else ' and'} {{> @participant2}}"
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
     super tmpl
 
   click:(event)->
     if $(event.target).is "a.more"
-      options = {} #modal options
       participants = @getData()
-      new AccountsListModalView options,participants
+      modal = new FollowedModalView {}, participants
+      modal.putList()
       
+class FollowedModalView extends KDModalView
+  
+  titleMap = ->
+    account : "Followed members:"
+    tag     : "Followed tags:"
+  
+  listControllerMap = ->
+    account : MembersListViewController
+    tag     : KDListViewController
+  
+  listItemMap = ->
+    account : MembersListItemView
+    tag     : TopicsListItemView
+  
+  constructor:(options = {}, data)->
+    
+    participants = data
+
+    if participants[0] instanceof bongo.api.JAccount
+      @type = "account"
+    else if participants[0] instanceof bongo.api.JTag
+      @type = "tag"
+    
+    options.title  = titleMap()[@type]
+    options.height = "auto"
+
+    super
+
+  putList:->
+
+    participants = @getData()
+    log participants
+
+    controller = new listControllerMap()[@type]
+      subItemClass : listItemMap()[@type]
+    , items : participants
+    
+    # log controller.getView()
+    # @addSubView controller.getView(), ".kdmodal-content"
+
 class AvatarView extends LinkView
   constructor:(options,data)->
     options = $.extend

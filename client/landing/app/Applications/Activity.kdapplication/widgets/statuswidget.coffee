@@ -92,7 +92,12 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
+  
+  switchToEditView:(activity)->
     
+    @largeInput.setValue Encoder.htmlDecode activity.body
+    @switchToLargeView()
+  
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
   #     @submitStatusUpdate()
