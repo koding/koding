@@ -108,11 +108,11 @@ class LinkGroup extends KDCustomHTMLView
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
     super tmpl
 
-  click:(event)->
-    if $(event.target).is "a.more"
-      participants = @getData()
-      modal = new FollowedModalView {}, participants
-      modal.putList()
+  # click:(event)->
+  #   if $(event.target).is "a.more"
+  #     participants = @getData()
+  #     modal = new FollowedModalView {}, participants
+  #     modal.putList()
       
 class FollowedModalView extends KDModalView
   
