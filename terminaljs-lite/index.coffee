@@ -1,4 +1,6 @@
+{argv} = require 'optimist'
+
 api     = require './api'
-config  = require './config'
+config  = require './' + argv.c ? 'config'
 
 api.run config

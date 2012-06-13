@@ -10,11 +10,6 @@ api.run config
 
 
 
-
-
-
-
-
 ###
 databasesKites = require './databasesKites'
 KiteServer         = require 'kiteserver'
