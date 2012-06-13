@@ -94,7 +94,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @getSingleton("windowController").addLayer tabView
   
   switchToEditView:(activity)->
-    
+
+    @setClass "edit-mode"
     @largeInput.setValue Encoder.htmlDecode activity.body
     @switchToLargeView()
   
