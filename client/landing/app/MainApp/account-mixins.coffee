@@ -3,6 +3,24 @@ AccountMixin = do ->
   init:(api)->
     {JAccount} = api
     
+    nonces = []
+    
+    fetchNonces = (callback)->
+      KD.whoami().fetchNonces (err, moreNonces)->
+        if err
+          new KDNotificationView
+            title: 'Could not authorize this client.'
+        else
+          nonces = nonces.concat moreNonces
+        callback nonces
+    
+    fetchNonce = (callback)->
+      nonce = nonces.shift()
+      if nonce? then callback nonce
+      else fetchNonces -> fetchNonce callback
+    
+    JAccount::fetchNonce = fetchNonce
+    
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
       kiteChannelId = @_kiteChannels[kiteId]
@@ -21,17 +39,20 @@ AccountMixin = do ->
       remoteStore = new Store
       
       sendScrubbedCommand =(url, options)->
-        data = JSON.stringify(options)
-        $.ajax
-          url     : url
-          data    :
-            data  : data
-            env   : if KD.env is 'dev' then 'vpn' else 'beta'
-          dataType: 'jsonp'
-          # type    : 'POST'
+        fetchNonce (n)=>
+          data = JSON.stringify(options)
+          $.ajax {
+            n
+            url     : url
+            data    :
+              data  : data
+              env   : if KD.env is 'dev' then 'vpn' else 'beta'
+            dataType: 'jsonp'
+            # type    : 'POST'
+          }
       
       getKiteUri =(kiteName)->
-        "https://api.koding.com/1.0/kite/#{kiteName}"
+        "https://api.koding.com/1.1/kite/#{kiteName}"
       
       sendCommand =(kiteName, args, callbackId)->
         scrubber = new Scrubber localStore
