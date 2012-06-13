@@ -174,7 +174,7 @@ class AvatarPopupShareStatus extends AvatarPopup
     if (visitor = KD.getSingleton('mainController').getVisitor())
       {profile} = visitor.currentDelegate
       if @statusField.getOptions().placeholder is ""
-        @statusField.setPlaceHolder "What's new, #{@utils.htmlDecode profile.firstName}?"
+        @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
     
   viewAppended:->
     super()

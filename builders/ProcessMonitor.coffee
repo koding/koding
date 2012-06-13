@@ -20,7 +20,9 @@ class ProcessMonitor extends EventEmitter
     
   attachListeners:->
     @on "processDidExit",(code)=>
+      log.info "process is killed."
       if @flags.restart
+        log.info "restarting."
         process.nextTick =>
           @startProcess() 
           @flags.restart = no
@@ -99,20 +101,24 @@ class ProcessMonitor extends EventEmitter
     @nodeServer.stderr.on 'data', (data)-> 
       log.info "#{data}".replace /\n+$/, ''
     @nodeServer.on        'exit', (code)=>
-      if @flags.forever?
-        log.warn "Forever is on, I'm restarting in 1 sec."
-        @flags.restart = yes
-      @emit "processDidExit",code
+      log.info "exit happened"
+      # if @flags.forever?
+      #   log.warn "Forever is on, I'm restarting in 1 sec."
+      #   @flags.restart = yes
+      # @emit "processDidExit",code
     
       log.info "Process id: #{@nodeServer.pid} did exit with the exit code: #{code}"
   ,1000
     
   stopProcess : ()->
     log.info "Stopping the process..."
-    if @nodeServer.kill?
-      @nodeServer.kill "SIGTERM"
-    else
-      log.warn "There is no running process. Stop failed."
+    exec "kill -9 #{@nodeServer.pid}",(err,stdout,stderr)=>
+      @emit "processDidExit"
+    # if @nodeServer.kill?
+    #   log.info "killing"
+    #   @nodeServer.kill() #"SIGTERM"
+    # else
+    #   log.warn "There is no running process. Stop failed."
 
 module.exports = ProcessMonitor
 

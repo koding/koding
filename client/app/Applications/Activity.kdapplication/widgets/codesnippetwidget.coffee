@@ -4,7 +4,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     super
 
-    @inputCodeSnipTitle = new KDInputView
+    @title = new KDInputView
       name          : "title"
       placeholder   : "Give a title to your code snippet..."
       validate      :
@@ -16,7 +16,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @labelDescription = new KDLabelView
       title : "Description:"  
 
-    @inputDescription = new KDInputView
+    @description = new KDInputView
       label       : @labelDescription
       name        : "body"
       placeholder : "What is your code about?"
@@ -76,8 +76,9 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   reset:=>
     
-    @inputCodeSnipTitle.setValue ''
-    @inputDescription.setValue ''
+    @removeCustomData "activity"
+    @title.setValue ''
+    @description.setValue ''
     @ace.setContents "//your code snippet goes here..."
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
@@ -125,23 +126,45 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setTheme()
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
+      @emit "codeSnip.aceLoaded"
 
     @on "codeSnip.changeSyntax", (syntax)=>
       @ace.setSyntax syntax
 
   refreshEditorView:->
+
     lines = @ace.editor.selection.doc.$lines
     lineAmount = if lines.length > 15 then 15 else if lines.length < 5 then 5 else lines.length
     @setAceHeightByLines lineAmount
 
   setAceHeightByLines: (lineAmount) ->
+
     lineHeight  = @ace.editor.renderer.lineHeight
     container   = @ace.editor.container
     height      = lineAmount * lineHeight
     @aceHolder.setHeight height = lineAmount * lineHeight + 20
     @ace.editor.resize()
 
+  switchToEditView:(activity)->
+
+    @addCustomData "activity", activity
+    {title, body} = activity
+    {syntax, content} = activity.attachments[0]
+
+    fillForm = =>
+      @title.setValue Encoder.htmlDecode title 
+      @description.setValue Encoder.htmlDecode body
+      @ace.setContents Encoder.htmlDecode content
+      @syntaxSelect.setValue Encoder.htmlDecode syntax
+
+    if @ace?.editor
+      fillForm()
+    else
+      @once "codeSnip.aceLoaded", => fillForm()
+        
+
   viewAppended:()->
+
     @setClass "update-options codesnip"
     @setTemplate @pistachio()
     @template.update()
@@ -152,13 +175,13 @@ class ActivityCodeSnippetWidget extends KDFormView
       <div class="form-actions-holder">
         <div class="formline">
           <div>
-            {{> @inputCodeSnipTitle}}
+            {{> @title}}
           </div>
         </div>
         <div class="formline">
           {{> @labelDescription}}
           <div>
-            {{> @inputDescription}}
+            {{> @description}}
           </div>
         </div>
         <div class="formline">

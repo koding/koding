@@ -130,7 +130,7 @@ class Followable extends jraphical.Module
       fin = -> queue.fin()
       queue.push -> addToBucket 'source', relationship, target, source, fin
       queue.push -> addToBucket 'target', relationship, source, target, fin
-      dash queue, -> callback
+      dash queue, callback
     
     # @implementation
     (client,callback)->

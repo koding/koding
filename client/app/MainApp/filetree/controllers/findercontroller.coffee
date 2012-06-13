@@ -17,6 +17,7 @@ class NFinderController extends KDViewController
       addOrphansToRoot  : options.addOrphansToRoot   ? no
       putDepthInfo      : options.putDepthInfo       ? yes
       contextMenu       : options.contextMenu        ? yes
+      fsListeners       : options.fsListeners        ? no
       delegate          : @
 
     @treeController = new NFinderTreeController treeOptions, []
@@ -30,13 +31,17 @@ class NFinderController extends KDViewController
     
       {nickname} = KD.whoami().profile
       mount      = FSHelper.createFile 
-        name: nickname
-        path: "/Users/#{nickname}"
-        type: "mount"
+        name       : nickname
+        # parentPath : "/"
+        path       : "/Users/#{nickname}"
+        type       : "mount"
       @treeController.initTree [mount]
-      setTimeout =>
-        @treeController.performEnterKey @treeController.nodes[mount.path]
-      , 2000
+      # setTimeout =>
+      #   @treeController.expandFolder @treeController.nodes[mount.path], =>
+      #     @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html"], =>
+      #       @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}"], =>
+      #         @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}/httpdocs"]
+      # , 2000
 
   
   getStorage: (callback) ->

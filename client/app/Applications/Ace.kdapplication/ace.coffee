@@ -73,16 +73,14 @@ class Ace extends KDView
         
   requestSave:->
 
-    file     = @getData()
     contents = @getContents()
     return @notify "Nothing to save!" unless contents isnt @lastSavedContents
-    file.emit "ace.requests.save", contents
+    @emit "ace.requests.save", contents
 
   requestSaveAs:->
 
-    file     = @getData()
     contents = @getContents()
-    file.emit "ace.requests.saveAs", contents
+    @emit "ace.requests.saveAs", contents
 
     
   fetchContents:(callback)->

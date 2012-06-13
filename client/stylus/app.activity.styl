@@ -125,8 +125,8 @@ app.activity.styl
 
     >div
       width               auto
-      margin              5px 0 1px 33px
-      padding             2px 0 0
+      margin              2px 0 2px 33px
+      padding             2px 0 0 0
     
 
     .ttag
@@ -494,11 +494,12 @@ button.kdbutton.dark
       margin-right          10px
       cursor                pointer
       blockMid()            
+
   .modal-cancel             
     font-size               11px
+
   .help-heart
     float                   left
-    margin-left             20px
     overflow                hidden
     width                   150px
     height                  auto
@@ -608,6 +609,40 @@ form.status-widget
       margin-left     30px
 
 
+.kdbuttongroup.activity-group
+  position            absolute
+  top                 20px
+  left                16px
+  z-index             4
+  // size                auto!important,35px
+
+  span.icon
+    float           none
+    margin-right    10px
+    margin          2px 2px 0 0!important
+    padding         0!important
+    sprite()
+    size            20px,20px
+    blockMid()
+    &.update
+      bg            position,-80px 0
+    &.discussion    
+      bg            position,-80px -20px
+    &.question      
+      bg            position,-80px -40px
+    &.tutorial     
+      bg            position,-80px -60px
+    &.link         
+      bg            position,-80px -80px
+    &.codesnip     
+      bg            position,-80px -100px
+
+  > button.icon-only
+    padding       4px 4px 5px 5px
+
+  button.active
+    span.icon       
+      bg            position-x, -60px
 // *
 // * ACTIVITY PAGE UPDATE WIDGET BUTTON DROPDOWN STYLES
 // *
@@ -632,7 +667,7 @@ button.activity-status-context
     sprite()
     size            20px,20px
     blockMid()
-    &.update  
+    &.update
       bg(position,-140px -320px)
     &.discussion
       bg(position,-140px -340px)
@@ -649,6 +684,9 @@ button.activity-status-context
   height                auto
   position              absolute
   overflow              visible
+  &.edit-mode
+    .kdbuttonwithmenu-wrapper.activity-status-context
+      hidden()
 
 .widget-holder
   overflow              visible
