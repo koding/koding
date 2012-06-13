@@ -1,0 +1,11 @@
+check process stunnel
+	with pidfile /var/run/stunnel/stunnel.pid
+	start program = "/etc/stunnel/init.sh start"
+		with timeout 30 seconds
+	stop program = "/etc/stunnel/init.sh stop"
+		with timeout 30 seconds
+
+	if changed pid then alert
+	if totalcpu > 15% for 2 cycles then alert
+	if totalmem > 10 MB for 2 cycles then alert
+	if 3 restarts within 5 cycles then timeout

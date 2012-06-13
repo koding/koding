@@ -8,6 +8,7 @@ option '-D', '--debug', 'runs with node --debug'
 option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
+option '-z', '--useStatic', "specifies that files should be served from the static server"
 
 ProgressBar     = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -81,11 +82,12 @@ targetPaths =
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
-      
 
-    kdjs = kdjs + "\n KD.version = \"#{targetPaths.version}\";"
-    kdjs = kdjs + "\n KD.env = \"#{targetPaths.whichEnv(options)}\";"
-    kdjs = kdjs + "\n KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";"
+    kdjs =  "var KD = {};\n" +
+            "KD.version = \"#{targetPaths.version}\";\n" +
+            "KD.env = \"#{targetPaths.whichEnv(options)}\";\n" +
+            "KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";\n" +
+            kdjs
     
     # return callback null,kdjs+libraries
     unless options.uglify
@@ -98,16 +100,10 @@ targetPaths =
           throw err
         
          
-  useStaticFilesServer  : (options)->
-    if options.database is "vpn"
-      return no
-    else
-      return yes
-  whichEnv : (options)->
-    if options.database is "vpn"
-      return "dev"
-    else
-      return "prod"
+  useStaticFilesServer  : (options)-> !!options.useStatic
+
+  whichEnv : (options)-> options.database
+
   prodPostBuildSteps : (options,callback)->
     callback null
     # if targetPaths.whichEnv(options) is "prod"

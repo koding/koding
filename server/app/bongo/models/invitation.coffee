@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['byCode']#'__sendBetaInvites','__createBetaInvites']#['create','createMultiuse','byCode','grant']# '__createMultiuse','__createBetaInvites', '__sendBetaInvites','__attemptToFixChrisFuckup'
+      static        : ['byCode']#'__sendBetaInvites'],,'__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -62,6 +62,7 @@ class JInvitation extends jraphical.Module
   # 
   @__sendBetaInvites =do->
     betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+    # betaTestersEmails = 'chris123412341234@jraphical.com'
     betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.html', 'utf-8'
     protocol = 'https://'
     (callback)->
@@ -70,7 +71,7 @@ class JInvitation extends jraphical.Module
       {host, port} = server
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(0, 1000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(4000, 5000).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -98,7 +99,8 @@ class JInvitation extends jraphical.Module
         
   
   @__createBetaInvites =do ->
-    betaTestersEmails = fs.readFileSync('./invitee-emails.txt', 'utf-8')
+    betaTestersEmails = 'chris123412341234@jraphical.com'
+    # betaTestersEmails = fs.readFileSync('./invitee-emails.txt', 'utf-8')
     #betaTestersEmails = 'chris123123@jraphical.com'
     (callback)->
       JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>

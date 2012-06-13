@@ -2,13 +2,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
   loadView:(mainView)->
 
-    mainView.registerListener
-      KDEventTypes  : "AutoCompleteNeedsTagData"
-      listener      : @
-      callback      : (pubInst,event)=> 
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteDataForTags inputValue,blacklist,callback
-    
     mainView.addWidgetPane
       paneName    : "update"
       mainContent : updateWidget = new ActivityStatusUpdateWidget
@@ -79,14 +72,6 @@ class ActivityUpdateWidgetController extends KDViewController
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
       else
         @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
-
-  fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
-      unless err
-        callback? tags
-      else
-        log "there was an error fetching topics"
 
   questionWidgetSubmit:(data)->
     log 'creating question', data

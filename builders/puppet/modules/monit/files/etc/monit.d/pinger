@@ -1,0 +1,11 @@
+check process pinger
+	with pidfile /var/run/node/pinger.pid
+	start program = "/etc/monit.d/scripts/pinger.sh start"
+		with timeout 30 seconds
+	stop program = "/etc/monit.d/scripts/pinger.sh stop"
+		with timeout 30 seconds
+
+	if changed pid then alert
+	if totalcpu > 15% for 2 cycles then alert
+	if totalmem > 50 MB for 2 cycles then alert
+	if 3 restarts within 5 cycles then timeout

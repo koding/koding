@@ -1,10 +1,14 @@
 class ActivityStatusUpdateWidget extends KDFormView
 
   constructor:(options,data)->
-    
+
+    super
+
+    {profile} = KD.whoami()
+
     @smallInput = new KDInputView 
       cssClass      : "status-update-input"
-      placeholder   : "Share your status update & press enter"
+      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       focus         : => @switchToLargeView()
@@ -12,7 +16,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
-      placeholder   : "Share your status update & press enter"
+      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       validate      :
@@ -44,7 +48,30 @@ class ActivityStatusUpdateWidget extends KDFormView
       tooltip  :
         title  : "This a public wall, here you can share anything with the Koding community."
 
-    super
+    # @labelAddTags = new KDLabelView
+    #   title : "Add Tags:"
+    # 
+    # @selectedItemWrapper = new KDCustomHTMLView
+    #   tagName  : "div"
+    #   cssClass : "tags-selected-item-wrapper clearfix"
+
+    # @tagController = new TagAutoCompleteController
+    #   name                : "meta.tags"
+    #   type                : "tags"
+    #   itemClass           : TagAutoCompleteItemView
+    #   selectedItemClass   : TagAutoCompletedItemView
+    #   outputWrapper       : @selectedItemWrapper
+    #   selectedItemsLimit  : 5
+    #   listWrapperCssClass : "tags"
+    #   form                : @
+    #   itemDataPath        : "title"
+    #   dataSource          : (args, callback)=>
+    #     {inputValue} = args
+    #     updateWidget = @getDelegate()
+    #     blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
+    #     appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+    # 
+    # @tagAutoComplete = @tagController.getView()
     
   switchToSmallView:->
     
@@ -82,7 +109,6 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView.on "MainInputTabsReset", => @switchToSmallView()
 
   pistachio:->
-    
     """
     {{> @smallInput}}
     <div>{{> @largeInput}}</div>
@@ -93,5 +119,17 @@ class ActivityStatusUpdateWidget extends KDFormView
       </div>
     </div>
     """
+    
+    # """
+    # {{> @smallInput}}
+    # <div>{{> @largeInput}}{{> @tagAutoComplete}}</div>
+    # {{> @selectedItemWrapper}}
+    # <div class="formline submit">
+    #   {{> @heartBox}}
+    #   <div class="submit-box">
+    #     {{> @cancelBtn}}{{> @submitBtn}}
+    #   </div>
+    # </div>
+    # """
     
   
