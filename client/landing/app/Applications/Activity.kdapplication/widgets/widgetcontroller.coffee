@@ -69,7 +69,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
     if data.activity
       data.activity.modify data, (err, res)=>
-        log arguments
         callback err, res
         unless err
           new KDNotificationView type : "mini", title : "Updated successfully"
@@ -85,12 +84,20 @@ class ActivityUpdateWidgetController extends KDViewController
 
   codeSnippetWidgetSubmit:(data, callback)->
 
-    bongo.api.JCodeSnip.create data, (err, codesnip) =>
-      callback err, codesnip
-      if err
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-      else
-        @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
+    if data.activity
+      data.activity.modify data, (err, res)=>
+        callback err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      bongo.api.JCodeSnip.create data, (err, codesnip) =>
+        callback err, codesnip
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
   questionWidgetSubmit:(data)->
     log 'creating question', data

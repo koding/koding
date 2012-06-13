@@ -19,7 +19,7 @@ class ActivityActionsView extends KDView
 
       @deleteLink = new ActivityActionLink
         partial     : "Delete"
-        callback    : =>
+        click       : =>
           activity.delete (err)=>
             @propagateEvent KDEventType: 'ActivityIsDeleted'
 

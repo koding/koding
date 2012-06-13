@@ -36,8 +36,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       style       : "modal-cancel"
       callback    : =>
         @reset()
-        @switchToSmallView()
-  
+        @parent.getDelegate().emit "ResetWidgets"
+
     @submitBtn = new KDButtonView
       style       : "clean-gray"
       title       : "Submit"
@@ -95,16 +95,18 @@ class ActivityStatusUpdateWidget extends KDFormView
   
   switchToEditView:(activity)->
     
-    @activity = activity
+    @addCustomData "activity", activity
     @largeInput.setValue Encoder.htmlDecode activity.body
     @switchToLargeView()
   
   
-  submit:=>
-    
-    if @activity
-      @addCustomData "activity", @activity
+  reset:->
+
+    @removeCustomData "activity"
     super
+  
+  submit:=> super
+
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
   #     @submitStatusUpdate()

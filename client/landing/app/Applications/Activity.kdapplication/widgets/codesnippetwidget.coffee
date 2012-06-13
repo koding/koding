@@ -76,6 +76,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   reset:=>
     
+    @removeCustomData "activity"
     @title.setValue ''
     @description.setValue ''
     @ace.setContents "//your code snippet goes here..."
@@ -119,7 +120,6 @@ class ActivityCodeSnippetWidget extends KDFormView
   
 
     @ace.on "ace.ready", =>
-      # @aceReady
       @loader.destroy()
       @ace.setShowGutter no
       @ace.setContents "//your code snippet goes here..."
@@ -147,7 +147,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   switchToEditView:(activity)->
 
-    log activity
+    @addCustomData "activity", activity
     {title, body} = activity
     {syntax, content} = activity.attachments[0]
 
