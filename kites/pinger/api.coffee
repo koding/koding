@@ -6,7 +6,6 @@ hat = require 'hat'
 # TODO: this is a temporary measure until we get real API keys.
 secret = '8daafc24b27ab396d32751f6a8cf2964'
 
-
 intervals = {}
 
 module.exports = new Kite 'pinger'
