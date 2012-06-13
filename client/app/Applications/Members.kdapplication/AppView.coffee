@@ -225,7 +225,7 @@ class MemberFollowToggleButton extends KDToggleButton
   
   render:->
     {dataPath} = @getOptions()
-    log dataPath, @getData()[dataPath],@
+    # log dataPath, @getData()[dataPath],@
     
     # @utils.nextTick =>
     #   {dataPath} = @getOptions()

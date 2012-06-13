@@ -53,6 +53,12 @@ class ActivityUpdateWidgetController extends KDViewController
       KDEventTypes : 'PaneDidShow'
       listener     : @
       callback     : -> codeWidget.widgetShown()
+    
+    @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+      switch activity.bongo_.constructorName
+        when "JStatusUpdate"
+          mainView.showPane "update"
+          updateWidget.switchToEditView activity
 
 
   updateWidgetSubmit:(data, callback)->

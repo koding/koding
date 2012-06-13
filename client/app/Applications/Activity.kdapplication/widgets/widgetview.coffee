@@ -11,41 +11,6 @@ class ActivityUpdateWidget extends KDView
     @addSubView widgetWrapper = new KDView
       cssClass : 'widget-holder clearfix'
 
-    # @addSubView new KDButtonGroupView
-    #   cssClass     : "activity-group"
-    #   buttons      :
-    #     update     :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "update"
-    #       callback : -> log "b"
-    #     codesnip   :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "codesnip"
-    #       callback : -> log "b"
-    #     question   :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "question"
-    #       callback : -> log "c"
-    #     discussion :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "discussion"
-    #       callback : -> log "d"
-    #     tutorial   :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "tutorial"
-    #       callback : -> log "e"
-    #     link       :
-    #       icon     : yes
-    #       iconOnly : yes
-    #       iconClass: "link"
-    #       callback : -> log "f"
-    
-
     widgetWrapper.addSubView @widgetButton = new WidgetButton @widgetOptions()
 
     widgetWrapper.addSubView @mainInputTabs = new KDTabView
@@ -65,7 +30,7 @@ class ActivityUpdateWidget extends KDView
       callback            : (pubInst,event)=>
         unless $(event.target).closest('.activity-status-context').length > 0
           @resetWidgets()
-  
+
   resetWidgets:->
     @windowController.removeLayer @mainInputTabs
     @changeTab "update", "Status Update"
