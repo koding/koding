@@ -32,7 +32,6 @@ class MainController extends KDController
         data      :
           n       : nonce
           env     : if KD.env is 'dev' then 'vpn' else 'beta'
-        dataType  : 'jsonp'
 
   deauthorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
@@ -42,7 +41,6 @@ class MainController extends KDController
           n       : nonce
         success	  : callback
         failure	  : callback
-        dataType  : 'jsonp'
   
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
