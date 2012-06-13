@@ -84,7 +84,6 @@ class ProcessMonitor extends EventEmitter
     return data
   startProcess : _.throttle ()->
     cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
-    cmd = "NODE_PATH=$NODE_PATH:#{__dirname}/../our_modules;#{cmd}"
     log.info "Starting the process $>#{cmd}"
     @nodeServer         = exec cmd
     @nodeServer.stdout.on 'data', (data)=> 
@@ -107,8 +106,8 @@ class ProcessMonitor extends EventEmitter
   ,1000
     
   stopProcess : ()->
-    log.info "Stopping the process... #{@nodeServer.pid+1}"
-    exec "kill -9 #{@nodeServer.pid+1}",(err,stdout,stderr)=>
+    log.info "Stopping the process... #{@nodeServer.pid}"
+    exec "kill -9 #{@nodeServer.pid}",(err,stdout,stderr)=>
 
 module.exports = ProcessMonitor
 
