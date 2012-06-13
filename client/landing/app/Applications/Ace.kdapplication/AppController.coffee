@@ -4,6 +4,7 @@ class Ace12345 extends KDController
     
     super
     @aceViews  = {}
+    @setFSListeners()
 
   bringToFront:(view)->
     
@@ -17,13 +18,12 @@ class Ace12345 extends KDController
       name         : file.name || 'untitled'
       hiddenHandle : no
       type         : 'application'
-      
-    data = view
-    
+
     @aceViews[file.path] = view
     
     @setViewListeners view
-    
+
+    data = view
     @propagateEvent
       KDEventType  : 'ApplicationWantsToBeShown'
       globalEvent  : yes
@@ -61,10 +61,22 @@ class Ace12345 extends KDController
         @clearFileRecords view
 
     file = view.getData()
+
     file.on "fs.remotefile.created", (oldPath)=>
       delete @aceViews[oldPath]
       @aceViews[file.path]
       view.parent.setTitle file.name
+
+  setFSListeners:->
+    
+    FSItem.on "fs.saveAs.finished", (newFile, oldFile)=>
+
+      if @aceViews[oldFile.path]
+        view = @aceViews[oldFile.path]
+        @clearFileRecords view
+        @aceViews[newFile.path] = view
+        view.setData newFile
+        view.ace.setData newFile
 
   clearFileRecords:(view)->
     file = view.getData()

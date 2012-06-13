@@ -8,7 +8,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @smallInput = new KDInputView 
       cssClass      : "status-update-input"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       focus         : => @switchToLargeView()
@@ -16,7 +16,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       validate      :
@@ -36,8 +36,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       style       : "modal-cancel"
       callback    : =>
         @reset()
-        @switchToSmallView()
-  
+        @parent.getDelegate().emit "ResetWidgets"
+
     @submitBtn = new KDButtonView
       style       : "clean-gray"
       title       : "Submit"
@@ -92,7 +92,21 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
+  
+  switchToEditView:(activity)->
     
+    @addCustomData "activity", activity
+    @largeInput.setValue Encoder.htmlDecode activity.body
+    @switchToLargeView()
+  
+  
+  reset:->
+
+    @removeCustomData "activity"
+    super
+  
+  submit:=> super
+
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
   #     @submitStatusUpdate()
@@ -109,6 +123,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView.on "MainInputTabsReset", => @switchToSmallView()
 
   pistachio:->
+
     """
     {{> @smallInput}}
     <div>{{> @largeInput}}</div>
