@@ -6,8 +6,6 @@ require_once 'kitecontroller.php';
 
 $router = new Router;
 
-// error_log('ffff '.var_export($kite_controller, TRUE));
-
 $router->add_route('/kite/:kite_name', function ($params) {
   global $respond;
   $kite_controller = get_kite_controller();
