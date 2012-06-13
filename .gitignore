@@ -33,6 +33,7 @@ client/app/stylus/*.js
 /node_modules/gzippo
 /node_modules/hashish
 /node_modules/hat
+/node_modules/http-proxy
 /node_modules/inspect
 /node_modules/ldapjs
 /node_modules/jsonify
