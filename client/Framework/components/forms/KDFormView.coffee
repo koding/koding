@@ -109,9 +109,11 @@ class KDFormView extends KDView
     validatedCount = 0
     validInputs    = []
     toBeValidated  = []
-    formData       = {}
+    formData       = @getCustomData() or {}
     @valid         = yes
-
+    
+    
+    console.log formData
     # put to be validated inputs in a queue
     inputs.forEach (input)=>
       if input.getOptions().validate
@@ -130,7 +132,8 @@ class KDFormView extends KDView
           # check if all inputs were valid
           if toBeValidated.length is validInputs.length
             # put valid inputs to formdata
-            formData = $.extend formData, @getCustomData()
+            
+            # formData = $.extend formData, @getCustomData()
             for inputView in toBeValidated
               formData[inputView.getName()] = inputView.getValue()
           else

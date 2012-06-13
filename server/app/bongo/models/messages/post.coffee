@@ -1,3 +1,5 @@
+console.log 12345, process.pid
+
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
@@ -74,21 +76,23 @@ class JPost extends jraphical.Message
                       else
                         queue = [
                           ->
+                            if tags?.length
+                              status.addTags client, tags, (err)->
+                                if err
+                                  callback createKodingError err
+                                else
+                                  queue.next()
+                            else
+                              queue.next()
+                          ->
                             activity.update
                               $set:
                                 snapshot: JSON.stringify(teaser)
                               $addToSet:
                                 snapshotIds: status.getId()
-                            , -> queue.next()
-                          ->
-                            if tags
-                              status.addTags client, tags, (err)->
-                                if err
-                                  callback createKodingError err
-                                else
-                                  callback null, status
-                                  queue.next()
-                            else queue.next()
+                            , ->
+                              callback null, status
+                              queue.next()
                           -> 
                             status.addParticipant delegate, 'author'
                         ]
