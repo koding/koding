@@ -83,7 +83,9 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
-
+    
+    log data
+    
     if data.activity
       data.activity.modify data, (err, res)=>
         callback err, res
