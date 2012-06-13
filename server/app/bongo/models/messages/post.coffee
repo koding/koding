@@ -2,7 +2,7 @@ class JPost extends jraphical.Message
   
   @::mixin Taggable::
   
-  {secure,dash} = bongo
+  {secure,dash,daisy} = bongo
   {Relationship} = jraphical
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
@@ -72,7 +72,7 @@ class JPost extends jraphical.Message
                       if err
                         callback createKodingError err
                       else
-                        daisy [
+                        queue = [
                           ->
                             activity.update
                               $set:
@@ -89,8 +89,10 @@ class JPost extends jraphical.Message
                                   callback null, status
                                   queue.next()
                             else queue.next()
-                          -> status.addParticipant delegate, 'author'
+                          -> 
+                            status.addParticipant delegate, 'author'
                         ]
+                        daisy queue
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback

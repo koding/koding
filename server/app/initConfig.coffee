@@ -1,7 +1,7 @@
 log = -> logger.info arguments...
 
 
-console.log "hello world5"
+console.log "hello world7"
 
 # Core Nodejs libraries:
 {spawn, exec}   = require 'child_process'
