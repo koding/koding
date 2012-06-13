@@ -132,7 +132,6 @@ class KDFormView extends KDView
           # check if all inputs were valid
           if toBeValidated.length is validInputs.length
             # put valid inputs to formdata
-            
             # formData = $.extend formData, @getCustomData()
             for inputView in toBeValidated
               formData[inputView.getName()] = inputView.getValue()

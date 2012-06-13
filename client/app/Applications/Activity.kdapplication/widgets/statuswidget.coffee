@@ -95,6 +95,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   
   switchToEditView:(activity)->
     
+    @submitBtn.setTitle "Edit status update"
     @addCustomData "activity", activity
     @largeInput.setValue Encoder.htmlDecode activity.body
     @switchToLargeView()
@@ -102,6 +103,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   
   reset:->
 
+    @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     super
   

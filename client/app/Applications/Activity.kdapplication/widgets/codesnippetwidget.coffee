@@ -76,12 +76,31 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   reset:=>
     
+    @submitBtn.setTitle "Share your Code Snippet"
     @removeCustomData "activity"
     @title.setValue ''
     @description.setValue ''
     @ace.setContents "//your code snippet goes here..."
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
+
+  switchToEditView:(activity)->
+    
+    @submitBtn.setTitle "Edit code snippet"
+    @addCustomData "activity", activity
+    {title, body} = activity
+    {syntax, content} = activity.attachments[0]
+
+    fillForm = =>
+      @title.setValue Encoder.htmlDecode title 
+      @description.setValue Encoder.htmlDecode body
+      @ace.setContents Encoder.htmlDecode content
+      @syntaxSelect.setValue Encoder.htmlDecode syntax
+
+    if @ace?.editor
+      fillForm()
+    else
+      @once "codeSnip.aceLoaded", => fillForm()
 
   widgetShown:->
 
@@ -144,24 +163,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     height      = lineAmount * lineHeight
     @aceHolder.setHeight height = lineAmount * lineHeight + 20
     @ace.editor.resize()
-
-  switchToEditView:(activity)->
-
-    @addCustomData "activity", activity
-    {title, body} = activity
-    {syntax, content} = activity.attachments[0]
-
-    fillForm = =>
-      @title.setValue Encoder.htmlDecode title 
-      @description.setValue Encoder.htmlDecode body
-      @ace.setContents Encoder.htmlDecode content
-      @syntaxSelect.setValue Encoder.htmlDecode syntax
-
-    if @ace?.editor
-      fillForm()
-    else
-      @once "codeSnip.aceLoaded", => fillForm()
-        
 
   viewAppended:()->
 
