@@ -94,11 +94,17 @@ class ActivityStatusUpdateWidget extends KDFormView
     @getSingleton("windowController").addLayer tabView
   
   switchToEditView:(activity)->
-
-    @setClass "edit-mode"
+    
+    @activity = activity
     @largeInput.setValue Encoder.htmlDecode activity.body
     @switchToLargeView()
   
+  
+  submit:=>
+    
+    if @activity
+      @addCustomData "activity", @activity
+    super
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
   #     @submitStatusUpdate()
