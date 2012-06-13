@@ -66,7 +66,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
   updateWidgetSubmit:(data, callback)->
-    
+
     if data.activity
       data.activity.modify data, (err, res)=>
         log arguments
