@@ -49,7 +49,6 @@ class ActivityListItemView extends KDListItemView
   partial:-> ''
   
   show:->
-    # log "and evar here?????",@getData().fetchTeaser?
     @getData().fetchTeaser? (err, teaser)=>
       # log teaser,":::"
       @addChildView teaser, =>
@@ -84,7 +83,14 @@ class ActivityItemChild extends KDView
 
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
+    
     super
+    
+    data.on 'PostIsDeleted', =>
+      if KD.whoami().getId() is data.getAt('originId')
+        @parent.destroy()
+      else
+        @parent.$().css('opacity', .5)
     
     @getData().watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
