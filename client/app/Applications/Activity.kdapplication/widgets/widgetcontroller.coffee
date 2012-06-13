@@ -59,6 +59,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     bongo.api.JStatusUpdate.create data, (err, activity)=>
       callback err, activity
+      console.log err
       unless err
         @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
       else

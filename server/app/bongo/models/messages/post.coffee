@@ -34,6 +34,12 @@ class JPost extends jraphical.Message
 
   @getActivityType =-> CActivity
   
+  createKodingError =(err)->
+    kodingErr = new KodingError(err.message)
+    for own prop of err
+      kodingErr[prop] = err[prop]
+    kodingErr
+  
   @create = secure (client, data, callback)->
     constructor = @
     {connection:{delegate}} = client
@@ -56,24 +62,35 @@ class JPost extends jraphical.Message
             activity.originType = delegate.constructor.name
             activity.save (err)->
               if err
-                callback err
+                callback createKodingError err
               else
                 activity.addSubject status, (err)->
                   if err
-                    callback err
+                    callback createKodingError err
                   else
                     status.fetchTeaser (err, teaser)=>
                       if err
-                        callback err
+                        callback createKodingError err
                       else
-                        activity.update
-                          $set:
-                            snapshot: JSON.stringify(teaser)
-                          $addToSet:
-                            snapshotIds: status.getId()
-                        , -> callback null, status
-                        if tags then status.addTags client, tags, (err)->
-                        status.addParticipant delegate, 'author'
+                        daisy [
+                          ->
+                            activity.update
+                              $set:
+                                snapshot: JSON.stringify(teaser)
+                              $addToSet:
+                                snapshotIds: status.getId()
+                            , -> queue.next()
+                          ->
+                            if tags
+                              status.addTags client, tags, (err)->
+                                if err
+                                  callback createKodingError err
+                                else
+                                  callback null, status
+                                  queue.next()
+                            else queue.next()
+                          -> status.addParticipant delegate, 'author'
+                        ]
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback

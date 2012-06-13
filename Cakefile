@@ -153,7 +153,13 @@ task 'checkModules', 'check node_modules dir',(options)->
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)    
   if untracked_mods.length > 0      
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
-    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    process.exit()
+
+  unignored_mods = (mod for mod in data when mod not in our_modules and "/node_modules/#{mod}" not in gitIgnore)
+  if unignored_mods.length > 0      
+    console.log "[ERROR] UN-IGNORED NPM MODULES FOUND:",unignored_mods
+    console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
 
   all_mods = npm_modules.concat our_modules

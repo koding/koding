@@ -40,6 +40,6 @@ module.exports =
     underscore			: '1.2.3'
     url				      : '0.4.9'
     validator				: '0.2.0'
-    
+    'http-proxy'    : '0.8.1'
     jsonify         : '0.0.0'
     browserify      : '1.10.12'
