@@ -32,6 +32,32 @@ class Demos12345 extends AppController
       { title : "title 20", id : 20, parentId: 1}
     ]
     
+    window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
+      style           : "kdwhitebtn profilefollowbtn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : "Unfollow"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        left          : 3
+      states          : [
+        "Follow", (callback)->
+          # memberData.follow (err, response)=>
+          #   unless err
+          #     @setClass 'following-btn'
+          log "follow callback"
+          @hideLoader()
+          callback? null
+        "Unfollow", (callback)->
+          # memberData.unfollow (err, response)=>
+          #   unless err
+          #     @unsetClass 'following-btn'
+          log "unfollow callback"
+          @hideLoader()
+          callback? null
+      ]
+
     # t = new JTreeViewController 
     #   addListsCollapsed : yes
     # , data
@@ -47,15 +73,13 @@ class Demos12345 extends AppController
     #     a.render.call a
     # 
 
-    controller = new MembersListViewController
-      subItemClass : MembersListItemView
-    , items : [KD.whoami()]
-  
-    mainView.addSubView controller.getView()
-
+    # controller = new MembersListViewController
+    #   subItemClass : MembersListItemView
+    # , items : [KD.whoami()]
+    #   
+    # mainView.addSubView controller.getView()
 
     # KD.whoami().on "update", => log "data has changed"
-    
     
     # mainView.addSubView form = new KDFormViewWithFields
     #   fields          :
