@@ -81,11 +81,11 @@ class cloudlinux::cagefs_configs {
     }
 
     file { "/etc/cagefs/conf.d/openssh-clients.cfg":
-           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/openssh-clients.cfg"",
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/openssh-clients.cfg",
            require => Exec['cagefs_init']
     }
 
-     file { "/etc/cagefs/conf.d/java.cfg":
+    file { "/etc/cagefs/conf.d/java.cfg":
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/java.cfg",
            require => [Class['hosting_packages::java'],Exec['cagefs_init']]
     }
