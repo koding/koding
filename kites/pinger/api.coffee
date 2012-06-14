@@ -3,9 +3,9 @@ request = require 'request'
 crypto = require 'crypto'
 hat = require 'hat'
 
+config = require './config'
 # TODO: this is a temporary measure until we get real API keys.
 secret = '8daafc24b27ab396d32751f6a8cf2964'
-
 
 intervals = {}
 
@@ -24,7 +24,7 @@ module.exports = new Kite 'pinger'
       if err
         @stopPinging {uri}, callback
         # TODO: this is the callback to the api server:
-        apiUri = 'https://api.koding.com/1.0/kite/disconnect'
+        apiUri = config.apiUri + '/kite/disconnect'
         token = crypto.createHash('sha1')
           .update(uri+secret)
           .digest('hex')

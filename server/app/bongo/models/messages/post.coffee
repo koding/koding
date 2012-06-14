@@ -1,8 +1,10 @@
+console.log 12345, process.pid
+
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
   
-  {secure} = bongo
+  {secure,dash,daisy} = bongo
   {Relationship} = jraphical
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
@@ -34,6 +36,12 @@ class JPost extends jraphical.Message
 
   @getActivityType =-> CActivity
   
+  createKodingError =(err)->
+    kodingErr = new KodingError(err.message)
+    for own prop of err
+      kodingErr[prop] = err[prop]
+    kodingErr
+  
   @create = secure (client, data, callback)->
     constructor = @
     {connection:{delegate}} = client
@@ -56,24 +64,39 @@ class JPost extends jraphical.Message
             activity.originType = delegate.constructor.name
             activity.save (err)->
               if err
-                callback err
+                callback createKodingError err
               else
                 activity.addSubject status, (err)->
                   if err
-                    callback err
+                    callback createKodingError err
                   else
                     status.fetchTeaser (err, teaser)=>
                       if err
-                        callback err
+                        callback createKodingError err
                       else
-                        activity.update
-                          $set:
-                            snapshot: JSON.stringify(teaser)
-                          $addToSet:
-                            snapshotIds: status.getId()
-                        , -> callback null, status
-                        if tags then status.addTags client, tags, (err)->
-                        status.addParticipant delegate, 'author'
+                        queue = [
+                          ->
+                            if tags?.length
+                              status.addTags client, tags, (err)->
+                                if err
+                                  callback createKodingError err
+                                else
+                                  queue.next()
+                            else
+                              queue.next()
+                          ->
+                            activity.update
+                              $set:
+                                snapshot: JSON.stringify(teaser)
+                              $addToSet:
+                                snapshotIds: status.getId()
+                            , ->
+                              callback null, status
+                              queue.next()
+                          -> 
+                            status.addParticipant delegate, 'author'
+                        ]
+                        daisy queue
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
@@ -81,11 +104,39 @@ class JPost extends jraphical.Message
   unmark: secure ({connection:{delegate}}, flag, callback)->
     @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
 
-  delete: secure ({connection:{delegate}}, callback)->  
-    unless delegate.equals @getAt 'origin'
-      callback new KodingError 'Access denied!'
-    else
-      callback null, "OK, I'll delete it"
+  delete: secure do ->
+    getDeleteHelper =(selector, orientation, callback)->
+      ->
+        Relationship.all selector, (err, rels)->
+          if err
+            callback err
+          else
+            queue = []
+            rels.forEach (rel)->
+              queue.push ->
+                constructor = bongo.Base.constructors[rel.getAt orientation+'Name']
+                constructor.remove _id: rel.getAt(orientation+'Id'), -> queue.fin()
+            dash queue, callback
+
+    ({connection:{delegate}}, callback)->
+      originId = @getAt 'originId'
+      unless delegate.getId().equals originId
+        callback new KodingError 'Access denied!'
+      else
+        queue = [
+          getDeleteHelper {
+            targetId    : @getId()
+            sourceName  : /Activity$/
+          }, 'source', -> queue.fin()
+          getDeleteHelper {
+            sourceId    : @getId()
+            sourceName  : 'JComment'
+          }, 'target', -> queue.fin()
+        ]
+        dash queue, =>
+          @emit 'PostIsDeleted', 1
+          callback null
+          
 
   like: secure ({connection}, callback)->
     {delegate} = connection
