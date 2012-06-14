@@ -63,7 +63,7 @@ AccountMixin = do ->
             url     : url
             data    :
               data  : data
-              env   : if KD.env is 'dev' then 'vpn' else 'beta'
+              env   : KD.env
               n     : nonce
             type    : 'POST'
             xhrFields:
