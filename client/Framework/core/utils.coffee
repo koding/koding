@@ -203,8 +203,11 @@ __utils =
     parentPath.pop()
     return parentPath.join('/')
 
-  nextTick: (fn) ->
-    setTimeout fn, 0
+  nextTick: (duration, fn) ->
+    if "function" is typeof duration
+      fn = duration
+      duration = 0
+    setTimeout fn, duration
   
   htmlDecode:(str)->
     el = document.createElement('div')

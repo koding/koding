@@ -112,8 +112,6 @@ class KDFormView extends KDView
     formData       = @getCustomData() or {}
     @valid         = yes
     
-    
-    console.log formData
     # put to be validated inputs in a queue
     inputs.forEach (input)=>
       if input.getOptions().validate

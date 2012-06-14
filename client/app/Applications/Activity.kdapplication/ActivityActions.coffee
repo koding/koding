@@ -14,21 +14,8 @@ class ActivityActionsView extends KDView
     @likeLink     = new ActivityActionLink    {partial : "Like" }
     @likeCount    = new ActivityLikeCount     {}, activity
     @loader       = new KDLoaderView          size : width : 14 
-    
-    if @isMine = KD.whoami().getId() is @getData().originId
+          
 
-      @deleteLink = new ActivityActionLink
-        partial     : "Delete"
-        click       : =>
-          activity.delete (err)=>
-            @propagateEvent KDEventType: 'ActivityIsDeleted'
-
-      @editLink = new ActivityActionLink
-        partial     : "Edit"
-        click       : =>
-          @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', activity
-        
-  
   viewAppended:->
     @setClass "activity-actions"
     @setTemplate @pistachio()
@@ -40,15 +27,6 @@ class ActivityActionsView extends KDView
     tmpl = 
     """
     {{> @loader}}
-    """
-    if @isMine
-      tmpl +=
-      """
-      {{> @editLink}} · 
-      {{> @deleteLink}} · 
-      """
-    tmpl +=
-    """
     {{> @commentLink}}{{> @commentCount}} · 
     <span class='optional'>
     {{> @shareLink}} · 
