@@ -284,17 +284,20 @@ class KDAutoCompleteController extends KDViewController
 
     path = @getCollectionPath()
     
-    debugger
-    
     if form
       collection = form.getCustomData path
       unless collection?
         collection = []
       form.addCustomData path, collection
-      collection.push {
-        constructorName   : itemValue.constructor.name
-        id                : itemValue.getId()
-      }
+      id = itemValue.getId?()
+      collection.push(
+        if id 
+          constructorName   : itemValue.constructor.name
+          id                : itemValue.getId()
+        else
+          $suggest          : itemValue
+      )
+      console.log collection
       @selectedItemCounter++
     else
       itemName  = "#{name}-#{@selectedItemCounter++}"

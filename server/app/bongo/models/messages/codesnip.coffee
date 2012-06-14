@@ -21,7 +21,6 @@ class JCodeSnip extends JPost
     relationships : JPost.relationships
   
   @create = secure (client, data, callback)->
-    debugger
     codeSnip =
       title       : data.title
       body        : data.body

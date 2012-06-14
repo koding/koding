@@ -227,7 +227,6 @@ class JInvitation extends jraphical.Module
                       limit.update {$inc: usage: 1}, callback
   
   redeem:bongo.secure ({connection:{delegate}}, callback=->)->
-    debugger
     operation = $inc: {uses: 1}
     isRedeemed = if @type is 'multiuse' then @uses + 1 >= @maxUses else yes
     operation.$set = {status: 'redeemed'} if isRedeemed

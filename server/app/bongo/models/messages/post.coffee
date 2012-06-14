@@ -43,7 +43,6 @@ class JPost extends jraphical.Message
     kodingErr
   
   @create = secure (client, data, callback)->
-    debugger
     constructor = @
     {connection:{delegate}} = client
     unless delegate instanceof constructor.getAuthorType() # TODO: rethink/improve
@@ -78,7 +77,7 @@ class JPost extends jraphical.Message
             else queue.next()
         ->
           if tags?.length
-            status.addTags client, tags.map((tag)-> tag.id), (err)->
+            status.addTags client, tags, (err)->
               if err
                 callback createKodingError err
               else
