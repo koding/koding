@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_GET['env']) ? $_GET['env'] : 'beta';
+$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function handle_vacated_channel($type, $event, $ms) {
@@ -105,7 +105,6 @@ function get_mongo_host () {
 
 function get_mongo_db_name () {
   global $env;
-  error_log($env);
   $db_names = array(
     'vpn'   => 'kodingen',
     'beta'  => 'beta_koding',
