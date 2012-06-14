@@ -104,7 +104,9 @@ class LinkGroup extends KDCustomHTMLView
     tmpl = switch participants.length
       when 1 then "{{> @participant0}}"
       when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}} {{> @participant1}}#{if hasMore then ' ' else ' and'} {{> @participant2}}"
+      when 3
+        sep = if @participant0.getData() instanceof bongo.api.JAccount then ', ' else ' '
+        "{{> @participant0}}#{sep}{{> @participant1}}#{if hasMore then sep else ' and'} {{> @participant2}}"
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
     super tmpl
 

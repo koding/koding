@@ -36,12 +36,16 @@ class NFinderController extends KDViewController
         path       : "/Users/#{nickname}"
         type       : "mount"
       @treeController.initTree [mount]
-      # setTimeout =>
-      #   @treeController.expandFolder @treeController.nodes[mount.path], =>
-      #     @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html"], =>
-      #       @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}"], =>
-      #         @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.#{location.hostname}/httpdocs"]
-      # , 2000
+      setTimeout =>
+        log mount.path
+        @treeController.expandFolder @treeController.nodes[mount.path], =>
+          log "#{mount.path}/public_html"
+          @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html"], =>
+            log "#{mount.path}/public_html/#{nickname}.#{location.hostname}"
+            @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.beta.koding.com"], =>
+              log "#{mount.path}/public_html/#{nickname}.#{location.hostname}/httpdocs"
+              @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.beta.koding.com/httpdocs"]
+      , 2000
 
   
   getStorage: (callback) ->

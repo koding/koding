@@ -129,6 +129,7 @@ class NFinderTreeController extends JTreeViewController
   
   expandFolder:(nodeView, callback)->
     
+    return unless nodeView
     return if nodeView.isLoading or nodeView.expanded
     folder = nodeView.getData()
 
