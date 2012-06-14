@@ -1,7 +1,6 @@
 log = -> logger.info arguments...
 
-
-console.log "hello world7"
+console.log "hello world8",process.pid
 
 # Core Nodejs libraries:
 {spawn, exec}   = require 'child_process'
