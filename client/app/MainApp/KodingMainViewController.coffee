@@ -38,7 +38,7 @@ class MainController extends KDController
   deauthorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
       $.ajax
-        url       : KD.apiUri+'https://api.koding.com/1.0/logout'
+        url       : KD.apiUri+'/1.0/logout'
         data      :
           n       : nonce
           env     : KD.env

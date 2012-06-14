@@ -74,7 +74,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:=>
-
     @addCustomData "code", @ace.getContents()
     super
 
