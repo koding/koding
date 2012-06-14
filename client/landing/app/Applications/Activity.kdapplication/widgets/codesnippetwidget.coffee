@@ -3,6 +3,10 @@ class ActivityCodeSnippetWidget extends KDFormView
   constructor:->
 
     super
+    
+    @labelTitle = new KDLabelView
+      title         : "Title:"
+      cssClass      : "first-label"
 
     @title = new KDInputView
       name          : "title"
@@ -117,7 +121,9 @@ class ActivityCodeSnippetWidget extends KDFormView
           range       : 0.4
           speed       : 1
           FPS         : 24
-        click         : => @loadAce()
+        click         : => 
+          log "ASDASDAS"
+          @loadAce()
       @loadAce()
     else
       @refreshEditorView()
@@ -175,6 +181,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     <div class="form-actions-mask">
       <div class="form-actions-holder">
         <div class="formline">
+          {{> @labelTitle}}
           <div>
             {{> @title}}
           </div>

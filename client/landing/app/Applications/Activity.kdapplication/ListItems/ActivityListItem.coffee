@@ -68,6 +68,7 @@ class ActivityListItemView extends KDListItemView
         callback?()
   
 class ActivityItemChild extends KDView
+
   constructor:(options, data)->
     origin = {
       constructorName  : data.originType
@@ -83,6 +84,27 @@ class ActivityItemChild extends KDView
 
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
+    
+    if data.originId is KD.whoami().getId()
+      @settingsButton = new KDButtonViewWithMenu
+        style       : 'transparent activity-settings-context'
+        cssClass    : 'activity-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "cog"
+        menu        : [
+          type      : "contextmenu"
+          items     : [
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
+          ]
+        ]
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      
+     
     
     super
     

@@ -77,14 +77,14 @@ class ActivityStatusUpdateWidget extends KDFormView
     
     @parent.setClass "no-shadow"
     @largeInput.setHeight 33
-    @$('>div').hide()
+    @$('>div.large-input, >div.formline').hide()
     @smallInput.show()
     
   switchToLargeView:->
 
     @parent.unsetClass "no-shadow"
     @smallInput.hide()
-    @$('>div').show()
+    @$('>div.large-input, >div.formline').show()
 
     @utils.nextTick => 
       @largeInput.$().trigger "focus"
@@ -99,6 +99,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "activity", activity
     @largeInput.setValue Encoder.htmlDecode activity.body
     @switchToLargeView()
+    @utils.selectText @largeInput.$()[0]
   
   
   reset:->
@@ -106,8 +107,6 @@ class ActivityStatusUpdateWidget extends KDFormView
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     super
-  
-  submit:=> super
 
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
@@ -122,13 +121,15 @@ class ActivityStatusUpdateWidget extends KDFormView
     @template.update()
     @switchToSmallView()
     tabView = @parent.getDelegate()
-    tabView.on "MainInputTabsReset", => @switchToSmallView()
+    tabView.on "MainInputTabsReset", =>
+      @reset()
+      @switchToSmallView()
 
   pistachio:->
 
     """
-    {{> @smallInput}}
-    <div>{{> @largeInput}}</div>
+    <div class="small-input">{{> @smallInput}}</div>
+    <div class="large-input">{{> @largeInput}}</div>
     <div class="formline submit">
       {{> @heartBox}}
       <div class="submit-box">

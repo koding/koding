@@ -41,7 +41,7 @@ class Activity12345 extends AppController
   loadView:(mainView)->
     
     mainController = @getSingleton('mainController')
-    account        = mainController.getVisitor().currentDelegate
+    account        = KD.whoami()
     
     
     unless localStorage.welcomeMessageClosed?
@@ -84,10 +84,12 @@ class Activity12345 extends AppController
     # ADD SPLITVIEW
     mainView.addSubView activitySplitView
 
-    # INITIAL HEIGHT SET FOR SPLIT
-    activitySplitView._windowDidResize()
 
     @createFollowedAndPublicTabs()
+
+    # INITIAL HEIGHT SET FOR SPLIT
+    @utils.nextTick 1000, =>
+      @getSingleton('windowController').notifyWindowResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
@@ -128,7 +130,7 @@ class Activity12345 extends AppController
       KDEventTypes       : "resize"
       listenedToInstance : @activitySplitView
       callback           : (pubInst,event)=>
-        newHeight = @activitySplitView.getHeight() - 28
+        newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
         activityListController.scrollView.setHeight newHeight
     
     controller = @

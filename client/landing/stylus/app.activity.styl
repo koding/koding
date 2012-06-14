@@ -177,7 +177,6 @@ app.activity.styl
         background-image      url('../images/defaultavatar/default.avatar.40.png')
         blockMid()
   
-  .activity-item
     .type-icon
       text-indent       -9999em
       border-radius     0
@@ -187,25 +186,65 @@ app.activity.styl
       size(18px,16px)
       blockMid()
       
-  .activity-item.status
-    .type-icon
-      bg(position,-399px -376px)
+    &.status
+      .type-icon
+        bg(position,-399px -376px)
 
-  .activity-item.qanda
-    .type-icon
-      bg(position,-552px -376px)
+    &.qanda
+      .type-icon
+        bg(position,-552px -376px)
 
-  .activity-item.codesnip
-    .type-icon
-      bg(position,-706px -376px)
+    &.codesnip
+      .type-icon
+        bg(position,-706px -376px)
 
-  .activity-item.discussion
-    .type-icon
-      bg(position,-475px -376px)
+    &.discussion
+      .type-icon
+        bg(position,-475px -376px)
 
-  .activity-item.link
-    .type-icon
-      bg(position,-630px -376px)
+    &.link
+      .type-icon
+        bg(position,-630px -376px)
+
+    &:hover
+      .activity-settings-menu
+        opacity         1
+
+    .activity-settings-menu
+      vendor            transition, opacity .1s ease-out
+      opacity           .1
+      position          absolute
+      top               13px
+      right             19px
+      z-index           10
+      button.kdbutton.with-icon
+        padding         0
+        padding-right   0!important
+        span.icon
+          bg            position, -62px -302px
+          size          16px, 16px
+          padding       0
+          margin        0
+        &:hover
+          gradient      #eee, #ddd
+      .chevron-arrow
+        display         none
+      .chevron-arrow-separator
+        display         none
+
+.kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+  .chevron-arrow-ghost-wrapper
+    rounded             9px 9px 0 0
+    width               14px
+    span.chevron-arrow-ghost
+      margin            0 auto
+      bg                position, -63px -303px
+  .kdcontextmenutreeview
+    margin              3px 0
+    .kdview.kdtreeitemview.default
+      padding           2px
+      font-size         11px
+
 
 .activity-item-right-col
   padding-right   20px
@@ -506,9 +545,14 @@ button.kdbutton.dark
 
 form.status-widget
 
-  .kdinput.text.status-update-input
+  div.large-input
+  div.small-input
     margin-left           169px
+    margin-right          16px
     max-width             560px
+    
+    
+  .kdinput.text.status-update-input
     &.validation-error    
       border-color        red
 
@@ -542,9 +586,10 @@ form.status-widget
   rounded                   4px
   size                      auto, 90px
   borderBox()
+
   .kdview.kdloader
     display                 block
-    margin                  32px auto
+    margin                  20px auto
     
   .code-wrapper.ace_editor
     overflow                visible
@@ -684,11 +729,15 @@ button.activity-status-context
   height                auto
   position              absolute
   overflow              visible
+  .first-label
+    hidden()
   &.edit-mode
     .kdbuttonwithmenu-wrapper.activity-status-context
       hidden()
     // .update-widget-tabs .kdtabpaneview
     //   bg                color, #ffd56e
+    .first-label
+      visible()
 
 .widget-holder
   overflow              visible
