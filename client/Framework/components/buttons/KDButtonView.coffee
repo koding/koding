@@ -148,31 +148,15 @@ class KDToggleButton extends KDButtonView
   constructor:(options = {},data)->
 
     options = $.extend
-      dataPath : null          # a JsPath String
-      states   : []            # an Array of Objects in form of stateName : callback key/value pairs
+      dataPath     : null          # a JsPath String
+      defaultState : null          # a String
+      states       : []            # an Array of Objects in form of stateName : callback key/value pairs
     ,options
 
     super options,data
-    @setDefaultStates()
-    @setState()
     
-    @attachListener()
+    @setState options.defaultState
     
-  attachListener:->
-
-    {dataPath} = @getOptions()
-    if dataPath
-      @getData().on dataPath, =>
-        @setState dataPath
-
-  setDefaultStates:->
-
-    {states} = @getOptions()
-    if states.length < 3
-      @options.states = ['default',-> warn "no state options passed" ]
-    else
-      return
-
   getStateIndex:(name)->
 
     {states} = @getOptions()
@@ -182,15 +166,19 @@ class KDToggleButton extends KDButtonView
       for state,index in states
         if name is state
           return index
-
+  
+  decorateState:(name)-> @setTitle @state
+  
+  getState:-> @state
+  
   setState:(name)->
-
+    
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
+    @decorateState name
     
-    @setTitle @state
-    @setCallback states[index + 1].bind @, @toggleState.bind @
+    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
 

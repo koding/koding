@@ -129,5 +129,3 @@ class FSHelper
 
     permissions = response.match(/Access: \([0-9]*\/(..........)/)[1]
     fileData.mode = __utils.symbolsPermissionToOctal permissions
-
-window.sss = FSHelper
