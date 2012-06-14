@@ -1,0 +1,13 @@
+<div class='modalformline'>There are a couple of things that you should know.</div>
+<div class='modalformline'>
+  <ol>
+    <li>This is a work in progress, by no means a finished product.</li>
+    <li>We're working to deliver improvements to the system, but there are some known issues.</li>
+    <ul>
+      <li>The terminal may not come up for you.  We will be pushing a fix for this as soon as we can, but in this release, the terminal is not as stable as we would like it to be.</li>
+      <li>Databases don't work in this release.<br></li>
+    </ul>
+    <li>We have delivered some stability and performance improvements, which is still a work in progress.  In particular, we hope you notice improvements in the performance of the file system and terminal.</li>
+    <li>We will be iterating on the social features of the site over the next weeks, but we haven't released anything new on the social side of things in this release.</li>
+  </ol>
+</div>
