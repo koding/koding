@@ -21,9 +21,7 @@ class FSFile extends FSItem
 
 
   saveAs:(contents, name, parentPath, callback)->
-    
-    log "saveAs"
-    
+
     oldPath = @path
     newPath = "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"

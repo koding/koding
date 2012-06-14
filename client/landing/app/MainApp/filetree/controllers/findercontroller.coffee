@@ -6,7 +6,7 @@ class NFinderController extends KDViewController
     super options, data
 
     @kiteController = @getSingleton('kiteController')
-
+    {nickname} = KD.whoami().profile
     treeOptions =
       treeItemClass     : options.treeItemClass     or NFinderItem 
       nodeIdPath        : options.nodeIdPath        or "path"
@@ -18,6 +18,7 @@ class NFinderController extends KDViewController
       putDepthInfo      : options.putDepthInfo       ? yes
       contextMenu       : options.contextMenu        ? yes
       fsListeners       : options.fsListeners        ? no
+      initialPath       : options.initialPath        ? "/Users/#{nickname}"
       delegate          : @
 
     @treeController = new NFinderTreeController treeOptions, []
@@ -28,26 +29,20 @@ class NFinderController extends KDViewController
   loadView:(mainView)->
     if KD.whoami() instanceof bongo.api.JAccount
       mainView.addSubView @treeController.getView()
-    
-      {nickname} = KD.whoami().profile
-      mount      = FSHelper.createFile 
-        name       : nickname
-        # parentPath : "/"
-        path       : "/Users/#{nickname}"
-        type       : "mount"
-      @treeController.initTree [mount]
-      setTimeout =>
-        log mount.path
-        @treeController.expandFolder @treeController.nodes[mount.path], =>
-          log "#{mount.path}/public_html"
-          @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html"], =>
-            log "#{mount.path}/public_html/#{nickname}.#{location.hostname}"
-            @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.beta.koding.com"], =>
-              log "#{mount.path}/public_html/#{nickname}.#{location.hostname}/httpdocs"
-              @treeController.expandFolder @treeController.nodes["#{mount.path}/public_html/#{nickname}.beta.koding.com/httpdocs"]
-      , 2000
 
-  
+      {initialPath} = @getOptions()
+      {nickname}    = KD.whoami().profile
+
+      mount         = FSHelper.createFile 
+        name        : nickname
+        path        : "/Users/#{nickname}"
+        type        : "mount"
+
+      @treeController.initTree [mount]
+      
+      @utils.nextTick 2000, =>
+        @treeController.navigateTo initialPath
+
   getStorage: (callback) ->
     unless @_storage
       @_storage = 'in process'
