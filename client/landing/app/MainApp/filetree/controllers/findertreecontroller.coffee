@@ -49,6 +49,7 @@ class NFinderTreeController extends JTreeViewController
     view.on "folderNeedsToRefresh", (newFile)=> 
 
       @navigateTo newFile.parentPath, =>
+        @selectNode @nodes[newFile.path]
         @openFile @nodes[newFile.path]
       
     # # 
@@ -106,10 +107,10 @@ class NFinderTreeController extends JTreeViewController
   previewFile:(nodeView, event)->
 
     file = nodeView.getData()
-    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/, 'http://$1/$2'
+    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/public_html/#{nickname}.#{location.hostname}/httpdocs/"
+      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
       appManager.openFileWithApplication publicPath, "Viewer.kdapplication"
 
