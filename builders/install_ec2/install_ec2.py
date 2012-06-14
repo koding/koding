@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
 
     parser = argparse.ArgumentParser(description="Create EC2")
-    parser.add_argument('--type', dest='type',help='specify purpose of server (hosting or webserver currently supported)',required=True)
+    parser.add_argument('--type', dest='type',help='specify purpose of server (hosting , webserver or proxy currently supported)',required=True)
     parser.add_argument('--env', dest='env',help='specify purpose of server (only "beta" currently supported)',required=True)
     parser.add_argument('--disk', dest='disk',help="disk size in GB")
     parser.add_argument('--pub', dest='pub',action='store_true',help="with elastic IP")
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         id = launchInstance(fqdn, args.type, args.ec2type, cloudlinux_id)
         addr = getSystemAddr(id)
         fqdn = route53.createCNAMErecord(fqdn, addr)
-    elif args.type == "webserver":
+    elif args.type == "webserver" or args.type == "proxy":
         fqdn = route53.get_new_name(args.type, args.env)
         if not fqdn: sys.exit(1)
         id = launchInstance(fqdn, args.type, args.ec2type)
