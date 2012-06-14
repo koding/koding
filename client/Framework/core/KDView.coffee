@@ -632,8 +632,6 @@ class KDView extends KDObject
 # HELPER METHODS
 # #
   
-  overlayZ = 1
-
   putOverlay:(options = {})->
 
     {isRemovable, cssClass, parent} = options
@@ -644,13 +642,14 @@ class KDView extends KDObject
     
     @$overlay = $ "<div />", class : "kdoverlay #{cssClass}"
 
-    @__zIndex = @$().css "z-index"
-    @$overlay.css zIndex : if @__zIndex then @__zIndex + 1 else ++overlayZ
 
     if parent is "body"
       @$overlay.appendTo "body"
     else if parent instanceof KDView
+      @__zIndex = parseInt(@$().css("z-index"), 10) or 0
+      @$overlay.css "z-index", @__zIndex + 1
       @$overlay.appendTo parent.$()
+
       
     if isRemovable
       @$overlay.on "click.overlay", @removeOverlay.bind @
@@ -661,7 +660,6 @@ class KDView extends KDObject
     @handleEvent type : "OverlayWillBeRemoved"
     @$overlay.off "click.overlay"
     @$overlay.remove()
-    @$().css zIndex : @__zIndex
     delete @__zIndex
     delete @$overlay
     @emit "OverlayRemoved", @
