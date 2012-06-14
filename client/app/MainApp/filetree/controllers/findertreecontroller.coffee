@@ -42,13 +42,16 @@ class NFinderTreeController extends JTreeViewController
     # @setFileListeners nodeData if o.fsListeners
     item = super nodeData
 
-  setItemListeners:(pubInst, node)->
+  setItemListeners:(pubInst, {view})->
     
     super
+    
+    view.on "folderNeedsToRefresh", (newFile)=> 
 
-    # node.on "folderNeedsToRefresh", (path)=>
-    # 
-    #   log @nodes, @nodes[path], path
+      @navigateTo newFile.parentPath, =>
+        @selectNode @nodes[newFile.path]
+        @openFile @nodes[newFile.path]
+      
     # # 
     # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
     # 
@@ -104,10 +107,10 @@ class NFinderTreeController extends JTreeViewController
   previewFile:(nodeView, event)->
 
     file = nodeView.getData()
-    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/, 'http://$1/$2'
+    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/public_html/#{nickname}.#{location.hostname}/httpdocs/"
+      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
       appManager.openFileWithApplication publicPath, "Viewer.kdapplication"
 
@@ -129,7 +132,13 @@ class NFinderTreeController extends JTreeViewController
   
   expandFolder:(nodeView, callback)->
     
-    return if nodeView.isLoading or nodeView.expanded
+    return unless nodeView
+    return if nodeView.isLoading
+
+    if nodeView.expanded
+      callback? nodeView
+      return
+
     folder = nodeView.getData()
 
     folder.failTimer = setTimeout =>
@@ -156,6 +165,29 @@ class NFinderTreeController extends JTreeViewController
     else
       nodeView.collapse()
       callback? nodeView
+  
+  navigateTo:(path, callback)->
+    
+    return unless path
+    
+    path = path.split('/')
+    path.shift()  if path[0] is ''
+    path.pop()    if path[path.length-1] is ''
+    path[1] = "/#{path[0]}/#{path[1]}"
+    path.shift()
+
+    index     = 0
+    lastPath  = ''
+    _expand = (path)=>
+      nextPath = path.slice(0, ++index).join('/')
+      if lastPath is nextPath
+        callback?()
+        return
+      @expandFolder @nodes[nextPath], => 
+        lastPath = nextPath
+        _expand path
+
+    _expand path
 
   confirmDelete:(nodeView, event)->
     
@@ -437,13 +469,19 @@ class NFinderTreeController extends JTreeViewController
 
   dragEnd: (nodeView, event)->
 
-    log "clear after drag"
+    # log "clear after drag"
     @clearAllDragFeedback()
     super
 
   drop: (nodeView, event)->
     
     return if nodeView in @selectedNodes
+    
+    sameParent = no
+    @selectedNodes.forEach (selectedNode)->
+      sameParent = yes if selectedNode.getData().parentPath is nodeView.getData().parentPath
+    
+    return if sameParent
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
