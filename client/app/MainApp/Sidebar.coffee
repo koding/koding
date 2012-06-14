@@ -157,6 +157,7 @@ class SidebarController extends KDViewController
 
     # @finderController = new FinderController null, {items : []}
     @jFinderController = new NFinderController
+      fsListeners : yes
     
     {profile} = account
     

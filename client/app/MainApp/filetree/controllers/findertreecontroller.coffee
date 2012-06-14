@@ -10,7 +10,7 @@ class NFinderTreeController extends JTreeViewController
   constructor:->
     
     super
-
+    
     if @getOptions().contextMenu
       @contextMenuController = new NFinderContextMenuController
 
@@ -33,27 +33,35 @@ class NFinderTreeController extends JTreeViewController
     #       
     #     if dimmed
     #       node.setClass "dimmed" for node in @selectedNodes
-    @setFSListeners()
+    # @setFSListeners()
 
   addNode:(nodeData)->
     
-    return if @getOptions().foldersOnly and nodeData.type is "file"
-    @setFileListeners nodeData
+    o = @getOptions()
+    return if o.foldersOnly and nodeData.type is "file"
+    # @setFileListeners nodeData if o.fsListeners
+    item = super nodeData
+
+  setItemListeners:(pubInst, node)->
+    
     super
 
-  setFSListeners:->
-
-    FSItem.on "fs.remotefile.created", (file)=>
-      parentNode = @nodes[file.parentPath]
-      if parentNode
-        if parentNode.expanded
-          @refreshFolder @nodes[file.parentPath], =>
-            @selectNode @nodes[file.path]
-        else
-          @expandFolder @nodes[file.parentPath], =>
-            @selectNode @nodes[file.path]
-    
-  setFileListeners:(file)->
+    # node.on "folderNeedsToRefresh", (path)=>
+    # 
+    #   log @nodes, @nodes[path], path
+    # # 
+    # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
+    # 
+    #   log "fs.saveAs.finished", "+>>>>>"
+    #   
+    #   parentNode = @nodes[path]
+    #   if parentNode
+    #     if parentNode.expanded
+    #       @refreshFolder @nodes[path], =>
+    #         @selectNode @nodes[path]
+    #     else
+    #       @expandFolder @nodes[parentPath], =>
+    #         @selectNode @nodes[path]
     
     # file.on "fs.remotefile.created", (oldPath)=>
     #   tc = @treeController
@@ -127,7 +135,7 @@ class NFinderTreeController extends JTreeViewController
     folder.failTimer = setTimeout =>
       @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
       folder.emit "fs.nothing.finished", []
-    , 10000
+    , 5000
 
     folder.fetchContents (files)=>
       clearTimeout folder.failTimer

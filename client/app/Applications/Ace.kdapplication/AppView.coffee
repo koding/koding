@@ -12,6 +12,7 @@ class AceView extends JView
   constructor:(options, file)->
 
     super
+
     @listenWindowResize()
 
     @saveButton = new KDButtonViewWithMenu
@@ -19,7 +20,7 @@ class AceView extends JView
       style         : "clean-gray editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
-      callback      : ()=> file.emit "ace.requests.save", @ace.getContents()
+      callback      : ()=> @getData().emit "ace.requests.save", @ace.getContents()
     
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
@@ -47,16 +48,16 @@ class AceView extends JView
       iconOnly  : yes
       iconClass : "preview"
       callback  : =>
-        publicPath = file.path.replace publicUrlCheck, 'http://$1/$2'
-        return if publicPath is file.path
+        publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+        return if publicPath is @getData().path
         appManager.openFileWithApplication publicPath, "Viewer"
 
-    unless publicUrlCheck.test(file.path) then @previewButton.hide()
+    unless publicUrlCheck.test(@getData().path) then @previewButton.hide()
+
+    @setViewListeners()
     
-    ###
-    SET LISTENERS
-    ###
-    
+  setViewListeners:->
+
     @advancedSettings.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
     
@@ -68,18 +69,14 @@ class AceView extends JView
       $spans.eq(0).text ++cursor.row
       $spans.eq(1).text ++cursor.column
 
-    file.on "ace.requests.saveAs", (contents)=>
+    @ace.on "ace.requests.saveAs", (contents)=>
       @openSaveDialog()
 
-    file.on "ace.requests.save", (contents)=>
-      if /localfile:/.test file.path
+    @ace.on "ace.requests.save", (contents)=>
+      if /localfile:/.test @getData().path
         @openSaveDialog()
       else
-        file.emit "file.requests.save", contents
-    
-    file.on "fs.remotefile.created", =>
-      if publicUrlCheck.test(file.path) then @previewButton.show()
-      
+        @getData().emit "file.requests.save", contents
 
   viewAppended:->
 

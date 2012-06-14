@@ -7,13 +7,9 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : updateWidget = new ActivityStatusUpdateWidget
         cssClass  : "status-widget"
         callback  : (formData)=>
+          @updateWidgetSubmit formData
           updateWidget.switchToSmallView()
-          @updateWidgetSubmit formData, (err, activity)=>
-            unless err
-              updateWidget.reset()
-            else
-              mainView.mainInputTabs.showPaneByName "update"
-        
+          mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "question"
@@ -25,12 +21,8 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : codeWidget = new ActivityCodeSnippetWidget 
         delegate  : mainView
         callback  : (data)=>
+          @codeSnippetWidgetSubmit data
           mainView.resetWidgets()
-          @codeSnippetWidgetSubmit data, (err, activity)=>
-            unless err
-              codeWidget.reset()
-            else
-              mainView.mainInputTabs.showPaneByName "codesnip"
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -53,25 +45,53 @@ class ActivityUpdateWidgetController extends KDViewController
       KDEventTypes : 'PaneDidShow'
       listener     : @
       callback     : -> codeWidget.widgetShown()
+    
+    @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+      mainView.setClass "edit-mode"
+      switch activity.bongo_.constructorName
+        when "JStatusUpdate"
+          mainView.showPane "update"
+          updateWidget.switchToEditView activity
+        when "JCodeSnip"
+          mainView.showPane "codesnip"
+          codeWidget.switchToEditView activity
 
 
   updateWidgetSubmit:(data, callback)->
-
-    bongo.api.JStatusUpdate.create data, (err, activity)=>
-      callback err, activity
-      unless err
-        @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+    
+    log data
+    
+    if data.activity
+      data.activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      bongo.api.JStatusUpdate.create data, (err, activity)=>
+        callback? err, activity
+        unless err
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
+        else
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
-
-    bongo.api.JCodeSnip.create data, (err, codesnip) =>
-      callback err, codesnip
-      if err
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-      else
-        @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
+    
+    if data.activity
+      data.activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      bongo.api.JCodeSnip.create data, (err, codesnip) =>
+        callback? err, codesnip
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
   questionWidgetSubmit:(data)->
     log 'creating question', data

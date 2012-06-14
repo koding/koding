@@ -8,7 +8,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @smallInput = new KDInputView 
       cssClass      : "status-update-input"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       focus         : => @switchToLargeView()
@@ -16,7 +16,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
-      placeholder   : "What's new #{@utils.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
       validate      :
@@ -36,8 +36,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       style       : "modal-cancel"
       callback    : =>
         @reset()
-        @switchToSmallView()
-  
+        @parent.getDelegate().emit "ResetWidgets"
+
     @submitBtn = new KDButtonView
       style       : "clean-gray"
       title       : "Submit"
@@ -77,14 +77,14 @@ class ActivityStatusUpdateWidget extends KDFormView
     
     @parent.setClass "no-shadow"
     @largeInput.setHeight 33
-    @$('>div').hide()
+    @$('>div.large-input, >div.formline').hide()
     @smallInput.show()
     
   switchToLargeView:->
 
     @parent.unsetClass "no-shadow"
     @smallInput.hide()
-    @$('>div').show()
+    @$('>div.large-input, >div.formline').show()
 
     @utils.nextTick => 
       @largeInput.$().trigger "focus"
@@ -92,7 +92,22 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
+  
+  switchToEditView:(activity)->
     
+    @submitBtn.setTitle "Edit status update"
+    @addCustomData "activity", activity
+    @largeInput.setValue Encoder.htmlDecode activity.body
+    @switchToLargeView()
+    @utils.selectText @largeInput.$()[0]
+  
+  
+  reset:->
+
+    @submitBtn.setTitle "Submit"
+    @removeCustomData "activity"
+    super
+
   # inputKeyDown:(event)->
   #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
   #     @submitStatusUpdate()
@@ -106,12 +121,15 @@ class ActivityStatusUpdateWidget extends KDFormView
     @template.update()
     @switchToSmallView()
     tabView = @parent.getDelegate()
-    tabView.on "MainInputTabsReset", => @switchToSmallView()
+    tabView.on "MainInputTabsReset", =>
+      @reset()
+      @switchToSmallView()
 
   pistachio:->
+
     """
-    {{> @smallInput}}
-    <div>{{> @largeInput}}</div>
+    <div class="small-input">{{> @smallInput}}</div>
+    <div class="large-input">{{> @largeInput}}</div>
     <div class="formline submit">
       {{> @heartBox}}
       <div class="submit-box">

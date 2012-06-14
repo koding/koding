@@ -3,8 +3,12 @@ class ActivityCodeSnippetWidget extends KDFormView
   constructor:->
 
     super
+    
+    @labelTitle = new KDLabelView
+      title         : "Title:"
+      cssClass      : "first-label"
 
-    @inputCodeSnipTitle = new KDInputView
+    @title = new KDInputView
       name          : "title"
       placeholder   : "Give a title to your code snippet..."
       validate      :
@@ -16,7 +20,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @labelDescription = new KDLabelView
       title : "Description:"  
 
-    @inputDescription = new KDInputView
+    @description = new KDInputView
       label       : @labelDescription
       name        : "body"
       placeholder : "What is your code about?"
@@ -70,17 +74,36 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:=>
-
     @addCustomData "code", @ace.getContents()
     super
 
   reset:=>
     
-    @inputCodeSnipTitle.setValue ''
-    @inputDescription.setValue ''
+    @submitBtn.setTitle "Share your Code Snippet"
+    @removeCustomData "activity"
+    @title.setValue ''
+    @description.setValue ''
     @ace.setContents "//your code snippet goes here..."
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
+
+  switchToEditView:(activity)->
+    
+    @submitBtn.setTitle "Edit code snippet"
+    @addCustomData "activity", activity
+    {title, body} = activity
+    {syntax, content} = activity.attachments[0]
+
+    fillForm = =>
+      @title.setValue Encoder.htmlDecode title 
+      @description.setValue Encoder.htmlDecode body
+      @ace.setContents Encoder.htmlDecode content
+      @syntaxSelect.setValue Encoder.htmlDecode syntax
+
+    if @ace?.editor
+      fillForm()
+    else
+      @once "codeSnip.aceLoaded", => fillForm()
 
   widgetShown:->
 
@@ -97,7 +120,9 @@ class ActivityCodeSnippetWidget extends KDFormView
           range       : 0.4
           speed       : 1
           FPS         : 24
-        click         : => @loadAce()
+        click         : => 
+          log "ASDASDAS"
+          @loadAce()
       @loadAce()
     else
       @refreshEditorView()
@@ -125,16 +150,19 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setTheme()
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
+      @emit "codeSnip.aceLoaded"
 
     @on "codeSnip.changeSyntax", (syntax)=>
       @ace.setSyntax syntax
 
   refreshEditorView:->
+
     lines = @ace.editor.selection.doc.$lines
     lineAmount = if lines.length > 15 then 15 else if lines.length < 5 then 5 else lines.length
     @setAceHeightByLines lineAmount
 
   setAceHeightByLines: (lineAmount) ->
+
     lineHeight  = @ace.editor.renderer.lineHeight
     container   = @ace.editor.container
     height      = lineAmount * lineHeight
@@ -142,6 +170,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @ace.editor.resize()
 
   viewAppended:()->
+
     @setClass "update-options codesnip"
     @setTemplate @pistachio()
     @template.update()
@@ -151,14 +180,15 @@ class ActivityCodeSnippetWidget extends KDFormView
     <div class="form-actions-mask">
       <div class="form-actions-holder">
         <div class="formline">
+          {{> @labelTitle}}
           <div>
-            {{> @inputCodeSnipTitle}}
+            {{> @title}}
           </div>
         </div>
         <div class="formline">
           {{> @labelDescription}}
           <div>
-            {{> @inputDescription}}
+            {{> @description}}
           </div>
         </div>
         <div class="formline">

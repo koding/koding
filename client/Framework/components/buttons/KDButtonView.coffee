@@ -106,8 +106,9 @@ class KDButtonView extends KDView
         range       : loader.range    || 0.4
         speed       : loader.speed    || 1.5
         FPS         : loader.FPS      || 24
+
     @addSubView @loader, null, yes
-    @loader.$().css position : "absolute", left : 5, top : 5
+    @loader.$().css position : "absolute", left : loader.left or 5, top : loader.top or 5
     @loader.hide()
   
   showLoader:->
@@ -143,7 +144,9 @@ class KDButtonView extends KDView
   triggerClick:()-> @doOnSubmit()
 
 class KDToggleButton extends KDButtonView
+
   constructor:(options = {},data)->
+
     options = $.extend
       dataPath : null          # a JsPath String
       states   : []            # an Array of Objects in form of stateName : callback key/value pairs
@@ -156,12 +159,14 @@ class KDToggleButton extends KDButtonView
     @attachListener()
     
   attachListener:->
+
     {dataPath} = @getOptions()
     if dataPath
       @getData().on dataPath, =>
         @setState dataPath
 
   setDefaultStates:->
+
     {states} = @getOptions()
     if states.length < 3
       @options.states = ['default',-> warn "no state options passed" ]
@@ -169,6 +174,7 @@ class KDToggleButton extends KDButtonView
       return
 
   getStateIndex:(name)->
+
     {states} = @getOptions()
     unless name
       return 0
@@ -178,6 +184,7 @@ class KDToggleButton extends KDButtonView
           return index
 
   setState:(name)->
+
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
@@ -186,6 +193,7 @@ class KDToggleButton extends KDButtonView
     @setCallback states[index + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
+
     {states} = @getOptions()
     nextState = states[@stateIndex + 2] or states[0]
     unless err

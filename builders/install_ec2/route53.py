@@ -15,6 +15,8 @@ def get_new_name(instance_type, env):
         rr_name = "cl"
     elif instance_type == "webserver":
         rr_name = "web"
+    elif instance_type == "proxy":
+        rr_name = "proxy"
     else:
         sys.stderr.write("%s is not valid instance type" % instance_type)
         return False
@@ -45,6 +47,8 @@ def get_new_name(instance_type, env):
         return "cl%s.%s.service.aws.koding.com" % (l, env)
     elif instance_type == "webserver":
         return "web%s.%s.system.aws.koding.com" % (l, env)
+    elif instance_type == "proxy":
+        return "proxy%s.%s.system.aws.koding.com" % (l, env)
     else:
         sys.stderr.write("Can't find free name")
         return False

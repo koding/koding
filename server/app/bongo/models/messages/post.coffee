@@ -15,7 +15,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete'
+        'delete','modify'
       ]
     relationships     : 
       comment         : JComment
@@ -97,6 +97,16 @@ class JPost extends jraphical.Message
                             status.addParticipant delegate, 'author'
                         ]
                         daisy queue
+
+  modify: secure ({connection:{delegate}}, formData, callback)->
+
+    callback new KodingError "Access denied"
+
+    # this crashes the server
+    # if delegate.getId().equals @originId
+    #   @update $set : formData, (err, response)=> callback err, response
+    # else
+    #   callback new KodingError "Access denied"
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback

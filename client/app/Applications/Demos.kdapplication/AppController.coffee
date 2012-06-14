@@ -32,9 +32,30 @@ class Demos12345 extends AppController
       { title : "title 20", id : 20, parentId: 1}
     ]
     
-    t = new JTreeViewController 
-      addListsCollapsed : no
-    , data
+    # t = new JTreeViewController 
+    #   addListsCollapsed : yes
+    # , data
+    # mainView.addSubView t.getView()
+    # t.getView().$().height "auto"
+    
+    
+    # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
+    # mainView.addSubView b = new KDButtonView
+    #   title     : "render"
+    #   callback  : -> 
+    #     log "being rendered"
+    #     a.render.call a
+    # 
+
+    controller = new MembersListViewController
+      subItemClass : MembersListItemView
+    , items : [KD.whoami()]
+  
+    mainView.addSubView controller.getView()
+
+
+    # KD.whoami().on "update", => log "data has changed"
+    
     
     # mainView.addSubView form = new KDFormViewWithFields
     #   fields          :
@@ -85,8 +106,6 @@ class Demos12345 extends AppController
     #       callback : -> log "c"
 
     
-    mainView.addSubView t.getView()
-    t.getView().$().height "auto"
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dropee

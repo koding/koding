@@ -4,7 +4,7 @@ class KDButtonGroupView extends KDView
 
     {cssClass} = options
     cssClass   = if cssClass then " #{cssClass}" else ""
-    options.cssClass or= "kdbuttongroup#{cssClass}"
+    options.cssClass   = "kdbuttongroup#{cssClass}"
     options.buttons  or= {}
     
     super options,data

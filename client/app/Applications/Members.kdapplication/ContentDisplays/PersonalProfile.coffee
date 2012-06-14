@@ -14,15 +14,15 @@ class PersonalProfile extends KDView
         placement : "below"
     , memberData
 
-    @profileName = new PersonalFormNameView null, memberData
-    @location    = new PersonalFormLocationView null, memberData
+    @profileName = new PersonalFormNameView {memberData}
+    @location    = new PersonalFormLocationView {memberData}
     
-    @followers   = new ProfileFollowersView null, memberData
-    @following   = new ProfileFollowingView null, memberData
+    @followers   = new ProfileFollowersView {memberData}
+    @following   = new ProfileFollowingView {memberData}
     
     @aboutYou    = new PersonalFormAboutWrapperView null, memberData
       
-    @skillTagView = new PersonalFormSkillTagView null, memberData
+    @skillTagView = new PersonalFormSkillTagView {memberData}
     
     @setListeners()
                 
