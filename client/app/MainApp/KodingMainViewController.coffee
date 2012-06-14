@@ -31,7 +31,9 @@ class MainController extends KDController
         url       : KD.apiUri+"/1.0/login"
         data      :
           n       : nonce
-          env     : if KD.env is 'dev' then 'vpn' else 'beta'
+          env     : KD.env
+        xhrFields :
+          withCredentials: yes
 
   deauthorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
@@ -39,8 +41,11 @@ class MainController extends KDController
         url       : KD.apiUri+'https://api.koding.com/1.0/logout'
         data      :
           n       : nonce
+          env     : KD.env
         success	  : callback
         failure	  : callback
+        xhrFields :
+          withCredentials: yes
   
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
