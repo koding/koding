@@ -96,15 +96,14 @@ class ActivityItemChild extends KDView
         menu        : [
           type      : "contextmenu"
           items     : [
-            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            # { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
             { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
           ]
         ]
         callback    : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
-      
-     
     
     super
     
@@ -112,7 +111,10 @@ class ActivityItemChild extends KDView
       if KD.whoami().getId() is data.getAt('originId')
         @parent.destroy()
       else
-        @parent.$().css('opacity', .5)
+        @parent.putOverlay
+          isRemovable : no
+          parent      : @parent
+          cssClass    : 'half-white'
     
     @getData().watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
