@@ -160,7 +160,7 @@ class SidebarController extends KDViewController
     # @finderController = new FinderController null, {items : []}
     @jFinderController = new NFinderController
       fsListeners : yes
-      initialPath : "/Users/#{profile.nickname}/public_html/#{profile.nickname}.beta.koding.com/httpdocs"
+      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.beta.koding.com/website"
     
     @finderHeaderHolder.destroySubViews()
     @finderHolder.destroySubViews()
