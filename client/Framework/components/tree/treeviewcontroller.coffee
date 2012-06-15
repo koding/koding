@@ -141,12 +141,10 @@ class JTreeViewController extends KDViewController
   CRUD OPERATIONS FOR NODES
   ###
 
-  addNode:(nodeData)->
+  addNode:(nodeData, index)->
 
-    # log nodeData, "><AS>>ASD"
     nodeData = @repairIds nodeData
     return unless nodeData
-    # log nodeData, "><AS>>ASD"
     @getData().push nodeData
     @addIndexedNode nodeData
     @registerListData nodeData
@@ -158,7 +156,7 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData
+    list.addItem nodeData, index
   
   removeNode:(id)->
 

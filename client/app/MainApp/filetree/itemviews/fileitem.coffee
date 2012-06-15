@@ -27,8 +27,8 @@ class NFileItemView extends KDCustomHTMLView
     data.on "fs.*.started", => @showLoader()
     data.on "fs.*.finished", => @hideLoader()
 
-    data.on "fs.saveAs.finished", (newFile, oldFile)=>
-      @parent.emit "folderNeedsToRefresh", newFile
+    # data.on "fs.saveAs.finished", (newFile, oldFile)=>
+    #   oldFile.emit "folderNeedsToRefresh", newFile
 
   destroy:->
     

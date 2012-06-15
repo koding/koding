@@ -208,11 +208,13 @@ __utils =
       fn = duration
       duration = 0
     setTimeout fn, duration
-  
-  htmlDecode:(str)->
-    el = document.createElement('div')
-    el.innerHTML = str
-    return el.textContent
+
+  getCancellableCallback:(callback)->
+    cancelled = no
+    kallback = (rest...)->
+      callback rest... unless cancelled
+    kallback.cancel = -> cancelled = yes
+    kallback
 
   ###
   //     Underscore.js 1.3.1
