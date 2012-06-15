@@ -462,7 +462,7 @@ button.kdbutton.dark
   
 
   .tags-selected-item-wrapper
-    margin                  10px 0 10px 0
+    margin                  10px 0 0 0
                             
                             
   .formline
@@ -473,7 +473,10 @@ button.kdbutton.dark
     borderBox()
     &:first-child > div
       margin-left           153px
-
+    
+    .formline-wrapper
+      max-width             713px
+    
     > div
       overflow              hidden
       max-width             560px
@@ -520,8 +523,6 @@ button.kdbutton.dark
     padding                 14px 16px
 
   .submit-box               
-    text-align              right
-    max-width               562px!important
     button                  
       vertical-align        middle
       font-weight 600       
@@ -562,23 +563,23 @@ form.status-widget
     vendor                transition, height .1s ease-out
     margin-bottom         20px
 
-  .kdautocompletewrapper
-    position              absolute
-    top                   72px
-    left                  170px
-    max-width             558px
-    border-color          transparent
-    padding               0
-    bg                    color, transparent
-    height                22px
-    border-top            1px solid #E9E9E9
-    shadow                none
-    rounded               0
-    .kdinput.text
-      border-color        transparent
-      bg                  color, #f2f2f2
-      rounded             0 0 3px 3px
-      shadow              none
+  // .kdautocompletewrapper
+  //   position              absolute
+  //   top                   72px
+  //   left                  170px
+  //   max-width             558px
+  //   border-color          transparent
+  //   padding               0
+  //   bg                    color, transparent
+  //   height                22px
+  //   border-top            1px solid #E9E9E9
+  //   shadow                none
+  //   rounded               0
+  //   .kdinput.text
+  //     border-color        transparent
+  //     bg                  color, #f2f2f2
+  //     rounded             0 0 3px 3px
+  //     shadow              none
 
 .code-snip-holder
   padding                   10px
