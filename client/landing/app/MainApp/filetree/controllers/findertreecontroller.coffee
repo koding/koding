@@ -112,7 +112,7 @@ class NFinderTreeController extends JTreeViewController
       {nickname} = KD.whoami().profile
       appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
-      appManager.openFileWithApplication publicPath, "Viewer.kdapplication"
+      appManager.openFileWithApplication publicPath, "Viewer"
 
 
   refreshFolder:(nodeView, callback)->
