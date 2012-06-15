@@ -24,12 +24,12 @@ class ActivityStatusUpdateWidget extends KDFormView
           required  : yes
         messages    :
           required  : "Please type a message..."
-      keydown       : (input, event)=>
-        # this is bad find a way to semantically would fix this - Sinan
-        if event.which is 9
-          event.stopPropagation()
-          event.preventDefault()
-          @submitBtn.$().trigger "focus"
+      # keydown       : (input, event)=>
+      #   # this is bad find a way to semantically would fix this - Sinan
+      #   if event.which is 9
+      #     event.stopPropagation()
+      #     event.preventDefault()
+      #     @submitBtn.$().trigger "focus"
     
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -48,30 +48,30 @@ class ActivityStatusUpdateWidget extends KDFormView
       tooltip  :
         title  : "This a public wall, here you can share anything with the Koding community."
 
-    # @labelAddTags = new KDLabelView
-    #   title : "Add Tags:"
-    # 
-    # @selectedItemWrapper = new KDCustomHTMLView
-    #   tagName  : "div"
-    #   cssClass : "tags-selected-item-wrapper clearfix"
+    @labelAddTags = new KDLabelView
+      title : "Add Tags:"
+    
+    @selectedItemWrapper = new KDCustomHTMLView
+      tagName  : "div"
+      cssClass : "tags-selected-item-wrapper clearfix"
 
-    # @tagController = new TagAutoCompleteController
-    #   name                : "meta.tags"
-    #   type                : "tags"
-    #   itemClass           : TagAutoCompleteItemView
-    #   selectedItemClass   : TagAutoCompletedItemView
-    #   outputWrapper       : @selectedItemWrapper
-    #   selectedItemsLimit  : 5
-    #   listWrapperCssClass : "tags"
-    #   form                : @
-    #   itemDataPath        : "title"
-    #   dataSource          : (args, callback)=>
-    #     {inputValue} = args
-    #     updateWidget = @getDelegate()
-    #     blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-    #     appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-    # 
-    # @tagAutoComplete = @tagController.getView()
+    @tagController = new TagAutoCompleteController
+      name                : "meta.tags"
+      type                : "tags"
+      itemClass           : TagAutoCompleteItemView
+      selectedItemClass   : TagAutoCompletedItemView
+      outputWrapper       : @selectedItemWrapper
+      selectedItemsLimit  : 5
+      listWrapperCssClass : "tags"
+      form                : @
+      itemDataPath        : "title"
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        updateWidget = @getDelegate()
+        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
+        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+    
+    @tagAutoComplete = @tagController.getView()
     
   switchToSmallView:->
     
@@ -127,21 +127,9 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   pistachio:->
 
-    """
-    <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}</div>
-    <div class="formline submit">
-      {{> @heartBox}}
-      <div class="submit-box">
-        {{> @cancelBtn}}{{> @submitBtn}}
-      </div>
-    </div>
-    """
-    
     # """
-    # {{> @smallInput}}
-    # <div>{{> @largeInput}}{{> @tagAutoComplete}}</div>
-    # {{> @selectedItemWrapper}}
+    # <div class="small-input">{{> @smallInput}}</div>
+    # <div class="large-input">{{> @largeInput}}</div>
     # <div class="formline submit">
     #   {{> @heartBox}}
     #   <div class="submit-box">
@@ -149,5 +137,26 @@ class ActivityStatusUpdateWidget extends KDFormView
     #   </div>
     # </div>
     # """
+    
+    """
+    <div class="small-input">{{> @smallInput}}</div>
+    <div class="large-input">{{> @largeInput}}</div>
+    <div class="formline">
+      {{> @labelAddTags}}
+      <div>
+        {{> @tagAutoComplete}}
+        {{> @selectedItemWrapper}}
+      </div>
+    </div>
+    <div class="formline submit">
+      <div class='formline-wrapper'>
+        <div class="submit-box fr">
+          {{> @submitBtn}}
+          {{> @cancelBtn}}
+        </div>
+        {{> @heartBox}}
+      </div>
+    </div>
+    """
     
   

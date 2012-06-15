@@ -100,7 +100,8 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
 
   openFile:(nodeView, event)->
-
+    
+    return unless nodeView
     file = nodeView.getData()
     appManager.openFileWithApplication file, "Ace"
 

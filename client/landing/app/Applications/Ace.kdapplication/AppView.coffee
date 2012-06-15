@@ -20,7 +20,8 @@ class AceView extends JView
       style         : "clean-gray editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
-      callback      : ()=> @getData().emit "ace.requests.save", @ace.getContents()
+      callback      : ()=> 
+        @ace.requestSave()
     
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
