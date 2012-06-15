@@ -4,7 +4,6 @@ class Ace12345 extends KDController
     
     super
     @aceViews  = {}
-    @setFSListeners()
 
   bringToFront:(view)->
     
@@ -30,53 +29,51 @@ class Ace12345 extends KDController
     , {options, data}
 
   initAndBringToFront:(options,callback)->
+
     @bringToFront()
     callback()
 
   isFileOpen:(file)-> @aceViews[file.path]?
   
   openFile:(file)->
+
     unless @isFileOpen file
       @bringToFront new AceView {}, file
 
   removeOpenDocument:(doc)->
+
+    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
     appManager.removeOpenTab doc
     @clearFileRecords doc
+    doc.destroy()
 
   setViewListeners:(view)->
+
     @listenTo 
       KDEventTypes       : 'ViewClosed',
       listenedToInstance : view
-      callback           : (doc)=>
-        # doc.parent.removeSubView doc
-        @removeOpenDocument doc
-
-        @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
-        doc.destroy()
+      callback           : (doc)=> @removeOpenDocument doc
     
-    @listenTo 
-      KDEventTypes       : "KDObjectWillBeDestroyed"
-      listenedToInstance : view
-      callback           : ()=>
-        @clearFileRecords view
+    @setFileListeners view.getData()
 
-    file = view.getData()
+  setFileListeners:(file)->
 
-    file.on "fs.remotefile.created", (oldPath)=>
-      delete @aceViews[oldPath]
-      @aceViews[file.path]
-      view.parent.setTitle file.name
+    view = @aceViews[file.path]
 
-  setFSListeners:->
-    
-    FSItem.on "fs.saveAs.finished", (newFile, oldFile)=>
-
+    file.on "fs.saveAs.finished", (newFile, oldFile)=>
       if @aceViews[oldFile.path]
         view = @aceViews[oldFile.path]
         @clearFileRecords view
         @aceViews[newFile.path] = view
         view.setData newFile
+        view.parent.setTitle newFile.name
         view.ace.setData newFile
+        @setFileListeners newFile
+        view.ace.notify "New file is created!", "success"
+        @getSingleton('mainController').emit "NewFileIsCreated", newFile
+
+    file.on "fs.delete.finished", => @removeOpenDocument @aceViews[file.path]
+
 
   clearFileRecords:(view)->
     file = view.getData()
