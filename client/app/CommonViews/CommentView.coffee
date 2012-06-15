@@ -302,6 +302,25 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {
       origin
     }
+    if data.originId is KD.whoami().getId()
+      @settingsButton = new KDButtonViewWithMenu
+        style       : 'transparent activity-settings-context'
+        cssClass    : 'activity-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "cog"
+        menu        : [
+          type      : "contextmenu"
+          items     : [
+            # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
+          ]
+        ]
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
   
   viewAppended:->
     @setTemplate @pistachio()
@@ -325,6 +344,7 @@ class CommentListItemView extends KDListItemView
           {{@utils.applyTextExpansions #(body)}}
         </p>
         <time>{{$.timeago #(meta.createdAt)}}</time>
+        <div>{{> @settingsButton}}</div>
       </div>
     </div>
     """

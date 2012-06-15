@@ -122,46 +122,32 @@ class JPost extends jraphical.Message
   unmark: secure ({connection:{delegate}}, flag, callback)->
     @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
 
-  delete: secure do ->
-    getDeleteHelper =(selector, orientation, callback)->
-      ->
-        Relationship.all selector, (err, rels)->
-          if err
-            callback err
-          else
-            queue = []
-            rels.forEach (rel)->
-              queue.push ->
-                constructor = bongo.Base.constructors[rel.getAt orientation+'Name']
-                constructor.remove _id: rel.getAt(orientation+'Id'), -> queue.fin()
-            dash queue, callback
-
-    ({connection:{delegate}}, callback)->
-      originId = @getAt 'originId'
-      unless delegate.getId().equals originId
-        callback new KodingError 'Access denied!'
-      else
-        id = @getId()
-        queue = [
-          getDeleteHelper {
-            targetId    : id
-            sourceName  : /Activity$/
-          }, 'source', -> queue.fin()
-          getDeleteHelper {
-            sourceId    : id
-            sourceName  : 'JComment'
-          }, 'target', -> queue.fin()
-          =>
-            Relationship.remove {
-              targetId  : id
-              as        : 'post'
-            }, -> queue.fin()
-          => @remove -> queue.fin()
-        ]
-        dash queue, =>
-          @emit 'PostIsDeleted', 1
-          callback null
-          
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        getDeleteHelper {
+          sourceId    : id
+          sourceName  : 'JComment'
+        }, 'target', -> queue.fin()
+        =>
+          Relationship.remove {
+            targetId  : id
+            as        : 'post'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        @emit 'PostIsDeleted', 1
+        callback null
 
   like: secure ({connection}, callback)->
     {delegate} = connection
