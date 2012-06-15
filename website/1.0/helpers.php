@@ -105,7 +105,6 @@ function get_mongo_host () {
 
 function get_mongo_db_name () {
   global $env;
-  error_log($env);
   $db_names = array(
     'vpn'   => 'kodingen',
     'beta'  => 'beta_koding',
