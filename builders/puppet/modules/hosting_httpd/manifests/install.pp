@@ -3,7 +3,7 @@
 #
 class hosting_httpd::install {
     
-    package { [ "httpd", "mod_hostinglimits"]:
+    package { [ "httpd", "mod_hostinglimits", "mod_fcgid"]:
         ensure => installed,
     }
 }
