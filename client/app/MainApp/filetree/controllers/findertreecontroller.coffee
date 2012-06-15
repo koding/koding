@@ -10,7 +10,7 @@ class NFinderTreeController extends JTreeViewController
   constructor:->
     
     super
-
+    
     if @getOptions().contextMenu
       @contextMenuController = new NFinderContextMenuController
 
@@ -33,27 +33,38 @@ class NFinderTreeController extends JTreeViewController
     #       
     #     if dimmed
     #       node.setClass "dimmed" for node in @selectedNodes
-    @setFSListeners()
+    # @setFSListeners()
 
   addNode:(nodeData)->
     
-    return if @getOptions().foldersOnly and nodeData.type is "file"
-    @setFileListeners nodeData
-    super
+    o = @getOptions()
+    return if o.foldersOnly and nodeData.type is "file"
+    # @setFileListeners nodeData if o.fsListeners
+    item = super nodeData
 
-  setFSListeners:->
-
-    FSItem.on "fs.remotefile.created", (file)=>
-      parentNode = @nodes[file.parentPath]
-      if parentNode
-        if parentNode.expanded
-          @refreshFolder @nodes[file.parentPath], =>
-            @selectNode @nodes[file.path]
-        else
-          @expandFolder @nodes[file.parentPath], =>
-            @selectNode @nodes[file.path]
+  setItemListeners:(pubInst, {view})->
     
-  setFileListeners:(file)->
+    super
+    
+    view.on "folderNeedsToRefresh", (newFile)=> 
+
+      @navigateTo newFile.parentPath, =>
+        @selectNode @nodes[newFile.path]
+        @openFile @nodes[newFile.path]
+      
+    # # 
+    # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
+    # 
+    #   log "fs.saveAs.finished", "+>>>>>"
+    #   
+    #   parentNode = @nodes[path]
+    #   if parentNode
+    #     if parentNode.expanded
+    #       @refreshFolder @nodes[path], =>
+    #         @selectNode @nodes[path]
+    #     else
+    #       @expandFolder @nodes[parentPath], =>
+    #         @selectNode @nodes[path]
     
     # file.on "fs.remotefile.created", (oldPath)=>
     #   tc = @treeController
@@ -96,10 +107,10 @@ class NFinderTreeController extends JTreeViewController
   previewFile:(nodeView, event)->
 
     file = nodeView.getData()
-    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/, 'http://$1/$2'
+    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/public_html/#{nickname}.#{location.hostname}/httpdocs/"
+      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
       appManager.openFileWithApplication publicPath, "Viewer.kdapplication"
 
@@ -121,13 +132,19 @@ class NFinderTreeController extends JTreeViewController
   
   expandFolder:(nodeView, callback)->
     
-    return if nodeView.isLoading or nodeView.expanded
+    return unless nodeView
+    return if nodeView.isLoading
+
+    if nodeView.expanded
+      callback? nodeView
+      return
+
     folder = nodeView.getData()
 
     folder.failTimer = setTimeout =>
       @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
       folder.emit "fs.nothing.finished", []
-    , 10000
+    , 5000
 
     folder.fetchContents (files)=>
       clearTimeout folder.failTimer
@@ -148,6 +165,29 @@ class NFinderTreeController extends JTreeViewController
     else
       nodeView.collapse()
       callback? nodeView
+  
+  navigateTo:(path, callback)->
+    
+    return unless path
+    
+    path = path.split('/')
+    path.shift()  if path[0] is ''
+    path.pop()    if path[path.length-1] is ''
+    path[1] = "/#{path[0]}/#{path[1]}"
+    path.shift()
+
+    index     = 0
+    lastPath  = ''
+    _expand = (path)=>
+      nextPath = path.slice(0, ++index).join('/')
+      if lastPath is nextPath
+        callback?()
+        return
+      @expandFolder @nodes[nextPath], => 
+        lastPath = nextPath
+        _expand path
+
+    _expand path
 
   confirmDelete:(nodeView, event)->
     
@@ -429,13 +469,19 @@ class NFinderTreeController extends JTreeViewController
 
   dragEnd: (nodeView, event)->
 
-    log "clear after drag"
+    # log "clear after drag"
     @clearAllDragFeedback()
     super
 
   drop: (nodeView, event)->
     
     return if nodeView in @selectedNodes
+    
+    sameParent = no
+    @selectedNodes.forEach (selectedNode)->
+      sameParent = yes if selectedNode.getData().parentPath is nodeView.getData().parentPath
+    
+    return if sameParent
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView

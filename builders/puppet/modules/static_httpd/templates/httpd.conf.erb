@@ -134,6 +134,7 @@ MaxRequestsPerChild  0
 #
 #Listen 12.34.56.78:80
 Listen 127.0.0.1:8080
+Listen 127.0.0.1:8081
 
 #
 # Dynamic Shared Object (DSO) Support
@@ -1014,4 +1015,20 @@ NameVirtualHost *:8080
     ErrorLog logs/api-error_log
     LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %s %b" vcommon
     CustomLog logs/api-access_log vcommon
+</VirtualHost>
+
+<VirtualHost *:8081>
+    DocumentRoot /home/cthorn/koding/website
+    ServerName <%= fqdn %>
+    ServerAlias dev-api.koding.com
+
+    <Directory /home/cthorn/koding/website >
+        AllowOverride None
+        EnableSendfile off
+        Options -FollowSymLinks
+    </Directory>
+
+    ErrorLog logs/dev-api-error_log
+    LogFormat "%{X-Forwarded-For}i %l %u %t \"%r\" %s %b" vcommon
+    CustomLog logs/dev-api-access_log vcommon
 </VirtualHost>

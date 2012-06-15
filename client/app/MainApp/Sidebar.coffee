@@ -137,6 +137,8 @@ class SidebarController extends KDViewController
   
   accountChanged:(account)->
 
+    {profile} = account
+
     @navController.removeAllItems()
     @accNavController.removeAllItems()
     @avatarAreaIconMenu.accountChanged account
@@ -157,8 +159,8 @@ class SidebarController extends KDViewController
 
     # @finderController = new FinderController null, {items : []}
     @jFinderController = new NFinderController
-    
-    {profile} = account
+      fsListeners : yes
+      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.beta.koding.com/website"
     
     @finderHeaderHolder.destroySubViews()
     @finderHolder.destroySubViews()

@@ -51,8 +51,8 @@ node webnode inherits base {
     #    logoutput => true,
     #}
     
-    monit::nodeapp { "kfmjs":
-        appname   => "kfmjs",
+    monit::nodeapp { "koding":
+        appname   => "koding",
         isenabled => 'enabled', 
         nodeuser  => true,
         require_deploy => false,

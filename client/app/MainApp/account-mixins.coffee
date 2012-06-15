@@ -21,6 +21,24 @@ AccountMixin = do ->
         
     JAccount::fetchNonce = fetchNonce
     
+    nonces = []
+    
+    fetchNonces = (callback)->
+      KD.whoami().fetchNonces (err, moreNonces)->
+        if err
+          new KDNotificationView
+            title: 'Could not authorize this client.'
+        else
+          nonces = nonces.concat moreNonces
+        callback nonces
+    
+    fetchNonce = (callback)->
+      nonce = nonces.shift()
+      if nonce? then callback nonce
+      else fetchNonces -> fetchNonce callback
+    
+    JAccount::fetchNonce = fetchNonce
+    
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
       kiteChannelId = @_kiteChannels[kiteId]
@@ -45,14 +63,14 @@ AccountMixin = do ->
             url     : url
             data    :
               data  : data
-              env   : if KD.env is 'dev' then 'vpn' else 'beta'
+              env   : KD.env
               n     : nonce
             type    : 'POST'
             xhrFields:
               withCredentials: yes
       
       getKiteUri =(kiteName)->
-        "https://api.koding.com/1.0/kite/#{kiteName}"
+        KD.apiUri+"/1.0/kite/#{kiteName}"
       
       sendCommand =(kiteName, args, callbackId)->
         scrubber = new Scrubber localStore

@@ -18,11 +18,13 @@ class CBucket extends jraphical.Module
     Model::save.call @, callback
     
   add:(item, callback)->
+    member = ObjectRef(item)
+    console.log member.data
     @update {
       $set          :
         modifiedAt  : new Date
       $addToSet     :
-        group       : ObjectRef(item)
+        group       : member.data
     }, callback
 
 class CNewMemberBucket extends CBucket

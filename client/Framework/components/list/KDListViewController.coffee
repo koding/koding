@@ -26,7 +26,7 @@ class KDListViewController extends KDViewController
     if options.wrapper
       options.view = new KDView cssClass : "listview-wrapper"
     
-    super options,data
+    super options, data
     
     @listenTo
       KDEventTypes        : 'ItemWasAdded'

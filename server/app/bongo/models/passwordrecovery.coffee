@@ -119,7 +119,6 @@ class JPasswordRecovery extends jraphical.Module
     @update query, {$set: status: 'invalidated'}, callback
   
   @resetPassword = bongo.secure (client, token, newPassword, callback)->
-    debugger
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in!'

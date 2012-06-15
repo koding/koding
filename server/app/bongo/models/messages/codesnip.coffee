@@ -21,7 +21,6 @@ class JCodeSnip extends JPost
     relationships : JPost.relationships
   
   @create = secure (client, data, callback)->
-    
     codeSnip =
       title       : data.title
       body        : data.body
@@ -30,8 +29,8 @@ class JCodeSnip extends JPost
         content   : data.code
         syntax    : data.syntax
       }]
-      meta        : null
-      # meta        : data.meta
+      meta        : data.meta
+      # meta        : null
       
           
     

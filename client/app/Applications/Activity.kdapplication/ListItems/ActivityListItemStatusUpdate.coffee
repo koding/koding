@@ -21,6 +21,7 @@ class StatusActivityItemView extends ActivityItemChild
   
   pistachio:->
     """
+    {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>

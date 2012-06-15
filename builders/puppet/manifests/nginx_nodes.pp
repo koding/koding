@@ -45,9 +45,8 @@ node nginx inherits base {
     }
 
 }
- 
-node 'proxy0.beta.system.aws.koding.com' inherits nginx {
-      #include gluster_client
-      #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
+
+node /^proxy\d+\.beta\.system\.aws\.koding\.com$/  inherits nginx {
+    include gluster_client
+    bind_dir { "/Users": mpoint => "/Users", device => "/mnt/storage0/Users"}
 }
- 

@@ -1,5 +1,3 @@
-module.exports =
-  name    : "terminaljs"
-  port    : 4567
-  pidPath : "/var/run/node/TerminalJS.pid"
-  logFile : "/var/log/node/TerminalJS.log" 
+{argv} = require 'optimist'
+
+module.exports = require './' + argv.c ? 'config-prod'

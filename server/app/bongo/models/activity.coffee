@@ -59,7 +59,7 @@ class CActivity extends jraphical.Capsule
     @someData {snapshot:$exists:1}, {snapshot:1}, {limit:20}, (err, cursor)->
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
-
+  
   markAsRead: bongo.secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
