@@ -19,17 +19,15 @@ class hosting_httpd::config {
         source  => "puppet:///modules/hosting_httpd/etc/php.ini",
     }
 
-    file { "/etc/suphp.conf":
-        source  => "puppet:///modules/hosting_httpd/etc/suphp.conf",
-    }
 
     file { "/etc/httpd/conf.d/php.conf":
         source  => "puppet:///modules/hosting_httpd/etc/httpd/conf.d/php.conf",
     }
-
-    file { "/etc/httpd/conf.d/suphp.conf":
-        source  => "puppet:///modules/hosting_httpd/etc/httpd/conf.d/suphp.conf",
+    
+    file { "/etc/httpd/conf.d/fcgid.conf":
+        source  => "puppet:///modules/hosting_httpd/etc/httpd/conf.d/fcgid.conf",
     }
+    
 
     file { "/etc/httpd/conf.d/modhostinglimits.conf":
         source  => "puppet:///modules/hosting_httpd/etc/httpd/conf.d/modhostinglimits.conf",
@@ -38,5 +36,17 @@ class hosting_httpd::config {
     file { "/etc/sysconfig/httpd":
         source  => "puppet:///modules/hosting_httpd/etc/sysconfig/httpd",
     }
+   
+    file { "/usr/local/safe-bin/":
+	ensure => "directory",
+    }
+    
+    file { "/usr/local/safe-bin/php-wrapper":
+	mode => "755",
+	source  => "puppet:///modules/hosting_httpd/usr/local/safe-bin/php-wrapper",
+        require => File["/usr/local/safe-bin/"],
+	notify => Class["cloudlinux::cagefs_update"],
+    }
+
 }
 
