@@ -96,8 +96,8 @@ class ActivityItemChild extends KDView
         menu        : [
           type      : "contextmenu"
           items     : [
-            # { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
+            # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
             { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
           ]
         ]
@@ -130,6 +130,8 @@ class ActivityItemChild extends KDView
     else
       tags
 
-    'in ' + tagsToDisplay.map(
-      (tag)-> "<span class='ttag'>#{tag.title}</span>"
-    ).join('') + suffix
+    if tagsToDisplay.length
+      'in ' + tagsToDisplay.map(
+        (tag)-> "<span class='ttag'>#{tag.title}</span>"
+      ).join('') + suffix
+    else ''
