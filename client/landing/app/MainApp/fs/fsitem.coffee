@@ -122,8 +122,8 @@ class FSItem extends KDObject
       callback err, response
       if err then warn err
       else
+        @emit "fs.delete.finished"
         @destroy()
-      @emit "fs.delete.finished"
   
   rename:(newName, callback)->
     
