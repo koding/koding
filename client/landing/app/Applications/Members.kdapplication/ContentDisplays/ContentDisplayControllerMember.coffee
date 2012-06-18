@@ -23,15 +23,45 @@ class ContentDisplayControllerMember extends KDViewController
         contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
     
     memberProfile = @addProfileView member
-    memberStream = @addActivityView member
+    memberStream  = @addActivityView member
+    
+    unless KD.isMine member
+      @listenTo 
+        KDEventTypes       : "mouseenter"
+        listenedToInstance : memberProfile
+        callback           : => @mouseEnterOnHeader()
     
     memberProfile.on 'FollowButtonClicked', @followAccount
     memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
   
   addProfileView:(member)->
-    @getView().addSubView memberProfile = new LoggedOutProfile {cssClass : "profilearea clearfix",delegate : @getView()}, member
-    memberProfile
-    
+
+    return @getView().addSubView memberProfile = new LoggedOutProfile
+      cssClass : "profilearea clearfix"
+      bind     : "mouseenter"
+      delegate : @getView()
+    , member
+  
+  mouseEnterOnFeed:->
+
+    clearTimeout @intentTimer
+    @intentTimer = setTimeout =>
+      @getView().$('.profilearea').css "overflow", "hidden"
+      @getView().setClass "small-header"
+      @utils.nextTick 300,=>
+        @getSingleton('windowController').notifyWindowResizeListeners()
+    , 500
+  
+  mouseEnterOnHeader:->
+
+    clearTimeout @intentTimer
+    @intentTimer = setTimeout =>
+      @getView().unsetClass "small-header"
+      @utils.nextTick 300,=>
+        @getSingleton('windowController').notifyWindowResizeListeners()
+        @getView().$('.profilearea').css "overflow", "visible"
+    , 500
+  
   followAccount:(account, callback)->
     account.follow callback
   
@@ -39,3 +69,39 @@ class ContentDisplayControllerMember extends KDViewController
     account.unfollow callback
     
   addActivityView:(account)->
+    appManager.tell 'Feeder', 'createContentFeedController', {
+      subItemClass          : ActivityListItemView
+      listControllerClass   : ActivityListController
+      limitPerPage          : 20
+      help                  :
+        subtitle            : "Learn Personal feed" 
+        tooltip             :
+          title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
+          placement         : "above"
+      filter                :
+        Activity            :
+          title             : "Activity"
+          dataSource        : (selector, options, callback)=>
+
+      sort                  :
+        '*'                 :
+          title             : "Everything"
+          direction         : -1
+        'JStatusUpdate'     :
+          title             : "Status Updates"
+          direction         : -1
+        'JCodeSnippet'      :
+          title             : "Code Snippets"
+          direction         : -1
+        # and more
+    }, (controller)=>
+      #put listeners here, look for the other feeder instances
+      
+      unless KD.isMine account
+        @listenTo 
+          KDEventTypes       : "mouseenter"
+          listenedToInstance : controller.getView()
+          callback           : => @mouseEnterOnFeed()
+
+      @getView().addSubView controller.getView()
+    

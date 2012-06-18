@@ -17,8 +17,25 @@ class LoggedInProfile extends KDView
     @profileName = new PersonalFormNameView {memberData}
     @location    = new PersonalFormLocationView {memberData}
     
-    @followers   = new ProfileFollowersView {memberData}
-    @following   = new ProfileFollowingView {memberData}
+    @followers = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      pistachio   : "{{#(counts.followers)}} <span>Followers</span>"
+      click       : (event)->
+        return if memberData.counts.followers is 0
+        appManager.tell "Members", "createFollowsContentDisplay", memberData, 'followers'
+    , memberData
+
+    @following = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      pistachio   : "{{#(counts.following)}} <span>Following</span>"
+      click       : (event)->
+        return if memberData.counts.following is 0
+        appManager.tell "Members", "createFollowingContentDisplay", memberData, 'followings'
+    , memberData
     
     @aboutYou    = new PersonalFormAboutWrapperView null, memberData
       
