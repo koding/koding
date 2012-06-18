@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['byCode','__sendBetaInvites']#,,'__createBetaInvites']
+      static        : ['byCode']#,,'__sendBetaInvites','__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -71,7 +71,7 @@ class JInvitation extends jraphical.Module
       {host, port} = server
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(4000, 5000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(6000, 7000).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
