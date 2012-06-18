@@ -47,7 +47,7 @@ class LoggedOutProfile extends KDView
         appManager.tell "Members", "createFollowsContentDisplay", memberData, 'followers'
     , memberData
 
-    @following = new ProfileFollowingView
+    @following = new KDView
       tagName     : 'a'
       attributes  :
         href      : '#'

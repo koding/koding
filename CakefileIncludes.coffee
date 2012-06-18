@@ -354,7 +354,6 @@ Includes =
         FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
-        FeedView                      : "./client/app/Applications/Feeder.kdapplication/FeedView.coffee"
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
         FeederTabView                 : "./client/app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee"
 

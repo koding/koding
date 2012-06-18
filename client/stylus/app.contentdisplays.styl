@@ -15,6 +15,8 @@ app.contentdisplays.styl
   bg                        color,rgb(255,255,255)
   z-index                   1000
   overflow                  auto
+  .kdsplitview
+    vendor                  transition, height .3s ease-in-out    
   .header-view-section
     span
       color                 #222
@@ -29,128 +31,148 @@ app.contentdisplays.styl
       sprite()
       fl()
 
-
-  .content-display
-    // height                  auto # WHY?
-    .sub-header             
-      font-size             12px
+  .sub-header             
+    font-size             12px
+  a
+    color                 #FF9200
+  h2                      
+    padding               0px 0px 0px 17px
+    line-height           12px
+    font-size             13px
+    height                27px
+    color                 #4F4F4F
+    border-bottom         1px solid #ECECEC
+    position              relative
     a
-      color                 #FF9200
-    .profilearea            
-      border-bottom         1px solid rgba(0,0,0,0.125)
-      gradient              #fff,#f2f2f2
-      height                auto
-    h2                      
-      padding               0px 0px 0px 17px
-      line-height           12px
-      font-size             13px
-      height                27px
-      color                 #4F4F4F
-      border-bottom         1px solid #ECECEC
-      position              relative
-      a
-        width               50px
-        display             inline-block
-        margin-right        20px
-        padding-top         7px
-        font-weight         400
-        cursor              pointer
-        noTextDeco()
+      width               50px
+      display             inline-block
+      margin-right        20px
+      padding-top         7px
+      font-weight         400
+      cursor              pointer
+      noTextDeco()
 
-    .profileleft
-      margin-left           25px
-      padding               25px 0px
-      // position              absolute
-      size                  115px,auto
+  .profileleft
+    margin-left           25px
+    padding               25px 0px
+    size                  115px,auto
+    vendor                transition, width .3s ease-in-out
+    borderBox()
+    fl()
+    a                     
+      display             table-cell
+      bg                  size, cover
+      bg                  position, center
+      bg                  color, #EEEEEE
+      color               #AAAAAA
+      text-align          center
+      vertical-align      middle
+      line-height         16px
+      font-size           12px
+      size                90px,90px
+      noTextDeco()
+    > span
+      padding             1px
+      border              1px solid #E3E3E3
+      display             block
+      margin-bottom       10px
+      size                90px,90px
+    button                
+      width               94px
+      text-align          center
+      padding             8px 0px
+      font-size           12px
+      font-weight         400
+      display             inline-block
+      line-height         12px
+      margin-right        25px
+
+  .profilearea
+    border-bottom         1px solid rgba(0,0,0,0.125)
+    gradient              #ffffff, #f2f2f2
+    height                243px
+    vendor                transition, height .3s ease-in-out
+
+    section
       borderBox()
-      fl()
-      a                     
-        display             table-cell
-        bg                  size,cover
-        bg                  position,center
-        bg                  color,#EEEEEE
-        color               #AAAAAA
-        text-align          center
-        vertical-align      middle
-        line-height         16px
-        font-size           12px
-        noTextDeco()
-        size(90px,90px)
-      > span
-        padding             1px
-        border              1px solid #E3E3E3
-        display             block
-        margin-bottom       10px
-        size(90px,90px)     
-      button                
-        width               94px
-        text-align          center
-        padding             8px 0px
-        font-size           12px
-        font-weight         400
-        display             inline-block
-        line-height         12px
-        margin-right        25px
-    .profilearea
-      section
-        borderBox()
-        width                 auto
-        margin-left           140px
-        padding               23px 25px 25px 17px
-        h3
-          margin              0
-          padding             0
-          color               #222
-          font-size           30px
-          display             inline-block
-          position            relative
-                            
-        h4                    
-          font-size           16px
-          color               #a5a5a5
-          font-weight         300
-          margin              0px
-          padding             0px
-          display             inline-block
-          margin-left         10px
-          position            relative
-                            
-    .profilestats           
-      padding               14px 0px 11px 0px
-      border-bottom         1px solid #E2E2E2
-      border-top            1px solid #E2E2E2
-      margin-top            17px
-      borderBox()
-      a                     
+      width                 auto
+      margin-left           140px
+      padding               23px 25px 25px 17px
+      h3
+        margin              0
+        padding             0
         color               #222
-        font-size           14px
-        font-weight         700
-        padding-left        23px
-        sprite()
-        size                20px,20px
-        noTextDeco()
-        span
-          font-size         12px
-          font-weight       300
-          line-height       12px
-          color             #a5a5a5
-    
-      > div
-        font-size           14px
-        font-weight         700
-        line-height         17px
+        font-size           30px
         display             inline-block
+        position            relative
+                          
+      h4                    
+        font-size           16px
+        color               #a5a5a5
+        font-weight         300
         margin              0px
-        margin-right        30px
+        padding             0px
+        display             inline-block
+        margin-left         10px
+        position            relative
+                          
+  .profilestats           
+    padding               14px 0px 11px 0px
+    border-bottom         1px solid #E2E2E2
+    border-top            1px solid #E2E2E2
+    margin-top            17px
+    borderBox()
+    a                     
+      color               #222
+      font-size           14px
+      font-weight         700
+      padding-left        23px
+      sprite()
+      size                20px,20px
+      noTextDeco()
+      span
+        font-size         12px
+        font-weight       300
+        line-height       12px
+        color             #a5a5a5
+  
+    > div
+      font-size           14px
+      font-weight         700
+      line-height         17px
+      display             inline-block
+      margin              0px
+      margin-right        30px
 
-    .profilebio
-      font-size             15px
-      font-weight           300
-      line-height           140%
-      margin                0px 0px
-      padding               20px 0px 0px 0px
-      max-width             750px 
+  .profilebio
+    font-size             15px
+    font-weight           300
+    line-height           140%
+    margin                0px 0px
+    padding               20px 0px 0px 0px
+    max-width             750px 
 
+  .content-display.small-header
+    .profilearea
+      height              48px
+      overflow            hidden
+      .profileleft
+        padding           5px 0
+        size              38px,48px
+        > span
+          padding         1px
+          border          1px solid #E3E3E3
+          display         block
+          margin-bottom   10px
+          size            100%!important,100%!important
+          borderBox()     
+          >.avatarview    
+            size          100%!important,100%!important
+        button            
+          hidden()        
+      section             
+        margin-left       75px
+        padding           5px 0
 
 /*
     Content Display Headers

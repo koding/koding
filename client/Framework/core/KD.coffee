@@ -47,6 +47,8 @@ KD = @KD or {}
   
   isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
   
+  isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
+  
   setAuthKey:->
 
   requireLogin:(errMsg, callback)->
