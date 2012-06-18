@@ -128,9 +128,10 @@ class KDModalView extends KDView
     @getDomElement().find(".kdmodal-content").html content
 
   display:()->
-    setTimeout ()=>
-      @setClass "active" if @options.fx
-    ,1
+
+    if @getOptions().fx
+      @utils.nextTick =>
+        @setClass "active"
 
   addInnerSubView:(view)->
     @addSubView view,".kdmodal-content"

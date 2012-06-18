@@ -1,8 +1,10 @@
+console.log 12345, process.pid
+
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
   
-  {secure} = bongo
+  {secure,dash,daisy} = bongo
   {Relationship} = jraphical
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
@@ -13,7 +15,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete'
+        'delete','modify'
       ]
     relationships     : 
       comment         : JComment
@@ -34,6 +36,12 @@ class JPost extends jraphical.Message
 
   @getActivityType =-> CActivity
   
+  createKodingError =(err)->
+    kodingErr = new KodingError(err.message)
+    for own prop of err
+      kodingErr[prop] = err[prop]
+    kodingErr
+  
   @create = secure (client, data, callback)->
     constructor = @
     {connection:{delegate}} = client
@@ -44,36 +52,69 @@ class JPost extends jraphical.Message
         {tags} = data.meta
         delete data.meta.tags
       status = new constructor data
-      status
-        .sign(delegate)
-        .save (err)->
-          if err
-            callback err
-          else
-            # TODO: emit an event, and move this (maybe)
-            activity = new (constructor.getActivityType())
-            activity.originId = delegate.getId()
-            activity.originType = delegate.constructor.name
-            activity.save (err)->
+      # TODO: emit an event, and move this (maybe)
+      activity = new (constructor.getActivityType())
+      activity.originId = delegate.getId()
+      activity.originType = delegate.constructor.name
+      teaser = null
+      queue = [
+        ->
+          status
+            .sign(delegate)
+            .save (err)->
               if err
                 callback err
+              else queue.next()
+        ->
+          activity.save (err)->
+            if err
+              callback createKodingError err
+            else queue.next()
+        ->
+          activity.addSubject status, (err)->
+            if err
+              callback createKodingError err
+            else queue.next()
+        ->
+          if tags?.length
+            status.addTags client, tags, (err)->
+              if err
+                callback createKodingError err
               else
-                activity.addSubject status, (err)->
-                  if err
-                    callback err
-                  else
-                    status.fetchTeaser (err, teaser)=>
-                      if err
-                        callback err
-                      else
-                        activity.update
-                          $set:
-                            snapshot: JSON.stringify(teaser)
-                          $addToSet:
-                            snapshotIds: status.getId()
-                        , -> callback null, status
-                        if tags then status.addTags client, tags, (err)->
-                        status.addParticipant delegate, 'author'
+                console.log 'tags was added'
+                queue.next()
+          else queue.next()
+        ->
+          status.fetchTeaser (err, teaser_)=>
+            if err
+              callback createKodingError err
+            else
+              teaser = teaser_
+              console.log teaser
+              queue.next()
+        ->
+          activity.update
+            $set:
+              snapshot: JSON.stringify(teaser)
+            $addToSet:
+              snapshotIds: status.getId()
+          , ->
+            callback null, teaser
+            queue.next()
+        -> 
+          status.addParticipant delegate, 'author'
+      ]
+      daisy queue
+
+  modify: secure ({connection:{delegate}}, formData, callback)->
+
+    callback new KodingError "Access denied"
+
+    # this crashes the server
+    # if delegate.getId().equals @originId
+    #   @update $set : formData, (err, response)=> callback err, response
+    # else
+    #   callback new KodingError "Access denied"
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
@@ -81,11 +122,46 @@ class JPost extends jraphical.Message
   unmark: secure ({connection:{delegate}}, flag, callback)->
     @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
 
-  delete: secure ({connection:{delegate}}, callback)->  
-    unless delegate.equals @getAt 'origin'
-      callback new KodingError 'Access denied!'
-    else
-      callback null, "OK, I'll delete it"
+  delete: secure do ->
+    getDeleteHelper =(selector, orientation, callback)->
+      ->
+        Relationship.all selector, (err, rels)->
+          if err
+            callback err
+          else
+            queue = []
+            rels.forEach (rel)->
+              queue.push ->
+                constructor = bongo.Base.constructors[rel.getAt orientation+'Name']
+                constructor.remove _id: rel.getAt(orientation+'Id'), -> queue.fin()
+            dash queue, callback
+
+    ({connection:{delegate}}, callback)->
+      originId = @getAt 'originId'
+      unless delegate.getId().equals originId
+        callback new KodingError 'Access denied!'
+      else
+        id = @getId()
+        queue = [
+          getDeleteHelper {
+            targetId    : id
+            sourceName  : /Activity$/
+          }, 'source', -> queue.fin()
+          getDeleteHelper {
+            sourceId    : id
+            sourceName  : 'JComment'
+          }, 'target', -> queue.fin()
+          =>
+            Relationship.remove {
+              targetId  : id
+              as        : 'post'
+            }, -> queue.fin()
+          => @remove -> queue.fin()
+        ]
+        dash queue, =>
+          @emit 'PostIsDeleted', 1
+          callback null
+          
 
   like: secure ({connection}, callback)->
     {delegate} = connection

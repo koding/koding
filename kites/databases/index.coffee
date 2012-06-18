@@ -1,11 +1,7 @@
 api = require './api'
-api.run require "./config"
+config = require './config'
 
-
-
-
-
-
+api.run config
 
 
 

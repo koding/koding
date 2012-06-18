@@ -14,9 +14,8 @@ class ActivityActionsView extends KDView
     @likeLink     = new ActivityActionLink    {partial : "Like" }
     @likeCount    = new ActivityLikeCount     {}, activity
     @loader       = new KDLoaderView          size : width : 14 
-    
-    @deleteBtn    = new ActivityActionLink    {partial : "Delete" }
-  
+          
+
   viewAppended:->
     @setClass "activity-actions"
     @setTemplate @pistachio()
@@ -25,8 +24,8 @@ class ActivityActionsView extends KDView
     @loader.hide()
 
   pistachio:->
+    tmpl = 
     """
-    {{> @deleteBtn}}
     {{> @loader}}
     {{> @commentLink}}{{> @commentCount}} · 
     <span class='optional'>
@@ -61,7 +60,6 @@ class ActivityActionsView extends KDView
       listener      : @
       callback      : ->
         commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
-
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->

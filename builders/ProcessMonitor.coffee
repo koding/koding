@@ -35,7 +35,6 @@ class ProcessMonitor extends EventEmitter
     ,interval
     
   restartProcess : (options)->
-    log.info "Restarting the process..."
     @flags.restart = yes
     @stopProcess()
 
@@ -85,7 +84,6 @@ class ProcessMonitor extends EventEmitter
     return data
   startProcess : _.throttle ()->
     cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
-    cmd = "NODE_PATH=$NODE_PATH:#{__dirname}/../our_modules;#{cmd}"
     log.info "Starting the process $>#{cmd}"
     @nodeServer         = exec cmd
     @nodeServer.stdout.on 'data', (data)=> 
@@ -102,17 +100,14 @@ class ProcessMonitor extends EventEmitter
       if @flags.forever?
         log.warn "Forever is on, I'm restarting in 1 sec."
         @flags.restart = yes
-      @emit "processDidExit",code
+        @emit "processDidExit",code
     
       log.info "Process id: #{@nodeServer.pid} did exit with the exit code: #{code}"
   ,1000
     
   stopProcess : ()->
-    log.info "Stopping the process..."
-    if @nodeServer.kill?
-      @nodeServer.kill "SIGTERM"
-    else
-      log.warn "There is no running process. Stop failed."
+    log.info "Stopping the process... #{@nodeServer.pid}"
+    exec "kill -9 #{@nodeServer.pid}",(err,stdout,stderr)=>
 
 module.exports = ProcessMonitor
 
