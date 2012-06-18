@@ -138,7 +138,7 @@ class JPost extends jraphical.Message
           sourceId    : id
           sourceName  : 'JComment'
         }, 'target', -> queue.fin()
-        =>
+        ->
           Relationship.remove {
             targetId  : id
             as        : 'post'
@@ -148,7 +148,43 @@ class JPost extends jraphical.Message
       dash queue, =>
         @emit 'PostIsDeleted', 1
         callback null
-
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    queue = [
+      ->
+        Relationship.one {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, (err, rel)->
+          if err
+            queue.next err
+          else
+            activityId = rel.getAt 'sourceId'
+            queue.next()
+      ->
+        rel.remove -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @fetchTeaser (err, teaser_)=>
+          if err
+            callback createKodingError err
+          else
+            teaser = teaser_
+            queue.next()
+      ->
+        CActivity.update _id: activityId, {
+          $set      : {snapshot: JSON.stringify teaser}
+          $pullAll  : {snapshotIds: rel.getAt 'targetId'}
+        }, -> queue.next()
+      
+      callback
+    ]
+    daisy queue
+  
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @

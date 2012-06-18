@@ -11,7 +11,17 @@ class CommentListViewController extends KDListViewController
     #   listener      : @
     #   callback      : (pubInst,{fromUnixTime,callback})=>
     #     @fetchCommentsByRange fromUnixTime, callback
-
+    
+    listView.registerListener
+      KDEventTypes  : 'ItemWasAdded'
+      listener      : @
+      callback      : (pub, {view})=>
+        view.registerListener
+          KDEventTypes  : 'CommentIsDeleted'
+          listener      : @
+          callback      : ->
+            listView.removeItem view
+    
     listView.registerListener
       KDEventTypes  : ["AllCommentsLinkWasClicked","CommentInputReceivedFocus"]
       listener      : @
@@ -315,7 +325,7 @@ class CommentListItemView extends KDListItemView
           items     : [
             # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
             { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
+            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
           ]
         ]
         callback    : (event)=> @settingsButton.contextMenu event

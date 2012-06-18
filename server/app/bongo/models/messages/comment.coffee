@@ -1,6 +1,6 @@
 class JComment extends jraphical.Reply
   
-  {ObjectId,dash} = require 'bongo'
+  {ObjectId,dash,daisy} = require 'bongo'
   {Relationship}  = require 'jraphical'
   
   @share()
@@ -24,13 +24,19 @@ class JComment extends jraphical.Reply
     {getDeleteHelper} = Relationship
     id = @getId()
     queue = [
-      ->
-        Relationship.remove {
-          targetId  : id
-          as        : 'comment'
-        }, -> queue.fin()
-      =>
-        @remove -> queue.fin()
+      -> Relationship.one {
+        targetId  : id
+        as        : 'reply'
+      }, (err, rel)->
+        if err
+          queue.fin err
+        else
+          rel.fetchSource (err, message)->
+            if err
+              queue.fin err
+            else
+              message.removeReply rel, -> queue.fin()
+      => @remove -> queue.fin()
     ]
     dash queue, callback
   

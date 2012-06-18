@@ -30,7 +30,7 @@ class JTag extends Followable
         validate    : [
           'invalid tag name'
           (value)->
-            0 < value.length <= 32 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
+            0 < value.length <= 256 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
         ]
       body          : String
       counts        :
