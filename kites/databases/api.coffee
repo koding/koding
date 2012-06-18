@@ -15,7 +15,7 @@ __resReport = (error,result,callback)->
   else
     callback? null,result
 
-databasesKites = new Kite
+databasesKites = new Kite "databases"
 
   #**********************************************#
   #***************** MySQL **********************#

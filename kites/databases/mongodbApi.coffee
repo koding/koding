@@ -1,6 +1,6 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
-config  = require('config').mongo
+config  = require('./config').mongo
 
 
 logFile = '/var/log/node/MongoDBApi.log'
