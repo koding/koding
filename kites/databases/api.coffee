@@ -37,7 +37,7 @@ databasesKites = new Kite "databases"
     #   dbName   : String # database name
     #
 
-
+    console.log options
     mySQL.createDatabase options,(error,result)->
       __resReport(error,result,callback)
 

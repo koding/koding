@@ -13,7 +13,7 @@ module.exports =
     backupDir : '/Backups/mysql'
     databases :
       mysql   :
-        host     : 'mysql1.beta.service.aws.koding.com'
+        host     : 'koding.cfbuweg6pdxe.us-east-1.rds.amazonaws.com'
         user     : 'system'
         password : 'dlkadlakdlka'
   mongo :
