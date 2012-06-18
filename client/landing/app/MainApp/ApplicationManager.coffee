@@ -235,14 +235,14 @@ class ApplicationManager extends KDObject
         
   
   addOpenTab:(tab, controller)->
-    docManager.addOpenDocument tab.getActiveFile() if tab.getActiveFile?
+    # docManager.addOpenDocument tab.getActiveFile() if tab.getActiveFile?
     @openTabs.push tab
       
   getOpenTabs:()->
     @openTabs
   
   removeOpenTab:(tab)->
-    docManager.removeOpenDocument tab.getActiveFile() if tab.getActiveFile?
+    # docManager.removeOpenDocument tab.getActiveFile() if tab.getActiveFile?
     @openTabs.splice (@openTabs.indexOf tab), 1
     
   # temp
