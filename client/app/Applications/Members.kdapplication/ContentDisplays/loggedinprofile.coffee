@@ -1,4 +1,4 @@
-class PersonalProfile extends KDView
+class LoggedInProfile extends KDView
   constructor:->
     super
     memberData = @getData()

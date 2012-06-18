@@ -323,8 +323,10 @@ Includes =
                                       
         # MEMBERS VIEWS               
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
-        memberDisplay                 : "./client/app/Applications/Members.kdapplication/ContentDisplays/Member.coffee"
-        personalProfileDisplay        : "./client/app/Applications/Members.kdapplication/ContentDisplays/PersonalProfile.coffee"
+        membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
+        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
+        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
                                       
         # START TAB VIEWS                 
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
