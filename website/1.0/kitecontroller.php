@@ -3,25 +3,12 @@ require_once 'helpers.php';
 require_once 'kitecluster.php';
 require_once 'kite.php';
 
-$kites = array( 
-  'beta' => array(
-    'sharedHosting' => 'http://cl2.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl2.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl2.beta.service.aws.koding.com:4568/',
-  ),
-  'vpn' => array(
-    'sharedHosting' => 'http://cl3.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl3.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl3.beta.service.aws.koding.com:4568/',
-  ),
-);
-
 class KiteController {
   private $kites;
   
   function __construct ($config_path, $db) {
     $this->config_path = $config_path;
-    $config_json = @file_get_contents($config_path);
+    $config_json = file_get_contents($config_path);
     if (empty($config_json)) {
       error_log("Invalid configuration: $config_path");
       return;
@@ -120,12 +107,18 @@ class KiteController {
       'username' => $username,
     ), array('kiteUri' => 1));
     if(!isset($connection)) {
-      $connection = array(
-        'kiteName' => $kite_name,
-        'username' => $username,
-        'kiteUri' => $this->get_next_kite_uri($kite_name),
-      );
-      $db->jKiteConnections->save($connection);
+      $kite_uri = $this->get_next_kite_uri($kite_name);
+      if ($kite_uri) {
+        $connection = array(
+          'kiteName' => $kite_name,
+          'username' => $username,
+          'kiteUri' => $kite_uri,
+        );
+        $db->jKiteConnections->save($connection);        
+      }
+      else {
+        return FALSE;
+      }
     }
     return $connection['kiteUri'];
   }

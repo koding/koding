@@ -50,7 +50,7 @@ class MySQL
 
   constructor : (@config)->
     @mysqlClient = mysql.createClient @config.databases.mysql
-    
+
   createUser : (options,callback)->
 
     #
@@ -101,6 +101,7 @@ class MySQL
     
     {username} = options
     sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}_%'"
+    console.log "entering with #{sql}"
     @mysqlClient.query sql,callback
   
   createDatabase : (options,callback)->
@@ -139,10 +140,10 @@ class MySQL
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
     dbCount = (username,callback) =>
-      @databaseList {username},(err,data)->
+      @databaseList {username},(err,rows)->
         if err then callback err
         else
-          callback null,data.length
+          callback null,rows.length
   
     dbCount username,(err,dbNr)=>
       unless err
@@ -169,7 +170,8 @@ class MySQL
                 else
                   sendResult null,result
         else
-          callback "You exceeded your quota, please delete one before adding a new one."
+          console.log e = "You exceeded your quota, please delete one before adding a new one."
+          callback e
       else
         callback "There was an error completing this request, please try again later."
 
@@ -347,16 +349,16 @@ module.exports = mySQL
 # mySQL.test()
 
 
-options =
-  username : "aleksey007"
-  dbName   : "aleksey007_dbtester_1325887572496"
-  dbUser   : "aleksey007_dbtes"
-  #dbPass   : "ls;kls;ka;ska;sk"
-
-mySQL.removeDatabase options , (err,res)->
-   console.log "removing"
-   console.log options
-   console.log "err:#{err}", res
+#options =
+#  username : "aleksey007"
+#  dbName   : "aleksey007_dbtester_1325887572496"
+#  dbUser   : "aleksey007_dbtes"
+#  #dbPass   : "ls;kls;ka;ska;sk"
+#
+#mySQL.removeDatabase options , (err,res)->
+#   console.log "removing"
+#   console.log options
+#   console.log "err:#{err}", res
 
 
 #mySQL.createDatabase options , (err,res)->
