@@ -328,7 +328,7 @@ Includes =
                                       
         # START TAB VIEWS                 
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
-                                      
+
         # INBOX CONTROLLERS                 
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
         inboxNotificationsController  : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxNotificationsController.coffee"
@@ -450,7 +450,10 @@ Includes =
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
-        
+
+        # BOOK
+        BookView                      : "./client/app/MainApp/book.coffee"
+
         #maintabs
         
         MainTabView                 : "./client/app/MainApp/maintabs/maintabview.coffee"
@@ -622,6 +625,7 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
+        book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"
