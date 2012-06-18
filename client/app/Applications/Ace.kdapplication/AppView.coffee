@@ -20,7 +20,8 @@ class AceView extends JView
       style         : "clean-gray editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
-      callback      : ()=> @getData().emit "ace.requests.save", @ace.getContents()
+      callback      : ()=> 
+        @ace.requestSave()
     
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
@@ -41,7 +42,7 @@ class AceView extends JView
       menu          : [@getAdvancedSettingsMenuItems()]
 
       
-    publicUrlCheck = /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/
+    publicUrlCheck = /.*\/(.*\.beta.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
       style     : "clean-gray editor-button"
       icon      : yes
@@ -143,7 +144,13 @@ class AceView extends JView
             
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
+              @ace.notify "Please type valid file name!", "error"
               return
+            
+            unless node
+              @ace.notify "Please select a folder to save!", "error"
+              return
+              
             parent = node.getData()
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()

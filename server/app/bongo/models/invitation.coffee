@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['byCode']#'__sendBetaInvites'],,'__createBetaInvites']
+      static        : ['byCode']#,,'__sendBetaInvites','__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -71,7 +71,7 @@ class JInvitation extends jraphical.Module
       {host, port} = server
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(4000, 5000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(6000, 7000).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -227,7 +227,6 @@ class JInvitation extends jraphical.Module
                       limit.update {$inc: usage: 1}, callback
   
   redeem:bongo.secure ({connection:{delegate}}, callback=->)->
-    debugger
     operation = $inc: {uses: 1}
     isRedeemed = if @type is 'multiuse' then @uses + 1 >= @maxUses else yes
     operation.$set = {status: 'redeemed'} if isRedeemed

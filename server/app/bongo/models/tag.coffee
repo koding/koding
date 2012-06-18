@@ -54,7 +54,7 @@ class JTag extends Followable
         targetType  : JAccount
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp]
+        targetType  : [JCodeSnip, JApp, JStatusUpdate]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
@@ -79,12 +79,14 @@ class JTag extends Followable
       
   @handleFreetags = bongo.secure (client, tags, callbackForEach=->)->
     existingTagIds = []
+    console.log tags
     tags.forEach (tag)->
       if tag?.$suggest?
+        console.log "it's a tag, ", tag
         JTag.create client, {title: tag.$suggest}, (err, tag)->
           callbackForEach err, tag
       else
-        existingTagIds.push bongo.ObjectId tag
+        existingTagIds.push bongo.ObjectId tag.id
     JTag.all (_id: $in: existingTagIds), (err, existingTags)->
       if err
         callbackForEach err

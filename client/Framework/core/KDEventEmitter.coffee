@@ -53,9 +53,9 @@ class KDEventEmitter
     listenerStack = listenerStack.concat @_e[event].slice(0)
     
     listenerStack.forEach (listener)=>
-      listener.apply @,args 
+      listener.apply @, args 
 
-  on : (event,callback) ->
+  on : (event, callback) ->
     @_e[event] ?= []
     @_e[event].push callback
 

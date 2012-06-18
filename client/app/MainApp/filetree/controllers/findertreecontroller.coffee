@@ -21,7 +21,9 @@ class NFinderTreeController extends JTreeViewController
           @contextMenuItemSelected fileView, contextMenuItem
     else
       @getView().setClass "no-context-menu"
-
+    
+    @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
+    
     # @listenTo 
     #   KDEventTypes       : "WindowChangeKeyView"
     #   listenedToInstance : @getSingleton("windowController")
@@ -35,20 +37,52 @@ class NFinderTreeController extends JTreeViewController
     #       node.setClass "dimmed" for node in @selectedNodes
     # @setFSListeners()
 
-  addNode:(nodeData)->
+  addNode:(nodeData, index)->
     
     o = @getOptions()
     return if o.foldersOnly and nodeData.type is "file"
     # @setFileListeners nodeData if o.fsListeners
-    item = super nodeData
+    item = super nodeData, index
 
-  setItemListeners:(pubInst, node)->
+  setItemListeners:(pubInst, {view})->
     
     super
-
-    # node.on "folderNeedsToRefresh", (path)=>
+    
+    @setFileListeners view.getData()
     # 
-    #   log @nodes, @nodes[path], path
+    # view.on "folderNeedsToRefresh", (newFile)=> 
+    # 
+    #   @navigateTo newFile.parentPath, =>
+    #     @selectNode @nodes[newFile.path]
+    #     @openFile @nodes[newFile.path]
+    
+  listenedPaths: {}
+  
+  setFileListeners:(file)->
+    
+    unless @listenedPaths[file.path]
+      file.on "folderNeedsToRefresh", (newFile)=>
+        @navigateTo newFile.parentPath, =>
+          @selectNode @nodes[newFile.path]
+        @listenedPaths[file.path] = file.path
+    
+
+  navigateToNewFile:(newFile)=>
+
+    @navigateTo newFile.parentPath, =>
+
+      # arr = []
+      # unless @nodes[newFile.path]
+      #   arr.push item.getData().path for item in @listControllers[newFile.parentPath].itemsOrdered
+      #   arr.push newFile.path
+      #   arr.sort()
+      #   index = arr.indexOf newFile.path
+      #   @addNode newFile, index
+
+      @selectNode @nodes[newFile.path]
+    
+
+
     # # 
     # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
     # 
@@ -97,21 +131,21 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
 
   openFile:(nodeView, event)->
-
+    
+    return unless nodeView
     file = nodeView.getData()
     appManager.openFileWithApplication file, "Ace"
 
   previewFile:(nodeView, event)->
 
     file = nodeView.getData()
-    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/, 'http://$1/$2'
+    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/public_html/#{nickname}.#{location.hostname}/httpdocs/"
+      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
     else
-      appManager.openFileWithApplication publicPath, "Viewer.kdapplication"
-
-
+      appManager.openFileWithApplication publicPath, "Viewer"
+  
   refreshFolder:(nodeView, callback)->
     
     @notify "Refreshing..."
@@ -119,7 +153,7 @@ class NFinderTreeController extends JTreeViewController
     folder.emit "fs.nothing.finished", [] # in case of refresh to stop the spinner
     
     @collapseFolder nodeView, =>
-      @expandFolder nodeView, ->
+      @expandFolder nodeView, =>
         notification.destroy()
         callback?()
     
@@ -129,25 +163,35 @@ class NFinderTreeController extends JTreeViewController
   
   expandFolder:(nodeView, callback)->
     
-    return if nodeView.isLoading or nodeView.expanded
-    folder = nodeView.getData()
+    return unless nodeView
+    return if nodeView.isLoading
 
-    folder.failTimer = setTimeout =>
-      @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
-      folder.emit "fs.nothing.finished", []
-    , 5000
-
-    folder.fetchContents (files)=>
+    if nodeView.expanded
+      callback? nodeView
+      return
+    
+    cb = @utils.getCancellableCallback (files)=>
       clearTimeout folder.failTimer
       nodeView.expand()
       @initTree files
       callback? nodeView
     
+    folder = nodeView.getData()
+
+    folder.failTimer = setTimeout =>
+      @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
+      folder.emit "fs.nothing.finished", []
+      cb.cancel()
+    , 5000
+
+    folder.fetchContents cb
+    
   collapseFolder:(nodeView, callback)->
     
     return unless nodeView
     nodeData = nodeView.getData()
-    path = @getNodeId nodeData
+    {path} = nodeData
+    
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
         @removeChildNodes path
@@ -156,6 +200,32 @@ class NFinderTreeController extends JTreeViewController
     else
       nodeView.collapse()
       callback? nodeView
+  
+  navigateTo:(path, callback)->
+    
+    return unless path
+    
+    path = path.split('/')
+    path.shift()  if path[0] is ''
+    path.pop()    if path[path.length-1] is ''
+    path[1] = "/#{path[0]}/#{path[1]}"
+    path.shift()
+
+    index     = 0
+    lastPath  = ''
+
+    _expand = (path)=>
+      nextPath = path.slice(0, ++index).join('/')
+      if lastPath is nextPath
+        @refreshFolder @nodes[nextPath], =>
+          callback?()
+        return
+ 
+      @expandFolder @nodes[nextPath], => 
+        lastPath = nextPath
+        _expand path
+
+    _expand path
 
   confirmDelete:(nodeView, event)->
     
@@ -437,13 +507,19 @@ class NFinderTreeController extends JTreeViewController
 
   dragEnd: (nodeView, event)->
 
-    log "clear after drag"
+    # log "clear after drag"
     @clearAllDragFeedback()
     super
 
   drop: (nodeView, event)->
     
     return if nodeView in @selectedNodes
+    
+    sameParent = no
+    @selectedNodes.forEach (selectedNode)->
+      sameParent = yes if selectedNode.getData().parentPath is nodeView.getData().parentPath
+    
+    return if sameParent
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView

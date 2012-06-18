@@ -51,10 +51,13 @@ class MemberProfile extends KDView
         height : 90
     , memberData
 
+    defaultState  = if memberData.followee then "Unfollow" else "Follow"
+
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
       title           : "Follow"
       dataPath        : "followee"
+      defaultState    : defaultState
       loader          :
         color         : "#333333"
         diameter      : 18

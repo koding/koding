@@ -74,6 +74,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:=>
+    console.log @getCustomData()
     @addCustomData "code", @ace.getContents()
     super
 
@@ -203,10 +204,14 @@ class ActivityCodeSnippetWidget extends KDFormView
           </div>
         </div>
         <div class="formline submit">
-          {{> @heartBox}}
-          <div class="submit-box">
-            {{> @cancelBtn}}{{> @submitBtn}}
+          <div class='formline-wrapper'>
+            <div class="submit-box fr">
+              {{> @submitBtn}}
+              {{> @cancelBtn}}
+            </div>
+            {{> @heartBox}}
           </div>
+        </div>
       </div>
     </div>
     """

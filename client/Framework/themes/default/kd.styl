@@ -446,6 +446,8 @@ h4.kdheaderview
       line-height         16px
       font-weight         normal
       float               none
+      p
+        padding           0 10px
 
     .kdnotification-content
       margin-top          0
@@ -466,15 +468,16 @@ h4.kdheaderview
 **  KDOverlay STYLES
 */
 .kdoverlay
-  position absolute
-  top 0
-  left 0
-  z-index 10000
-  background rgba(0,0,0,.2)
-  size(100%,100%)
-
-.kdoverlay.transparent
-  background transparent
+  position              absolute
+  top                   0 
+  left                  0
+  z-index               10000
+  background            rgba(0,0,0,.2)
+  size                  100%,100%
+  &.transparent
+    background          transparent
+  &.half-white          
+    background          rgba(255,255,255,.5)
 
 
 

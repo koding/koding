@@ -202,7 +202,6 @@ class Followable extends jraphical.Module
           callback err, accounts
   
   fetchFollowersWithRelationship: bongo.secure (client, query, page, callback)->
-    debugger
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
   

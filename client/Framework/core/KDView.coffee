@@ -631,27 +631,38 @@ class KDView extends KDObject
 # #
 # HELPER METHODS
 # #
+  
+  putOverlay:(options = {})->
 
-  putOverlay:()->
-    view = @
-    view.$overlay = $ "<div />", class : "kdoverlay transparent"
+    {isRemovable, cssClass, parent} = options
 
-    @__zIndex = view.$().css "z-index"
-    view.$().css      zIndex : 10001
-    view.$overlay.css zIndex : 10000
+    isRemovable ?= yes
+    cssClass    ?= "transparent"
+    parent      ?= "body"           #body or a KDView instance
+    
+    @$overlay = $ "<div />", class : "kdoverlay #{cssClass}"
 
-    view.$overlay.appendTo "body"
-    view.$overlay.on "click.overlay", view.removeOverlay.bind view
+
+    if parent is "body"
+      @$overlay.appendTo "body"
+    else if parent instanceof KDView
+      @__zIndex = parseInt(@$().css("z-index"), 10) or 0
+      @$overlay.css "z-index", @__zIndex + 1
+      @$overlay.appendTo parent.$()
+
+      
+    if isRemovable
+      @$overlay.on "click.overlay", @removeOverlay.bind @
+    
+    @emit "OverlayAdded", @
 
   removeOverlay:()->
     @handleEvent type : "OverlayWillBeRemoved"
     @$overlay.off "click.overlay"
     @$overlay.remove()
-    @$().css zIndex : @__zIndex
     delete @__zIndex
     delete @$overlay
-    # @$overlay = null
-    @handleEvent type : "OverlayRemoved"
+    @emit "OverlayRemoved", @
 
   setTooltip:(o = {})->
     
