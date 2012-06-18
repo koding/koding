@@ -23,6 +23,7 @@ $router->add_route('/kite/:kite_name', function ($params) {
     $args = $_REQUEST;
     if (isset($session)) {
       $args['username'] = $session['username'];
+      error_log(var_export(array($args, $uri), TRUE));
       $res = @file_get_contents($uri.'?'.http_build_query($args));
       if ($res) {
         $respond($res);
@@ -117,4 +118,8 @@ $router->add_route('/kite/disconnect', function () {
     $kite_controller->remove_kite($kite_name, $uri);
     okay();
   }
+});
+
+$router->add_route('/chris', function () {
+  print 'hi chris';
 });

@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
+$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'mongohq-dev';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function handle_vacated_channel($type, $event, $ms) {
@@ -18,7 +18,6 @@ function handle_vacated_channel($type, $event, $ms) {
 
 function get_session () {
   $db = get_mongo_db();
-  error_log('session error '.$_COOKIE['clientId'].' '.$_REQUEST['n']);
   if (!isset($_REQUEST['n'])) {
     return NULL;
   }
@@ -38,7 +37,6 @@ function get_session () {
 
 function require_valid_session () {
   $session = get_session();
-  error_log('found a session');
   $token = get_token($session);
   if (time() > $token['expires']->sec) {
     error_log('expired token! '.var_export($token, TRUE));
@@ -97,18 +95,19 @@ function okay () {
 function get_mongo_host () {
   global $env;
   $hosts = array(
-    'vpn'   => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
-    'beta'  => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@db0.beta.system.aws.koding.com',
+    'vpn'         => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
+    'beta'        => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@db0.beta.system.aws.koding.com',
+    'mongohq-dev' => 'mongodb://dev:YzaCHWGkdL2r4f@staff.mongohq.com:10016',
   );
   return $hosts[$env];
 }
 
 function get_mongo_db_name () {
   global $env;
-  error_log($env);
   $db_names = array(
-    'vpn'   => 'kodingen',
-    'beta'  => 'beta_koding',
+    'vpn'         => 'kodingen',
+    'beta'        => 'beta_koding',
+    'mongohq-dev' => 'koding',
   );
   return $db_names[$env];
 }
@@ -116,6 +115,7 @@ function get_mongo_db_name () {
 function get_mongo_db () {
   $db = get_mongo_db_name();
   $connection_string = get_mongo_host().'/'.$db;
+  error_log($connection_string);
   @$mongo = new Mongo($connection_string, array('persist' => 'api'));
   if(!isset($mongo)) {
     access_denied(2);
@@ -128,7 +128,8 @@ function get_kite_controller () {
   if (isset($kite_controller)) {
     return $kite_controller;
   }
-  $kite_controller = new KiteController('/mnt/storage0/koding/config/kite_config.json', get_mongo_db());
+  error_log(dirname(dirname(dirname(__FILE__))));
+  $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }
 
