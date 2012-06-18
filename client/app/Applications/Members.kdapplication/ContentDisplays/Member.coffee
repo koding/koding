@@ -51,18 +51,27 @@ class MemberProfile extends KDView
         height : 90
     , memberData
 
+    defaultState  = if memberData.followee then "Unfollow" else "Follow"
+
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
       title           : "Follow"
       dataPath        : "followee"
+      defaultState    : defaultState
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        left          : 3
       states          : [
-        "Follow", (callback)-> 
+        "Follow", (callback)->
           memberData.follow (err, response)=>
+            @hideLoader()
             unless err
               @setClass 'following-btn'
               callback? null
         "Unfollow", (callback)->
           memberData.unfollow (err, response)=>
+            @hideLoader()
             unless err
               @unsetClass 'following-btn'
               callback? null

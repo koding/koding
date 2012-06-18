@@ -15,6 +15,7 @@
 <body class="loading">
   <script src="https://api.koding.com/js/require.js"></script>
   <script>
+		window.localStorage = {}
     require.config({baseUrl: "https://api.koding.com/js", waitSeconds:15});
     require([
       "order!https://api.koding.com/js/libs/pusher.1.12.min.js",

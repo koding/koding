@@ -24,6 +24,7 @@ client/app/stylus/*.js
 /node_modules/http-proxy
 /node_modules/bitly
 /node_modules/braintree
+/node_modules/browserify
 /node_modules/coffee-script
 /node_modules/dateformat
 /node_modules/dropbox
@@ -33,8 +34,11 @@ client/app/stylus/*.js
 /node_modules/gzippo
 /node_modules/hashish
 /node_modules/hat
+/node_modules/http-proxy
 /node_modules/inspect
+/node_modules/jsonify
 /node_modules/ldapjs
+/node_modules/jsonify
 /node_modules/log
 /node_modules/log4js
 /node_modules/mongodb
