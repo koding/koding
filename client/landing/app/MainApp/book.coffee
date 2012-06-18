@@ -118,7 +118,10 @@ class BookUpdateWidget extends JView
 
   constructor: (options, data) ->
     
-  
+class BookDevelopButton extends KDButtonViewWithMenu
+
+  constructor: (options, data) ->
+    
 
 __bookPages = [
 
@@ -180,6 +183,7 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : "Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features. Go ahead and check it out!"
+    embed     : BookDevelopButton
   ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
