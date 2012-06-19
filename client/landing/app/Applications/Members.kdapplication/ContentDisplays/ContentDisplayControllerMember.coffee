@@ -79,19 +79,39 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        Activity            :
-          title             : "Activity"
-          dataSource        : (selector, options, callback)=>
-
-      sort                  :
-        '*'                 :
+        everything          :
           title             : "Everything"
-          direction         : -1
-        'JStatusUpdate'     :
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type = $in: [
+              'CStatusActivity', 'CCodeSnipActivity'
+              'CFolloweeBucketActivity', 'CNewMemberBucket'
+            ]
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+        statuses            :
           title             : "Status Updates"
-          direction         : -1
-        'JCodeSnippet'      :
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type = 'CStatusActivity'
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+        codesnips           :
           title             : "Code Snippets"
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type     = 'CCodeSnipActivity'
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+      sort                  :
+        'counts.followers'  :
+          title             : "Most popular"
+          direction         : -1
+        'meta.modifiedAt'   :
+          title             : "Latest activity"
+          direction         : -1
+        'counts.tagged'     :
+          title             : "Most activity"
           direction         : -1
         # and more
     }, (controller)=>
