@@ -51,25 +51,22 @@ class AccountDatabaseList extends KDListView
   showAddModal : ->
     
     modal = @modal = new KDModalViewWithForms
-      title     : "Add a Database"
-      content   : ""
-      overlay   : yes
-      cssClass  : "new-kdmodal"
-      width     : 500
-      height    : "auto"
-      tabs    :
-        navigateable    : yes
+      title                   : "Add a Database"
+      content                 : ""
+      overlay                 : yes
+      cssClass                : "new-kdmodal"
+      width                   : 500
+      height                  : "auto"
+      tabs                    :
+        navigateable          : yes
         goToNextFormOnSubmit  : no
-        callback      : (formOutput)-> log formOutput
-        forms     :
-          "On Koding" :
-            callback      : => 
-              @addDatabase
-                type : modal.modalTabs.forms["On Koding"].inputs.Type.getValue()
-                name : modal.modalTabs.forms["On Koding"].inputs.Name.getValue()          
-            buttons :
-              "Create":
-                title         : "Next"
+        callback              : (formOutput)-> log formOutput
+        forms                 :
+          "On Koding"         :
+            callback          : (formData)=> @addDatabase formData
+            buttons           :
+              Create          :
+                title         : "Create"
                 style         : "modal-clean-gray"
                 type          : "submit"
                 loader        :
@@ -81,35 +78,35 @@ class AccountDatabaseList extends KDListView
               #   callback : =>
               #     @modal.destroy()
               #     @showAddExternalOrUpdateModal null,null,"external"
-            fields    :
-              Type    :
-                label       : "Type"
-                itemClass   : KDSelectBox 
-                type        : "select"
-                name        : "type"
-                defaultValue: "JDatabaseMySql"
+            fields            :
+              Type            :
+                label         : "Type"
+                itemClass     : KDSelectBox 
+                type          : "select"
+                name          : "type"
+                defaultValue  : "JDatabaseMySql"
                 selectOptions : [
                   { title : "MySql",    value : "JDatabaseMySql" }
                   { title : "Mongo",    value : "JDatabaseMongo" }
                   # { title : "PostGre",  value : "JDatabasePostGre" }
                   # { title : "CouchDB",  value : "JDatabaseCouchDb" }
                 ]
-              Kind :
-                label       : "Kind"
-                itemClass   : KDSelectBox 
-                type        : "select"
-                name        : "type"
-                defaultValue: "free"
+              Kind            :
+                label         : "Kind"
+                itemClass     : KDSelectBox 
+                type          : "select"
+                name          : "type"
+                defaultValue  : "free"
                 selectOptions : [
                   { title : "Free Database for Development",  value : "free" }
                   # { title : "Hit Resistant (n/a)",            value : "hitResistant" }
                   # { title : "Indestructible (n/a)",           value : "indestructible" }
                 ]
-              Name  :
-                label       : "Pick a name"
-                name        : "name"
-                placeholder : "e.g. myDevDB..."
-                defaultValue: "myDB#{(Date.now()+"").substr(-5)}"
+              # Name  :
+              #   label       : "Pick a name"
+              #   name        : "name"
+              #   placeholder : "e.g. myDevDB..."
+              #   defaultValue: "myDB#{(Date.now()+"").substr(-5)}"
 
 
   showAddExternalOrUpdateModal:(listItem)=>
@@ -198,14 +195,14 @@ class AccountDatabaseList extends KDListView
       formSchema.tabs.forms["Update Database"] =
         callback  : (formElements)=>
           #console.log "form update",formElements
-          @updateDatabase listItem,formElements
+          @updateDatabase listItem, formElements
         buttons :
           "Update" :
             style         : "modal-clean-gray"
             type          : "submit"
-            loader        :
-              color       : "#444444"
-              diameter    : 12
+            # loader        :
+            #   color       : "#444444"
+            #   diameter    : 12
             callback      : ->
               # log "uuuu"
           "Delete" :
@@ -221,25 +218,46 @@ class AccountDatabaseList extends KDListView
     modal = @modal = new KDModalViewWithForms formSchema
           
   addDatabase:(f)=>
-  
-    jr = new bongo.api[f.type]
-      title : f.title   ? "My Dev DB #{(Date.now()+"").substr(-2)}"
-      host  : f.host    ? "localhost"
-      color : f.color   ? "yellow"
-      name  : f.name    ? "My Database #{(Date.now()+"").substr(-5)}"
-      users : [
-        username  : f.username ? "myUser#{(Date.now()+"").substr(-5)}",
-        password  : f.password ? Date.now()
-      ]
-    .save (err,model)=>
-      unless err
-        log "added",jr,f
-        jr.type = f.type
-        itemView = @itemClass delegate:@,jr 
-        @addItemView itemView
-        @modal.destroy()
+
+    {nickname} = KD.whoami().profile
+    pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
+    dbName  = md5.digest("#{Math.random()*1e18}").substr(-(16-nickname.length))
+    dbUser  = md5.digest("#{Math.random()*1e18}").substr(-(16-nickname.length))
+    dbPass  = pass.substr(-40)
+
+    @getSingleton("kiteController").run
+      kiteName  : "databases"
+      toDo      : "createMysqlDatabase"
+      withArgs  : {dbName, dbUser, dbPass}
+    , (err, response)=>
+      @modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
+      if err
+        new KDNotificationView type : "mini", cssClass : "editor error", title : "An error occured, try again later!", container : @modal
+        warn err
       else
-        log "failed to add.",err
+        new KDNotificationView type : "mini", cssClass : "editor success", title : "database created!", container : @modal
+        @utils.nextTick 1500, => @modal.destroy()
+        log response, "<<<< db info"
+
+  
+    # jr = new bongo.api[f.type]
+    #   title : f.title   ? "My Dev DB #{(Date.now()+"").substr(-2)}"
+    #   host  : f.host    ? "localhost"
+    #   color : f.color   ? "yellow"
+    #   name  : f.name    ? "My Database #{(Date.now()+"").substr(-5)}"
+    #   users : [
+    #     username  : f.username ? "myUser#{(Date.now()+"").substr(-5)}",
+    #     password  : f.password ? Date.now()
+    #   ]
+    # .save (err,model)=>
+    #   unless err
+    #     log "added",jr,f
+    #     jr.type = f.type
+    #     itemView = @itemClass delegate:@,jr 
+    #     @addItemView itemView
+    #     @modal.destroy()
+    #   else
+    #     log "failed to add.",err
 
   deleteDatabase:(listItem,formElements)=>
     jr = listItem.getData()
