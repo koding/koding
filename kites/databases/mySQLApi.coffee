@@ -86,7 +86,7 @@ class MySQL
         log.debug "[OK] user #{dbConf.dbUser} for db #{dbConf.dbName} with pass #{dbConf.dbPass} is created"
         callback null, dbConf
 
-  databaseList :(options,callback)->
+  fetchDatabaseList :(options,callback)->
 
     #
     # this will return the databases of a koding user (not mysql user)
@@ -139,7 +139,7 @@ class MySQL
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
     dbCount = (username,callback) =>
-      @databaseList {username},(err,data)->
+      @fetchDatabaseList {username},(err,data)->
         if err then callback err
         else
           callback null,data.length
