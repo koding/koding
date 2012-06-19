@@ -107,14 +107,10 @@ class JPost extends jraphical.Message
       daisy queue
 
   modify: secure ({connection:{delegate}}, formData, callback)->
-
-    callback new KodingError "Access denied"
-
-    # this crashes the server
-    # if delegate.getId().equals @originId
-    #   @update $set : formData, (err, response)=> callback err, response
-    # else
-    #   callback new KodingError "Access denied"
+    if delegate.getId().equals @originId
+      @update formData, (err, response)=> callback err, response
+    else
+      callback new KodingError "Access denied"
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
