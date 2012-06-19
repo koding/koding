@@ -1,4 +1,4 @@
-AccountSettingLists.develop.editorsController = class AccountEditorListController extends KDListViewController
+class AccountEditorListController extends KDListViewController
   constructor:(options,data)->
     data = $.extend
       items : [
@@ -11,7 +11,7 @@ AccountSettingLists.develop.editorsController = class AccountEditorListControlle
     ,data
     super options,data    
 
-AccountSettingLists.develop.editors = class AccountEditorList extends KDListView
+class AccountEditorList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"

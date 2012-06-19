@@ -14,29 +14,48 @@ class AccountNavigationLink extends KDTreeItemView
 
 
 class AccountListWrapper extends KDView
+
+  listClasses =
+    personal                   :
+      username                 : AccountEditUsername
+      security                 : AccountEditSecurity
+      linkedAccountsController : AccountLinkedAccountsListController
+      linkedAccounts           : AccountLinkedAccountsList
+    billing                    :
+      historyController        : AccountPaymentHistoryListController
+      history                  : AccountPaymentHistoryList
+      methodsController        : AccountPaymentMethodsListController
+      methods                  : AccountPaymentMethodsList
+      subscriptionsController  : AccountSubscriptionsListController
+      subscriptions            : AccountSubscriptionsList
+    develop                    :
+      databasesController      : AccountDatabaseListController
+      databases                : AccountDatabaseList
+      editorsController        : AccountEditorListController
+      editors                  : AccountEditorList
+      mountsController         : AccountMountListController
+      mounts                   : AccountMountList
+      reposController          : AccountRepoListController
+      repos                    : AccountRepoList
+      keysController           : AccountSshKeyListController
+      keys                     : AccountSshKeyList
+
   viewAppended:->
+
     data = @getData()
 
     @addSubView @header = new KDHeaderView type : "medium",title : data.item.listHeader
     
-    @list = new AccountSettingLists[data.section.id][data.item.listType]
+    @list = new listClasses[data.section.id][data.item.listType]
       cssClass : "#{data.section.id}-#{data.item.listType}"
 
-    listControllerClass = AccountSettingLists[data.section.id]["#{data.item.listType}Controller"] or KDListViewController
+    listControllerClass = listClasses[data.section.id]["#{data.item.listType}Controller"] or KDListViewController
     listController = new listControllerClass
       view : @list
     
     @addSubView listController.getView()
     
-    @list.on "passwordDidChange",()->
-      log "password"
-    
-  
-AccountSettingLists =
-  personal : {}
-  billing  : {}
-  develop  : {}
-
+    @list.on "passwordDidChange",()-> log "password"
 
 class AccountsSwappable extends KDView
   constructor:(options,data)->

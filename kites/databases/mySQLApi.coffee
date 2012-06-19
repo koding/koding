@@ -11,7 +11,6 @@ log     = log4js.getLogger('[MySQLApi]')
 
 
 
-
 class MySQL
 
   escape = (str)->
@@ -139,7 +138,7 @@ class MySQL
       result.host = @config.databases.mysql.host          
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
-    dbCount = (username) ->
+    dbCount = (username,callback) =>
       @databaseList {username},(err,data)->
         if err then callback err
         else
@@ -147,7 +146,7 @@ class MySQL
   
     dbCount username,(err,dbNr)=>
       unless err
-        unless dbNr < 5
+        unless dbNr > 4 # 0..4
           @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
             if err?.number is mysql.ERROR_DB_CREATE_EXISTS
               log.error e = "[ERROR] database #{dbName} exists"
@@ -255,6 +254,10 @@ class MySQL
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
     #  
+    console.log dbUser.substr(0,username.length+1) 
+    console.log username+"_"
+    console.log dbName.substr(0,username.length+1)
+
     unless dbUser.substr(0,username.length+1) is username+"_" and dbName.substr(0,username.length+1) is username+"_"
       return callback "You can only remove a database that you own."
     # -------------------------------
@@ -338,24 +341,36 @@ class MySQL
 
 mySQL = new MySQL config
 
-module.exports = mySQL
 
+module.exports = mySQL
 
 # mySQL.test()
 
-###
+
 options =
   username : "aleksey007"
-  dbName   : "dbtester_1325887572490"
-  dbUser   : "dbtester_1325887"
-  dbPass   : "ls;kls;ka;ska;sk"
+  dbName   : "aleksey007_dbtester_1325887572496"
+  dbUser   : "aleksey007_dbtes"
+  #dbPass   : "ls;kls;ka;ska;sk"
 
-mySQL.backupDatabase options,(error,result)->
-  if error?
-    console.error error
-  else
-    console.log result
+mySQL.removeDatabase options , (err,res)->
+   console.log "removing"
+   console.log options
+   console.log "err:#{err}", res
 
+
+#mySQL.createDatabase options , (err,res)->
+#   console.log "creating"
+#   console.log options
+#   console.log "err:#{err}", res
+#
+###
+#mySQL.backupDatabase options,(error,result)->
+#  if error?
+#    console.error error
+#  else
+#    console.log result
+#
 
 
 

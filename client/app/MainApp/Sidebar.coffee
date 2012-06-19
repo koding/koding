@@ -244,9 +244,10 @@ class SidebarController extends KDViewController
   bottomControlsListData :
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal" , path : "Shell"}
+      { title : "Launch Terminal",    icon : "terminal", path : "Shell"}
       { title : "Add Resources",      icon : "resources" }
-      { title : "Settings",           icon : "cog"}#      , path : "Environment" }
+      { title : "Settings",           icon : "cog" }#      , path : "Environment" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
     ]
 
 
