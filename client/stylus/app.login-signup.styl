@@ -31,8 +31,9 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      width               400px
-      height              481px
+      size                400px, 481px
+    &.taller .flex-wrapper
+      height              503px
 
   &.recover
     .rcf
@@ -41,6 +42,8 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       height              193px
+    .rcf .kdnotification.mini.register
+      top                 174px!important
 
   &.reset
     .rsf
@@ -116,6 +119,25 @@ app.login-signup.styl
     margin                0 auto 10px auto
     width                 78%
     font-size             11px
+
+  .kdnotification.mini.register
+    position              absolute
+    top                   181px!important
+    padding               0
+    rounded               3px
+    shadow                none
+    background            transparent
+
+    .kdnotification-title
+      font-size           10px
+      line-height         10px
+      padding             0
+      color               #ccc
+      
+      img
+        margin            0px 3px 0 0
+        vertical-align    bottom
+        size              12px, 11px
     
 .login-box-header
   position                relative
@@ -165,6 +187,7 @@ app.login-signup.styl
     line-height           30px
     height                44px
     borderBox()
+
 .login-options
   text-align    center
   margin        0
@@ -214,40 +237,105 @@ app.login-signup.styl
   height                  auto
 
 .login-form
+
   >div
-    text-align          center
+    position              relative
+    text-align            center
+
+    .kdview
+      width               78%
+      margin              0 auto 5px auto
+      height              31px
+
+      &.half-size
+        display           inline-block
+        width             38.5%
+        &:first-child
+          margin-right    1%
+
+      &.validation-error
+        .validation-icon
+          bg              position, -80px -480px
+          opacity         .3
+
+      &.validation-passed
+        .validation-icon
+          bg              position, -80px -500px
+          opacity         .5
+      &.kodingen
+        .validation-icon
+          bg              position, -480px -40px!important
+          opacity         1
+      
+    p
+      size              78%, 0
+      margin            0 auto
+      color             #f2f2f2
+      font-size         10px
+      line-height       18px
+      bg                color, rgba(0, 0, 0, 0.2)
+      rounded           4px
+      padding           0 6px
+      text-shadow       0 1px 0 #111
+      overflow          hidden
+      vendor            transition, height .15s ease-out
+      borderBox()
+
+  .password-confirm
+    margin-bottom       0!important
+    vendor              transition, height .15s ease-out
+
   input.kdinput.text                 
     padding             7px 6px 7px 6px
     border              1px solid rgba(0, 0, 0, 0.9)
-    margin              0 auto 5px auto
     color               #444
     font-size           12px
     box-shadow          inset 0 1px 0 rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.2)
     font-size           11px
     font-weight         600
     height              auto
-    width               78%
     line-height         12px
     rounded             4px
+    width               100%
     borderBox()
-    &.half-size
-      display           inline-block
-      width             38.5%
-      &:first-child
-        margin-right    1%
-    &.validation-error
-      bg                color,#ffe4bf
+    // &.validation-error
+    //   bg                color,#ffe4bf
 
   input::-webkit-input-placeholder
     color               #666
   input:-moz-placeholder
     color               #666
-                        
+  
+  .validation-icon
+    position            absolute
+    right               5px
+    top                 6px
+    size                20px,20px
+    bg                  position, -80px -480px
+    // vendor              transition, opacity .15s ease-out
+    opacity             0
+    sprite()
+
+  .kdloader.input-laoder
+    position            absolute
+    right               28px
+    top                 8px
+
+  .avatarview
+    position            absolute
+    right               69px
+    top                 4px
+    border              1px solid #ccc
+    rounded             2px
+    padding             1px
+    fl()
+  
+  
   .invitation-field     
     position            relative
     text-align          left
     color               #B4B3B3
-    margin              0 auto
+    margin              5px auto 0 auto
     rounded             4px
     width               78%
     line-height         36px
@@ -255,25 +343,31 @@ app.login-signup.styl
     bg                  color, rgba(0, 0, 0, 0.2)
     overflow            hidden
     borderBox()         
+
+    .kdview.half-size
+      position          absolute
+      right             2px
+      top               2px
+      width             48.5%
+
     span.icon           
       bg                position,-480px -80px
       size              40px,20px
       margin            8px 0 0 2px
       fl()
       sprite()
-    input.kdinput.text
-      position          absolute
-      right             2px
-      top               2px
-      width             48.5%
     .wrapper
       width             48.5%
       fr()              
+
     .avatarview
+      position          static
       border            1px solid #000
       margin            2px 10px 0 0
+      padding           0
       shadow            inset 0 0 0 1px rgba(255,255,255,.3)
       fl()              
+
     .profile            
       max-width         100px
       display           block
@@ -311,7 +405,14 @@ p.login-tip
     color               #ffb500
     noTextDeco()
 
-
+.kdnotification.login
+  span
+    size                43px, 43px
+    bg                  position, -480px -120px
+    display             inline-block
+    margin-right        5px
+    vertical-align      middle
+    sprite()
 
 
 

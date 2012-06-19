@@ -1,4 +1,11 @@
-# FIX: Find a better name
+###
+todo:
+
+  - on enter should validation fire by default??? Sinan - 6/6/2012
+
+###
+
+
 class KDHitEnterInputView extends KDInputView
   constructor:(options,data)->
     options = $.extend
@@ -17,6 +24,10 @@ class KDHitEnterInputView extends KDInputView
     @enableEnterKey()
     @setToggler() if options.label?
     @disableEnterKey() if @getOptions().showButton
+
+    @on "ValidationPassed", =>
+      @blur()
+      @getOptions().callback?.call @,@getValue()
 
   enableEnterKey:->
     @setClass "active"
@@ -53,9 +64,6 @@ class KDHitEnterInputView extends KDInputView
 
   keyDown:(event)->
     if event.which is 13 and (event.altKey or event.shiftKey) isnt true and @enterKeyEnabled
-      @inputValidator.validate @, event if @getOptions().validate
       @handleEvent type : "EnterPerformed"
-      if @inputValidationPassed
-        @blur()
-        @getOptions().callback?.call @,@inputGetValue()
+      @validate()
       no

@@ -27,7 +27,20 @@ class KDWindowController extends KDController
     document.body.addEventListener 'mouseup', (e)=>
       @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
     , yes
-    
+
+    window.onbeforeunload = (event) =>
+      # event.preventDefault();
+      # event.stopImmediatePropagation();
+      # event.stopPropagation();
+
+      event or= window.event
+      msg = "Please make sure that you saved all your work."
+      
+      event.returnValue = msg if event # For IE and Firefox prior to version 4
+
+      return msg
+      
+
     super
   
   addLayer: (layer)->
@@ -38,13 +51,6 @@ class KDWindowController extends KDController
     index = @layers.indexOf(layer)
     @layers.splice index, 1
   
-  getStorage: (storageName) ->
-    storage = new KDLocalStorageSpace storageName
-    storage.setWritable yes #defines if storage is writable
-
-  destroyAllLocalStorages: ->
-    KDLocalStorageSpace.clear()
-
   bindEvents:()->
 
     $(window).bind "keydown keyup keypress",@key

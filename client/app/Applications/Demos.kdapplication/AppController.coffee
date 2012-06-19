@@ -32,9 +32,54 @@ class Demos12345 extends AppController
       { title : "title 20", id : 20, parentId: 1}
     ]
     
-    t = new JTreeViewController 
-      addListsCollapsed : no
-    , data
+    window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
+      style           : "kdwhitebtn profilefollowbtn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : "Unfollow"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        left          : 3
+      states          : [
+        "Follow", (callback)->
+          # memberData.follow (err, response)=>
+          #   unless err
+          #     @setClass 'following-btn'
+          log "follow callback"
+          @hideLoader()
+          callback? null
+        "Unfollow", (callback)->
+          # memberData.unfollow (err, response)=>
+          #   unless err
+          #     @unsetClass 'following-btn'
+          log "unfollow callback"
+          @hideLoader()
+          callback? null
+      ]
+
+    # t = new JTreeViewController 
+    #   addListsCollapsed : yes
+    # , data
+    # mainView.addSubView t.getView()
+    # t.getView().$().height "auto"
+    
+    
+    # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
+    # mainView.addSubView b = new KDButtonView
+    #   title     : "render"
+    #   callback  : -> 
+    #     log "being rendered"
+    #     a.render.call a
+    # 
+
+    # controller = new MembersListViewController
+    #   subItemClass : MembersListItemView
+    # , items : [KD.whoami()]
+    #   
+    # mainView.addSubView controller.getView()
+
+    # KD.whoami().on "update", => log "data has changed"
     
     # mainView.addSubView form = new KDFormViewWithFields
     #   fields          :
@@ -59,13 +104,13 @@ class Demos12345 extends AppController
     #             t.removeNode t.getNodeId(node.getData())
     #             null
     #         #   
-    #         # t.removeNode form.inputs.remove.inputGetValue()
+    #         # t.removeNode form.inputs.remove.getValue()
     #         # for node in t.indexedNodes
     #         #   log node.id, node.parentId, node.depth
     #     removeChildren:
     #       title       : "remove children only"
     #       callback    : ->
-    #         t.removeChildNodes form.inputs.remove.inputGetValue()
+    #         t.removeChildNodes form.inputs.remove.getValue()
     #   callback        : (formElements)->
     #     t.addNode
     #       title     : formElements.title
@@ -85,8 +130,6 @@ class Demos12345 extends AppController
     #       callback : -> log "c"
 
     
-    mainView.addSubView t.getView()
-    t.getView().$().height "auto"
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dropee

@@ -114,8 +114,6 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Members.kdapplication"     : Members12345
       "./client/app/Applications/StartTab.kdapplication"    : StartTab12345
       "./client/app/Applications/Home.kdapplication"        : Home12345
-      "./client/app/Applications/Login.kdapplication"       : Login12345
-      "./client/app/Applications/Register.kdapplication"    : Register12345
       "./client/app/Applications/Account.kdapplication"     : Account12345
       "./client/app/Applications/Environment.kdapplication" : Environment12345
       "./client/app/Applications/Apps.kdapplication"        : Apps12345
@@ -228,7 +226,7 @@ class ApplicationManager extends KDObject
   getStorage: (appId, version, callback) ->
     notifyView = null
 
-    warn "System still trying to access application storage for #{appId}"
+    # warn "System still trying to access application storage for #{appId}"
     
     KD.whoami().fetchStorage {appId, version}, (error, storage) =>
       unless storage
@@ -237,14 +235,14 @@ class ApplicationManager extends KDObject
         
   
   addOpenTab:(tab, controller)->
-    docManager.addOpenDocument tab.getActiveFile() if tab.getActiveFile?
+    # docManager.addOpenDocument tab.getActiveFile() if tab.getActiveFile?
     @openTabs.push tab
       
   getOpenTabs:()->
     @openTabs
   
   removeOpenTab:(tab)->
-    docManager.removeOpenDocument tab.getActiveFile() if tab.getActiveFile?
+    # docManager.removeOpenDocument tab.getActiveFile() if tab.getActiveFile?
     @openTabs.splice (@openTabs.indexOf tab), 1
     
   # temp

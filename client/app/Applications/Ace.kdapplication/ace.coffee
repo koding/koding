@@ -1,7 +1,6 @@
 ###
   todo:
     
-    - enable auto guessing syntax by extension
     - put search replace
     - fix setSoftWrap it goes back to off when you reopen the settings
 
@@ -74,16 +73,14 @@ class Ace extends KDView
         
   requestSave:->
 
-    file     = @getData()
     contents = @getContents()
     return @notify "Nothing to save!" unless contents isnt @lastSavedContents
-    file.emit "ace.requests.save", contents
+    @emit "ace.requests.save", contents
 
   requestSaveAs:->
 
-    file     = @getData()
     contents = @getContents()
-    file.emit "ace.requests.saveAs", contents
+    @emit "ace.requests.saveAs", contents
 
     
   fetchContents:(callback)->
@@ -102,7 +99,7 @@ class Ace extends KDView
   
   getTheme:-> @editor.getTheme().replace "ace/theme/", ""
 
-  getSyntax:-> @syntaxName
+  getSyntax:-> @syntaxMode
 
   getUseSoftTabs:-> @editor.getSession().getUseSoftTabs()
 
@@ -146,16 +143,24 @@ class Ace extends KDView
 
   setContents:(contents)-> @editor.getSession().setValue contents
 
-  setTheme:(themeName = "merbivore")->
+  setTheme:(themeName = "merbivore_soft")->
 
     require ["ace/theme/#{themeName}"], (callback) =>
       @editor.setTheme "ace/theme/#{themeName}"
   
-  setSyntax:(syntaxName = "javascript")->
-
-    require ["ace/mode/#{syntaxName}"], ({Mode})=>
+  setSyntax:(mode)->
+    
+    unless mode
+      file = @getData()
+      ext  = @utils.getFileExtension file.path
+      for name, [language, extensions] of __aceSettings.syntaxAssociations
+        if ///^(?:#{extensions})$///i.test ext
+          mode = name
+      mode or= "javascript"
+    
+    require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
-      @syntaxName = syntaxName
+      @syntaxMode = mode
 
   setUseSoftTabs:(value)-> @editor.getSession().setUseSoftTabs value
     

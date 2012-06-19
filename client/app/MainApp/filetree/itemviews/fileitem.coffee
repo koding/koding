@@ -25,7 +25,17 @@ class NFileItemView extends KDCustomHTMLView
       cssClass  : "icon"
     
     data.on "fs.*.started", => @showLoader()
-    data.on "fs.*.finished", =>  @hideLoader()
+    data.on "fs.*.finished", => @hideLoader()
+
+    # data.on "fs.saveAs.finished", (newFile, oldFile)=>
+    #   oldFile.emit "folderNeedsToRefresh", newFile
+
+  destroy:->
+    
+    @getData().off "fs.*.started"
+    @getData().off "fs.*.finished"
+    @getData().off "fs.saveAs.finished"
+    super
 
   decorateItem:->
 

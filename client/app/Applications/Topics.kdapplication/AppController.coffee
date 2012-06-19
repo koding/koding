@@ -99,3 +99,12 @@ class Topics12345 extends AppController
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+
+
+  fetchTopics:({inputValue, blacklist}, callback)->
+
+    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
+      unless err
+        callback? tags
+      else
+        warn "there was an error fetching topics"

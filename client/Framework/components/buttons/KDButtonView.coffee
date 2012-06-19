@@ -106,8 +106,9 @@ class KDButtonView extends KDView
         range       : loader.range    || 0.4
         speed       : loader.speed    || 1.5
         FPS         : loader.FPS      || 24
+
     @addSubView @loader, null, yes
-    @loader.$().css position : "absolute", left : 5, top : 5
+    @loader.$().css position : "absolute", left : loader.left or 5, top : loader.top or 5
     @loader.hide()
   
   showLoader:->
@@ -118,13 +119,11 @@ class KDButtonView extends KDView
     @unsetClass "loading"
     @loader.hide()
   
-  disable:()->
-    @$().attr "disabled",yes
-  enable:()->
-    @$().attr "disabled",no
+  disable:-> @$().attr "disabled",yes
+
+  enable:-> @$().attr "disabled",no
   
-  focus:->
-    @$().trigger "focus"
+  focus:-> @$().trigger "focus"
   
   click:(event)->
     if @loader and @loader.active
@@ -145,32 +144,21 @@ class KDButtonView extends KDView
   triggerClick:()-> @doOnSubmit()
 
 class KDToggleButton extends KDButtonView
+
   constructor:(options = {},data)->
+
     options = $.extend
-      dataPath : null          # a JsPath String
-      states   : []            # an Array of Objects in form of stateName : callback key/value pairs
+      dataPath     : null          # a JsPath String
+      defaultState : null          # a String
+      states       : []            # an Array of Objects in form of stateName : callback key/value pairs
     ,options
 
     super options,data
-    @setDefaultStates()
-    @setState()
     
-    @attachListener()
+    @setState options.defaultState
     
-  attachListener:->
-    {dataPath} = @getOptions()
-    if dataPath
-      @getData().on dataPath, =>
-        @setState dataPath
-
-  setDefaultStates:->
-    {states} = @getOptions()
-    if states.length < 3
-      @options.states = ['default',-> warn "no state options passed" ]
-    else
-      return
-
   getStateIndex:(name)->
+
     {states} = @getOptions()
     unless name
       return 0
@@ -178,16 +166,22 @@ class KDToggleButton extends KDButtonView
       for state,index in states
         if name is state
           return index
-
+  
+  decorateState:(name)-> @setTitle @state
+  
+  getState:-> @state
+  
   setState:(name)->
+    
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
+    @decorateState name
     
-    @setTitle @state
-    @setCallback states[index + 1].bind @, @toggleState.bind @
+    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
+
     {states} = @getOptions()
     nextState = states[@stateIndex + 2] or states[0]
     unless err

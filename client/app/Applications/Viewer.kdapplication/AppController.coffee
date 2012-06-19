@@ -95,11 +95,12 @@ class PreviewerView extends KDView
   openPath:(path)->
     @path = path
     @clean = no
-    @iframe.$().attr 'src', path
-    @viewerHeader.setPath(path)
+    @iframe.$().attr 'src', "#{path}?#{Date.now()}"
+    @viewerHeader.setPath path
   
   refreshIFrame:->
-    @iframe.$().attr 'src', @path
+    # @iframe.$().contents().location.reload(yes)
+    @iframe.$().attr 'src', "#{@path}?#{Date.now()}"
     
   isDocumentClean:->
     @clean

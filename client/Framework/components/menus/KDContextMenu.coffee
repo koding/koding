@@ -71,7 +71,9 @@ class KDContextMenuTreeViewController extends KDTreeViewController
     item
   
   clickOnMenuItem:(source,event)=>
-
+    
+    return if source.data?.disabled
+    
     contextMenuDelegate = @getView().delegate #context menu tree view delegate (item clicked)
     if source.data.callback and "function" is typeof source.data.callback
       source.data.callback.call contextMenuDelegate, source, event
@@ -160,10 +162,8 @@ class KDContextMenuTreeItem extends KDTreeItemView
     super options,data
 
   partial:(data)->
-    partial = $ "<div class='context-menu-item'>
-          <span class='icon'></span>
-          <a href='/#/#{data.type}/add' class='add-new-item' title='Add new #{data.type}'>#{data.title}</a>
-      </div>"
+    
+    "<div class='context-menu-item'><span class='icon'></span><a href='#'>#{data.title}</a> </div>"
 
   mouseEnter:(event)->
     ###

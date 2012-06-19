@@ -196,6 +196,26 @@ __utils =
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
+  getParentPath :(path)->
+    
+    path = path.substr(0, path.length-1) if path.substr(-1) is "/"
+    parentPath = path.split('/')
+    parentPath.pop()
+    return parentPath.join('/')
+
+  nextTick: (duration, fn) ->
+    if "function" is typeof duration
+      fn = duration
+      duration = 0
+    setTimeout fn, duration
+
+  getCancellableCallback:(callback)->
+    cancelled = no
+    kallback = (rest...)->
+      callback rest... unless cancelled
+    kallback.cancel = -> cancelled = yes
+    kallback
+
   ###
   //     Underscore.js 1.3.1
   //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.

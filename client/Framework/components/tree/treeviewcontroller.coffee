@@ -75,6 +75,7 @@ class JTreeViewController extends KDViewController
   ###
 
   initTree:(nodes)->
+
     @addNode node for node in nodes
 
   logTreeStructure:->
@@ -140,8 +141,8 @@ class JTreeViewController extends KDViewController
   CRUD OPERATIONS FOR NODES
   ###
 
-  addNode:(nodeData)->
-    
+  addNode:(nodeData, index)->
+
     nodeData = @repairIds nodeData
     return unless nodeData
     @getData().push nodeData
@@ -155,7 +156,7 @@ class JTreeViewController extends KDViewController
       list = @createList(parentId).getListView()
       @addSubList @nodes[parentId], parentId
 
-    list.addItem nodeData
+    list.addItem nodeData, index
   
   removeNode:(id)->
 
@@ -267,6 +268,7 @@ class JTreeViewController extends KDViewController
         type         : "jtree"
         subItemClass : options.treeItemClass
     , items : listItems
+
     @setListenersForList listId
     return @listControllers[listId]
   
@@ -323,6 +325,7 @@ class JTreeViewController extends KDViewController
       callback            : (treeview, event)=> @keyEventHappened event
 
   setItemListeners:(pubInst, nodeItem)->
+
     @listenTo 
       KDEventTypes       : "viewAppended"
       listenedToInstance : nodeItem.view
@@ -330,18 +333,17 @@ class JTreeViewController extends KDViewController
 
 
     mouseEvents = ["dblclick", "click", "mousedown", "mouseup", "mouseenter", "mousemove"]
-
+    
     if @getOptions().contextMenu
       mouseEvents.push "contextmenu"
 
     if @getOptions().dragdrop
       mouseEvents = mouseEvents.concat ["dragstart", "dragenter", "dragleave", "dragend", "dragover", "drop"]
-
+    
     @listenTo
       KDEventTypes       : mouseEvents
       listenedToInstance : nodeItem.view
-      callback           : (pubInst, event)=>
-        @mouseEventHappened pubInst, event
+      callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
       
         
   ###
@@ -487,7 +489,6 @@ class JTreeViewController extends KDViewController
   
   mouseDown:(nodeView, event)->
 
-    # log event, event.type
     @lastEvent = event
     unless nodeView in @selectedNodes
       @mouseIsDown = yes
@@ -514,7 +515,7 @@ class JTreeViewController extends KDViewController
   mouseEnter:(nodeView, event)->
 
     clearTimeout @mouseDownTimer
-    if @mouseIsDown
+    if @mouseIsDown and @getOptions().multipleSelection
       @cancelDrag = yes
       @deselectAllNodes() unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
       @selectNodesByRange @mouseDownTempItem, nodeView
@@ -530,7 +531,6 @@ class JTreeViewController extends KDViewController
       event.stopPropagation()
       return no
     @dragIsActive = yes
-    log event, event.type
     e = event.originalEvent
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
     transferredData = (@getNodeId node.getData() for node in @selectedNodes)

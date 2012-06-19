@@ -43,7 +43,7 @@ input, select { vertical-align:middle; }
 
 body { font:13px/1.231 sans-serif; *font-size:small; } 
 select, input, textarea, button { font:99% "Open Sans"; }
-pre, code, kbd, samp { font-family: monospace, sans-serif; background-color: #f2f2f2; }
+pre, code, kbd, samp { font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif; background-color: #f2f2f2; font-size:12px; line-height: 16px;}
 
 body, select, input, textarea {   color: #444; }
 h1,h2,h3,h4,h5,h6 { font-weight: bold; }

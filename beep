@@ -1,2 +1,2 @@
 #!/bin/sh
-osascript -e "beep 1" 2>/dev/null
+osascript -e "beep 2" 2>/dev/null

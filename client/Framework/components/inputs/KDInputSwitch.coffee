@@ -6,25 +6,25 @@ class KDInputSwitch extends KDInputView
   constructor:(options = {})->
     options.type = "switch"
     super options
-    @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@inputGetName()}'/>"
+    @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
   setDomElement:()->
     @domElement = $ "<span class='kdinput kdinputswitch off'></span>"
 
-  inputSetDefaultValue:(value) ->
+  setDefaultValue:(value) ->
     switch value
-      when on,"on","true","yes",1 then @_inputSetDefaultValue on
-      else @_inputSetDefaultValue off
+      when on,"on","true","yes",1 then @_setDefaultValue on
+      else @_setDefaultValue off
 
-  inputGetDefaultValue:()-> @inputDefaultValue
+  getDefaultValue:()-> @inputDefaultValue
 
-  inputGetValue:()-> @getDomElement().find("input").eq(0).is ":checked"
-  inputSetValue:(value)->
+  getValue:()-> @getDomElement().find("input").eq(0).is ":checked"
+  setValue:(value)->
     switch value
       when on   then @switchAnimateOn()
       when off  then @switchAnimateOff()
       
-  _inputSetDefaultValue: (val) ->
+  _setDefaultValue: (val) ->
     setTimeout =>
       val = !!val
       if val
@@ -38,7 +38,7 @@ class KDInputSwitch extends KDInputView
     , 0
 
   switchAnimateOff:()->
-    return unless @inputGetValue()
+    return unless @getValue()
     counter = 0
     timer = setInterval ()=>
       @getDomElement().css "background-position","left -#{counter * 20}px"
@@ -51,7 +51,7 @@ class KDInputSwitch extends KDInputView
     ,20
   
   switchAnimateOn:()->
-    return if @inputGetValue()
+    return if @getValue()
     counter = 6
     timer = setInterval ()=>
       @getDomElement().css "background-position","left -#{counter * 20}px"
@@ -64,11 +64,11 @@ class KDInputSwitch extends KDInputView
     ,20
 
   switchStateChanged:()->
-    # log "new state of #{@inputGetName()} is #{@inputGetValue()}",@inputGetCallback()?
-    @inputGetCallback().call @,@inputGetValue() if @inputGetCallback()?
+    # log "new state of #{@getName()} is #{@getValue()}",@getCallback()?
+    @getCallback().call @,@getValue() if @getCallback()?
 
   mouseDown:()->
-    switch @inputGetValue()
-      when on   then @inputSetValue off
-      when off  then @inputSetValue on
+    switch @getValue()
+      when on   then @setValue off
+      when off  then @setValue on
     no

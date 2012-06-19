@@ -1,5 +1,4 @@
 
-
 client/KDApplications/Shell.kdapplication/terminal.log
 client/KDApplications/Shell.kdapplication/terminal.pid
 .DS_Store
@@ -22,8 +21,10 @@ client/app/stylus/*.js
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
+/node_modules/http-proxy
 /node_modules/bitly
 /node_modules/braintree
+/node_modules/browserify
 /node_modules/coffee-script
 /node_modules/dateformat
 /node_modules/dropbox
@@ -33,8 +34,11 @@ client/app/stylus/*.js
 /node_modules/gzippo
 /node_modules/hashish
 /node_modules/hat
+/node_modules/http-proxy
 /node_modules/inspect
+/node_modules/jsonify
 /node_modules/ldapjs
+/node_modules/jsonify
 /node_modules/log
 /node_modules/log4js
 /node_modules/mongodb
@@ -53,7 +57,8 @@ client/app/stylus/*.js
 /node_modules/underscore
 /node_modules/url
 /node_modules/validator
-
-node_modules/jsonify/
-node_modules/browserify/
-node_modules/http-proxy/
+/node_modules/terminaljs-lite
+/node_modules/terminaljs-lite_
+/node_modules/jsonify
+/node_modules/browserify
+/node_modules/.DS_Store

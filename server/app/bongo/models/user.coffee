@@ -19,7 +19,7 @@ class JUser extends jraphical.Module
     sharedMethods   :
       instance      : []
       static        : [
-        'login','logout','register','usernameAvailable','changePassword'
+        'login','logout','register','usernameAvailable','emailAvailable','changePassword'
         'fetchUser','setDefaultHash','whoami'
       ]
 
@@ -207,17 +207,33 @@ class JUser extends jraphical.Module
         else 
           callback null, yes, invite
   
+  @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
+    if kodingenUser isnt 'on'
+      callback null
+    else
+      require('https').get
+        hostname  : 'kodingen.com'
+        path      : "/bridge_.php?username=#{encodeURIComponent username}&password=#{encodeURIComponent password}"
+      , (res)->
+        data = ''
+        res.setEncoding 'utf-8'
+        res.on 'data', (chunk)-> data += chunk
+        res.on 'error', (err)-> callback err, r
+        res.on 'end', ->
+          data = JSON.parse data.substr(1, data.length - 2)
+          if data.error then callback yes else callback null
+
   @register = bongo.secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, 
-     firstName, lastName, agree, inviteCode} = userFormData
+     firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
     @usernameAvailable username, (err, isAvailable)=>
       if err
         callback err
       else unless isAvailable
         callback new KodingError 'That username is not available!'
       else
-        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)->
+        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
           if err
             callback new KodingError err.message
           else
@@ -228,70 +244,74 @@ class JUser extends jraphical.Module
             else if not username? or not email?
               return callback new KodingError 'Username and email are required fields'
             
-            nickname = username
-            connection.remote.fetchClientId (clientId)->
-              visitor = JVisitor.visitors[clientId]
-              JSession.one {clientId}, (err, session)->
-                if err
-                  callback err
-                else unless session
-                  callback new KodingError 'Could not restore your session!'
-                else
-                  salt = createSalt()
-                  user = new JUser {
-                    username
-                    email
-                    salt
-                    password: hashPassword(password, salt)
-                  }
-                  user.save (err)->
+            @verifyKodingenPassword {username, password, kodingenUser}, (err)->
+              if err
+                return callback new KodingError 'Wrong password'
+              else
+                nickname = username
+                connection.remote.fetchClientId (clientId)->
+                  visitor = JVisitor.visitors[clientId]
+                  JSession.one {clientId}, (err, session)->
                     if err
                       callback err
+                    else unless session
+                      callback new KodingError 'Could not restore your session!'
                     else
-                      hash = getHash email
-                      account = new JAccount
-                        profile: {
-                          nickname
-                          firstName
-                          lastName
-                          hash
-                        }
-                      account.save (err)->
+                      salt = createSalt()
+                      user = new JUser {
+                        username
+                        email
+                        salt
+                        password: hashPassword(password, salt)
+                      }
+                      user.save (err)->
                         if err
                           callback err
                         else
-                          user.addOwnAccount account, (err)->
+                          hash = getHash email
+                          account = new JAccount
+                            profile: {
+                              nickname
+                              firstName
+                              lastName
+                              hash
+                            }
+                          account.save (err)->
                             if err
                               callback err
                             else
-                              session.update {
-                                $set:
-                                  username: user.username
-                                $addToSet:
-                                  tokens        :
-                                    token       : hat()
-                                    expires     : new Date(Date.now() + 1000*60*60*24*14)
-                                    authority   : 'beta.koding.com'
-                                    requester   : 'api.koding.com'
-                              }, (err, docs)->
+                              user.addOwnAccount account, (err)->
                                 if err
                                   callback err
                                 else
-                                  invite?.redeem? client
-                                  connection.delegate = account
-                                  visitor.emit ['change','login'], account
-                                  user.fetchTenderAppLink (err, link)->
+                                  session.update {
+                                    $set:
+                                      username: user.username
+                                    $addToSet:
+                                      tokens        :
+                                        token       : hat()
+                                        expires     : new Date(Date.now() + 1000*60*60*24*14)
+                                        authority   : 'beta.koding.com'
+                                        requester   : 'api.koding.com'
+                                  }, (err, docs)->
                                     if err
-                                      console.log err
+                                      callback err
                                     else
-                                      user.update $set: tenderAppLink: link, (err)->
+                                      invite?.redeem? client
+                                      connection.delegate = account
+                                      visitor.emit ['change','login'], account
+                                      user.fetchTenderAppLink (err, link)->
                                         if err
                                           console.log err
                                         else
-                                          user.sendEmailConfirmation()
-                                          createNewMemberActivity account
-                                          # added by sinan 30 apr 2012, is that ok??? success state wasnt firing callback
-                                          callback?()
+                                          user.update $set: tenderAppLink: link, (err)->
+                                            if err
+                                              console.log err
+                                            else
+                                              user.sendEmailConfirmation()
+                                              createNewMemberActivity account
+                                              # added by sinan 30 apr 2012, is that ok??? success state wasnt firing callback
+                                              callback?()
   
   
   @fetchUser = bongo.secure ({connection},callback)->
@@ -307,21 +327,35 @@ class JUser extends jraphical.Module
   @changePassword = bongo.secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
   
-  @usernameAvailable =(username, callback)->
-    username += ''
-    @count {username}, (err, count)->
+  @emailAvailable = (email, callback)->
+    @count {email}, (err, count)->
       if err
         callback err
       else if count is 1
-        callback err, no
+        callback null, no
       else
+        callback null, yes
+
+  @usernameAvailable = (username, callback)->
+    username += ''
+    r =
+      kodingUser   : no
+      kodingenUser : no
+    
+    @count {username}, (err, count)->
+      if err
+        callback err
+      else
+        r.kodingUser = if count is 1 then yes else no
         require('https').get
           hostname  : 'kodingen.com'
           path      : "/bridge.php?username=#{username}"
         , (res)->
           res.setEncoding 'utf-8'
-          res.on 'data', (chunk)-> callback null, !+chunk
-          res.on 'error', (err)-> callback err
+          res.on 'data', (chunk)->
+            r.kodingenUser = if !+chunk then no else yes
+            callback null, r
+          res.on 'error', (err)-> callback err, r
   
   changePassword:(newPassword, callback)->
     salt = createSalt()

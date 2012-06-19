@@ -130,7 +130,7 @@ class Followable extends jraphical.Module
       fin = -> queue.fin()
       queue.push -> addToBucket 'source', relationship, target, source, fin
       queue.push -> addToBucket 'target', relationship, source, target, fin
-      dash queue, -> callback
+      dash queue, callback
     
     # @implementation
     (client,callback)->
@@ -202,7 +202,6 @@ class Followable extends jraphical.Module
           callback err, accounts
   
   fetchFollowersWithRelationship: bongo.secure (client, query, page, callback)->
-    debugger
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
   

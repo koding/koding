@@ -139,7 +139,6 @@ Includes =
         JView               : "./client/Framework/core/JView.coffee"
         KDCustomHTMLView    : "./client/Framework/core/KDCustomHTMLView.coffee"
         KDScrollView        : "./client/Framework/core/KDScrollView.coffee"
-        KDLocalStorageCache : "./client/Framework/core/KDLocalStorageCache.coffee"
         KDRouter            : "./client/Framework/core/KDRouter.coffee"
 
         KDController        : "./client/Framework/core/KDController.coffee"
@@ -240,8 +239,6 @@ Includes =
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
 
         Members12345          : "./client/app/Applications/Members.kdapplication/AppController.coffee"
-        Login12345            : "./client/app/Applications/Login.kdapplication/AppController.coffee"
-        Register12345         : "./client/app/Applications/Register.kdapplication/AppController.coffee"
         Account12345          : "./client/app/Applications/Account.kdapplication/AppController.coffee"
         Home12345             : "./client/app/Applications/Home.kdapplication/AppController.coffee"
         Activity12345         : "./client/app/Applications/Activity.kdapplication/AppController.coffee"
@@ -252,11 +249,6 @@ Includes =
         Inbox12345            : "./client/app/Applications/Inbox.kdapplication/AppController.coffee"
         Demos12345            : "./client/app/Applications/Demos.kdapplication/AppController.coffee"
         StartTab12345         : "./client/app/Applications/StartTab.kdapplication/AppController.coffee"
-        
-        # old ace crap
-        # pageEditor            : "./client/app/Applications/Ace.kdapplication/pageEditor.coffee"
-        # editor                : "./client/app/Applications/Ace.kdapplication/editor.coffee"
-        # Ace12345              : "./client/app/Applications/Ace.kdapplication/AppController.coffee"
         
         # new ace
         Ace12345              : "./client/app/Applications/Ace.kdapplication/AppController.coffee"
@@ -280,14 +272,15 @@ Includes =
 
         # ACTIVITY VIEWS          
         activityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
-        updateWidget                : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actUpdateWidget.coffee"
-        updateWidgetDropd           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actUpdateWidgetDropDown.coffee"
-        actStatusWidget             : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actStatusUpdateWidget.coffee"
-        actQuestionWidget           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actQuestionWidget.coffee"
-        actCodeSnipWidget           : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actCodeSnipWidget.coffee"
-        actLinkWidget               : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actLinkWidget.coffee"
-        actTutoWidget               : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actTutorialWidget.coffee"
-        actDiscussWidget            : "./client/app/Applications/Activity.kdapplication/AddNewActivityWidget/actDiscussionWidget.coffee"
+        activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
+        activityWidget              : "./client/app/Applications/Activity.kdapplication/widgets/widgetview.coffee"
+        activityWidgetButton        : "./client/app/Applications/Activity.kdapplication/widgets/widgetbutton.coffee"
+        statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
+        questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
+        codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
+        linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
+        tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
         # Activity commons
         actActions                  : "./client/app/Applications/Activity.kdapplication/ActivityActions.coffee"
         # Activity content displays
@@ -333,15 +326,13 @@ Includes =
         memberDisplay                 : "./client/app/Applications/Members.kdapplication/ContentDisplays/Member.coffee"
         personalProfileDisplay        : "./client/app/Applications/Members.kdapplication/ContentDisplays/PersonalProfile.coffee"
                                       
-        # LOGIN VIEWS                 
-        loginAppView                  : "./client/app/Applications/Login.kdapplication/AppView.coffee"
-                                      
         # START TAB VIEWS                 
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
                                       
         # INBOX CONTROLLERS                 
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
         inboxNotificationsController  : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxNotificationsController.coffee"
+
         # INBOX VIEWS                 
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
         inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
@@ -359,6 +350,7 @@ Includes =
         FeedController                : "./client/app/Applications/Feeder.kdapplication/FeedController.coffee"
         FeederFacetsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee"
         FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
+
         # FEED VIEWS
         FeedView                      : "./client/app/Applications/Feeder.kdapplication/FeedView.coffee"
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
@@ -493,7 +485,17 @@ Includes =
         FSMount                   : "./client/app/MainApp/fs/fsmount.coffee"
         
         avatarArea                : "./client/app/MainApp/avatararea.coffee"
-        loginView                 : "./client/app/MainApp/LoginView.coffee"
+        
+        # LOGIN VIEWS                 
+        loginView                 : "./client/app/MainApp/login/loginview.coffee"
+        loginform                 : "./client/app/MainApp/login/loginform.coffee"
+        logininputs               : "./client/app/MainApp/login/logininputs.coffee"
+        loginoptions              : "./client/app/MainApp/login/loginoptions.coffee"
+        registeroptions           : "./client/app/MainApp/login/registeroptions.coffee"
+        registerform              : "./client/app/MainApp/login/registerform.coffee"
+        recoverform               : "./client/app/MainApp/login/recoverform.coffee"
+        resetform                 : "./client/app/MainApp/login/resetform.coffee"
+
         KodingMainViewController  : "./client/app/MainApp/KodingMainViewController.coffee"
 
         ### VOVAS FINDER CRAP - DEPRECATE ASAP ###
@@ -544,7 +546,7 @@ Includes =
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
-        # md5               : "./client/libs/md5-min.js"
+        md5               : "./client/libs/md5-min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
         async             : "./client/libs/async.js"

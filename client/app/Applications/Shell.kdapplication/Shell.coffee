@@ -32,11 +32,11 @@ class ShellView extends KDView
       handler: ()->
     @client = new TerminalClient clientOptions
     @input.setHandler @client
-    @input.inputSetFocus()
+    @input.setFocus()
   reset:(type)->
     @initiateClient type
   click: ->
-    @input.inputSetFocus()
+    @input.setFocus()
   updateScreen:(data)->
     @client?.write data
   _windowDidResize: ->
@@ -113,7 +113,7 @@ class ShellInputView extends KDInputView
 
   paste:(event)->
     setTimeout =>
-      pastedContent = @inputGetValue()
+      pastedContent = @getValue()
       @emit 'data', pastedContent
-      @inputSetValue ''
+      @setValue ''
     , 10

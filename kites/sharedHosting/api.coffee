@@ -12,11 +12,11 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
 
-log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
 
+console.log "new sharedhosting api."
 
-
-module.exports = new Kite
+module.exports = new Kite 'sharedHosting'
    
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -68,12 +68,23 @@ module.exports = new Kite
     # options =
     #   username : String  #username of the unix user
     #
-    {username} = options
+    {username,nrOfRecursion} = options
 
-    getuid = exec "/usr/bin/id -u #{username}", (err,stdout,stderr)->
+    getuid = exec "/usr/bin/id -u #{username}", (err,stdout,stderr)=>
       if err?
         log.error "[ERROR] unable to get user's UID: #{stderr}"
-        callback?  "[ERROR] unable to get user's UID: #{stderr}"
+        if nrOfRecursion is 1
+          callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+        else
+          @createSystemUser {username,fullName:username,password:hat()},(err,res)=>
+            unless err
+              log.info "User is just created, run the command again, it will work this time."
+              @checkUid {username,nrOfRecursion:1},callback
+            else
+              log.error "CANT CREATE THIS USER"
+              callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
+
+          
       else if stdout < config.minAllowedUid
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.error e = "[ERROR]  min UID for commands is #{config.minAllowedUid}, your #{stdout}"
@@ -81,8 +92,7 @@ module.exports = new Kite
       else
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.debug "[OK] func:checkUid: user's #{username} UID #{stdout} allowed"
-        callback? null
-  
+        callback? null  
   
   secureUser : (options,callback)->
     # put user to the secure env http://www.cloudlinux.com/docs/cagefs/
@@ -224,8 +234,8 @@ module.exports = new Kite
     {username,uid,domainName} = options
     
     domainName ?= "#{username}.beta.koding.com"
-    targetPath = "/Users/#{username}/public_html/#{domainName}"
-    cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/httpdocs #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
+    targetPath = "/Users/#{username}/Sites/#{domainName}"
+    cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd
     
     exec cmd,(err,stdout,stderr)->

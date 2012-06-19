@@ -5,16 +5,24 @@ class PersonalProfile extends KDView
     
     memberData.skillTags or= []
     
-    @avatar      = new PersonalFormAvatarView null, memberData
-    @profileName = new PersonalFormNameView null, memberData
-    @location    = new PersonalFormLocationView null, memberData
+    @avatar = new AvatarStaticView 
+      size        :
+        width     : 90
+        height    : 90
+      tooltip     :
+        title     : "<p class='centertext'>please use gravatar.com<br/>to set your avatar</p>"
+        placement : "below"
+    , memberData
+
+    @profileName = new PersonalFormNameView {memberData}
+    @location    = new PersonalFormLocationView {memberData}
     
-    @followers   = new ProfileFollowersView null, memberData
-    @following   = new ProfileFollowingView null, memberData
+    @followers   = new ProfileFollowersView {memberData}
+    @following   = new ProfileFollowingView {memberData}
     
     @aboutYou    = new PersonalFormAboutWrapperView null, memberData
       
-    @skillTagView = new PersonalFormSkillTagView null, memberData
+    @skillTagView = new PersonalFormSkillTagView {memberData}
     
     @setListeners()
                 

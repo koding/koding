@@ -26,20 +26,26 @@ class MainController extends KDController
         queue = []
   
   authorizeServices:(callback)->
-    KD.whoami().fetchNonce (err, nonce)->
+    KD.whoami().fetchNonce (nonce)->
       $.ajax
-        url       : "https://api.koding.com/1.0/login"
+        url       : KD.apiUri+"/1.0/login"
         data      :
           n       : nonce
-          env     : if KD.env is 'dev' then 'vpn' else 'beta'
-        dataType  : 'jsonp'
+          env     : KD.env
+        xhrFields :
+          withCredentials: yes
 
   deauthorizeServices:(callback)->
-    $.ajax
-      url       : 'https://api.koding.com/1.0/logout',
-      success	: callback
-      failure	: callback
-      dataType  : 'jsonp'
+    KD.whoami().fetchNonce (nonce)->
+      $.ajax
+        url       : KD.apiUri+'/1.0/logout'
+        data      :
+          n       : nonce
+          env     : KD.env
+        success	  : callback
+        failure	  : callback
+        xhrFields :
+          withCredentials: yes
   
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
@@ -98,6 +104,7 @@ class MainController extends KDController
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
       appManager.openApplication "Activity", yes
+      # appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(publishingInstance,event)=>
@@ -123,8 +130,10 @@ class MainController extends KDController
       if event.pageName is 'Logout'
         bongo.api.JUser.logout ->
           new KDNotificationView
-            title   : "Come back soon!"
-            duration: 1000
+            cssClass  : "login"
+            title     : "<span></span>Come back soon!"
+            # content   : "Successfully logged out."
+            duration  : 2000
       else
         @goToPage pubInst, event
 
@@ -343,29 +352,28 @@ class MainView extends KDView
       attributes  :
         href      : "#"
       partial     : "What you should know about this beta...<span></span>"
-      click       : (pubInst, event)->
+      click       : (pubInst, event)=>
         if $(event.target).is 'span'
           link.hide()
         else
-          new KDModalView
-            title   : "Thanks for joining our beta."
-            cssClass: "what-you-should-know-modal"
-            height  : "auto"
-            width   : 500
-            content : 
-              """
-              <div class='modalformline'>There are a couple of things that you should know.</div>
-              <div class='modalformline'>
-                <ol>
-                  <li>This is a work in progress, by no means a finished product.</li>
-                  <li>We're working to deliver improvements to the system, but there are some known issues.</li>
-                  <ul>
-                    <li>The terminal may not come up for you.  We will be pushing a fix for this as soon as we can, but in this release, the terminal is not as stable as we would like it to be.</li>
-                    <li>Databases don't work in this release.<br></li>
-                  </ul>
-                  <li>We have delivered some stability and performance improvements, which is still a work in progress.  In particular, we hope you notice improvements in the performance of the file system and terminal.</li>
-                  <li>We will be iterating on the social features of the site over the next weeks, but we haven't released anything new on the social side of things in this release.</li>
-                </ol>
-              </div>
-              """
+          $.ajax
+            # url       : KD.apiUri+'https://api.koding.com/1.0/logout'
+            url       : "/beta.txt"
+            success	  : (response)=>
+          
+              modal = new KDModalView
+                title       : "Thanks for joining our beta."
+                cssClass    : "what-you-should-know-modal"
+                height      : "auto"
+                width       : 500
+                content     : response
+                buttons     :
+                  Close     :
+                    title   : 'Close'
+                    style   : 'modal-clean-gray'
+                    callback: -> modal.destroy()
+              
+              {winHeight} = @getSingleton('windowController')
+              modal.$('.kdmodal-content').css 'max-height', winHeight - 200
+              modal.setY (winHeight - modal.getHeight())/2
               

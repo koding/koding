@@ -7,21 +7,6 @@ __aceSettings =
       options : 
         bare  : on
 
-  syntaxExtensionAssociations: 
-    php:          ['php', 'phtml']
-    css:          ['css']
-    javascript:   ['js']
-    coffee:       ['coffee']
-    c:            ['c_cpp']
-    html:         ['html', 'htm', 'xhtml']
-    java:         ['j', 'java']
-    perl:         ['perl']
-    python:       ['pyth']
-    ruby:         ['rb']
-    svg:          ['svg']
-    xml:          ['xml']
-    scss:         ['scss']
-  
   softWrapOptions: [
       value: 'off'
       title: 'Off'
@@ -215,3 +200,43 @@ __aceSettings =
       value: 'tomorrow_night_eighties'
     ].sort (a, b) ->
       if a.title < b.title then -1 else 1
+
+  syntaxAssociations :
+
+    coffee    : ["CoffeeScript" , "coffee|Cakefile"]
+    coldfusion: ["ColdFusion"   , "cfm"]
+    csharp    : ["C#"           , "cs"]
+    css       : ["CSS"          , "css"]
+    diff      : ["Diff"         , "diff|patch"]
+    golang    : ["Go"           , "go"]
+    groovy    : ["Groovy"       , "groovy"]
+    haxe      : ["haXe"         , "hx"]
+    html      : ["HTML"         , "htm|html|xhtml"]
+    c_cpp     : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
+    clojure   : ["Clojure"      , "clj"]
+    java      : ["Java"         , "java"]
+    javascript: ["JavaScript"   , "js"]
+    json      : ["JSON"         , "json"]
+    latex     : ["LaTeX"        , "latex|tex|ltx|bib"]
+    less      : ["LESS"         , "less"]
+    liquid    : ["Liquid"       , "liquid"]
+    lua       : ["Lua"          , "lua"]
+    markdown  : ["Markdown"     , "md|markdown"]
+    ocaml     : ["OCaml"        , "ml|mli"]
+    perl      : ["Perl"         , "pl|pm"]
+    pgsql     : ["pgSQL"        , "pgsql"]
+    php       : ["PHP"          , "php|phtml"]
+    powershell: ["Powershell"   , "ps1"]
+    python    : ["Python"       , "py"]
+    ruby      : ["Ruby"         , "ru|gemspec|rake|rb"]
+    scad      : ["OpenSCAD"     , "scad"]
+    scala     : ["Scala"        , "scala"]
+    scss      : ["SCSS"         , "scss|sass"]
+    sh        : ["SH"           , "sh|bash|bat"]
+    sql       : ["SQL"          , "sql"]
+    svg       : ["SVG"          , "svg"]
+    text      : ["Text"         , "txt"]
+    textile   : ["Textile"      , "textile"]
+    xml       : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
+    xquery    : ["XQuery"       , "xq"]
+    yaml      : ["YAML"         , "yaml"]

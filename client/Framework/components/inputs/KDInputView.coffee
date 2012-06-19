@@ -6,87 +6,85 @@ class KDInputView extends KDView
 
   constructor:(options = {},data)->
     options = $.extend
-      type          : "text"        # a String of one of input types "text","password","select", etc...
-      name          : ""            # a String
-      label         : null          # a KDLabelView instance
-      cssClass      : ""            # a String
-      callback      : null          # a Function
-      defaultValue  : ""            # a String or a Boolean value depending on type
-      placeholder   : ""            # a String
-      disabled      : no            # a Boolean value
-      # readonly      : no            # a Boolean value                                                    
-      selectOptions : null          # an Array of Strings
-      validate      : null          # an Object of Validation options see KDInputValidator for details
-      hint          : null          # a String of HTML
-      autogrow      : no            # a Boolean
-      enableTabKey  : no            # a Boolean # NOT YET READY needs some work
-      bind          : ""            # a String of event names
-      forceCase     : null          # a String of either "lowercase" or "uppercase"
+      type                    : "text"        # a String of one of input types "text","password","select", etc...
+      name                    : ""            # a String
+      label                   : null          # a KDLabelView instance
+      cssClass                : ""            # a String
+      callback                : null          # a Function
+      defaultValue            : ""            # a String or a Boolean value depending on type
+      placeholder             : ""            # a String
+      disabled                : no            # a Boolean value
+      # readonly                : no            # a Boolean value                                                    
+      selectOptions           : null          # an Array of Strings
+      validate                : null          # an Object of Validation options see KDInputValidator for details
+      validationNotifications : yes
+      hint                    : null          # a String of HTML
+      autogrow                : no            # a Boolean
+      enableTabKey            : no            # a Boolean # NOT YET READY needs some work
+      bind                    : ""            # a String of event names
+      forceCase               : null          # a String of either "lowercase" or "uppercase"
       # new HTML5 input properties, choose wisely. chart can be found in this link http://d.pr/vvn4
-      attributes            :
-        autocomplete        : null
-        dirname             : null
-        list                : null
-        maxlength           : null
-        pattern             : null
-        readonly            : null
-        required            : null
-        size                : null
-        list                : null
-        selectionStart      : null
-        selectionEnd        : null
-        selectionDirection  : null
-        multiple            : null # > for email only
-        min                 : null # > range, number only
-        max                 : null # > range, number only
-        step                : null # > range, number only
-        valueAsNumber       : null # > number only
+      attributes              :
+        autocomplete          : null
+        dirname               : null
+        list                  : null
+        maxlength             : null
+        pattern               : null
+        readonly              : null
+        required              : null
+        size                  : null
+        list                  : null
+        selectionStart        : null
+        selectionEnd          : null
+        selectionDirection    : null
+        multiple              : null # > for email only
+        min                   : null # > range, number only
+        max                   : null # > range, number only
+        step                  : null # > range, number only
+        valueAsNumber         : null # > number only
 
     ,options
 
     options.bind += " blur change focus"
 
-    @inputSetType options.type
+    @setType options.type
 
     super options,data
     @inputValidationNotifications = {}
-    @inputValidationPassed = yes
+    @valid = yes
     @inputCallback = null
-    @inputSetLabel()
-    @inputSetCallback()
-    @inputSetDefaultValue options.defaultValue
-    @inputSetPlaceHolder options.placeholder
-    @inputMakeDisabled() if options.disabled
-    @inputSetSelectOptions options.selectOptions if options.selectOptions?
-    @inputSetAutoGrow() if options.autogrow
-    @inputEnableTabKey() if options.enableTabKey
-    @inputSetCase options.forceCase if options.forceCase
-    @inputBindSubmit()
-    if options.validate?
-      @inputSetValidation options.validate
-      @on "ValidationError",@inputSetValidationErrorStyle
-      @on "ValidationPassed",@inputClearValidationErrorStyle
-      @listenTo KDEventTypes : "blur", listenedToInstance : @, callback : @inputClearValidationErrorStyle
+    @setLabel()
+    @setCallback()
+    @setDefaultValue options.defaultValue
+    @setPlaceHolder options.placeholder
+    @makeDisabled() if options.disabled
+    @setSelectOptions options.selectOptions if options.selectOptions?
+    @setAutoGrow() if options.autogrow
+    @enableTabKey() if options.enableTabKey
+    @setCase options.forceCase if options.forceCase
 
-    @listenTo 
+    if options.validate?
+      @setValidation options.validate
+      @on "ValidationError", (err)=> @giveValidationFeedback err
+      @on "ValidationPassed", => @giveValidationFeedback()
+      @listenTo
+        KDEventTypes       : "focus"
+        listenedToInstance : @
+        callback           : => @clearValidationFeedback()
+
+
+    @listenTo
       KDEventTypes       : "viewAppended"
       listenedToInstance : @
       callback           : =>
         o = @getOptions()
         if o.type is "select" and o.selectOptions
-          @inputSetValue o.selectOptions[0].value unless o.defaultValue
-
-    # wait for a fix for positioning the hint
-    # if options.hint?
-    #   @listenTo
-    #     KDEventTypes        : [ eventType : "viewAppended"]
-    #     listenedToInstance  : @
-    #     callback            : ()-> @inputBindHint options.hint
+          @setValue o.selectOptions[0].value unless o.defaultValue
 
   setDomElement:(cssClass = "")->
     @inputName = @options.name
     name = "name='#{@options.name}'"
-    @domElement = switch @inputGetType()
+    @domElement = switch @getType()
       when "text"     then $ "<input #{name} type='text' class='kdinput text #{cssClass}'/>"
       when "password" then $ "<input #{name} type='password' class='kdinput text #{cssClass}'/>"
       when "hidden"   then $ "<input #{name} type='hidden' class='kdinput hidden #{cssClass}'/>"
@@ -94,66 +92,57 @@ class KDInputView extends KDView
       when "textarea" then $ "<textarea #{name} class='kdinput text #{cssClass}'></textarea>"
       when "select"   then $ "<select #{name} class='kdinput select #{cssClass}'/>"
       when "range"    then $ "<input #{name} type='range' class='kdinput range #{cssClass}'/>"
-      else                 $ "<input #{name} type='#{@inputGetType()}' class='kdinput #{@inputGetType()} #{cssClass}'/>"
+      else                 $ "<input #{name} type='#{@getType()}' class='kdinput #{@getType()} #{cssClass}'/>"
 
-  destroy:->
-    @inputValidator?.destroy()
-    super
+  setLabel:(label = @options.label)->
 
-  inputSetLabel:(label = @options.label)->
     return no unless @options.label?
     @inputLabel = label
-    @inputLabel.getDomElement().attr "for",@inputGetName()
+    @inputLabel.getDomElement().attr "for",@getName()
     @inputLabel.getDomElement().bind "click",()=> 
       @getDomElement().trigger "focus"
       @getDomElement().trigger "click"
 
-  inputGetLabel:()-> 
-    @inputLabel
+  getLabel:()-> @inputLabel
 
-  inputSetCallback:()->
-    @inputCallback = @options.callback
+  setCallback:()-> @inputCallback = @options.callback
 
-  inputGetCallback:()-> 
-    @inputCallback
+  getCallback:()-> @inputCallback
 
-  inputSetType:(type = "text")->
-    @inputType = type
+  setType:(type = "text")-> @inputType = type
 
-  inputGetType:()-> 
-    @inputType
+  getType:()-> @inputType
 
-  inputGetName:()->
-    @inputName
+  getName:()-> @inputName
   
-  inputSetFocus:()->
+  setFocus:()->
     (@getSingleton "windowController").setKeyView @
     @$().trigger "focus"
   
-  inputSetSelectOptions:(options)->
+  setSelectOptions:(options)->
     for option in options
       @$().append "<option value='#{option.value}'>#{option.title}</option>"
-    @$().val @inputGetDefaultValue()
+    @$().val @getDefaultValue()
 
-  inputSetDefaultValue:(value) ->
+  setDefaultValue:(value) ->
     @getDomElement().val value if value isnt ""
     @inputDefaultValue = value
 
-  inputGetDefaultValue:()->
+  getDefaultValue:()->
     @inputDefaultValue
   
-  inputSetPlaceHolder:(value)->
+  setPlaceHolder:(value)->
     if @$().is("input") or @$().is("textarea")
       @$().attr "placeholder",value
       @options.placeholder = value
 
-  inputMakeDisabled:()->
+  makeDisabled:()->
     @getDomElement().attr "disabled","disabled"
 
-  inputMakeEnabled:()->
+  makeEnabled:()->
     @getDomElement().removeAttr "disabled"
 
-  inputGetValue:()-> 
+  getValue:()-> 
     value = @getDomElement().val()
     {forceCase} = @getOptions()
     if forceCase
@@ -164,54 +153,91 @@ class KDInputView extends KDView
 
     return value
     
-  inputSetValue:(value)->
+  setValue:(value)->
     @getDomElement().val(value) if value?
 
-  inputSetCase:(forceCase)->
-    @setClass forceCase
+  _prevVal = null
+
+  setCase:(forceCase)->
+
+    @listenTo
+      KDEventTypes       : [ "keyup", "blur" ]
+      listenedToInstance : @
+      callback           : =>
+        val = @getValue()
+        return if val is _prevVal
+        @setValue val
+        _prevVal = val
     
+  
+  setValidation:(ruleSet)->
 
-  inputBindSubmit:()->
-    # @getDomElement().bind "click",@doOnSubmit
-  
-  inputBindHint:(hint)->
-    # $hint = $ "<span class='kdinputhint'>#{hint}</span>"
-    # # _bind = ()=>
-    # log "something",@$().position()
-    # @$().wrap '<div class="kdinputwrapper" />' unless @$().parent().is ".kdinputwrapper"
-    # @$().after $hint
-    #   # @$().keyup ()=>
-    #   #   if @inputGetValue() is "" then do _showHint else do _hideHint
-    #   # _showHint = ()=> $hint.show()
-    #   # _hideHint = ()=> $hint.hide()
-    # 
-    # $hint
-  
-  inputDoOnSubmit:()=>
-    if @inputGetCallback()?
-      @inputGetCallback().call()
-    else
-      log "i'm an input, but have nothing to do"
-  
-  inputTriggerClick:()->
-    @inputDoOnSubmit()
-  
-  inputSetValidation:(ruleSet)->
-    @inputValidationPassed = no
-    @inputValidator = new KDInputValidator ruleSet,@
-  
-  inputSetValidationResult:(didPass,message)->
-    if didPass
-      @inputValidationPassed = yes
-      @inputClearValidationErrorStyle()
-      @emit "ValidationPassed",@inputValidationMessage
-    else
-      @inputValidationPassed = no
-      @inputValidationMessage = message
-      @inputShowValidationError message
-      @emit "ValidationError",message
+    @valid = no
+    @createRuleChain ruleSet
+    @ruleChain.forEach (rule)=>
+      eventName = if ruleSet.events
+        if ruleSet.events[rule]
+          ruleSet.events[rule]
+        else if ruleSet.event
+          ruleSet.event
+      else if ruleSet.event
+        ruleSet.event
 
-  inputShowValidationError:(message)->
+      if eventName
+        @listenTo
+          KDEventTypes       : eventName
+          listenedToInstance : @
+          callback           : (input, event)=> @validate rule, event
+
+  validate:(rule, event = {})->
+    
+    @ruleChain or= []
+    rulesToBeValidated = if rule then [rule] else @ruleChain
+    ruleSet = @getOptions().validate
+    
+    if @ruleChain.length > 0
+      rulesToBeValidated.forEach (rule)=>
+        if KDInputValidator["rule#{rule.capitalize()}"]?
+          result = KDInputValidator["rule#{rule.capitalize()}"] @, event
+          @setValidationResult rule, result
+        else if "function" is typeof ruleSet.rules[rule]
+          ruleSet.rules[rule] @, event
+    else
+      @emit "ValidationPassed"
+      @valid = yes
+
+  createRuleChain:(ruleSet)-> 
+    
+    {rules} = ruleSet
+    @validationResults or= {}
+    @ruleChain = if typeof rules is "object" then (rule for rule,value of rules) else [rules]
+    for rule in @ruleChain
+      @validationResults[rule] = null
+
+  setValidationResult:(rule, err)->
+    
+    @validationResults or= {}
+    if err
+      @validationResults[rule] = err
+      @showValidationError err if @getOptions().validationNotifications
+      @emit "ValidationError", err
+      @emit "ValidationResult", no
+      @valid = no
+    else
+      @emit "ValidationResult", yes
+      @validationResults[rule] = null
+    
+    allClear = yes
+    for result, errMsg of @validationResults
+      if errMsg then allClear = no
+
+    if allClear
+      @emit "ValidationPassed"
+      @valid = yes
+
+
+  showValidationError:(message)->
+
     if @inputValidationNotifications[message]
       @inputValidationNotifications[message].destroy()
 
@@ -227,41 +253,27 @@ class KDInputView extends KDView
       callback           : =>
         message = notice.getOptions().title
         delete @inputValidationNotifications[message]
-
-  inputSetValidationErrorStyle:()=>
-    @setClass "validation-error"
-
-  inputClearValidationErrorStyle:()=>
-    @unsetClass "validation-error"
-    
-  inputSelectAll:()->
-    @getDomElement().select()
-
-  inputSetAutoGrow:->
-    @$().autogrow()
   
-  inputEnableTabKey:->
-    @inputTabKeyEnabled = yes
-  inputDisableTabKey:->
-    @inputTabKeyEnabled = no
+  clearValidationFeedback:->
+
+    @unsetClass "validation-error validation-passed"
+    @emit "ValidationFeedbackCleared"
   
-  # bindEvents:()->
-  #   @getDomElement().bind "blur change focus",(event)=>
-  #     @handleEvent event
-  #   super
+  giveValidationFeedback:(err)->
+
+    if err
+      @setClass "validation-error"
+    else
+      @setClass "validation-passed"
+      @unsetClass "validation-error"
+
+  inputSelectAll:-> @getDomElement().select()
+
+  setAutoGrow:-> @$().autogrow()
   
-  # handleEvent:(event)->
-  #   # log event.type
-  #   # thisEvent = @[event.type]? event or yes #this would be way awesomer than lines 98-103, but then we have to break camelcase convention in mouseUp, etc. names....??? worth it?
-  #   thisEvent = switch event.type
-  #     when "blur" then @blur event
-  #     when "change" then @change event
-  #     when "focus" then @focus event
-  #     # when "keyup" then @keyUp event
-  #     # when "keydown" then @keyDown event
-  #   superResponse = super event #always needs to be called for propagation
-  #   thisEvent = thisEvent ? superResponse #only return superResponse if local handle didn't happen
-  #   willPropagateToDOM = thisEvent
+  enableTabKey:-> @inputTabKeyEnabled = yes
+
+  disableTabKey:-> @inputTabKeyEnabled = no
   
   change:->
 
@@ -270,12 +282,10 @@ class KDInputView extends KDView
   keyDown:(event)->
 
     @checkTabKey event if @inputTabKeyEnabled
-      
     
   focus:->
-
+    
     @getSingleton("windowController").setKeyView @
-
 
   blur:->
 
@@ -283,13 +293,11 @@ class KDInputView extends KDView
   
   mouseDown:=>
     # log "input mouse down"
-    @inputSetFocus()
+    @setFocus()
     #WHY NO?
     #NO because if it propagates, other stuff might become keyview
     no
-  
 
-  
   checkTabKey:(event)->
     tab = "  "
     tabLength = tab.length
@@ -346,4 +354,3 @@ class KDInputView extends KDView
 
 
 
-  

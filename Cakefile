@@ -8,6 +8,7 @@ option '-D', '--debug', 'runs with node --debug'
 option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
+option '-z', '--useStatic', "specifies that files should be served from the static server"
 
 ProgressBar     = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -81,11 +82,12 @@ targetPaths =
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
-      
 
-    kdjs = kdjs + "\n KD.version = \"#{targetPaths.version}\";"
-    kdjs = kdjs + "\n KD.env = \"#{targetPaths.whichEnv(options)}\";"
-    kdjs = kdjs + "\n KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";"
+    kdjs =  "var KD = {};\n" +
+            "KD.version = \"#{targetPaths.version}\";\n" +
+            "KD.env = \"#{targetPaths.whichEnv(options)}\";\n" +
+            "KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";\n" +
+            kdjs
     
     # return callback null,kdjs+libraries
     unless options.uglify
@@ -98,35 +100,30 @@ targetPaths =
           throw err
         
          
-  useStaticFilesServer  : (options)->
-    if options.database is "vpn"
-      return no
-    else
-      return yes
-  whichEnv : (options)->
-    if options.database is "vpn"
-      return "dev"
-    else
-      return "prod"
+  useStaticFilesServer  : (options)-> !!options.useStatic
+
+  whichEnv : (options)-> options.database
+
   prodPostBuildSteps : (options,callback)->
-    if targetPaths.whichEnv(options) is "prod"
-      prompt.start()
-      prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
-        if result.p is 'yes'
-          log.info "syncing recently built static files with static files server"
-          rsync = exec "rm -rf /opt/kfmjs/website && cp -fr ./website /opt/kfmjs/",(err,stdout,stderr)->
-            if err or stderr
-              log.error "SYNCING FAILED, THIS IS NOT GOOD. SITE MIGHT BE BROKEN RIGHT NOW. FIX THE PROBLEM AND REBUILD IMMEDIATELY"
-            else
-              log.info "sync complete."
-              callback? null
-          rsync.stdout.on 'data', (data)=> 
-            log.info "#{data}".replace /\n+$/, ''
-          rsync.stderr.on 'data', (data)-> 
-            log.info "#{data}".replace /\n+$/, ''          
-        else
-          log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
-          callback? null
+    callback null
+    # if targetPaths.whichEnv(options) is "prod"
+    #   prompt.start()
+    #   prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
+    #     if result.p is 'yes'
+    #       log.info "syncing recently built static files with static files server"
+    #       rsync = exec "rm -rf /opt/kfmjs/website && cp -fr ./website /opt/kfmjs/",(err,stdout,stderr)->
+    #         if err or stderr
+    #           log.error "SYNCING FAILED, THIS IS NOT GOOD. SITE MIGHT BE BROKEN RIGHT NOW. FIX THE PROBLEM AND REBUILD IMMEDIATELY"
+    #         else
+    #           log.info "sync complete."
+    #           callback? null
+    #       rsync.stdout.on 'data', (data)=> 
+    #         log.info "#{data}".replace /\n+$/, ''
+    #       rsync.stderr.on 'data', (data)-> 
+    #         log.info "#{data}".replace /\n+$/, ''          
+    #     else
+    #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
+    #       callback? null
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
@@ -156,7 +153,13 @@ task 'checkModules', 'check node_modules dir',(options)->
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)    
   if untracked_mods.length > 0      
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
-    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    process.exit()
+
+  unignored_mods = (mod for mod in data when mod not in our_modules and "/node_modules/#{mod}" not in gitIgnore)
+  if unignored_mods.length > 0      
+    console.log "[ERROR] UN-IGNORED NPM MODULES FOUND:",unignored_mods
+    console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
 
   all_mods = npm_modules.concat our_modules
@@ -193,25 +196,7 @@ task 'build', 'optimized version for deployment', (options)->
   targetPaths.server = options.target ? "/tmp/kd-server.js"
   
   {dontStart,uglify,database} = options
-  if dontStart and uglify and database isnt "vpn"
-    prompt.start()
-    prompt.get [{message:"I see -sud. Are you deploying this thing? yes/no",name:'p'}],  (err, result) ->
-      if result.p is 'yes'
-        log.info "ok. got it."
-        prompt.get [{message:"Seems like current version is #{version}, should i bump it up by 0.0.1 (safer!), or keep going ? up/keep",name:'p'}],  (err, result) ->
-          if result.p is "keep"
-            build()
-          else if result.p is "up"
-            vr  = version.split "."
-            version = vr[0]+"."+vr[1]+"."+(vr[2]*1+1)
-            targetPaths.version = version
-            fs.writeFileSync ".revision",version
-            log.info "DEPLOYING VERSION: #{version} DON'T FORGET TO UPDATE LOCAL .revision FILE! (IMPORTANT)"
-            build options
-      else
-        build options
-  else
-    build options
+  build options
   
   
   

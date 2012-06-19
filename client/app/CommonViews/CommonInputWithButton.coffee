@@ -3,8 +3,8 @@ class CommonView_InputWithButton extends KDFormView
   constructor:(options = {},data)->
 
     options = $.extend
-      button    : null          # an Object of KDButtonView instance
-      input     : null          # an Object of KDInputView instance -type text, password or textarea
+      button    : null          # a KDButtonView instance
+      input     : null          # a KDInputView instance -type text, password or textarea
       icon      : null          # a String of cssClass of icon in a span
       cssClass  : ""
     ,options
@@ -13,7 +13,7 @@ class CommonView_InputWithButton extends KDFormView
 
   viewAppended:()->
     
-    {icon,input,button} = @options
+    {icon,input,button} = @getOptions()
 
     if icon
       @setClass "with-icon"
@@ -30,35 +30,26 @@ class CommonView_InputWithButton extends KDFormView
       button.type     or= "submit"
       @addSubView @button = new KDButtonView button
   
-    form = @
     @listenTo
       KDEventTypes : "focus"
       listenedToInstance : @input
-      callback : ()-> form.setClass "focus"
+      callback : => @setClass "focus"
       
     @listenTo
       KDEventTypes : "blur"
       listenedToInstance : @input
-      callback : ()-> 
-        form.unsetClass "focus"
-        @inputClearValidationErrorStyle()
+      callback : => @unsetClass "focus validation-error"
       
-    @input.on "ValidationError",@inputSetValidationErrorStyle
-    @input.on "ValidationPassed",@inputClearValidationErrorStyle
+    @input.on "ValidationError", => @setClass "validation-error"
+    @input.on "ValidationPassed", => @unsetClass "validation-error"
 
-  inputSetValidationErrorStyle:()=>
-    @setClass "validation-error"
+  getValue:()-> 
 
-  inputClearValidationErrorStyle:()=>
-    @unsetClass "validation-error"
+    @input.getValue()
 
-  inputGetValue:()-> 
+  setValue:(value)->
 
-    @input.inputGetValue()
-
-  inputSetValue:(value)->
-
-    @input.inputSetValue value
+    @input.setValue value
 
 
 class CommonView_AddTagView extends NoAutocompleteMultipleListView

@@ -27,7 +27,8 @@ String.prototype.decapitalize = ()->this.charAt(0).toLowerCase() + this.slice(1)
 String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
 
 # KD Global
-@KD = do ->
+KD = @KD or {}
+@KD = $.extend (KD), do ->
   # private member for tracking z-indexes
   zIndexContexts  = {}
   debugStates     : {}
@@ -35,6 +36,12 @@ String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
   singletons      : {}
   subscriptions   : []
   classes         : {}
+  
+  apiUri: switch KD.env
+    when 'beta'
+      'https://api.koding.com'
+    else
+      'https://dev-api.koding.com'
   
   whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
   
@@ -166,21 +173,6 @@ String.prototype.trim = () ->  this.replace(/^\s+|\s+$/g,"")
 
   getPageClass:(name)->
     @pageClasses[name]
-
-class BasicEmitter
-  constructor: ->
-    @_events = {}
-    
-  on: (eventType, callback) ->
-    unless @_events[eventType]
-      @_events[eventType] = []
-      
-    @_events[eventType].push callback
-    
-  emit: (eventType, args...) ->
-    return unless @_events[eventType]
-    for event in @_events[eventType]
-      event.apply @, args
 
 noop  = ->
 # KD.log   = log   = if console?.log   and (KD.debugStates.all or KD.debugStates.log)   then console.log.bind(console)   else noop

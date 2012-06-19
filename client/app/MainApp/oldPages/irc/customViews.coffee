@@ -233,10 +233,10 @@
 # 
 #   setFocus:(pubInst)=>
 #     # log @input.inputField,"set focus",pubInst
-#     @input.inputField.inputSetFocus()
+#     @input.inputField.setFocus()
 # 
 #   cleanUp:()->
-#     @input.inputField.inputSetValue ""
+#     @input.inputField.setValue ""
 # 
 #   notifyError:()->
 #     new KDNotificationView
@@ -315,15 +315,15 @@
 #         log 'we have to destroy chat ', pubInst, event, @dataSource
 #         @getSingleton('site').account.chatClient.removeRoomFromOpenedList @dataSource
 # 
-#     @input.inputField.inputSetFocus()
+#     @input.inputField.setFocus()
 #     @content.addSubView chatMessagesList = new Chat_InternalChatListView {}, (KDDataPath:"messages", KDDataSource: @dataSource)
 #     
 #     @listenTo
 #       KDEventTypes        : 'ClickedMessageInTheList'
 #       listenedToInstance  : chatMessagesList
 #       callback            : (pubInst, event) =>
-#         @input.inputField.inputSetValue @input.inputField.inputGetValue() + '@' + event.message.origin.profile.fullname
-#         @input.inputField.inputSetFocus()
+#         @input.inputField.setValue @input.inputField.getValue() + '@' + event.message.origin.profile.fullname
+#         @input.inputField.setFocus()
 #         
 #     
 # 
@@ -345,7 +345,7 @@
 #   keyDown:(event)=>        
 #     switch event.which
 #       when 13 #enter
-#         msg = @input.inputField.inputGetValue()
+#         msg = @input.inputField.getValue()
 #         @dataSource.sendMessage message:msg
 #         do @cleanUp
 #         
@@ -411,7 +411,7 @@
 #         return unless client.connected
 #         @connectButton.destroy()
 #         @footer.addSubView @input = new Chat_HeaderInput delegate : @
-#         @input.inputField.inputSetFocus()
+#         @input.inputField.setFocus()
 #           
 #     @doResize()
 # 
@@ -432,7 +432,7 @@
 # 
 #   setFocus:(pubInst)=>
 #     # log @input.inputField,"set focus",pubInst
-#     @input?.inputField.inputSetFocus()
+#     @input?.inputField.setFocus()
 # 
 #   doResize: ->
 #     @content.setHeight @getHeight() - @footer.getHeight()
@@ -441,7 +441,7 @@
 #   keyDown:(e, vent)->
 #     switch event.which
 #       when 13 #enter
-#         message = @input.inputField.inputGetValue()
+#         message = @input.inputField.getValue()
 # 
 #         do @cleanUp
 #         @getData().persist
@@ -518,8 +518,8 @@
 #           when 13
 #             #@getDelegate().getData() - irc client
 #             log 'delegate', @getDelegate().getData(), event, inputField
-#             @getDelegate().getData().doRawCommand inputField.inputGetValue()
-#             inputField.inputSetValue '/'
+#             @getDelegate().getData().doRawCommand inputField.getValue()
+#             inputField.setValue '/'
 # 
 # class Chat_HeaderSearch extends Chat_HeaderContent
 #   viewAppended:()->
@@ -549,8 +549,8 @@
 #         switch event.which
 #           when 13
 #             @inputField.inputSelectAll()
-#             @delegate.joinRoom inputField.inputGetValue(), ()->  #enter
-#           else @delegate.filterRooms inputField.inputGetValue(), ()->
+#             @delegate.joinRoom inputField.getValue(), ()->  #enter
+#           else @delegate.filterRooms inputField.getValue(), ()->
 # 
 # class Chat_KDInputView extends KDInputView
 #   constructor:->

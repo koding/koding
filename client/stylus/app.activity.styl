@@ -125,8 +125,8 @@ app.activity.styl
 
     >div
       width               auto
-      margin              5px 0 1px 33px
-      padding             2px 0 0
+      margin              2px 0 2px 33px
+      padding             2px 0 0 0
     
 
     .ttag
@@ -177,7 +177,6 @@ app.activity.styl
         background-image      url('../images/defaultavatar/default.avatar.40.png')
         blockMid()
   
-  .activity-item
     .type-icon
       text-indent       -9999em
       border-radius     0
@@ -187,25 +186,65 @@ app.activity.styl
       size(18px,16px)
       blockMid()
       
-  .activity-item.status
-    .type-icon
-      bg(position,-399px -376px)
+    &.status
+      .type-icon
+        bg(position,-399px -376px)
 
-  .activity-item.qanda
-    .type-icon
-      bg(position,-552px -376px)
+    &.qanda
+      .type-icon
+        bg(position,-552px -376px)
 
-  .activity-item.codesnip
-    .type-icon
-      bg(position,-706px -376px)
+    &.codesnip
+      .type-icon
+        bg(position,-706px -376px)
 
-  .activity-item.discussion
-    .type-icon
-      bg(position,-475px -376px)
+    &.discussion
+      .type-icon
+        bg(position,-475px -376px)
 
-  .activity-item.link
-    .type-icon
-      bg(position,-630px -376px)
+    &.link
+      .type-icon
+        bg(position,-630px -376px)
+
+    &:hover
+      .activity-settings-menu
+        opacity         1
+
+    .activity-settings-menu
+      vendor            transition, opacity .1s ease-out
+      opacity           .1
+      position          absolute
+      top               13px
+      right             19px
+      z-index           10
+      button.kdbutton.with-icon
+        padding         0
+        padding-right   0!important
+        span.icon
+          bg            position, -62px -302px
+          size          16px, 16px
+          padding       0
+          margin        0
+        &:hover
+          gradient      #eee, #ddd
+      .chevron-arrow
+        display         none
+      .chevron-arrow-separator
+        display         none
+
+.kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+  .chevron-arrow-ghost-wrapper
+    rounded             9px 9px 0 0
+    width               14px
+    span.chevron-arrow-ghost
+      margin            0 auto
+      bg                position, -63px -303px
+  .kdcontextmenutreeview
+    margin              3px 0
+    .kdview.kdtreeitemview.default
+      padding           2px
+      font-size         11px
+
 
 .activity-item-right-col
   padding-right   20px
@@ -357,45 +396,6 @@ button.kdbutton.dark
 // * ACTIVITY PAGE UPDATE WIDGET STYLES
 // *
 
-.activity-update-widget-wrapper
-  height                auto
-  position              absolute
-  overflow              visible
-.widget-holder
-  overflow              visible
-  min-height            75px
-  borderBox()           
-  .widget-back          
-    width               100%
-    height              74px
-    position            absolute
-    bg                  color, white
-    left                0
-    top                 0
-    z-index             0
-    &.gradient
-      border-bottom     1px solid rgb(229,229,229)
-      shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
-      gradient          rgb(255,255,255),rgb(242,242,242)
-
-  .button-wrapper
-    position            absolute
-    top                 20px
-    left                16px
-    z-index             4
-    size(auto!important,35px)
-    .chevron-arrow-separator
-      display           none
-    .chevron-arrow
-      top               50%
-      margin-top        -9px
-      margin-right      5px
-      opacity           .6
-    .title
-      font-size         11px
-      blockMid()
-
-
 .update-options.codesnip
   .ace 
     height                  250px !important
@@ -406,93 +406,80 @@ button.kdbutton.dark
 .update-widget-tabs         
   z-index                   3
   overflow                  visible
-  .kdtabpaneview            
-    padding                 20px 0 0 0
+
+  .kdtabpaneview
+    padding                 23px 0 0 0
     overflow                visible
-    min-height              55px
+    // min-height              73px
+    bg                      color, white
+    shadow                  0 10px 20px -5px rgba(173, 173, 173, .8)
     borderBox()
-                            
+    &.no-shadow
+      shadow                none
     &.kdhiddentab           
       display               none
 
-    &.kdtabpaneview.active
-      form.update-options
-        height              auto
-        -webkit-transition  height .2s ease-out
-        -moz-transition     height .2s ease-out
-        -o-transition       height .2s ease-out
-        transition          height .2s ease-out
+  form.update-options
+    display               block
+    position              relative
+    .form-actions-mask    
+      width               100%
+      z-index             10
+      .form-actions-holder
+        width             100%
+        z-index           10
+        bg                color,white
+  
+  .kdinput.text
+    size                  100%,33px
+    font-size             13px
+    border-color          rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
+    padding               8px 10px 6px 10px
+    line-height           17px
+    borderBox()
+    &:hover
+      border-color        rgb(199,199,199)
 
-    form.update-options
-      height                0
-      display               block
-      position              relative
-      margin-top            54px
-      shadow                0 10px 20px -5px rgba(173, 173, 173, .8)
-      .form-actions-mask    
-        width               100%
-        z-index             10
-        .form-actions-holder
-          width             100%
-          z-index           10
-          bg                color,white
-    
+  input:-moz-placeholder,
+  input::-webkit-input-placeholder
+    color                 #aaa
+
+  .kdautocompletewrapper
+    size                  100%,32px
+    color                 #b2b2b2
+    font-size             13px 
+    display               inline-block!important
     input.kdinput.text
-      size                  100%,33px
-      font-size             13px
-      border-color          rgba(232,232,232,1) rgba(232,232,232,1) rgba(224,224,224,1) rgba(232,232,232,1)
-      padding               8px 10px 6px 10px
-      line-height           17px
+      border-color        rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
+      size                100%,100%
       borderBox()
 
-    input:-moz-placeholder,
-    input::-webkit-input-placeholder
-      color                 #aaa
-
-    .kdautocompleteinputwrapper
-      size                  100%,32px
-      color                 #b2b2b2
-      font-size             13px 
-      display               inline-block!important
-      input.kdinput.text
-        border-color        rgba(232,232,232,1) rgba(232,232,232,1) rgba(224,224,224,1) rgba(232,232,232,1)
-        size                100%,100%
-        borderBox()
-
   .form-headline
-    position                absolute
-    top                     -54px
     left                    169px
     size                    560px,31px
     max-width               560px
     shadow                  0px 1px 0px 0px white
   
-  .common-view.input-with-extras
-    &.status-update-input
-      left                  169px
-      size                  100%,31px
-      max-width             560px
-      shadow                0px 1px 0px 0px white
-      border-color          rgba(232,232,232,1) rgba(232,232,232,1) rgba(224,224,224,1) rgba(232,232,232,1)
-      input                 
-        height              32px!important
-      button                
-        right               7px
-        top                 4px
-        padding             0 3px
-      &.validation-error
-        border-color        red
-                      
 
   .tags-selected-item-wrapper
-    margin                  10px 0 10px 0
+    margin                  10px 0 0 0
                             
                             
-  .formline                 
+  .formline
+    position                relative
     width                   100%
     padding                 0 16px 18px 16px
     border-bottom           none
     borderBox()
+    &:first-child > div
+      margin-left           153px
+    
+    .formline-wrapper
+      max-width             713px
+    
+    > div
+      overflow              hidden
+      max-width             560px
 
     label
       width                 143px
@@ -503,24 +490,39 @@ button.kdbutton.dark
       text-align            right
       margin-right          10px
       fl()
-    >div
-      overflow              hidden
-      max-width             560px
 
     .ov
       overflow              visible
 
+    div.kdselectbox 
+      position              absolute
+      bottom                5px
+      right                 5px
+      background            rgb(36,36,36)
+      shadow                none      
+      font-size             10px
+      border                1px solid rgb(74,74,74)!important
+      span.title            
+        color               rgba(255, 255, 255,.7)
+        text-shadow         0 -1px 1px rgb(9,9,9)
+      &.focus               
+        outline             none
+        shadow              none!important
+        border              1px solid rgb(255,255,255)
+      span.arrows           
+        sprite()
+        bg                  position,-80px -200px!important
+    
+
 
   .formline.submit          
-    margin                  20px 0 0 0
-    background              rgb(244,244,244)
     position                relative
+    background              rgb(244,244,244)
     border-top              1px solid rgb(229,229,229)
     height                  55px
     padding                 14px 16px
+
   .submit-box               
-    text-align              right
-    max-width               544px!important
     button                  
       vertical-align        middle
       font-weight 600       
@@ -532,26 +534,63 @@ button.kdbutton.dark
       margin-right          10px
       cursor                pointer
       blockMid()            
+
   .modal-cancel             
     font-size               11px
+
   .help-heart
     float                   left
-    margin-left             20px
     overflow                hidden
     width                   150px
     height                  auto
-      
+
+form.status-widget
+
+  div.large-input
+  div.small-input
+    margin-left           169px
+    margin-right          16px
+    max-width             560px
+    
+    
+  .kdinput.text.status-update-input
+    &.validation-error    
+      border-color        red
+
+  textarea.kdinput.text.status-update-input
+    size                  100%,72px
+    padding               7px 10px 6px 11px
+    vendor                transition, height .1s ease-out
+    margin-bottom         20px
+
+  // .kdautocompletewrapper
+  //   position              absolute
+  //   top                   72px
+  //   left                  170px
+  //   max-width             558px
+  //   border-color          transparent
+  //   padding               0
+  //   bg                    color, transparent
+  //   height                22px
+  //   border-top            1px solid #E9E9E9
+  //   shadow                none
+  //   rounded               0
+  //   .kdinput.text
+  //     border-color        transparent
+  //     bg                  color, #f2f2f2
+  //     rounded             0 0 3px 3px
+  //     shadow              none
+
 .code-snip-holder
-  // max-width                 560px
-  // overflow                  hidden
   padding                   10px
   bg                        color,rgba(51,51,51,1)
   rounded                   4px
-  height                    115px
+  size                      auto, 90px
   borderBox()
+
   .kdview.kdloader
     display                 block
-    margin                  32px auto
+    margin                  20px auto
     
   .code-wrapper.ace_editor
     overflow                visible
@@ -568,24 +607,7 @@ button.kdbutton.dark
   
   .bottom-right-wrapper
     float                 left
-  div.kdselectbox         
-    background            rgb(36,36,36)
-    shadow                none      
-    width                 90px
-    font-size             10px
-    border                1px solid rgb(74,74,74)!important
-    span.title            
-      color               rgba(255, 255, 255,.7)
-      text-shadow         0 -1px 1px rgb(9,9,9)
-    &.focus               
-      outline             none
-      shadow              none!important
-      border              1px solid rgb(255,255,255)
-    span.arrows           
-      sprite()
-      bg                  position,-80px -200px!important
-  
-    
+
   .editor-bottom-bar
     left                  -10px
     bottom                -35px
@@ -633,6 +655,40 @@ button.kdbutton.dark
       margin-left     30px
 
 
+.kdbuttongroup.activity-group
+  position            absolute
+  top                 20px
+  left                16px
+  z-index             4
+  // size                auto!important,35px
+
+  span.icon
+    float           none
+    margin-right    10px
+    margin          2px 2px 0 0!important
+    padding         0!important
+    sprite()
+    size            20px,20px
+    blockMid()
+    &.update
+      bg            position,-80px 0
+    &.discussion    
+      bg            position,-80px -20px
+    &.question      
+      bg            position,-80px -40px
+    &.tutorial     
+      bg            position,-80px -60px
+    &.link         
+      bg            position,-80px -80px
+    &.codesnip     
+      bg            position,-80px -100px
+
+  > button.icon-only
+    padding       4px 4px 5px 5px
+
+  button.active
+    span.icon       
+      bg            position-x, -60px
 // *
 // * ACTIVITY PAGE UPDATE WIDGET BUTTON DROPDOWN STYLES
 // *
@@ -657,7 +713,7 @@ button.activity-status-context
     sprite()
     size            20px,20px
     blockMid()
-    &.update  
+    &.update
       bg(position,-140px -320px)
     &.discussion
       bg(position,-140px -340px)
@@ -670,13 +726,73 @@ button.activity-status-context
     &.codesnip
       bg(position,-140px -420px)
 
+.activity-update-widget-wrapper
+  height                auto
+  position              absolute
+  overflow              visible
+  z-index               100
+  .first-label
+    hidden()
+  &.edit-mode
+    .kdbuttonwithmenu-wrapper.activity-status-context
+      hidden()
+    // .update-widget-tabs .kdtabpaneview
+    //   bg                color, #ffd56e
+    .first-label
+      visible()
+
+.widget-holder
+  overflow              visible
+  min-height            75px
+  borderBox()           
+  // .widget-back          
+  //   width               100%
+  //   height              74px
+  //   position            absolute
+  //   bg                  color, white
+  //   left                0
+  //   top                 0
+  //   z-index             0
+  //   &.gradient
+  //     border-bottom     1px solid rgb(229,229,229)
+  //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
+  //     gradient          rgb(255,255,255),rgb(242,242,242)
+
+  .chevron-arrow-separator
+    display           none
+  .chevron-arrow
+    top               50%
+    margin-top        -9px
+    margin-right      5px
+    opacity           .6
+  .title
+    font-size         11px
+    blockMid()
+  
+  .no-shadow
+
+    .status-widget
+      width           100%
+      height          53px
+      bg              color, white
+      border-bottom   1px solid rgb(229,229,229)
+      shadow          inset 0 3px 1px 3px rgba(250,250,250,.5)
+      gradient        rgb(255,255,255),rgb(242,242,242)
+
+.activity-status-context.kdbuttonwithmenu-wrapper
+  position            absolute
+  top                 23px
+  left                16px
+  z-index             4
+  size                auto!important,35px
+
 .activity-status-context
   .chevron-arrow-ghost-wrapper
     width               30px
     rounded        0 3px 0 0
     .chevron-arrow-ghost
       margin            6px 0 0 6px
-    
+  
   .icon
     margin-right        7px
     sprite()
@@ -687,7 +803,8 @@ button.activity-status-context
     padding                 0 10px !important
   .context-menu-item a
     blockMid()
-  .update  
+
+  .update
     .icon
       bg(position,-140px -320px)
     &:hover
@@ -724,12 +841,12 @@ button.activity-status-context
       .icon
         bg(position,-160px -420px)
   
-  .hoverhook /* hover hook for context menu */
-    cursor            pointer !important
-    margin            0
-    padding           0
-    &:hover
-      cursor            pointer !important
+  // .hoverhook /* hover hook for context menu */
+  //   cursor            pointer !important
+  //   margin            0
+  //   padding           0
+  //   &:hover
+  //     cursor            pointer !important
 
 .kdcontextmenu
   .kdcontextmenutreeview

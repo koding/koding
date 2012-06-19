@@ -4,7 +4,7 @@
 
 class KDInputRadioGroup extends KDInputView
   constructor:(options)->
-    @inputSetType "radio"
+    @setType "radio"
     super options
 
   setDomElement:()->
@@ -27,12 +27,12 @@ class KDInputRadioGroup extends KDInputView
       @domElement.append $div
     @domElement
 
-  inputSetDefaultValue:(value) ->
+  setDefaultValue:(value) ->
     @inputDefaultValue = value
-    @inputSetValue value
+    @setValue value
 
-  inputGetValue:()->
+  getValue:()->
     @getDomElement().find("input:checked").val()
 
-  inputSetValue:(value)->
+  setValue:(value)->
     @getDomElement().find("input[value='#{value}']").attr "checked","checked"

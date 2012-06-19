@@ -96,25 +96,31 @@ class MembersListItemView extends KDListItemView
         height: 60
     , memberData
 
+    defaultState  = if memberData.followee then "Unfollow" else "Follow"
+
     @followButton = new MemberFollowToggleButton
       style           : "follow-btn"
       title           : "Follow"
       dataPath        : "followee"
+      defaultState    : defaultState
+      loader          :
+        color         : "#333333"
+        diameter      : 10
+        left          : 2
+        top           : 2
       states          : [
-        "Follow", (callback)-> 
+        "Follow", (callback)->
           memberData.follow (err, response)=>
-            # unless err
-            #   @setClass 'following-btn'
-            #   callback? null
-          @setClass 'following-btn'
-          callback? null
+            @hideLoader()
+            unless err
+              @setClass 'following-btn'
+              callback? null
         "Unfollow", (callback)->
           memberData.unfollow (err, response)=>
-            # unless err
-            #   @unsetClass 'following-btn'
-            #   callback? null
-          @unsetClass 'following-btn'
-          callback? null
+            @hideLoader()
+            unless err
+              @unsetClass 'following-btn'
+              callback? null
       ]
     , memberData
     
@@ -219,14 +225,8 @@ class MembersContentDisplayView extends KDView
 
 
 class MemberFollowToggleButton extends KDToggleButton
-  attachListener:->
-    {dataPath} = @getOptions()
-    if dataPath
-      @setState 'Unfollow' if @getData()[dataPath] is yes
-
-
-  setState:(name)->
+  
+  decorateState:(name)->
+    
     @setClass 'following-btn' if name is 'Unfollow' 
-    super(name)
-
-
+    super
