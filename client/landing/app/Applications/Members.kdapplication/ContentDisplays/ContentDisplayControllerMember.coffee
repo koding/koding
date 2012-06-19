@@ -25,11 +25,11 @@ class ContentDisplayControllerMember extends KDViewController
     memberProfile = @addProfileView member
     memberStream  = @addActivityView member
     
-    unless KD.isMine member
-      @listenTo 
-        KDEventTypes       : "mouseenter"
-        listenedToInstance : memberProfile
-        callback           : => @mouseEnterOnHeader()
+    # unless KD.isMine member
+    #   @listenTo 
+    #     KDEventTypes       : "mouseenter"
+    #     listenedToInstance : memberProfile
+    #     callback           : => @mouseEnterOnHeader()
     
     memberProfile.on 'FollowButtonClicked', @followAccount
     memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
@@ -42,25 +42,25 @@ class ContentDisplayControllerMember extends KDViewController
       delegate : @getView()
     , member
   
-  mouseEnterOnFeed:->
-
-    clearTimeout @intentTimer
-    @intentTimer = setTimeout =>
-      @getView().$('.profilearea').css "overflow", "hidden"
-      @getView().setClass "small-header"
-      @utils.nextTick 300,=>
-        @getSingleton('windowController').notifyWindowResizeListeners()
-    , 500
-  
-  mouseEnterOnHeader:->
-
-    clearTimeout @intentTimer
-    @intentTimer = setTimeout =>
-      @getView().unsetClass "small-header"
-      @utils.nextTick 300,=>
-        @getSingleton('windowController').notifyWindowResizeListeners()
-        @getView().$('.profilearea').css "overflow", "visible"
-    , 500
+  # mouseEnterOnFeed:->
+  # 
+  #   clearTimeout @intentTimer
+  #   @intentTimer = setTimeout =>
+  #     @getView().$('.profilearea').css "overflow", "hidden"
+  #     @getView().setClass "small-header"
+  #     @utils.nextTick 300,=>
+  #       @getSingleton('windowController').notifyWindowResizeListeners()
+  #   , 500
+  # 
+  # mouseEnterOnHeader:->
+  # 
+  #   clearTimeout @intentTimer
+  #   @intentTimer = setTimeout =>
+  #     @getView().unsetClass "small-header"
+  #     @utils.nextTick 300,=>
+  #       @getSingleton('windowController').notifyWindowResizeListeners()
+  #       @getView().$('.profilearea').css "overflow", "visible"
+  #   , 500
   
   followAccount:(account, callback)->
     account.follow callback
@@ -97,11 +97,11 @@ class ContentDisplayControllerMember extends KDViewController
     }, (controller)=>
       #put listeners here, look for the other feeder instances
       
-      unless KD.isMine account
-        @listenTo 
-          KDEventTypes       : "mouseenter"
-          listenedToInstance : controller.getView()
-          callback           : => @mouseEnterOnFeed()
+      # unless KD.isMine account
+      #   @listenTo 
+      #     KDEventTypes       : "mouseenter"
+      #     listenedToInstance : controller.getView()
+      #     callback           : => @mouseEnterOnFeed()
 
       @getView().addSubView controller.getView()
     
