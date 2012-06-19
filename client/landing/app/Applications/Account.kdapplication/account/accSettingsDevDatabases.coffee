@@ -26,9 +26,19 @@ class AccountDatabaseListController extends KDListViewController
         @getListView().showAddModal()
 
   loadItems:(callback)->
-    @account.fetchDatabases (err,databases)=>
-      @instantiateListItems databases
-      callback?()
+    
+    @getSingleton("kiteController").run
+      kiteName  : "databases"
+      toDo      : "fetchMysqlDatabases"
+      withArgs  : { username : KD.whoami().profile.nickname}
+    , (err, response)=>
+      if err then warn err
+      else
+        log response, "<<<< db list"
+    
+    # @account.fetchDatabases (err,databases)=>
+    #   @instantiateListItems databases
+    #   callback?()
 
 class AccountDatabaseList extends KDListView
   constructor:(options,data)->
