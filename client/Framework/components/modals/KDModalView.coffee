@@ -96,13 +96,14 @@ class KDModalView extends KDView
     @$().width value
 
   setPositions:()->
-    {position} = @getOptions()
-    newPosition = {}
-    
-    newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@modalHeight/2)
-    newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
-    newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
-    @$().css newPosition
+    @utils.nextTick =>
+      {position} = @getOptions()
+      newPosition = {}
+  
+      newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@modalHeight/2)
+      newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
+      newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
+      @$().css newPosition
 
   putOverlay:()->
     @$overlay = $ "<div/>"
