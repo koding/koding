@@ -49,7 +49,7 @@ class MySQL
     id.substr 0, length
 
   constructor : (@config)->
-    @mysqlClient = mysql.createClient @config.databases.mysql
+    @mysqlClient = mysql.createClient @config.databases.mysql[0]
 
   createUser : (options,callback)->
 
