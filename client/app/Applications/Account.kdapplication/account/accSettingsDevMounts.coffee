@@ -1,4 +1,4 @@
-AccountSettingLists.develop.mountsController = class AccountMountListController extends KDListViewController
+class AccountMountListController extends KDListViewController
 
   mapBongoInstanceToView = (mount) ->
     mount.type ?= mount.constructor.name
@@ -130,7 +130,7 @@ AccountSettingLists.develop.mountsController = class AccountMountListController 
     @getListView().destroyModal()
 
 
-AccountSettingLists.develop.mounts = class AccountMountList extends KDListView
+class AccountMountList extends KDListView
 
   mapBongoInstanceToView = (mount) ->
     mount.type ?= mount.constructor.name

@@ -1,4 +1,4 @@
-AccountSettingLists.personal.username = class AccountEditUsername extends KDView
+class AccountEditUsername extends KDView
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate

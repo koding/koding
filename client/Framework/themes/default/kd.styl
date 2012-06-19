@@ -474,6 +474,12 @@ h4.kdheaderview
   z-index               10000
   background            rgba(0,0,0,.2)
   size                  100%,100%
+  vendor                transition, opacity .3s ease-in-out
+  opacity               1
+  &.animated
+    opacity             0
+    &.in
+      opacity           1
   &.transparent
     background          transparent
   &.half-white          

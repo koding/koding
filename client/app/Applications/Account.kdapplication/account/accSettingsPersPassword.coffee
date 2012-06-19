@@ -1,6 +1,6 @@
 
 
-AccountSettingLists.personal.security = class AccountEditSecurity extends KDView
+class AccountEditSecurity extends KDView
   viewAppended:->
     # =================
     # ADDING PASSWORD FORM
