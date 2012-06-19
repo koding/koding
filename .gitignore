@@ -53,3 +53,7 @@ client/app/stylus/*.js
 /node_modules/underscore
 /node_modules/url
 /node_modules/validator
+
+node_modules/jsonify/
+node_modules/browserify/
+node_modules/http-proxy/
