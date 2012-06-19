@@ -81,7 +81,7 @@ class MySQL
     @mysqlClient.query sql,(err)=>
       if err?
         log.error e = "[ERROR] can't create user #{dbConf.dbUser} for #{dbConf.dbName} : #{err}"
-        callback e
+        callback new KodingError e
       else
         log.debug "[OK] user #{dbConf.dbUser} for db #{dbConf.dbName} with pass #{dbConf.dbPass} is created"
         callback null, dbConf
@@ -150,10 +150,10 @@ class MySQL
           @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
             if err?.number is mysql.ERROR_DB_CREATE_EXISTS
               log.error e = "[ERROR] database #{dbName} exists"
-              callback e
+              callback new KodingError e
             else if err?
               log.error e = "[ERROR] can't create database: #{err.message}"
-              callback e
+              callback new KodingError e
             else
               log.info "[OK] database #{dbName} for user #{dbUser} created"
               @createUser options,(error,result)=>
@@ -162,16 +162,16 @@ class MySQL
                   @removeDatabase options,(error2,res)=>
                     if err
                       log.error e = "two errors:1-#{error2} 2-#{err}"
-                      callback e
+                      callback new KodingError e
                     else
                       res.completedWithErrors = error
                       sendResult null,res
                 else
                   sendResult null,result
         else
-          callback "You exceeded your quota, please delete one before adding a new one."
+          callback new KodingError "You exceeded your quota, please delete one before adding a new one."
       else
-        callback "There was an error completing this request, please try again later."
+        callback new KodingError "There was an error completing this request, please try again later."
 
   changePassword : (options,callback)->
 
@@ -193,7 +193,7 @@ class MySQL
     # SECURITY/SANITY FEATURE - NEVER REMOVE
     #  
     unless dbUser.substr(0,username.length+1) is username+"_"
-      return callback "You can only change password of a database user that you own."
+      return callback new KodingError "You can only change password of a database user that you own."
     # -------------------------------
     
     # update user set password=PASSWORD("NEW-PASSWORD-HERE") where User='tom'
@@ -201,7 +201,7 @@ class MySQL
     @mysqlClient.query sql,(err)=>
       if err?
         log.error e = "[ERROR] can't change password for user #{dbUser} : #{err}"
-        callback e
+        callback new KodingError e
       else
         log.info r = "[OK] password for user #{dbUser} has been changed"
         callback null,r
@@ -224,14 +224,14 @@ class MySQL
     # SECURITY/SANITY FEATURE - NEVER REMOVE
     #  
     unless dbUser.substr(0,username.length+1) is username+"_"
-      return callback "You can only remove a database user that you own."
+      return callback new KodingError "You can only remove a database user that you own."
     # -------------------------------
 
     
     @mysqlClient.query "DROP USER #{dbUser}",(err)=>
       if err?
         log.error e = "[ERROR] can't remove user #{dbUser}: #{err}"
-        callback e
+        callback new KodingError e
       else
         log.info r = "[OK] user #{dbUser} has been removed"
         callback null,r
@@ -259,7 +259,7 @@ class MySQL
     console.log dbName.substr(0,username.length+1)
 
     unless dbUser.substr(0,username.length+1) is username+"_" and dbName.substr(0,username.length+1) is username+"_"
-      return callback "You can only remove a database that you own."
+      return callback new KodingError "You can only remove a database that you own."
     # -------------------------------
 
     
@@ -269,7 +269,7 @@ class MySQL
       @mysqlClient.query "DROP DATABASE #{dbName}",(err)=>
         if err?
           log.error e = "[ERROR] can't remove database #{dbName} : #{err}"
-          callback e
+          callback new KodingError e
         else
           log.info r = "[OK] database #{dbName} with user #{dbUser} has been removed. Errors:#{e ? 'none'}"
           callback null,r
