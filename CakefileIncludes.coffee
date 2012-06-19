@@ -372,7 +372,6 @@ Includes =
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
         # ACCOUNT SETTINGS    
-        accountMain                    : "./client/app/Applications/Account.kdapplication/AppView.coffee"
                                       
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
         accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
@@ -387,6 +386,7 @@ Includes =
         accountPayMethods             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee"
         accountPayHistory             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee"
         accountSubs                   : "./client/app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee"
+        accountMain                   : "./client/app/Applications/Account.kdapplication/AppView.coffee"
         
         # CONTENT DISPLAY VIEWS
         contentDisplay                : "./client/app/MainApp/ContentDisplay/ContentDisplay.coffee"

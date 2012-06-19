@@ -1,4 +1,4 @@
-AccountSettingLists.develop.reposController = class AccountRepoListController extends KDListViewController
+class AccountRepoListController extends KDListViewController
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate
@@ -30,7 +30,7 @@ AccountSettingLists.develop.reposController = class AccountRepoListController ex
     #   @instantiateListItems repos
     #   callback?()
 
-AccountSettingLists.develop.repos = class AccountRepoList extends KDListView
+class AccountRepoList extends KDListView
   constructor:(options,data)->
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate    
     options = $.extend
