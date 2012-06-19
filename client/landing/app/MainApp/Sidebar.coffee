@@ -323,10 +323,10 @@ class Sidebar extends KDView
     # @getSingleton("windowController").notifyWindowResizeListeners()
   
   _windowDidResize:->
-    # @finderBottomControlsHolder.getHeight() ---> 118
+    bottomListHeight = @finderBottomControlsHolder.getHeight() or 109
     # when finderpanel is hidden we cant get the height thats why this is hardcoded
     # should be fixed
-    @finderHolder.setHeight @getHeight() - @finderHeaderHolder.getHeight() - 118
+    @finderHolder.setHeight @getHeight() - @finderHeaderHolder.getHeight() - bottomListHeight
 
 
 
