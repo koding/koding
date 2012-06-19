@@ -140,7 +140,7 @@ class MySQL
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
     dbCount = (username,callback) =>
-      @fetchDatabaseList {username},(err,data)->
+      @fetchDatabaseList {username},(err,rows)->
         if err then callback err
         else
           callback null,rows.length
