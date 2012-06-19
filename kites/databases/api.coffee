@@ -15,6 +15,7 @@ __resReport = (error,result,callback)->
   else
     callback? null,result
 
+
 databasesKites = new Kite "databases"
 
   #**********************************************#
@@ -32,6 +33,7 @@ databasesKites = new Kite "databases"
     #     ^^^^ wrong - this kite should not know anything about how kodingen works
 
     mySQL.fetchDatabaseList options,(error,result)->
+      console.log result
       __resReport(error,result,callback)
 
   createMysqlDatabase : (options,callback)->
