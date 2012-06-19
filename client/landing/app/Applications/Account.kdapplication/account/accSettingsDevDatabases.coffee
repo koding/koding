@@ -1,4 +1,4 @@
-AccountSettingLists.develop.databasesController = class AccountDatabaseListController extends KDListViewController
+class AccountDatabaseListController extends KDListViewController
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate
@@ -30,10 +30,7 @@ AccountSettingLists.develop.databasesController = class AccountDatabaseListContr
       @instantiateListItems databases
       callback?()
 
-
-
-
-AccountSettingLists.develop.databases = class AccountDatabaseList extends KDListView
+class AccountDatabaseList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName       : "ul"
