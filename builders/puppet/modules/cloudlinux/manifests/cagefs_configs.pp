@@ -99,6 +99,11 @@ class cloudlinux::cagefs_configs {
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/editors.cfg",
            require => [Class['hosting_packages::editors'],Exec['cagefs_init']]
     }
+
+   file { "/etc/cagefs/conf.d/devel.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/devel.cfg",
+           require => Exec['cagefs_init'],
+    }
    
    
     file { "/etc/cagefs/cagefs.mp":
