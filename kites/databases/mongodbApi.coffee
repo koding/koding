@@ -1,6 +1,6 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
-config  = require('config').mongo
+config  = require('./config').mongo
 
 
 logFile = '/var/log/node/MongoDBApi.log'
@@ -25,9 +25,9 @@ class MongoDB
 
   constructor : (@config)->
 
-    @mongoHost = @config.databases.mongodb.host
-    @mongoUser = @config.databases.mongodb.user
-    @mongoPass = @config.databases.mongodb.password
+    @mongoHost = @config.databases.mongodb[0].host
+    @mongoUser = @config.databases.mongodb[0].user
+    @mongoPass = @config.databases.mongodb[0].password
     @server = new mongo.Server @mongoHost, 27017
 
   uniqueId = (length=8) ->

@@ -15,7 +15,7 @@ __resReport = (error,result,callback)->
   else
     callback? null,result
 
-databasesKites = new Kite
+databasesKites = new Kite "databases"
 
   #**********************************************#
   #***************** MySQL **********************#
@@ -37,7 +37,7 @@ databasesKites = new Kite
     #   dbName   : String # database name
     #
 
-
+    console.log options
     mySQL.createDatabase options,(error,result)->
       __resReport(error,result,callback)
 
