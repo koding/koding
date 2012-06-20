@@ -26,9 +26,29 @@ class AccountDatabaseListController extends KDListViewController
       iconClass : "plus"
       callback  : ()=> list.showAddModal()
         
-    list.on "deleteDatabase", (listItem)=> @deleteDatabase listItem
-    list.on "updateDatabase", (listItem, formdata)=> @updateDatabase listItem, formdata
-    list.on "addDatabase", => @addDatabase()
+    list.on "DeleteDatabaseSubmitted", (listItem)=> @deleteDatabase listItem
+    list.on "UpdateDatabaseSubmitted", (listItem, formdata)=> @updateDatabase listItem, formdata
+    list.on "AddDatabaseSubmitted", => @addDatabase()
+
+    @on "DatabaseDeleted", (listItem)=> list.removeItem listItem
+    @on "DatabaseUpdated", (listItem)=>
+    @on "DatabaseAdded", (itemData)=> 
+      list.addItem itemData, null, {type : "slideDown", duration : 100}
+      new KDModalView
+        title   : "New Database Information"
+        width   : 500
+        overlay : yes
+        content : """
+                  <div class='modalformline'>
+                    <p><label>Host:</label> <i>#{itemData.dbHost}</i></p>
+                    <p><label>Name:</label> <i>#{itemData.dbName}</i></p>
+                    <p><label>User:</label> <i>#{itemData.dbUser}</i></p>
+                    <p><label>Password:</label> <b>#{itemData.dbPass}</b></p>
+                  </div>
+                  <div class='modalformline'>
+                    <p>This is an one time password, please keep it somewhere safe you won't be able to reveal it again, but you'll always be able to reset it from here.</p>
+                  </div>
+                  """
 
   loadItems:(callback)->
     
@@ -39,13 +59,6 @@ class AccountDatabaseListController extends KDListViewController
     , (err, response)=>
       if err then warn err
       else
-        # log response, "<<<< db list"
-        response.map (item)->
-          item.type   = "mysql"
-          item.color  = "yellow"
-          item.title  = "MySql DB"
-          item.dbHost = "mysql0.db.koding.com"
-
         @instantiateListItems response
         callback?()
 
@@ -54,38 +67,38 @@ class AccountDatabaseListController extends KDListViewController
     data     = listItem.getData()
 
     @talkToKite
-      toDo     : "removeDatabase"
+      toDo     : "removeMysqlDatabase"
       withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
     , (err, response)=>
       {modal} = @getListView()
-      modal.modalTabs.forms["On Koding"].buttons.Delete.hideLoader()
+      modal.modalTabs.forms["Update Database"].buttons.Delete.hideLoader()
       if err
         @notify "An error occured, try again later!", "error"
       else
         @notify "Database deleted!", "succes"
-        @utils.nextTick 500, => modal.destroy()
-        log response, "<<<< db deleted"
+        @emit "DatabaseDeleted", listItem
+        modal.destroy()
 
   updateDatabase:(listItem, formData)->
 
     data = listItem.getData()
 
     @talkToKite
-      toDo          : "changePassword"
+      toDo          : "changeMysqlPassword"
       withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
     , (err, response)=>
       {modal} = @getListView()
-      modal.modalTabs.forms["On Koding"].buttons.Update.hideLoader()
+      modal.modalTabs.forms["Update Database"].buttons.Update.hideLoader()
       if err
         @notify "An error occured, try again later!", "error"
       else
         @notify "Database updated!", "succes"
-        @utils.nextTick 500, => modal.destroy()
-        log response, "<<<< db updated"
+        @emit "DatabaseUpdated", listItem
+        modal.destroy()
 
   addDatabase:->
 
@@ -105,15 +118,10 @@ class AccountDatabaseListController extends KDListViewController
         @notify "An error occured, try again later!", "error"
       else
         @notify "Database created!", "succes"
-        @utils.nextTick 500, => modal.destroy()
-        log response, "<<<< db created"
+        @emit "DatabaseAdded", response
+        modal.destroy()
   
   talkToKite:(options, callback)->
-
-    log
-      kiteName  : "databases"
-      toDo      : options.toDo
-      withArgs  : options.withArgs
 
     @getSingleton("kiteController").run
       kiteName  : "databases"
@@ -126,7 +134,11 @@ class AccountDatabaseListController extends KDListViewController
   notify:(title, type)->
     
     {modal} = @getListView()
-    new KDNotificationView type : "mini", cssClass : "editor #{type}", title : title, container : modal
+    new KDNotificationView
+      type      : "mini"
+      cssClass  : "#{type}"
+      title     : "<p>#{title}</p>"
+      container : modal if type is "error"
 
 class AccountDatabaseList extends KDListView
 
@@ -161,10 +173,10 @@ class AccountDatabaseList extends KDListView
       tabs                    :
         navigateable          : yes
         goToNextFormOnSubmit  : no
-        callback              : (formOutput)-> log formOutput
+        # callback              : (formOutput)-> log formOutput
         forms                 :
           "On Koding"         :
-            callback          : => @emit "addDatabase"
+            callback          : => @emit "AddDatabaseSubmitted"
             buttons           :
               Create          :
                 title         : "Create"
@@ -290,18 +302,18 @@ class AccountDatabaseList extends KDListView
     if type is "external"                                     
       formSchema.tabs.forms["Link External"] =
         buttons :
-          "Link It!" :
+          "Link It!"      :
             title         : "Add External Database"
             style         : "modal-clean-gray"
             type          : "submit"
             loader        :
               color       : "#444444"
               diameter    : 12
-        fields  : fields
+        fields            : fields
 
     else
       formSchema.tabs.forms["Update Database"] =
-        callback          : (formData)=> @emit "updateDatabase", listItem, formData
+        callback          : (formData)=> @emit "UpdateDatabaseSubmitted", listItem, formData
         buttons           :
           Update          :
             style         : "modal-clean-gray"
@@ -314,7 +326,18 @@ class AccountDatabaseList extends KDListView
             loader        :
               color       : "#444444"
               diameter    : 12
-            callback      : => @emit "deleteDatabase", listItem
+            callback      : =>
+              modal.modalTabs.forms['Update Database'].buttons.Delete.hideLoader()
+              modal.modalTabs.forms['Update Database'].buttons.Update.hide()
+              unless modal._sureToDelete
+                field = modal.modalTabs.forms['Update Database'].fields['New Password']
+                field.$('*').hide()
+                field.$().append "Click delete again to delete the database, <b>be aware there is no way back!</b>"
+                modal._sureToDelete = yes
+              else
+                delete modal._sureToDelete
+                @emit "DeleteDatabaseSubmitted", listItem
+
         fields  : fields
     
     modal = @modal = new KDModalViewWithForms formSchema
@@ -373,7 +396,14 @@ class AccountDatabaseList extends KDListView
 
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
+
     options.tagName = "li"
+    
+    data.type   or= "mysql"
+    data.color  or= "yellow"
+    data.title  or= "MySql DB"
+    data.dbHost or= "mysql0.db.koding.com"
+
     super options,data
     
   click:(event)=>
