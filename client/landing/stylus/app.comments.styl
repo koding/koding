@@ -18,6 +18,12 @@ app.comments.styl
   .kdlistview-comments
     .kdview.kdlistitemview
       border-bottom         1px solid #e0e0df
+      &.deleted
+        .item-content-comment
+          padding             5px 10px
+          bg                  color, #fcfcfc
+          color               #999
+          font-size           10px
   
     .item-content-comment
       color                 #666
@@ -54,6 +60,28 @@ app.comments.styl
         time
           line-height       11px
           color             #aaa
+        &:hover
+          .delete-link
+            opacity         .8
+            &:hover
+              opacity       1
+              // border        1px solid #e0e0df
+              // rounded       2px
+              // bg            position, -80px -540px
+  
+  .delete-link
+    display                 block
+    size                    20px, 20px
+    position                absolute
+    top                     5px
+    right                   5px
+    bg                      position, -80px -520px
+    opacity                 0
+    vendor                  transition, opacity .15s linear
+    // border                  1px solid transparent
+    sprite()
+      
+    
 
   .item-add-comment-box
     .item-add-comment-form

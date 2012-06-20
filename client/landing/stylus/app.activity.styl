@@ -214,31 +214,34 @@ app.activity.styl
       vendor            transition, opacity .1s ease-out
       opacity           .1
       position          absolute
-      top               13px
-      right             19px
+      top               0
+      right             12px
       z-index           10
       button.kdbutton.with-icon
-        padding         0
-        padding-right   0!important
+        padding         1px 2px
+        padding-right   3px!important
         span.icon
-          bg            position, -62px -302px
+          bg            position, -81px -281px
           size          16px, 16px
           padding       0
           margin        0
         &:hover
           gradient      #eee, #ddd
+          rounded       2px
       .chevron-arrow
         display         none
       .chevron-arrow-separator
         display         none
 
 .kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+  border-color          rgba(0,0,0,.2)
   .chevron-arrow-ghost-wrapper
-    rounded             9px 9px 0 0
-    width               14px
+    border-color        rgba(0,0,0,.2)
+    rounded             2px 2px 0 0
+    width               19px
     span.chevron-arrow-ghost
       margin            0 auto
-      bg                position, -63px -303px
+      bg                position, -80px -261px
   .kdcontextmenutreeview
     margin              3px 0
     .kdview.kdtreeitemview.default

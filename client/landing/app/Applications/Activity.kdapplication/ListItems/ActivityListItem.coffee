@@ -92,13 +92,13 @@ class ActivityItemChild extends KDView
         title       : ''
         icon        : yes
         delegate    : @
-        iconClass   : "cog"
+        iconClass   : "arrow"
         menu        : [
           type      : "contextmenu"
           items     : [
 #            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
             { title : '~~Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
+            { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
           ]
         ]
         callback    : (event)=> @settingsButton.contextMenu event
@@ -120,6 +120,29 @@ class ActivityItemChild extends KDView
       @commentBox.decorateCommentedState() if count >= 0
     
     @contentDisplayController = @getSingleton "contentDisplayController"
+  
+  confirmDeletePost:(data)->
+
+    modal = new KDModalView
+      title          : "Delete post"
+      content        : "<div class='modalformline'>Are you sure you want to delete this post?</div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Delete       :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            data.delete (err)=> 
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              unless err then @emit 'ActivityIsDeleted'
+              else new KDNotificationView 
+                type     : "mini"
+                cssClass : "error editor"
+                title     : "Error, please try again later!"
 
   displayTags:(tags=[])->
     # log @getData(),tags
