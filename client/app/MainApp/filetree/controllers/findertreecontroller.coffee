@@ -289,8 +289,10 @@ class NFinderTreeController extends JTreeViewController
     FSItem.create path, type, (err, file)=>
       @notify null, null, err if err
       @refreshFolder @nodes[parentPath], =>
-        @selectNode @nodes[file.path]
         @notify "#{type} created!", "success"
+        node = @nodes[file.path]
+        @selectNode node
+        @showRenameDialog node
 
 
   moveFiles:(nodesToBeMoved, targetNodeView, callback)->
