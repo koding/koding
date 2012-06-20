@@ -634,14 +634,13 @@ class KDView extends KDObject
   
   putOverlay:(options = {})->
 
-    {isRemovable, cssClass, parent} = options
+    {isRemovable, cssClass, parent, animated} = options
 
     isRemovable ?= yes
     cssClass    ?= "transparent"
     parent      ?= "body"           #body or a KDView instance
-    
-    @$overlay = $ "<div />", class : "kdoverlay #{cssClass}"
-
+  
+    @$overlay = $ "<div />", class : "kdoverlay #{cssClass} #{if animated then "animated"}"
 
     if parent is "body"
       @$overlay.appendTo "body"
@@ -650,20 +649,33 @@ class KDView extends KDObject
       @$overlay.css "z-index", @__zIndex + 1
       @$overlay.appendTo parent.$()
 
-      
+    if animated
+      @utils.nextTick =>
+        @$overlay.addClass "in"
+      @utils.nextTick 300, =>
+        @emit "OverlayAdded", @
+    else
+      @emit "OverlayAdded", @
+
     if isRemovable
       @$overlay.on "click.overlay", @removeOverlay.bind @
-    
-    @emit "OverlayAdded", @
 
   removeOverlay:()->
-    @handleEvent type : "OverlayWillBeRemoved"
-    @$overlay.off "click.overlay"
-    @$overlay.remove()
-    delete @__zIndex
-    delete @$overlay
-    @emit "OverlayRemoved", @
+    @emit "OverlayWillBeRemoved"
+    kallback = =>
+      @$overlay.off "click.overlay"
+      @$overlay.remove()
+      delete @__zIndex
+      delete @$overlay
+      @emit "OverlayRemoved", @
 
+    if @$overlay.hasClass "animated"
+      @$overlay.removeClass "in"
+      @utils.nextTick 300, =>
+        kallback()
+    else
+      kallback()
+      
   setTooltip:(o = {})->
     
     o.title     or= "Default tooltip title!"
@@ -686,6 +698,9 @@ class KDView extends KDObject
     
     @getSingleton('windowController').registerWindowResizeListener @
 
+  setKeyView:->
+
+    @getSingleton("windowController").setKeyView @
 
 
 # #

@@ -48,12 +48,12 @@ class KiteController extends KDController
       callback err, kiteIds
   
   run:(options = {}, callback)->
+
     options.kiteName or= "sharedHosting"
     options.kiteId   or= @kiteIds.sharedHosting?[0]
     options.toDo     or= "executeCommand"
     options.withArgs or= {}
-    {command} = options.withArgs
-    # log "new command issued to the kites!", command
+
     @account.tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
   
@@ -85,6 +85,7 @@ class KiteController extends KDController
         callback? "handleKiteNotPresent: we dont handle this yet"
   
   createSystemUser:(callback)->
+
     @run
       toDo       : "createSystemUser"
       withArgs   :

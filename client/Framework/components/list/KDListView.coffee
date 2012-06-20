@@ -56,7 +56,7 @@ class KDListView extends KDView
     else
       for item,i in @items
         if itemInstance and itemInstance is item or
-           itemData and itemdData is item.getData()
+           itemData and itemData is item.getData()
           @propagateEvent KDEventType: 'ItemIsBeingDestroyed', { view : item, index : i }
           @items.splice i,1
           item.destroy()

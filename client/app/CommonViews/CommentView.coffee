@@ -11,7 +11,17 @@ class CommentListViewController extends KDListViewController
     #   listener      : @
     #   callback      : (pubInst,{fromUnixTime,callback})=>
     #     @fetchCommentsByRange fromUnixTime, callback
-
+    
+    listView.registerListener
+      KDEventTypes  : 'ItemWasAdded'
+      listener      : @
+      callback      : (pub, {view})=>
+        view.registerListener
+          KDEventTypes  : 'CommentIsDeleted'
+          listener      : @
+          callback      : ->
+          	view.$().html("<div class='item-content-comment clearfix'><em>This comment has been deleted.</em></div>");
+    
     listView.registerListener
       KDEventTypes  : ["AllCommentsLinkWasClicked","CommentInputReceivedFocus"]
       listener      : @
@@ -302,6 +312,23 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {
       origin
     }
+    if data.originId is KD.whoami().getId()
+      @settingsButton = new KDButtonViewWithMenu
+        style       : 'transparent activity-settings-context'
+        cssClass    : 'activity-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "cog"
+        menu        : [
+          type      : "contextmenu"
+          items     : [
+            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
+          ]
+        ]
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
   
   viewAppended:->
     @setTemplate @pistachio()
@@ -316,18 +343,24 @@ class CommentListItemView extends KDListItemView
           appManager.tell "Members", "createContentDisplay", origin
   
   pistachio:->
-    """
-    <div class='item-content-comment clearfix'>
-      <span class='avatar'>{{> @avatar}}</span>
-      <div class='comment-contents clearfix'>
-        <p class='comment-body'>
-          {{> @author}}
-          {{@utils.applyTextExpansions #(body)}}
-        </p>
-        <time>{{$.timeago #(meta.createdAt)}}</time>
+    if @getData().getAt 'deletedAt'
+      """
+      <div class='item-content-comment clearfix'><em>This comment has been deleted.</em></div>
+      """
+    else
+      """
+      <div class='item-content-comment clearfix'>
+        <span class='avatar'>{{> @avatar}}</span>
+        <div class='comment-contents clearfix'>
+          <p class='comment-body'>
+            {{> @author}}
+            {{@utils.applyTextExpansions #(body)}}
+          </p>
+          <time>{{$.timeago #(meta.createdAt)}}</time>
+          <div>{{> @settingsButton}}</div>
+        </div>
       </div>
-    </div>
-    """
+      """
   
   # updatePartial:->
   #   data = @getData()
