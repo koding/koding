@@ -1,4 +1,4 @@
-AccountSettingLists.billing.subscriptionsController = class AccountSubscriptionsListController extends KDListViewController
+class AccountSubscriptionsListController extends KDListViewController
   constructor:(options,data)->
     data = $.extend
       items : [
@@ -21,7 +21,7 @@ AccountSettingLists.billing.subscriptionsController = class AccountSubscriptions
     #   callback  : =>
     #     @getListView().showModal()
 
-AccountSettingLists.billing.subscriptions = class AccountSubscriptionsList extends KDListView
+class AccountSubscriptionsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"

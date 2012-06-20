@@ -136,6 +136,11 @@ class MainController extends KDController
             duration  : 2000
       else
         @goToPage pubInst, event
+    
+    @on "ShowInstructionsBook", (index)=>
+      book = @mainViewController.getView().addBook()
+      book.fillPage index
+
 
   # some day we'll have this :)
   hashDidChange:(params,query)->
@@ -211,10 +216,13 @@ class MainView extends KDView
     @removeLoader()
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
-
+  
     setTimeout =>
       @putWhatYouShouldKnowLink()
     ,5000
+
+  addBook:->
+    @addSubView new BookView
   
   setViewState:(state)->
     if state is 'background'
