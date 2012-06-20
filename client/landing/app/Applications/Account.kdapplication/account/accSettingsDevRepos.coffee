@@ -21,7 +21,7 @@ class AccountRepoListController extends KDListViewController
 
   loadItems:(callback)->
     items = [
-      { title : "Repositories keys are coming soon" }
+      { title : "Repositories are coming soon" }
     ]
     @instantiateListItems items
 
