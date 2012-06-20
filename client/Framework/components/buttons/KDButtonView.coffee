@@ -108,7 +108,12 @@ class KDButtonView extends KDView
         FPS         : loader.FPS      || 24
 
     @addSubView @loader, null, yes
-    @loader.$().css position : "absolute", left : loader.left or 5, top : loader.top or 5
+    @loader.$().css
+      position    : "absolute"
+      left        : loader.left or "50%"
+      top         : loader.top or "50%"
+      marginTop   : -(loader.diameter/2)
+      marginLeft  : -(loader.diameter/2)
     @loader.hide()
   
   showLoader:->
