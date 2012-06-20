@@ -151,8 +151,8 @@ class Activity12345 extends AppController
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
     $.ajax KD.apiUri+'/1.0'
-      data      :
-        data    : JSON.stringify(options)
+      data      : 
+        data    : JSON.stringify(_.extend options, selector)
         env     : KD.env
       dataType  : 'jsonp'
       success   : (data)->
