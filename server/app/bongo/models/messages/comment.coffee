@@ -1,6 +1,6 @@
 class JComment extends jraphical.Reply
   
-  {ObjectId,dash,daisy} = require 'bongo'
+  {ObjectId,ObjectRef,dash,daisy} = require 'bongo'
   {Relationship}  = require 'jraphical'
   
   @share()
@@ -18,25 +18,36 @@ class JComment extends jraphical.Reply
       originId    :
         type      : ObjectId
         required  : yes
+      deletedAt   : Date
+      deletedBy   : ObjectRef
       meta        : require 'bongo/bundles/meta'
   
-  delete:(callback)->
+  delete: bongo.secure (client, callback)->
+    {delegate} = client.connection
     {getDeleteHelper} = Relationship
     id = @getId()
     queue = [
-      -> Relationship.one {
-        targetId  : id
-        as        : 'reply'
-      }, (err, rel)->
-        if err
-          queue.fin err
-        else
-          rel.fetchSource (err, message)->
-            if err
-              queue.fin err
-            else
-              message.removeReply rel, -> queue.fin()
-      => @remove -> queue.fin()
+      ->
+        Relationship.one {
+          targetId  : id
+          as        : 'reply'
+        }, (err, rel)->
+          if err
+            queue.fin err
+          else
+            rel.fetchSource (err, message)->
+              if err
+                queue.fin err
+              else
+                message.removeReply rel, -> queue.fin()
+      =>
+        @update
+          $unset      :
+            body      : 1
+          $set        :
+            deletedAt : new Date
+            deletedBy : ObjectRef(delegate)
+        , -> queue.fin()
     ]
     dash queue, callback
   

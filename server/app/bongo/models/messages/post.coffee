@@ -81,7 +81,6 @@ class JPost extends jraphical.Message
               if err
                 callback createKodingError err
               else
-                console.log 'tags was added'
                 queue.next()
           else queue.next()
         ->
@@ -90,7 +89,6 @@ class JPost extends jraphical.Message
               callback createKodingError err
             else
               teaser = teaser_
-              console.log teaser
               queue.next()
         ->
           activity.update
@@ -108,7 +106,7 @@ class JPost extends jraphical.Message
 
   modify: secure ({connection:{delegate}}, formData, callback)->
     if delegate.getId().equals @originId
-      @update formData, (err, response)=> callback err, response
+      @update $set: formData, (err, response)=> callback err, response
     else
       callback new KodingError "Access denied"
 
@@ -161,7 +159,7 @@ class JPost extends jraphical.Message
             activityId = rel.getAt 'sourceId'
             queue.next()
       ->
-        rel.remove -> queue.next()
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
       =>
         @update $inc: repliesCount: -1, -> queue.next()
       =>
@@ -235,6 +233,8 @@ class JPost extends jraphical.Message
         query         :
           targetName  : 'JComment'
           as          : 'reply'
+          'data.deletedAt':
+            $exists   : no
         limit         : 3
         sort          :
           timestamp   : -1

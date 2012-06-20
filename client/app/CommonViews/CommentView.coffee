@@ -20,7 +20,7 @@ class CommentListViewController extends KDListViewController
           KDEventTypes  : 'CommentIsDeleted'
           listener      : @
           callback      : ->
-            listView.removeItem view
+          	view.$().html("<div class='item-content-comment clearfix'><em>This comment has been deleted.</em></div>");
     
     listView.registerListener
       KDEventTypes  : ["AllCommentsLinkWasClicked","CommentInputReceivedFocus"]
@@ -343,19 +343,24 @@ class CommentListItemView extends KDListItemView
           appManager.tell "Members", "createContentDisplay", origin
   
   pistachio:->
-    """
-    <div class='item-content-comment clearfix'>
-      <span class='avatar'>{{> @avatar}}</span>
-      <div class='comment-contents clearfix'>
-        <p class='comment-body'>
-          {{> @author}}
-          {{@utils.applyTextExpansions #(body)}}
-        </p>
-        <time>{{$.timeago #(meta.createdAt)}}</time>
-        <div>{{> @settingsButton}}</div>
+    if @getData().getAt 'deletedAt'
+      """
+      <div class='item-content-comment clearfix'><em>This comment has been deleted.</em></div>
+      """
+    else
+      """
+      <div class='item-content-comment clearfix'>
+        <span class='avatar'>{{> @avatar}}</span>
+        <div class='comment-contents clearfix'>
+          <p class='comment-body'>
+            {{> @author}}
+            {{@utils.applyTextExpansions #(body)}}
+          </p>
+          <time>{{$.timeago #(meta.createdAt)}}</time>
+          <div>{{> @settingsButton}}</div>
+        </div>
       </div>
-    </div>
-    """
+      """
   
   # updatePartial:->
   #   data = @getData()
