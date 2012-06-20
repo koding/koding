@@ -54,7 +54,10 @@ class KDAutoCompleteController extends KDViewController
   keyDownOnInputView:(autoCompleteView,event)=>
     switch event.which
       when 13, 9 #enter, tab
-        @submitAutoComplete autoCompleteView.getValue()
+        unless autoCompleteView.getValue() is ""
+          @submitAutoComplete autoCompleteView.getValue()
+        else
+          return yes
       when 27 #escape
         @hideDropdown()
       when 38 #uparrow
