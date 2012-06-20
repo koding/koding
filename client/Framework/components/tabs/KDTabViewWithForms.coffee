@@ -28,9 +28,9 @@ class KDTabViewWithForms extends KDTabView
       @addPane tab = new KDTabPaneView name : formData.title
 
       oldCallback = formData.callback
-      formData.callback = (formElements)=>
+      formData.callback = (formData)=>
         @showNextPane() if @getOptions().goToNextFormOnSubmit
-        oldCallback? formElements
+        oldCallback? formData
         if index is forms.length - 1
           @fireFinalCallback()
 

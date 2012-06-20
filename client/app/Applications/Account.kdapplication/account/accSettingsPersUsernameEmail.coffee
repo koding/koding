@@ -10,7 +10,7 @@ class AccountEditUsername extends KDView
     # ADDING EMAIL FORM
     # =================
     @addSubView @emailForm = emailForm = new KDFormView
-      callback     : (formElements)->
+      callback     : (formData)->
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"
@@ -57,7 +57,7 @@ class AccountEditUsername extends KDView
     # ADDING USERNAME FORM
     # =================
     @addSubView @usernameForm = usernameForm = new KDFormView
-      callback     : (formElements)->
+      callback     : (formData)->
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"
