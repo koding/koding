@@ -6,15 +6,15 @@ class InboxReplyMessageView extends KDView
   _windowDidResize:()=>
     @resize()
 
-  formSubmit:(formElements)=>
+  formSubmit:(formData)=>
     privateMessage = @getData().getData()
-    privateMessage.addPrivateMessageReply (type: 'reply'), formElements.body
+    privateMessage.addPrivateMessageReply (type: 'reply'), formData.body
     
     @messageInput.setValue ''
     
     # (@getSingleton "site").account.addQuestion callback: ()=>
     #   @propagateEvent (KDEventType:"ActionComplete")
-    # , formElements
+    # , formData
 
   viewAppended:()->
     privateMessage  = @getData().getData()

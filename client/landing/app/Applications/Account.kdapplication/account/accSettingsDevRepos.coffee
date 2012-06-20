@@ -81,8 +81,8 @@ class AccountRepoList extends KDListView
     
     form = new KDFormView 
       cssClass : "clearfix"
-      callback : (formElements)=>
-        @updateRepo listItem, formElements
+      callback : (formData)=>
+        @updateRepo listItem, formData
     modal.addSubView form, ".kdmodal-content"
 
     form.addSubView formline1 = new KDView cssClass : "modalformline"
@@ -162,9 +162,9 @@ class AccountRepoList extends KDListView
   #   
   #   @destroyModal()
 
-  updateRepo:(listItem,formElements)=>
+  updateRepo:(listItem,formData)=>
     
-    f = formElements
+    f = formData
       
     switch f.operation
       
