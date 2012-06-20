@@ -106,7 +106,7 @@ class JPost extends jraphical.Message
 
   modify: secure ({connection:{delegate}}, formData, callback)->
     if delegate.getId().equals @originId
-      @update formData, (err, response)=> callback err, response
+      @update $set: formData, (err, response)=> callback err, response
     else
       callback new KodingError "Access denied"
 
