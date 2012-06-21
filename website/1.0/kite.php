@@ -22,9 +22,7 @@ class Kite {
           'username'  => $username,          
         )),
       );
-      error_log('connecting to '.$this->uri);
       $res = @file_get_contents($this->uri.'?'.http_build_query($args));
-      error_log('got a response: '.$res);
       return isset($res) ? $res : array('error' => 503, 'uri' => $uri);
     }
   }
