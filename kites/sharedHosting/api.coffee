@@ -38,8 +38,9 @@ module.exports = new Kite 'sharedHosting'
     #   path     : filePath to be initialized as starting text. 
     #   text     : provided text as a starting document instead of path.
     id = hat()
-    client.open id,"", "http://localhost:8000/sjs", (error, doc) ->
-      
+    console.log "got req from #{options.username}"
+    client.open id,"text", "http://127.0.0.1:8000/sjs", (error, doc) ->
+      console.log "im inside callback"
       unless err
         callback null,{doc,id}
       else
