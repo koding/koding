@@ -12,13 +12,14 @@ class Taggable
         @assureTag tag, (err)=>
           if err
             callback err
-          else tag.addContent @, as: tagRole, returnCount: yes, (err, count)->
+          else tag.addContent @, as: tagRole, returnCount: yes, (err, count)=>
             if err
               callback err
             else
               incCount = {}
               incCount["counts.#{tagRole}"] = 1
-              tag.update $inc: incCount, (err)->
+              tag.update $inc: incCount, (err)=>
                 if err then callback err
                 else if ++tagCount is tags.length
+                  @emit 'TagsChanged', tags
                   callback null

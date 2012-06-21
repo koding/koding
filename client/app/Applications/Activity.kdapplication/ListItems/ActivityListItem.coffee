@@ -112,6 +112,12 @@ class ActivityItemChild extends KDView
     
     super
     
+    data.on 'TagsChanged', (tagRefs)=>
+      bongo.cacheable tagRefs, (err, tags)=>
+        console.log @tags, tags
+        @tags.setData tags
+        @tags.render()
+    
     data.on 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
         @parent.destroy()
