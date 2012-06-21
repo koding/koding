@@ -31,6 +31,7 @@ module.exports = new Kite 'sharedHosting'
   
   share : (options,callback) ->
     {client}  = require 'share'
+    console.log "i got request from #{options.username}"
     #
     # options =
     #   username : default koding username
@@ -38,13 +39,15 @@ module.exports = new Kite 'sharedHosting'
     #   path     : filePath to be initialized as starting text. 
     #   text     : provided text as a starting document instead of path.
     id = hat()
-    client.open id,"", "http://localhost:8000/sjs", (error, doc) ->
-      
+    client.open options.id,"text", "http://localhost:8000/sjs", (error, doc) ->
+      callback null,{snapshot:1,insert:console.log}  
       unless err
-        callback null,{doc,id}
+        callback null,doc
+        console.log doc
       else
         callback err
-      
+      doc.on "change",->
+        console.log doc.snapshot
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
  
