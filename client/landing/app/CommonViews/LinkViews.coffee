@@ -84,6 +84,7 @@ class LinkGroup extends KDCustomHTMLView
       @loadFromOrigins options.group
   
   loadFromOrigins:(group)->
+
     three = group.slice(-3)
     bongo.cacheable three, (err, bucketContents)=>
       @setData bucketContents
@@ -91,9 +92,11 @@ class LinkGroup extends KDCustomHTMLView
       @render()
   
   itemClass:(options, data)->
+
     new (@getOptions().subItemClass) options, data
   
   createParticipantSubviews:->
+
     participants = @getData()
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
@@ -101,6 +104,7 @@ class LinkGroup extends KDCustomHTMLView
     @template.update()
   
   pistachio:->
+
     participants = @getData()
     {hasMore, totalCount} = @getOptions()
     tmpl = switch participants.length
@@ -110,26 +114,37 @@ class LinkGroup extends KDCustomHTMLView
         sep = if @participant0.getData() instanceof bongo.api.JAccount then ', ' else ' '
         "{{> @participant0}}#{sep}{{> @participant1}}#{if hasMore then sep else ' and'} {{> @participant2}}"
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
-    super tmpl
+    return tmpl
 
 class ActivityChildViewTagGroup extends LinkGroup
-  
+
   render:->
+
     @createParticipantSubviews()
-    # super
   
   pistachio:->
 
     participants = @getData()
     {hasMore, totalCount} = @getOptions()
 
-    tmpl = switch participants.length
+    @more = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "more"
+      partial     : "#{participants.length-3} more"
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : ->
+        new FollowedModalView {}, participants
+
+    switch participants.length
       when 0 then ""
       when 1 then "in {{> @participant0}}"
       when 2 then "in {{> @participant0}}{{> @participant1}}"
-      else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}"
-    tmpl += "and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
-    return tmpl
+      when 3 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}"
+      when 4 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}{{> @participant3}}"
+      else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}and {{> @more}}"
+
       
 class FollowedModalView extends KDModalView
   
@@ -158,18 +173,24 @@ class FollowedModalView extends KDModalView
     options.height = "auto"
 
     super
+    
+  # viewAppended:->
+  # 
+  #   @putList()
 
   putList:->
 
     participants = @getData()
-    log participants
-
-    controller = new listControllerMap()[@type]
-      subItemClass : listItemMap()[@type]
-    , items : participants
     
-    # log controller.getView()
-    # @addSubView controller.getView(), ".kdmodal-content"
+    # controller = new listControllerMap()[@type]
+    # subclass of KDListViewController throws an error !!!
+    controller = new KDListViewController
+      view            : new KDListView
+        subItemClass  : listItemMap()[@type]
+    ,
+      items           : participants
+    
+    @addSubView controller.getView(), ".kdmodal-content"
 
 class AvatarView extends LinkView
   constructor:(options,data)->
