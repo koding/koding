@@ -24,7 +24,7 @@ class ContentDisplayControllerApps extends KDViewController
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
     
     mainView.addSubView appView = new AppView
-      cssClass : "profilearea"
+      cssClass : "profilearea clearfix"
       delegate : mainView
     , app
     

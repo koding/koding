@@ -52,7 +52,7 @@ class ContentDisplayControllerTopic extends KDViewController
   addTopicView:(topic)->
     topicContentDisplay = @getView()
     topicContentDisplay.addSubView topicView = new TopicView
-      cssClass : "profilearea"
+      cssClass : "profilearea clearfix"
       delegate : topicContentDisplay
     , topic
     topicView

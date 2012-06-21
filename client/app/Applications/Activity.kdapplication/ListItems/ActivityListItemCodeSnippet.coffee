@@ -45,6 +45,7 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
   pistachio:->
+
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
@@ -56,7 +57,7 @@ class CodesnipActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           {time{$.timeago #(meta.createdAt)}}
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>
