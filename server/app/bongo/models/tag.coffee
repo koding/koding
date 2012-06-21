@@ -82,9 +82,14 @@ class JTag extends Followable
     console.log tags
     tags.forEach (tag)->
       if tag?.$suggest?
-        console.log "it's a tag, ", tag
-        JTag.create client, {title: tag.$suggest}, (err, tag)->
-          callbackForEach err, tag
+        newTag = {title: tag.$suggest.trim()}
+        JTag.one newTag, (err, tag)->
+          if err
+            callbackForEach err
+          else if tag?
+            callbackForEach null, tag
+          else
+            JTag.create client, newTag, callbackForEach
       else
         existingTagIds.push bongo.ObjectId tag.id
     JTag.all (_id: $in: existingTagIds), (err, existingTags)->

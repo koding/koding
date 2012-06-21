@@ -104,9 +104,25 @@ class JPost extends jraphical.Message
       ]
       daisy queue
 
-  modify: secure ({connection:{delegate}}, formData, callback)->
+  modify: secure (client, formData, callback)->
+    {delegate} = client.connection
     if delegate.getId().equals @originId
-      @update $set: formData, (err, response)=> callback err, response
+      
+      {tags} = formData.meta
+      delete formData.meta
+      queue = [
+        =>
+          if tags?.length
+            @addTags client, tags, (err)=>
+              if err
+                callback err
+              else
+                queue.next()
+          else queue.next()
+        =>
+          @update $set: formData, callback
+      ]
+      daisy queue
     else
       callback new KodingError "Access denied"
 

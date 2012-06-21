@@ -299,9 +299,15 @@ class CommentListItemView extends KDListItemView
     ,options
     super options,data
     
+    data = @getData()
+    
+    originId    = data.getAt('originId')
+    originType  = data.getAt('originType')
+    deleterId   = data.getAt('deletedBy')?.getId?()
+    
     origin = {
-      constructorName  : data.originType
-      id               : data.originId
+      constructorName  : originType
+      id               : originId
     }
     @avatar = new AvatarView {
       size    : {width: 30, height: 30}
@@ -310,6 +316,9 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {
       origin
     }
+    
+    if deleterId? and deleterId isnt originId
+      @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
     # if data.originId is KD.whoami().getId()
     #   @settingsButton = new KDButtonViewWithMenu
     #     style       : 'transparent activity-settings-context'
@@ -381,9 +390,14 @@ class CommentListItemView extends KDListItemView
   pistachio:->
     if @getData().getAt 'deletedAt'
       @setClass "deleted"
-      """
-      <div class='item-content-comment clearfix'><span>This comment has been deleted.</span></div>
-      """
+      if @deleter
+        """
+        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>
+        """
+      else
+        """
+        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>
+        """
     else
       """
       <div class='item-content-comment clearfix'>

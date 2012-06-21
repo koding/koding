@@ -9,7 +9,7 @@ class Taggable
       if err
         callback err
       else
-        @addTag tag, (err)=>
+        @assureTag tag, (err)=>
           if err
             callback err
           else tag.addContent @, as: tagRole, returnCount: yes, (err, count)->
