@@ -95,7 +95,6 @@ class LinkGroup extends KDCustomHTMLView
   
   createParticipantSubviews:->
     participants = @getData()
-    console.log 'tags', participants
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()
@@ -116,7 +115,6 @@ class LinkGroup extends KDCustomHTMLView
 class ActivityChildViewTagGroup extends LinkGroup
   
   render:->
-    console.log 'need coffee'
     @createParticipantSubviews()
     # super
   
