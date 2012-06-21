@@ -97,7 +97,7 @@ class ActivityItemChild extends KDView
           type      : "contextmenu"
           items     : [
 #            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
-            { title : '~~Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
             { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
           ]
         ]
