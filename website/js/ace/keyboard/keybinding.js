@@ -42,32 +42,54 @@ define(function(require, exports, module) {
 
 var keyUtil  = require("../lib/keys");
 var event = require("../lib/event");
-require("../commands/default_commands");
 
 var KeyBinding = function(editor) {
     this.$editor = editor;
     this.$data = { };
-    this.$handlers = [this];
+    this.$handlers = [];
+    this.setDefaultHandler(editor.commands);
 };
 
 (function() {
-    this.setKeyboardHandler = function(keyboardHandler) {
-        if (this.$handlers[this.$handlers.length - 1] == keyboardHandler)
+    this.setDefaultHandler = function(kb) {
+        this.removeKeyboardHandler(this.$defaultHandler);
+        this.$defaultHandler = kb;
+        this.addKeyboardHandler(kb, 0);
+        this.$data = {editor: this.$editor};
+    };
+
+    this.setKeyboardHandler = function(kb) {
+        if (this.$handlers[this.$handlers.length - 1] == kb)
             return;
-        this.$data = { };
-        this.$handlers = keyboardHandler ? [this, keyboardHandler] : [this];
+
+        while (this.$handlers[1])
+            this.removeKeyboardHandler(this.$handlers[1]);
+
+        this.addKeyboardHandler(kb, 1);
     };
 
-    this.addKeyboardHandler = function(keyboardHandler) {
-        this.removeKeyboardHandler(keyboardHandler);
-        this.$handlers.push(keyboardHandler);
+    this.addKeyboardHandler = function(kb, pos) {
+        if (!kb)
+            return;
+        var i = this.$handlers.indexOf(kb);
+        if (i != -1)
+            this.$handlers.splice(i, 1);
+
+        if (pos == undefined)
+            this.$handlers.push(kb);
+        else
+            this.$handlers.splice(pos, 0, kb);
+
+        if (i == -1 && kb.attach)
+            kb.attach(this.$editor);
     };
 
-    this.removeKeyboardHandler = function(keyboardHandler) {
-        var i = this.$handlers.indexOf(keyboardHandler);
+    this.removeKeyboardHandler = function(kb) {
+        var i = this.$handlers.indexOf(kb);
         if (i == -1)
             return false;
         this.$handlers.splice(i, 1);
+        kb.detach && kb.detach(this.$editor);
         return true;
     };
 
@@ -93,20 +115,15 @@ var KeyBinding = function(editor) {
 
         // allow keyboardHandler to consume keys
         if (toExecute.command != "null")
-            success = commands.exec(toExecute.command, this.$editor, toExecute.args);
+            success = commands.exec(toExecute.command, this.$editor, toExecute.args, e);
         else
-            success = true;
+            success = toExecute.passEvent != true;
 
-        if (success && e)
+        // do not stop input events to not break repeating
+        if (success && e && hashId != -1)
             event.stopEvent(e);
 
         return success;
-    };
-
-    this.handleKeyboard = function(data, hashId, keyString) {
-        return {
-            command: this.$editor.commands.findKeyCommand(hashId, keyString)
-        };
     };
 
     this.onCommandKey = function(e, hashId, keyCode) {
@@ -114,10 +131,8 @@ var KeyBinding = function(editor) {
         this.$callKeyboardHandlers(hashId, keyString, keyCode, e);
     };
 
-    this.onTextInput = function(text, pasted) {
-        var success = false;
-        if (!pasted && text.length == 1)
-            success = this.$callKeyboardHandlers(0, text);
+    this.onTextInput = function(text) {
+        var success = this.$callKeyboardHandlers(-1, text);
         if (!success)
             this.$editor.commands.exec("insertstring", this.$editor, text);
     };
