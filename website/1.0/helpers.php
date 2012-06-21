@@ -3,7 +3,13 @@
 $env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'mongohq-dev';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
-function handle_vacated_channel($type, $event, $ms) {
+function trace () {
+  error_log(implode(' ', array_map(function ($value) {
+    return var_export($value, TRUE);
+  }, func_get_args())));
+}
+
+function handle_vacated_channel ($type, $event, $ms) {
   global $kites;
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
   error_log(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
