@@ -96,7 +96,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     {syntax, content} = activity.attachments[0]
     
     @tagController.reset()
-    @tagController.setDefaultValue tags
+    @tagController.setDefaultValue tags or []
     
     fillForm = =>
       @title.setValue Encoder.htmlDecode title 
