@@ -1030,16 +1030,20 @@ button.cancel-edit-button
       bg              position, -60px -241px  
 
 
-
 figure.code-container
   position              relative
+  margin-bottom         10px
   pre
     padding             10px 10px 0 10px
     margin              0
     overflow            visible
     size                auto,auto
     bg                  color,#2E2E2E
+    // rounded             4px 4px 0 0
     rounded             4px
+    word-wrap           normal
+    white-space         pre
+    min-height          56px
     code
       max-height        250px
       overflow          auto
@@ -1058,13 +1062,24 @@ figure.code-container
     text-transform    uppercase
     shadow            0 1px 1px rgba(0, 0, 0, 0.54)
   .button-bar
-    bg                color,#1E1E1E
-    height            37px
-    border-top        1px solid rgba(255, 255, 255, 0.4)
-    rounded           0 0 4px 4px
+    position          absolute
+    bg                color,transparent
+    // height            37px
+    top               27px
+    right             6px
+    // border-top        1px solid rgba(255, 255, 255, 0.4)
+    // rounded           0 0 4px 4px
     button
-      margin          5px 0 0 5px
-
+      margin          5px 5px 0 0
+      vendor          transition, opacity .15s linear
+      opacity         0
+      fr()
+      &:hover
+        opacity       1
+  &:hover
+    .button-bar
+      button
+        opacity       .8
 
 /* feed messages */
 .activity
