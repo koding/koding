@@ -12,14 +12,15 @@ module.exports =
     usersPath : '/Users/'
     backupDir : '/Backups/mysql'
     databases :
-      mysql   :
-        host     : 'mysql1.beta.service.aws.koding.com'
-        user     : 'system'
-        password : 'dlkadlakdlka'
+      mysql   : [
+        { host     : 'mysql0.db.koding.com', user : 'system', password : 'gTW9ts2A4PXyECd69MQNAKx8v988x27cxFAu73pv' }
+        { host     : 'mysql1.db.koding.com', user : 'system', password : 'gTW9ts2A4PXyECd69MQNAKx8v988x27cxFAu73pv' }
+      ]
   mongo :
     databases :
-      mongodb   :
-        host     : 'mongo1.beta.service.aws.koding.com'
-        user     : 'admin'
-        password : '22t78skhdlksaje1'
+      mongodb   : [
+        { host     : 'mongo1.db.koding.com', user : 'admin', password : '22t78skhdlksaje1'}
+        { host     : 'mongo0.db.koding.com', user : 'admin', password : '22t78skhdlksaje1'}
+      ]
+
         

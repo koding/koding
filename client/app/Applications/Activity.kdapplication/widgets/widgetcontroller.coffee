@@ -59,7 +59,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
     
-    
     if data.activity
       {activity} = data
       delete data.activity

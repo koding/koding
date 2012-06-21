@@ -1,3 +1,3 @@
 {argv} = require 'optimist'
 
-module.exports = require './' + argv.c ? 'config-prod'
+module.exports = require './' + (argv.c ? 'config-prod')

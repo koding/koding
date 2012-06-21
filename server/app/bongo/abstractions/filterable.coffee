@@ -9,7 +9,7 @@ class Filterable
     limit     ?= 10
     blacklist or= []
     blacklist = blacklist.map(bongo.ObjectId)
-    cleanSeed = seed.replace /[^\w\s]/ #TODO: this is wrong for international charsets
+    cleanSeed = seed.replace(/[^\w\s]/).trim() #TODO: this is wrong for international charsets
     startsWithSeedTest = RegExp '^'+cleanSeed, "i"
     startsWithOptions = {limit, blacklist}
     @findSuggestions startsWithSeedTest, startsWithOptions, (err, suggestions)=>

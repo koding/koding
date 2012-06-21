@@ -35,6 +35,18 @@
           "byHostname"  : "cl*.beta.service.aws.koding.com"
         }
       }]
+    },
+    "databases": {
+      "clusters"        : [{
+        "name"          : "free",
+        "interface"     : "rest",
+        "loadBalancing" : {
+          "strategy"    : "round robin"
+        },
+        "trustPolicy"   : {
+          "byHostname"  : "cl*.beta.service.aws.koding.com"
+        }
+      }]
     }
   }
 }

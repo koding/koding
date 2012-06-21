@@ -3,11 +3,18 @@
 #
 class hosting_packages {
     
-    include hosting_packages::ruby, hosting_packages::python, hosting_packages::perl, hosting_packages::archives, hosting_packages::vcs,hosting_packages::fun, hosting_packages::mysql
+    include hosting_packages::ruby  
+    include hosting_packages::python
+    include hosting_packages::perl 
+    include hosting_packages::archives 
+    include hosting_packages::vcs 
+    include hosting_packages::fun 
+    include hosting_packages::mysql
     include hosting_packages::mongo
     include hosting_packages::java
     include hosting_packages::php
     include hosting_packages::ftp
     include hosting_packages::editors
+    include hosting_packages::tools
 
 }
