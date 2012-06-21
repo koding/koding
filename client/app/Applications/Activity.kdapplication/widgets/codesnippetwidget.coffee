@@ -142,7 +142,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @aceHolder.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceHolder.addSubView @syntaxSelect = new KDSelectBox
       name          : "syntax"
-      selectOptions : __aceSettings.syntaxes
+      selectOptions : __aceSettings.getSyntaxOptions()
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
   
