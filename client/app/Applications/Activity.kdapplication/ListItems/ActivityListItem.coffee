@@ -81,7 +81,12 @@ class ActivityItemChild extends KDView
     @author = new ProfileLinkView {
       origin
     }
-
+    
+    @tags = new ActivityChildViewTagGroup
+      itemsToShow   : 3
+      subItemClass  : TagLinkView
+    , data.tags
+    
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
     
@@ -143,18 +148,3 @@ class ActivityItemChild extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-
-  displayTags:(tags=[])->
-    # log @getData(),tags
-    suffix = ''
-    tagsToDisplay = if tags?.length > 3
-      suffix = '...'
-      tags.slice(0,3)
-    else
-      tags
-
-    if tagsToDisplay.length
-      'in ' + tagsToDisplay.map(
-        (tag)-> "<span class='ttag'>#{tag.title}</span>"
-      ).join('') + suffix
-    else ''
