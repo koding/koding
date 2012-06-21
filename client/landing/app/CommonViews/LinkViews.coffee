@@ -66,16 +66,18 @@ class TagLinkView extends LinkView
     appManager.tell "Topics", "createContentDisplay", tag
 
 class LinkGroup extends KDCustomHTMLView
-  constructor:(options, data)->
-    options =
-      tagName       : 'span'
-      cssClass      : 'link-group'
-      subItemClass  : options.subItemClass or ProfileLinkView
-      group         : options.group
-      itemsToShow   : options.itemsToShow or 3
-      hasMore       : (options.totalCount or options.group.length) > (options.itemsToShow or 3)
-      totalCount    : options.totalCount or options.group.length
+
+  constructor:(options = {}, data)->
+
+    options.tagName         = 'span'
+    options.cssClass        = 'link-group'
+    options.subItemClass  or= ProfileLinkView
+    options.itemsToShow   or= 3
+    options.totalCount    or= data?.length or options.group?.length or 0
+    options.hasMore         = options.totalCount > options.itemsToShow
+
     super options, data
+
     if @getData()?
       @createParticipantSubviews()
     else if options.group
@@ -110,11 +112,20 @@ class LinkGroup extends KDCustomHTMLView
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
     super tmpl
 
-  # click:(event)->
-  #   if $(event.target).is "a.more"
-  #     participants = @getData()
-  #     modal = new FollowedModalView {}, participants
-  #     modal.putList()
+class ActivityChildViewTagGroup extends LinkGroup
+  
+  pistachio:->
+
+    participants = @getData()
+    {hasMore, totalCount} = @getOptions()
+
+    tmpl = switch totalCount
+      when 0 then ""
+      when 1 then "in {{> @participant0}}"
+      when 2 then "in {{> @participant0}}{{> @participant1}}"
+      else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}"
+    tmpl += "and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
+    return tmpl
       
 class FollowedModalView extends KDModalView
   
