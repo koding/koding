@@ -102,7 +102,7 @@ class ActivityItemChild extends KDView
           type      : "contextmenu"
           items     : [
 #            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
-            { title : '~~Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
             { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
           ]
         ]
@@ -111,6 +111,12 @@ class ActivityItemChild extends KDView
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
     
     super
+    
+    data.on 'TagsChanged', (tagRefs)=>
+      bongo.cacheable tagRefs, (err, tags)=>
+        console.log @tags, tags
+        @tags.setData tags
+        @tags.render()
     
     data.on 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
