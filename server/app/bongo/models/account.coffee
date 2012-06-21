@@ -21,6 +21,8 @@ class JAccount extends Followable
     #       text        : String
     #     ]
   @set
+    tagRole             : 'skill'
+    taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
     sharedMethods :
