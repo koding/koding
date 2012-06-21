@@ -11,7 +11,7 @@ class Activity12345 extends AppController
     # command, environment are all a mess and 
     # devrim is currently working on refactoring them - 3/15/12 sah
 
-    # i kinda cleared that mess, still needs work - 26 April 2012
+    # i kind of cleared that mess, still needs work - 26 April 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -89,6 +89,7 @@ class Activity12345 extends AppController
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.nextTick 1000, =>
+      # activitySplitView._windowDidResize()
       @getSingleton('windowController').notifyWindowResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
