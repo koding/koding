@@ -21,7 +21,17 @@ class CodesnipActivityItemView extends ActivityItemChild
     #   itemsToShow   : 3
     #   subItemClass  : TagFollowBucketItemView
     # }
+  
+  render:->
+    super()
     
+    codeSnippetData = @getData().attachments[0]
+    codeSnippetData.title = @getData().title
+    
+    @codeSnippetView.setData codeSnippetData
+    @codeSnippetView.render()
+    
+  
   click:(event)->
     super
     if $(event.target).is(".activity-item-right-col h3")
@@ -35,6 +45,7 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
   pistachio:->
+
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
@@ -46,7 +57,7 @@ class CodesnipActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           {time{$.timeago #(meta.createdAt)}}
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>
@@ -70,7 +81,13 @@ class CodeSnippetView extends KDCustomHTMLView
       json        : 'javascript'
     
     return syntaxes[syntax] or syntax
-
+  
+  render:->
+    super()
+    @codeView.setData @getData()
+    @codeView.render()
+    @applySyntaxColoring()
+  
   syntaxHumanMap = ->
     c_cpp   : "c++"
     coffee  : "coffee-script"
@@ -94,7 +111,8 @@ class CodeSnippetView extends KDCustomHTMLView
     @codeView = new KDCustomHTMLView
       tagName  : "code"
       cssClass : syntaxMap(syntax?.toLowerCase())
-      partial  : content
+      pistachio : '{{#(content)}}'
+    , data
     
     @codeView.unsetClass "kdcustomhtml"
     
@@ -137,15 +155,8 @@ class CodeSnippetView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
-  viewAppended: ->
+  applySyntaxColoring:(syntax=@getData().syntax)->
     snipView = @
-    {syntax} = @getData()
-    syntax   = syntaxMap syntax
-
-    @setTemplate @pistachio()
-    @template.update()
-    twOptions = (title) ->
-      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
     requirejs (['js/highlightjs/highlight.js']), ->
       requirejs (["highlightjs/languages/#{syntax}"]), ->
         try
@@ -153,7 +164,18 @@ class CodeSnippetView extends KDCustomHTMLView
           hljs.highlightBlock snipView.codeView.$()[0],'  '
         catch err
           console.warn "Error applying highlightjs syntax #{syntax}:", err
-    
+  
+  viewAppended: ->
+    {syntax} = @getData()
+    syntax   = syntaxMap syntax
+
+    @setTemplate @pistachio()
+    @template.update()
+    @applySyntaxColoring()
+
+    twOptions = (title) ->
+      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+
     @saveButton.$().twipsy twOptions("Save")
     @copyButton.$().twipsy twOptions("Select all")
     @openButton.$().twipsy twOptions("Open")

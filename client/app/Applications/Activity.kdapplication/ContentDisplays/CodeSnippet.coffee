@@ -37,13 +37,6 @@ class ContentDisplayCodeSnippet extends KDView
 
     @codeSnippetView = new CodeSnippetView {},@getData().attachments[0]
 
-  displayTags:(tags=[])->
-    if tags.length
-      'in ' + tags.map(
-        (tag)-> "<span class='tag'>#{tag}</span>"
-      ).join ''
-    else ''
-
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeSnipActivity
     super()
@@ -64,7 +57,7 @@ class ContentDisplayCodeSnippet extends KDView
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>

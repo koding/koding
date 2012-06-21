@@ -118,9 +118,9 @@ class PersonalFormNameView extends AbstractPersonalFormView
         newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
        
-  formCallback:(formElements)->
+  formCallback:(formData)->
     {profile} = @memberData
-    {firstName, lastName} = formElements
+    {firstName, lastName} = formData
     if profile.firstName is firstName and profile.lastName is lastName
       @unsetClass 'active'
       return no
@@ -223,9 +223,9 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     {profile} = @memberData
     @aboutInput.setValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
 
-  formCallback:(formElements)->
+  formCallback:(formData)->
     {profile} = @memberData
-    {about} = formElements
+    {about} = formData
     if profile.about is about
       @parent.unsetClass 'active'
       return no
@@ -283,8 +283,8 @@ class PersonalFormLocationView extends AbstractPersonalFormView
     {profile} = @memberData
     @location.setValue @memberData.locationTags[0] or 'Earth' 
 
-  formCallback:(formElements)->
-    {locationTags} = formElements
+  formCallback:(formData)->
+    {locationTags} = formData
     if locationTags is @memberData.locationTags[0]
       @unsetClass 'active'
       return no
@@ -336,9 +336,9 @@ class PersonalFormSkillTagView extends KDFormView
     {@memberData} = options
     @memberData.skillTags or= []
     
-    @setCallback (formElements)=>
-      tagIds = formElements.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
-      @memberData.addTags 'skillTags', tagIds, (err)-> 
+    @setCallback (formData)=>
+      tagIds = formData.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
+      @memberData.addTags 'skillTags', tagIds, (err)-> debugger
 
   showForm:->
     unless @$().hasClass "active"

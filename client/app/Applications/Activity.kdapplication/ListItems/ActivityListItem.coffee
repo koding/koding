@@ -81,7 +81,12 @@ class ActivityItemChild extends KDView
     @author = new ProfileLinkView {
       origin
     }
-
+    
+    @tags = new ActivityChildViewTagGroup
+      itemsToShow   : 3
+      subItemClass  : TagLinkView
+    , data.tags
+    
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
     
@@ -92,13 +97,13 @@ class ActivityItemChild extends KDView
         title       : ''
         icon        : yes
         delegate    : @
-        iconClass   : "cog"
+        iconClass   : "arrow"
         menu        : [
           type      : "contextmenu"
           items     : [
-            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
-            # { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'ActivityIsDeleted'  }
+#            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
+            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+            { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
           ]
         ]
         callback    : (event)=> @settingsButton.contextMenu event
@@ -106,6 +111,11 @@ class ActivityItemChild extends KDView
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
     
     super
+    
+    data.on 'TagsChanged', (tagRefs)=>
+      bongo.cacheable tagRefs, (err, tags)=>
+        @tags.setData tags
+        @tags.render()
     
     data.on 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
@@ -120,18 +130,26 @@ class ActivityItemChild extends KDView
       @commentBox.decorateCommentedState() if count >= 0
     
     @contentDisplayController = @getSingleton "contentDisplayController"
+  
+  confirmDeletePost:(data)->
 
-  displayTags:(tags=[])->
-    # log @getData(),tags
-    suffix = ''
-    tagsToDisplay = if tags?.length > 3
-      suffix = '...'
-      tags.slice(0,3)
-    else
-      tags
-
-    if tagsToDisplay.length
-      'in ' + tagsToDisplay.map(
-        (tag)-> "<span class='ttag'>#{tag.title}</span>"
-      ).join('') + suffix
-    else ''
+    modal = new KDModalView
+      title          : "Delete post"
+      content        : "<div class='modalformline'>Are you sure you want to delete this post?</div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Delete       :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            data.delete (err)=> 
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              unless err then @emit 'ActivityIsDeleted'
+              else new KDNotificationView 
+                type     : "mini"
+                cssClass : "error editor"
+                title     : "Error, please try again later!"

@@ -1,4 +1,4 @@
-AccountSettingLists.billing.historyController = class AccountPaymentHistoryListController extends KDListViewController
+class AccountPaymentHistoryListController extends KDListViewController
 
   constructor:(options,data)->
     data = $.extend
@@ -14,7 +14,7 @@ AccountSettingLists.billing.historyController = class AccountPaymentHistoryListC
     ,data
     super options,data    
 
-AccountSettingLists.billing.history = class AccountPaymentHistoryList extends KDListView
+class AccountPaymentHistoryList extends KDListView
 
   constructor:(options,data)->
     options = $.extend

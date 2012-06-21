@@ -282,46 +282,48 @@ dimmedNeighbor()
     color           rgba(78, 78, 78, .90)
     text-shadow     0 1px 0 white
     line-height     43px
-    margin          0 20px
+    margin          0 10px
     size            auto,43px
     border-bottom   1px solid rgba(0,0,0,.05)
-    shadow(0 1px 0 rgba(255,255,255,.5))
+    shadow          0 1px 0 rgba(255,255,255,.5)
     
 
 #finder-bottom-controls
   position                  absolute
   bottom                    0
   margin                    0 
-  size                      auto,auto
+  size                      100%,auto
   ul                        
-    margin                  1px 20px
-    padding                 20px 0
+    margin                  1px 10px 0 10px
+    padding                 15px 0 5px 0
     overflow                hidden
-    border-top                1px solid rgba(255,255,255,.5)
-    shadow(0 -1px 0 rgba(0,0,0,.05) )
-    li                      
-      margin                0 0 5px 0
+    border-top              1px solid rgba(255,255,255,.5)
+    shadow                  0 -1px 0 rgba(0,0,0,.05)
+    li
+      margin                0 10px 2px 10px
       padding               0 
       cursor                pointer
-      width                 160px
+      width                 auto
       span.icon             
         margin-right        10px
         blockMid()
         size(17px,20px)
      a
+      font-size             11px
       color                 #444
       text-decoration       none
       &:hover
         color               linkColor1
-      span.terminal
+      span
         sprite()
+      span.terminal
         bg(position,-100px -300px)
       span.resources
-        sprite()
         bg(position,-120px -300px)
       span.cog
-        sprite()
         bg(position,-140px -300px)
+      span.shortcuts
+        bg(position,-160px -300px)
       
 /* 
 **  Overriding Treeview STYLES

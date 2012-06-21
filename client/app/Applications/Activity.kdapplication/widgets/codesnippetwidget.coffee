@@ -74,8 +74,8 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:=>
-    console.log @getCustomData()
     @addCustomData "code", @ace.getContents()
+    @once "FormValidationPassed", => @reset()
     super
 
   reset:=>
@@ -92,9 +92,12 @@ class ActivityCodeSnippetWidget extends KDFormView
     
     @submitBtn.setTitle "Edit code snippet"
     @addCustomData "activity", activity
-    {title, body} = activity
+    {title, body, tags} = activity
     {syntax, content} = activity.attachments[0]
-
+    
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
+    
     fillForm = =>
       @title.setValue Encoder.htmlDecode title 
       @description.setValue Encoder.htmlDecode body

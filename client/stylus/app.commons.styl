@@ -131,7 +131,8 @@ button.kdbutton.with-icon
 //   padding       8px 8px 8px 0
 //   line-height   14px
 
-button.kdbutton.with-icon,button.kdbutton.icon-only
+button.kdbutton.with-icon
+button.kdbutton.icon-only
   span.icon
     sprite()
     bg(position,20px 20px)
@@ -272,7 +273,7 @@ button.editor-button
       bg(position,-70px -460px)
 
 .ttag
-  padding             3px 6px
+  padding             0 6px
   // bg                  color, #E80
   bg                  color, linkColor1
   color               white!important
@@ -284,15 +285,22 @@ button.editor-button
   text-transform      none
   // vertical-align      top
   display             inline-block
+  max-width           120px
+  
   noTextDeco()
   
   > span
+    text-overflow       ellipsis
+    white-space         nowrap
     display             inline-block
+    overflow            hidden
+    width               100%
     margin              0
-    line-height         1
+    line-height         16px
 
 .link-group
   display             inline-block
+  font-size           11px
 
 .small-text
   font-size       80%

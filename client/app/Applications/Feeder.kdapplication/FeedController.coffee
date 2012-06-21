@@ -95,7 +95,9 @@ class FeedController extends KDViewController
     @resultsController.listControllers[@selection.name].removeAllItems()
     @loadFeed()
     
-  getFeedSelector:-> {}
+  getFeedSelector:-> 
+    console.log @filters
+    {}
   
   getFeedOptions:->
     options = sort : {}
