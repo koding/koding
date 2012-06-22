@@ -44,6 +44,12 @@ databasesKites = new Kite "databases"
     #     ^^^^ wrong - this kite should not know anything about how kodingen works
 
     mySQL.fetchDatabaseList options,(error,result)->
+      result.forEach (set)->
+        set.dbName = set.Db
+        delete set.Db
+        set.dbUser = set.User
+        delete set.User
+
       __resReport(error,result,callback)
 
   createMysqlDatabase : (options,callback)->

@@ -10,6 +10,18 @@ log     = log4js.addAppender log4js.fileAppender(logFile), "[MySQLApi]"
 log     = log4js.getLogger('[MySQLApi]')
 
 
+class AccessError extends Error
+  constructor:(@message)->
+
+class KodingError extends Error
+  constructor:(message)->
+    return new KodingError(message) unless @ instanceof KodingError
+    Error.call @
+    @message = message
+    @name = 'KodingError'
+
+
+
 
 class MySQL
 
@@ -100,7 +112,8 @@ class MySQL
     #
     
     {username} = options
-    sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}_%'"
+    #sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}\_%'"
+    sql = "SELECT Db,User FROM mysql.db WHERE User LIKE '#{username}\_%'"
     console.log "entering with #{sql}"
     @mysqlClient.query sql,callback
   
@@ -136,11 +149,12 @@ class MySQL
     # -------------------------------    
     
     sendResult = (err,result)=>
-      result.host = @config.databases.mysql.host          
+      result.host = @config.databases.mysql[0].host
+      console.log "RES: ", result
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
     dbCount = (username,callback) =>
-      @fetchDatabaseList {username},(err,data)->
+      @fetchDatabaseList {username},(err,rows)->
         if err then callback err
         else
           callback null,rows.length
@@ -168,9 +182,10 @@ class MySQL
                       res.completedWithErrors = error
                       sendResult null,res
                 else
-                  sendResult null,result
+                  sendResult null, result
         else
-          callback new KodingError "You exceeded your quota, please delete one before adding a new one."
+          console.log e = "You exceeded your quota, please delete one before adding a new one."
+          callback new KodingError e
       else
         callback new KodingError "There was an error completing this request, please try again later."
 

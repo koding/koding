@@ -11,7 +11,7 @@ class HelpBox extends KDView
     @setPartial @partial()
 
   click:->
-    @getSingleton('mainController').emit "ShowInstructionsBook"
+    #@getSingleton('mainController').emit "ShowInstructionsBook"
     
   partial:()->
     """

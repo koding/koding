@@ -194,7 +194,7 @@ class Activity12345 extends AppController
     selector =
       type        : 
         $in       : @currentFilter
-
+    
     options  =
       limit       : limit or= 20
       skip        : skip  or= @activityListController.getItemCount()
@@ -222,7 +222,8 @@ class Activity12345 extends AppController
     @currentFilter = if show? then [show] else [
       'CStatusActivity'
       'CCodeSnipActivity'
-      'CFollowerBucket'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
     ]
     @loadSomeTeasers -> 
       controller.isLoading = no
