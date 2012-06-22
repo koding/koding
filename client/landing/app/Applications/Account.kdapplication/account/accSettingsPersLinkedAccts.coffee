@@ -1,4 +1,4 @@
-AccountSettingLists.personal.linkedAccountsController  = class AccountLinkedAccountsListController extends KDListViewController
+class AccountLinkedAccountsListController extends KDListViewController
   constructor:(options,data)->
     data = $.extend
       items : [
@@ -11,7 +11,7 @@ AccountSettingLists.personal.linkedAccountsController  = class AccountLinkedAcco
     super options,data
 
 
-AccountSettingLists.personal.linkedAccounts  = class AccountLinkedAccountsList extends KDListView
+class AccountLinkedAccountsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"

@@ -10,6 +10,9 @@ class HelpBox extends KDView
     @setClass "help-heart"
     @setPartial @partial()
 
+  click:->
+    #@getSingleton('mainController').emit "ShowInstructionsBook"
+    
   partial:()->
     """
       <span></span>

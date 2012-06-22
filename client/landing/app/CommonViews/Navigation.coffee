@@ -68,12 +68,12 @@ class NavigationInviteLink extends NavigationLink
         limit.on 'update', => @count.render()
         @count.render()
   
-  sendInvite:(formElements, modal)->
+  sendInvite:(formData, modal)->
     bongo.api.JInvitation.create
-      emails        : [formElements.recipient]
+      emails        : [formData.recipient]
       customMessage :
-        # subject     : formElements.subject
-        body        : formElements.body
+        # subject     : formData.subject
+        body        : formData.body
     , (err)=>
       modal.modalTabs.forms["Invite Friends"].buttons.Send.hideLoader()
       if err
@@ -109,8 +109,8 @@ class NavigationInviteLink extends NavigationLink
           top                    : 150
         cssClass                : "invitation-modal"
         tabs                    :
-          callback              : (formElements)=> 
-            @sendInvite formElements, modal
+          callback              : (formData)=> 
+            @sendInvite formData, modal
           forms                 :
             "Invite Friends"    :
               fields            :
