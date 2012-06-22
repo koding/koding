@@ -30,7 +30,7 @@ class StatusActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>

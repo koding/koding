@@ -20,21 +20,20 @@ class WelcomeHeader extends KDHeaderView
     super
     @setClass "notification-header"
   
-  click:(event)->
-   if $(event.target).is "a"
-     localStorage.welcomeMessageClosed = yes
-     @remove()
-  
-  remove:->
+  click :(event)->
+    if $(event.target).is "a"
+      localStorage.welcomeMessageClosed = yes
+      @remove()
+
+  remove:(callback)->
     h = @getHeight()
     @$().animate marginTop : -h, 100, ()=> 
       @destroy()
-      $(window).trigger "resize"
+      @getSingleton('windowController').notifyWindowResizeListeners()
+      # after half an hour try i didn't understand why it didnt work at one call, so have the second :)
+      # fix this if you see it again.
+      @getSingleton('windowController').notifyWindowResizeListeners()
 
   setTitle:()->
     {title, subtitle} = @getOptions()
-    @$().append "<div>
-                  <span>#{title}</span>
-                  <cite>#{subtitle}</cite>
-                </div>
-                <a href='#'> </a>"
+    @$().append "<div><span>#{title}</span><cite>#{subtitle}</cite></div><a href='#'> </a>"

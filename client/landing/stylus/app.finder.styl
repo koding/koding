@@ -236,15 +236,14 @@ dimmedNeighbor()
   left              160px
   text-shadow       1px 1px 1px #fcfcfc
   z-index           3
+  background        #e2e2e2 url("../images/finder-back.gif") repeat left top
   leftTransition()
-  bg(image,url("../images/finder-back.gif"))
-  bg(repeat,repeat)
-  bg(position,left top)
-  bg(color,#e2e2e2) //new design background
+  .kdscrollview
+    overflow        hidden
   &.expanded
     left            52px
-    #finder-holder
-      overflow              auto
+    .kdscrollview
+      overflow      auto
     
   #finder-holder
     height                  auto

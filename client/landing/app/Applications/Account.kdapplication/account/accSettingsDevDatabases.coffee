@@ -13,17 +13,42 @@ class AccountDatabaseListController extends KDListViewController
         
 
   loadView:->
+
     super
-    @loadItems =>
-      @getListView().attachListeners()
+    list = @getListView()
+    @loadItems()
+    
     @getView().parent.addSubView addButton = new KDButtonView
       style     : "clean-gray account-header-button"
       title     : ""
       icon      : yes
       iconOnly  : yes
       iconClass : "plus"
-      callback  : ()=>
-        @getListView().showAddModal()
+      callback  : ()=> list.showAddModal()
+        
+    list.on "DeleteDatabaseSubmitted", (listItem)=> @deleteDatabase listItem
+    list.on "UpdateDatabaseSubmitted", (listItem, formdata)=> @updateDatabase listItem, formdata
+    list.on "AddDatabaseSubmitted", => @addDatabase()
+
+    @on "DatabaseDeleted", (listItem)=> list.removeItem listItem
+    @on "DatabaseUpdated", (listItem)=>
+    @on "DatabaseAdded", (itemData)=> 
+      list.addItem itemData, null, {type : "slideDown", duration : 100}
+      new KDModalView
+        title   : "New Database Information"
+        width   : 500
+        overlay : yes
+        content : """
+                  <div class='modalformline'>
+                    <p><label>Host:</label> <i>#{itemData.dbHost}</i></p>
+                    <p><label>Name:</label> <i>#{itemData.dbName}</i></p>
+                    <p><label>User:</label> <i>#{itemData.dbUser}</i></p>
+                    <p><label>Password:</label> <b>#{itemData.dbPass}</b></p>
+                  </div>
+                  <div class='modalformline'>
+                    <p>This is an one time password, please keep it somewhere safe you won't be able to reveal it again, but you'll always be able to reset it from here.</p>
+                  </div>
+                  """
 
   loadItems:(callback)->
     
@@ -34,25 +59,103 @@ class AccountDatabaseListController extends KDListViewController
     , (err, response)=>
       if err then warn err
       else
-        log response, "<<<< db list"
+        @instantiateListItems response
+        callback?()
+
+  deleteDatabase:(listItem)->
     
-    # @account.fetchDatabases (err,databases)=>
-    #   @instantiateListItems databases
-    #   callback?()
+    data     = listItem.getData()
+
+    @talkToKite
+      toDo     : "removeMysqlDatabase"
+      withArgs :
+        dbUser : data.dbUser
+        dbName : data.dbName
+    , (err, response)=>
+      {modal} = @getListView()
+      modal.modalTabs.forms["Update Database"].buttons.Delete.hideLoader()
+      if err
+        @notify "An error occured, try again later!", "error"
+      else
+        @notify "Database deleted!", "succes"
+        @emit "DatabaseDeleted", listItem
+        modal.destroy()
+
+  updateDatabase:(listItem, formData)->
+
+    data = listItem.getData()
+
+    @talkToKite
+      toDo          : "changeMysqlPassword"
+      withArgs      :
+        dbUser      : data.dbUser
+        newPassword : formData.password
+    , (err, response)=>
+      {modal} = @getListView()
+      modal.modalTabs.forms["Update Database"].buttons.Update.hideLoader()
+      if err
+        @notify "An error occured, try again later!", "error"
+      else
+        @notify "Database updated!", "succes"
+        @emit "DatabaseUpdated", listItem
+        modal.destroy()
+
+  addDatabase:->
+
+    {nickname} = KD.whoami().profile
+    pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
+    dbName  = md5.digest("#{Math.random()*1e18}").substr(-(15-nickname.length))
+    dbUser  = dbName
+    dbPass  = pass.substr(-40)
+    
+    @talkToKite
+      toDo      : "createMysqlDatabase"
+      withArgs  : {dbName, dbUser, dbPass}
+    , (err, response)=>
+      {modal} = @getListView()
+      modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
+      if err
+        @notify "An error occured, try again later!", "error"
+      else
+        @notify "Database created!", "succes"
+        @emit "DatabaseAdded", response
+        modal.destroy()
+  
+  talkToKite:(options, callback)->
+
+    @getSingleton("kiteController").run
+      kiteName  : "databases"
+      toDo      : options.toDo
+      withArgs  : options.withArgs
+    , (err, response)=>
+      if err then warn err
+      callback? err, response
+  
+  notify:(title, type)->
+    
+    {modal} = @getListView()
+    new KDNotificationView
+      type      : "mini"
+      cssClass  : "#{type}"
+      title     : "<p>#{title}</p>"
+      container : modal if type is "error"
 
 class AccountDatabaseList extends KDListView
+
   constructor:(options,data)->
+
     options = $.extend
       tagName       : "ul"
       subItemClass  : AccountDatabaseListItem
     ,options
     super options,data
 
-  attachListeners:()->
-    @items.forEach (item)=>
-      item.getData().on "update",()->
-        log "update event called:",item
-        item.updatePartial item.partial item.getData()
+  # attachListeners:()->
+  # 
+  #   @items.forEach (item)=>
+  #     item.getData().on "update",()->
+  #       log "update event called:",item
+  #       item.updatePartial item.partial item.getData()
 
   # viewAppended:->
   #   super
@@ -70,10 +173,10 @@ class AccountDatabaseList extends KDListView
       tabs                    :
         navigateable          : yes
         goToNextFormOnSubmit  : no
-        callback              : (formOutput)-> log formOutput
+        # callback              : (formOutput)-> log formOutput
         forms                 :
           "On Koding"         :
-            callback          : (formData)=> @addDatabase formData
+            callback          : => @emit "AddDatabaseSubmitted"
             buttons           :
               Create          :
                 title         : "Create"
@@ -126,7 +229,7 @@ class AccountDatabaseList extends KDListView
     {type}                = data
 
     formSchema =
-      title     : unless data then "Link External Database" else "Update Database"
+      title     : unless data then "Link External Database" else "Edit/Delete Database"
       content   : ""
       overlay   : yes
       cssClass  : "new-kdmodal"
@@ -136,118 +239,111 @@ class AccountDatabaseList extends KDListView
         forms   : {}
             
     fields =
-      Type    :
-        label       : "Type"
-        name        : "type"
-        defaultValue: data?.type.replace "JDatabase",""
-        attributes  : {readonly  : yes}        
-      Title :
-        label       : "Friendly name"
-        name        : "title"
-        placeholder : "e.g. myDevDB..."
-        defaultValue: data.title if data
-        nextElement :
-          Color :
-            itemClass : KDSelectBox           
-            type        : "select"
-            name        : "color"
-            label       : "Color"
-            defaultValue: data?.color ? "none"
-            selectOptions : [
-              { title : "No Color", value : "none"   }
-              { title : "White",    value : "white"  }
-              { title : "Red",      value : "red"    }
-              { title : "Gray",     value : "gray"   }
-              { title : "Orange",   value : "orange" }
-              { title : "Yellow",   value : "yellow" }
-              { title : "Green",    value : "green"  }
-              { title : "Blue",     value : "blue"   }
-              { title : "Purple",   value : "purple" }
-            ]
-      Hostname :
-        label       : "Hostname"
-        name        : "host"
-        placeholder : "url//to.your.database.host..."
-        defaultValue: data?.host
-        attributes  : {readonly  : yes}
-      'Database Name' :
-        label       : "Database name"
-        name        : "name"
-        placeholder : "e.g. wp1234"
-        defaultValue: data?.name
-        attributes  : {readonly  : yes}
-      Username :
-        label       : "Username to DB"
-        name        : "username"
-        placeholder : "not koding username..."
-        defaultValue: data?.users?[0]?.username
-        attributes  : {readonly  : yes}
-      Password  :
-        label       : "Password to DB"
-        name        : "password"
-        placeholder : "not koding password..."
-        defaultValue: data?.users?[0]?.password
+      # Type    :
+      #   label       : "Type"
+      #   name        : "type"
+      #   defaultValue: "mysql"
+      #   attributes  : {readonly  : yes}        
+      # Title :
+      #   label       : "Friendly name"
+      #   name        : "title"
+      #   placeholder : "e.g. myDevDB..."
+      #   defaultValue: data.title if data
+      #   nextElement :
+      #     Color :
+      #       itemClass : KDSelectBox           
+      #       type        : "select"
+      #       name        : "color"
+      #       label       : "Color"
+      #       defaultValue: data?.color ? "none"
+      #       selectOptions : [
+      #         { title : "No Color", value : "none"   }
+      #         { title : "White",    value : "white"  }
+      #         { title : "Red",      value : "red"    }
+      #         { title : "Gray",     value : "gray"   }
+      #         { title : "Orange",   value : "orange" }
+      #         { title : "Yellow",   value : "yellow" }
+      #         { title : "Green",    value : "green"  }
+      #         { title : "Blue",     value : "blue"   }
+      #         { title : "Purple",   value : "purple" }
+      #       ]
+      # Hostname        :
+      #   label         : "Hostname"
+      #   name          : "host"
+      #   placeholder   : "url//to.your.database.host..."
+      #   defaultValue  : data?.dbHost
+      #   attributes    : {readonly  : yes}
+      # 'Database Name' :
+      #   label         : "Database name"
+      #   name          : "name"
+      #   placeholder   : "e.g. wp1234"
+      #   defaultValue  : data?.dbName
+      #   attributes    : {readonly  : yes}
+      # Username        :
+      #   label         : "Username to DB"
+      #   name          : "username"
+      #   placeholder   : "not koding username..."
+      #   defaultValue  : data?.dbUser
+      #   attributes    : {readonly  : yes}
+      "New Password"      :
+        label             : "New Password"
+        name              : "password"
+        placeholder       : "reset db password..."
+      # "Confirm Password"  :
+      #   label             : "New Password"
+      #   name              : "password"
+      #   placeholder       : "reset db password..."
+      #   validate          :
+      #     rules           :
+      #       match         : @modal.modalTabs.forms.fields['New Password']
+      #     messages        :
+      #       match         : "Passwords do not match!"
         
     if type is "external"                                     
       formSchema.tabs.forms["Link External"] =
         buttons :
-          "Link It!" :
+          "Link It!"      :
             title         : "Add External Database"
             style         : "modal-clean-gray"
             type          : "submit"
             loader        :
               color       : "#444444"
               diameter    : 12
-            callback      : -> console.log arguments
-        fields  : fields
+        fields            : fields
 
     else
       formSchema.tabs.forms["Update Database"] =
-        callback  : (formElements)=>
-          #console.log "form update",formElements
-          @updateDatabase listItem, formElements
-        buttons :
-          "Update" :
+        callback          : (formData)=> @emit "UpdateDatabaseSubmitted", listItem, formData
+        buttons           :
+          Update          :
             style         : "modal-clean-gray"
             type          : "submit"
-            # loader        :
-            #   color       : "#444444"
-            #   diameter    : 12
-            callback      : ->
-              # log "uuuu"
-          "Delete" :
+            loader        :
+              color       : "#444444"
+              diameter    : 12
+          Delete          :
             style         : "modal-clean-red"
-            # name          : "clickedButton"
-            # value         : "delete"
-            # type          : "submit"
-            callback      : (pubInst,formElements)=>
-              # log "dddd"
-              @deleteDatabase listItem,formElements
+            loader        :
+              color       : "#444444"
+              diameter    : 12
+            callback      : =>
+              modal.modalTabs.forms['Update Database'].buttons.Delete.hideLoader()
+              modal.modalTabs.forms['Update Database'].buttons.Update.hide()
+              unless modal._sureToDelete
+                field = modal.modalTabs.forms['Update Database'].fields['New Password']
+                field.$('*').hide()
+                field.$().append "Click delete again to delete the database, <b>be aware there is no way back!</b>"
+                modal._sureToDelete = yes
+              else
+                delete modal._sureToDelete
+                @emit "DeleteDatabaseSubmitted", listItem
+
         fields  : fields
     
     modal = @modal = new KDModalViewWithForms formSchema
           
-  addDatabase:(f)=>
+  # addDatabase:(f)=>
 
-    {nickname} = KD.whoami().profile
-    pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
-    dbName  = md5.digest("#{Math.random()*1e18}").substr(-(16-nickname.length))
-    dbUser  = md5.digest("#{Math.random()*1e18}").substr(-(16-nickname.length))
-    dbPass  = pass.substr(-40)
-
-    @getSingleton("kiteController").run
-      kiteName  : "databases"
-      toDo      : "createMysqlDatabase"
-      withArgs  : {dbName, dbUser, dbPass}
-    , (err, response)=>
-      @modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
-      if err
-        new KDNotificationView type : "mini", cssClass : "editor error", title : "An error occured, try again later!", container : @modal
-        warn err
-      else
-        new KDNotificationView type : "mini", cssClass : "editor success", title : "database created!", container : @modal
-        @utils.nextTick 1500, => @modal.destroy()
-        log response, "<<<< db info"
 
   
     # jr = new bongo.api[f.type]
@@ -269,28 +365,30 @@ class AccountDatabaseList extends KDListView
     #   else
     #     log "failed to add.",err
 
-  deleteDatabase:(listItem,formElements)=>
-    jr = listItem.getData()
-    jr.remove (err)=>
-      if err
-        log "failed to delete",err
-      else 
-        @removeListItem @_listItemToBeUpdated 
-        @modal.destroy()
-
-  updateDatabase:(listItem,f)=>
-    jr = listItem.getData()
-    jr.title  = f.title  ? jr.title
-    jr.color  = f.color  ? jr.color
-    jr.users[0].password = f.password
-    
-    jr.update (err)->
-      unless err
-        log "updated",jr
-      else
-        log "failed to update",err
-    
-    @modal.destroy()
+  # deleteDatabase:(listItem)=>
+  #   
+  #   jr = listItem.getData()
+  #   jr.remove (err)=>
+  #     if err
+  #       log "failed to delete",err
+  #     else 
+  #       @removeListItem @_listItemToBeUpdated 
+  #       @modal.destroy()
+  # 
+  # updateDatabase:(listItem, formData)=>
+  # 
+  #   jr = listItem.getData()
+  #   jr.title  = f.title  ? jr.title
+  #   jr.color  = f.color  ? jr.color
+  #   jr.users[0].password = f.password
+  #   
+  #   jr.update (err)->
+  #     unless err
+  #       log "updated",jr
+  #     else
+  #       log "failed to update",err
+  #   
+  #   @modal.destroy()
 
 
 
@@ -298,60 +396,37 @@ class AccountDatabaseList extends KDListView
 
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
+
     options.tagName = "li"
+    
+    data.type   or= "mysql"
+    data.color  or= "yellow"
+    data.title  or= "MySql DB"
+    data.dbHost or= "mysql0.db.koding.com"
+
     super options,data
     
   click:(event)=>
-    # if @wasClickOn(".action-link") then @getDelegate().emit "ShowAddEditModal",@getData(),@
+
     if $(event.target).is ".action-link"
       list = @getDelegate()
       list.propagateEvent (KDEventType : "DatabaseListItemReceivedClick"), @
 
   partial:(data)->
-    # log data
+
     """
       <div class='labelish'>
         <span class='icon #{data.color}'></span>
-        <span class='database-title lightText'>#{data.title}</span>
+        <span class='blacktag'>#{data.type} : #{data.dbName}</span>
       </div>
-      <div class='swappableish swappable-wrapper posstatic'>
-        <span class='blacktag'>#{data.type.replace "JDatabase",""}</span>
-        #{data.users[0].username+"@"+data.host+"/"+data.name}
-        <!-- <cite class='small-text darkText'>last commit: #{data.lastCommitAt}</cite> -->
+      <div class='labelish'>
+        <a href='#'>user: </a><span class='lightText'>#{data.dbName}</span>
+      </div>
+      <div class='labelish'>
+        <a href='#'>host: </a><span class='lightText'>#{data.dbHost}</span>
       </div>
       <a href='#' class='action-link'>Edit</a>
     """
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
