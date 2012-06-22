@@ -68,7 +68,7 @@ node /^web\d+\.prod\.system\.aws\.koding\.com$/  inherits webnode {
 }    
 
 node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {
-       include gluster_client
+       #include gluster_client
        #include nfs_client
        #include cachefilesd
 
