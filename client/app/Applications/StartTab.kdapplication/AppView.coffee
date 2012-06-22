@@ -66,6 +66,7 @@ class StartTabMainView extends KDView
           storage.update { 
             $set: 'bucket.recentFiles': recentFilePaths
           }, => log "storage updated"
+          
 
   updateRecentFileViews:()->
     

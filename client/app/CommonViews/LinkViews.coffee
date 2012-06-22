@@ -69,7 +69,7 @@ class LinkGroup extends KDCustomHTMLView
 
   constructor:(options = {}, data)->
 
-    options.tagName         = 'span'
+    options.tagName         = 'div'
     options.cssClass        = 'link-group'
     options.subItemClass  or= ProfileLinkView
     options.itemsToShow   or= 3
