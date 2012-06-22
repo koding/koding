@@ -94,16 +94,21 @@ class ActivityStatusUpdateWidget extends KDFormView
     @getSingleton("windowController").addLayer tabView
   
   switchToEditView:(activity)->
-    
+    {tags, body} = activity
+    @tagController.reset()
+    @tagController.setDefaultValue tags
     @submitBtn.setTitle "Edit status update"
     @addCustomData "activity", activity
-    @largeInput.setValue Encoder.htmlDecode activity.body
+    @largeInput.setValue Encoder.htmlDecode body
     @switchToLargeView()
     @utils.selectText @largeInput.$()[0]
   
+  submit:->
+    @once 'FormValidationPassed', => @reset()
+    super
   
   reset:->
-
+    @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     super

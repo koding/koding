@@ -74,12 +74,11 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:=>
-    console.log @getCustomData()
     @addCustomData "code", @ace.getContents()
+    @once "FormValidationPassed", => @reset()
     super
 
   reset:=>
-    
     @submitBtn.setTitle "Share your Code Snippet"
     @removeCustomData "activity"
     @title.setValue ''
@@ -89,12 +88,14 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagController.reset()
 
   switchToEditView:(activity)->
-    
     @submitBtn.setTitle "Edit code snippet"
     @addCustomData "activity", activity
-    {title, body} = activity
+    {title, body, tags} = activity
     {syntax, content} = activity.attachments[0]
-
+    
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
+    
     fillForm = =>
       @title.setValue Encoder.htmlDecode title 
       @description.setValue Encoder.htmlDecode body
@@ -139,7 +140,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @aceHolder.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceHolder.addSubView @syntaxSelect = new KDSelectBox
       name          : "syntax"
-      selectOptions : __aceSettings.syntaxes
+      selectOptions : __aceSettings.getSyntaxOptions()
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
   
