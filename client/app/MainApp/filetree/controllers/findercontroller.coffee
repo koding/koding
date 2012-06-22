@@ -65,7 +65,8 @@ class NFinderController extends KDViewController
         recentFiles.unshift file.path
       else
         recentFiles.sort (path)-> if path is file.path then -1 else 0
+      
       storage.update {
-        $set: 'bucket.recentFiles': recentFiles
+        $set: 'bucket.recentFiles': recentFiles.slice(0,10)
       }, callback
     
