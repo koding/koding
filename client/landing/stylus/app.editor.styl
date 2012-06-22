@@ -66,6 +66,7 @@ app.editor.styl
 
 #main-tab-handle-holder
   .kdtabhandle
+
     .kdbutton.plus
       border          none
       background      transparent
@@ -84,6 +85,14 @@ app.editor.styl
       top             2px
       size            20px,20px
       bg              position,-120px -480px
+
+    span.error
+      color           lightCoral
+      font-style      normal
+    &.active
+      span.error
+        color         red
+  
 
 .kdview.kdcontextmenu.kdbuttonmenu.add-editor-menu
   .chevron-arrow-ghost-wrapper
