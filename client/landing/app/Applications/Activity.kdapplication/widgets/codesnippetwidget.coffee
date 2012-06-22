@@ -79,7 +79,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     super
 
   reset:=>
-    
     @submitBtn.setTitle "Share your Code Snippet"
     @removeCustomData "activity"
     @title.setValue ''
@@ -89,7 +88,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     @tagController.reset()
 
   switchToEditView:(activity)->
-    
     @submitBtn.setTitle "Edit code snippet"
     @addCustomData "activity", activity
     {title, body, tags} = activity

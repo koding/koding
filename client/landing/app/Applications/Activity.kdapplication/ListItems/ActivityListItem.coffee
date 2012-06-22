@@ -114,6 +114,7 @@ class ActivityItemChild extends KDView
     
     data.on 'TagsChanged', (tagRefs)=>
       bongo.cacheable tagRefs, (err, tags)=>
+        @getData().setAt 'tags', tags
         @tags.setData tags
         @tags.render()
     
