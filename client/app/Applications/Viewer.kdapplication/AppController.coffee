@@ -107,6 +107,10 @@ class ViewerTopBar extends JView
     options.cssClass = 'viewer-header top-bar clearfix'
     super options,data
 
+    @addressBarIcon = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "address-bar-icon"
+
     @pageLocation = new KDHitEnterInputView
       type      : "text"
       callback  : =>
@@ -127,6 +131,7 @@ class ViewerTopBar extends JView
   pistachio:->
     
     """
+    {{> @addressBarIcon}}
     {{> @pageLocation}}
     {{> @refreshButton}}
     """
