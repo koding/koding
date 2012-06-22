@@ -4,21 +4,8 @@ LIB_DIR:=$(PWD)/../lib
 OS:=$(shell uname|tr '[:upper:]' '[:lower:]')
 MAC:=$(shell uname -m)
 
-ifdef npm_config_module
-target :=$(npm_config_module) clean
-else
-target := server client clean
-endif
 
-ifdef npm_config_use
-use:=$(npm_config_use)
-else
-ifndef use
-use:=bin
-endif
-endif
-
-all: $(use)
+all: server
 
 src::
 	mkdir -p $(BUILD_DIR)
@@ -36,8 +23,5 @@ bin::
 	npm --force install $(BUILD_DIR)/anyterm
 	rm -fr $(BUILD_DIR)
 
-
-client::
-	cd client&&$(MAKE)
 
 

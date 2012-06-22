@@ -12,42 +12,12 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
 
-# start sharejs server
-startSharejs = (->
-  share     = exec "coffee ./sharejs.coffee"
-  share.stderr.on 'data', (data)-> console.log "[sharejs] #{data}".replace /\n+$/, ''
-  share.stdout.on 'data', (data)-> console.log "[sharejs] #{data}".replace /\n+$/, ''
-  share.on 'exit',->
-    console.log "[sharejs] died. restarting."
-    startSharejs()
-)()
-
-
 # log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
 
 console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
   
-  share : (options,callback) ->
-    {client}  = require 'share'
-    console.log "i got request from #{options.username}"
-    #
-    # options =
-    #   username : default koding username
-    #   docName  : unique name for this doc that's shared
-    #   path     : filePath to be initialized as starting text. 
-    #   text     : provided text as a starting document instead of path.
-    id = hat()
-    client.open options.id,"text", "http://localhost:8000/sjs", (error, doc) ->
-      callback null,{snapshot:1,insert:console.log}  
-      unless err
-        callback null,doc
-        console.log doc
-      else
-        callback err
-      doc.on "change",->
-        console.log doc.snapshot
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
  
