@@ -69,9 +69,11 @@ class ContentDisplayControllerMember extends KDViewController
     account.unfollow callback
     
   addActivityView:(account)->
+
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
+      listCssClass          : "activity-related"
       limitPerPage          : 20
       help                  :
         subtitle            : "Learn Personal feed" 
@@ -122,6 +124,6 @@ class ContentDisplayControllerMember extends KDViewController
       #     KDEventTypes       : "mouseenter"
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
-
+      log controller
       @getView().addSubView controller.getView()
     
