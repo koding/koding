@@ -11,7 +11,15 @@ class CommentListViewController extends KDListViewController
     #   listener      : @
     #   callback      : (pubInst,{fromUnixTime,callback})=>
     #     @fetchCommentsByRange fromUnixTime, callback
-
+    
+    listView.registerListener
+      KDEventTypes  : 'ItemWasAdded'
+      listener      : @
+      callback      : (pub, {view})=>
+        view.on 'CommentIsDeleted', ->
+          view.setClass "deleted"
+          view.$().html "<div class='item-content-comment clearfix'><span>This comment has been deleted.</span></div>"
+    
     listView.registerListener
       KDEventTypes  : ["AllCommentsLinkWasClicked","CommentInputReceivedFocus"]
       listener      : @
@@ -291,9 +299,15 @@ class CommentListItemView extends KDListItemView
     ,options
     super options,data
     
+    data = @getData()
+    
+    originId    = data.getAt('originId')
+    originType  = data.getAt('originType')
+    deleterId   = data.getAt('deletedBy')?.getId?()
+    
     origin = {
-      constructorName  : data.originType
-      id               : data.originId
+      constructorName  : originType
+      id               : originId
     }
     @avatar = new AvatarView {
       size    : {width: 30, height: 30}
@@ -302,6 +316,37 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {
       origin
     }
+    
+    if deleterId? and deleterId isnt originId
+      @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
+    # if data.originId is KD.whoami().getId()
+    #   @settingsButton = new KDButtonViewWithMenu
+    #     style       : 'transparent activity-settings-context'
+    #     cssClass    : 'activity-settings-menu'
+    #     title       : ''
+    #     icon        : yes
+    #     delegate    : @
+    #     iconClass   : "cog"
+    #     menu        : [
+    #       type      : "contextmenu"
+    #       items     : [
+    #         { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
+    #       ]
+    #     ]
+    #     callback    : (event)=> @settingsButton.contextMenu event
+    # else
+    @deleteLink = new KDCustomHTMLView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      cssClass    : 'delete-link hidden'
+
+    if data.originId is KD.whoami().getId()
+      @deleteLink.unsetClass "hidden"
+      @listenTo
+        KDEventTypes       : "click"
+        listenedToInstance : @deleteLink
+        callback           : => @confirmDeleteComment data
   
   viewAppended:->
     @setTemplate @pistachio()
@@ -315,19 +360,58 @@ class CommentListItemView extends KDListItemView
         unless err
           appManager.tell "Members", "createContentDisplay", origin
   
+  confirmDeleteComment:(data)->
+    modal = new KDModalView
+      title          : "Delete comment"
+      content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Delete       :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            data.delete (err)=>
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              unless err then @emit 'CommentIsDeleted'
+              else new KDNotificationView 
+                type     : "mini"
+                cssClass : "error editor"
+                title     : "Error, please try again later!"
+        # cancel       :
+        #   style      : "modal-cancel"
+        #   callback   : => modal.destroy()
+        
+    
+  
   pistachio:->
-    """
-    <div class='item-content-comment clearfix'>
-      <span class='avatar'>{{> @avatar}}</span>
-      <div class='comment-contents clearfix'>
-        <p class='comment-body'>
-          {{> @author}}
-          {{@utils.applyTextExpansions #(body)}}
-        </p>
-        <time>{{$.timeago #(meta.createdAt)}}</time>
+    if @getData().getAt 'deletedAt'
+      @setClass "deleted"
+      if @deleter
+        """
+        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>
+        """
+      else
+        """
+        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>
+        """
+    else
+      """
+      <div class='item-content-comment clearfix'>
+        <span class='avatar'>{{> @avatar}}</span>
+        <div class='comment-contents clearfix'>
+          {{> @deleteLink}}
+          <p class='comment-body'>
+            {{> @author}}
+            {{@utils.applyTextExpansions #(body)}}
+          </p>
+          <time>{{$.timeago #(meta.createdAt)}}</time>
+        </div>
       </div>
-    </div>
-    """
+      """
   
   # updatePartial:->
   #   data = @getData()

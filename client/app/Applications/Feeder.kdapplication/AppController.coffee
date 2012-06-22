@@ -9,4 +9,4 @@ class Feeder12345 extends KDController
     callback? controller
   
   bringToFront:()->
-    super name : 'Topics'
+    super name : 'Feeder'

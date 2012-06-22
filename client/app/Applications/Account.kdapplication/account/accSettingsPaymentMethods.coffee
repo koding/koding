@@ -1,4 +1,4 @@
-AccountSettingLists.billing.methodsController = class AccountPaymentMethodsListController extends KDListViewController
+class AccountPaymentMethodsListController extends KDListViewController
   constructor:(options,data)->
     data = $.extend
       items : [
@@ -34,7 +34,7 @@ AccountSettingLists.billing.methodsController = class AccountPaymentMethodsListC
       #     @getListView().showModal()
        
 
-AccountSettingLists.billing.methods = class AccountPaymentMethodsList extends KDListView
+class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"

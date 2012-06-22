@@ -57,8 +57,8 @@ class TopicsMainView extends KDView
   #         height                  : "auto"
   #         cssClass                : "new-kdmodal"
   #         tabs                    :
-  #           callback          : (formElements,event)->
-  #             mainView.emit "AddATopicFormSubmitted",formElements
+  #           callback          : (formData,event)->
+  #             mainView.emit "AddATopicFormSubmitted",formData
   #           forms                 :
   #             "Add a topic"       :
   #               fields            :

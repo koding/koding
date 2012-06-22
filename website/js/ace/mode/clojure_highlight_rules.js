@@ -138,9 +138,9 @@ var ClojureHighlightRules = function() {
                 token : "comment",
                 regex : ";.*$"
             }, {
-                    token : "comment", // multi line comment
-                    regex : "^\=begin$",
-                    next : "comment"
+                token : "comment", // multi line comment
+                regex : "^=begin$",
+                next : "comment"
             }, {
                 token : "keyword", //parens
                 regex : "[\\(|\\)]"
@@ -192,23 +192,38 @@ var ClojureHighlightRules = function() {
                 token : "string", // single line
                 regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
             }, {
-                token : "string", // symbol
-                regex : "[:](?:[a-zA-Z]|\d)+"
+                token : "string", // multi line
+                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?$',
+                next: "string"
             }, {
-            token : "string.regexp", //Regular Expressions
-            regex : '/#"(?:\.|(\\\")|[^\""\n])*"/g'
+                token : "string", // symbol
+                regex : "[:](?:[a-zA-Z]|\\d)+"
+            }, {
+                token : "string.regexp", //Regular Expressions
+                regex : '/#"(?:\\.|(?:\\\")|[^\""\n])*"/g'
             }
-              
+
         ],
         "comment" : [
             {
                 token : "comment", // closing comment
-                regex : "^\=end$",
+                regex : "^=end$",
                 next : "start"
             }, {
                 token : "comment", // comment spanning whole line
                 merge : true,
                 regex : ".+"
+            }
+        ],
+        "string" : [
+            {
+                token : "string",
+                merge : true,
+                regex : "\\\\."
+            }, {
+                token : "string",
+                regex : '[^"\\\\]*?"',
+                next : "start"
             }
         ]
     };

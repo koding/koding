@@ -323,12 +323,14 @@ Includes =
                                       
         # MEMBERS VIEWS               
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
-        memberDisplay                 : "./client/app/Applications/Members.kdapplication/ContentDisplays/Member.coffee"
-        personalProfileDisplay        : "./client/app/Applications/Members.kdapplication/ContentDisplays/PersonalProfile.coffee"
+        membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
+        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
+        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
                                       
         # START TAB VIEWS                 
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
-                                      
+
         # INBOX CONTROLLERS                 
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
         inboxNotificationsController  : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxNotificationsController.coffee"
@@ -352,7 +354,6 @@ Includes =
         FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
-        FeedView                      : "./client/app/Applications/Feeder.kdapplication/FeedView.coffee"
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
         FeederTabView                 : "./client/app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee"
 
@@ -371,7 +372,6 @@ Includes =
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
         # ACCOUNT SETTINGS    
-        accountMain                    : "./client/app/Applications/Account.kdapplication/AppView.coffee"
                                       
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
         accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
@@ -386,6 +386,7 @@ Includes =
         accountPayMethods             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee"
         accountPayHistory             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee"
         accountSubs                   : "./client/app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee"
+        accountMain                   : "./client/app/Applications/Account.kdapplication/AppView.coffee"
         
         # CONTENT DISPLAY VIEWS
         contentDisplay                : "./client/app/MainApp/ContentDisplay/ContentDisplay.coffee"
@@ -450,7 +451,10 @@ Includes =
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
-        
+
+        # BOOK
+        BookView                      : "./client/app/MainApp/book.coffee"
+
         #maintabs
         
         MainTabView                 : "./client/app/MainApp/maintabs/maintabview.coffee"
@@ -622,6 +626,7 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
+        book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"

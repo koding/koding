@@ -40,19 +40,17 @@ define(function(require, exports, module) {
 "use strict";
 
 var event = require("../lib/event");
+var useragent = require("../lib/useragent");
 
-/**
+/*
  * Custom Ace mouse event
  */
 var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.domEvent = domEvent;
     this.editor = editor;
     
-    this.pageX = event.getDocumentX(domEvent);
-    this.pageY = event.getDocumentY(domEvent);
-    
-    this.clientX = domEvent.clientX;
-    this.clientY = domEvent.clientY;
+    this.x = this.clientX = domEvent.clientX;
+    this.y = this.clientY = domEvent.clientY;
 
     this.$pos = null;
     this.$inSelection = null;
@@ -78,7 +76,7 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
         this.preventDefault();
     };
 
-    /**
+    /*
      * Get the document position below the mouse cursor
      * 
      * @return {Object} 'row' and 'column' of the document position
@@ -86,15 +84,12 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
     this.getDocumentPosition = function() {
         if (this.$pos)
             return this.$pos;
-            
-        var pageX = event.getDocumentX(this.domEvent);
-        var pageY = event.getDocumentY(this.domEvent);
-        this.$pos = this.editor.renderer.screenToTextCoordinates(pageX, pageY);
-        this.$pos.row = Math.max(0, Math.min(this.$pos.row, this.editor.session.getLength()-1));
+        
+        this.$pos = this.editor.renderer.screenToTextCoordinates(this.clientX, this.clientY);
         return this.$pos;
     };
     
-    /**
+    /*
      * Check if the mouse cursor is inside of the text selection
      * 
      * @return {Boolean} whether the mouse cursor is inside of the selection
@@ -120,7 +115,7 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
         return this.$inSelection;
     };
     
-    /**
+    /*
      * Get the clicked mouse button
      * 
      * @return {Number} 0 for left button, 1 for middle button, 2 for right button
@@ -129,16 +124,16 @@ var MouseEvent = exports.MouseEvent = function(domEvent, editor) {
         return event.getButton(this.domEvent);
     };
     
-    /**
+    /*
      * @return {Boolean} whether the shift key was pressed when the event was emitted
      */
     this.getShiftKey = function() {
         return this.domEvent.shiftKey;
     };
     
-    this.getAccelKey = function() {
-        return this.domEvent.ctrlKey || this.domEvent.metaKey ;
-    };
+    this.getAccelKey = useragent.isMac
+        ? function() { return this.domEvent.metaKey; }
+        : function() { return this.domEvent.ctrlKey; };
     
 }).call(MouseEvent.prototype);
 

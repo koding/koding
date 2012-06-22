@@ -1,4 +1,4 @@
-AccountSettingLists.personal.username = class AccountEditUsername extends KDView
+class AccountEditUsername extends KDView
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate
@@ -10,7 +10,7 @@ AccountSettingLists.personal.username = class AccountEditUsername extends KDView
     # ADDING EMAIL FORM
     # =================
     @addSubView @emailForm = emailForm = new KDFormView
-      callback     : (formElements)->
+      callback     : (formData)->
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"
@@ -57,7 +57,7 @@ AccountSettingLists.personal.username = class AccountEditUsername extends KDView
     # ADDING USERNAME FORM
     # =================
     @addSubView @usernameForm = usernameForm = new KDFormView
-      callback     : (formElements)->
+      callback     : (formData)->
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"

@@ -45,16 +45,22 @@ var useragent = require("../lib/useragent");
 var dom = require("../lib/dom");
 
 var TextInput = function(parentNode, host) {
-
     var text = dom.createElement("textarea");
+    /*/ debug
+    text.style.opacity = 1
+    text.style.background = "rgba(0, 250, 0, 0.3)"
+    text.style.outline = "rgba(0, 250, 0, 0.8) solid 1px"
+    text.style.outlineOffset = "3px"
+    /**/
     if (useragent.isTouchPad)
         text.setAttribute("x-palm-disable-auto-cap", true);
-        
-    text.style.left = "-10000px";
-    text.style.position = "fixed";
+
+    text.setAttribute("wrap", "off");
+
+    text.style.top = "-2em";
     parentNode.insertBefore(text, parentNode.firstChild);
 
-    var PLACEHOLDER = String.fromCharCode(0);
+    var PLACEHOLDER = useragent.isIE ? "\x01" : "\x01";
     sendText();
 
     var inCompostion = false;
@@ -62,9 +68,14 @@ var TextInput = function(parentNode, host) {
     var pasted = false;
     var tempStyle = '';
 
-    function select() {
+    function reset(full) {
         try {
-            text.select();
+            if (full) {
+                text.value = PLACEHOLDER;
+                text.selectionStart = 0;
+                text.selectionEnd = 1;
+            } else 
+                text.select();
         } catch (e) {}
     }
 
@@ -72,19 +83,19 @@ var TextInput = function(parentNode, host) {
         if (!copied) {
             var value = valueToSend || text.value;
             if (value) {
-                if (value.charCodeAt(value.length-1) == PLACEHOLDER.charCodeAt(0)) {
-                    value = value.slice(0, -1);
-                    if (value)
-                        host.onTextInput(value, pasted);
-                }
-                else {
-                    host.onTextInput(value, pasted);
+                if (value.length > 1) {
+                    if (value.charAt(0) == PLACEHOLDER)
+                        value = value.substr(1);
+                    else if (value.charAt(value.length - 1) == PLACEHOLDER)
+                        value = value.slice(0, -1);
                 }
 
-                // If editor is no longer focused we quit immediately, since
-                // it means that something else is in charge now.
-                if (!isFocused())
-                    return false;
+                if (value && value != PLACEHOLDER) {
+                    if (pasted)
+                        host.onPaste(value);
+                    else
+                        host.onTextInput(value);
+                }
             }
         }
 
@@ -92,19 +103,19 @@ var TextInput = function(parentNode, host) {
         pasted = false;
 
         // Safari doesn't fire copy events if no text is selected
-        text.value = PLACEHOLDER;
-        select();
+        reset(true);
     }
 
     var onTextInput = function(e) {
+        if (!inCompostion)
+            sendText(e.data);
         setTimeout(function () {
             if (!inCompostion)
-                sendText(e.data);                
+                reset(true);
         }, 0);
     };
-    
+
     var onPropertyChange = function(e) {
-        if (useragent.isOldIE && text.value.charCodeAt(0) > 128) return;
         setTimeout(function() {
             if (!inCompostion)
                 sendText();
@@ -114,7 +125,7 @@ var TextInput = function(parentNode, host) {
     var onCompositionStart = function(e) {
         inCompostion = true;
         host.onCompositionStart();
-        if (!useragent.isGecko) setTimeout(onCompositionUpdate, 0);
+        setTimeout(onCompositionUpdate, 0);
     };
 
     var onCompositionUpdate = function() {
@@ -134,12 +145,12 @@ var TextInput = function(parentNode, host) {
             text.value = copyText;
         else
             e.preventDefault();
-        select();
+        reset();
         setTimeout(function () {
             sendText();
         }, 0);
     };
-    
+
     var onCut = function(e) {
         copied = true;
         var copyText = host.getCopyText();
@@ -148,30 +159,15 @@ var TextInput = function(parentNode, host) {
             host.onCut();
         } else
             e.preventDefault();
-        select();
+        reset();
         setTimeout(function () {
             sendText();
         }, 0);
     };
 
     event.addCommandKeyListener(text, host.onCommandKey.bind(host));
-    if (useragent.isOldIE) {
-        var keytable = { 13:1, 27:1 };
-        event.addListener(text, "keyup", function (e) {
-            if (inCompostion && (!text.value || keytable[e.keyCode]))
-                setTimeout(onCompositionEnd, 0);
-            if ((text.value.charCodeAt(0)|0) < 129) {
-                return;
-            }
-            inCompostion ? onCompositionUpdate() : onCompositionStart();
-        });
-    }
-    
-    if ("onpropertychange" in text && !("oninput" in text))
-        event.addListener(text, "propertychange", onPropertyChange);
-    else
-        event.addListener(text, "input", onTextInput);
-    
+    event.addListener(text, "input", useragent.isIE ? onPropertyChange : onTextInput);
+
     event.addListener(text, "paste", function(e) {
         // Mark that the next input text comes from past.
         pasted = true;
@@ -190,6 +186,8 @@ var TextInput = function(parentNode, host) {
 
     if ("onbeforecopy" in text && typeof clipboardData !== "undefined") {
         event.addListener(text, "beforecopy", function(e) {
+            if (tempStyle)
+                return; // without this text is copied when contextmenu is shown
             var copyText = host.getCopyText();
             if (copyText)
                 clipboardData.setData("Text", copyText);
@@ -204,6 +202,23 @@ var TextInput = function(parentNode, host) {
                     host.onCut();
                 }
                 event.preventDefault(e);
+            }
+        });
+        event.addListener(text, "cut", onCut); // for ie9 context menu
+    }
+    else if (useragent.isOpera) {
+        event.addListener(parentNode, "keydown", function(e) {
+            if ((useragent.isMac && !e.metaKey) || !e.ctrlKey)
+                return;
+
+            if ((e.keyCode == 88 || e.keyCode == 67)) {
+                var copyText = host.getCopyText();
+                if (copyText) {
+                    text.value = copyText;
+                    text.select();
+                    if (e.keyCode == 88)
+                        host.onCut();
+                }
             }
         });
     }
@@ -227,12 +242,11 @@ var TextInput = function(parentNode, host) {
 
     event.addListener(text, "focus", function() {
         host.onFocus();
-        select();
+        reset();
     });
 
     this.focus = function() {
-        host.onFocus();
-        select();
+        reset();
         text.focus();
     };
 
@@ -249,29 +263,52 @@ var TextInput = function(parentNode, host) {
         return text;
     };
 
-    this.onContextMenu = function(mousePos, isEmpty){
-        if (mousePos) {
-            if (!tempStyle)
-                tempStyle = text.style.cssText;
-                
-            text.style.cssText = 
-                'position:fixed; z-index:1000;' +
-                'left:' + (mousePos.x - 2) + 'px; top:' + (mousePos.y - 2) + 'px;';
+    this.onContextMenu = function(e) {
+        if (!tempStyle)
+            tempStyle = text.style.cssText;
 
-        }
-        if (isEmpty)
-            text.value='';
+        text.style.cssText =
+            "position:fixed; z-index:100000;" + //"background:rgba(250, 0, 0, 0.3); opacity:1;" +
+            "left:" + (e.clientX - 2) + "px; top:" + (e.clientY - 2) + "px;";
+
+        if (host.selection.isEmpty())
+            text.value = "";
+
+        if (e.type != "mousedown")
+            return;
+
+        if (host.renderer.$keepTextAreaAtCursor)
+            host.renderer.$keepTextAreaAtCursor = null;
+
+        // on windows context menu is opened after mouseup
+        if (useragent.isGecko && useragent.isWin)
+            event.capture(host.container, function(e) {
+                text.style.left = e.clientX - 2 + "px";
+                text.style.top = e.clientY - 2 + "px";
+            }, onContextMenuClose);
     };
 
-    this.onContextMenuClose = function(){
+    function onContextMenuClose() {
         setTimeout(function () {
             if (tempStyle) {
                 text.style.cssText = tempStyle;
                 tempStyle = '';
             }
             sendText();
+            if (host.renderer.$keepTextAreaAtCursor == null) {
+                host.renderer.$keepTextAreaAtCursor = true;
+                host.renderer.$moveTextAreaToCursor();
+            }
         }, 0);
     };
+    this.onContextMenuClose = onContextMenuClose;
+
+    // firefox fires contextmenu event after opening it
+    if (!useragent.isGecko)
+        event.addListener(text, "contextmenu", function(e) {
+            host.textInput.onContextMenu(e);
+            onContextMenuClose()
+        });
 };
 
 exports.TextInput = TextInput;

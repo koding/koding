@@ -63,7 +63,7 @@ exports.hasCssClass = function(el, name) {
     return classes.indexOf(name) !== -1;
 };
 
-/**
+/*
 * Add a CSS class to the list of classes on the given node
 */
 exports.addCssClass = function(el, name) {
@@ -72,7 +72,7 @@ exports.addCssClass = function(el, name) {
     }
 };
 
-/**
+/*
 * Remove a CSS class from the list of classes on the given node
 */
 exports.removeCssClass = function(el, name) {
@@ -104,7 +104,7 @@ exports.toggleCssClass = function(el, name) {
     return add;
 };
 
-/**
+/*
  * Add or remove a CSS class from the list of classes on the given node
  * depending on the value of <tt>include</tt>
  */
@@ -122,7 +122,7 @@ exports.hasCssString = function(id, doc) {
 
     if (doc.createStyleSheet && (sheets = doc.styleSheets)) {
         while (index < sheets.length)
-            if (sheets[index++].title === id) return true;
+            if (sheets[index++].owningElement.id === id) return true;
     } else if ((sheets = doc.getElementsByTagName("style"))) {
         while (index < sheets.length)
             if (sheets[index++].id === id) return true;
@@ -143,7 +143,7 @@ exports.importCssString = function importCssString(cssText, id, doc) {
         style = doc.createStyleSheet();
         style.cssText = cssText;
         if (id)
-            style.title = id;
+            style.owningElement.id = id;
     } else {
         style = doc.createElementNS
             ? doc.createElementNS(XHTML_NS, "style")
@@ -255,7 +255,7 @@ exports.scrollbarWidth = function(document) {
     return noScrollbar-withScrollbar;
 };
 
-/**
+/*
  * Optimized set innerHTML. This is faster than plain innerHTML if the element
  * already contains a lot of child elements.
  *

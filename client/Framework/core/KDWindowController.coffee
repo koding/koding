@@ -20,6 +20,7 @@ class KDWindowController extends KDController
       $('.twipsy').remove() # temporary for beta
       @setDragInAction no # for cases when dragleave doesn't fire
       lastLayer = layers[layers.length-1]
+
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
         lastLayer.propagateEvent (KDEventType: 'ReceivedClickElsewhere'), e
     , yes
@@ -44,12 +45,15 @@ class KDWindowController extends KDController
     super
   
   addLayer: (layer)->
+
     unless layer in @layers
       @layers.push layer
   
   removeLayer: (layer)->
-    index = @layers.indexOf(layer)
-    @layers.splice index, 1
+
+    if layer in @layers
+      index = @layers.indexOf(layer)
+      @layers.splice index, 1
   
   bindEvents:()->
 

@@ -64,7 +64,7 @@ var MarkdownHighlightRules = function() {
             token : "empty_line",
             regex : '^$'
         }, { // code span `
-            token : "support.function",
+            token : ["support.function", "support.function", "support.function"],
             regex : "(`+)([^\\r]*?[^`])(\\1)"
         }, { // code block
             token : "support.function",
@@ -80,7 +80,7 @@ var MarkdownHighlightRules = function() {
                 return "markup.heading." + value.length;
             },
             regex : "^#{1,6}"
-        }, github_embed("javascript", "js-"),
+        }, github_embed("(?:javascript|js)", "js-"),
            github_embed("xml", "xml-"),
            github_embed("html", "html-"),
            github_embed("css", "css-"),
@@ -94,7 +94,7 @@ var MarkdownHighlightRules = function() {
             next  : "blockquote"
         }, { // reference
             token : ["text", "constant", "text", "url", "string", "text"],
-            regex : "^([ ]{0,3}\\[)([^\\]]+)(\\]:\\s*)([^ ]+)(\\s*(?:[\"][^\"]+[\"])?\\s*)$"
+            regex : "^([ ]{0,3}\\[)([^\\]]+)(\\]:\\s*)([^ ]+)(\\s*(?:[\"][^\"]+[\"])?(\\s*))$"
         }, { // link by reference
             token : ["text", "string", "text", "constant", "text"],
             regex : "(\\[)((?:[[^\\]]*\\]|[^\\[\\]])*)(\\][ ]?(?:\\n[ ]*)?\\[)(.*?)(\\])"
@@ -120,10 +120,10 @@ var MarkdownHighlightRules = function() {
             regex : "^\\s{0,3}(?:[*+-]|\\d+\\.)\\s+",
             next  : "listblock"
         }, { // strong ** __
-            token : "string",
+            token : ["string", "string", "string"],
             regex : "([*]{2}|[_]{2}(?=\\S))([^\\r]*?\\S[*_]*)(\\1)"
         }, { // emphasis * _
-            token : "string",
+            token : ["string", "string", "string"],
             regex : "([*]|[_](?=\\S))([^\\r]*?\\S[*_]*)(\\1)"
         }, { // 
             token : ["text", "url", "text"],

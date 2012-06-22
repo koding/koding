@@ -1,5 +1,3 @@
-console.log 12345, process.pid
-
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
@@ -9,7 +7,8 @@ class JPost extends jraphical.Message
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
-    tagRole           : 'post'
+    taggedContentRole : 'post'
+    tagRole           : 'tag'
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
@@ -57,7 +56,7 @@ class JPost extends jraphical.Message
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
       teaser = null
-      queue = [
+      daisy queue = [
         ->
           status
             .sign(delegate)
@@ -76,21 +75,18 @@ class JPost extends jraphical.Message
               callback createKodingError err
             else queue.next()
         ->
-          if tags?.length
-            status.addTags client, tags, (err)->
-              if err
-                callback createKodingError err
-              else
-                console.log 'tags was added'
-                queue.next()
-          else queue.next()
+          tags or= []
+          status.addTags client, tags, (err)->
+            if err
+              callback createKodingError err
+            else
+              queue.next()
         ->
           status.fetchTeaser (err, teaser_)=>
             if err
               callback createKodingError err
             else
               teaser = teaser_
-              console.log teaser
               queue.next()
         ->
           activity.update
@@ -104,17 +100,26 @@ class JPost extends jraphical.Message
         -> 
           status.addParticipant delegate, 'author'
       ]
-      daisy queue
 
-  modify: secure ({connection:{delegate}}, formData, callback)->
-
-    callback new KodingError "Access denied"
-
-    # this crashes the server
-    # if delegate.getId().equals @originId
-    #   @update $set : formData, (err, response)=> callback err, response
-    # else
-    #   callback new KodingError "Access denied"
+  modify: secure (client, formData, callback)->
+    {delegate} = client.connection
+    if delegate.getId().equals @originId
+      
+      {tags} = formData.meta
+      delete formData.meta
+      daisy queue = [
+        =>
+          tags or= []
+          @addTags client, tags, (err)=>
+            if err
+              callback err
+            else
+              queue.next()
+        =>
+          @update $set: formData, callback
+      ]
+    else
+      callback new KodingError "Access denied"
 
   mark: secure ({connection:{delegate}}, flag, callback)->
     @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
@@ -122,47 +127,69 @@ class JPost extends jraphical.Message
   unmark: secure ({connection:{delegate}}, flag, callback)->
     @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
 
-  delete: secure do ->
-    getDeleteHelper =(selector, orientation, callback)->
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        getDeleteHelper {
+          sourceId    : id
+          sourceName  : 'JComment'
+        }, 'target', -> queue.fin()
+        ->
+          Relationship.remove {
+            targetId  : id
+            as        : 'post'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        @emit 'PostIsDeleted', 1
+        callback null
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    queue = [
       ->
-        Relationship.all selector, (err, rels)->
+        Relationship.one {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, (err, rel)->
           if err
-            callback err
+            queue.next err
           else
-            queue = []
-            rels.forEach (rel)->
-              queue.push ->
-                constructor = bongo.Base.constructors[rel.getAt orientation+'Name']
-                constructor.remove _id: rel.getAt(orientation+'Id'), -> queue.fin()
-            dash queue, callback
-
-    ({connection:{delegate}}, callback)->
-      originId = @getAt 'originId'
-      unless delegate.getId().equals originId
-        callback new KodingError 'Access denied!'
-      else
-        id = @getId()
-        queue = [
-          getDeleteHelper {
-            targetId    : id
-            sourceName  : /Activity$/
-          }, 'source', -> queue.fin()
-          getDeleteHelper {
-            sourceId    : id
-            sourceName  : 'JComment'
-          }, 'target', -> queue.fin()
-          =>
-            Relationship.remove {
-              targetId  : id
-              as        : 'post'
-            }, -> queue.fin()
-          => @remove -> queue.fin()
-        ]
-        dash queue, =>
-          @emit 'PostIsDeleted', 1
-          callback null
-          
-
+            activityId = rel.getAt 'sourceId'
+            queue.next()
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @fetchTeaser (err, teaser_)=>
+          if err
+            callback createKodingError err
+          else
+            teaser = teaser_
+            queue.next()
+      ->
+        CActivity.update _id: activityId, {
+          $set      : {snapshot: JSON.stringify teaser}
+          $pullAll  : {snapshotIds: rel.getAt 'targetId'}
+        }, -> queue.next()
+      
+      callback
+    ]
+    daisy queue
+  
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
@@ -217,6 +244,8 @@ class JPost extends jraphical.Message
         query         :
           targetName  : 'JComment'
           as          : 'reply'
+          'data.deletedAt':
+            $exists   : no
         limit         : 3
         sort          :
           timestamp   : -1
