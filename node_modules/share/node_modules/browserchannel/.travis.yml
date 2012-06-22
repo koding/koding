@@ -1,0 +1,2 @@
+before_script: "npm install && npm install nodeunit"
+script: "npm test"
