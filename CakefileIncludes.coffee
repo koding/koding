@@ -258,12 +258,12 @@ Includes =
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
         
         #new terminal
-        TerminalError   :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
-        TerminalClient  :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
+        # TerminalError   :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
+        # TerminalClient  :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
         AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         Shell12345      :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
-        Shell           :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
-        DiffScript      :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
+        # Shell           :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
+        # DiffScript      :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
         
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'

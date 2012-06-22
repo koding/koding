@@ -1,0 +1,697 @@
+<html>
+<head>
+	<title>termlib Sample Parser</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+	<script language="JavaScript" type="text/javascript" src="termlib_parser.js"></script>
+
+<script language="JavaScript" type="text/javascript">
+<!--
+
+/*
+  test sample for termlib.js and termlib_parser.js
+
+  (c) Norbert Landsteiner 2005-2010
+  mass:werk - media environments
+  <http://www.masswerk.at>
+
+*/
+
+var term, parser;
+
+var helpPage=[
+	'%CS%+r Terminal Help %-r%n',
+	'  This is just a sample to demonstrate command line parsing.',
+	' ',
+	'  Use one of the following commands:',
+	'     clear [-a] .......... clear the terminal',
+	'                           option "a" also removes the status line',
+	'     number -n<value> .... return value of option "n" (test for options)',
+	'     repeat -n<value> .... repeats the first argument n times (another test)',
+	'     dump ................ lists all arguments and alphabetic options',
+	'     login <username> .... sample login (test for raw mode)',
+	'     exit ................ close the terminal (same as <ESC>)',
+	'     help ................ show this help page',
+	' ',
+	'  other input will be echoed to the terminal as a list of parsed arguments',
+	'  in the format <argument index> <quoting level> "<parsed value>".',
+	' '
+];
+
+function termOpen() {
+	if (!term || term.losed) {
+		term=new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				ps: '[guest]$',
+				initHandler: termInitHandler,
+				handler: commandHandler,
+				exitHandler: termExitHandler
+			}
+		);
+		if (term) term.open();
+		parser=new Parser();
+	
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+	else {
+		term.focus();
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function termInitHandler() {
+	// output a start up screen
+	this.write(
+		[
+			this.globals.center('####################################################', 80),
+			this.globals.center('#                                                  #', 80),
+			this.globals.center('#         termlib.js - Sample Parser v 1.1         #', 80),
+			this.globals.center('#  Input is echoed as a list of parsed arguments.  #', 80),
+			this.globals.center('#                                                  #', 80),
+			this.globals.center('#  Type "help" for commands.                       #', 80),
+			this.globals.center('#                                                  #', 80),
+			this.globals.center('#  (c) N. Landsteiner 2005-2010;  www.masswerk.at  #', 80),
+			this.globals.center('#                                                  #', 80),
+			this.globals.center('####################################################', 80),
+			'%n'
+		]
+	);
+	// set a double status line
+	this.statusLine('', 8,2); // just a line of strike
+	this.statusLine(' +++ This is just a test sample for command parsing. Type "help" for help. +++');
+	this.maxLines -= 2;
+	// and leave with prompt
+	this.prompt();
+}
+
+function commandHandler() {
+	this.newLine();
+	// check for raw mode first (should not be parsed)
+	if (this.rawMode) {
+		if (this.env.getPassword) {
+			// sample password handler (lineBuffer == stored username ?)
+			if (this.lineBuffer == this.env.username) {
+				this.user = this.env.username;
+				this.ps = '['+this.user+']>';
+				this.type('Welcome '+this.user+', you are now logged on to the system.');
+			}
+			else {
+				this.type('Sorry.');
+			}
+			this.env.username = '';
+			this.env.getPassword = false;
+		}
+		// leave in normal mode
+		this.rawMode = false;
+		this.prompt();
+		return;
+	}
+	// normal command parsing
+	// just call the termlib_parser with a reference of the calling Terminal instance
+	// parsed arguments will be imported in this.argv,
+	// quoting levels per argument in this.argQL (quoting character or empty)
+	// cursor for arguments is this.argc (used by Parser.getopt)
+	// => see 'termlib_parse.js' for configuration and details
+	parser.parseLine(this);
+	if (this.argv.length == 0) {
+		// no commmand line input
+	}
+	else if (this.argQL[0]) {
+	    // first argument quoted -> error
+		this.write("Syntax error: first argument quoted.");
+	}
+	else {
+		var cmd = this.argv[this.argc++];
+		/*
+		  process commands now
+		  1st argument: this.argv[this.argc]
+		*/
+		switch (cmd) {
+			case 'help':
+				this.write(helpPage);
+				break;
+			case 'clear':
+				// get options
+				var opts = parser.getopt(this, 'aA');
+				if (opts.a) {
+					// discard status line on opt "a" or "A"
+					this.maxLines = this.conf.rows;
+				}
+				this.clear();
+				break;
+			case 'number':
+				// test for value options
+				var opts = parser.getopt(this, 'n');
+				if (opts.illegals.length) {
+					this.type('illegal option. usage: number -n<value>');
+				}
+				else if ((opts.n) && (opts.n.value != -1)) {
+					this.type('option value: '+opts.n.value);
+				}
+				else {
+					this.type('usage: number -n<value>');
+				}
+				break;
+			case 'repeat':
+				// another test for value options
+				var opts = parser.getopt(this, 'n');
+				if (opts.illegals.length) {
+					this.type('illegal option. usage: repeat -n<value> <string>');
+				}
+				else if ((opts.n) && (opts.n.value != -1)) {
+					// first normal argument is again this.argv[this.argc]
+					var s = this.argv[this.argc];
+					if (typeof s != 'undefined') {
+						// repeat this string n times
+						var a = [];
+						for (var i=0; i<opts.n.value; i++) a[a.length] = s;
+						this.type(a.join(' '));
+					}
+				}
+				else {
+					this.type('usage: repeat -n<value> <string>');
+				}
+				break;
+			case 'login':
+				// sample login (test for raw mode)
+				if ((this.argc == this.argv.length) || (this.argv[this.argc] == '')) {
+					this.type('usage: login <username>');
+				}
+				else {
+					this.env.getPassword = true;
+					this.env.username = this.argv[this.argc];
+					this.write('%+iSample login: repeat username as password.%-i%n');
+					this.type('password: ');
+					// exit in raw mode (blind input)
+					this.rawMode = true;
+					this.lock = false;
+					return;
+				}
+				break;
+			case 'dump':
+				var opts = parser.getopt(this, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
+				for (var p in opts) {
+					if (p == 'illegals') {
+						if (opts.illegals.length) {
+							this.type('  illegal options: "'+opts.illegals.join('", "')+'"');
+							this.newLine();
+						}
+					}
+					else {
+						this.type('  option "'+p+'" value '+opts[p].value);
+						this.newLine();
+					}
+				}
+				while (this.argc<this.argv.length) {
+					var ql = this.argQL[this.argc] || '-';
+					this.type('  argument [QL: '+ql+'] "'+this.argv[this.argc++]+'"');
+					this.newLine();
+				}
+				break;
+			case 'exit':
+				this.close();
+				return;
+			default:
+				// for test purpose just output argv as list
+				// assemble a string of style-escaped lines and output it in more-mode
+				s=' INDEX  QL  ARGUMENT%n';
+				for (var i=0; i<this.argv.length; i++) {
+					s += this.globals.stringReplace('%', '%%',
+							this.globals.fillLeft(i, 6) +
+							this.globals.fillLeft((this.argQL[i])? this.argQL[i]:'-', 4) +
+							'  "' + this.argv[i] + '"'
+						) + '%n';
+				}
+				this.write(s, 1);
+				return;
+		}
+	}
+	this.prompt();
+}
+
+
+//-->
+</script>
+
+<style type="text/css">
+
+/* essential terminal styles */
+
+.term {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #33d011;
+	background: none;
+}
+.termReverse {
+	color: #111111;
+	background: #33d011;
+}
+
+/* other page styles */
+
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #dddddd;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #dddddd;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+pre,tt {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+.pale { color: #cceebb !important; }
+
+li {
+	line-height: 15px;
+	margin-bottom: 8px !important;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop,.pale {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#dddddd" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap>parser</td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0" width="100%">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap valign="top">
+			Sample Parser Test<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2003-2010<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td id="mainPane" align="center">
+		<table border="0" cellspacing="0" cellpadding="0" width="660">
+		<tr><td align="left"  class="lh15" id="mainPane">
+
+		<p><b style="letter-spacing: 1px;">Sample Parser</b><br>&nbsp;</p>
+		<p>The parser provides a solid basis for any command evaluation for &quot;termlib.js&quot;. It splits the current command line to arguments (words) and takes care of any white space and quotes. Even escape characters and options are supported.</p>
+		<p>&nbsp;<br><b>Synopsis:</b></p>
+<pre>
+  var parser = new Parser();
+  parser.parseLine(this);
+  var command = this.argv[this.argc++];
+</pre>
+		<p>&nbsp;<br><b>Usage:</b></p>
+
+		<p>Call method &quot;<tt>parseLine(this)</tt>&quot; from inside of your Terminal-handler.
+		This will parse the current command line to chunks separated by any amount of
+		white space (see property <tt>whiteSpace</tt>).
+		<tt>&quot;parseLine&quot;</tt> will inject the following properties into the Terminal instance:</p>
+
+		<table border="0" cellspacing="0" cellpadding="2" style="margin-left: 20px;">
+		<tr valign="top">
+			<td nowrap><tt>this.argv</tt>:&nbsp;</td>
+			<td>Array of parsed chunks (words, arguments)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>this.argQL</tt>:&nbsp;</td>
+			<td>Array of quoting level per argument<br>
+				This array will contain the according quote character or an empty string for each element of argv with the same index.</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>this.argc</tt>:&nbsp;</td>
+			<td>A pointer to <tt>this.argv</tt> and <tt>this.argQL</tt> (initially set to <tt>0</tt>; used by method <tt>getopt</tt>).</td>
+		</tr>
+		</table>
+		
+		<p>Example:</p>
+		<table border="0" cellspacing="0" cellpadding="0">
+		<tr><td nowrap>For the string:</td><td>&nbsp;</td><td><span class="pale">This is &quot;quoted&quot;.</span></td></tr>
+		<tr><td nowrap><tt>argv</tt> will result to:</td><td>&nbsp;</td><td><span class="pale">['this', 'is', 'quoted', '.']</span></td></tr>
+		<tr><td nowrap>and <tt>argQL</tt> will result to:</td><td>&nbsp;</td><td><span class="pale">['', '', '&quot;', '']</span></td></tr>
+		</table>
+		<p>(Provided that '&quot;' is defined as a quote character. Defaults: ', &quot;, and `)</p>
+	
+		<p>&nbsp;<br><tt>getopt(this, &quot;&lt;options&gt;&quot;)</tt>:</p>
+		<p>Call this method from inside of your handler to parse any options from the
+		next chunk in <tt>this.argv</tt> that <tt>this.argc</tt> points to.<br>
+		Options are considered any arguments preceded by an option character in the
+		property <tt>optionChars</tt> (default: &quot;-&quot;). The second argument is a string
+		containing all characters to be considered legal option flags.<br>
+		The method returns an object with a property of type object for any option
+		flag (defined as a character in the options-string) found in <tt>argv</tt>.
+		argc will be advanced to the first element of <tt>argv</tt> that is not an option.
+		Each of the flag-objects will contain the property `<tt>value</tt>'.<br>
+		In case that the option flag was immediately followed by  a number
+		(unsigned float value), this will be stored as a Number in the <tt>value</tt>,
+		otherwise the flag's <tt>value</tt> will be set to <tt>-1</tt>.<br>
+		Any flags that were not defined in the options-string will be stored in
+		an array of single characters in the property `<tt>illegals</tt>' of the returned object.</p>
+
+		<p>Example:</p>
+<pre>
+   this.argv: [&quot;test&quot;, &quot;-en7a&quot;, &quot;-f&quot;, &quot;next&quot;]
+   this.argc: set initially to 0
+
+   var command = this.argv[this.argc++];    // this.argc now points to 2nd chunk
+   var options = parser.getopt(this, &quot;en&quot;);
+</pre>
+		<p><tt>getopt</tt> will return the following object:</p>
+<pre>   {
+      'e': { value: -1 },
+      'n': { value: 7 },
+      'illegals': ['a', 'f']
+   }</pre>
+		<p>and <tt>this.argc</tt> will be set to <tt>3</tt>, pointing to &quot;next&quot;.</p>
+		<p>Note: Quoted terms are never parsed as options.</p>
+
+		<p>&nbsp;<br><b>Escape expressions:</b></p>
+		<p>The parser can handle escape sequences, e.g.: hexdecimal notations of
+		characters that are preceded by an escape character. (default: parse any
+		2-byte hex expressions preceded by &quot;%&quot; as a character,  e.g. &quot;%41&quot; =&gt; &quot;A&quot;.)<br>
+		Escape characters are defined in the property <tt>escapeExpressions</tt> (type object) with the
+		according method as their value. (The given function or method must be present
+		at creation and takes four arguments: terminal instance, current char-position,
+		the escape character found, and the current quoting level. The method or function
+		is expected to strip any escape sequence of the lineBuffer and to return a string
+		to be inserted at the current parsing position.)<br>
+		The result of an escape expression will allways add to the current chunk and will never result in parsed white space.</p>
+
+		<p>&nbsp;<br><b>Configuration:</b></p>
+		<p>You may want to overide the follow objects (or add properties):</p>
+
+		<table border="0" cellspacing="0" cellpadding="2" style="margin-left: 20px;">
+		<tr><td nowrap>parser.<tt>whiteSpace</tt>:&nbsp;</td><td>chars to be parsed as white space (default: space, tab)</td></tr>
+		<tr><td nowrap>parser.<tt>quoteChars</tt>:&nbsp;</td><td>chars to be parsed as quotes (default: &quot;, ', `)</td></tr>
+		<tr><td nowrap>parser.<tt>singleEscapes</tt>:&nbsp;</td><td>chars to escape a quote or escape expression (default: \)</td></tr>
+		<tr><td nowrap>parser.<tt>optionChars</tt>:&nbsp;</td><td>chars that start an option (default: -)</td></tr>
+		<tr><td nowrap>parser.<tt>escapeExpressions</tt>:&nbsp;</td><td>chars that start escape expressions (default: % =&gt; 2-byte hex)</td></tr>
+		</table>
+
+		<p>&nbsp;<br>Notes:<br>
+		v. 1.1: Parser is now a function with a constructor.<br>
+		Configurations can be handled at a per-instance basis.<br>
+		Parser is now a single, self-contained object in the global name space.<br>
+		Note on the implementation: We are not storing the terminal instance in order to avoid memory leakage.</p>
+		
+		<p>&nbsp;</p>
+		<p><b>Alternate Implementation Example</b> &ndash; not UNIX-like:<br>(for a sane implementation see the source of this file.)</p>
+<pre class="pale">
+// a simple command shell,
+// toggeling &quot;-&quot; (minus) and &quot;/&quot; (forward slash) as the option character
+
+var term, parser;
+var files = {
+   &quot;initscreen&quot;: [
+      &quot;*** Quick and Dumb Shell v. 1.0 ***&quot;,
+      &quot;Nanofluffy Corporation 1982&quot;,
+      &quot;ready.&quot;,
+      &quot;type 'help' for a list of commands.&quot;
+    ],
+   &quot;help&quot;: [
+       &quot;Commands:&quot;,
+       &quot;  type [-p] &lt;filename&gt; .... write a file to the screen&quot;,
+       &quot;                            option p: use screen pager&quot;,
+       &quot;  print &lt;filename&gt; [/p] ... write a file to the screen&quot;,
+       &quot;                            option p: use screen pager&quot;,
+       &quot;  help .................... display this screen&quot;,
+       &quot;  exit .................... exit the command shell&quot;
+    ],
+    &quot;test&quot;: [
+       &quot;Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Nam&quot;,
+       &quot;facilisis enim. Pellentesque in elit et lacus euismod dignissim.&quot;,
+       &quot;Aliquam dolor pede, convallis eget, dictum a, blandit ac, urna.&quot;,
+       &quot;Pellentesque sed nunc ut justo volutpat egestas. Class aptent&quot;,
+       &quot;taciti sociosqu ad litora torquent per conubia nostra, per inceptos&quot;,
+       &quot;hymenaeos. In erat. Suspendisse potenti. Fusce faucibus nibh sed&quot;,
+       &quot;nisi. Phasellus faucibus, dui a cursus dapibus, mauris nulla&quot;,
+       &quot;euismod velit, a lobortis turpis arcu vel dui. Pellentesque&quot;,
+       &quot;fermentum ultrices pede. Donec auctor lectus eu arcu. Curabitur&quot;,
+       &quot;non orci eget est porta gravida. Aliquam pretium orci id nisi.&quot;,
+       &quot;Duis faucibus, mi non adipiscing venenatis, erat urna aliquet&quot;,
+       &quot;elit, eu fringilla lacus tellus quis erat. Nam tempus ornare&quot;,
+       &quot;lorem. Nullam feugiat. Lorem ipsum dolor sit amet, consectetuer&quot;,
+       &quot;adipiscing elit. Nam facilisis enim. Pellentesque in elit et lacus&quot;,
+       &quot;euismod dignissim. Aliquam dolor pede, convallis eget, dictum a,&quot;,
+       &quot;blandit ac, urna. Pellentesque sed nunc ut justo volutpat egestas.&quot;,
+       &quot;Class aptent taciti sociosqu ad litora torquent per conubia nostra,&quot;,
+       &quot;per inceptos hymenaeos. In erat. Suspendisse potenti. Fusce&quot;,
+       &quot;faucibus nibh sed nisi. Phasellus faucibus, dui a cursus dapibus,&quot;,
+       &quot;mauris nulla euismod velit, a lobortis turpis arcu vel dui.&quot;,
+       &quot;Pellentesque fermentum ultrices pede. Donec auctor lectus eu arcu.&quot;,
+       &quot;Curabitur non orci eget est porta gravida. Aliquam pretium orci id&quot;,
+       &quot;nisi. Duis faucibus, mi non adipiscing venenatis, erat urna aliquet&quot;,
+       &quot;elit, eu fringilla lacus tellus quis erat. Nam tempus ornare lorem.&quot;,
+       &quot;Nullam feugiat. Lorem ipsum dolor sit amet, consectetuer adipiscing&quot;,
+       &quot;elit. Nam facilisis enim. Pellentesque in elit et lacus euismod&quot;,
+       &quot;dignissim. Aliquam dolor pede, convallis eget, dictum a, blandit ac,&quot;,
+       &quot;urna. Pellentesque sed nunc ut justo volutpat egestas. Class aptent&quot;,
+       &quot;taciti sociosqu ad litora torquent per conubia nostra, per inceptos&quot;,
+       &quot;hymenaeos. In erat. Suspendisse potenti. Fusce faucibus nibh sed nisi.&quot;,
+       &quot;Phasellus faucibus, dui a cursus dapibus, mauris nulla euismod velit,&quot;,
+       &quot;a lobortis dui: The quick brown fox jumps over the lazy dog.&quot;
+    ]
+};
+
+function openTerminal() {
+   if (!term || term.closed) {
+      // create and open a terminal
+      term = new Terminal(
+         {
+            handler: commandShell,
+            termDiv: &quot;termDiv&quot;,
+            ps: &quot;&gt;&quot;,
+            greeting: files.initscreen
+         }
+      );
+      term.open();
+      
+      // create and configure the parser
+      parser = new Parser();
+      // only accept double and single quotes as quote characters
+      parser.quoteChars = { &quot;\&quot;&quot;: true, &quot;'&quot;: true };
+      // set &quot;-&quot; (minus) as the option character (same as default)
+      parser.optionChars = { &quot;-&quot;: true };
+   }
+}
+
+function commandShell() {
+   this.newLine();
+   parser.parseLine(this);
+   if (this.argv.length == 0) {
+      // no commmand line input
+   }
+   else {
+      var cmd = this.argv[this.argc++]; // we advance argc to point to the next chunk
+      cmd = cmd.toLowerCase();          // case insensitive (dumb shell)
+      
+      // now handle each command
+      switch (cmd) {
+         // &quot;system&quot; commands
+         case &quot;help&quot;:
+            // display a help screen
+            this.clear();
+            this.write(files.help);
+            break;
+         case &quot;exit&quot;:
+            // just quit with grace
+            this.close();
+            return;
+
+         // implement a command &quot;type [-p] &lt;filename&gt;&quot;
+         case &quot;type&quot;:
+            // read option &quot;p&quot;
+            var opts = parser.getopt(this, &quot;p&quot;);
+            if (opts.illegals.length) {
+               // other option flags found
+               this.write(&quot;Error: Illegal option.&quot;);
+            }
+            else if (this.argc != this.argv.length-1) {
+               this.write(&quot;Error: Illegal argument list.&quot;);
+            }
+            else {
+               var filename = this.argv[this.argc];
+               var file = files[filename];
+               if (file) {
+                  if (opts.p) {
+                     // write in more-mode
+                     this.write(file, true);
+                     return;
+                  }
+                  else {
+                     this.write(file);
+                  }
+               }
+               else {
+                   this.write(&quot;Error: No such file '&quot;+filename+&quot;'.&quot;);
+               }
+            }
+            break;
+
+         // implement a command &quot;print &lt;filename&gt; [/p]&quot;
+         case &quot;print&quot;:
+            if (this.argv.length&gt;this.argc) {
+               var filename = this.argv[this.argc];
+               if (this.argQL[this.argc] || filename.charAt(0) != &quot;/&quot;) {
+                  // filename quoted or not an option =&gt; suppose it's legal
+                  // advance argc
+                  this.argc++;
+                  // get option /p
+                  // overwrite default optionChars with forward slash
+                  parser.optionChars = { &quot;/&quot;: true };
+                  var opts = parser.getopt(this, &quot;p&quot;);
+                  // now reset the optionChars
+                  parser.optionChars = { &quot;-&quot;: true };
+                  // check and execute ...
+                  if (opts.illegals.length) {
+                     this.write(&quot;Error: Illegal option.&quot;);
+                  }
+                  else {
+                     var file = files[filename];
+                     if (file) {
+                        if (opts.p) {
+                           this.write(file, true);
+                           return;
+                        }
+                        else {
+                           this.write(file);
+                        }
+                     }
+                     else {
+                        this.write(&quot;Error: No such file '&quot;+filename+&quot;'.&quot;);
+                     }
+                  }
+               }
+               else {
+                  this.write(&quot;Error: Illegal argument list.&quot;);
+               }
+            }
+            else {
+               this.write(&quot;Error: Missing argument list.&quot;);
+            }
+            break;
+
+         // not a known command
+         default:
+            this.write(&quot;Not a command: &quot;+cmd);
+      }
+   }
+   this.prompt();
+}
+
+// eof
+	</td>
+	</tr>
+	</table>
+</td>
+<td>
+	<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+	<tr><td>&nbsp;</td></tr>
+	</table>
+</td>
+</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>

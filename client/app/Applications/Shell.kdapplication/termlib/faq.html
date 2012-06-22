@@ -1,0 +1,462 @@
+<html>
+<head>
+	<title>mass:werk termlib faq</title>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh13 {
+	line-height: 13px;
+}
+.lh15 {
+	line-height: 15px;
+}
+pre {
+	font-family: courier,fixed,swiss,sans-serif;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+.prop {
+	font-family: courier,fixed,swiss,sans-serif;
+	color: #bbee99;
+	font-size: 12px;
+	line-height: 15px;
+}
+h1 {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 16px;
+	color: #cccccc;
+}
+b.quest {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 14px;
+	font-weight: bold;
+	color: #bbee99;
+}
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #dddddd;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 12px;
+		color: #000000;
+	}
+	.lh13 {
+		line-height: 13px;
+	}
+	.lh15 {
+		line-height: 15px;
+	}
+	pre,.prop {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 12px;
+		color: #000000;
+		line-height: 15px;
+	}
+	h1 {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 16px;
+		color: #000000;
+	}
+	b.quest {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 14px;
+		font-weight: bold;
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		text-decoration: none;
+		color: #000000;
+	}
+	a:hover {
+		text-decoration: underline;
+		color: #000000;
+	}
+	a:active {
+		text-decoration: underline;
+		color: #000000;
+	}
+}
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#dddddd" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0"><a name="top"></a>
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap>faq</td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0" width="700" align="center">
+	<tr><td>
+		<h1>frequently asked questions</h1>
+	</td></tr>
+	<tr><td class="lh13">
+&nbsp;<br>
+	<ul>
+	<li class="lh15"><a href="#chrome">Can I add chrome to the terminal? (e.g. a window header, a close box)</a></li>
+	<li class="lh15"><a href="#embed">How can I embed a terminal relative to my HTML layout?</a></li>
+	<li class="lh15"><a href="#syntax">I pasted your sample code and just got an error. - ???</a></li>
+	<li class="lh15"><a href="#keyboard">I can't get any input, but I don't get any erros too.</a></li>
+	<li class="lh15"><a href="#keylock">How can I temporary disable the keyboard handlers?</a></li>
+	<li class="lh15"><a href="#linesranges">How can I set the cusor to the start / the end of the command line?</a></li>
+	<li class="lh15"><a href="#historyunique">How can I limit the command history to unique entries only?</a></li>
+	<li class="lh15"><a href="#rebuild">How can I change my color theme on the fly?</a></li>
+	<li class="lh15"><a href="#import">How can I import text to a terminal instance?</a></li>
+	<li class="lh15"><a href="#colors">Is there support for colors?</a></li>
+	<li class="lh15"><a href="#wrapping">Is there any support for text wrapping?</a></li>
+	<li class="lh15"><a href="#bold">Isn't there any way to use bold output or any other custom styles?</a></li>
+	<li class="lh15"><a href="#connect">How can I connect to a server? (AJAX Handling)</a></li>
+	<li class="lh15"><a href="#examples">Are there any real world examples of termlib.js at work?</a></li>
+	</ul>
+	</td></tr>
+	<tr><td class="lh13"><a name="chrome"></a>
+&nbsp;<br>
+<b class="quest">Can I add chrome to the terminal? (e.g. a window header, a close box)</b><br><br>
+
+Not by the means of the Terminal object's interface (since there are way too many things that you may possibly want to add).<br>
+The Terminal object allows you to specify the background color, the frame color, the frame's width and the font class used. If you want to add more chrome, you must align this in a separate division element.<br><br>
+
+To calculate the dimensions of the terminal use this formula:<br><br>
+
+width:&nbsp; 2 * frameWidth + conf.cols * &lt;width of &nbsp;&gt; + 2 * 2px padding (left and right)<br>
+height: 2 * frameWidth + conf.rows * conf.rowHeight + 2 * 2px padding (top and bottom).<br><br>
+
+Or you could get the empirical values for width and height by calling a terminal's `<span class="prop">getDimensions()</span>' method, once the terminal is open. (see documentation in &quot;readme.txt&quot;).<br><br>
+
+Finnally, you could obviously embed the terminal's division element in your custom chrome layout (see below). [This will not be compatible to Netscape 4.]<br><br>
+
+p.e.:<pre>
+  &lt;div id=&quot;myTerminal1&quot; style=&quot;position:absolute; top:100px; left:100px;&quot;&gt;
+     &lt;table class=&quot;termChrome&quot;&gt;
+     	&lt;tbody&gt;
+        &lt;tr&gt;
+           &lt;td class=&quot;termTitle&quot;&gt;terminal 1&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+           &lt;td class=&quot;termBody&quot;&gt;&lt;div id=&quot;termDiv1&quot; style=&quot;position:relative&quot;&gt;&lt;/div&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+     	&lt;/tbody&gt;
+     &lt;/table&gt;
+   &lt;/div&gt;
+
+   // get a terminal for this
+
+   var term1 = new Terminal(
+                 {
+                   x: 0,
+                   y: 0,
+                   id: 1,
+                   termDiv: &quot;termDiv1&quot;,
+                   handler: myTermHandler
+                 }
+              );
+   term1.open();
+   
+   // and this is how to move the chrome and the embedded terminal
+
+   TermGlobals.setElementXY( &quot;myTerminal1&quot;, 200, 80 );
+</pre>
+To keep track of the instance for any widgets use the terminal's `id' property. (You must set this in the configuration object to a unique value for this purpose.)<br><br>
+
+For a demonstration see the <a href="sample_chrome.html">Chrome Sample Page</a>.
+	</td></tr>
+	<tr><td class="lh13"><a name="embed"></a>
+&nbsp;<br>
+<b class="quest">How can I embed a terminal relative to my HTML layout?</b><br><br>
+
+Define your devision element with attribute &quot;position&quot; set to &quot;relative&quot; and place this inside your layout. Call &quot;new Terminal()&quot; with config-values { x: 0, y: 0 } to leave it at its relative origin.
+	</td></tr>
+	<tr><td class="lh13"><a name="syntax"></a>
+&nbsp;<br>
+<b class="quest">I pasted your sample code and just got an error. - ???</b><br><br>
+
+The short examples are kept arbitrarily simple to show the syntax.<br>
+Make sure that your divison element(s) is/are rendered by the browser before `Terminal.open()' is called.<br><br>
+
+Does not work:
+<pre>  &lt;head&gt;
+  &lt;script&gt;
+    var term = new Terminal();
+    term.open();
+  &lt;/script&gt;
+  &lt;/head&gt;
+</pre>
+Does work:
+<pre>  &lt;head&gt;
+  &lt;script&gt;
+    var term;
+    
+    function termOpen() {
+       // to be called from outside after compile time
+       term = new Terminal();
+       term.open();
+    }
+  &lt;/script&gt;
+  &lt;/head&gt;
+</pre>
+c.f. &quot;readme.txt&quot;<br>
+(Opening a terminal by clicking a link implies also that the page has currently focus.)<br><br>
+With v.1.01 and higher this doesn't cause an error any more.<br>`Terminal.prototype.open()' now returns a value for success.
+	</td></tr>
+	<tr><td class="lh13"><a name="keyboard"></a>
+&nbsp;<br>
+<b class="quest">I can't get any input, but I don't get any erros too.</b><br><br>
+
+The Terminal object's functionality relies on the browsers ability to generate and handle keyboard events.<br>
+Sadly some browsers lack a full implementation of the event model. (e.g. Konquerer [khtml] and early versions of Apple Safari, which is a descendant of khtml.)
+	</td></tr>
+	<tr><td class="lh13"><a name="keylock"></a>
+&nbsp;<br>
+<b class="quest">How can I temporary disable the keyboard handlers?</b><br>
+<span class="prop">(The terminal is blocking my HTML form fields, etc.)</span><br><br>
+
+With version 1.03 there's a global property `<span class="prop">TermGlobals.keylock</span>'. Set this to `true' to disable the keyboard handlers without altering any other state. Reset it to `false' to continue with your terminal session(s).
+	</td></tr>
+	<tr><td class="lh13"><a name="linesranges"></a>
+&nbsp;<br>
+<b class="quest">How can I set the cusor to the start / the end of the command line?</b><br><br>
+
+In case you need to implement a shortcut (like ^A of some UN*X-shells) to jump to the beginning or the end of the current input line, there are two private instance methods you could utilize:<br><br>
+`<span class="prop">_getLineEnd(&lt;row&gt;, &lt;col&gt;)</span>' returns an array [&lt;row&gt;, &lt;col&gt;] with the position of the last character in the logical input line with ASCII value &gt;= 32 (0x20).<br><br>
+`<span class="prop">_getLineStart(&lt;row&gt;, &lt;col&gt;)</span>' returns an array [&lt;row&gt;, &lt;col&gt;] with the position of the first character in the logical input line with ASCII value &gt;= 32 (0x20).<br><br>
+Both take a row and a column of a cursor position as arguments.<br><br>
+
+p.e.:
+<pre>
+  // jump to the start of the input line
+
+  myCtrlHandler() {
+     // catch ^A and jump to start of the line
+     if (this.inputChar == 1) {
+        var firstChar = this._getLineStart(this.r, this.c);
+        this.cursorSet(firstChar[0], firstChar[1]);
+     }
+  }</pre>
+(Keep in mind that this is not exactly a good example, since some browser actually don't issue a keyboard event for 
+&quot;^A&quot;. And other browsers, which do catch such codes, are not very reliable in that.)
+	</td></tr>
+	<tr><td class="lh13"><a name="historyunique"></a>
+&nbsp;<br>
+<b class="quest">How can I limit the command history to unique entries only?</b><br>
+	<span class="prop">(My application effords commands to be commonly repeated.)</span><br><br>
+
+With version 1.05 there is a new configuration and control flag `<span class="prop">historyUnique</span>'. All you need is setting this to `true' in your terminal's configuration object.
+	</td></tr>
+	<tr><td class="lh13"><a name="rebuild"></a>
+&nbsp;<br>
+<b class="quest">How can I change my color theme on the fly?</b><br><br>
+
+With version 1.07 there is a new method `<span class="prop">Terminal.rebuild()</span>'.<br>
+This method updates the GUI to current config settings while preserving all other state.<br><br>
+p.e.:
+<pre>
+   // change color settings on the fly
+   // here: set bgColor to white and font style to class &quot;termWhite&quot;
+   // method rebuild() updates the GUI without side effects
+   // assume var term holds a referene to a Terminal object already active
+
+   term.conf.bgColor = '#ffffff';
+   term.conf.fontClass = 'termWhite';
+   term.rebuild();</pre>
+	</td></tr>
+	<tr><td class="lh13"><a name="import"></a>
+&nbsp;<br>
+<b class="quest">How can I import text to terminal instance?</b><br><br>
+
+Have a look at the <a href="sample_import.html">Text Import Sample Page</a>.<br><br>
+This page features three different methods for the import of single line and multiline text.
+
+	</td></tr>
+	<tr><td class="lh13"><a name="colors"></a>
+&nbsp;<br>
+<b class="quest">Is there support for color?</b><br><br>
+
+Starting with version 1.2 there is built in support for color styles aside from the configureable front and background colors.<br><br>
+For details have a look at the <a href="sample_color.html">Color Sample Page</a>.
+
+	</td></tr>
+	<tr><td class="lh13"><a name="wrapping"></a>
+&nbsp;<br>
+<b class="quest">Is there any support for text wrapping?</b><br><br>
+
+Starting with version 1.3 there is built in support for automatic text wrapping with the <span class="prop">write()</span> method.<br><br>
+You may enabel text wrapping using the instance method <span class="prop">wrapOn()</span> and disable wrapping using the instance method <span class="prop">wrapOff()</span>. Wrapping is <span class="prop">off</span> by default.<br>
+You may also set the property &quot;<span class="prop">wrapping</span>&quot; of the configuration object to <span class="prop">true</span> at start up to turn wrapping globally on. Or change the value of the boolean flag &quot;<span class="prop">wrapping</span>&quot; at run time.<br><br>
+&quot;termlib.js&quot; even supports conditional/soft word breaks: Use the <span class="prop">&lt;form feed&gt;</span>-character (&quot;\f&quot;&nbsp;==&nbsp;ASCII 12) for a conditional word break.<br><br>
+Wrapping behaviors are configured on a per-character basis in <span class="prop">TermGlobals.wrapChars</span>.<br><br>
+Have a look at the <a href="sample_wrap.html">Text Wrap Sample Page</a>.
+	</td></tr>
+	
+	<tr><td class="lh13"><a name="bold"></a>
+&nbsp;<br>
+<b class="quest">Isn't there any way to use bold output or any other custom styles?</b><br><br>
+
+Starting with version 1.4 there is built in support for custom styles and markup.<br><br>
+
+Have a look at the <a href="sample_style_settings.html">Style Settings Sample Page</a> for an example using a custom &quot;b&quot; style for bold.
+	</td></tr>
+
+	<tr><td class="lh13"><a name="connect"></a>
+&nbsp;<br>
+<b class="quest">How can I connect to a server? (AJAX Handling)</b><br><br>
+
+&quot;termlib.js&quot; comes with tightly integrated functionallity for client-server remote communication tasks via XMLHttpRequests (commonly known as AJAX or JSON).<br><br>
+All you have to do, is call the <span class="prop">send( &lt;options&gt; )</span> method and return.<br>The request (might it succeed or fail) will come back to your callback-handler with your Terminal instance set as the <tt>this</tt> object.<br><br>
+		
+example:
+<pre>  // assume we are inside a handler
+  // (&quot;this&quot; refers to an instance of Terminal)
+  
+  this.send(
+    {
+      url:      &quot;my_service.cgi&quot;,
+      method:   &quot;post&quot;,
+      data:     myDataObject,
+      callback: mySocketCallback
+    }
+  );
+  return;
+  
+  function mySocketCallback() {
+    if (this.socket.succes) {
+       // status 200 OK
+       this.write(&quot;Server said:\n&quot; + this.socket.responseText);
+    }
+    else if (this.socket.errno) {
+       // connection failed
+       this.write(&quot;Connection error: &quot; + this.socket.errstring);
+    }
+    else {
+       // connection succeeded, but server returned other status than 2xx
+       this.write(&quot;Server returned: &quot; +
+                  this.socket.status + &quot; &quot; + this.socket.statusText);
+    }
+    this.prompt()
+  }
+</pre>
+
+Have a look at the <a href="sample_socket.html">Socket Sample Page</a> for detailed information.<br><br>
+
+You may consider to enable the optional <a href="sample_ansi_mapping.html">ANSI-mapping</a> to desplay texts formated using ANSI-escape sequences.<br><br><br>
+
+For better understanding, here is the basic layout of a generic XMLHttpRequest and its handling:
+
+<pre>
+  function connectToHost(url) {
+     // create a request object
+     if (window.XMLHttpRequest) {
+        // create a standard XMLHttpRequest
+        request = new XMLHttpRequest();
+     }
+     else if (window.ActiveXObject) {
+         // XMLHttpRequest not supported, try Active X
+         request = new ActiveXObject('Microsoft.XMLHTTP');
+     }
+     if (request) {
+         request.onreadystatechange = requestChangeHandler;
+         request.open('GET', url);
+         request.send('');
+     }
+     else {
+        // XMLHttpRequest not implemented
+     }
+  }
+  
+  function requestChangeHandler() {
+     if (request.readyState == 4) {
+        // readyState 4: complete; now test for server's response status
+        if (request.status == 200) {
+           // response in request.responseText or request.responseXML if XML-code
+           // if it's JS-code we could get this by eval(request.responseText)
+           // by this we could import whole functions to be used via the terminal
+        }
+        else {
+           // connection error
+           // status code and message in request.status and request.statusText
+        }
+     }
+  }
+</pre>
+The details of the communication can be controlled by the following methods of the XMLHttpRequest object:<br><br>
+
+	<table border="0" cellspacing="0" cellpadding="3">
+	<tr valign="top"><td nowrap class="prop">setRequestHeader(&quot;<i>headerLabel</i>&quot;, &quot;<i>value</i>&quot;)</td><td>set a HTTP header to be sent to the server</td></tr>
+	<tr valign="top"><td nowrap class="prop">getResponseHeader(&quot;<i>headerLabel</i>&quot;)</td><td>get a HTTP header sent from the server</td></tr>
+	<tr valign="top"><td nowrap class="prop">open(<i>method</i>, &quot;<i>url</i>&quot; [, <i>asyncFlag</i> [,<br>&nbsp; &quot;<i>userid</i>&quot; [, &quot;<i>password</i>&quot;]]])</td><td>assign the destination properties to the request.<br>be aware that userid and password are not encrypted!</td></tr>
+	<tr valign="top"><td nowrap class="prop">send(<i>content</i>)</td><td>transmit a message body (post-string or DOM object)</td></tr>
+	<tr valign="top"><td nowrap class="prop">abort()</td><td>use this to stop a pending connection</td></tr>
+	</table>
+
+	</td></tr>
+
+	<tr><td class="lh13"><a name="examples"></a>
+&nbsp;<br>
+<b class="quest">Are there any real world examples of termlib.js at work?</b><br><br>
+
+Have a look at these pages:
+
+<ul>
+<li class="lh13"><a href="http://www.masswerk.at/elizabot/eliza.html" target="_blank">www.masswerk.at/elizabot/eliza.html</a><br>
+ELIZA Terminal &ndash; An implementation of Joseph Weizenbaum's famous ELIZA program. (2005)</li>
+<li class="lh13"><a href="http://www.masswerk.at/pmd/" target="_blank">www.masswerk.at/pmd/</a><br>
+Pac-Man Dungeons &ndash; A not-so-serious text-mode Pac-Man. (2006)</li>
+<li class="lh13"><a href="http://www.yootopia.org/" target="_blank">www.yootopia.org/</a><br>
+At work at a beta project by Yahoo-research (<a href="http://www.yootles.com/">www.yootles.com</a>).</li>
+<li class="lh13"><a href="http://rubyforge.org/projects/rubyinlabs/" target="_blank">rubyforge.org/projects/rubyinlabs/</a><br>
+Part of the RubyInLabs distribution.</li>
+<li class="lh13"><a href="http://cb.vu/" target="_blank">[cb.vu]~></a><br>
+A web console by Colin Barschel (2007-2008).</li>
+<li class="lh13"><a href="http://articles2.bluishcoder.co.nz/responder/fjsc/" target="_blank">Factor to JavaScript REPL</a><br>
+A online Factor compiler by <a href="http://www.bluishcoder.co.nz/" target="_blank">Bluish Coder</a> (Chris Double, 2006).</li>
+</ul>
+
+	</td></tr>
+
+	<tr><td class="lh13">
+	&nbsp;<br>
+	Norbert Landsteiner<br>
+	<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;<br>
+		<a href="#top">&gt; top of page</a>
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;
+	</td></tr>
+</table>
+
+<div id="termDiv" style="position:absolute; top:20px; left:100px;"></div>
+
+</body>
+</html>
