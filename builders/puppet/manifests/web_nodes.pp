@@ -23,10 +23,11 @@ node webnode inherits base {
     
     include nodejs_rpm
     #include mount_nas
-    include stunnel
+    #include stunnel
     include ssh
     include sudo
     include kfmjs_nginx
+    include static_httpd
     #include deployment_script
     #include deploy_from_s3
     
@@ -71,7 +72,6 @@ node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {
        #include gluster_client
        #include nfs_client
        #include cachefilesd
-
       #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
 }    
 
