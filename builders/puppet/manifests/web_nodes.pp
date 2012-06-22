@@ -52,13 +52,13 @@ node webnode inherits base {
     #    logoutput => true,
     #}
     
-    monit::nodeapp { "koding":
-        appname   => "koding",
-        isenabled => 'enabled', 
-        nodeuser  => true,
-        require_deploy => false,
-    }
-    
+#    monit::nodeapp { "koding":
+#        appname   => "koding",
+#        isenabled => 'enabled', 
+#        nodeuser  => true,
+#        require_deploy => false,
+#    }
+#    
     hosts_file {"$fqdn": ipaddr=> $ipaddress_eth0, aliases=>$hostname}
     hosts_file {"localhost.localdomain": ipaddr=>"127.0.0.1",aliases=>"localhost"}
 
