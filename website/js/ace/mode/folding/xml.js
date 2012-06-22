@@ -71,7 +71,7 @@ oop.inherits(FoldMode, BaseFoldMode);
     };
     
     this._getFirstTagInLine = function(session, row) {
-        var tokens = session.getTokens(row, row)[0].tokens;
+        var tokens = session.getTokens(row);
         var value = "";
         for (var i = 0; i < tokens.length; i++) {
             var token = tokens[i];
@@ -101,7 +101,7 @@ oop.inherits(FoldMode, BaseFoldMode);
         };
     };
     
-    /**
+    /*
      * reads a full tag and places the iterator after the tag
      */
     this._readTagForward = function(iterator) {

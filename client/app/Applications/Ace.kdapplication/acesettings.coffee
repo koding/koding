@@ -55,83 +55,83 @@ __aceSettings =
       title: '8 chars'
   ]
   
-  syntaxes: [
-      value: 'c_cpp'
-      title: 'C++'
-    ,
-      value: 'javascript'
-      title: 'Javascript'
-    ,
-      value: 'json'
-      title: 'JSON'
-    ,
-      value: 'coffee'
-      title: 'Coffee-script'
-    ,
-      value: 'css'
-      title: 'CSS'
-    ,
-      value: 'html'
-      title: 'HTML'
-    ,
-      value: 'java'
-      title: 'Java'
-    ,
-      value: 'perl'
-      title: 'Perl'
-    ,
-      value: 'php'
-      title: 'PHP'
-    ,
-      value: 'python'
-      title: 'Python'
-    ,
-      value: 'scss'
-      title: 'SCSS'
-    ,
-      value: 'ruby'
-      title: 'Ruby'
-    ,
-      value: 'svg'
-      title: 'SVG'
-    ,
-      value: 'xml'
-      title: 'XML'
-    ,
-      value: 'groovy'
-      title: 'Groovy'
-    ,
-      value: 'ocaml'
-      title: 'Ocaml'
-    ,
-      value: 'scad'
-      title: 'Scad'
-    ,
-      value: 'scala'
-      title: 'Scala'
-    , 
-      title: 'ColdFusion'
-      value: 'coldfusion'
-    , 
-      value: 'haxe'
-      title: 'Haxe'
-    ,
-      value: 'latex'
-      title: 'Latex'
-    ,
-      title: 'Lua'
-      value: 'lua'
-    ,
-      title: 'Markdown'
-      value: 'markdown'
-    ,
-      title: 'PowerShell'
-      value: 'powershell'
-    ,
-      title: 'SQL'
-      value: 'sql'
-    ].sort (a, b) ->
-      if a.title < b.title then -1 else 1
+  # syntaxes: [
+  #     value: 'c_cpp'
+  #     title: 'C++'
+  #   ,
+  #     value: 'javascript'
+  #     title: 'Javascript'
+  #   ,
+  #     value: 'json'
+  #     title: 'JSON'
+  #   ,
+  #     value: 'coffee'
+  #     title: 'Coffee-script'
+  #   ,
+  #     value: 'css'
+  #     title: 'CSS'
+  #   ,
+  #     value: 'html'
+  #     title: 'HTML'
+  #   ,
+  #     value: 'java'
+  #     title: 'Java'
+  #   ,
+  #     value: 'perl'
+  #     title: 'Perl'
+  #   ,
+  #     value: 'php'
+  #     title: 'PHP'
+  #   ,
+  #     value: 'python'
+  #     title: 'Python'
+  #   ,
+  #     value: 'scss'
+  #     title: 'SCSS'
+  #   ,
+  #     value: 'ruby'
+  #     title: 'Ruby'
+  #   ,
+  #     value: 'svg'
+  #     title: 'SVG'
+  #   ,
+  #     value: 'xml'
+  #     title: 'XML'
+  #   ,
+  #     value: 'groovy'
+  #     title: 'Groovy'
+  #   ,
+  #     value: 'ocaml'
+  #     title: 'Ocaml'
+  #   ,
+  #     value: 'scad'
+  #     title: 'Scad'
+  #   ,
+  #     value: 'scala'
+  #     title: 'Scala'
+  #   , 
+  #     title: 'ColdFusion'
+  #     value: 'coldfusion'
+  #   , 
+  #     value: 'haxe'
+  #     title: 'Haxe'
+  #   ,
+  #     value: 'latex'
+  #     title: 'Latex'
+  #   ,
+  #     title: 'Lua'
+  #     value: 'lua'
+  #   ,
+  #     title: 'Markdown'
+  #     value: 'markdown'
+  #   ,
+  #     title: 'PowerShell'
+  #     value: 'powershell'
+  #   ,
+  #     title: 'SQL'
+  #     value: 'sql'
+  #   ].sort (a, b) ->
+  #     if a.title < b.title then -1 else 1
   themes: [
       value: 'clouds'
       title: 'Clouds'
@@ -203,40 +203,90 @@ __aceSettings =
 
   syntaxAssociations :
 
-    coffee    : ["CoffeeScript" , "coffee|Cakefile"]
-    coldfusion: ["ColdFusion"   , "cfm"]
-    csharp    : ["C#"           , "cs"]
-    css       : ["CSS"          , "css"]
-    diff      : ["Diff"         , "diff|patch"]
-    golang    : ["Go"           , "go"]
-    groovy    : ["Groovy"       , "groovy"]
-    haxe      : ["haXe"         , "hx"]
-    html      : ["HTML"         , "htm|html|xhtml"]
-    c_cpp     : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
-    clojure   : ["Clojure"      , "clj"]
-    java      : ["Java"         , "java"]
-    javascript: ["JavaScript"   , "js"]
-    json      : ["JSON"         , "json"]
-    latex     : ["LaTeX"        , "latex|tex|ltx|bib"]
-    less      : ["LESS"         , "less"]
-    liquid    : ["Liquid"       , "liquid"]
-    lua       : ["Lua"          , "lua"]
-    markdown  : ["Markdown"     , "md|markdown"]
-    ocaml     : ["OCaml"        , "ml|mli"]
-    perl      : ["Perl"         , "pl|pm"]
-    pgsql     : ["pgSQL"        , "pgsql"]
-    php       : ["PHP"          , "php|phtml"]
-    powershell: ["Powershell"   , "ps1"]
-    python    : ["Python"       , "py"]
-    ruby      : ["Ruby"         , "ru|gemspec|rake|rb"]
-    scad      : ["OpenSCAD"     , "scad"]
-    scala     : ["Scala"        , "scala"]
-    scss      : ["SCSS"         , "scss|sass"]
-    sh        : ["SH"           , "sh|bash|bat"]
-    sql       : ["SQL"          , "sql"]
-    svg       : ["SVG"          , "svg"]
-    text      : ["Text"         , "txt"]
-    textile   : ["Textile"      , "textile"]
-    xml       : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
-    xquery    : ["XQuery"       , "xq"]
-    yaml      : ["YAML"         , "yaml"]
+    coffee      : ["CoffeeScript" , "coffee|Cakefile"]
+    coldfusion  : ["ColdFusion"   , "cfm"]
+    csharp      : ["C#"           , "cs"]
+    css         : ["CSS"          , "css"]
+    diff        : ["Diff"         , "diff|patch"]
+    golang      : ["Go"           , "go"]
+    groovy      : ["Groovy"       , "groovy"]
+    haxe        : ["haXe"         , "hx"]
+    html        : ["HTML"         , "htm|html|xhtml"]
+    c_cpp       : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
+    clojure     : ["Clojure"      , "clj"]
+    java        : ["Java"         , "java"]
+    javascript  : ["JavaScript"   , "js"]
+    json        : ["JSON"         , "json"]
+    latex       : ["LaTeX"        , "latex|tex|ltx|bib"]
+    less        : ["LESS"         , "less"]
+    liquid      : ["Liquid"       , "liquid"]
+    lua         : ["Lua"          , "lua"]
+    markdown    : ["Markdown"     , "md|markdown"]
+    ocaml       : ["OCaml"        , "ml|mli"]
+    perl        : ["Perl"         , "pl|pm"]
+    pgsql       : ["pgSQL"        , "pgsql"]
+    php         : ["PHP"          , "php|phtml"]
+    powershell  : ["Powershell"   , "ps1"]
+    python      : ["Python"       , "py"]
+    ruby        : ["Ruby"         , "ru|gemspec|rake|rb"]
+    scad        : ["OpenSCAD"     , "scad"]
+    scala       : ["Scala"        , "scala"]
+    scss        : ["SCSS"         , "scss|sass"]
+    sh          : ["SH"           , "sh|bash|bat"]
+    sql         : ["SQL"          , "sql"]
+    svg         : ["SVG"          , "svg"]
+    text        : ["Text"         , "txt"]
+    textile     : ["Textile"      , "textile"]
+    xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
+    xquery      : ["XQuery"       , "xq"]
+    yaml        : ["YAML"         , "yaml"]
+
+  getSyntaxOptions : -> 
+
+    o = for syntax, info of __aceSettings.syntaxAssociations
+      { title : info[0], value : syntax }
+    
+    o.sort (a, b) -> if a.title < b.title then -1 else 1
+    
+    return o
+
+  aceToHighlightJsSyntaxMap :
+
+    coffee      : "coffee"
+    # coldfusion  : null
+    csharp      : "cs"
+    css         : "css"
+    diff        : "diff"
+    golang      : "go"
+    # groovy      : null
+    # haxe        : null
+    html        : "xml"
+    c_cpp       : "cpp"
+    # clojure     : null
+    java        : "java"
+    javascript  : "javascript"
+    json        : "javascript"
+    # json        : "json"
+    latex       : "tex"
+    less        : "css"
+    # liquid      : null
+    lua         : "lua"
+    # markdown    : "markdown"
+    # ocaml       : null
+    perl        : "perl"
+    pgsql       : "sql"
+    php         : "php"
+    powershell  : "bash"
+    python      : "python"
+    ruby        : "ruby"
+    # scad        : null
+    scala       : "scala"
+    scss        : "css"
+    sh          : "bash"
+    sql         : "sql"
+    # svg         : null
+    # text        : null
+    # textile     : null
+    xml         : "xml"
+    # xquery      : null
+    # yaml        : null

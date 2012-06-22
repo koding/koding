@@ -1,5 +1,3 @@
-console.log 12345, process.pid
-
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
@@ -9,7 +7,8 @@ class JPost extends jraphical.Message
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
-    tagRole           : 'post'
+    taggedContentRole : 'post'
+    tagRole           : 'tag'
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
@@ -57,7 +56,7 @@ class JPost extends jraphical.Message
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
       teaser = null
-      queue = [
+      daisy queue = [
         ->
           status
             .sign(delegate)
@@ -76,13 +75,12 @@ class JPost extends jraphical.Message
               callback createKodingError err
             else queue.next()
         ->
-          if tags?.length
-            status.addTags client, tags, (err)->
-              if err
-                callback createKodingError err
-              else
-                queue.next()
-          else queue.next()
+          tags or= []
+          status.addTags client, tags, (err)->
+            if err
+              callback createKodingError err
+            else
+              queue.next()
         ->
           status.fetchTeaser (err, teaser_)=>
             if err
@@ -102,11 +100,24 @@ class JPost extends jraphical.Message
         -> 
           status.addParticipant delegate, 'author'
       ]
-      daisy queue
 
-  modify: secure ({connection:{delegate}}, formData, callback)->
+  modify: secure (client, formData, callback)->
+    {delegate} = client.connection
     if delegate.getId().equals @originId
-      @update formData, (err, response)=> callback err, response
+      
+      {tags} = formData.meta
+      delete formData.meta
+      daisy queue = [
+        =>
+          tags or= []
+          @addTags client, tags, (err)=>
+            if err
+              callback err
+            else
+              queue.next()
+        =>
+          @update $set: formData, callback
+      ]
     else
       callback new KodingError "Access denied"
 

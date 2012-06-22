@@ -36,6 +36,19 @@ class JCodeSnip extends JPost
     
     JPost.create.call @, client, codeSnip, callback
   
+  modify: secure (client, data, callback)->
+    codeSnip =
+      title       : data.title
+      body        : data.body
+      attachments : [{
+        type      : 'JCodeAttachment'
+        content   : data.code
+        syntax    : data.syntax
+      }]
+    
+    JPost::modify.call @, client, codeSnip, callback
+      # meta        : null
+  
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback
 

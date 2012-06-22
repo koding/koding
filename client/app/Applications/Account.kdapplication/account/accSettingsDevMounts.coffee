@@ -22,8 +22,8 @@ class AccountMountListController extends KDListViewController
     list.registerListener
       KDEventTypes  : "UpdateFormSubmitted"
       listener      : @
-      callback      : (pubInst,{listItem, formElements})=>
-        @updateMount listItem, formElements
+      callback      : (pubInst,{listItem, formData})=>
+        @updateMount listItem, formData
 
   loadView:->
     super
@@ -52,8 +52,8 @@ class AccountMountListController extends KDListViewController
     #     items.push item
     #   @instantiateListItems items
 
-  updateMount:(listItem, formElements)=>
-    f = formElements
+  updateMount:(listItem, formData)=>
+    f = formData
 
     switch f.operation
       when "delete"
@@ -174,7 +174,7 @@ class AccountMountList extends KDListView
       height    : "auto" 
       buttons   : yes
     
-    formElements = _fe = ()->
+    formData = _fe = ()->
       type :
         label : new KDLabelView 
           title : "Select Type:"
@@ -271,8 +271,8 @@ class AccountMountList extends KDListView
       lines = {}
       form = new KDFormView 
         cssClass : "clearfix"
-        callback : (formElements)=>
-          @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formElements}
+        callback : (formData)=>
+          @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formData}
       
       height =  items.length*75
 

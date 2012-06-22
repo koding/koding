@@ -150,8 +150,10 @@ class Ace extends KDView
   
   setSyntax:(mode)->
     
+    file = @getData()
+    mode or= file.syntax
+    
     unless mode
-      file = @getData()
       ext  = @utils.getFileExtension file.path
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext

@@ -35,6 +35,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/**
+ * class Ace
+ *
+ * The main class required to set up an Ace instance in the browser.
+ *
+ *
+ **/
+
 define(function(require, exports, module) {
 "use strict";
 
@@ -47,17 +55,35 @@ var Editor = require("./editor").Editor;
 var EditSession = require("./edit_session").EditSession;
 var UndoManager = require("./undomanager").UndoManager;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
+var MultiSelect = require("./multi_select").MultiSelect;
 
+// The following require()s are for inclusion in the built ace file
+require("./worker/worker_client");
+require("./keyboard/hash_handler");
+require("./keyboard/state_handler");
+require("./placeholder");
+exports.config = require("./config");
+    /**
+     * Ace.edit(el) -> Editor
+     * - el (String | DOMElement): Either the id of an element, or the element itself
+     *
+     * This method embeds the Ace editor into the DOM, at the element provided by `el`.
+     *
+     **/
 exports.edit = function(el) {
     if (typeof(el) == "string") {
         el = document.getElementById(el);
     }
+
+    if (el.env && el.env.editor instanceof Editor)
+        return el.env.editor;
 
     var doc = new EditSession(Dom.getInnerText(el));
     doc.setUndoManager(new UndoManager());
     el.innerHTML = '';
 
     var editor = new Editor(new Renderer(el, require("./theme/textmate")));
+    new MultiSelect(editor);
     editor.setSession(doc);
 
     var env = {};

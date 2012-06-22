@@ -63,7 +63,7 @@ positiveGreen = rgba(58,200,2,1)
   .kdtreeitemview
     line-height     25px
     a
-      font-size     14px
+      font-size     12px
       color         rgba(255,255,255,1)!important
       font-weight   300 !important
       text-shadow   none
@@ -235,27 +235,28 @@ positiveGreen = rgba(58,200,2,1)
       overflow          visible
       .visa
         right           -40px
-        bg(color,rgba(85, 107, 47,.5))
+        bg              color,rgba(85, 107, 47,.5)
       .mastercard
         right           -40px
-        bg(color,rgba(85, 107, 47,.5))
+        bg              color,rgba(85, 107, 47,.5)
       .discover
         right           -40px
-        bg(color,rgba(85, 107, 47,.5))
+        bg              color,rgba(85, 107, 47,.5)
       .amex
         right           -40px
-        bg(color,rgba(85, 107, 47,.5))
+        bg              color,rgba(85, 107, 47,.5)
+
   .actions-wrapper
-    top           50%
-    margin-top    -8px
+    top               50%
+    margin-top        -8px
     a
-      cursor      pointer
+      cursor          pointer
 #account-content-wrapper
+  line-height         20px
+  font-size           13px
   .labelish
-    font-size         13px
-    width             162px
-    line-height       20px
-    margin-top        4px
+    min-width         162px
+    // margin-top        4px
     cursor            pointer
     padding-right     10px
     fl()

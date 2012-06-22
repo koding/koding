@@ -62,19 +62,14 @@ class KDFormView extends KDView
       for own key, value of path
         JsPath.setAt @customData, key, value
 
-  removeCustomData:(path, item)->
-    if item?
-      if typeof path is "string"
-        JsPath.spliceAt @customData, path, (JsPath.getAt @customData, path).indexOf(item), 1 
-      else
-        newData = @customData
-        for place in path
-          newData = newData[place]
-          
-        JsPath.spliceAt @customData, path, newData.indexOf(item), 1 
+  removeCustomData:(path)->
+    path = path.split '.' if 'string' is typeof path
+    [pathUntil..., last] = path 
+    isArrayElement = not isNaN +path
+    if isArrayElement
+      JsPath.spliceAt @customData, pathUntil, last
     else
       JsPath.deleteAt @customData, path
-    
   
   getData: ->
     formData = $.extend {},@getCustomData()
