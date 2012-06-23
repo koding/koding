@@ -19,7 +19,7 @@ module.exports = new Kite 'terminaljs'
   _disconnect:({requesterId})-> controller.kill requesterId
   
   create  : (options,callback)  =>
-    log.info "creating new terminal for #{options.username}"
+    # log.info "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
     # obj =
     #  create : -> console.log "create"
@@ -57,8 +57,8 @@ module.exports = new Kite 'terminaljs'
             #just to be compatible with other terminaljs
           ping:()->
           test:(callback)->
-            console.log "i'm pinged,returning a callback now"
-            callback Date.now()
+            console.log e = "i'm really pinged,returning a callback now"
+            callback e, Date.now()
       else
         console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)",options,callback
     catch e
