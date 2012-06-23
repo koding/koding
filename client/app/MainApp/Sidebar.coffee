@@ -244,9 +244,10 @@ class SidebarController extends KDViewController
   bottomControlsListData :
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal" , path : "Shell"}
+      { title : "Launch Terminal",    icon : "terminal", path : "Shell"}
       { title : "Add Resources",      icon : "resources" }
-      { title : "Settings",           icon : "cog"}#      , path : "Environment" }
+      { title : "Settings",           icon : "cog" }#      , path : "Environment" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts", action: "showShortcuts" }
     ]
 
 
@@ -322,10 +323,10 @@ class Sidebar extends KDView
     # @getSingleton("windowController").notifyWindowResizeListeners()
   
   _windowDidResize:->
-    # @finderBottomControlsHolder.getHeight() ---> 118
+    bottomListHeight = @finderBottomControlsHolder.getHeight() or 109
     # when finderpanel is hidden we cant get the height thats why this is hardcoded
     # should be fixed
-    @finderHolder.setHeight @getHeight() - @finderHeaderHolder.getHeight() - 118
+    @finderHolder.setHeight @getHeight() - @finderHeaderHolder.getHeight() - bottomListHeight
 
 
 

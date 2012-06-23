@@ -34,7 +34,7 @@ class LinkView extends KDCustomHTMLView
     bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
       @setData origin
       @render()
-      @$().attr "href","/#!/#{origin.profile.nickname}" 
+      @$().attr "href","/#!/#{origin.profile?.nickname}" 
       # @$().twipsy title : "@#{origin.profile.nickname}", placement : "left"
 
   viewAppended:->
@@ -66,22 +66,25 @@ class TagLinkView extends LinkView
     appManager.tell "Topics", "createContentDisplay", tag
 
 class LinkGroup extends KDCustomHTMLView
-  constructor:(options, data)->
-    options =
-      tagName       : 'span'
-      cssClass      : 'link-group'
-      subItemClass  : options.subItemClass or ProfileLinkView
-      group         : options.group
-      itemsToShow   : options.itemsToShow or 3
-      hasMore       : (options.totalCount or options.group.length) > (options.itemsToShow or 3)
-      totalCount    : options.totalCount or options.group.length
+
+  constructor:(options = {}, data)->
+
+    options.tagName         = 'div'
+    options.cssClass        = 'link-group'
+    options.subItemClass  or= ProfileLinkView
+    options.itemsToShow   or= 3
+    options.totalCount    or= data?.length or options.group?.length or 0
+    options.hasMore         = options.totalCount > options.itemsToShow
+
     super options, data
+
     if @getData()?
       @createParticipantSubviews()
     else if options.group
       @loadFromOrigins options.group
   
   loadFromOrigins:(group)->
+
     three = group.slice(-3)
     bongo.cacheable three, (err, bucketContents)=>
       @setData bucketContents
@@ -89,9 +92,11 @@ class LinkGroup extends KDCustomHTMLView
       @render()
   
   itemClass:(options, data)->
+
     new (@getOptions().subItemClass) options, data
   
   createParticipantSubviews:->
+
     participants = @getData()
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
@@ -99,6 +104,7 @@ class LinkGroup extends KDCustomHTMLView
     @template.update()
   
   pistachio:->
+
     participants = @getData()
     {hasMore, totalCount} = @getOptions()
     tmpl = switch participants.length
@@ -108,13 +114,37 @@ class LinkGroup extends KDCustomHTMLView
         sep = if @participant0.getData() instanceof bongo.api.JAccount then ', ' else ' '
         "{{> @participant0}}#{sep}{{> @participant1}}#{if hasMore then sep else ' and'} {{> @participant2}}"
     tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
-    super tmpl
+    return tmpl
 
-  # click:(event)->
-  #   if $(event.target).is "a.more"
-  #     participants = @getData()
-  #     modal = new FollowedModalView {}, participants
-  #     modal.putList()
+class ActivityChildViewTagGroup extends LinkGroup
+
+  render:->
+
+    @createParticipantSubviews()
+  
+  pistachio:->
+
+    participants = @getData()
+    {hasMore, totalCount} = @getOptions()
+
+    @more = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "more"
+      partial     : "#{participants.length-3} more"
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : ->
+        new FollowedModalView {}, participants
+
+    switch participants.length
+      when 0 then ""
+      when 1 then "in {{> @participant0}}"
+      when 2 then "in {{> @participant0}}{{> @participant1}}"
+      when 3 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}"
+      when 4 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}{{> @participant3}}"
+      else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}and {{> @more}}"
+
       
 class FollowedModalView extends KDModalView
   
@@ -143,18 +173,24 @@ class FollowedModalView extends KDModalView
     options.height = "auto"
 
     super
+    
+  # viewAppended:->
+  # 
+  #   @putList()
 
   putList:->
 
     participants = @getData()
-    log participants
-
-    controller = new listControllerMap()[@type]
-      subItemClass : listItemMap()[@type]
-    , items : participants
     
-    # log controller.getView()
-    # @addSubView controller.getView(), ".kdmodal-content"
+    # controller = new listControllerMap()[@type]
+    # subclass of KDListViewController throws an error !!!
+    controller = new KDListViewController
+      view            : new KDListView
+        subItemClass  : listItemMap()[@type]
+    ,
+      items           : participants
+    
+    @addSubView controller.getView(), ".kdmodal-content"
 
 class AvatarView extends LinkView
   constructor:(options,data)->

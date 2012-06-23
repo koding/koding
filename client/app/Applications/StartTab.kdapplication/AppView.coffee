@@ -42,27 +42,49 @@ class StartTabMainView extends KDView
     
   addRecentFiles:->
 
-    @addSubView recentFilesView = new KDView
+    @addSubView @recentFilesWrapper = new KDView
       cssClass    : 'start-tab-recent-container file-container'
     
-    recentFilesView.addSubView new KDView
+    @recentFilesWrapper.addSubView new KDView
       tagName     : 'h3'
       partial     : 'Recent Files'
     
-    appManager.getStorage 'Finder', '1.0', (err, storage)->
+    @recentFileViews = {}
+    
+    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+
+      storage.on "update", => @updateRecentFileViews()
+
       if err
         error "couldn't fetch the app storage.", err
       else
-        # recentFiles = storage.getAt('bucket.recentFiles')
-        recentFiles = if storage.bucket?.recentFiles? then storage.bucket.recentFiles else []
-        if recentFiles?.length
-          recentFiles.forEach (file)->
-            recentFilesView.addSubView new StartTabRecentFileView {}, file
-        else
-          recentFilesView.hide()
-          # recentFilesView.addSubView new KDView
-          #   cssClass    : 'start-tab-no-recent-files'
-          #   partial     : "You don't have any recent files to look at."
+        recentFilePaths = storage.getAt('bucket.recentFiles')
+        @updateRecentFileViews()
+        @getSingleton('mainController').on "NoSuchFile", (file)=>
+          recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
+          # log "updating storage", recentFilePaths.length
+          storage.update { 
+            $set: 'bucket.recentFiles': recentFilePaths
+          }, => log "storage updated"
+          
+
+  updateRecentFileViews:()->
+    
+    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+
+      recentFilePaths = storage.getAt('bucket.recentFiles')
+      # log "updating views", recentFilePaths.length
+    
+      for path, view of @recentFileViews
+        @recentFileViews[path].destroy()
+        delete @recentFileViews[path]
+    
+      if recentFilePaths?.length
+        recentFilePaths.forEach (filePath)=>
+          @recentFileViews[filePath] = new StartTabRecentFileView {}, filePath
+          @recentFilesWrapper.addSubView @recentFileViews[filePath]
+      else
+        @recentFilesWrapper.hide()
 
   apps : [
     {
@@ -182,26 +204,16 @@ class StartTabAppView extends KDView
     else 
       appManager.openApplication appToOpen
 
-class StartTabRecentFileView extends KDView
+class StartTabRecentFileView extends JView
   constructor:(options, data)->
     options = $.extend
       tagName     : 'a'
       cssClass    : 'start-tab-recent-file'
+      tooltip     :
+        title     : "<p class='file-path'>#{data}</p>"
+        template  : '<div class="twipsy-arrow"></div><div class="twipsy-inner twipsy-inner-wide"></div>'
     , options
     super options, data
-    
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-    path = @getData()
-    @$().twipsy
-      title     : "<p class='file-path'>#{path}</p>"
-      placement : "above"
-      offset    : 0
-      delayIn   : 300
-      html      : yes
-      animate   : yes
-      template  : '<div class="twipsy-arrow"></div><div class="twipsy-inner twipsy-inner-wide"></div>'
     
   pistachio:->
     path = @getData()
@@ -218,7 +230,19 @@ class StartTabRecentFileView extends KDView
     
   click:(event)->
     # appManager.notify()
-    appManager.openFile FSHelper.createFileFromPath @getData()
+    file = FSHelper.createFileFromPath @getData()
+    file.fetchContents (err, contents)=>
+      if err
+        if /No such file or directory/.test err
+          @getSingleton('mainController').emit "NoSuchFile", file
+          new KDNotificationView
+            title     : "This file is deleted in server!"
+            type      : "mini"
+            container : @parent
+            cssClass  : "error"
+      else
+        file.contents = contents
+        appManager.openFile file
 
 class SplitOptionsLink extends KDView
   constructor:(options, data)->

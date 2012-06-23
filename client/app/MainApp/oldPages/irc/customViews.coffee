@@ -568,7 +568,7 @@
 #   constructor:(options,data)->
 #     super options,data
 # 
-#   formSubmit:(formElements)-> noop
+#   formSubmit:(formData)-> noop
 # 
 #   viewAppended:()->
 #     delegate = @getDelegate()

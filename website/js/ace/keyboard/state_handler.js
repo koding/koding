@@ -47,7 +47,7 @@ function StateHandler(keymapping) {
 }
 
 StateHandler.prototype = {
-    /**
+    /*
      * Build the RegExp from the keymapping as RegExp can't stored directly
      * in the metadata JSON and as the RegExp used to match the keys/buffer
      * need to be adapted.
@@ -198,10 +198,12 @@ StateHandler.prototype = {
         }
     },
 
-    /**
+    /*
      * This function is called by keyBinding.
      */
     handleKeyboard: function(data, hashId, key, keyCode, e) {
+        if (hashId == -1)
+            hashId = 0
         // If we pressed any command key but no other key, then ignore the input.
         // Otherwise "shift-" is added to the buffer, and later on "shift-g"
         // which results in "shift-shift-g" which doesn't make sense.
@@ -224,7 +226,7 @@ StateHandler.prototype = {
     }
 }
 
-/**
+/*
  * This is a useful matching function and therefore is defined here so that
  * users of KeyboardStateMapper can use it.
  *

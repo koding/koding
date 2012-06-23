@@ -101,7 +101,7 @@ exports.arrayToMap = function(arr) {
 
 };
 
-/**
+/*
  * splice out of 'array' anything that === 'value'
  */
 exports.arrayRemove = function(array, value) {
@@ -115,6 +115,20 @@ exports.arrayRemove = function(array, value) {
 exports.escapeRegExp = function(str) {
     return str.replace(/([.*+?^${}()|[\]\/\\])/g, '\\$1');
 };
+
+exports.getMatchOffsets = function(string, regExp) {
+    var matches = [];
+
+    string.replace(regExp, function(str) {
+        matches.push({
+            offset: arguments[arguments.length-2],
+            length: str.length
+        });
+    });
+
+    return matches;
+};
+
 
 exports.deferredCall = function(fcn) {
 

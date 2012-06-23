@@ -1,4 +1,4 @@
-/**
+/*
  *  Based on code from:
  *
  * XRegExp 1.5.0
@@ -30,6 +30,9 @@ define(function(require, exports, module) {
             return !x.lastIndex;
         }();
 
+    if (compliantLastIndexIncrement && compliantExecNpcg)
+        return;
+
     //---------------------------------
     //  Overriden native methods
     //---------------------------------
@@ -42,7 +45,7 @@ define(function(require, exports, module) {
     RegExp.prototype.exec = function (str) {
         var match = real.exec.apply(this, arguments),
             name, r2;
-        if (match) {
+        if ( typeof(str) == 'string' && match) {
             // Fix browsers whose `exec` methods don't consistently return `undefined` for
             // nonparticipating capturing groups
             if (!compliantExecNpcg && match.length > 1 && indexOf(match, "") > -1) {

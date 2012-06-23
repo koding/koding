@@ -1,6 +1,6 @@
 
 
-AccountSettingLists.personal.security = class AccountEditSecurity extends KDView
+class AccountEditSecurity extends KDView
   viewAppended:->
     # =================
     # ADDING PASSWORD FORM
@@ -14,25 +14,25 @@ AccountSettingLists.personal.security = class AccountEditSecurity extends KDView
 
     passwordInputs = new KDView cssClass : "hiddenval clearfix passwords"
     passwordInputs.addSubView passwordInput = new KDInputView
-      label        : passwordLabel
-      type         : "password"
-      placeholder  : "type new password"
-      name         : "password"
-      validate     :
+      label         : passwordLabel
+      type          : "password"
+      placeholder   : "type new password"
+      name          : "password"
+      validate      :
         rules       :
           required  : yes
         messages    :
-          required : "Password can't be empty..."
+          required  : "Password can't be empty..."
 
         
     passwordInputs.addSubView passwordConfirm = new KDInputView
-      type         : "password"
-      placeholder  : "re-type new password"
-      name         : "passwordConfirm"
-      validate  :
-        rules     :
+      type          : "password"
+      placeholder   : "re-type new password"
+      name          : "passwordConfirm"
+      validate      :
+        rules       :
           match     : passwordInput
-        messages  :
+        messages    :
           match     : "Passwords do not match."
       
     passwordInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
@@ -71,8 +71,8 @@ AccountSettingLists.personal.security = class AccountEditSecurity extends KDView
       title : "Password Updated!"
       duration : 1000
   
-  saveNewPassword:(formElements)->    
-    bongo.api.JUser.changePassword formElements.password,(err,docs)=>
+  saveNewPassword:(formData)->    
+    bongo.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
     
     

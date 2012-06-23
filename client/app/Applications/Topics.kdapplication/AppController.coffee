@@ -71,7 +71,7 @@ class Topics12345 extends AppController
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formElements)=> @addATopic formElements
+    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
   
   fetchFeedForHomePage:(callback)->
     options = 
@@ -83,9 +83,9 @@ class Topics12345 extends AppController
     selector = {}
     bongo.api.JTag.someWithRelationship selector, options, callback
 
-  # addATopic:(formElements)->
-  #   # log formElements,"controller"
-  #   bongo.api.JTag.create formElements, (err, tag)->
+  # addATopic:(formData)->
+  #   # log formData,"controller"
+  #   bongo.api.JTag.create formData, (err, tag)->
   #     if err
   #       warn err,"there was an error creating topic!"
   #     else

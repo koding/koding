@@ -18,25 +18,24 @@ class KDAutoCompleteController extends KDViewController
       valuesSavedAsString   : no
       defaultValue          : []
     ,options
-      
+
     super options, data
-    
+
     mainView.registerListener
       KDEventTypes: 'focus'
       listener: @
       callback:(event)=>
         @updateDropdownContents()
-    
+
     @selectedItemData    = []
     @hiddenInputs        = {}
     @selectedItemCounter = 0
-    
-  
+
   reset:->
     subViews = @itemWrapper.getSubViews().slice()
     for item in subViews
       @removeFromSubmitQueue item
-  
+
   loadView:(mainView)->
     @createDropDown()
     @getAutoCompletedItemParent()
@@ -54,7 +53,10 @@ class KDAutoCompleteController extends KDViewController
   keyDownOnInputView:(autoCompleteView,event)=>
     switch event.which
       when 13, 9 #enter, tab
-        @submitAutoComplete autoCompleteView.getValue()
+        unless autoCompleteView.getValue() is ""
+          @submitAutoComplete autoCompleteView.getValue()
+        else
+          return yes
       when 27 #escape
         @hideDropdown()
       when 38 #uparrow
@@ -95,7 +97,7 @@ class KDAutoCompleteController extends KDViewController
           callback      : @submitAutoComplete
 
     windowController = @getSingleton('windowController')
-    
+
     @dropdown = new KDListViewController
       view          : dropdownListView
 
@@ -191,7 +193,6 @@ class KDAutoCompleteController extends KDViewController
       activeItem = @dropdown.getListView().getActiveItem()
       if activeItem.item
         @appendAutoCompletedItem()
-    
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
     else
@@ -252,9 +253,10 @@ class KDAutoCompleteController extends KDViewController
     @getSelectedItemData().push data
 
   removeSelectedItemData:(data)->
-    for selectedData,i in @getSelectedItemData()
+    selectedItemData = @getSelectedItemData()
+    for selectedData,i in selectedItemData
       if selectedData is data
-        @getSelectedItemData().splice i,1
+        selectedItemData.splice i,1
         return
   
   getCollectionPath:->
@@ -286,18 +288,16 @@ class KDAutoCompleteController extends KDViewController
     
     if form
       collection = form.getCustomData path
-      unless collection?
-        collection = []
+      collection = [] unless collection?
       form.addCustomData path, collection
       id = itemValue.getId?()
       collection.push(
-        if id 
+        if id?
           constructorName   : itemValue.constructor.name
-          id                : itemValue.getId()
+          id                : id
         else
           $suggest          : itemValue
       )
-      console.log collection
       @selectedItemCounter++
     else
       itemName  = "#{name}-#{@selectedItemCounter++}"
@@ -308,23 +308,21 @@ class KDAutoCompleteController extends KDViewController
     # debugger
     @getView().setValue @dropdownPrefix = ""
 
-
-
   removeFromSubmitQueue:(item, data)->
     {itemDataPath,form} = @getOptions()
     data      or= item.getData()
-    itemValue = if @options.savedValueIsString then JsPath.getAt data, itemDataPath else data
     path = @getCollectionPath()
-    
     if form
-      # we are changing form.removeCustomData for the time being, since it deletes the whole array and not just an item in the array
-      if typeof form.getCustomData(path) is 'string'
-        form.removeCustomData path
-      else
-        form.removeCustomData path, itemValue
+      collection = JsPath.getAt form.getCustomData(), path
+      collection = collection.filter (sibling)->
+        id = data.getId?()
+        unless id?
+          sibling.$suggest isnt data.title
+        else
+          sibling.id isnt id
+      JsPath.setAt form.getCustomData(), path, collection
     else
       @removeHiddenInputItem path.join('.')
-    
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
