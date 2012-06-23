@@ -25,11 +25,10 @@ class Ace extends KDView
       @editor = ace.edit "editor#{@getId()}"
       @prepareEditor()
       @emit "ace.ready"
-
+      
       @fetchContents (err, contents)=>
-        if err then warn err else
-          @setContents contents if contents
-          @editor.gotoLine 0
+        @setContents contents if contents
+        @editor.gotoLine 0
 
 
   prepareEditor:->
@@ -158,7 +157,7 @@ class Ace extends KDView
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
-      mode or= "javascript"
+      mode or= "text"
     
     require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
