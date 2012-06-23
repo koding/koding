@@ -40,7 +40,7 @@ class NFinderController extends KDViewController
 
       @treeController.initTree [mount]
       
-      @utils.nextTick 2000, =>
+      @utils.wait 2000, =>
         @treeController.navigateTo initialPath
 
   getStorage: (callback) ->

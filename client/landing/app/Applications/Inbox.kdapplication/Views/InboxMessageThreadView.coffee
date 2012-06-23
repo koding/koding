@@ -5,10 +5,11 @@ class InboxMessageThreadView extends CommentView
     @setClass "thread-container"
   
   createSubViews:(data)->
+
     @commentList = new CommentListView
-      subItemClass: InboxMessageReplyView
-#      lastToFirst: yes
-      delegate: @
+      type          : "comments"
+      subItemClass  : InboxMessageReplyView
+      delegate      : @
     , data
 
     @commentListViewController = new CommentListViewController 

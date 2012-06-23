@@ -88,7 +88,7 @@ class Activity12345 extends AppController
     @createFollowedAndPublicTabs()
 
     # INITIAL HEIGHT SET FOR SPLIT
-    @utils.nextTick 1000, =>
+    @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
       @getSingleton('windowController').notifyWindowResizeListeners()
 
