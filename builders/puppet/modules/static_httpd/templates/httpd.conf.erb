@@ -133,7 +133,7 @@ MaxRequestsPerChild  0
 # prevent Apache from glomming onto all bound IP addresses (0.0.0.0)
 #
 #Listen 12.34.56.78:80
-Listen 127.0.0.1:8080
+Listen 127.0.0.1:8082
 Listen 127.0.0.1:8081
 
 #
@@ -988,7 +988,7 @@ BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 #
 # Use name-based virtual hosting.
 #
-NameVirtualHost *:8080
+#NameVirtualHost *:8080
 #
 # NOTE: NameVirtualHost cannot be used without a port specifier 
 # (e.g. :80) if mod_ssl is being used, due to the nature of the
@@ -1001,7 +1001,7 @@ NameVirtualHost *:8080
 # The first VirtualHost section is used for requests without a known
 # server name.
 #
-<VirtualHost *:8080>
+<VirtualHost *:8082>
     DocumentRoot /mnt/storage0/koding/website
     ServerName <%= fqdn %>
     ServerAlias api.koding.com
