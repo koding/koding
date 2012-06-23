@@ -1,0 +1,639 @@
+<html>
+<head>
+	<title>termlib ANSI-Mapping Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// mass:werk, N.Landsteiner 2010
+
+var ANSI_CSI=String.fromCharCode(0x1b)+'[';
+
+function ansiExpression(p) {
+	return ANSI_CSI+String(p)+'m';
+}
+
+var term;
+
+var help = [
+	' termlib ANSI-mapping sample help: ',
+	'',
+	' * type "test" to see a demo for ANSI-escape code mapping.',
+	' * type "help" to see this page.',
+	' * type "exit" to quit.',
+	' '
+];
+
+
+var colorTable = [
+	ansiExpression(7)+' termlib ANSI-mapping sample: '+ansiExpression(0),
+	' ',
+	ansiExpression(3)+ansiExpression(4)+' color name      code       sample       comment'+ansiExpression(23)+'                               '+ansiExpression(0),
+	' black           30m    '+ansiExpression(30)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0)+'   "black" is displayed as config color',
+	' red             31m    '+ansiExpression(31)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0)+'    unless option ANSItrueBlack is true',
+	' green           32m    '+ansiExpression(32)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' yellow          33m    '+ansiExpression(33)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' blue            34m    '+ansiExpression(34)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' magenta         35m    '+ansiExpression(35)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' cyan            36m    '+ansiExpression(36)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' white           37m    '+ansiExpression(37)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright black    90m    '+ansiExpression(90)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright red      91m    '+ansiExpression(91)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright green    92m    '+ansiExpression(92)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright yellow   93m    '+ansiExpression(93)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright blue     94m    '+ansiExpression(94)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright magenta  95m    '+ansiExpression(95)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright cyan     96m    '+ansiExpression(96)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' bright white    97m    '+ansiExpression(97)+'normal '+ansiExpression(7)+'reverse'+ansiExpression(0),
+	' ',
+	'other supported ANSI SGR sequences:',
+	' 1m '+ansiExpression(1)+'bold'+ansiExpression(22)+', 3m '+ansiExpression(3)+'italics'+ansiExpression(23)+', 4m '+ansiExpression(4)+'underline'+ansiExpression(24)+', 7m '+ansiExpression(7)+'negative image'+ansiExpression(27)+', 9m '+ansiExpression(9)+'crossed out'+ansiExpression(29)+',%n 21m '+ansiExpression(21)+'underline double'+ansiExpression(24)
+];
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				mapANSI: true,
+				ANSItrueBlack: true,
+				initHandler: termInitHandler,
+				handler: termHandler,
+				exitHandler: termExitHandler
+			}
+		);
+		term.open();
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function termInitHandler() {
+	// output a start up screen
+	this.write(colorTable);
+	// and leave with prompt
+	this.prompt();
+}
+
+function termHandler() {
+	// default handler + exit
+	this.newLine();
+	if (this.lineBuffer.search(/^\s*exit\s*$/i) == 0) {
+		this.close();
+		return;
+	}
+	else if (this.lineBuffer.search(/^\s*test\s*$/i) == 0) {
+		this.clear();
+		this.write(colorTable);
+	}
+	else if (this.lineBuffer.search(/^\s*help\s*$/i) == 0) {
+		this.clear();
+		this.write(help);
+	}
+	else if (this.lineBuffer != '') {
+		this.type('You typed: '+this.lineBuffer);
+		this.newLine();
+	}
+	this.prompt();
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td,li {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+tt,pre {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop,.markup {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			ANSI-Mapping Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2010<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" width="560" id="mainPane">
+		<p><b style="letter-spacing: 1px;">ANSI-Mapping  Sample Page</b><br>&nbsp;</p>
+		<p>With version 1.51 termlib.js comes with basic support of ANSI-escape sequences<br>This option might be especially usefull with output of any server-generated texts.</p>
+		<p>ANSI-escape sequences are of the form <tt>CSI parameter letter</tt>, where</p>
+		<ul>
+			<li><tt>CSI</tt> is a sequence of ESC (0x19) and &quot;[&quot; or the single char 0x9b</li>
+			<li><tt>parameters</tt> a single number, a list of numbers separated by &quot;;&quot;, or empty</li>
+			<li><tt>letter</tt> a letter signifying the command (currently only &quot;m&quot; supported)</li>
+		</ul>
+		
+		<p>Supported is a subclass of SGR (Select Graphic Rendition) codes (letter &quot;m&quot;), all other sequences are deleted from output.</p>
+		
+		<p>To enable ANSI-mapping for the <tt>write()</tt> method set the config-flag <tt>mapANSI</tt> to <tt>true</tt>.<br>
+		As the the color code for black is rendered as the normal foreground color by default, you may also want to set the config-flag <tt>ANSItrueBlack</tt> to <tt>true</tt> in order to render code <tt>CSI 30 m</tt> (set foreground color to black) as truely black.</p>
+		
+		<p>Example:</p>
+<pre>
+   var myterm = new Terminal(
+      {
+         mapANSI: true,       // enable ANSI mapping
+         ANSItrueBlack: true  // force black in stead of renderung as fg color
+      }
+    );
+ 
+    myterm.open();
+
+</pre>
+
+		<p>You may also turn ANSI-mapping on and off on the fly by directly accessing the property <tt>mapANSI</tt> of your Terminal instance.</p>
+		<p>Example:</p>
+<pre>
+   myterm.mapANSI = true;
+   myterm.write( ANSIencodedText, true ); // output text with &quot;more&quot;-option
+   myterm.mapANSI = false; // resume to normal
+
+</pre>
+		<p>Warning: As the method <tt>write()</tt> uses the percent sign (<tt>%</tt>) as an escape character, you would probably want to escape any &quot;%&quot; in any server-generated text with &quot;%%&quot; before output. You may use the method <tt>escapeMarkup()</tt> for this:</p>
+		<p>Example:</p>
+<pre>
+   escapedText = myterm.escapeMarkup( ANSIencodedText );
+   myterm.write( escapedText, true ); // output text with &quot;more&quot;-option
+
+</pre>
+		<p>See the example at the bottom of this page for a complete example of a remote text reader with aNSI-support and escaping of internal markup.</p>
+		<p>&nbsp;</p>
+
+		<p><b>Supported SGR Codes:</b></p>
+		
+		
+		<table border="0" cellspacing="0" cellpadding="2" style="margin-left: 20px;">
+		<tr>
+			<td nowrap><tt>code</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>effect</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>notes</tt></td>
+		</tr>
+		<tr valign="top">
+			<td>0</tt><td></td>
+			<td nowrap>Reset / Normal</td><td></td>
+			<td>default rendition (implementation-defined), cancels the effect of any preceding occurrence of SGR [ECMA-48]</td>
+		</tr>
+		<tr valign="top">
+			<td>1</tt><td></td>
+			<td norap>Intensity: Bold</td><td></td>
+			<td>rendered as <i>italics</i> by default,<br>see note on style 16</td>
+		</tr>
+		<tr>
+			<td>3</tt><td></td>
+			<td nowrap>Italics: on</td><td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>4</tt><td></td>
+			<td nowrap>Underline: Single</td><td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>7</tt><td></td>
+			<td nowrap>Negative Image</td><td></td>
+			<td>reverse</td>
+		</tr>
+		<tr valign="top">
+			<td>9</tt><td></td>
+			<td nowrap>Crossed-out</td><td></td>
+			<td>characters still legible but marked as to be deleted</td>
+		</tr>
+		<tr>
+			<td>21</tt><td></td>
+			<td nowrap>Underline: Double</td><td></td>
+			<td>rendered as simple underline</td>
+		</tr>
+		<tr>
+			<td>22</tt><td></td>
+			<td nowrap>Intensity: Normal</td><td></td>
+			<td>not bold</td>
+		</tr>
+		<tr>
+			<td>23</tt><td></td>
+			<td nowrap>Italics: off</td><td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td>24</tt><td></td>
+			<td nowrap>Underline: off</td><td></td>
+			<td>both single and double</td>
+		</tr>
+		<tr>
+			<td>27</tt><td></td>
+			<td nowrap>Positive Image</td><td></td>
+			<td>reverse off</td>
+		</tr>
+		<tr>
+			<td>29</tt><td></td>
+			<td nowrap>not crossed out</td><td></td>
+			<td></td>
+		</tr>
+		<tr valign="top">
+			<td>30-39</tt><td></td>
+			<td nowrap>Set foreground color,<br>normal intensity</td><td></td>
+			<td>3x, see color table</td>
+		</tr>
+		<tr valign="top">
+			<td>90-99</tt><td></td>
+			<td nowrap>Set foreground color,<br>high intensity</td><td></td>
+			<td>9x, see color table</td>
+		</tr>
+		</table>
+		
+		
+		<p>Color Table</p>
+		
+		
+		<table border="0" cellspacing="0" cellpadding="2" style="margin-left: 20px;">
+		<tr>
+			<td nowrap><tt>code</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>name</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>internal color</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>notes</tt></td>
+		</tr>
+		
+		<tr>
+			<td>30</td><td></td>
+			<td nowrap>black</td><td></td>
+			<td>0</td><td></td>
+			<td>default foreground color, or</td><td></td>
+		</tr>
+		<tr valign="top">
+			<td></td><td></td>
+			<td nowrap></td><td></td>
+			<td>1</td><td></td>
+			<td>with option <tt>ANSItrueBlack</tt> = <tt>true</tt></td><td></td>
+		</tr>
+		<tr>
+			<td>31</td><td></td>
+			<td nowrap>red</td><td></td>
+			<td>10</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>32</td><td></td>
+			<td nowrap>green</td><td></td>
+			<td>11</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>33</td><td></td>
+			<td nowrap>yellow</td><td></td>
+			<td>12</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>34</td><td></td>
+			<td nowrap>blue</td><td></td>
+			<td>13</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>35</td><td></td>
+			<td nowrap>magenta</td><td></td>
+			<td>14</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>36</td><td></td>
+			<td nowrap>cyan</td><td></td>
+			<td>15</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>37</td><td></td>
+			<td nowrap>white</td><td></td>
+			<td>#999</td><td></td>
+			<td>effect: light grey</td><td></td>
+		</tr>
+		<tr>
+			<td>39</td><td></td>
+			<td nowrap>reset</td><td></td>
+			<td>0</td><td></td>
+			<td></td><td></td>
+		</tr>
+		
+		<tr>
+			<td>90</td><td></td>
+			<td nowrap>bright black</td><td></td>
+			<td>9</td><td></td>
+			<td>effect: dark grey</td><td></td>
+		</tr>
+		<tr>
+			<td>91</td><td></td>
+			<td nowrap>bright red</td><td></td>
+			<td>2</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>92</td><td></td>
+			<td nowrap>bright green</td><td></td>
+			<td>3</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>93</td><td></td>
+			<td nowrap>bright yellow</td><td></td>
+			<td>4</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>94</td><td></td>
+			<td nowrap>bright blue</td><td></td>
+			<td>5</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>95</td><td></td>
+			<td nowrap>bright magenta</td><td></td>
+			<td>6</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>96</td><td></td>
+			<td nowrap>bright cyan</td><td></td>
+			<td>7</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>97</td><td></td>
+			<td nowrap>bright white</td><td></td>
+			<td>8</td><td></td>
+			<td></td><td></td>
+		</tr>
+		<tr>
+			<td>99</td><td></td>
+			<td nowrap>reset</td><td></td>
+			<td>0</td><td></td>
+			<td>(not a standard)</td><td></td>
+		</tr>
+		</table>
+		
+		<p>As most colors (but 93 &quot;normal white&quot;, hard-coded to &quot;#999&quot;) are internally matched to color-codes, you may configure the representation of ANSI-colors.</p>
+		<p>Example:</p>
+<pre>
+   // assign ANSI-code 93 (bright red) = internal color code 2:
+   TermGlobals.setColor( &quot;2&quot;, &quot;#880000&quot; );
+   
+</pre>
+
+		<p><b>Note on the Representation of &quot;bold&quot;</b></p>
+		<p>As bold is not sane for display on default, code 2 (bold) is matched to the internal style <tt>&quot;b&quot;</tt>, style code <tt>16</tt> and rendered as <i>italics</i> by default.</p>
+		<p>To change the representation of this style you may use the static method <tt>TermGlobals.assignStyle()</tt> as in the following example:</p>
+<pre>
+   // overwrite default rendering by defining style #16 ('b'):
+
+   TermGlobals.assignStyle(
+      16,      // style code
+      &quot;b&quot;,     // markup character
+      &quot;&lt;b&gt;&quot;,   // html start string
+      &quot;&lt;/b&gt;&quot;   // html end string
+   );
+   
+</pre>
+		<p>Be sure to have read the section on bold fonts and CSS-letter-spacing in the <nobr><a href="sample_style_settings.html">Style Settings Sample Page</a>,</nobr> when applying this.</p>
+		<p>&nbsp;</p>
+		
+		<p>All ANSI-code-to-markup-mapping is defined in the static object <tt>Terminal.prototype.globals.ANIS_SGR_codes</tt> (or short: <tt>TermGlobals.ANIS_SGR_codes</tt>).</p>
+		<p>&nbsp;</p>
+
+		<p><b>Example: Remote Text Reader</b></p>
+		<p>Here is a complete example of how to receive a text from a server and display it using ANSI-sequences:</p>
+
+<pre>
+   // *** external file reader with ANSI support ***
+
+   var myterm;
+   
+   var helpPage = [
+      &quot;*** Remote Page Sample ***&quot;,
+      &quot;type 'read &lt;filename&gt;' to load and display a file from the server.&quot;,
+      &quot;type 'exit' to quit.&quot;,
+      &quot; &quot;
+   ];
+
+   function openTerminal() {
+       if (!myterm || myterm.closed) {
+          myterm = new Terminal(
+             {
+                mapANSI: true,
+                handler: commandHandler,
+                initHandler: initHandler
+             }
+          );
+          myterm.open();
+       }
+   }
+
+   function initHandler() {
+      this.write( helpPage );
+      this.prompt();
+   }
+
+   function commandHandler() {
+      this.newLine();
+      this.lineBuffer = this.lineBuffer.replace(/^\s+/, '');
+      var argv = this.lineBuffer.split(/\s+/);
+      var cmd = argv[0];
+      switch (cmd) {
+         case 'read':
+            if (argv.length == 2) {
+               // cmd 'read' with filename: load file from server
+               // return without prompt, response handled in serverCallback
+               var filename = argv[1];
+               this.send(
+                  {
+                     url: filename,
+                     method: 'get',
+                     callback: serverCallback
+                  }
+               );
+               return;
+            }
+            else {
+               // wrong number of arguments
+               this.type( 'Usage: read &lt;filename&gt;' );
+            }
+            break;
+         case 'help':
+            this.clear();
+            this. write( helpPage );
+            break;
+         case 'exit':
+            this.close();
+            return;
+         default:
+            if (cmd) this.type( 'Unkmown command.' );
+      }
+      this.prompt;
+   }
+
+   function serverCallback() {
+      var response=this.socket;
+      if (response.success) {
+         // escape any markup (%) and write it using the more-option
+         // ANSI-translation is done automatically (see config-flag)
+         // return without prompt, prompt is generated by write-more
+
+         var escapedText = this.escapeMarkup( response.responseText );
+         this.write( escapedText, true );
+         return;
+      }
+      else if (response.status == 404) {
+         this.write( 'No such file.' );
+      }
+      else {
+         var message = 'Request failed: '
+           + response.status + ' ' + response.statusText;
+         if (response.errno) message +=  '\n' + response.errstring;
+         this.write( message );
+      }
+      this.prompt();
+   }
+
+</pre>
+	<p>See also: <a href="sample_color.html">Colors Sample Page</a>, <a href="sample_socket.html">Socket Sample Page</a>, <a href="sample_style_settings.html">Style Settings Sample Page</a>.</p>
+	<p>&nbsp;</p>
+</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>                                                                     
