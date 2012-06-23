@@ -1,11 +1,30 @@
-try
-  config      = require './config'
-  Kite        = require 'kite'
-  controller  = new (require("terminaljs-lite").TerminalController)
-  log4js      = require 'log4js'
-  log         = log4js.getLogger "[#{config.name}]"
-catch e
-  console.log e
+class Faker
+  
+  create : (options) ->
+    console.log "faking write"    
+    return faker =
+      write : (str)->
+        console.log "faking write"
+        options.data str
+      setScreenSize : ->
+        console.log "faking write"
+    
+    #fake screen.on "data"
+    i=0
+    setInterval ->
+      options.data Date.now()+"\n",i++
+    ,1000
+  
+  kill : ->
+    console.log "faking kill"    
+
+
+
+config      = require './config'
+Kite        = require 'kite'
+controller  = new Faker #(require("terminaljs-lite").TerminalController)
+log4js      = require 'log4js'
+log         = log4js.getLogger "[#{config.name}]"
 
 
 # log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
