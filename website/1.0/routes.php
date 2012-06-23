@@ -117,3 +117,13 @@ $router->add_route('/kite/disconnect', function () {
     okay();
   }
 });
+
+$router->add_route('/channel/auth', function () {
+  $input = file_get_contents('php://input');
+  parse_str($input);
+  trace('-------', $input);
+  $session = get_session();
+  
+  trace('chris', $_GET, $channel_name, $session);
+  
+});

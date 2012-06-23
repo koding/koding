@@ -84,7 +84,9 @@ function getFeed($collection,$limit,$sort,$skip){
     ) : array(
       '$ne' => -1,
     );
-    
+
+    trace($type);
+
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
