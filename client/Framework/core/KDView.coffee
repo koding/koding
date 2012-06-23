@@ -650,9 +650,9 @@ class KDView extends KDObject
       @$overlay.appendTo parent.$()
 
     if animated
-      @utils.nextTick =>
+      @utils.wait =>
         @$overlay.addClass "in"
-      @utils.nextTick 300, =>
+      @utils.wait 300, =>
         @emit "OverlayAdded", @
     else
       @emit "OverlayAdded", @
@@ -671,7 +671,7 @@ class KDView extends KDObject
 
     if @$overlay.hasClass "animated"
       @$overlay.removeClass "in"
-      @utils.nextTick 300, =>
+      @utils.wait 300, =>
         kallback()
     else
       kallback()
@@ -691,7 +691,7 @@ class KDView extends KDObject
       listenedToInstance  : @
       callback            : =>
         # log "get rid of this timeout there should be an event after template update"
-        @utils.nextTick =>
+        @utils.wait =>
           @$(o.selector).twipsy o
   
   listenWindowResize:->

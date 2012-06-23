@@ -303,11 +303,8 @@ class JTreeViewController extends KDViewController
 
   setListenersForList:(listId)->
 
-    @listenTo
-      KDEventTypes        : 'ItemWasAdded'
-      listenedToInstance  : @listControllers[listId].getView()
-      callback            : (pubInst, nodeItem)=>
-        @setItemListeners pubInst, nodeItem
+    @listControllers[listId].getView().on 'ItemWasAdded', (view, index)=> 
+      @setItemListeners view, index
 
     @listenTo 
       KDEventTypes       : ["ItemSelectionPerformed","ItemDeselectionPerformed"]
@@ -324,11 +321,11 @@ class JTreeViewController extends KDViewController
       listenedToInstance  : @listControllers[listId].getListView()
       callback            : (treeview, event)=> @keyEventHappened event
 
-  setItemListeners:(pubInst, nodeItem)->
+  setItemListeners:(view, index)->
 
     @listenTo 
       KDEventTypes       : "viewAppended"
-      listenedToInstance : nodeItem.view
+      listenedToInstance : view
       callback           : (view)=> @nodeWasAdded view
 
 
@@ -342,7 +339,7 @@ class JTreeViewController extends KDViewController
     
     @listenTo
       KDEventTypes       : mouseEvents
-      listenedToInstance : nodeItem.view
+      listenedToInstance : view
       callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
       
         

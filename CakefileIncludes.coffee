@@ -445,9 +445,14 @@ Includes =
         Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
-        CommentView                 : "./client/app/CommonViews/CommentView.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
+
+        CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
+        CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
+        CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
+        CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
+        CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
