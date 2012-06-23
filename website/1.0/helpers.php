@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'mongohq-dev';
+$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function trace () {
