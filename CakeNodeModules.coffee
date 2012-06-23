@@ -4,8 +4,6 @@ module.exports =
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow"
   ]
   npm_modules :
-    connect         : '2.3.3'       # required by sharedhosting kite.
-    share           : '0.5.0-pre'   # required by sharedhosting kite.
     bitly				    : '1.2.3'
     braintree				: '1.1.0'
     'coffee-script'	: '1.1.2'
