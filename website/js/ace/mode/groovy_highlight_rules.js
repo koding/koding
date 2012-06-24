@@ -64,7 +64,7 @@ var GroovyHighlightRules = function() {
                 token : "comment",
                 regex : "\\/\\/.*$"
             },
-            new DocCommentHighlightRules().getStartRule("doc-start"),
+            DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
                 merge : true,
@@ -73,6 +73,14 @@ var GroovyHighlightRules = function() {
             }, {
                 token : "string.regexp",
                 regex : "[/](?:(?:\\[(?:\\\\]|[^\\]])+\\])|(?:\\\\/|[^\\]/]))*[/]\\w*\\s*(?=[).,;]|$)"
+            }, {
+                token : "string",
+                regex : '"""',
+                next  : "qqstring"
+            }, {
+                token : "string",
+                regex : "'''",
+                next  : "qstring"
             }, {
                 token : "string", // single line
                 regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
@@ -130,11 +138,43 @@ var GroovyHighlightRules = function() {
                 merge : true,
                 regex : ".+"
             }
+        ],
+        "qqstring" : [
+            {
+                token : "constant.language.escape",
+                regex : /\\(?:u[0-9A-Fa-f]{4}|.|$)/
+            }, {
+                token : "constant.language.escape",
+                regex : /\$[\w\d]+/
+            }, {
+                token : "constant.language.escape",
+                regex : /\$\{[^"\}]+\}?/
+            }, {
+                token : "string",
+                regex : '"{3,5}',
+                next : "start"
+            }, {
+                token : "string",
+                regex : '.+?'
+            }
+        ],
+        "qstring" : [
+            {
+                token : "constant.language.escape",
+                regex : /\\(?:u[0-9A-Fa-f]{4}|.|$)/
+            }, {
+                token : "string",
+                regex : "'{3,5}",
+                next : "start"
+            }, {
+                token : "string",
+                regex : ".+?"
+            }
         ]
     };
     
     this.embedRules(DocCommentHighlightRules, "doc-",
-        [ new DocCommentHighlightRules().getEndRule("start") ]);
+        [ DocCommentHighlightRules.getEndRule("start") ]);
 };
 
 oop.inherits(GroovyHighlightRules, TextHighlightRules);

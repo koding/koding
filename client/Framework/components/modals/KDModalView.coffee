@@ -3,7 +3,7 @@ class KDModalView extends KDView
     options = $.extend
       overlay        : no            # a Boolean
       overlayClick   : yes           # a Boolean
-      height         : 300           # a Number for pixel value or a String e.g. "100px" or "20%"
+      height         : "auto"        # a Number for pixel value or a String e.g. "100px" or "20%" or "auto"
       width          : 400           # a Number for pixel value or a String e.g. "100px" or "20%"
       position       : {}            # an Object holding top and left values
       title          : null          # a String of text or HTML
@@ -60,9 +60,12 @@ class KDModalView extends KDView
     </div>"
 
   setButtons:(buttonDataSet)->
+    
+    @buttons or= {}
     @setClass "with-buttons"
-    for own buttonTitle,buttonOptions of buttonDataSet
-      button = @createButton buttonTitle,buttonOptions
+    for own buttonTitle, buttonOptions of buttonDataSet
+      button = @createButton buttonTitle, buttonOptions
+      @buttons[buttonTitle] = button
       if buttonOptions.focus
         focused = yes
         button.$().trigger "focus"
@@ -116,10 +119,12 @@ class KDModalView extends KDView
         @destroy()
 
   createButton:(title,buttonOptions)->
-    @buttonHolder.addSubView button = new KDButtonView
-      title       : title
-      style       : buttonOptions.style     if buttonOptions.style?
-      callback    : buttonOptions.callback  if buttonOptions.callback?
+    
+    buttonOptions.title = title
+    @buttonHolder.addSubView button = new KDButtonView buttonOptions
+      # title       : title
+      # style       : buttonOptions.style     if buttonOptions.style?
+      # callback    : buttonOptions.callback  if buttonOptions.callback?
     button.registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:->
       @propagateEvent KDEventType:'KDModalShouldClose'
     button

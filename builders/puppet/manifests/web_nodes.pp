@@ -23,10 +23,11 @@ node webnode inherits base {
     
     include nodejs_rpm
     #include mount_nas
-    include stunnel
+    #include stunnel
     include ssh
     include sudo
     include kfmjs_nginx
+    include static_httpd
     #include deployment_script
     #include deploy_from_s3
     
@@ -51,13 +52,13 @@ node webnode inherits base {
     #    logoutput => true,
     #}
     
-    monit::nodeapp { "koding":
-        appname   => "koding",
-        isenabled => 'enabled', 
-        nodeuser  => true,
-        require_deploy => false,
-    }
-    
+#    monit::nodeapp { "koding":
+#        appname   => "koding",
+#        isenabled => 'enabled', 
+#        nodeuser  => true,
+#        require_deploy => false,
+#    }
+#    
     hosts_file {"$fqdn": ipaddr=> $ipaddress_eth0, aliases=>$hostname}
     hosts_file {"localhost.localdomain": ipaddr=>"127.0.0.1",aliases=>"localhost"}
 
@@ -68,10 +69,9 @@ node /^web\d+\.prod\.system\.aws\.koding\.com$/  inherits webnode {
 }    
 
 node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {
-       include gluster_client
+       #include gluster_client
        #include nfs_client
        #include cachefilesd
-
       #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
 }    
 

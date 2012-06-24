@@ -41,12 +41,14 @@ class JComment extends jraphical.Reply
               else
                 message.removeReply rel, -> queue.fin()
       =>
+        deleter = ObjectRef(delegate)
+        console.log deleter
         @update
           $unset      :
             body      : 1
           $set        :
             deletedAt : new Date
-            deletedBy : ObjectRef(delegate)
+            deletedBy : deleter
         , -> queue.fin()
     ]
     dash queue, callback

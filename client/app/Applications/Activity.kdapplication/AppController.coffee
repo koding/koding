@@ -11,7 +11,7 @@ class Activity12345 extends AppController
     # command, environment are all a mess and 
     # devrim is currently working on refactoring them - 3/15/12 sah
 
-    # i kinda cleared that mess, still needs work - 26 April 2012
+    # i kind of cleared that mess, still needs work - 26 April 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -89,6 +89,7 @@ class Activity12345 extends AppController
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.nextTick 1000, =>
+      # activitySplitView._windowDidResize()
       @getSingleton('windowController').notifyWindowResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
@@ -193,7 +194,7 @@ class Activity12345 extends AppController
     selector =
       type        : 
         $in       : @currentFilter
-
+    
     options  =
       limit       : limit or= 20
       skip        : skip  or= @activityListController.getItemCount()
@@ -221,7 +222,8 @@ class Activity12345 extends AppController
     @currentFilter = if show? then [show] else [
       'CStatusActivity'
       'CCodeSnipActivity'
-      'CFollowerBucket'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
     ]
     @loadSomeTeasers -> 
       controller.isLoading = no

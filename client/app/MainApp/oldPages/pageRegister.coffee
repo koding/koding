@@ -11,8 +11,8 @@ class PageRegister extends KDView
     @addSubView @registerLists
     @manageTraditional()
 
-  formSubmit:(formElements)=>
-    bongo.api.JUser.register formElements, (error, result) =>
+  formSubmit:(formData)=>
+    bongo.api.JUser.register formData, (error, result) =>
       if error
         new KDNotificationView
           title   : error.message
@@ -406,10 +406,10 @@ class RegisterFormDefault extends RegisterFormTemplate
 #     newRegisterForm.addSubView submit = new KDButtonView
 #       title    : "register"
 # 
-#   formSubmit:(formElements,event)=>
-#     log formElements,"<<<<<<<< KD SUBMIT"
+#   formSubmit:(formData,event)=>
+#     log formData,"<<<<<<<< KD SUBMIT"
 #     
-#     bongo.api.JUser.register formElements, (err)->
+#     bongo.api.JUser.register formData, (err)->
 #       console.log err
     
     #user.save (err,docs)->

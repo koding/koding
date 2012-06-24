@@ -45,7 +45,7 @@ var DocCommentHighlightRules = require("./doc_comment_highlight_rules").DocComme
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
 var PhpHighlightRules = function() {
-    var docComment = new DocCommentHighlightRules();
+    var docComment = DocCommentHighlightRules;
     // http://php.net/quickref.php
     var builtinFunctions = lang.arrayToMap(
         ('abs|acos|acosh|addcslashes|addslashes|aggregate|aggregate_info|aggregate_methods|aggregate_methods_by_list|aggregate_methods_by_regexp|' +
@@ -948,18 +948,12 @@ var PhpHighlightRules = function() {
                 token : "string.regexp",
                 regex : "[/](?:(?:\\[(?:\\\\]|[^\\]])+\\])|(?:\\\\/|[^\\]/]))*[/][gimy]*\\s*(?=[).,;]|$)"
             }, {
-                token : "string", // single line
-                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
-            }, {
-                token : "string", // multi line string start
-                regex : '["].*\\\\$',
+                token : "string", // " string start
+                regex : '"',
                 next : "qqstring"
             }, {
-                token : "string", // single line
-                regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
-            }, {
-                token : "string", // multi line string start
-                regex : "['].*\\\\$",
+                token : "string", // ' string start
+                regex : "'",
                 next : "qstring"
             }, {
                 token : "constant.numeric", // hex
@@ -1040,33 +1034,45 @@ var PhpHighlightRules = function() {
         ],
         "qqstring" : [
             {
+                token : "constant.language.escape",
+                regex : '\\\\(?:[nrtvef\\\\"$]|[0-7]{1,3}|x[0-9A-Fa-f]{1,2})'
+            }, {
+                token : "constant.language.escape",
+                regex : /\$[\w\d]+(?:\[[\w\d]+\])?/
+            }, {
+                token : "constant.language.escape",
+                regex : /\$\{[^"\}]+\}?/           // this is wrong but ok for now
+            }, {
                 token : "string",
-                regex : '(?:(?:\\\\.)|(?:[^"\\\\]))*?"',
+                regex : '"',
                 next : "start"
             }, {
                 token : "string",
-                regex : '.+'
+                regex : '.+?'
             }
         ],
         "qstring" : [
             {
+                token : "constant.language.escape",
+                regex : "\\\\['\\\\]"
+            }, {
                 token : "string",
-                regex : "(?:(?:\\\\.)|(?:[^'\\\\]))*?'",
+                regex : "'",
                 next : "start"
             }, {
                 token : "string",
-                regex : '.+'
+                regex : ".+?"
             }
         ],
         "htmlcomment" : [
-             {
-                 token : "comment",
-                 regex : ".*?-->",
-                 next : "start"
-             }, {
-                 token : "comment",
-                 regex : ".+"
-             } 
+            {
+                token : "comment",
+                regex : ".*?-->",
+                next : "start"
+            }, {
+                token : "comment",
+                regex : ".+"
+            } 
          ],
          "htmltag" : [ 
              {
@@ -1094,7 +1100,7 @@ var PhpHighlightRules = function() {
                  next : "htmltag"
              }, {
                  token : "meta.tag",
-                 regex : ">",
+                 regex : ">"
              }, {
                  token : 'text',
                  regex : "(?:media|type|href)"
@@ -1104,7 +1110,7 @@ var PhpHighlightRules = function() {
              }, {
                  token : "paren.lparen",
                  regex : "\{",
-                 next : "cssdeclaration",
+                 next : "cssdeclaration"
              }, {
                  token : "keyword",
                  regex : "#[A-Za-z0-9\-\_\.]+"
@@ -1146,11 +1152,11 @@ var PhpHighlightRules = function() {
                    regex : ";",
                    next : "cssdeclaration"
                }
-         ],
+         ]
     };
 
     this.embedRules(DocCommentHighlightRules, "doc-",
-        [ new DocCommentHighlightRules().getEndRule("start") ]);
+        [ DocCommentHighlightRules.getEndRule("start") ]);
 };
 
 oop.inherits(PhpHighlightRules, TextHighlightRules);

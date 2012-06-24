@@ -61,6 +61,7 @@ class Ace12345 extends KDController
     view = @aceViews[file.path]
 
     file.on "fs.saveAs.finished", (newFile, oldFile)=>
+
       if @aceViews[oldFile.path]
         view = @aceViews[oldFile.path]
         @clearFileRecords view
