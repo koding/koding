@@ -16,7 +16,8 @@ class Shell12345 extends KDViewController
     shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
     resetRegexp = /reset\:.*?/
     @dmp = new diff_match_patch()
-    @screenHistory = [""]
+    @lastScreen = ""
+    @bufferedKeyStrokes = []
     
     shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
       switch functionName
@@ -43,12 +44,10 @@ class Shell12345 extends KDViewController
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
         # console.log "updating screen with:",diff
-        lastScreen = @screenHistory[@screenHistory.length-1]
-        currentScreen = (@dmp.patch_apply diff,lastScreen)[0]
-        @screenHistory.push currentScreen
-        @screenHistory.shift() if @screenHistory.length = 50
+        currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
         @getView().updateScreen(currentScreen)
-      @_lastMessageProcessed = i-1
+        @lastScreen = currentScreen      
+        @_lastMessageProcessed = i-1
   
   resetMessageCounter:->
     console.log 'message counter is reset.'
@@ -211,13 +210,23 @@ class Shell12345 extends KDViewController
       @terminal.resize options.rows, options.cols
     catch e
       console.log "terminal.resize error #{e}"
-
+  
+  sendThrottled : _.throttle ->
+    @terminal.write @bufferedKeyStrokes
+    console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
+    @bufferedKeyStrokes = []
+  ,500
+  
   send: (command) ->
     # console.log "sending:"+command
-    try
-      @terminal.write command
-    catch e
-      console.log "terminal.write error : #{e}"
+    @bufferedKeyStrokes.push [command,Date.now()]
+    @sendThrottled()
+    # @terminal.write command
+    
+    # try
+    # snd command
+    # catch e
+      # console.log "terminal.write error : #{e}"
 
 
 # define ()->
