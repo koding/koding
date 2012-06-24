@@ -48,7 +48,7 @@ class ContentDisplayControllerMember extends KDViewController
   #   @intentTimer = setTimeout =>
   #     @getView().$('.profilearea').css "overflow", "hidden"
   #     @getView().setClass "small-header"
-  #     @utils.nextTick 300,=>
+  #     @utils.wait 300,=>
   #       @getSingleton('windowController').notifyWindowResizeListeners()
   #   , 500
   # 
@@ -57,7 +57,7 @@ class ContentDisplayControllerMember extends KDViewController
   #   clearTimeout @intentTimer
   #   @intentTimer = setTimeout =>
   #     @getView().unsetClass "small-header"
-  #     @utils.nextTick 300,=>
+  #     @utils.wait 300,=>
   #       @getSingleton('windowController').notifyWindowResizeListeners()
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
