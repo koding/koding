@@ -19,7 +19,11 @@ module.exports = new Kite 'terminaljs'
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
-
+    # obj =
+    #  create : -> console.log "create"
+    #  test : (callback) => callback Date.now()
+    # return callback "",obj
+     
     unless username and rows and cols and callbacks
       console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
     else
@@ -37,6 +41,7 @@ module.exports = new Kite 'terminaljs'
         diff.parseDiff scr, terminal.lastScreen, (type, scrDiff) ->
           callbacks.data type, nr++
           console.log(type)
+
       clientObject =
         id                 : terminal.id
         type               : "anyterm.js"

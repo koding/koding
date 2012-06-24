@@ -20,7 +20,7 @@ client/app/stylus/*.js
 
 
 # ignored node modules stuff (they need to be cake installed)
-node_modules/.bin
+/node_modules/.bin
 /node_modules/http-proxy
 /node_modules/bitly
 /node_modules/braintree
