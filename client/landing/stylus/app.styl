@@ -156,7 +156,8 @@ body.loggedIn
   bg                  color,white
   z-index             1
   shadow              0 3px 4px 3px rgba(0,0,0,.15)
-  leftTransition()
+  &.transition
+    leftTransition()
   &.no-shadow
     shadow            none
   &.with-finder
