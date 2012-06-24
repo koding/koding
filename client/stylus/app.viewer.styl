@@ -1,3 +1,6 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+
 .previewer-body
   width               100%
   height              100%
@@ -8,16 +11,15 @@
     height              100%
 
 .viewer-header
-  height                37px
+  height                27px
   color                 #888
   border                1px solid #e2e2e2
   border-bottom-color   #dadada
-  background-image      -moz-linear-gradient(bottom, #e7e7e7 0%, #f9f9f9 100%)
-  background-image      -webkit-linear-gradient(bottom, #e7e7e7 0%, #f9f9f9 100%)
-  background-image      linear-gradient(bottom, #e7e7e7 0%, #f9f9f9 100%)
   border-radius         3px
   box-shadow            0 1px 4px rgba(0,0,0,0.1)
   width                 auto
+  gradient              #f9f9f9, #e7e7e7
+  padding               5px
   
   .viewer-title
     display             inline-block
@@ -28,18 +30,35 @@
     font-size           11px
     text-shadow         0 1px 0 #FFF
   
-  button
-    float                 right
-    margin                5px 5px 0 0
-    height                25px
-    padding               2px
-    .refresh-btn
-      display               block
-      height                16px
-      width                 16px
-      background-image      url(../images/_kd.sprites.png)
-      background-position   -1px -521px
+  &:hover
+    a.refresh-link
+      opacity           1
+  
+  a.refresh-link
+    vendor              transition, opacity .15s linear
+    opacity             .3
+    position            absolute
+    top                 10px
+    right               6px
+    height              25px
+    padding             2px
+    size                16px, 16px
+    bg                  image, url(../images/_kd.sprites.png)
+    bg                  position, -1px -521px
 
+  span.address-bar-icon
+    position            absolute
+    top                 10px
+    left                8px
+    size                16px, 16px
+    bg                  position, -100px -380px
+    sprite()
+  
+  .kdinput.text.hitenterview
+    bg                  image, none
+    size                100%, 25px
+    margin              2px 0
+    padding             0 5px 0 21px
 
 .kdcontextmenu.editor-advanced-settings-menu
   button.kdbutton.with-icon span.icon.cog-white

@@ -1,4 +1,4 @@
-class InboxShowMoreLink extends CommentShowMoreLink
+class InboxShowMoreLink extends CommentViewHeader
   
   pistachio:->
     """

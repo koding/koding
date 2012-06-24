@@ -69,7 +69,7 @@ class BookView extends JView
     index or= BookView.lastIndex
     page = @getPage index
     @right.setClass "out"
-    @utils.nextTick 300, =>
+    @utils.wait 300, =>
       @setClass "in"
       @right.destroySubViews()
       @right.addSubView page

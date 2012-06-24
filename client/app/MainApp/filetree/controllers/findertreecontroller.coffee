@@ -44,7 +44,7 @@ class NFinderTreeController extends JTreeViewController
     # @setFileListeners nodeData if o.fsListeners
     item = super nodeData, index
 
-  setItemListeners:(pubInst, {view})->
+  setItemListeners:(view, index)->
     
     super
     

@@ -87,14 +87,11 @@ class KDAutoCompleteController extends KDViewController
         view = @getView()
         view.$input().trigger('focus')
     
-    dropdownListView.registerListener
-      KDEventTypes  : 'ItemWasAdded'
-      listener      : @
-      callback      : (pubInst, {view})=>
-        view.registerListener
-          KDEventTypes  : 'KDAutoCompleteSubmit'
-          listener      : @
-          callback      : @submitAutoComplete
+    dropdownListView.on 'ItemWasAdded', (view, index)=>
+      view.registerListener
+        KDEventTypes  : 'KDAutoCompleteSubmit'
+        listener      : @
+        callback      : @submitAutoComplete
 
     windowController = @getSingleton('windowController')
 
