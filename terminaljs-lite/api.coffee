@@ -43,7 +43,19 @@ module.exports = new Kite 'terminaljs'
         type               : "anyterm.js"
         isNew              : yes
         totalSessions      : 1
-        write              : (cmd) ->  terminal.write cmd
+        write              : (cmd) -> 
+          # is it buffered keystrokes? then execute each in the order they're received
+          if Array.isArray(cmd)
+            baseTime = cmd[0][1]
+            for d in cmd
+              do (d)->
+                setTimeout -> 
+                  terminal.write d[0]
+                  # console.log [d[0],d[1]-baseTime]
+                ,d[1]-baseTime 
+            
+          else
+            terminal.write cmd
         resize             : (rows, cols) -> terminal.setScreenSize rows, cols
         close              : ()->
           console.log "close is called"
