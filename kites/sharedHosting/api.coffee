@@ -11,8 +11,6 @@ os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
-
-
 # log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
 
 console.log "new sharedhosting api."

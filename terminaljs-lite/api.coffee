@@ -1,69 +1,62 @@
-try
-  config      = require './config'
-  Kite        = require 'kite'
-  controller  = new (require("terminaljs-lite").TerminalController)
-  log4js      = require 'log4js'
-  log         = log4js.getLogger "[#{config.name}]"
-catch e
-  console.log e
+config          = require './config'
+Kite            = require 'kite'
+
+{FakeTerminal,FakeController} = require './faketerminal'
 
 
-# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+{Terminal}  = require "./terminal"                               
+htmlify     = require "./htmlify"
 
-
+console.log "my pid is:",process.pid
 
 module.exports = new Kite 'terminaljs'
   
   _connect:-> console.log "connect:",arguments
   
-  _disconnect:({requesterId})-> controller.kill requesterId
+  _disconnect:(options)-> console.log "kill received from opt#{options.username}" # controller.kill requesterId
   
   create  : (options,callback)  =>
-    log.info "creating new terminal for #{options.username}"
+    console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
     # obj =
     #  create : -> console.log "create"
     #  test : (callback) => callback Date.now()
     # return callback "",obj
      
-    try
-      if username and rows and cols and callbacks
-        # throw "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
-        controller.kill options.id
-        options.cmd = "su -l #{username}\n"
-        options.id = username
-        # console.log "im here with options:",options
-        result = controller.create options
-        callback? null, 
-          id                 : result.id
-          type               : "anyterm.js"
-          isNew              : yes
-          totalSessions      : 1
-          write              : (cmd) ->  result.terminal.write cmd
-          resize             : (rows, cols) -> result.terminal.setScreenSize rows, cols
-          close              : ()->
-            try
-              controller.kill result.id
-              delete result
-            catch e
-              log.debug "failed to close session : #{e}"
-          kill               : ()->
-            try
-              controller.kill result.id
-              delete result
-            catch e
-              log.debug "failed to kill terminal #{e}"
-          closeOtherSessions : ()->
-            #just to be compatible with other terminaljs
-          ping:()->
-          test:(callback)->
-            console.log "i'm pinged,returning a callback now"
-            callback Date.now()
-      else
-        console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)",options,callback
-    catch e
-      console.log "failed to create terminal : #{e}"
-      callback? e
+
+    unless username and rows and cols and callbacks
+      console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
+    else
+      # create a fake one, use this to detect network lags, errors etc.
+      # callback null, FakeController.createTerminal options
+      
+      #create a real one.
+      terminal = new Terminal "/bin/bash",rows,cols
+      nr = 0
+      terminal.on "data",(screen)->
+        callbacks.data screen,nr++
+      callback null,
+        id                 : terminal.id
+        type               : "anyterm.js"
+        isNew              : yes
+        totalSessions      : 1
+        write              : (cmd) ->  terminal.write cmd
+        resize             : (rows, cols) -> terminal.setScreenSize rows, cols
+        close              : ()->
+          console.log "close is called"
+          terminal.kill terminal.id
+          delete terminal
+        kill               : ()->
+          console.log "kill is called"
+          terminal.kill terminal.id
+          delete terminal
+        closeOtherSessions : ()->
+          #just to be compatible with other terminaljs
+        ping:()->
+        test:(callback)->
+          console.log e = "i'm really pinged,returning a callback now"
+          callback e, Date.now()
+
 
   close  : (options,callback)  =>
     controller.kill options.id

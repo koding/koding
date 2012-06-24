@@ -4,7 +4,7 @@ class TabHandleView extends KDView
       <span class='kdcustomhtml terminal icon'></span>"
 
 
-class Shell12345 extends KDViewController
+class Terminal extends KDViewController
   
   nextScreenDiff:(data, messageNum)->
     {_lastMessageProcessed, _orderedMessages} = @
@@ -13,7 +13,6 @@ class Shell12345 extends KDViewController
       doThese = []
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
-        # console.log "updating screen with:",diff
         @getView().updateScreen(diff)
       @_lastMessageProcessed = i-1
   
@@ -29,7 +28,7 @@ class Shell12345 extends KDViewController
       data : (data, messageNum) => 
         @nextScreenDiff data, messageNum
         
-        # console.log "options.callbacks.data is called with:",data,messageNum
+        # console.log data
       error : (error) =>
         @getView().disableInput()
         msg = "connection closed"
@@ -53,25 +52,25 @@ class Shell12345 extends KDViewController
     @account = KD.whoami()
     # @getKiteIds kiteName:"terminaljs",->
     @_terminalId = null
-    @setView shellView = new ShellView
+    # @setView shellView = new ShellView
     @resetMessageCounter()
-    shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
+    # shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
     resetRegexp = /reset\:.*?/
-    shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
-      switch functionName
-        when 'clear'
-          @send "clear\n"
-        when 'closeOtherSessions'
-          try
-            @terminal.closeOtherSessions()
-          catch e
-            console.log "terminal:closeOtherSessions error : #{e}"
-        else
-          if resetRegexp.test functionName
-            clientType = functionName.substr 6
-            if not clientType
-              clientType = shellView.clientType
-            @resetTerminalSession clientType
+    # shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
+    #   switch functionName
+    #     when 'clear'
+    #       @send "clear\n"
+    #     when 'closeOtherSessions'
+    #       try
+    #         @terminal.closeOtherSessions()
+    #       catch e
+    #         console.log "terminal:closeOtherSessions error : #{e}"
+    #     else
+    #       if resetRegexp.test functionName
+    #         clientType = functionName.substr 6
+    #         if not clientType
+    #           clientType = shellView.clientType
+    #         @resetTerminalSession clientType
 
   setNotification:(msg)->
     if @notification?
@@ -82,28 +81,7 @@ class Shell12345 extends KDViewController
         title   : "#{msg}"
         duration: 0
 
-  resetTerminalSession :(type)->
-    @setNotification "restarting terminal"
-    view = @getView()
-    view.reset type
-    try
-      @terminal.kill()
-      @resetMessageCounter()
-    catch e
-      console.log "terminal kill error : #{e}"
-    options = @generateTerminalOptions()
-    options.type = type ? view.clientType
-    @account.tellKite 
-      kiteName :"terminaljs"
-      toDo     :"create"
-      withArgs : options
-    ,(error,terminal)=>
-      if error
-        @setNotification "Failed to start terminal : #{error}"
-      else
-        @setNotification()
-        @terminal = terminal
-        @welcomeUser yes
+
       
   initApplication:(options,callback)=>
     @applyStyleSheet ()=>
@@ -143,20 +121,7 @@ class Shell12345 extends KDViewController
 
   applyStyleSheet:(callback)->
     callback?()
-    # $.ajax
-    #   dataType:'text'
-    #   url:"#{KD.staticFilesBaseUrl}/js/KDApplications/Shell.kdapplication/app.css?#{KD.version}"
-    #   success: (css)->
-    #     $("<style type='text/css'>#{css}</style>").appendTo("head");
-    #     callback?()
 
-  getKiteIds : (options,callback)->
-    @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->
-      unless err
-        @kiteIds = kiteIds
-        callback? null,kiteIds
-      else
-        callback? err
 
   initiateTerminal : (callback)->
     view = @getView()
@@ -165,7 +130,7 @@ class Shell12345 extends KDViewController
     # @pickAResponsiveKite {},(err,kiteId)=>
     #   console.log "whatup",err,kiteId 
     console.log 'initial terminal is called'
-    KD.singletons.kiteController.run
+    @account.tellKite
       kiteName  : "terminaljs"
       # kiteId    : kiteId
       toDo      : "create"
@@ -175,7 +140,6 @@ class Shell12345 extends KDViewController
         @setNotification "Failed to start terminal, please close the tab and try again."
         console.log error
       else
-        window.T = terminal
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
@@ -189,32 +153,4 @@ class Shell12345 extends KDViewController
         callback     : @resizeTerminal
       mainView.input.on "data",(cmd)=>
         @send cmd
-
-  welcomeUser:(isTerminalNew)->
-    if isTerminalNew
-      username = KD.getSingleton('mainController').getVisitor().currentDelegate.profile.nickname
-      welcomeText = "cowsay mooOOooOOoo what up #{username}! welcome to your terminal... check my w"
-      @send "#{welcomeText}\n"
-
-  resizeTerminal:()->
-    options     = @getView().getSize()
-    try
-      @terminal.resize options.rows, options.cols
-    catch e
-      console.log "terminal.resize error #{e}"
-
-  send: (command) ->
-    # console.log "sending:"+command
-    try
-      @terminal.write command
-    catch e
-      console.log "terminal.write error : #{e}"
-
-
-# define ()->
-#   application = new AppController()
-#   {initApplication, initAndBringToFront, bringToFront, openFile} = application
-#   {initApplication, initAndBringToFront, bringToFront, openFile}
-#   #the reason I'm returning the whole instance right now is because propagateEvent includes the whole thing anyway. switch to emit/on and we can change this...
-#   return application
 
