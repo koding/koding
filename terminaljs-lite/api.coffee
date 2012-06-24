@@ -4,38 +4,41 @@ Kite            = require 'kite'
 {FakeTerminal,FakeController} = require './faketerminal'
 
 
-{Terminal}  = require "./terminal"                               
+{Terminal}  = require "./terminal"
 htmlify     = require "./htmlify"
+diff	    = require "./diff"
 
 console.log "my pid is:",process.pid
 
 module.exports = new Kite 'terminaljs'
-  
+
   _connect:-> console.log "connect:",arguments
-  
+
   _disconnect:(options)-> console.log "kill received from opt#{options.username}" # controller.kill requesterId
-  
+
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
-    # obj =
-    #  create : -> console.log "create"
-    #  test : (callback) => callback Date.now()
-    # return callback "",obj
      
-
     unless username and rows and cols and callbacks
       console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
     else
       # create a fake one, use this to detect network lags, errors etc.
-      return callback null, FakeController.createTerminal options
-      
+      # return callback null, FakeController.createTerminal options
+
       #create a real one.
-      terminal = new Terminal "/bin/bash",rows,cols
+      terminal = new Terminal "su -l #{username}",rows,cols
+      terminal.lastScreen = ""
       nr = 0
-      terminal.on "data",(screen)->
-        callbacks.data screen,nr++
-      callback null,
+      terminal.on "data",(screen)-> 
+        # scr = ( screen.row(line) for line in [0..screen.rows]).join "\n"
+        scr = htmlify.convert screen
+        terminal.lastScreen = scr
+        diff.parseDiff scr, terminal.lastScreen, (type, scrDiff) ->
+          callbacks.data type, nr++
+          console.log(type)
+
+      clientObject =
         id                 : terminal.id
         type               : "anyterm.js"
         isNew              : yes
@@ -57,6 +60,7 @@ module.exports = new Kite 'terminaljs'
           console.log e = "i'm really pinged,returning a callback now"
           callback e, Date.now()
 
+    callback null, clientObject
 
   close  : (options,callback)  =>
     controller.kill options.id
