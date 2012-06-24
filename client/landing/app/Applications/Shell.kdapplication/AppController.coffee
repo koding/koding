@@ -5,6 +5,35 @@ class TabHandleView extends KDView
 
 
 class Shell12345 extends KDViewController
+
+  constructor:()->
+    super
+    @account = KD.whoami()
+    # @getKiteIds kiteName:"terminaljs",->
+    @_terminalId = null
+    @setView shellView = new ShellView
+    @resetMessageCounter()
+    shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
+    resetRegexp = /reset\:.*?/
+    @dmp = new diff_match_patch()
+    @screenHistory = [""]
+    
+    shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
+      switch functionName
+        when 'clear'
+          @send "clear\n"
+        when 'closeOtherSessions'
+          try
+            @terminal.closeOtherSessions()
+          catch e
+            console.log "terminal:closeOtherSessions error : #{e}"
+        else
+          if resetRegexp.test functionName
+            clientType = functionName.substr 6
+            if not clientType
+              clientType = shellView.clientType
+            @resetTerminalSession clientType
+    
   
   nextScreenDiff:(data, messageNum)->
     {_lastMessageProcessed, _orderedMessages} = @
@@ -14,7 +43,10 @@ class Shell12345 extends KDViewController
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
         # console.log "updating screen with:",diff
-        @getView().updateScreen(diff)
+        lastScreen = @screenHistory[@screenHistory.length-1]
+        currentScreen = (@dmp.patch_apply diff,lastScreen)[0]
+        @screenHistory.push currentScreen
+        @getView().updateScreen(currentScreen)
       @_lastMessageProcessed = i-1
   
   resetMessageCounter:->
@@ -29,7 +61,7 @@ class Shell12345 extends KDViewController
       data : (data, messageNum) => 
         @nextScreenDiff data, messageNum
         
-        # console.log "options.callbacks.data is called with:",data,messageNum
+        # console.log "screen:",JSON.stringify data,messageNum
       error : (error) =>
         @getView().disableInput()
         msg = "connection closed"
@@ -48,30 +80,6 @@ class Shell12345 extends KDViewController
         duration: 1500
     return options
 
-  constructor:()->
-    super
-    @account = KD.whoami()
-    # @getKiteIds kiteName:"terminaljs",->
-    @_terminalId = null
-    @setView shellView = new ShellView
-    @resetMessageCounter()
-    shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
-    resetRegexp = /reset\:.*?/
-    shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
-      switch functionName
-        when 'clear'
-          @send "clear\n"
-        when 'closeOtherSessions'
-          try
-            @terminal.closeOtherSessions()
-          catch e
-            console.log "terminal:closeOtherSessions error : #{e}"
-        else
-          if resetRegexp.test functionName
-            clientType = functionName.substr 6
-            if not clientType
-              clientType = shellView.clientType
-            @resetTerminalSession clientType
 
   setNotification:(msg)->
     if @notification?

@@ -7,6 +7,7 @@ class TerminalClient
     @diffScriptParser = new DiffScript
     @kb_buf = ''
 
+
   setHandler:(@handler)->
   reset:(size)->
   setError:(msg)->
