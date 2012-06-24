@@ -1,88 +1,65 @@
-class Faker
-  
-  create : (options) ->
-    console.log "faking write"    
-    return faker =
-      write : (str)->
-        console.log "faking write"
-        options.data str
-      setScreenSize : ->
-        console.log "faking write"
-    
-    #fake screen.on "data"
-    i=0
-    setInterval ->
-      options.data Date.now()+"\n",i++
-    ,1000
-  
-  kill : ->
-    console.log "faking kill"    
+config          = require './config'
+Kite            = require 'kite'
+
+{FakeTerminal,FakeController} = require './faketerminal'
 
 
+{Terminal}  = require "./terminal"
+htmlify     = require "./htmlify"
+diff	    = require "./diff"
 
-config      = require './config'
-Kite        = require 'kite'
-controller  = new Faker #(require("terminaljs-lite").TerminalController)
-log4js      = require 'log4js'
-log         = log4js.getLogger "[#{config.name}]"
-
-
-# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
-
-
+console.log "my pid is:",process.pid
 
 module.exports = new Kite 'terminaljs'
-  
+
   _connect:-> console.log "connect:",arguments
-  
-  _disconnect:({requesterId})-> controller.kill requesterId
-  
+
+  _disconnect:(options)-> console.log "kill received from opt#{options.username}" # controller.kill requesterId
+
   create  : (options,callback)  =>
-    # log.info "creating new terminal for #{options.username}"
+    console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
-    # obj =
-    #  create : -> console.log "create"
-    #  test : (callback) => callback Date.now()
-    # return callback "",obj
-     
-    try
-      if username and rows and cols and callbacks
-        # throw "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
-        controller.kill options.id
-        options.cmd = "su -l #{username}\n"
-        options.id = username
-        # console.log "im here with options:",options
-        result = controller.create options
-        callback? null, 
-          id                 : result.id
-          type               : "anyterm.js"
-          isNew              : yes
-          totalSessions      : 1
-          write              : (cmd) ->  result.terminal.write cmd
-          resize             : (rows, cols) -> result.terminal.setScreenSize rows, cols
-          close              : ()->
-            try
-              controller.kill result.id
-              delete result
-            catch e
-              log.debug "failed to close session : #{e}"
-          kill               : ()->
-            try
-              controller.kill result.id
-              delete result
-            catch e
-              log.debug "failed to kill terminal #{e}"
-          closeOtherSessions : ()->
-            #just to be compatible with other terminaljs
-          ping:()->
-          test:(callback)->
-            console.log e = "i'm really pinged,returning a callback now"
-            callback e, Date.now()
-      else
-        console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)",options,callback
-    catch e
-      console.log "failed to create terminal : #{e}"
-      callback? e
+
+    unless username and rows and cols and callbacks
+      console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
+    else
+      # create a fake one, use this to detect network lags, errors etc.
+      # return callback null, FakeController.createTerminal options
+
+      #create a real one.
+      terminal = new Terminal "su -l #{username}",rows,cols
+      terminal.lastScreen = ""
+      nr = 0
+      terminal.on "data",(screen)-> 
+        # scr = ( screen.row(line) for line in [0..screen.rows]).join "\n"
+        scr = htmlify.convert screen
+        terminal.lastScreen = scr
+        diff.parseDiff scr, terminal.lastScreen, (type, scrDiff) ->
+          callbacks.data type, nr++
+          console.log(type)
+      clientObject =
+        id                 : terminal.id
+        type               : "anyterm.js"
+        isNew              : yes
+        totalSessions      : 1
+        write              : (cmd) ->  terminal.write cmd
+        resize             : (rows, cols) -> terminal.setScreenSize rows, cols
+        close              : ()->
+          console.log "close is called"
+          terminal.kill terminal.id
+          delete terminal
+        kill               : ()->
+          console.log "kill is called"
+          terminal.kill terminal.id
+          delete terminal
+        closeOtherSessions : ()->
+          #just to be compatible with other terminaljs
+        ping:()->
+        test:(callback)->
+          console.log e = "i'm really pinged,returning a callback now"
+          callback e, Date.now()
+
+    callback null, clientObject
 
   close  : (options,callback)  =>
     controller.kill options.id
