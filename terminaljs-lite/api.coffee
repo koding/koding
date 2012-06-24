@@ -36,7 +36,7 @@ module.exports = new Kite 'terminaljs'
         patch = dmp.patch_make terminal.lastScreen, scr        
         terminal.lastScreen = scr
         callbacks.data patch, nr++
-      ,100
+      ,10
 
       clientObject =
         id                 : terminal.id
