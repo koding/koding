@@ -170,6 +170,23 @@ class SidebarController extends KDViewController
       type  : "medium"
       title :"#{profile?.nickname}.#{location.hostname}"
 
+    @finderHeaderHolder.addSubView resizeHandle = new SidebarResizeHandle
+      domId : "finder-resize-handle"
+
+    mainView    = @getView().getDelegate()
+    {contentPanel,sidebarPanel} = mainView
+    
+    resizeHandle.on "DragStarted", (e, dragState)=>
+      contentPanel._left = parseInt(contentPanel.$().css("left"), 10)
+      contentPanel.unsetClass "transition"
+
+    resizeHandle.on "DragFinished", (e, dragState)=> 
+      delete contentPanel._left
+      contentPanel.setClass "transition"
+    
+    resizeHandle.on "DragInAction", (x, y)=>
+      contentPanel.$().css "left", contentPanel._left - x
+
     # @finderHolder.addSubView @finderController.getView()
     @finderHolder.addSubView @jFinderController.getView()
     
@@ -341,3 +358,15 @@ class Sidebar extends KDView
 #         navItem = item
 #         break
 #     navItem.newItemsBadge.update 1
+
+
+class SidebarResizeHandle extends KDView
+  
+  constructor:(options, data)->
+    
+    options.bind = "mousemove"
+    
+    super options, data
+
+    @setDraggable
+      axis : "x"

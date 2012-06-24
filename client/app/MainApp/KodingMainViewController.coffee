@@ -249,9 +249,15 @@ class MainView extends KDView
     $('body').removeClass 'loading'
   
   createMainPanels:->
-    @addSubView @panelWrapper = new KDView tagName : "section"
-    @panelWrapper.addSubView @sidebarPanel = new KDView domId: "sidebar-panel"
-    @panelWrapper.addSubView @contentPanel = new KDView domId: "content-panel"
+    @addSubView @panelWrapper = new KDView
+      tagName  : "section"
+
+    @panelWrapper.addSubView @sidebarPanel = new KDView
+      domId    : "sidebar-panel"
+
+    @panelWrapper.addSubView @contentPanel = new KDView
+      domId    : "content-panel"
+      cssClass : "transition"
 
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes

@@ -43,7 +43,7 @@ class KDView extends KDObject
     o.pistachio   or= null      # a String of Pistachio
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
-    o.draggable   or= null      # an Object holding jQuery UI draggable options and/or events
+    o.draggable   or= null      # an Object holding draggable options and/or events
     o.droppable   or= null      # an Object holding jQuery UI droppable options and/or events
     o.resizable   or= null      # an Object holding jQuery UI resizable options and/or events
     o.size        or= null      # an Object holding width and height properties
@@ -164,8 +164,9 @@ class KDView extends KDObject
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
     
 
-    if options.tooltip
-      @setTooltip options.tooltip
+    @setTooltip options.tooltip if options.tooltip
+    @setDraggable options.draggable if options.draggable
+      
 
     @bindEvents()
 
@@ -573,7 +574,61 @@ class KDView extends KDObject
           KDEventTypes       : key
           listenedToInstance : @
           callback           : value
+  
+  setDraggable:(options = {})->
+    
+    options = {} if options is yes
+    
+    @dragState =
+      containment : options.containment             # a parent KDView
+      handle      : options.handle                  # a parent KDView or a child selector
+      axis        : options.axis                    # a String 'x' or 'y' or 'diagonal'
 
+    handle = if options.handle and options.handle instanceof KDView then handle else @
+
+    @listenTo 
+      KDEventTypes       : "mousedown"
+      listenedToInstance : handle
+      callback           : (pubInst, event)=>
+        
+        if "string" is typeof options.handle
+          return if $(event.target).closest(options.handle).length is 0
+        
+        top    = parseInt @$().css("top"),10
+        right  = parseInt @$().css("right"),10         
+        bottom = parseInt @$().css("bottom"),10
+        left   = parseInt @$().css("left"), 10
+
+        @dragState.startX     = event.pageX
+        @dragState.startY     = event.pageY
+        @dragState.top        = top
+        @dragState.right      = right
+        @dragState.bottom     = bottom
+        @dragState.left       = left
+        @dragState.directionX = if isNaN right  then "left" else "right"
+        @dragState.directionY = if isNaN bottom then "top"  else "bottom"
+
+        @getSingleton('windowController').setDragView @
+        @emit "DragStarted", event, @dragState
+        event.stopPropagation()
+        event.preventDefault()
+        return no
+
+  drag:(event, delta)->
+    
+    {directionX, directionY, axis} = @dragState
+    {x, y} = delta
+
+    y    = -y if directionY is "bottom"
+    x    = -x if directionX is "right"
+    posY = @dragState[directionY] + y
+    posX = @dragState[directionX] + x
+    
+    @$().css directionX, posX unless axis is 'y'
+    @$().css directionY, posY unless axis is 'x'
+    
+    @emit "DragInAction", x, y
+    
 # #
 # VIEW READY EVENTS  
 # #
