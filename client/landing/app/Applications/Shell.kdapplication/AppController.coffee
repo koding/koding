@@ -5,6 +5,36 @@ class TabHandleView extends KDView
 
 
 class Shell12345 extends KDViewController
+
+  constructor:()->
+    super
+    @account = KD.whoami()
+    # @getKiteIds kiteName:"terminaljs",->
+    @_terminalId = null
+    @setView shellView = new ShellView
+    @resetMessageCounter()
+    shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
+    resetRegexp = /reset\:.*?/
+    @dmp = new diff_match_patch()
+    @lastScreen = ""
+    @bufferedKeyStrokes = []
+    
+    shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
+      switch functionName
+        when 'clear'
+          @send "clear\n"
+        when 'closeOtherSessions'
+          try
+            @terminal.closeOtherSessions()
+          catch e
+            console.log "terminal:closeOtherSessions error : #{e}"
+        else
+          if resetRegexp.test functionName
+            clientType = functionName.substr 6
+            if not clientType
+              clientType = shellView.clientType
+            @resetTerminalSession clientType
+    
   
   nextScreenDiff:(data, messageNum)->
     {_lastMessageProcessed, _orderedMessages} = @
@@ -13,8 +43,11 @@ class Shell12345 extends KDViewController
       doThese = []
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
-        @getView().updateScreen(diff)
-      @_lastMessageProcessed = i-1
+        # console.log "updating screen with:",diff
+        currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
+        @getView().updateScreen(currentScreen)
+        @lastScreen = currentScreen      
+        @_lastMessageProcessed = i-1
   
   resetMessageCounter:->
     console.log 'message counter is reset.'
@@ -28,7 +61,7 @@ class Shell12345 extends KDViewController
       data : (data, messageNum) => 
         @nextScreenDiff data, messageNum
         
-        # console.log data
+        # console.log "screen:",JSON.stringify data,messageNum
       error : (error) =>
         @getView().disableInput()
         msg = "connection closed"
@@ -47,30 +80,6 @@ class Shell12345 extends KDViewController
         duration: 1500
     return options
 
-  constructor:()->
-    super
-    @account = KD.whoami()
-    # @getKiteIds kiteName:"terminaljs",->
-    @_terminalId = null
-    @setView shellView = new ShellView
-    @resetMessageCounter()
-    shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
-    resetRegexp = /reset\:.*?/
-    shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
-      switch functionName
-        when 'clear'
-          @send "clear\n"
-        when 'closeOtherSessions'
-          try
-            @terminal.closeOtherSessions()
-          catch e
-            console.log "terminal:closeOtherSessions error : #{e}"
-        else
-          if resetRegexp.test functionName
-            clientType = functionName.substr 6
-            if not clientType
-              clientType = shellView.clientType
-            @resetTerminalSession clientType
 
   setNotification:(msg)->
     if @notification?
@@ -164,7 +173,7 @@ class Shell12345 extends KDViewController
     # @pickAResponsiveKite {},(err,kiteId)=>
     #   console.log "whatup",err,kiteId 
     console.log 'initial terminal is called'
-    @account.tellKite
+    KD.singletons.kiteController.run
       kiteName  : "terminaljs"
       # kiteId    : kiteId
       toDo      : "create"
@@ -174,6 +183,7 @@ class Shell12345 extends KDViewController
         @setNotification "Failed to start terminal, please close the tab and try again."
         console.log error
       else
+        window.T = terminal
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
@@ -199,14 +209,24 @@ class Shell12345 extends KDViewController
     try
       @terminal.resize options.rows, options.cols
     catch e
-      console.log "terminal::resize error #{e}"
-
+      console.log "terminal.resize error #{e}"
+  
+  sendThrottled : _.throttle ->
+    @terminal.write @bufferedKeyStrokes
+    console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
+    @bufferedKeyStrokes = []
+  ,500
+  
   send: (command) ->
     # console.log "sending:"+command
-    try
-      @terminal.write command
-    catch e
-      console.log "terminal::write error : #{e}"
+    @bufferedKeyStrokes.push [command,Date.now()]
+    @sendThrottled()
+    # @terminal.write command
+    
+    # try
+    # snd command
+    # catch e
+      # console.log "terminal.write error : #{e}"
 
 
 # define ()->
