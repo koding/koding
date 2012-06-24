@@ -28,7 +28,7 @@ module.exports = new Kite 'terminaljs'
       console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
     else
       # create a fake one, use this to detect network lags, errors etc.
-      # callback null, FakeController.createTerminal options
+      return callback null, FakeController.createTerminal options
       
       #create a real one.
       terminal = new Terminal "/bin/bash",rows,cols
