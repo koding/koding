@@ -46,6 +46,7 @@ class Shell12345 extends KDViewController
         lastScreen = @screenHistory[@screenHistory.length-1]
         currentScreen = (@dmp.patch_apply diff,lastScreen)[0]
         @screenHistory.push currentScreen
+        @screenHistory.shift() if @screenHistory.length = 50
         @getView().updateScreen(currentScreen)
       @_lastMessageProcessed = i-1
   
