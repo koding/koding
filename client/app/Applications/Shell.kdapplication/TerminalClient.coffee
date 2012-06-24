@@ -15,7 +15,8 @@ class TerminalClient
   resize:(size)->
 
   write:(data)->
-    screen = @diffScriptParser.dispatch data
+    screen = data # @diffScriptParser.dispatch data
+    # console.log "screen is now:",screen
     @view.updatePartial screen
   keyPress: (ev) ->
     return yes if ev.which is 118 and (ev.metaKey or ev.ctrlKey)

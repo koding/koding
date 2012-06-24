@@ -13,6 +13,7 @@ class Shell12345 extends KDViewController
       doThese = []
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
+        # console.log "updating screen with:",diff
         @getView().updateScreen(diff)
       @_lastMessageProcessed = i-1
   
@@ -28,7 +29,7 @@ class Shell12345 extends KDViewController
       data : (data, messageNum) => 
         @nextScreenDiff data, messageNum
         
-        # console.log data
+        # console.log "options.callbacks.data is called with:",data,messageNum
       error : (error) =>
         @getView().disableInput()
         msg = "connection closed"
@@ -174,6 +175,7 @@ class Shell12345 extends KDViewController
         @setNotification "Failed to start terminal, please close the tab and try again."
         console.log error
       else
+        window.T = terminal
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
@@ -199,14 +201,14 @@ class Shell12345 extends KDViewController
     try
       @terminal.resize options.rows, options.cols
     catch e
-      console.log "terminal::resize error #{e}"
+      console.log "terminal.resize error #{e}"
 
   send: (command) ->
     # console.log "sending:"+command
     try
       @terminal.write command
     catch e
-      console.log "terminal::write error : #{e}"
+      console.log "terminal.write error : #{e}"
 
 
 # define ()->
