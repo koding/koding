@@ -208,15 +208,21 @@ class KDSplitView extends KDView
 
   # EVENT HANDLING
   _windowDidResize:(event)=>
-    @_setSize @_getParentSize()
-    @_resetSizes()
-    @sizes = @_sanitizeSizes()
-    @_calculatePanelBounds()
-    @_setPanelPositions()
-    # find a way to do that for when parent get resized and split reachs a min-width
-    # if @getWidth() > @_getParentSize() then @setClass "min-width-reached" else @unsetClass "min-width-reached"
-    if @options.resizable
-      @_setResizerPositions()
+    
+    # this is a hack and should be removed
+    # because we have an animation in contentpanel
+    # i had to do this otherwise a big refactoring is necessary
+    # sinan 6/2012
+    @utils.wait 300, =>
+      @_setSize @_getParentSize()
+      @_resetSizes()
+      @sizes = @_sanitizeSizes()
+      @_calculatePanelBounds()
+      @_setPanelPositions()
+      # find a way to do that for when parent get resized and split reachs a min-width
+      # if @getWidth() > @_getParentSize() then @setClass "min-width-reached" else @unsetClass "min-width-reached"
+      if @options.resizable
+        @_setResizerPositions()
 
   mouseUp:(event)->
     @$().unbind "mousemove.resizeHandle"

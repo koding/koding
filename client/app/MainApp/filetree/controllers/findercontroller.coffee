@@ -27,8 +27,12 @@ class NFinderController extends KDViewController
     
 
   loadView:(mainView)->
+
+    mainView.addSubView @treeController.getView()
+  
+  reset:()->
+
     if KD.whoami() instanceof bongo.api.JAccount
-      mainView.addSubView @treeController.getView()
 
       {initialPath} = @getOptions()
       {nickname}    = KD.whoami().profile
@@ -39,9 +43,18 @@ class NFinderController extends KDViewController
         type        : "mount"
 
       @treeController.initTree [mount]
-      
-      @utils.nextTick 2000, =>
+      @utils.wait 2000, =>
         @treeController.navigateTo initialPath
+      
+    else
+      mount         = FSHelper.createFile 
+        name        : "guest"
+        path        : "/Users/guest"
+        type        : "mount"
+      @treeController.initTree [mount]
+
+    
+    
 
   getStorage: (callback) ->
     unless @_storage
@@ -65,7 +78,8 @@ class NFinderController extends KDViewController
         recentFiles.unshift file.path
       else
         recentFiles.sort (path)-> if path is file.path then -1 else 0
+      
       storage.update {
-        $set: 'bucket.recentFiles': recentFiles
+        $set: 'bucket.recentFiles': recentFiles.slice(0,10)
       }, callback
     

@@ -56,15 +56,12 @@ class Topics12345 extends AppController
           direction         : -1
     }, (controller)=>
       for name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'ItemWasAdded'
-          listener      : @
-          callback      : (pubInst, {view})=>
-            view.registerListener
-              KDEventTypes  : 'TopicWantsToExpand'
-              listener      : @
-              callback      : (pubInst, tag)=>
-                @createContentDisplay tag
+        listController.getListView().on (view, index)=>
+          view.registerListener
+            KDEventTypes  : 'TopicWantsToExpand'
+            listener      : @
+            callback      : (pubInst, tag)=>
+              @createContentDisplay tag
 
       view.addSubView controller.getView()
 

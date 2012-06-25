@@ -1,20 +1,3 @@
-class AvatarArea extends KDView
-  constructor:(options,{account})->
-    super options,account
-    {@profile} = account
-
-    @avatar       = new AvatarView {
-      tagName  : "div"
-      cssClass : "avatar-image-wrapper"
-      size     : { width: 160, height: 76 }
-    },account
-  
-  pistachio:-> "{{> @avatar}}"
-  
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
 class AvatarAreaIconLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
@@ -46,7 +29,7 @@ class AvatarAreaIconMenu extends KDView
   viewAppended:->
     mainView = @getSingleton 'mainView'
     sidebar  = @getDelegate()
-    @setClass "invisible" unless @getSingleton('mainController').isUserLoggedIn()
+    @setClass "invisible" unless KD.isLoggedIn()
   
     mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
       cssClass : "status-update"
@@ -98,7 +81,7 @@ class AvatarAreaIconMenu extends KDView
         @messagesIcon.updateCount count
   
   accountChanged:(account)->
-    if @getSingleton('mainController').isUserLoggedIn()
+    if KD.isLoggedIn()
       @unsetClass "invisible"
       #do not remove the timeout it should give dom sometime before putting an extra load
       @avatarNotificationsPopup.loaderTimeout = setTimeout =>
@@ -118,15 +101,9 @@ class AvatarPopup extends KDView
     super
     @sidebar = @getDelegate()
 
-    @listenTo 
-      KDEventTypes       : "NavigationPanelWillCollapse"
-      listenedToInstance : @sidebar
-      callback           : @hide
+    @sidebar.on "NavigationPanelWillCollapse", => @hide()
 
-    @listenTo
-      KDEventTypes       : "ReceivedClickElsewhere"
-      listenedToInstance : @
-      callback           : @hide
+    @on 'ReceivedClickElsewhere', => @hide()
 
     @_windowController = @getSingleton('windowController')
     @listenWindowResize()
@@ -134,13 +111,13 @@ class AvatarPopup extends KDView
   show:->
     @_windowDidResize()
     @_windowController.addLayer @
-    @sidebar.propagateEvent KDEventType : "AvatarPopupIsActive"
+    @getSingleton('mainController').emit "AvatarPopupIsActive"
     @setClass "active"
     @
 
   hide:->
     @_windowController.removeLayer @
-    @sidebar.propagateEvent KDEventType : "AvatarPopupIsInactive"
+    @getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
     @
 

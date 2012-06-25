@@ -115,6 +115,7 @@ app.activity.styl
     width                 auto
     borderBox()
     &.hidden-item
+      border-width        0              
       left                -100%
 
   .system-message
@@ -534,7 +535,7 @@ button.kdbutton.dark
   .modal-cancel             
     font-size               11px
 
-  .help-heart
+  .help-box
     float                   left
     overflow                hidden
     width                   150px
@@ -578,6 +579,7 @@ form.status-widget
   //     shadow              none
 
 .code-snip-holder
+  position                  relative
   padding                   10px
   bg                        color,rgba(51,51,51,1)
   rounded                   4px

@@ -21,15 +21,12 @@ class Ace extends KDView
   viewAppended:->
     
     require ['ace/ace'], (ace)=>
-      callback? ace
       @editor = ace.edit "editor#{@getId()}"
       @prepareEditor()
-      @emit "ace.ready"
-
+      @utils.wait => @emit "ace.ready"
       @fetchContents (err, contents)=>
-        if err then warn err else
-          @setContents contents if contents
-          @editor.gotoLine 0
+        @setContents contents if contents
+        @editor.gotoLine 0
 
 
   prepareEditor:->
@@ -158,7 +155,7 @@ class Ace extends KDView
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
-      mode or= "javascript"
+      mode or= "text"
     
     require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
@@ -225,9 +222,7 @@ class Ace extends KDView
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          @listenTo
-            KDEventTypes        : 'ReceivedClickElsewhere'
-            listenedToInstance  : details
-            callback            : (pubInst,event)=>
-              @getSingleton('windowController').removeLayer @mainInputTabs
-              details.destroy()
+
+          details.on 'ReceivedClickElsewhere', =>
+            @getSingleton('windowController').removeLayer @mainInputTabs
+            details.destroy()
