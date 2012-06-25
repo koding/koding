@@ -19,6 +19,7 @@ class NFinderController extends KDViewController
       contextMenu       : options.contextMenu        ? yes
       fsListeners       : options.fsListeners        ? no
       initialPath       : options.initialPath        ? "/Users/#{nickname}"
+      maxRecentFolders  : options.maxRecentFolders  or 10
       delegate          : @
 
     @treeController = new NFinderTreeController treeOptions, []
