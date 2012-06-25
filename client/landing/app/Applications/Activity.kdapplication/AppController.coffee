@@ -90,7 +90,7 @@ class Activity12345 extends AppController
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
-      @getSingleton('windowController').notifyWindowResizeListeners()
+      mainView.notifyResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
@@ -127,12 +127,9 @@ class Activity12345 extends AppController
 
     allTab.addSubView activityListScrollView = activityListController.getView()
     
-    @listenTo 
-      KDEventTypes       : "resize"
-      listenedToInstance : @activitySplitView
-      callback           : (pubInst,event)=>
-        newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
-        activityListController.scrollView.setHeight newHeight
+    @activitySplitView.on "ViewResized", =>
+      newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
+      activityListController.scrollView.setHeight newHeight
     
     controller = @
     

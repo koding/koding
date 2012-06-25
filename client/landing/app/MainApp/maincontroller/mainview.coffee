@@ -135,9 +135,7 @@ class MainView extends KDView
       @buttonHolder.show()
 
     @changeHomeLayout isLoggedIn
-    setTimeout =>
-      @windowController.notifyWindowResizeListeners()
-    , 300
+    @utils.wait 300, => @notifyResizeListeners()
   
   _windowDidResize:->
 

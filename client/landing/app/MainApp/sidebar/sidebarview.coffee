@@ -253,7 +253,7 @@ class Sidebar extends JView
     if @_finderExpanded
       @expandNavigationPanel 160, ()=> @_onDevelop = no
       @collapseEnvironmentSplit =>
-        @getSingleton('windowController').notifyWindowResizeListeners()
+        @utils.wait 300, => @notifyResizeListeners()
   
   _windowDidResize:->
     
