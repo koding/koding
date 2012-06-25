@@ -5,47 +5,6 @@ class TabHandleView extends KDView
 
 
 class Shell12345 extends KDViewController
-  
-  nextScreenDiff:(data, messageNum)->
-    {_lastMessageProcessed, _orderedMessages} = @
-    _orderedMessages[messageNum] = data
-    if messageNum is _lastMessageProcessed
-      doThese = []
-      i = _lastMessageProcessed
-      for diff in (item while (item = _orderedMessages[i++])?)
-        @getView().updateScreen(diff)
-      @_lastMessageProcessed = i-1
-  
-  resetMessageCounter:->
-    console.log 'message counter is reset.'
-    @_lastMessageProcessed = 0
-    @_orderedMessages = []
-  
-  generateTerminalOptions : ()->
-    view = @getView()
-    options = view.getSize()
-    options.callbacks = 
-      data : (data, messageNum) => 
-        @nextScreenDiff data, messageNum
-        
-        # console.log data
-      error : (error) =>
-        @getView().disableInput()
-        msg = "connection closed"
-        if error.msg then msg += ",#{error.msg}"
-        @setNotification msg
-      ping : () =>
-        try
-          @terminal.ping()
-        catch e
-          console.log "terminal ping error: #{e}"
-        
-    options.callbacks.newSession = (totalViews)=>
-      console.log "new session"
-      notification = new KDNotificationView
-        title   : "Terminal has #{totalViews} views"
-        duration: 1500
-    return options
 
   constructor:()->
     super
@@ -56,6 +15,12 @@ class Shell12345 extends KDViewController
     @resetMessageCounter()
     shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
     resetRegexp = /reset\:.*?/
+    @dmp = new diff_match_patch()
+    @lastScreen = ""
+    @sendCount = 0
+    @keyStrokeCount = 0
+    @resetBufferedKeyStrokes()
+    
     shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
       switch functionName
         when 'clear'
@@ -71,6 +36,53 @@ class Shell12345 extends KDViewController
             if not clientType
               clientType = shellView.clientType
             @resetTerminalSession clientType
+    
+  
+  nextScreenDiff:(data, messageNum)->
+    {_lastMessageProcessed, _orderedMessages} = @
+    _orderedMessages[messageNum] = data
+    if messageNum is _lastMessageProcessed
+      doThese = []
+      i = _lastMessageProcessed
+      for diff in (item while (item = _orderedMessages[i++])?)
+        # console.log "updating screen with:",diff
+        currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
+        @getView().updateScreen(currentScreen)
+        @lastScreen = currentScreen      
+        @_lastMessageProcessed = i-1
+  
+  resetMessageCounter:->
+    console.log 'message counter is reset.'
+    @_lastMessageProcessed = 0
+    @_orderedMessages = []
+  
+  generateTerminalOptions : ()->
+    view = @getView()
+    options = view.getSize()
+    options.callbacks = 
+      data : (data, messageNum) => 
+        @nextScreenDiff data, messageNum
+        
+        # console.log "screen:",JSON.stringify data,messageNum
+      error : (error) =>
+        @getView().disableInput()
+        msg = "connection closed"
+        if error.msg then msg += ",#{error.msg}"
+        @setNotification msg
+        
+      ping : () =>
+        try
+          @terminal.ping()
+        catch e
+          console.log "terminal ping error: #{e}"
+        
+    options.callbacks.newSession = (totalViews)=>
+      console.log "new session"
+      notification = new KDNotificationView
+        title   : "Terminal has #{totalViews} views"
+        duration: 1500
+    return options
+
 
   setNotification:(msg)->
     if @notification?
@@ -164,7 +176,7 @@ class Shell12345 extends KDViewController
     # @pickAResponsiveKite {},(err,kiteId)=>
     #   console.log "whatup",err,kiteId 
     console.log 'initial terminal is called'
-    @account.tellKite
+    KD.singletons.kiteController.run
       kiteName  : "terminaljs"
       # kiteId    : kiteId
       toDo      : "create"
@@ -174,10 +186,13 @@ class Shell12345 extends KDViewController
         @setNotification "Failed to start terminal, please close the tab and try again."
         console.log error
       else
+        window.T = terminal
+        @sendCount = 0
+        @keyStrokeCount = 0 
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
-
+  
       
   loadView:(mainView)->
 
@@ -199,14 +214,31 @@ class Shell12345 extends KDViewController
     try
       @terminal.resize options.rows, options.cols
     catch e
-      console.log "terminal::resize error #{e}"
+      console.log "terminal.resize error #{e}"
+  
+  sendThrottled : _.throttle ->
+    @sendCount++
+    baseTime = @bufferedKeyStrokes[0][2]
+    k[2] = k[2] - baseTime  for k in @bufferedKeyStrokes
+    @terminal.write @bufferedKeyStrokes
+    console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
+    @resetBufferedKeyStrokes()
+  ,250
+  
+  resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
 
   send: (command) ->
     # console.log "sending:"+command
-    try
-      @terminal.write command
-    catch e
-      console.log "terminal::write error : #{e}"
+    delay = Date.now() #-@bufferedKeyStrokes[@bufferedKeyStrokes.length-1][1]
+    @bufferedKeyStrokes.push [@keyStrokeCount,@sendCount,delay,command]
+    @keyStrokeCount++
+    @sendThrottled()
+    # @terminal.write command
+    
+    # try
+    # snd command
+    # catch e
+      # console.log "terminal.write error : #{e}"
 
 
 # define ()->
