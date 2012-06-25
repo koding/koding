@@ -180,11 +180,11 @@ class Shell12345 extends KDViewController
 
       
   loadView:(mainView)->
+
     @initiateTerminal (totalSessions)=>
-      mainView.registerListener
-        KDEventTypes : "resize"
-        listener     : @
-        callback     : @resizeTerminal
+
+      mainView.on "ViewResized", => @resizeTerminal
+
       mainView.input.on "data",(cmd)=>
         @send cmd
 

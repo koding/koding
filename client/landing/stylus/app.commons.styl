@@ -280,12 +280,13 @@ button.editor-button
   rounded             3px
   margin-right        5px
   font-size           10px
-  line-height         10px
+  line-height         16px
   font-weight         700
   text-transform      none
   // vertical-align      top
   display             inline-block
   max-width           120px
+  vertical-align      top
   
   noTextDeco()
   
@@ -296,7 +297,8 @@ button.editor-button
     overflow            hidden
     width               100%
     margin              0
-    line-height         16px
+    display             block
+    // line-height         16px
 
 .link-group
   display             inline-block
@@ -814,7 +816,7 @@ button.cancel-edit-button
         display         block
         cursor          pointer
         margin-bottom   5px
-  .help-heart
+  .help-box
     top               -34px
     left              10px
     width             180px
@@ -833,10 +835,11 @@ button.cancel-edit-button
       margin            9px 5px 0 0
 
 /* sitewide help */
-.help-heart
+.help-box
   color                 #c5c5c5
   height                auto!important
-  span
+
+  > span
     margin-right        6px
     size(20px,20px)
     sprite()
@@ -846,12 +849,12 @@ button.cancel-edit-button
   > div
     font-size           9px
     overflow            hidden
-    // width               100px // breaks the link in modals to two lines. -sinan.
-    // fl()
+
     a
       font-size         11px
       text-decoration   none
       color             #ffbb60
+
     cite
       font-style          normal
       display             block
@@ -859,12 +862,13 @@ button.cancel-edit-button
   &:hover
     color               #000
     cursor              pointer
+
+    > span
+      bg                position,-120px -500px
+
     a
       color             #ff9202
       text-decoration   underline
-    span
-      sprite()
-      bg(position,-120px -500px)
 
 .feeder-tabs
   width                     auto
@@ -945,7 +949,7 @@ button.cancel-edit-button
     margin-bottom         30px
   .actions-sort.active,.actions-tags.active
     height              auto
-  .help-heart
+  .help-box
     position            absolute
     bottom              10px
   > button
@@ -1034,7 +1038,7 @@ figure.code-container
   position              relative
   margin-bottom         10px
   pre
-    padding             10px 10px 0 10px
+    padding             10px
     margin              0
     overflow            visible
     size                auto,auto
