@@ -18,6 +18,7 @@ class Shell12345 extends KDViewController
     @dmp = new diff_match_patch()
     @lastScreen = ""
     @bufferedKeyStrokes = []
+    @sendCount = 0
     
     shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
       switch functionName
@@ -184,6 +185,7 @@ class Shell12345 extends KDViewController
         console.log error
       else
         window.T = terminal
+        @sendCount = 0
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
@@ -212,7 +214,8 @@ class Shell12345 extends KDViewController
       console.log "terminal.resize error #{e}"
   
   sendThrottled : _.throttle ->
-    @terminal.write @bufferedKeyStrokes
+    @sendCount++
+    @terminal.write @bufferedKeyStrokes,@sendCount
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
     @bufferedKeyStrokes = []
   ,500
