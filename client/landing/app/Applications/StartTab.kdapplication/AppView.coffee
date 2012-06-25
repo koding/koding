@@ -15,16 +15,11 @@ class StartTabMainView extends KDView
     mainView = @
     @addSubView appView = new KDView
       cssClass      : 'start-tab-app-container'
-
     appView.addSubView new KDView
       tagName   : "h1"
       cssClass  : "start-tab-header"
       partial   : 'To start from a new file, select an editor <span>or open an existing file from your file tree</span>'
-
-    appView.addSubView appItemContainer = new KDView 
-      cssClass  : 'app-item-container'
-      delegate  : mainView
-
+    appView.addSubView appItemContainer = new AppItemContainer { cssClass: 'app-item-container', delegate : mainView }
     for app in @apps
       appItemContainer.addSubView new StartTabAppView 
         tab       : @
@@ -56,7 +51,7 @@ class StartTabMainView extends KDView
     
     @recentFileViews = {}
     
-    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       storage.on "update", => @updateRecentFileViews()
 
@@ -75,7 +70,7 @@ class StartTabMainView extends KDView
 
   updateRecentFileViews:()->
     
-    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       recentFilePaths = storage.getAt('bucket.recentFiles')
       # log "updating views", recentFilePaths.length
@@ -173,6 +168,10 @@ class StartTabMainView extends KDView
   
   
   createSplitView:(type)->
+
+class AppItemContainer extends KDView
+  parentDidResize:->
+    # log @getDelegate().getHeight()
 
 class StartTabAppView extends KDView
   constructor:(options, data)->
