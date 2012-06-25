@@ -455,10 +455,12 @@ Includes =
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
-        Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
+        sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
+        sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
+        sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
 
         # BOOK
-        BookView                      : "./client/app/MainApp/book.coffee"
+        BookView                    : "./client/app/MainApp/book.coffee"
 
         #maintabs
         
@@ -505,7 +507,9 @@ Includes =
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
 
-        KodingMainViewController  : "./client/app/MainApp/KodingMainViewController.coffee"
+        KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
+        KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
+        KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
 
         ### VOVAS FINDER CRAP - DEPRECATE ASAP ###
 

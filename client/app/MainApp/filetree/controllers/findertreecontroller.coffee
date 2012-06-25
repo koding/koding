@@ -173,7 +173,7 @@ class NFinderTreeController extends JTreeViewController
     cb = @utils.getCancellableCallback (files)=>
       clearTimeout folder.failTimer
       nodeView.expand()
-      @initTree files
+      @addNodes files
       callback? nodeView
     
     folder = nodeView.getData()
@@ -583,7 +583,7 @@ class NFinderTreeController extends JTreeViewController
 
   notify:(msg, style, details)->
     
-    return unless @getView().parent?.parent?.parent
+    return unless @getView().parent?
 
     notification.destroy() if notification
     
@@ -596,7 +596,8 @@ class NFinderTreeController extends JTreeViewController
       title     : msg or "Something went wrong"
       type      : "mini"
       cssClass  : "filetree #{style}"
-      container : @getView().parent.parent.parent # i know this is bad sinan 2012/5/21
+      container : @getView().parent
+      # duration  : 0
       duration  : if details then 5000 else 2500
       details   : details
       click     : ->
@@ -609,10 +610,7 @@ class NFinderTreeController extends JTreeViewController
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          @listenTo
-            KDEventTypes        : 'ReceivedClickElsewhere'
-            listenedToInstance  : details
-            callback            : (pubInst,event)=>
-              @getSingleton('windowController').removeLayer @mainInputTabs
-              details.destroy()
+          details.on 'ReceivedClickElsewhere', =>
+            @getSingleton('windowController').removeLayer @mainInputTabs
+            details.destroy()
               

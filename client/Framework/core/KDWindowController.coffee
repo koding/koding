@@ -61,7 +61,7 @@ class KDWindowController extends KDController
       lastLayer = layers[layers.length-1]
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
-        lastLayer.propagateEvent (KDEventType: 'ReceivedClickElsewhere'), e
+        lastLayer.emit 'ReceivedClickElsewhere', e
     , yes
 
     document.body.addEventListener 'mouseup', (e)=>

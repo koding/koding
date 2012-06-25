@@ -83,6 +83,7 @@ class KDView extends KDObject
       KDEventTypes        : 'viewAppended'
       listenedToInstance  : @
       callback            : =>
+        @setViewReady()
         @viewAppended()
         @childAppended @
         @parentIsInDom = yes
@@ -594,9 +595,9 @@ class KDView extends KDObject
         if "string" is typeof options.handle
           return if $(event.target).closest(options.handle).length is 0
         
-        top    = parseInt @$().css("top"),10
-        right  = parseInt @$().css("right"),10         
-        bottom = parseInt @$().css("bottom"),10
+        top    = parseInt @$().css("top"), 10
+        right  = parseInt @$().css("right"), 10         
+        bottom = parseInt @$().css("bottom"), 10
         left   = parseInt @$().css("left"), 10
 
         @dragState.startX     = event.pageX
@@ -615,7 +616,7 @@ class KDView extends KDObject
         return no
 
   drag:(event, delta)->
-    
+
     {directionX, directionY, axis} = @dragState
     {x, y} = delta
 
@@ -634,8 +635,6 @@ class KDView extends KDObject
 # #
 
   viewAppended:()->
-    # @propagateEvent KDEventType : "viewAppended"
-    @setViewReady()
   
   childAppended:(child)->
     # bubbling childAppended event
@@ -643,11 +642,9 @@ class KDView extends KDObject
   
   setViewReady:()->
     @viewIsReady = yes
-    @propagateEvent KDEventType : 'viewIsReady', globalEvent : yes
   
   isViewReady:()->
     @viewIsReady or no
-
 
 # #
 # EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults

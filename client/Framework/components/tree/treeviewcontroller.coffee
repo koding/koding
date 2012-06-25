@@ -75,7 +75,8 @@ class JTreeViewController extends KDViewController
   ###
 
   initTree:(nodes)->
-
+    
+    @removeAllNodes()
     @addNode node for node in nodes
 
   logTreeStructure:->
@@ -158,6 +159,10 @@ class JTreeViewController extends KDViewController
 
     list.addItem nodeData, index
   
+  addNodes:(nodes)->
+  
+    @addNode node for node in nodes
+  
   removeNode:(id)->
 
     nodeIndexToRemove = null
@@ -179,6 +184,11 @@ class JTreeViewController extends KDViewController
     
     @removeNode @getNodeId nodeView.getData()
 
+  removeAllNodes:->
+    
+    if @listControllers["0"]
+      @listControllers["0"].itemsOrdered.forEach (itemView)=>
+        @removeNodeView itemView
 
   removeChildNodes:(id)->
 
@@ -202,6 +212,7 @@ class JTreeViewController extends KDViewController
     @nodes[@getNodeId nodeData] = nodeView
     if @nodes[@getNodePId nodeData]
       @expand @nodes[@getNodePId nodeData] unless @getOptions().addListsCollapsed
+      # todo: make decoration with events
       @nodes[@getNodePId nodeData].decorateSubItemsState()
     return unless @listControllers[id]
     @addSubList nodeView, id
@@ -239,9 +250,10 @@ class JTreeViewController extends KDViewController
     
     if nodeData in @indexedNodes
       index = @indexedNodes.indexOf nodeData
-      @selectNode @nodes[@getNodeId @indexedNodes[index-1]]
+      @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
       @indexedNodes.splice index, 1
-      unless @getChildNodes(@nodes[@getNodePId nodeData].getData())
+      # todo: make decoration with events
+      if @nodes[@getNodePId nodeData] and not @getChildNodes(@nodes[@getNodePId nodeData].getData())
         @nodes[@getNodePId nodeData].decorateSubItemsState(no)
     
     

@@ -14,11 +14,15 @@ app.finder.styl
 }
 
 #finder-holder
+  height                auto
+  overflow              visible
   .nfinder
+    overflow            visible
     > div
       padding           10px 0
       borderBox()
     ul
+      min-width         208px
       margin-left       0
       &.drop-target
         background      rgba(136, 183, 214, 0.13)
@@ -28,17 +32,6 @@ app.finder.styl
     .kdlistitemview-finderitem
       .chevron-arrow
         hidden()
-
-#finder-panel
-  .kdnotification.filetree.mini
-    shadow              0 1px 3px rgba(0, 0, 0, 0.3)
-    rounded             2px
-    margin-top          35px
-    .kdnotification-title
-      text-shadow       none
-      font-size         10px
-      line-height       10px
-      padding           0 10px
 
 selectedNeighbor()
   border-top-color  #E6981E
@@ -230,7 +223,7 @@ dimmedNeighbor()
 
 #finder-panel
   position          absolute
-  overflow          auto
+  overflow          hidden
   size              208px,100%
   top               0
   left              160px
@@ -238,29 +231,50 @@ dimmedNeighbor()
   z-index           3
   background        #e2e2e2 url("../images/finder-back.gif") repeat left top
   leftTransition()
-  .kdscrollview
-    overflow        hidden
   &.expanded
     left            52px
     .kdscrollview
       overflow      auto
-    
-  #finder-holder
-    height                  auto
-    overflow                hidden
+  .kdscrollview
+    overflow        hidden
 
-  .finder-settings-border
-    position                relative
-    margin                  0 auto
-    width                   85%
-    top                     1px
-    border-top              1px solid rgba(255,255,255,.5)
-    background-image        url("../images/finder-resizer-handle.gif")
-    background-repeat       no-repeat
-    background-position     center 7px
-    height                  13px
-    shadow(0 -1px 0 rgba(0,0,0,.05))
-    bg(color,transparent)
+  .finder-resize-handle
+    cursor            ew-resize           
+    position          absolute
+    width             14px
+    min-width         14px
+    top               0!important
+    right             0!important
+    z-index           1
+    span
+      display         block
+      height          45px
+      bg              position, -55px -173px
+      sprite()
+  .kdnotification.filetree.mini
+    shadow              0 1px 3px rgba(0, 0, 0, 0.3)
+    rounded             2px
+    margin-top          -8px
+    padding             0
+    .kdnotification-title
+      text-shadow       none
+      font-size         10px
+      line-height       10px
+      padding           0 10px
+
+
+  // .finder-settings-border
+  //   position                relative
+  //   margin                  0 auto
+  //   width                   85%
+  //   top                     1px
+  //   border-top              1px solid rgba(255,255,255,.5)
+  //   background-image        url("../images/finder-resizer-handle.gif")
+  //   background-repeat       no-repeat
+  //   background-position     center 7px
+  //   height                  13px
+  //   shadow(0 -1px 0 rgba(0,0,0,.05))
+  //   bg(color,transparent)
   
   button.kdbutton.add-project
     font-weight     normal
@@ -275,7 +289,7 @@ dimmedNeighbor()
 
 #finder-header-holder
   size              auto,45px
-  h2.kdheaderview
+  h2
     font-size       13px
     font-weight     bold
     color           rgba(78, 78, 78, .90)
@@ -285,16 +299,9 @@ dimmedNeighbor()
     size            auto,43px
     border-bottom   1px solid rgba(0,0,0,.05)
     shadow          0 1px 0 rgba(255,255,255,.5)
-
-#finder-resize-handle
-  cursor            ew-resize           
-  position          absolute
-  size              14px, 45px
-  bg                position, -55px -173px
-  top               0
-  right             0
-  sprite()
-  
+    min-width       208px
+    span
+      margin-left   5px
   
 
 #finder-bottom-controls
@@ -302,10 +309,10 @@ dimmedNeighbor()
   bottom                    0
   margin                    0 
   size                      100%,auto
-  ul                        
+  ul
+    min-width               208px
     margin                  1px 10px 0 10px
     padding                 15px 0 5px 0
-    overflow                hidden
     border-top              1px solid rgba(255,255,255,.5)
     shadow                  0 -1px 0 rgba(0,0,0,.05)
     li
@@ -315,8 +322,8 @@ dimmedNeighbor()
       width                 auto
       span.icon             
         margin-right        10px
+        size                17px, 20px
         blockMid()
-        size(17px,20px)
      a
       font-size             11px
       color                 #444
@@ -337,21 +344,13 @@ dimmedNeighbor()
 /* 
 **  Overriding Treeview STYLES
 */
-.kdtreeitemview
 
-  .title
-    /*text-transform  uppercase*/
-    font-weight     bold
-    text-shadow     0 1px 0 white
-    color           #444
-    &:hover
-      color         #222
-      
 #finder > .kdview.kdtreeitemview:first-child .finder-item
   margin-left   17px
     
 .kdtreeview-filetree
   .kdtreeitemview
+    min-width     208px
     height        auto
     border        1px solid transparent
     border-width  1px 0
@@ -362,6 +361,14 @@ dimmedNeighbor()
 
     &:first-child
       margin-top 0px
+
+    .title
+      /*text-transform  uppercase*/
+      font-weight     bold
+      text-shadow     0 1px 0 white
+      color           #444
+      &:hover
+        color         #222
 
     .chevron-arrow
       position      absolute
