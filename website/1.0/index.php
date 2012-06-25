@@ -82,11 +82,11 @@ function getFeed($collection,$limit,$sort,$skip){
     $originId = isset($query["data"]["originId"]) ? new MongoId(
       $query["data"]["originId"]
     ) : array(
-      '$exists' => TRUE,
+      '$ne' => -1,
     );
-    
+
     trace($type);
-  
+
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
