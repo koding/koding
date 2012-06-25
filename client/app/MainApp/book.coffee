@@ -1,3 +1,12 @@
+###
+  todo
+    - dynamic table of contents (with real data)
+    - page switching ui
+    - activity
+    - develop fake button items and styling
+    - flip pages by clicking left or right half of the pages
+###
+
 class BookView extends JView
 
   @lastIndex = 0
@@ -101,26 +110,39 @@ class BookPage extends JView
       cssClass  : "content-wrapper"
       pistachio : data.content
     , data
+    
+    konstructor = if data.embed then data.embed else KDCustomHTMLView
+
+    @embedded = new konstructor
   
   pistachio:->
     
     """
     {{> @header}}
     {{> @content}}
+    <div class='embedded'>
+      {{> @embedded}}
+    </div>
     """
   
 
 class BookTableOfContents extends JView
-
-  constructor: (options, data) ->
+  
+  pistachio:->
+    
+    """
+    table of contents
+    """
 
 class BookUpdateWidget extends JView
 
-  constructor: (options, data) ->
+  pistachio:->
+    
+    """
+    update widget
+    """
     
 class BookDevelopButton extends KDButtonViewWithMenu
-
-  constructor: (options, data) ->
     
 
 __bookPages = [

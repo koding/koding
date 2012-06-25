@@ -39,9 +39,11 @@ class ShellView extends KDView
     @input.setFocus()
   updateScreen:(data)->
     @client?.write data
+
   _windowDidResize: ->
+
     @client?.resize @calculateSize()
-    @propagateEvent KDEventType : "resize"
+    @emit "ViewResized"
 
   calculateSize: ->
     obj =

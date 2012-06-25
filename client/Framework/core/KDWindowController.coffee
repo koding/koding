@@ -164,7 +164,7 @@ class KDWindowController extends KDController
     @winWidth  = $(window).width()
     @winHeight = $(window).height()
   
-  notifyWindowResizeListeners:(event,throttle = no, duration = 17)->
+  notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
     if throttle
       clearTimeout @resizeNotifiersTimer if @resizeNotifiersTimer

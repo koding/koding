@@ -29,10 +29,10 @@ class WelcomeHeader extends KDHeaderView
     h = @getHeight()
     @$().animate marginTop : -h, 100, ()=> 
       @destroy()
-      @getSingleton('windowController').notifyWindowResizeListeners()
+      @notifyResizeListeners()
       # after half an hour try i didn't understand why it didnt work at one call, so have the second :)
       # fix this if you see it again.
-      @getSingleton('windowController').notifyWindowResizeListeners()
+      @notifyResizeListeners()
 
   setTitle:()->
     {title, subtitle} = @getOptions()

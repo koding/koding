@@ -321,14 +321,16 @@ class KDView extends KDObject
   setWidth:(w)->
     @getDomElement()[0].style.width = "#{w}px"
     # @getDomElement().width w
-    @handleEvent type : "resize", newWidth : w
+    @emit "ViewResized", newWidth : w
+
   getHeight:()->
     # @getDomElement()[0].clientHeight
     @getDomElement().outerHeight()
+
   setHeight:(h)->
     @getDomElement()[0].style.height = "#{h}px"
     # @getDomElement().height h
-    @handleEvent type : "resize", newHeight : h
+    @emit "ViewResized", newHeight : h
 
   getX:()->@getDomElement().offset().left
   getRelativeX:()->@$().position().left
@@ -393,10 +395,7 @@ class KDView extends KDObject
     else
       @append subView, selector
 
-    subView.listenTo
-      KDEventTypes:       "resize"
-      listenedToInstance: @
-      callback:           subView.parentDidResize
+    subView.on "ViewResized", => subView.parentDidResize()
 
     if @template?
       @template["#{if shouldPrepend then 'prepend' else 'append'}Child"]? subView
@@ -749,6 +748,11 @@ class KDView extends KDObject
   listenWindowResize:->
     
     @getSingleton('windowController').registerWindowResizeListener @
+
+
+  notifyResizeListeners:->
+
+    @getSingleton('windowController').notifyWindowResizeListeners()
 
   setKeyView:->
 
