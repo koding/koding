@@ -1,4 +1,4 @@
-Pusher.channel_auth_endpoint = '/channel/auth';
+Pusher.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
 
 mainController = new MainController
 

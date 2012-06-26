@@ -1,23 +1,26 @@
-class HelpBox extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      title     : "NEED HELP?"
-      subtitle  : "Learn about sharing"
-    ,options
-    super options,data
+class HelpBox extends JView
 
-  viewAppended:()->
-    @setClass "help-heart"
-    @setPartial @partial()
+  constructor:(options = {}, data = {})->
+
+    options.cssClass or= "help-box"
+    options.title    or= "NEED HELP?"
+    options.subtitle or= "Learn about sharing"
+    
+    data.title    = options.title
+    data.subtitle = options.subtitle
+    
+    super options, data
 
   click:->
-    #@getSingleton('mainController').emit "ShowInstructionsBook"
+
+    # @getSingleton('mainController').emit "ShowInstructionsBook"
     
-  partial:()->
+  pistachio:()->
+
     """
       <span></span>
       <div>
-        <cite>#{@getOptions().title}</cite>
-        <a href="#">#{@getOptions().subtitle}</a>
+        {cite{ #(title)}}
+        <a href="#">{{ #(subtitle)}}</a>
       </div>
     """

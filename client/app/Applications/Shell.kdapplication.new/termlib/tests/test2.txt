@@ -1,0 +1,8 @@
+__ = function() {
+		// a simple JSON test (may fail with some windows firewalls)
+		alert('This alert is part of the server response.\nA line of text will be written to the terminal.');
+		this.write('\n#### THIS LINE OF TEXT IS WRITTEN BY THE IMPORTED FUNCTION ###\n ');
+
+		// delete the temp ref "__" (the temp var is a MSIE 7 work around)
+		delete window.__;
+	}

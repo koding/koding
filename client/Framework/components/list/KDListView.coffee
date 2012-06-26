@@ -63,7 +63,7 @@ class KDListView extends KDView
           return
 
   addItemView:(itemInstance,index,animation)->
-    @propagateEvent KDEventType: 'ItemWasAdded', { view: itemInstance, index }
+    @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
       @items.splice actualIndex, 0, itemInstance
