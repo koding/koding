@@ -18,6 +18,9 @@ console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
   
+  timeout:({timeout}, callback)->
+    setTimeout (-> callback null, timeout), timeout
+ 
   interval:({interval}, callback)->
     setInterval (-> callback null, interval), interval
 
