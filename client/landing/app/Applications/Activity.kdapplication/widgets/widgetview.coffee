@@ -24,12 +24,9 @@ class ActivityUpdateWidget extends KDView
 
     @mainInputTabs.on "ResetWidgets", => @resetWidgets()
 
-    @listenTo
-      KDEventTypes        : 'ReceivedClickElsewhere'
-      listenedToInstance  : @mainInputTabs
-      callback            : (pubInst,event)=>
-        unless $(event.target).closest('.activity-status-context').length > 0
-          @resetWidgets()
+    @mainInputTabs.on 'ReceivedClickElsewhere', =>
+      unless $(event.target).closest('.activity-status-context').length > 0
+        @resetWidgets()
 
   resetWidgets:->
 
