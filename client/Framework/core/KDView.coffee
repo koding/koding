@@ -43,7 +43,7 @@ class KDView extends KDObject
     o.pistachio   or= null      # a String of Pistachio
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
-    o.draggable   or= null      # an Object holding jQuery UI draggable options and/or events
+    o.draggable   or= null      # an Object holding draggable options and/or events
     o.droppable   or= null      # an Object holding jQuery UI droppable options and/or events
     o.resizable   or= null      # an Object holding jQuery UI resizable options and/or events
     o.size        or= null      # an Object holding width and height properties
@@ -83,6 +83,7 @@ class KDView extends KDObject
       KDEventTypes        : 'viewAppended'
       listenedToInstance  : @
       callback            : =>
+        @setViewReady()
         @viewAppended()
         @childAppended @
         @parentIsInDom = yes
@@ -164,8 +165,9 @@ class KDView extends KDObject
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
     
 
-    if options.tooltip
-      @setTooltip options.tooltip
+    @setTooltip options.tooltip if options.tooltip
+    @setDraggable options.draggable if options.draggable
+      
 
     @bindEvents()
 
@@ -319,14 +321,16 @@ class KDView extends KDObject
   setWidth:(w)->
     @getDomElement()[0].style.width = "#{w}px"
     # @getDomElement().width w
-    @handleEvent type : "resize", newWidth : w
+    @emit "ViewResized", newWidth : w
+
   getHeight:()->
     # @getDomElement()[0].clientHeight
     @getDomElement().outerHeight()
+
   setHeight:(h)->
     @getDomElement()[0].style.height = "#{h}px"
     # @getDomElement().height h
-    @handleEvent type : "resize", newHeight : h
+    @emit "ViewResized", newHeight : h
 
   getX:()->@getDomElement().offset().left
   getRelativeX:()->@$().position().left
@@ -391,10 +395,7 @@ class KDView extends KDObject
     else
       @append subView, selector
 
-    subView.listenTo
-      KDEventTypes:       "resize"
-      listenedToInstance: @
-      callback:           subView.parentDidResize
+    subView.on "ViewResized", => subView.parentDidResize()
 
     if @template?
       @template["#{if shouldPrepend then 'prepend' else 'append'}Child"]? subView
@@ -573,14 +574,66 @@ class KDView extends KDObject
           KDEventTypes       : key
           listenedToInstance : @
           callback           : value
+  
+  setDraggable:(options = {})->
+    
+    options = {} if options is yes
+    
+    @dragState =
+      containment : options.containment             # a parent KDView
+      handle      : options.handle                  # a parent KDView or a child selector
+      axis        : options.axis                    # a String 'x' or 'y' or 'diagonal'
 
+    handle = if options.handle and options.handle instanceof KDView then handle else @
+
+    @listenTo 
+      KDEventTypes       : "mousedown"
+      listenedToInstance : handle
+      callback           : (pubInst, event)=>
+        
+        if "string" is typeof options.handle
+          return if $(event.target).closest(options.handle).length is 0
+        
+        top    = parseInt @$().css("top"), 10
+        right  = parseInt @$().css("right"), 10         
+        bottom = parseInt @$().css("bottom"), 10
+        left   = parseInt @$().css("left"), 10
+
+        @dragState.startX     = event.pageX
+        @dragState.startY     = event.pageY
+        @dragState.top        = top
+        @dragState.right      = right
+        @dragState.bottom     = bottom
+        @dragState.left       = left
+        @dragState.directionX = if isNaN right  then "left" else "right"
+        @dragState.directionY = if isNaN bottom then "top"  else "bottom"
+
+        @getSingleton('windowController').setDragView @
+        @emit "DragStarted", event, @dragState
+        event.stopPropagation()
+        event.preventDefault()
+        return no
+
+  drag:(event, delta)->
+
+    {directionX, directionY, axis} = @dragState
+    {x, y} = delta
+
+    y    = -y if directionY is "bottom"
+    x    = -x if directionX is "right"
+    posY = @dragState[directionY] + y
+    posX = @dragState[directionX] + x
+    
+    @$().css directionX, posX unless axis is 'y'
+    @$().css directionY, posY unless axis is 'x'
+    
+    @emit "DragInAction", x, y
+    
 # #
 # VIEW READY EVENTS  
 # #
 
   viewAppended:()->
-    # @propagateEvent KDEventType : "viewAppended"
-    @setViewReady()
   
   childAppended:(child)->
     # bubbling childAppended event
@@ -588,11 +641,9 @@ class KDView extends KDObject
   
   setViewReady:()->
     @viewIsReady = yes
-    @propagateEvent KDEventType : 'viewIsReady', globalEvent : yes
   
   isViewReady:()->
     @viewIsReady or no
-
 
 # #
 # EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults
@@ -650,9 +701,9 @@ class KDView extends KDObject
       @$overlay.appendTo parent.$()
 
     if animated
-      @utils.nextTick =>
+      @utils.wait =>
         @$overlay.addClass "in"
-      @utils.nextTick 300, =>
+      @utils.wait 300, =>
         @emit "OverlayAdded", @
     else
       @emit "OverlayAdded", @
@@ -671,7 +722,7 @@ class KDView extends KDObject
 
     if @$overlay.hasClass "animated"
       @$overlay.removeClass "in"
-      @utils.nextTick 300, =>
+      @utils.wait 300, =>
         kallback()
     else
       kallback()
@@ -691,12 +742,17 @@ class KDView extends KDObject
       listenedToInstance  : @
       callback            : =>
         # log "get rid of this timeout there should be an event after template update"
-        @utils.nextTick =>
+        @utils.wait =>
           @$(o.selector).twipsy o
   
   listenWindowResize:->
     
     @getSingleton('windowController').registerWindowResizeListener @
+
+
+  notifyResizeListeners:->
+
+    @getSingleton('windowController').notifyWindowResizeListeners()
 
   setKeyView:->
 

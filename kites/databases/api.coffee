@@ -27,7 +27,7 @@ class KodingError extends Error
 
 this.Error = KodingError
 
-databasesKites = new Kite "databases"
+module.exports = new Kite "databases"
 
   #**********************************************#
   #***************** MySQL **********************#
@@ -158,4 +158,4 @@ databasesKites = new Kite "databases"
     mongoDB.removeDatabase options,(error,result)->
       __resReport(error,result,callback)
 
-module.exports = databasesKites
+

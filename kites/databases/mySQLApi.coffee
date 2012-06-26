@@ -355,10 +355,10 @@ class MySQL
   #           callback? null,r
 
 
-mySQL = new MySQL config
+# mySQL = new MySQL config
 
 
-module.exports = mySQL
+# module.exports = mySQL
 
 # mySQL.test()
 
