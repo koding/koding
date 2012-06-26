@@ -10,7 +10,7 @@ option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 
-ProgressBar     = require './builders/node_modules/progress'
+ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
