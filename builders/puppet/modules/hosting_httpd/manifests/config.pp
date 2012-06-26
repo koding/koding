@@ -22,6 +22,10 @@ class hosting_httpd::config {
     file { "/etc/php.d/apc.ini":
         source  => "puppet:///modules/hosting_httpd/etc/php.d/apc.ini",
     }
+    file { "/etc/php.d/prepend.php":
+        source  => "puppet:///modules/hosting_httpd/etc/php.d/prepend.php",
+    }
+
 
 
     file { "/etc/httpd/conf.d/php.conf":
