@@ -561,8 +561,18 @@ class NFinderTreeController extends JTreeViewController
     @openItem nodeView
 
   performRightKey:(nodeView, event)->
+    
+    {type} = nodeView.getData() 
+    if /mount|folder/.test type
+      @expandFolder nodeView
+    
   performUpKey:(nodeView, event)-> super
-  performLeftKey:(nodeView, event)-> super
+  performLeftKey:(nodeView, event)-> 
+    
+    if nodeView.expanded
+      @collapseFolder nodeView
+      return no
+    super
 
 
   ###
