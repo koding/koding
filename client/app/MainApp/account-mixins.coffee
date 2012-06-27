@@ -40,6 +40,12 @@ AccountMixin = do ->
       localStore = new Store
       remoteStore = new Store
       
+      transports = {}
+      
+      changeTransport = (channelId, transport)->
+        log 'CHANGING TRANSPORT: ', transport
+        transports[channelId] = transport
+      
       sendScrubbedCommand =(url, options)->
         log 'SENDING:', url, options
         fetchNonce (nonce)->
@@ -50,6 +56,7 @@ AccountMixin = do ->
               data    : data
               env     : KD.env
               n       : nonce
+            dataType  : 'json'
             type      : 'POST'
             success   : log
             xhrFields :
@@ -89,9 +96,10 @@ AccountMixin = do ->
           unless channel?
             channel = bongo.mq.subscribe secretChannelId
             channel.bind 'pusher:subscription_succeeded', ->
-              myHandler = messageHandler.bind null, secretChannelId
+              myMessageHandler = messageHandler.bind null, secretChannelId
               channel.bind 'message', myHandler
               channel.bind 'error', myHandler
+              channel.bind 'changeTransport', changeTransport.bind null, secretChannelId
           channel
       
       (options, callback)->
