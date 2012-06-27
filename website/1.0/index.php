@@ -26,7 +26,7 @@ if ($query['env']=="vpn"){
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
 }
-elseif ($query['env'] == "mongohq-dev") {
+elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == 'dev-api.koding.com') {
   $dbName = "koding";
   $dbHost = "staff.mongohq.com";
   $dbPort = "10016";

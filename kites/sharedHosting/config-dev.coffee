@@ -1,5 +1,6 @@
 nodePath = require 'path'
 # configuration
+cwd = process.cwd()
 
 module.exports =
   name              : "sharedhosting"
