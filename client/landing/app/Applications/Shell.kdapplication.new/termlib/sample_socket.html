@@ -1,0 +1,583 @@
+<html>
+<head>
+	<title>termlib Socket Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// *** request sample ***
+// mass:werk, N.Landsteiner 2007
+
+var term;
+
+var help = [
+	'%+r **** termlib socket sample **** %-r',
+	' ',
+	'* type "get" and a filename to send a http-request,',
+	'  use option -e for a JSON-style eval',
+	'* type "help" for this page',
+	'* type "exit" to quit.',
+	' ',
+	'TESTS:',
+	'  for a normal file request try:  get tests/test1.txt',
+	'  for an evaled JSON request try: get -e tests/test2.txt',
+	' '
+];
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				greeting: help.join('\n'),
+				handler: termHandler,
+				exitHandler: termExitHandler
+			}
+		);
+		term.open();
+		
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function pasteCommand(text) {
+	// insert given text into the command line and execute
+	var termRef = TermGlobals.activeTerm;
+	if ((!termRef) || (termRef.closed)) {
+		alert('Please open the terminal first.');
+		return;
+	}
+	if ((TermGlobals.keylock) || (termRef.lock)) return;
+	termRef.cursorOff();
+	termRef._clearLine();
+	for (var i=0; i<text.length; i++) {
+		TermGlobals.keyHandler({which: text.charCodeAt(i), _remapped:true});
+	}
+	TermGlobals.keyHandler({which: termKey.CR, _remapped:true});
+}
+
+function termHandler() {
+	this.newLine();
+	
+	this.lineBuffer = this.lineBuffer.replace(/^\s+/, '');
+	var argv = this.lineBuffer.split(/\s+/);
+	var cmd = argv[0];
+	
+	switch (cmd) {
+		case 'get':
+			if (argv[1] == '-e') {
+				// option -e
+				if (argv.length >= 3) {
+					this.send(
+						{
+							url: argv[2],
+							method: 'get',
+							callback: myServerCallback,
+							getHeaders: ['Content-Type', 'Content-Length']
+						}
+					);
+					return;
+				}
+			}
+			else if (argv.length >= 2) {
+				// use default request-callback
+				this.send(
+					{
+						url: argv[1],
+						method: 'get'
+					}
+				);
+				return;
+			}
+			this.write('Usage: send [-e] filename');
+			break;
+
+		case 'help':
+			this.clear();
+			this.write(help);
+			break;
+
+		case 'exit':
+			this.close();
+			return;
+
+		default:
+			if (this.lineBuffer != '') {
+				this.type('You typed: ' + this.lineBuffer);
+				this.newLine();
+			}
+	}
+	this.prompt();
+}
+
+function myServerCallback() {
+	var response=this.socket;
+	if (response.success) {
+		var func=null;
+		try {
+			func=eval(response.responseText);
+		}
+		catch (e) {
+		}
+		if (typeof func=='function') {
+			try {
+				func.apply(this);
+			}
+			catch(e) {
+				this.write('An error occured within the imported function: '+e);
+			}
+		}
+		else {
+			this.write('Server Response:\n' + response.responseText);
+		}
+		this.newLine();
+		this.write('Response Statistics:');
+		this.newLine();
+		this.write('  Content-Type: ' + response.headers.contentType);
+		this.newLine();
+		this.write('  Content-Length: ' + response.headers.contentLength);
+	}
+	else {
+		var s='Request failed: ' + response.status + ' ' + response.statusText;
+		if (response.errno) s +=  '\n' + response.errstring;
+		this.write(s);
+	}
+	this.prompt();
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td,li {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+tt,pre {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+li {
+	line-height: 15px;
+	margin-bottom: 8px !important;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			Server Request Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal&nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			<p>Tests:</p>
+			<p><a href="javascript:pasteCommand('get tests/test1.txt')" onfocus="if(this.blur)this.blur();" class="termopen">&gt; 1) a simple request&nbsp;</a></p>
+			<p><a href="javascript:pasteCommand('get -e tests/test2.txt')" onfocus="if(this.blur)this.blur();" class="termopen">&gt; 2) a JSON request &nbsp;</a></p>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2007<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" width="560" id="mainPane">
+		<p><b style="letter-spacing: 1px;">termlib-Socket Sample</b><br>&nbsp;</p>
+		
+		<p>This page demos the termlib.js socket extension for client-server communication via asynchronous XMLHttpRequests (commonly known as AJAX).</p>
+		<p>The socket extension provides a tight integration for all XMLHttpRequest tasks that would commonly occur in a real world application.</p>
+		<p>All you have to do, is call the <tt>send( &lt;options&gt; )</tt> method and return.<br>The request (might it succeed or fail) will come back to your callback-handler with your Terminal instance set as the <tt>this</tt> object.</p>
+		
+		<p>example:</p>
+<pre>  // assume we are inside a handler
+  // (&quot;this&quot; refers to an instance of Terminal)
+  
+  this.send(
+    {
+      url:      &quot;my_service.cgi&quot;,
+      method:   &quot;post&quot;,
+      data:     myDataObject,
+      callback: mySocketCallback
+    }
+  );
+  return;
+  
+  function mySocketCallback() {
+    if (this.socket.succes) {
+       // status 200 OK
+       this.write(&quot;Server said:\n&quot; + this.socket.responseText);
+    }
+    else if (this.socket.errno) {
+       // connection failed
+       this.write(&quot;Connection error: &quot; + this.socket.errstring);
+    }
+    else {
+       // connection succeeded, but server returned other status than 2xx
+       this.write(&quot;Server returned: &quot; +
+                  this.socket.status + &quot; &quot; + this.socket.statusText);
+    }
+    this.prompt()
+  }
+</pre>
+		<p>&nbsp;<br><b style="letter-spacing: 1px;">The <tt>send()</tt> API:</b></p>
+		
+		<p>As <tt>send( &lt;options&gt; )</tt> is called the socket library creates a XMLHttpRequest, collects and escapes the provided data, executes any initial tasks, and sends the request.</p>
+		
+		<p>All settings are transfered via a single options-object containing one ore more of the following options:</p>
+		
+		<table border="0" cellspacing="0" cellpadding="4">
+		<tr valign="top">
+			<td nowrap><tt>url</tt></td>
+			<td>the request url, must be on the same host (default &quot;&quot;)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>method</tt></td>
+			<td>request method (GET or POST; default GET)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>data</tt></td>
+			<td>request data (default &quot;&quot;), may be of any type, preferably an object with key-value pairs.<br>
+				the data is serialized and escaped for you by the library. (Please note that there might be unexpected results with nested objects or arrays. By the way: arrays are serialized as comma separated lists.) For complex data structures use a XML-object (true AJAX, see below).<br>
+				The resulting string will be either appended to the request url (GET) or used as post-body.
+			</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>callback</tt></td>
+			<td>the callback-function to handled the response</td>
+		</tr>
+		<tr><td colspan="2">&nbsp;<br>advanced settings:</td></tr>
+		<tr valign="top">
+			<td nowrap><tt>postbody</tt></td>
+			<td>Use this for true AJAX (e.g. sending a XML-object to the server)<br>
+				If a postbody option is supplied, this will change the behavior as follows:<br>
+				1) the request method is forced to &quot;POST&quot;<br>
+				2) the postbody will be used instead of any supplied data object<br>
+				3) the postbody will be transmitted as is (no serializing or escaping)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap></td>
+			<td>
+				(Note: The creation and parsing of XML-objects is out of the scope of this document and termlib.js and is therefor left entirely up to you.)
+			</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>userid</tt></td>
+			<td>optional user-id for implicit login (transfered without encryption!)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>password</tt></td>
+			<td>optional password for implicit login (transfered without encryption!)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>mimetype</tt></td>
+			<td>optional MIME-type to override the response's default MIME</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>headers</tt></td>
+			<td>optional object (key-value pairs) of HTTP-headers to be included in the request</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>getHeaders</tt></td>
+			<td>optional array (or object with labels as keys) of HTTP-headers to be extracted from the response</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>timeout</tt></td>
+			<td>optional individual timeout in msecs for this request<br>(default: 10000)</td>
+		</tr>
+		</table>
+		
+		<p><tt>send()</tt> will add a parameter &quot;<tt>_termlib_reqid</tt>&quot; with a unique id to every GET request that doesn't target the local file system (sent from pages with the &quot;file:&quot; schemes). This additional parameter ensures that MSIE (MS Internet Explorer) will truly fetch the requested document instead of serving it from its cache.</p>
+		
+		<p>A word on local requests:<br>
+		Please note that local requests (from and to the local file system) won't work with MSIE 7. (Sorry, ask Bill.) This MSIE 7 error will be captured as connection error with <tt>errno</tt> 2 (&quot;Could not open XMLHttpRequest.&quot;).<br>
+		If a browser requests a local document that does not exist, a 404 (Not Found) status code will be generated by the library and the <tt>errno</tt> property will be set to 5 (&quot;The requested local document was not found.&quot;).</p>
+		
+		<p>&nbsp;<br><b style="letter-spacing: 1px;">Global Config Settings:</b></p>
+		<p>There are a few global settings in <tt>Terminal.prototype._HttpSocket.prototype</tt> (the prototype of the internal socket object used by the library), which define some default values:</p>
+		
+		<table border="0" cellspacing="0" cellpadding="4">
+		<tr valign="top">
+			<td nowrap><tt>useXMLEncoding</tt></td>
+			<td>Boolean flag (default: false) for parameter delimiters<br>
+				if false, parameters will be delimited by &quot;&amp&quot;.<br>
+				if true, parameters will be delimited using &quot;;&quot; (new XML compatible syntax).
+			</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>defaulTimeout</tt></td>
+			<td>Number of ticks (milliseconds, default: 10000 = 10 sec) for request timeout, if not specified else.</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>defaultMethod</tt></td>
+			<td>String (default: &quot;GET&quot;); request method to use, if not specified else.</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>forceNewline</tt></td>
+			<td>Boolean flag (default: true): translate line breaks in the responseText to newlines (\n).</td>
+		</tr>
+		</table>
+		
+		<p>&nbsp;<br><b style="letter-spacing: 1px;">The Callback (Response Handling):</b></p>
+		<p>Any request issued by <tt>send()</tt> will trigger the handler specified by the <tt>callback</tt> option (or a basic default-handler). The callback will be called in any case, should the request succeed, timeout or fail otherwise.</p>
+		<p>All response data (and some of the request data) is provided in a temporary &quot;<tt>socket</tt> object for your convenience. (This temporary object will be discarded just after the callback returns.) As the <tt>this</tt> object points to your instance of Terminal, this object will be available as &quot;<tt>this.socket</tt>&quot; inside your callback-handler.</p>
+		
+		<p>Properties of the <tt>socket</tt> object:</p>
+		
+		<table border="0" cellspacing="0" cellpadding="4">
+		<tr valign="top">
+			<td nowrap><tt>status</tt></td>
+			<td>the HTTP status code (e.g.: 200, 404) or 0 (zero) on timeout and network errors</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>statusText</tt></td>
+			<td>the HTTP status text (e.g.: &quot;OK&quot;, &quot;Not Found&quot;)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>responseText</tt></td>
+			<td>the transmitted text (response body)<br>line breaks will be normalized to newlines (\n) if _HttpSocket.prototype.forceNewline == true (default behavior)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>responseXML</tt></td>
+			<td>the response body as XML object (if applicable)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>success</tt></td>
+			<td>a simple boolean flag for a 2xx OK response</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>headers</tt></td>
+			<td>object containing any HTTP headers (as key-value pairs) of the response,
+				which where requested by the &quot;<tt>getHeaders</tt>&quot;-option of the <tt>send()</tt>.<br>
+				the header-labels are unified to &quot;camelCase&quot;<br>
+				e.g.: &quot;Content-Length&quot; will be in <tt>headers.contentLength</tt></td>
+		</tr>
+		<tr><td colspan="2">&nbsp;<br>stored request data:</td></tr>
+		<tr valign="top">
+			<td nowrap><tt>url</tt></td>
+			<td>the request url as specified in the <tt>send()</tt> options.</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>data</tt></td>
+			<td>the data you called <tt>send()</tt> with</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>query</tt></td>
+			<td>the composed query-string or postbody as transmitted to the host</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>method</tt></td>
+			<td>the request method</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>errno</tt></td>
+			<td>the internal error number (0: no error)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap><tt>errstring</tt></td>
+			<td>the internal error message (&quot;&quot;: no error)</td>
+		</tr>
+		</table>
+		
+		<p>Some of the response specific data (as status codes, or headers) might not be present with local connections.</p>
+		
+		<p>&nbsp;<br>Connection errors are classified with the following <tt>errno</tt> and <tt>errstring</tt> values:</p>
+		
+		<table border="0" cellspacing="0" cellpadding="4">
+		<tr valign="top">
+			<td nowrap><tt>errno</tt></td>
+			<td nowrap><tt>errstring</tt></td>
+			<td></td>
+			<td nowrap><tt>label</tt></td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>0</td>
+			<td>&quot;&quot;</td>
+			<td></td>
+			<td nowrap>OK</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>1</td>
+			<td>&quot;XMLHttpRequest not implemented.&quot;</td>
+			<td></td>
+			<td nowrap>NOTIMPLEMENTED</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>2</td>
+			<td>&quot;Could not open XMLHttpRequest.&quot;</td>
+			<td></td>
+			<td nowrap>FATALERROR</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>3</td>
+			<td>&quot;The connection timed out.&quot;</td>
+			<td></td>
+			<td nowrap>TIMEOUT</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>4</td>
+			<td>&quot;Network error.&quot;</td>
+			<td></td>
+			<td nowrap>NETWORKERROR</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap>5</td>
+			<td>&quot;The requested local document was not found.&quot;</td>
+			<td></td>
+			<td nowrap>LOCALFILEERROR</td>
+		</tr>
+		</table>
+		
+		<p>The labels are implemented as key-value pairs in <tt>Terminal.prototype._HttpSocket.prototype.errno</tt> (type &quot;object&quot;).<br>
+		Error codes (errno) are also accessible as <tt>this.socket.ErrorCodes</tt> at run-time.</p>
+		<p>example:</p>
+<pre>  // assume we are inside a handler
+  if (this.socket.errno == this.socket.ErrorCodes.TIMEOUT) {
+     this.write(&quot;Oops, the request encountered a timeout.&quot;);
+  }
+
+</pre>
+		
+		<p>Inside an interactive terminal session you'll usually want to <tt>return</tt> just after <tt>send()</tt> and call <tt>prompt()</tt> at the end of your callback-handler.<br>
+		This way the terminal will keep blocked until the callback is finished.<p>
+		<p>Aside from this, the socket extension provides also the means for background tasks (e.g. storing temporary status on a server etc.) that do not need visual feedback or user interaction. Since the requests are performed and handled asynchronous and object oriented, both will go side by side.</p>
+		
+		<p>&nbsp;</p>
+		
+		<p>Norbert Landsteiner<br>Vienna, 2007/03<br>Updated 2010/01</p>
+		<p>&nbsp;</p>
+		
+		
+	</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>                                                                     

@@ -1,0 +1,241 @@
+<html>
+<head>
+	<title>mass:werk termlib</title>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh13 {
+	line-height: 13px;
+}
+.lh15 {
+	line-height: 15px;
+}
+pre {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #ccffaa;
+	line-height: 15px;
+}
+.prop {
+	font-family: courier,fixed,swiss,sans-serif;
+	color: #bbee99;
+	font-size: 12px;
+	line-height: 15px;
+}
+h1 {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 16px;
+	color: #cccccc;
+}
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #dddddd;
+}
+
+ul.features li {
+	line-height: 13px;
+	padding-bottom: 6px;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 12px;
+		color: #000000;
+	}
+	.lh13 {
+		line-height: 13px;
+	}
+	.lh15 {
+		line-height: 15px;
+	}
+	pre,.prop {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 12px;
+		color: #000000;
+		line-height: 15px;
+	}
+	h1 {
+		font-family: courier,fixed,swiss,sans-serif;
+		font-size: 16px;
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		text-decoration: none;
+		color: #000000;
+	}
+	a:hover {
+		text-decoration: underline;
+		color: #000000;
+	}
+	a:active {
+		text-decoration: underline;
+		color: #000000;
+	}
+}
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#dddddd" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0"><a name="top"></a>
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap>termlib.js home</td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0" width="700" align="center">
+	<tr><td>
+		<h1>mass:werk termlib.js</h1>
+	</td></tr>
+	<tr><td class="lh13">
+		The JavaScript library &quot;termlib.js&quot; provides a `Terminal' object, which
+		facillitates a simple and object oriented approach to generate and control a
+		terminal-like interface for web services.<br><br>
+		
+		&quot;termlib.js&quot; features direct keyboard input and powerful output methods
+		for multiple and simultanious instances of the `Terminal' object.<br><br>
+		
+		The library was written with the aim of simple usage and a maximum of compatibility
+		with minimal foot print in the global namespace.<br><br><br>
+		
+		
+		A short example:<br>
+  <pre>
+  var term = new Terminal( {handler: termHandler} );
+  term.open();
+
+  function termHandler() {
+     this.newLine();
+     var line = this.lineBuffer;
+     if (line != &quot;&quot;) {
+        this.write(&quot;You typed: &quot;+line);
+     }
+     this.prompt();
+  }</pre>
+  	</td></tr>
+	<tr><td class="lh13">
+		<b>Key Features:</b>
+		
+		<ul class="features">
+		<li><b>Object oriented</b>: Handle multiple instances independently at the same time!</li>
+		<li><b>Type styles</b>: Ready-to-use type styles and support for <a href="sample_style_settings.html">custom styles and mark up</a>.</li
+		<li><b>Colors</b>: Extended <a href="sample_color.html">support for colors</a>.</li>
+		<li><b>ANSI codes</b>: Limited <a href="sample_ansi_mapping.html">ANSI-support</a> for SGR codes.</li>
+		<li><b>Text wrapping</b>: Automatic <a href="sample_wrap.html">text wrapping</a> (v 1.3 and higher, see <a href="faq.html#wrapping">faq</a> for details)</li>
+		<li><b>Remote communications</b>: The <a href="sample_socket.html">socket extension</a> for client-server remote communication (commonly known as AJAX) provides a tightly integrated API for a simple and object oriented approach to XMLHttpRequests.<br>(Starting with version 1.5 the socket extension is included in the main library.)</li>
+		<li><b>Import methods</b>: &quot;termlib.js&quot; provides methods for <a href="sample_import.html">text import</a> via dialogs or copy'n'paste.</li>
+		<li><b>Parser</b>: Set up your own shell-like application using the included <a href="parser_sample.html">parser</a>.</li>
+		<li><b>Documentation</b>: <a href="readme.txt">Extensive documentation</a> and loads of <a href="samples.html">usage examples</a>.</li>
+		<li><b>Free</b>: Best of all: &quot;termlib.js&quot; is free, see the licence below.</li>
+		</ul>
+		
+		Note on <b>Backward Compatibility</b>:<br><br>
+		<table border="0" cellspacing="0" cellpadding="0">
+		<tr valign="top">
+			<td nowrap class="lh13">Version 1.5:</td>
+			<td class="lh13">&nbsp;</td>
+			<td class="lh13"><b>Changed the license.</b><br>Also dropped support for Netscape 4 (layers) and included the socket extension in the main library.<br>
+		As the socket extension is now included in the library, please delete any script-tags refering to &quot;termlib_socket.js&quot; from older applications!<br>&nbsp;</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap class="lh13">Version 1.52:</td>
+			<td class="lh13">&nbsp;</td>
+			<td class="lh13">Re-organized the <a href="parser_sample.html">Parser</a>. The parser is now a self-contained object with a constructor.<br>&nbsp;</td>
+		</tr>
+		</table>
+  	</td></tr>
+	<tr><td class="lh13">
+	<b>License</b><br><br>
+
+	This JavaScript-library is <b>free</b>.<br>
+	Include a visible backlink to &lt;<a href="http://www.masswerk.at/termlib/">http://www.masswerk.at/termlib/</a>&gt; in the embedding web page or application. The library should always be accompanied by the &quot;readme.txt&quot; and the sample HTML-documents.
+	</td></tr>
+	<tr><td class="lh13">
+	<b>Distribution</b><br><br>
+
+	This JavaScript-library may be distributed freely as long it is distributed together with the &quot;readme.txt&quot; and the sample HTML-documents and this document.<br><br>
+
+	Any changes to the library should be commented and be documented in the readme-file.<br>
+	Any changes must be reflected in the `Terminal.version' string as &quot;Version.Subversion&nbsp;(compatibility)&quot;.
+	</td></tr>
+	<tr><td class="lh13">
+	<b>Disclaimer</b><br><br>
+
+	This software is distributed AS IS and in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+	PURPOSE. The entire risk as to the quality and performance of the product is borne by the
+	user. No use of the product is authorized hereunder except under this disclaimer.
+	</td></tr>
+	<tr><td class="lh13">
+	<b>History</b><br><br>
+
+	This library evolved from the terminal script &quot;TermApp&quot; ((c) N. Landsteiner 2003) and is in its
+	current form a down scaled spinn-off of the &quot;JS/UIX&quot; project. (JS/UIX is not a free&nbsp;software by now.)
+	c.f.: &lt;<a href="http://www.masswerk.at/jsuix/" target="_blank">http://www.masswerk.at/jsuix</a>&gt;<br><br>
+
+	For version history: see the <a href="readme.txt">readme.txt</a>.
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;<br>
+	<b>Download</b><br><br>
+	Be sure to have read the license information and the disclamer and that you are willing to respect copyrights.<br><br>
+
+	<span class="prop">Download:</span> <a href="termlib.zip">termlib.zip</a> (~ 156 KB, incl. docs &amp; sample pages)<br><br>
+	Current version is &quot;1.6 (original)&quot;.<br>
+	Files are provided with line breaks  in format &lt;CRLF&gt;.<br>
+	The ZIP-archive includes now also a compacted version of &quot;termlib.js&quot;.
+	&nbsp;
+	</td></tr>
+	<tr><td class="lh13">
+	<b>Donations</b><br><br>
+
+	Donations are welcome: You may use the PayPal-button to support and/or honor the development of &quot;termlib.js&quot; at: <a href="http://www.masswerk.at/termlib/donate/">http://www.masswerk.at/termlib/donate/</a>
+	</td></tr>
+	<tr><td class="lh13">
+	<b>Author</b><br><br>
+	&copy; Norbert Landsteiner 2003-2010<br>
+	mass:werk &#150; media environments<br>
+	<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;<br>
+	Author's note:<br>
+	Please do not contact me on questions of simple usage. There is an extensive documentation (readme.txt) including plenty of sample code that should provide all information you need.
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;<br>
+		<a href="#top">&gt; top of page</a>
+	</td></tr>
+	<tr><td class="lh13">
+	&nbsp;
+	</td></tr>
+</table>
+
+</body>
+</html>

@@ -38,8 +38,16 @@ class ShellView extends KDView
   click: ->
     @input.setFocus()
   updateScreen:(data)->
+<<<<<<< HEAD
     @client?.write data
 
+=======
+    if @client
+      @client.write data
+    else
+      console.log "err: no @client"
+    
+>>>>>>> 61023c8c8d984971181cd539bc49241df2437de3
   _windowDidResize: ->
 
     @client?.resize @calculateSize()
