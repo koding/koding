@@ -2,7 +2,10 @@
 node hosting inherits base {
 
     $nodeuser = true # install nodejs system user for monit and for nas mount
-    
+
+    yumrepos { 'koding':
+        repo => 'koding',
+    }
 
     include hosting_configs
     include sudo

@@ -223,7 +223,7 @@ class Shell12345 extends KDViewController
     @terminal.write @bufferedKeyStrokes
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
     @resetBufferedKeyStrokes()
-  ,250
+  ,100
   
   resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
 
