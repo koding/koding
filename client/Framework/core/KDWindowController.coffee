@@ -15,37 +15,6 @@ class KDWindowController extends KDController
     @scrollingEnabled = yes
     @bindEvents()
     @setWindowProperties()
-<<<<<<< HEAD
-=======
-    
-    @layers = layers = []
-    document.body.addEventListener 'mousedown', (e)=>
-      $('.twipsy').remove() # temporary for beta
-      @setDragInAction no # for cases when dragleave doesn't fire
-      lastLayer = layers[layers.length-1]
-
-      if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
-        lastLayer.propagateEvent (KDEventType: 'ReceivedClickElsewhere'), e
-    , yes
-
-    document.body.addEventListener 'mouseup', (e)=>
-      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
-    , yes
-
-    window.onbeforeunload = (event) =>
-      # event.preventDefault();
-      # event.stopImmediatePropagation();
-      # event.stopPropagation();
-
-      event or= window.event
-      msg = "Please make sure that you saved all your work."
-      
-      event.returnValue = msg if event # For IE and Firefox prior to version 4
-
-      return msg unless window.location.hostname is "localhost"
-      
-
->>>>>>> 61023c8c8d984971181cd539bc49241df2437de3
     super
   
   addLayer: (layer)->
