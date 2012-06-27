@@ -12,7 +12,7 @@ function trace () {
 function handle_vacated_channel ($type, $event, $ms) {
   global $kites;
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
-  error_log(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
+  trace(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
     'toDo' => '_disconnect',
     'secretChannelId' => $event->channel,
@@ -45,7 +45,7 @@ function require_valid_session () {
   $session = get_session();
   $token = get_token($session);
   if (time() > $token['expires']->sec) {
-    error_log('expired token! '.var_export($token, TRUE));
+    trace('expired token! ');
     access_denied('session has expired');
   }
   return $session;
@@ -53,7 +53,7 @@ function require_valid_session () {
 
 function get_token ($session) {
   if (!isset($session['tokens'])) {
-    error_log('no session tokens! '. var_export($session, TRUE));
+    trace('no session tokens! ');
   }
   else {
     foreach ($session['tokens'] as $token) {
@@ -84,7 +84,6 @@ function json_respond ($ob) {
 
 function access_denied ($msg=NULL) {
   global $respond;
-  error_log('403 => '.$msg);
   header('HTTP/1.0 403 Forbidden');
   $response = array('error' => 403);
   if (isset($msg)) {
@@ -121,7 +120,6 @@ function get_mongo_db_name () {
 function get_mongo_db () {
   $db = get_mongo_db_name();
   $connection_string = get_mongo_host().'/'.$db;
-  error_log($connection_string);
   @$mongo = new Mongo($connection_string, array('persist' => 'api'));
   if(!isset($mongo)) {
     access_denied(2);
@@ -134,7 +132,6 @@ function get_kite_controller () {
   if (isset($kite_controller)) {
     return $kite_controller;
   }
-  error_log(dirname(dirname(dirname(__FILE__))));
   $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }
