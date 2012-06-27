@@ -39,7 +39,7 @@ $router->add_route('/kite/:kite_name', function ($params) {
 
 $router->add_route('/event', function () {
   @$message = json_decode(file_get_contents('php://input'));
-  // error_log(json_encode($message));
+  trace('/event ENDPOINT - ', $message);
   if(isset($message)) {
     foreach ($message->events as $event) {
       switch($event->name) {
