@@ -1,0 +1,4 @@
+*** Whats's in this directory? ***
+
+This directorty contains some test files to go with "sample_socket.html",
+the test-page for the termlib.js-socket extension "termlib_socket.js".

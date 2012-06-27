@@ -1,0 +1,536 @@
+<html>
+<head>
+	<title>termlib Color Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// *** text color sample ***
+// mass:werk, N.Landsteiner 2007
+
+var term;
+
+var help = [
+	'%+r termlib color sample help: %-r',
+	'',
+	' * type "colors"    to see the default internal colors.',
+	' * type "webcolors" to see the standard VGA and web safe colors.',
+	' * type "nscolors"  to see the VGA and netscape colors by name.',
+	' * type "help"      to see this page.',
+	' * type "exit"      to quit.',
+	' '
+];
+
+var colorTable = [
+	'termlib.js internal color table:',
+	' %+i%+ucolor name   code        sample       comment%-i                                %-u',
+	' default        0     %c(default)normal %+rreverse%-r%c0   "default" refers always to config color',
+	' black          1     %c(black)normal %+rreverse%-r%c0',
+	' red            2     %c(red)normal %+rreverse%-r%c0',
+	' green          3     %c(green)normal %+rreverse%-r%c0',
+	' yellow         4     %c(yellow)normal %+rreverse%-r%c0',
+	' blue           5     %c(blue)normal %+rreverse%-r%c0',
+	' magenta        6     %c(magenta)normal %+rreverse%-r%c0',
+	' cyan           7     %c(cyan)normal %+rreverse%-r%c0',
+	' white          8     %c(white)normal %+rreverse%-r%c0',
+	' grey           9     %c(grey)normal %+rreverse%-r%c0',
+	' darkred        A     %c(darkred)normal %+rreverse%-r%c0   hex 10',
+	' darkgreen      B     %c(darkgreen)normal %+rreverse%-r%c0   hex 11',
+	' darkyellow     C     %c(darkyellow)normal %+rreverse%-r%c0   hex 12',
+	' darkblue       D     %c(darkblue)normal %+rreverse%-r%c0   hex 13',
+	' darkmagenta    E     %c(darkmagenta)normal %+rreverse%-r%c0   hex 14',
+	' darkcyan       F     %c(darkcyan)normal %+rreverse%-r%c0   hex 15',
+	' ',
+	'%+i(type "nscolors" or "webcolors" for some more supported color sets.)%-i'
+];
+
+function listNetsacpeColors() {
+	var t=new Array();
+	for (var k in TermGlobals.nsColors) t.push(k);
+	t.sort();
+	var s='%+usupported Netscape colors by name:%-u\n\n';
+	var l=0;
+	for (var i=0; i<t.length; i++) {
+		var c=t[i];
+		if (l+c.length>78) {
+			s+='\n';
+			l=0;
+		}
+		else if (l>0) {
+			s+=' ';
+			l++;
+		}
+		s+= '%c(@'+c+')'+c;
+		l+=c.length;
+	}
+	return s+'%c0\n ';
+}
+
+function listWebColors() {
+	var t=new Array();
+	for (var k=1; k<TermGlobals.webColorCodes.length; k++) {
+		t.push(TermGlobals.webColorCodes[k]);
+	}
+	var s='%+usupported 216 web colors:%-u (you may use 3 digit codes also)\n\n';
+	var l=0;
+	for (var i=0; i<t.length; i++) {
+		var c=t[i];
+		if (l+c.length>78) {
+			s+='\n';
+			l=0;
+		}
+		else if (l>0) {
+			s+=' ';
+			l++;
+		}
+		s+= '%c(#'+c+')'+c;
+		l+=c.length;
+	}
+	return s+'%c0\n ';
+}
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				initHandler: termInitHandler,
+				handler: termHandler,
+				exitHandler: termExitHandler
+			}
+		);
+		term.open();
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function termInitHandler() {
+	// output a start up screen
+	this.write(
+		[
+			'%c(@yellowgreen)            ****           termlib.js - Color Sample            ****',
+			'            **** type "colors" for color table, "exit" to quit. ****',
+			'%c()%n'
+		]
+	);
+	this.write(colorTable);
+	// and leave with prompt
+	this.prompt();
+}
+
+function termHandler() {
+	// default handler + exit
+	this.newLine();
+	if (this.lineBuffer.search(/^\s*exit\s*$/i) == 0) {
+		this.close();
+		return;
+	}
+	else if (this.lineBuffer.search(/^\s*colors\s*$/i) == 0) {
+		this.clear();
+		this.write(colorTable);
+	}
+	else if (this.lineBuffer.search(/^\s*nscolors\s*$/i) == 0) {
+		this.clear();
+		this.write(listNetsacpeColors());
+	}
+	else if (this.lineBuffer.search(/^\s*webcolors\s*$/i) == 0) {
+		this.clear();
+		this.write(listWebColors());
+	}
+	else if (this.lineBuffer.search(/^\s*help\s*$/i) == 0) {
+		this.clear();
+		this.write(help);
+	}
+	else if (this.lineBuffer != '') {
+		this.type('You typed: '+this.lineBuffer);
+		this.newLine();
+	}
+	this.prompt();
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td,li {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+tt,pre {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+.markup { color: #00ffcc; }
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop,.markup {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			Color Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2007<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" width="560" id="mainPane">
+		<p><b style="letter-spacing: 1px;">Color Sample Page</b><br>&nbsp;</p>
+		<p>With version 1.2 termlib.js introduces support for colors.</p>
+		<p>Colors are controlled using the styles interface of the <tt>type()</tt> and <tt>write()</tt> methods.</p>
+		<p><b>Usage:</b></p>
+		<p>As any style settings colors are controlled by the <tt>%&lt;style&gt;</tt> markup of the <tt>write()</tt> method, where <tt>&lt;style&gt;</tt> starts with a &quot;<tt>c</tt>&quot; for &quot;color&quot;.</p>
+		<p>&quot;termlib.js&quot; supports 3 different color systems:</p>
+		<p>1) The first approach mimics the ANSI color approach as known from most terminals:</p>
+		<p>There is a set of 16 colors (1 default color and 15 configurable colors):</p>
+		
+		<table border="0" cellspacing="0" cellpadding="2" style="margin-left: 20px;">
+		<tr>
+			<td nowrap><tt>color name</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>code</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>color string</tt></td><td nowrap>&nbsp;</td>
+			<td nowrap><tt>synonyms</tt></td>
+		</tr>
+		<tr>
+			<td nowrap>default</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">0</td><td nowrap>&nbsp;</td>
+			<td nowrap><i>empty</i></td><td nowrap>&nbsp;</td>
+			<td nowrap>clear, <i>empty string</i></td>
+		</tr>
+		<tr>
+			<td nowrap>black</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">1</td><td nowrap>&nbsp;</td>
+			<td nowrap>#000000</td><td nowrap>&nbsp;</td>
+			<td nowrap>&nbsp;</td>
+		</tr>
+		<tr>
+			<td nowrap>red</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">2</td><td nowrap>&nbsp;</td>
+			<td nowrap>#ff0000</td><td nowrap>&nbsp;</td>
+			<td nowrap>red1</td>
+		</tr>
+		<tr>
+			<td nowrap>green</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">3</td><td nowrap>&nbsp;</td>
+			<td nowrap>#00ff00</td><td nowrap>&nbsp;</td>
+			<td nowrap>green1</td>
+		</tr>
+		<tr>
+			<td nowrap>yellow</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">4</td><td nowrap>&nbsp;</td>
+			<td nowrap>#ffff00</td><td nowrap>&nbsp;</td>
+			<td nowrap>yellow1</td>
+		</tr>
+		<tr>
+			<td nowrap>blue</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">5</td><td nowrap>&nbsp;</td>
+			<td nowrap>#0066ff</td><td nowrap>&nbsp;</td>
+			<td nowrap>blue1</td>
+		</tr>
+		<tr>
+			<td nowrap>magenta</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">6</td><td nowrap>&nbsp;</td>
+			<td nowrap>#ff00ff</td><td nowrap>&nbsp;</td>
+			<td nowrap>magenta1</td>
+		</tr>
+		<tr>
+			<td nowrap>cyan</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">7</td><td nowrap>&nbsp;</td>
+			<td nowrap>#00ffff</td><td nowrap>&nbsp;</td>
+			<td nowrap>cyan1</td>
+		</tr>
+		<tr>
+			<td nowrap>white</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">8</td><td nowrap>&nbsp;</td>
+			<td nowrap>#ffffff</td><td nowrap>&nbsp;</td>
+			<td nowrap>&nbsp;</td>
+		</tr>
+		<tr>
+			<td nowrap>grey</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">9</td><td nowrap>&nbsp;</td>
+			<td nowrap>#808080</td><td nowrap>&nbsp;</td>
+			<td>gray</td>
+		</tr>
+		<tr>
+			<td nowrap>darkred</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">A</td><td nowrap>&nbsp;</td>
+			<td nowrap>#990000</td><td nowrap>&nbsp;</td>
+			<td nowrap>red2</td>
+		</tr>
+		<tr>
+			<td nowrap>darkgreen</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">B</td><td nowrap>&nbsp;</td>
+			<td nowrap>#009900</td><td nowrap>&nbsp;</td>
+			<td nowrap>green2</td>
+		</tr>
+		<tr>
+			<td nowrap>darkyellow</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">C</td><td nowrap>&nbsp;</td>
+			<td nowrap>#999900</td><td nowrap>&nbsp;</td>
+			<td nowrap>yellow2</td>
+		</tr>
+		<tr>
+			<td nowrap>darkblue</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">D</td><td nowrap>&nbsp;</td>
+			<td nowrap>#003399</td><td nowrap>&nbsp;</td>
+			<td nowrap>blue2</td>
+		</tr>
+		<tr>
+			<td nowrap>darkmagenta</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">E</td><td nowrap>&nbsp;</td>
+			<td nowrap>#990099</td><td nowrap>&nbsp;</td>
+			<td nowrap>magenta2</td>
+		</tr>
+		<tr>
+			<td nowrap>darkcyan</td><td nowrap>&nbsp;</td>
+			<td nowrap align="center">F</td><td nowrap>&nbsp;</td>
+			<td nowrap>#009999</td><td nowrap>&nbsp;</td>
+			<td nowrap>cyan2</td>
+		</tr>
+		<tr><td colspan="7">&nbsp;</td></tr>
+		</table>
+		
+		<p>&quot;default&quot; or &quot;clear&quot; refers always to the configured default color.</p>
+		<p>Code values from <tt>A</tt> to <tt>F</tt> (may be lower case) indicate hex values from 10 to 15.</p>
+		
+		<p>You may change the color string using the method <tt>TermGlobals.setColor( &lt;label&gt;, &lt;colorstring&gt; )</tt>, where &lt;label&gt; is the name or code of a color and &lt;colorstring&gt; a valid CSS color value.</p>
+		
+		<p>Examples:</p>
+<pre>  // changing the color string used for &quot;red&quot;
+  TermGlobals.setColor( &quot;red&quot;, &quot;#880000&quot; );
+  TermGlobals.setColor( &quot;2&quot;, &quot;#880000&quot; );
+  TermGlobals.setColor( 2, &quot;#880000&quot; );
+
+  // changing darkred
+  TermGlobals.setColor( &quot;darkred&quot;, &quot;#440000&quot; );
+  TermGlobals.setColor( &quot;A&quot;, &quot;#440000&quot; );
+  TermGlobals.setColor( 10, &quot;#440000&quot; );
+</pre>
+		<p>You may also access the currently used color string using the method <tt>TermGlobals.getColorString( &lt;label&gt; )</tt> or look up a color's code using <tt>TermGlobals.getColorCode( &lt;label&gt )</tt>.</p>
+		
+		<p>&nbsp;</p>
+		<p>Writing with color:</p>
+		
+		<p>You may switch the color using the markup <tt>%c(&lt;color&nbsp;name&gt;)</tt> and switch back to the default color using <tt>%c(default)</tt> or <tt>%c(clear)</tt> or just <tt>%c()</tt> or <tt>%c0</tt>.<p>
+		<p>Alternatively to color names you may use a one-digit hex code <tt>%+c&lt;color&nbsp;code&gt;</tt> where &lt;color&nbsp;code&gt; is in the range from 0 to F (case insensitive).</p>
+		
+		<p>Examples:</p>
+<pre>  myTerm.write(&quot;Switching to <span class="markup">%c(red)</span>RED<span class="markup">%c(default)</span> and back again.&quot;);
+  myTerm.write(&quot;Switching to <span class="markup">%c2</span>RED<span class="markup">%c0</span> and back again.&quot;);
+  
+  myTerm.write(&quot;Switching to <span class="markup">%c(darkred)</span>DARKRED<span class="markup">%c()</span> and back again.&quot;);
+  myTerm.write(&quot;Switching to <span class="markup">%ca</span>DARKRED<span class="markup">%c0</span> and back again.&quot;);
+</pre>
+		<p>With version 1.4 or higher you may also use a color code (hex or decimal) inside brackets (resulting in a unified color markup syntax &quot;<tt>%c(...)</tt>&quot;):</p>
+<pre>  myTerm.write(&quot;Switching to <span class="markup">%c(2)</span>RED<span class="markup">%c(0)</span> and back again.&quot;);
+  myTerm.write(&quot;Switching to <span class="markup">%c(02)</span>RED<span class="markup">%c(0)</span> and back again.&quot;);
+  
+  myTerm.write(&quot;Switching to <span class="markup">%c(a)</span>DARKRED<span class="markup">%c()</span> and back again.&quot;);
+  myTerm.write(&quot;Switching to <span class="markup">%c(10)</span>DARKRED<span class="markup">%c()</span> and back again.&quot;);
+ 
+</pre>
+		<p>Note that <tt>%c0</tt>, <tt>%c(0)</tt>, <tt>%c()</tt>, <tt>%c(default)</tt>, <tt>%c(clear)</tt> are just synonyms for the default color. For the following examples we'll use &quot;<tt>%c()</tt>&quot; for this.</p>
+		
+		<p>All the color names and codes are case insensitive (&quot;RED&quot; == &quot;red&quot;).<br>As with all styles, setting a color applies to the single <tt>write()</tt> only.</p>
+		<p>Using the <tt>type()</tt> method the color values correspond to the bits 8 to 11 (bit-mask xf00) of the style-vector. (This means you have to multiply the color code by 256 or 0xff.)</p>
+		<p>Examples:</p>
+<pre>  myTerm.type(&quot;This is green.&quot;, 3*256);
+  myTerm.type(&quot;This is green and reverse.&quot;, 3*256 + 1);
+</pre>
+		<p>&nbsp;</p>
+		<p>2) Using named web colors (Netscape colors)</p>
+		<p>As a second approach you may use any of the 16 standard named colors or any of the 120 additional Netscape colors.</p>
+		<p>All you have to do to access this second color set is to prefix the color name with &quot;<tt>@</tt>&quot;.</p>
+		<p>Examples:</p>
+<pre>  myterm.write(&quot;Switching to <span class="markup">%c(@burlywood)</span>burlywood<span class="markup">%c()</span> and back again.&quot;);
+  myterm.write(&quot;Switching to <span class="markup">%c(@orange)</span>orange<span class="markup">%c()</span> and back again.&quot;);
+</pre>
+		<p>There are no color codes associated with this. Internally the bits 8 to 15 of the style vector (bit-mask 0xff00) are used for these colors. (Values start with or 0x1000.)</p>
+		
+		<p>The names of these 136 colors are:</p>
+		<p style="margin-left: 20px;">aliceblue antiquewhite aqua aquamarine azure beige black blue blueviolet brown burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson darkblue darkcyan darkgoldenrod darkgray darkgreen darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue darkslategray darkturquoise darkviolet deeppink deepskyblue dimgray dodgerblue firebrick floralwhite forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow honeydew hotpink indianred indigo ivory khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgreen lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightsteelblue lightyellow lime limegreen linen maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum powderblue purple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue slateblue slategray snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke yellow yellowgreen</p>
+		
+		<p>As above all color names are not case sensitive.</p>
+		<p>The values of this color set is fixed, you cannot change them using TermGlobals.setColor(). (The codes of this set are mapped internally to color strings. Changing these would be possible, but would not make much sense.)</p>
+		
+		<p>&nbsp;</p>
+		<p>3) Using the web color set</p>
+		
+		<p>Finally you may use any of the 216 standard web colors.<br>
+		You access these by a leading &quot;<tt>#</tt> and the 6-hex-digit color code of the color.<br>
+		(You may also use the 3-digit CSS format for these colors).</p>
+		
+		<p>Examples:</p>
+<pre>  myterm.write(&quot;Switching to <span class="markup">%c(#ff0000)</span>red<span class="markup">%c()</span> and back again.&quot;);
+  myterm.write(&quot;Switching to <span class="markup">%c(#f00)</span>red<span class="markup">%c()</span> and back again.&quot;);
+</pre>
+		<p>Again there are no accessible color codes associated to these. Internally these colors are mapped to the bit-mask 0xff0000 of the style vector.</p>
+		
+		<p>If the given color code is not part of the web color set, but represents a valid color in 6-digit format or in short 3-digit notation, the color will be matched to the nearest web color available (e.g. &quot;#9a44ee&quot; =&gt; &quot;#9933ff&quot;).</p>
+		
+		<p>The available color codes are (in long notation):</p>
+		
+<p style="margin-left:20px;">000000 000033 000066 000099 0000cc 0000ff 003300 003333 003366 003399 0033cc 0033ff 006600 006633 006666 006699 0066cc 0066ff 009900 009933 009966 009999 0099cc 0099ff 00cc00 00cc33 00cc66 00cc99 00cccc 00ccff 00ff00 00ff33 00ff66 00ff99 00ffcc 00ffff 330000 330033 330066 330099 3300cc 3300ff 333300 333333   333366 333399 3333cc 3333ff 336600 336633 336666 336699 3366cc 3366ff 339900    339933 339966 339999 3399cc 3399ff 33cc00 33cc33 33cc66 33cc99 33cccc 33ccff    33ff00 33ff33 33ff66 33ff99 33ffcc 33ffff 660000 660033 660066 660099 6600cc    6600ff 663300 663333 663366 663399 6633cc 6633ff 666600 666633 666666 666699    6666cc 6666ff 669900 669933 669966 669999 6699cc 6699ff 66cc00 66cc33 66cc66    66cc99 66cccc 66ccff 66ff00 66ff33 66ff66 66ff99 66ffcc 66ffff 990000 990033 990066 990099 9900cc 9900ff 993300 993333 993366 993399 9933cc 9933ff 996600 996633 996666 996699 9966cc 9966ff 999900 999933 999966 999999 9999cc 9999ff 99cc00 99cc33 99cc66 99cc99 99cccc 99ccff 99ff00 99ff33 99ff66 99ff99 99ffcc 99ffff cc0000 cc0033 cc0066 cc0099 cc00cc cc00ff cc3300 cc3333 cc3366 cc3399 cc33cc cc33ff cc6600 cc6633 cc6666 cc6699 cc66cc cc66ff cc9900 cc9933 cc9966 cc9999 cc99cc cc99ff cccc00 cccc33 cccc66 cccc99 cccccc ccccff ccff00 ccff33 ccff66 ccff99 ccffcc ccffff ff0000 ff0033 ff0066 ff0099 ff00cc ff00ff ff3300 ff3333 ff3366 ff3399 ff33cc ff33ff ff6600 ff6633 ff6666 ff6699 ff66cc ff66ff ff9900 ff9933 ff9966 ff9999 ff99cc ff99ff ffcc00 ffcc33 ffcc66 ffcc99 ffcccc ffccff ffff00 ffff33 ffff66 ffff99 ffffcc ffffff</p>
+
+		<p>As above all color codes are not case sensitive.</p>
+		<p>The values of this color set is fixed, you cannot change them using TermGlobals.setColor(). (The codes of this set are mapped internally to color strings. Changing these would be possible, but would not make much sense.)</p>
+		
+		<p>&nbsp;</p>
+		
+		<p>All this adds up to the complete color-markup syntax:</p>
+<pre>  &lt;color-markup&gt;     ::= &quot;%c&quot;&lt;color-expression&gt;
+  &lt;color-expression&gt; ::= &lt;hex-digit&gt; | &lt;label-expression&gt;
+  &lt;label-expression&gt; ::= &quot;(&quot;&lt;internal-color&gt|&quot;@&quot;&lt;netscape-color&gt;&quot;|#&quot;&lt;web-color&gt;&quot;)&quot
+  &lt;hex-digit&gt;        ::= &quot;0&quot; - &quot;F&quot;
+  &lt;internal-color&gt;   ::= any of the names referring to the 16 internal colors
+                         or any decimal or hex value 0 &lt;= n &lt; 15
+  &lt;netscape-color&gt;   ::= any of the names of the 136 named netscape colors
+  &lt;web-color&gt;        ::= any of the codes of the 216 standard web colors
+</pre>
+		<p>&nbsp;</p>
+		<p>In short, there are three color sets available:</p>
+		<ul>
+		<li>One for configurable colors, you access them by a hex digit or <tt>(&lt;name&gt;)</tt></li>
+		<li>One for netscape color names, you access them by <tt>(@&lt;name&gt;)</tt></li>
+		<li>One for web colors, you access them by <tt>(#&lt;code&gt;)</tt></li>
+		</ul>
+		<p>Generally any color-markup begins with &quot;<tt>%c</tt>&quot; and is followed by one of the three notations.
+&quot;<tt>%c0</tt>&quot;, &quot;<tt>%c()</tt>&quot;, or &quot;<tt>%c(default)</tt>&quot; switch back to the default color.</p>
+		<p>Supplying an invalid or non-matching color label or value will result in switching back to the default color. (e.g. &quot;%c(xxx)&quot; == &quot;%c()&quot;)</p>
+		<p>&nbsp;</p>
+</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>                                                                     
