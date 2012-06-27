@@ -50,7 +50,7 @@ module.exports = new Kite 'terminaljs'
           _lastMessageProcessed++
           # console.log _orderedMessages,_lastMessageProcessed
         
-        
+        ###
         for key,o of _orderedMessages
           do (key)->
             console.log {key,_lastMessageProcessed}
@@ -67,19 +67,19 @@ module.exports = new Kite 'terminaljs'
                 # consumeMessages()
               ,1000
           break
-
+          ###
       clientObject =
         id                 : terminal.id
         type               : "anyterm.js"
         isNew              : yes
         totalSessions      : 1
         write              : (data) ->
-          _orderedMessages[d[0]] = group:d[1],time:d[2],cmd:d[3] for d in data
+          # _orderedMessages[d[0]] = group:d[1],time:d[2],cmd:d[3] for d in data
           # _orderedMessages = _.sortBy _orderedMessages,((e)-> return e[0])
           # console.log {data}
           
-          
-          consumeMessages()
+          terminal.write d[3] for d in data
+          # consumeMessages()
           
           # process = (msg)->
           #   baseTime = msg[0][1]
