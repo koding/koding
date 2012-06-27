@@ -123,7 +123,6 @@ $router->add_route('/channel/auth', function () {
   parse_str($input);
   trace('-------', $input);
   $session = get_session();
-  
-  trace('chris', $_GET, $channel_name, $session);
+  trace('chris', $_POST, $channel_name, $session);
   
 });
