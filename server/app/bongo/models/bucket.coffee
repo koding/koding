@@ -19,13 +19,14 @@ class CBucket extends jraphical.Module
     
   add:(item, callback)->
     member = ObjectRef(item)
-    console.log member.data
     @update {
       $set          :
         modifiedAt  : new Date
       $addToSet     :
         group       : member.data
-    }, callback
+    }, (err)=>
+      @emit 'ItemWasAdded', member.data
+      callback err
 
 class CNewMemberBucket extends CBucket
   

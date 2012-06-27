@@ -28,8 +28,8 @@ class ContentDisplayCodeSnippet extends KDView
       @commentBox.commentController.fetchAllComments 0, (err, comments)=>
         controller = @commentBox.commentController
         listView   = controller.getListView()
-        listView.propagateEvent KDEventType: "BackgroundActivityFinished"
-        listView.handleEvent {type: 'AllCommentsWereAdded', comments}
+        listView.emit "BackgroundActivityFinished"
+        listView.emit "AllCommentsWereAdded"
         controller.removeAllItems()
         controller.instantiateListItems comments      
 

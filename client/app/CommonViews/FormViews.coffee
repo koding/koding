@@ -39,13 +39,10 @@ class AbstractPersonalFormView extends KDFormView
   pistachio:-> ''
 
   setListeners:->
-    @listenTo 
-      KDEventTypes        : "ReceivedClickElsewhere"
-      listenedToInstance  : @
-      callback:(pubInst, event)->
-        @unsetClass 'active'
-        @resetInputValue()
-        @windowController.removeLayer @
+    @on 'ReceivedClickElsewhere', =>
+      @unsetClass 'active'
+      @resetInputValue()
+      @windowController.removeLayer @
         
   resetInputValue:-> no
 
@@ -158,13 +155,11 @@ class PersonalFormAboutWrapperView extends KDView
     @formView = new PersonalFormAboutView {memberData}
     
     @windowController = @getSingleton 'windowController'
-    @listenTo 
-      KDEventTypes        : "ReceivedClickElsewhere"
-      listenedToInstance  : @
-      callback            : (pubInst, event)->
-        @unsetClass 'active'
-        @formView.resetInputValue()
-        @windowController.removeLayer @
+
+    @on 'ReceivedClickElsewhere', =>
+      @unsetClass 'active'
+      @formView.resetInputValue()
+      @windowController.removeLayer @
 
   viewAppended:->
     super

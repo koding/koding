@@ -1,8 +1,9 @@
 class JPost extends jraphical.Message
   
   @::mixin Taggable::
+  @::mixin Notifying::
   
-  {secure,dash,daisy} = bongo
+  {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
@@ -100,7 +101,16 @@ class JPost extends jraphical.Message
         -> 
           status.addParticipant delegate, 'author'
       ]
-
+  
+  constructor:->
+    super
+    @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
+  
+  fetchOrigin: (callback)->
+    originType = @getAt 'originType'
+    originId   = @getAt 'originId'
+    Base.constructors[originType].one {_id: originId}, callback
+  
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
@@ -182,8 +192,8 @@ class JPost extends jraphical.Message
             queue.next()
       ->
         CActivity.update _id: activityId, {
-          $set      : {snapshot: JSON.stringify teaser}
-          $pullAll  : {snapshotIds: rel.getAt 'targetId'}
+          $set      : { snapshot     : JSON.stringify teaser }
+          $pullAll  : { snapshotIds  : rel.getAt 'targetId'  }
         }, -> queue.next()
       
       callback
@@ -234,6 +244,10 @@ class JPost extends jraphical.Message
                     callback err
                   else
                     callback null, comment
+                    @emit 'ReplyIsAdded', {
+                      replier : ObjectRef(delegate).data
+                      reply   : ObjectRef(comment).data
+                    }
                     @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".

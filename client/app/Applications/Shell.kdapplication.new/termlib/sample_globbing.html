@@ -1,0 +1,561 @@
+<html>
+<head>
+	<title>termlib Globbing Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// *** text globbing sample ***
+// mass:werk, N.Landsteiner 2009
+
+// dictionary for globbing
+// Object of arrays per first letter, others in 'nonalpha'
+
+var termGlobDict = {
+	'a': [
+			'all',
+			'alternate',
+			'any',
+			'anyone',
+			'anywhere',
+			'anyhow',
+			'are',
+			'arbitrage',
+			'arbitrary'
+		],
+	'b': [
+			'bar',
+			'bit',
+			'byte',
+			'better',
+			'best',
+			'boost',
+			'booster'
+		],
+	'c': [
+			'case',
+			'character',
+			'completion'
+		],
+	'd': [
+			'delete',
+			'dialog',
+			'display'
+		],
+	'e': [
+			'either',
+			'element',
+			'empty'
+		],
+	'f': [
+			'first',
+			'foo',
+			'function'
+		],
+	'g': [
+			'get',
+			'glob',
+			'globbing'
+		],
+	'h': [
+			'head',
+			'heat',
+			'help'
+		],
+	'i': [
+			'is',
+			'it',
+			'iteration'
+		],
+	'j': [
+			'joke',
+			'just',
+			'justice'
+		],
+	'k': [
+			'karma',
+			'kilo',
+			'kilobit'
+		],
+	'l': [
+			'lambda',
+			'like',
+			'limit'
+		],
+	'm': [
+			'meta',
+			'metaphysic',
+			'metaphor'
+		],
+	'n': [
+			'neither',
+			'never',
+			'number'
+		],
+	'o': [
+			'object',
+			'open',
+			'order'
+		],
+	'p': [
+			'parser',
+			'print',
+			'prompt'
+		],
+	'q': [
+			'quantum',
+			'query',
+			'quote'
+		],
+	'r': [
+			'remember',
+			'rest',
+			'roman'
+		],
+	's': [
+			'sane',
+			'some',
+			'sort'
+		],
+	't': [
+			'target',
+			'tell',
+			'tolerance'
+		],
+	'u': [
+			'under',
+			'upper',
+			'urgent'
+		],
+	'v': [
+			'vane',
+			'vertical',
+			'vital'
+		],
+	'w': [
+			'want',
+			'which',
+			'width'
+		],
+	'x': [
+			'x-ray',
+			'xanadu',
+			'xylophone'
+		],
+	'y': [
+			'yacht',
+			'yet',
+			'ypsilon'
+		],
+	'z': [
+			'zet',
+			'zeta',
+			'zoom'
+		],
+	
+	'nonalpha': [
+		// non-alphanumeric go here
+		'100',
+		'1000',
+		'0.0',
+		'#!/usr/bin/perl'
+	]
+};
+
+// flag: sort hit list alphabetical
+var termGlobSortAlphabetical = false;
+
+var term;
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				greeting: '%+r **** termlib.js globbing sample **** %-r%n%ntype any text and hit ESC or TAB for globbing.%ntype "exit" to quit.%n ',
+				handler: termHandler,
+				exitHandler: termExitHandler,
+				ctrlHandler: termCtrlHandler,
+				printTab: false,
+				closeOnESC: false
+			}
+		);
+		term.open();
+		
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function termHandler() {
+	// default handler + exit
+	this.newLine();
+	if (this.lineBuffer.search(/^\s*exit\s*$/i) == 0) {
+		this.close();
+		return;
+	}
+	else if (this.lineBuffer != '') {
+		this.type('You typed: '+this.lineBuffer);
+		this.newLine();
+	}
+	this.prompt();
+}
+
+// this is our control handler where we trap the TAB and ESC
+/*
+	C.f.: the according entry in the initialization object of Terminal.open() above,
+	where we
+		1) regeistered this handler
+		2) released the TAB and the ESC from the default handling
+*/
+
+function termCtrlHandler() {
+	var ch = this.inputChar;
+	if (ch == termKey.TAB || ch == termKey.ESC) {
+		this.lock=true;
+		// get the command line input and extract the last word
+		var line = this._getLine();
+		var words = line.split(/\s+/);
+		if (words.length) {
+			var word=words[words.length-1];
+			if (word) {
+				// prepare for search
+				var found=new Array();
+				var dialog, re, qword, rword, i;
+				// all persistant data is stored per instance using the namespace this.env
+				this.env.globBuffer=new Array();
+				// select the appropriate dictionary list (based on first letter)
+				// (we could also select a dict on contextual creteria ...)
+				var firstletter = word.charAt(0).toLowerCase();
+				if (firstletter < 'a' || firstletter > 'z') firstletter='nonalpha';
+				var dict=termGlobDict[firstletter];
+				if (dict) {
+					// quote meta and build a regexp
+					qword= word.replace(/([\\\/\+\-\.\*\?\[\]\{\}\(\)^$\|\!])/g, '\\$1');
+					re = new RegExp('^'+qword, 'i');
+					rword = new RegExp('^'+qword+'$', 'i');
+					// test the regexp against the array of possible completions (exlude identical words)
+					for (i=0; i<dict.length; i++) {
+						if (re.test(dict[i]) && !rword.test(dict[i])) found.push(dict[i]);
+					}
+				}
+				if (found.length) {
+					// some completions were found
+					// cut list to max 9 entries
+					if (found.length>9) found.length=9;
+					// sort alphabetical if flag is set;
+					if (termGlobSortAlphabetical) found.sort();
+					// collect a dialog and store the complementary parts in this.env.globBuffer
+					dialog=new Array();
+					dialog.push('Suggestions for "'+word+'":');
+					dialog.push('');
+					dialog.push('  0  '+word+' (CANCEL)');
+					for (i=0; i<found.length; i++) {
+						dialog.push('  '+(i+1)+'  '+found[i]);
+						this.env.globBuffer[i]=String(found[i]).replace(re, '');
+					}
+					dialog.push('');
+					dialog.push('');
+					dialog.push('Choose an option or press any key to continue.');
+					this.env.globCursor=0;
+				}
+				else {
+					// nothing found => compile an appropriate dialog
+					dialog = [
+						'No suggestions found for "'+word+'".',
+						'',
+						'',
+						'Press any key to continue.'
+					];
+					this.env.globCursor=-1;
+				}
+				// backup the whole terminal state
+				this.backupScreen();
+				// reset terminal space to full size (in case there was a status line etc)
+				this.maxCols=this.conf.cols;
+				this.maxLines=this.conf.rows;
+				// and show the dialog
+				termGlobbingShowDialog(this, dialog);
+				// set the cursor on first option (cancel)
+				if (found.length) termGlobbingSetDialogCursor(this, 0);
+				// enter charMode and transfer control to our modal dialog handler
+				this.charMode=true;
+				this.handler=this.ctrlHandler=termGlobbingHandler;
+			}
+		}
+		this.lock=false;
+	}
+	else {
+		return;
+	}
+}
+
+// special handler for the modal globbing dialog
+
+function termGlobbingHandler() {
+	var ch = this.inputChar;
+	// cursor motion controls: move selection up or down and return
+	if (this.env.globCursor>=0) {
+		if (ch==termKey.UP) {
+			if (this.env.globCursor>0) termGlobbingSetDialogCursor(this, -1);
+			return;
+		}
+		if (ch==termKey.DOWN) {
+			if (this.env.globCursor<this.env.globBuffer.length) termGlobbingSetDialogCursor(this, 1);
+			return;
+		}
+	}
+	// other actions (close dialog and evaluate the options):
+	// 1) restore terminal's state from backup and complete with given option, if any
+	// by restoring the terminal's state we also restore the handlers
+	this.restoreScreen();
+	// 2) evaluate any valid options
+	var completion;
+	if (ch >= 49 && ch <= 48+this.env.globBuffer.length) {
+		// we got a valid number as input
+		completion = this.env.globBuffer[ch-49];
+	}
+	else if (ch == termKey.CR && this.env.globCursor>0) {
+		// user hit RETURN and the dialog's cursor was on a selected option
+		completion = this.env.globBuffer[this.env.globCursor-1];
+	}
+	if (completion) {
+		// get position of last char, return value: [r,c]
+		var pos = this._getLineEnd(this.r, this.c);
+		var r = pos[0];
+		var c = pos[1];
+		// advance to next cursor position
+		if (++c == this.maxCols) {
+			c=0;
+			r++;
+		}
+		// set cursor (if necessary) and append the completion
+		this.cursorOff();
+		if (this.r != r || this.c != c) this.cursorSet(r, c);
+		this.type(completion);
+		this.cursorOn();
+		
+	}
+	// 3) clean up: reset our special store and unlock
+	this.env.globBuffer.length=0;
+	this.env.globCursor=-1;
+	this.lock=false;
+}
+
+// draw a nice dialog
+
+function termGlobbingShowDialog(termRef, lines) {
+	var horizontalMargin=5;
+	var verticalMargin=2;
+	var horizontalBorderChar='-';
+	var verticalBorderChar='|';
+	var cornerChar='+';
+	var style=8*256; // white (normal style, no color = 0)
+	var l=termRef.conf.cols-horizontalMargin-1;
+	var i, n, line;
+	var b0=cornerChar;
+	var b1=verticalBorderChar;
+	var b2=verticalBorderChar+'  ';
+	var b3=' '+verticalBorderChar;
+	for (i=horizontalMargin+b0.length; i<l; i++) b0+=horizontalBorderChar;
+	for (i=horizontalMargin+b1.length; i<l; i++) b1+=' ';
+	b0+=cornerChar;
+	b1+=verticalBorderChar;
+	var l2=l-b3.length-horizontalMargin;
+	var r=verticalMargin;
+	termRef.typeAt(r++,horizontalMargin, b0, style);
+	termRef.typeAt(r++,horizontalMargin, b1, style);
+	for (n=0; n<lines.length; n++) {
+		if (lines[n]!='') {
+			line=b2+lines[n];
+			for (i=line.length; i<=l2; i++) line+=' ';
+			termRef.typeAt(r++,horizontalMargin, line+b3, style);
+		}
+		else {
+			termRef.typeAt(r++, horizontalMargin, b1, style);
+		}
+	}
+	termRef.typeAt(r++, horizontalMargin, b1, style);
+	termRef.typeAt(r, horizontalMargin, b0, style);
+}
+
+// set the cursor inside the dialog (invert selected option)
+
+function termGlobbingSetDialogCursor(termRef, motion) {
+	// offset is r = verticalMargin+4 and c = horizontalMargin+4
+	// this depends on the layout of our dialog
+	var horizontalMargin=5;
+	var verticalMargin=2;
+	var r,sr,i;
+	var c=horizontalMargin+4;
+	if (!motion) motion=0;
+	// reset any previous selected option
+	// (reset least significant bit of stylevector to 0)
+	if (termRef.env.globCursor>=0 && motion) {
+		r=verticalMargin+4+termRef.env.globCursor;
+		sr=termRef.styleBuf[r];
+		for (i=c; i<c+3; i++) sr[i]&=0xfffffffe;
+		termRef.redraw(r);
+	}
+	// hilite selected option
+	// (invert: set least significant style-bit to 1)
+	termRef.env.globCursor+=motion;
+	r=verticalMargin+4+termRef.env.globCursor;
+	sr=termRef.styleBuf[r];
+	for (i=c; i<c+3; i++) sr[i]|=1;
+	termRef.redraw(r);
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+tt {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			Text Globbing Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2009<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" id="mainPane">
+		<p><b style="letter-spacing: 1px;">A Simple Globbing Sample (with dialog)</b><br>&nbsp;</p>
+		<p>This sample demonstrates how to back up and restore a terminal's state<br>in order to implement a special mode (here a dialog).<br>
+		It also shows how to trap a special key and how to process the current<br>input of the command line.</p>
+		<p>Open the terminal, type a some text and hit TAB or ESC for globbing.<br>
+		Any completions are evaluated from the last word in the line.</p>
+		<p>Possible completions are stored in an object containing lists (arrays)<br>per first letter:</p>
+		<pre>
+var termGlobDict = {
+   'a': [
+          // put strings beginning with &quot;a&quot; here
+        ],
+   'b': [
+          // put strings beginning with &quot;b&quot; here
+        ]
+   ...
+}</pre>
+		<p>(Only the max. first 9 hits are displayed as possible options.)</p>
+		<p>Inside a dialog options may be selected by either</p>
+		<ul>
+		<li>typing the according number or</li>
+		<li>by moving the cursor and hitting &lt;ENTER&gt;.</li>
+		</ul>
+	</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>                                                                     

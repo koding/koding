@@ -188,10 +188,11 @@ task 'build', 'optimized version for deployment', (options)->
   options.port      or= 3000
   options.host      or= "localhost"
   options.watch     or= 1000
-  options.database  ?= "local" 
+  options.database  ?= "mongohq-dev" 
   options.port      ?= "3000"
   options.dontStart ?= no
   options.uglify    ?= no
+  
 
   targetPaths.server = options.target ? "/tmp/kd-server.js"
   

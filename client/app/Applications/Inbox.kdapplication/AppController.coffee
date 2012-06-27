@@ -38,11 +38,9 @@ class Inbox12345 extends AppController
 
     currentDelegate.fetchPrivateChannel (err, channel)->
       console.log channel
-    # mainView.inboxMessagesList.registerListener
-    #   KDEventTypes  : 'ReceivedClickElsewhere'
-    #   listener      : @
-    #   callback      : => 
-    #     @deselectMessages()
+
+    # mainView.inboxMessagesList.on 'ReceivedClickElsewhere', =>
+    #   @deselectMessages()
 
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
