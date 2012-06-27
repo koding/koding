@@ -3,15 +3,280 @@ class TabHandleView extends KDView
     @domElement = $ "<b>Terminal</b>
       <span class='kdcustomhtml terminal icon'></span>"
 
+class Mio extends KDView
+  # setDomElement :->
+  #   @domElement = $ <div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
 
-class Shell12345 extends KDViewController
+class Shell12345 extends AppController
+
+  constructor:(options = {}, data)->
+    options.view = new Mio
+      cssClass : "content-page mio"
+      domId    : "termDiv"
+      
+    super options, data
+
+  bringToFront:()->
+    super name : 'Mio'#, type : 'background'
+
+  loadView:(mainView)->
+    log mainView
+    # mainView.setPartial '<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>'
+    @view = mainView
+    #@view.setDomId "Terminal"+Date.now()
+    #log @view.getDomId()
+    @termOpen()
+
+  termOpen : ->
+    termGlobDict =
+      a: [ "all", "alternate", "any", "anyone", "anywhere", "anyhow", "are", "arbitrage", "arbitrary" ]
+      b: [ "bar", "bit", "byte", "better", "best", "boost", "booster" ]
+      c: [ "case", "character", "completion" ]
+      d: [ "delete", "dialog", "display" ]
+      e: [ "either", "element", "empty" ]
+      f: [ "first", "foo", "function" ]
+      g: [ "get", "glob", "globbing" ]
+      h: [ "head", "heat", "help" ]
+      i: [ "is", "it", "iteration" ]
+      j: [ "joke", "just", "justice" ]
+      k: [ "karma", "kilo", "kilobit" ]
+      l: [ "lambda", "like", "limit" ]
+      m: [ "meta", "metaphysic", "metaphor" ]
+      n: [ "neither", "never", "number" ]
+      o: [ "object", "open", "order" ]
+      p: [ "parser", "print", "prompt" ]
+      q: [ "quantum", "query", "quote" ]
+      r: [ "remember", "rest", "roman" ]
+      s: [ "sane", "some", "sort" ]
+      t: [ "target", "tell", "tolerance" ]
+      u: [ "under", "upper", "urgent" ]
+      v: [ "vane", "vertical", "vital" ]
+      w: [ "want", "which", "width" ]
+      x: [ "x-ray", "xanadu", "xylophone" ]
+      y: [ "yacht", "yet", "ypsilon" ]
+      z: [ "zet", "zeta", "zoom" ]
+      nonalpha: [ "100", "1000", "0.0", "#!/usr/bin/perl" ]
+      
+    termExitHandler = ->
+      mainPane = (if (document.getElementById) then document.getElementById("mainPane") else document.all.mainPane)
+      mainPane.className = "lh15"  if mainPane
+    termHandler = ->
+      @newLine()
+      if @lineBuffer.search(/^\s*exit\s*$/i) is 0
+        @close()
+        return
+      else unless @lineBuffer is ""
+        @type "You typed: " + @lineBuffer
+        @newLine()
+      @prompt()
+
+    termCtrlHandler = ->
+      ch = @inputChar
+      if ch is termKey.TAB or ch is termKey.ESC
+        @lock = true
+        line = @_getLine()
+        words = line.split(/\s+/)
+        if words.length
+          word = words[words.length - 1]
+          if word
+            found = new Array()
+            dialog = undefined
+            re = undefined
+            qword = undefined
+            rword = undefined
+            i = undefined
+            @env.globBuffer = new Array()
+            firstletter = word.charAt(0).toLowerCase()
+            firstletter = "nonalpha"  if firstletter < "a" or firstletter > "z"
+            dict = termGlobDict[firstletter]
+            if dict
+              qword = word.replace(/([\\\/\+\-\.\*\?\[\]\{\}\(\)^$\|\!])/g, "\\$1")
+              re = new RegExp("^" + qword, "i")
+              rword = new RegExp("^" + qword + "$", "i")
+              i = 0
+              while i < dict.length
+                found.push dict[i]  if re.test(dict[i]) and not rword.test(dict[i])
+                i++
+            if found.length
+              found.length = 9  if found.length > 9
+              found.sort()  if termGlobSortAlphabetical
+              dialog = new Array()
+              dialog.push "Suggestions for \"" + word + "\":"
+              dialog.push ""
+              dialog.push "  0  " + word + " (CANCEL)"
+              i = 0
+              while i < found.length
+                dialog.push "  " + (i + 1) + "  " + found[i]
+                @env.globBuffer[i] = String(found[i]).replace(re, "")
+                i++
+              dialog.push ""
+              dialog.push ""
+              dialog.push "Choose an option or press any key to continue."
+              @env.globCursor = 0
+            else
+              dialog = [ "No suggestions found for \"" + word + "\".", "", "", "Press any key to continue." ]
+              @env.globCursor = -1
+            @backupScreen()
+            @maxCols = @conf.cols
+            @maxLines = @conf.rows
+            termGlobbingShowDialog this, dialog
+            termGlobbingSetDialogCursor this, 0  if found.length
+            @charMode = true
+            @handler = @ctrlHandler = termGlobbingHandler
+        @lock = false
+      else
+        return
+    termGlobbingHandler = ->
+      ch = @inputChar
+      if @env.globCursor >= 0
+        if ch is termKey.UP
+          termGlobbingSetDialogCursor this, -1  if @env.globCursor > 0
+          return
+        if ch is termKey.DOWN
+          termGlobbingSetDialogCursor this, 1  if @env.globCursor < @env.globBuffer.length
+          return
+      @restoreScreen()
+      completion = undefined
+      if ch >= 49 and ch <= 48 + @env.globBuffer.length
+        completion = @env.globBuffer[ch - 49]
+      else completion = @env.globBuffer[@env.globCursor - 1]  if ch is termKey.CR and @env.globCursor > 0
+      if completion
+        pos = @_getLineEnd(@r, @c)
+        r = pos[0]
+        c = pos[1]
+        if ++c is @maxCols
+          c = 0
+          r++
+        @cursorOff()
+        @cursorSet r, c  if @r isnt r or @c isnt c
+        @type completion
+        @cursorOn()
+      @env.globBuffer.length = 0
+      @env.globCursor = -1
+      @lock = false
+    termGlobbingShowDialog = (termRef, lines) ->
+      horizontalMargin = 5
+      verticalMargin = 2
+      horizontalBorderChar = "-"
+      verticalBorderChar = "|"
+      cornerChar = "+"
+      style = 8 * 256
+      l = termRef.conf.cols - horizontalMargin - 1
+      i = undefined
+      n = undefined
+      line = undefined
+      b0 = cornerChar
+      b1 = verticalBorderChar
+      b2 = verticalBorderChar + "  "
+      b3 = " " + verticalBorderChar
+      i = horizontalMargin + b0.length
+      while i < l
+        b0 += horizontalBorderChar
+        i++
+      i = horizontalMargin + b1.length
+      while i < l
+        b1 += " "
+        i++
+      b0 += cornerChar
+      b1 += verticalBorderChar
+      l2 = l - b3.length - horizontalMargin
+      r = verticalMargin
+      termRef.typeAt r++, horizontalMargin, b0, style
+      termRef.typeAt r++, horizontalMargin, b1, style
+      n = 0
+      while n < lines.length
+        unless lines[n] is ""
+          line = b2 + lines[n]
+          i = line.length
+          while i <= l2
+            line += " "
+            i++
+          termRef.typeAt r++, horizontalMargin, line + b3, style
+        else
+          termRef.typeAt r++, horizontalMargin, b1, style
+        n++
+      termRef.typeAt r++, horizontalMargin, b1, style
+      termRef.typeAt r, horizontalMargin, b0, style
+    termGlobbingSetDialogCursor = (termRef, motion) ->
+      horizontalMargin = 5
+      verticalMargin = 2
+      r = undefined
+      sr = undefined
+      i = undefined
+      c = horizontalMargin + 4
+      motion = 0  unless motion
+      if termRef.env.globCursor >= 0 and motion
+        r = verticalMargin + 4 + termRef.env.globCursor
+        sr = termRef.styleBuf[r]
+        i = c
+        while i < c + 3
+          sr[i] &= 0xfffffffe
+          i++
+        termRef.redraw r
+      termRef.env.globCursor += motion
+      r = verticalMargin + 4 + termRef.env.globCursor
+      sr = termRef.styleBuf[r]
+      i = c
+      while i < c + 3
+        sr[i] |= 1
+        i++
+      termRef.redraw r
+
+
+    if (not term) or (term.closed)
+      term = new Terminal
+        x: 0 # @view.getWidth()  #220
+        y: 0 # @view.getHeight() #70
+        rows : @getView().getHeight()/16
+        cols : @getView().getWidth()/6
+        termDiv: @getView().getDomId()
+        bgColor: "#232e45"
+        greeting: "%+r **** termlib.js globbing sample **** %-r%n%ntype any text and hit ESC or TAB for globbing.%ntype \"exit\" to quit.%n "
+        # handler: termHandler
+        exitHandler: termExitHandler
+        # ctrlHandler: termCtrlHandler
+        printTab: false
+        closeOnESC: false
+  
+      term.open()
+      mainPane = (if (document.getElementById) then document.getElementById("mainPane") else document.all.mainPane)
+      # mainPane = document.getElementById @view.getDomId
+      mainPane.className = "lh15 dimmed"  if mainPane
+      window.TT = term
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class Shell123456 extends KDViewController
 
   constructor:()->
     super
     @account = KD.whoami()
     # @getKiteIds kiteName:"terminaljs",->
     @_terminalId = null
-    @setView shellView = new ShellView
+    @setView shellView = new Mio
     @resetMessageCounter()
     shellView.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeView
     resetRegexp = /reset\:.*?/
