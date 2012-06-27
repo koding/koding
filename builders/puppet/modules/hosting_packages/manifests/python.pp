@@ -6,8 +6,9 @@ class hosting_packages::python {
                         "pymongo",
                         "MySQL-python",
                         "ipython",
-		        "python-flup.noarch",
-                        "python-virtualenv"
+         		        "python-flup.noarch",
+                        "python-virtualenv",
+                        "python-setuptools"
                       ]
     
     package { "python":
