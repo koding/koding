@@ -39,7 +39,7 @@ class KDWindowController extends KDController
       
       event.returnValue = msg if event # For IE and Firefox prior to version 4
 
-      return msg
+      return msg unless window.location.hostname is "localhost"
       
 
     super

@@ -205,6 +205,7 @@ task 'build', 'optimized version for deployment', (options)->
   options.port      ?= "3000"
   options.dontStart ?= no
   options.uglify    ?= no
+  
 
   targetPaths.server = options.target ? "/tmp/kd-server.js"
   
