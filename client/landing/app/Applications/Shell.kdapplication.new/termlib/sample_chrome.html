@@ -1,0 +1,636 @@
+<html>
+<head>
+	<title>termlib Chrome Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script language="JavaScript" type="text/javascript">
+<!--
+
+/*
+  test sample for termlib.js: window chrome
+  (updated for use with termlib.js v. 1.07)
+
+  (c) Norbert Landsteiner 2005
+  mass:werk - media environments
+  <http://www.masswerk.at>
+  
+  all rights reserved
+
+*/
+
+var term = new Array();
+
+function termOpen(n) {
+	if (termToSet) return; // do not open while there is modal dialog
+	n = parseInt(n);
+	if ((!n) || (isNaN(n))) n = 1;
+	var termid = 'terminal'+n;
+	if (!term[n]) {
+		term[n] = new Terminal(
+			{
+				x: 0,
+				y: 0,
+				id: n,
+				termDiv: 'termDiv'+n,
+				frameWidth: 1,
+				frameColor: '#aaaaaa',
+				bgColor: '#eeeeee',
+				greeting: 'Terminal ready.',
+				handler: termHandler,
+				exitHandler: termChromeHide
+			}
+		);
+		term[n].colorsetting=1;
+		if (term[n]) {
+			termChromeShow(n);
+			term[n].open();
+		}
+	}
+	else if (term[n].closed) {
+		termSetChromeState(n, true);
+		termChromeShow(n);
+		term[n].open();
+	}
+	else {
+		termSetChromeState(n, true);
+	}
+	termBringToFront(n);
+}
+
+function termHandler() {
+	this.newLine();
+	var line = this.lineBuffer;
+	if (line != '') {
+		if (line == 'exit') this.close()
+		else this.type('You typed: '+line);
+	}
+	this.prompt();
+}
+
+function termSetChromeState(n, v) {
+	var header = 'termHeader'+n;
+	var classname = (v)? 'termHeaderActive':'termHeaderInactive';
+	if (document.getElementById) {
+		var obj = document.getElementById(header);
+		if (obj) obj.className = classname;
+	}
+	else if (document.all) {
+		var obj = document.all[header];
+		if (obj) obj.className = classname;
+	}
+	
+}
+
+function termChromeShow(n) {
+	var div = 'terminal'+n;
+	TermGlobals.setElementXY(div, 210+n*20, 30+n*20);
+	TermGlobals.setVisible(div,1);
+	if (document.getElementById) {
+		var obj = document.getElementById(div);
+		if (obj) obj.className = 'termShow';
+	}
+	else if (document.all) {
+		var obj = document.all[div];
+		if (obj) obj.className = 'termShow';
+	}
+}
+
+function termChromeHide() {
+	var div='terminal'+this.id;
+	TermGlobals.setVisible(div,0);
+	if (document.getElementById) {
+		var obj = document.getElementById(div);
+		if (obj) obj.className = 'termHidden';
+	}
+	else if (document.all) {
+		var obj = document.all[div];
+		if (obj) obj.className = 'termHidden';
+	}
+	if (termToSet==this.id) closeSettings(0);
+}
+
+function termClose(n) {
+	if ((term[n]) && (term[n].closed == false)) term[n].close();
+}
+
+function termBringToFront(n) {
+	for (var i=1; i<term.length; i++) {
+		if ((n!=i) && (term[i])) {
+			var obj=(document.getElementById)? document.getElementById('terminal'+i):document.all['terminal'+i];
+			if (obj) obj.style.zIndex=1;
+			termSetChromeState(i, false);
+		}
+	}
+	var obj=(document.getElementById)? document.getElementById('terminal'+n):document.all['terminal'+n];
+	if (obj) obj.style.zIndex=2;
+	termSetChromeState(n, true);
+	term[n].focus();
+}
+
+var termToSet=0;
+
+function termConfigure(n) {
+	var t=term[n];
+	if (parseFloat(t.version)<1.03) {
+		alert('This utility requires termlib.js 1.03 or better.');
+		return;
+	}
+	var color = t.colorsetting;
+	termToSet = n;
+	var f=document.forms.settingvalues;
+	f.rows.value=t.conf.rows;
+	f.cols.value=t.conf.cols;
+	f.color[color-1].checked=true;
+	var div='settingsdialog';
+	TermGlobals.setVisible(div,1);
+	if (document.getElementById) {
+		var obj = document.getElementById(div);
+		if (obj) obj.className = 'termShow';
+	}
+	else if (document.all) {
+		var obj = document.all[div];
+		if (obj) obj.className = 'termShow';
+	}
+	var td='terminal'+n;
+	objs = (document.getElementById)? document.getElementById(td):document.all[td];
+	if (obj) TermGlobals.setElementXY(div, parseInt(objs.style.left)+26, parseInt(objs.style.top)+26);
+	TermGlobals.keylock=true;
+}
+
+function closeSettings(state) {
+	var t=term[termToSet];
+	if (state) {
+		var f=document.forms.settingvalues;
+		var color = 1
+		if (f.color[1].checked) color=2
+		else if (f.color[2].checked) color=3
+		else if (f.color[3].checked) color=4;
+		var rows = parseInt(f.rows.value);
+		var cols = parseInt(f.cols.value);
+		if ((isNaN(rows)) || (rows<2) || (isNaN(cols)) || (cols<4)) {
+			rows=t.conf.rows;
+			cols=t.conf.cols;
+		}
+		var changed=((rows==t.conf.rows) && (cols==t.conf.cols) && (color==t.colorsetting))? false:true;
+		t.colorsetting=color;
+		var rstring= 'New Settings: Terminal set to '+rows+' rows, '+cols+' cols, ';
+		if (color==1) {
+			t.conf.bgColor='#eeeeee';
+			t.conf.fontClass='term';
+			rstring+='black on white.';
+		}
+		else if (color==2) {
+			t.conf.bgColor='#181818';
+			t.conf.fontClass='term2';
+			rstring+='white on black.';
+		}
+		else if (color==3) {
+			t.conf.bgColor='#181818';
+			t.conf.fontClass='term3';
+			rstring+='green on black.';
+		}
+		else if (color==4) {
+			t.conf.bgColor='#779977';
+			t.conf.fontClass='term4';
+			rstring+='black on green.';
+		}
+		if (changed) {
+			t.cursorOff();
+			t.conf.rows=t.maxLines=rows;
+			t.conf.cols=t.maxCols=cols;
+			t.rebuild();
+			t.newLine();
+			t.write(rstring);
+			t.prompt();
+		}
+	}
+	var div='settingsdialog';
+	TermGlobals.setVisible(div,0);
+	if (document.getElementById) {
+		var obj = document.getElementById(div);
+		if (obj) obj.className = 'termHidden';
+	}
+	else if (document.all) {
+		var obj = document.all[div];
+		if (obj) obj.className = 'termHidden';
+	}
+	termToSet = 0;
+	TermGlobals.keylock=false;
+}
+
+function settingsSetColor(n) {
+	document.forms.settingvalues.elements.color[n-1].checked=true;
+}
+
+// simple drag & drop
+
+var dragobject=null;
+var dragOfsX, dragOfsY;
+var lastX, lastY;
+
+function drag(e) {
+	if (dragobject!=null) {
+		if (window.event) e = window.event;
+		var x = (typeof e.clientX != 'undefined')? e.clientX:e.pageX;
+		var y = (typeof e.clientY != 'undefined')? e.clientY:e.pageY;
+		dragobject.style.left=x+dragOfsX-lastX;
+		dragobject.style.top=y+dragOfsY-lastY;
+	}
+}
+
+function dragStart(e) {
+	if (window.event) e = window.event;
+	lastX = (typeof e.clientX != 'undefined')? e.clientX:e.pageX;
+	lastY = (typeof e.clientY != 'undefined')? e.clientY:e.pageY;
+}
+
+function dragTerm(n) {
+	termBringToFront(n)
+	var div='terminal'+n;
+	dragobject = (document.getElementById)? document.getElementById(div):document.all[div];
+	dragOfsX = parseInt(dragobject.style.left);
+	dragOfsY = parseInt(dragobject.style.top);
+}
+
+function dragRelease(e) {
+	dragobject=null;
+}
+
+document.onmousemove=drag;
+document.onmouseup=dragRelease;
+document.onmousedown=dragStart;
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+.term {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #181818;
+	background: none;
+}
+.termReverse {
+	color: #eeeeee;
+	background: #222222;
+}
+
+
+.term2 {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #eeeeee;
+	background: none;
+}
+.term2 .termReverse {
+	color: #181818;
+	background: #eeeeee;
+}
+
+.term3 {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #44bb33;
+	background: none;
+}
+.term3 .termReverse {
+	color: #111111;
+	background: #44bb33;
+}
+
+.term4 {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #111111;
+	background: none;
+}
+.term4 .termReverse {
+	color: #779977;
+	background: #111111;
+}
+
+/* term chrome (border styles do not really work on MSIE - so do it the hard way */
+
+.termOuterChrome {
+	background: #A2A2A2;
+	padding: 0px;
+	border-width: 2px;
+	border-top-color: #D0D0D0;
+	border-left-color: #D0D0D0;
+	border-right-color: #747474;
+	border-bottom-color: #747474;
+	border-style: solid;
+	border-spacing: 0px;
+}
+
+.termInnerChrome {
+	background: #A2A2A2;
+	padding: 0px;
+	border-width: 1px;
+	border-top-color: #747474;
+	border-left-color: #747474;
+	border-right-color: #D0D0D0;
+	border-bottom-color: #D0D0D0;
+	border-style: solid;
+	border-spacing: 0px;
+}
+.termBody {
+	background: #333333;
+	padding: 0px;
+	border-width: 0px;
+	border-style: none;
+}
+.termHeaderActive {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	letter-spacing: 1px;
+	color: #ffffff;
+	background: #000089;
+	padding: 1px;
+	padding-left: 6px;
+	border-width: 2px;
+	border-top-color: #B0B0D8;
+	border-left-color: #B0B0D8;
+	border-right-color: #0B0B55;
+	border-bottom-color: #0B0B55;
+	border-style: solid;
+}
+.termHeaderInactive {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	letter-spacing: 1px;
+	color: #dddddd;
+	background: #686868;
+	padding: 1px;
+	padding-left: 6px;
+	border-width: 2px;
+	border-top-color: #C6C6C6;
+	border-left-color: #C6C6C6;
+	border-right-color: #474747;
+	border-bottom-color: #474747;
+	border-style: solid;
+	border-spacing: 0px;
+}
+.termMenuPane {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	background: #A7A7A7;
+	padding: 2px;
+	border-width: 1px;
+	border-top-color: #DDDDDD;
+	border-left-color: #DDDDDD;
+	border-right-color: #707070;
+	border-bottom-color: #707070;
+	border-style: solid;
+	border-spacing: 0px;
+}
+
+.termMenu,.termMenu:link,.termMenu:visited  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	text-decoration: none;
+	background: #A7A7A7;
+	margin: 1px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	padding-left: 3px;
+	padding-right: 4px;
+	border-width: 1px;
+	border-color: #A7A7A7;
+	border-style: solid;
+}
+.termMenu:hover  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	text-decoration: none;
+	background: #dddddd;
+	margin: 1px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	padding-left: 3px;
+	padding-right: 4px;
+	border-width: 1px;
+	border-top-color: #f1f1f1;
+	border-left-color: #f1f1f1;
+	border-right-color: #8a8a8a;
+	border-bottom-color: #8a8a8a;
+	border-style: solid;
+}
+.termMenu:active  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	text-decoration: none;
+	background: #f9f9f9;
+	margin: 1px;
+	padding-top: 1px;
+	padding-bottom: 1px;
+	padding-left: 3px;
+	padding-right: 4px;
+	border-width: 1px;
+	border-top-color: #c9c9c9;
+	border-left-color: #c9c9c9;
+	border-right-color: #ffffff;
+	border-bottom-color: #ffffff;
+	border-style: solid;
+}
+
+.uiButton,.uiButton:link,.uiButton:visited  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	font-weight: bold;
+	text-decoration: none;
+	background: #aaaaaa;
+	margin: 1px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 6px;
+	padding-right: 6px;
+	border-width: 2px;
+	border-top-color: #f1f1f1;
+	border-left-color: #f1f1f1;
+	border-right-color: #666666;
+	border-bottom-color: #666666;
+	border-style: solid;
+}
+.uiButton:hover  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	font-weight: bold;
+	text-decoration: none;
+	background: #dddddd;
+	margin: 1px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 6px;
+	padding-right: 6px;
+	border-width: 2px;
+	border-top-color: #f1f1f1;
+	border-left-color: #f1f1f1;
+	border-right-color: #666666;
+	border-bottom-color: #666666;
+	border-style: solid;
+}
+.uiButton:active  {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	font-weight: bold;
+	text-decoration: none;
+	background: #888888;
+	margin: 1px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 6px;
+	padding-right: 6px;
+	border-width: 2px;
+	border-top-color: #666666;
+	border-left-color: #666666;
+	border-right-color: #bbbbbb;
+	border-bottom-color: #bbbbbb;
+	border-style: solid;
+}
+.settings {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+}
+.settingsLabel,.settingsLabel:link,settingsLabel:active,.settingsLabel:visited,.settingsLabel:hover {
+	font-family: arial,helvetica,sans-serif;
+	font-size: 12px;
+	color: #000000;
+	text-decoration: none;
+}
+
+.termHidden {
+	display: none;
+}
+.termShow {
+	display: block;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top"><td nowrap>
+		Chrome Sample<br>&nbsp;
+	</td>
+	</tr>
+	<tr><td nowrap>
+		<a href="javascript:termOpen(1)" onfocus="if(this.blur)this.blur();" onmouseover="window.status='terminal 1'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal 1 &nbsp;</a>
+	</td></tr>
+	<tr><td nowrap>
+		<a href="javascript:termOpen(2)" onfocus="if(this.blur)this.blur();" onmouseover="window.status='terminal 1'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal 2 &nbsp;</a>
+	</td></tr>
+	<tr><td nowrap>
+		&nbsp;
+	</td></tr>
+	<tr><td nowrap class="lh15">
+		&nbsp;<br>
+		(c) mass:werk,<br>N. Landsteiner 2005<br>
+		<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+	</td></tr>
+</table>
+
+<div id="terminal1" style="position:absolute; visibility: hidden; z-index:1" class="termHidden"><table class="termOuterChrome" onmouseup="termBringToFront(1)" cellpadding="1" cellspacing="0"><tr><td><table class="termInnerChrome" cellpadding="0" cellspacing="0">
+	<tr><td class="termHeaderActive" onmousedown="dragTerm(1); return false" id="termHeader1">Terminal 1</td></tr>
+	<tr><td class="termMenuPane"><a href="javascript:termClose(1)" onfocus="if(this.blur)this.blur();" class="termMenu">Close</a><a href="javascript:termConfigure(1)" onfocus="if(this.blur)this.blur();" class="termMenu">Settings</a></td></tr>
+	<tr><td class="termBody"><div id="termDiv1" style="position:relative;"></div></td></tr>
+</table></td></tr>
+</table></div>
+
+<div id="terminal2" style="position:absolute; visibility: hidden; z-index:2" class="termHidden"><table class="termOuterChrome" onmouseup="termBringToFront(2)" cellpadding="1" cellspacing="0"><tr><td><table class="termInnerChrome" cellpadding="0" cellspacing="0">
+	<tr><td class="termHeaderActive" onmousedown="dragTerm(2); return false" id="termHeader2">Terminal 2</td></tr>
+	<tr><td class="termMenuPane"><a href="javascript:termClose(2)" onfocus="if(this.blur)this.blur();" class="termMenu">Close</a><a href="javascript:termConfigure(2)" onfocus="if(this.blur)this.blur();" class="termMenu">Settings</a></td></tr>
+	<tr><td class="termBody"><div id="termDiv2" style="position:relative;"></div></td></tr>
+</table></td></tr>
+</table></div>
+
+<div id="settingsdialog" style="position:absolute; visibility: hidden; z-index:3" class="termHidden"><table class="termOuterChrome" cellpadding="1" cellspacing="0"><tr><td><table class="termInnerChrome" cellpadding="0" cellspacing="0" width="300">
+	<tr><td align="center" class="termMenuPane">
+		<table borrder="0" cellspacing="0" cellpadding="4" width="260">
+		<tr><td align="center" class="settings">Terminal Settings</td></tr>
+		<form name="settingvalues" onsubmit="return false">
+		<tr><td class="settings">&nbsp;<br><b>Size</b></td></tr>
+		<tr><td><table borrder="0" cellspacing="0" cellpadding="2">
+			<tr valign="middle"><td class="settings">Rows:</td><td><input name="rows" type="text" value="" size="4" class="settings"></tr>
+			<tr valign="middle"><td class="settings">Cols:</td><td><input name="cols" type="text" value="" size="4" class="settings"></tr>
+		</table></td></tr>
+		<tr><td class="settings">&nbsp;<br><b>Color</b></td></tr>
+		<tr><td><table borrder="0" cellspacing="0" cellpadding="2">
+			<tr valign="middle"><td><input type="radio" name="color" value="1"></td><td class="settings"><a href="javascript:settingsSetColor(1)" onfocus="if (this.blur) this.blur();" class="settingsLabel">black on white</a></td></tr>
+			<tr valign="middle"><td><input type="radio" name="color" value="2"></td><td class="settings"><a href="javascript:settingsSetColor(2)" onfocus="if (this.blur) this.blur();" class="settingsLabel">white on black</a></td></tr>
+			<tr valign="middle"><td><input type="radio" name="color" value="3"></td><td class="settings"><a href="javascript:settingsSetColor(3)" onfocus="if (this.blur) this.blur();" class="settingsLabel">green on black</a></td></tr>
+			<tr valign="middle"><td><input type="radio" name="color" value="4"></td><td class="settings"><a href="javascript:settingsSetColor(4)" onfocus="if (this.blur) this.blur();" class="settingsLabel">black on green</a></td></tr>
+		</table></td></tr>
+		</form>
+		<tr><td class="settings" align="right" nowrap>&nbsp;<br><a href="javascript:closeSettings(0)" onfocus="if(this.blur)this.blur();" class="uiButton">Cancel</a>&nbsp;<a href="javascript:closeSettings(1)" onfocus="if(this.blur)this.blur();" class="uiButton">Configure</a><br>&nbsp;</td></tr>
+		</table>
+</table></td></tr>
+</table></div>
+
+</body>
+</html>                                                                     
