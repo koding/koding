@@ -1,6 +1,6 @@
 class yumrepos::koding {
     
-    yumrepo { "ius":
+    yumrepo { "koding":
         baseurl => "http://yum.prod.system.aws.koding.com/koding/",
         descr => "Koding repo",
         enabled => "1",
