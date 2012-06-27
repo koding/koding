@@ -9,22 +9,6 @@ AccountMixin = do ->
     
     fetchNonces = (callback)->
       KD.whoami().fetchNonces (err, moreNonces)->
-        nonces = nonces.concat moreNonces
-        callback nonces
-    
-    fetchNonce = (callback)->
-      nonce = nonces.shift()
-      if nonce?
-        callback nonce
-      else
-        fetchNonces -> fetchNonce callback
-        
-    JAccount::fetchNonce = fetchNonce
-    
-    nonces = []
-    
-    fetchNonces = (callback)->
-      KD.whoami().fetchNonces (err, moreNonces)->
         if err
           new KDNotificationView
             title: 'Could not authorize this client.'
@@ -57,16 +41,18 @@ AccountMixin = do ->
       remoteStore = new Store
       
       sendScrubbedCommand =(url, options)->
+        log 'SENDING:', url, options
         fetchNonce (nonce)->
           data = JSON.stringify(options)
           $.ajax
-            url     : url
-            data    :
-              data  : data
-              env   : KD.env
-              n     : nonce
-            type    : 'POST'
-            xhrFields:
+            url       : url
+            data      :
+              data    : data
+              env     : KD.env
+              n       : nonce
+            type      : 'POST'
+            success   : log
+            xhrFields :
               withCredentials: yes
       
       getKiteUri =(kiteName)->
