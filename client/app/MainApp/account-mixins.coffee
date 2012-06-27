@@ -9,22 +9,6 @@ AccountMixin = do ->
     
     fetchNonces = (callback)->
       KD.whoami().fetchNonces (err, moreNonces)->
-        nonces = nonces.concat moreNonces
-        callback nonces
-    
-    fetchNonce = (callback)->
-      nonce = nonces.shift()
-      if nonce?
-        callback nonce
-      else
-        fetchNonces -> fetchNonce callback
-        
-    JAccount::fetchNonce = fetchNonce
-    
-    nonces = []
-    
-    fetchNonces = (callback)->
-      KD.whoami().fetchNonces (err, moreNonces)->
         if err
           new KDNotificationView
             title: 'Could not authorize this client.'
@@ -56,17 +40,26 @@ AccountMixin = do ->
       localStore = new Store
       remoteStore = new Store
       
+      transports = {}
+      
+      changeTransport = (channelId, transport)->
+        log 'CHANGING TRANSPORT: ', transport
+        transports[channelId] = transport
+      
       sendScrubbedCommand =(url, options)->
+        log 'SENDING:', url, options
         fetchNonce (nonce)->
           data = JSON.stringify(options)
           $.ajax
-            url     : url
-            data    :
-              data  : data
-              env   : KD.env
-              n     : nonce
-            type    : 'POST'
-            xhrFields:
+            url       : url
+            data      :
+              data    : data
+              env     : KD.env
+              n       : nonce
+            dataType  : 'json'
+            type      : 'POST'
+            success   : log
+            xhrFields :
               withCredentials: yes
       
       getKiteUri =(kiteName)->
@@ -103,9 +96,10 @@ AccountMixin = do ->
           unless channel?
             channel = bongo.mq.subscribe secretChannelId
             channel.bind 'pusher:subscription_succeeded', ->
-              myHandler = messageHandler.bind null, secretChannelId
+              myMessageHandler = messageHandler.bind null, secretChannelId
               channel.bind 'message', myHandler
               channel.bind 'error', myHandler
+              channel.bind 'changeTransport', changeTransport.bind null, secretChannelId
           channel
       
       (options, callback)->
