@@ -1,5 +1,5 @@
 fs                = require 'fs'
-sys               = require 'sys'
+sys               = require 'util'
 {spawn, exec}     = require 'child_process'
 {EventEmitter}    = require 'events'
 log4js            = require "./node_modules/log4js"
