@@ -24,10 +24,10 @@ class FakeTerminal extends EventEmitter
     messageNum = 0    
     screen = ""
     i=0
-    @write = (str)=>
-      console.log "faking write",arguments[0],messageNum,i++
+    @write = (data)=>
+      console.log "faking write",messageNum,i++
       # screen += "[#{i}]"+str
-      screen += str
+      screen += str[3] for str in data
       @emit "data",screen
     @setScreenSize = ->
       console.log "faking setScreenSize",arguments              
