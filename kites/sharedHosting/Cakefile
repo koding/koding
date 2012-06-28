@@ -18,9 +18,9 @@ task 'run','run sharedHosting',(options)->
   options.config ?= "config-dev"
   
   processes.run 
-    cmd : "echo coffee index.coffee -c #{options.config}"
-    log : yes       # or provide a path for log file
-    restart : no  # or provide a function 
+    cmd     : "echo coffee index.coffee -c #{options.config}"
+    log     : yes       # or provide a path for log file
+    restart : no        # or provide a function 
 
 
   
