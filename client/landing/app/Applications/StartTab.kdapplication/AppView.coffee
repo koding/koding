@@ -7,10 +7,62 @@ class StartTabMainView extends KDView
     @listenWindowResize()
     
   viewAppended:()->
-    @addApps()
+    # @addApps()
+    @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+  
+  addRealApps:->
     
+    @addSubView temp = new KDCustomHTMLView
+      tagName : "span"
+      partial : "fetching apps..."
+    
+    kac = @getSingleton("kodingAppsController")
+
+    kac.fetchApps (apps)=>
+
+      temp.destroy()
+      for app, manifest of apps
+        do (app, manifest)=>
+          @addSubView new KDCustomHTMLView
+            tagName : "p"
+            partial : "#{manifest.name} v#{manifest.version}"
+            click   : => 
+              kac.getApp manifest.name, (appScript)=>
+                mainView = @getSingleton('mainView')
+                mainView.mainTabView.showPaneByView
+                  name         : manifest.name
+                  hiddenHandle : no
+                  type         : "application"
+                , (appView = new KDView)
+                
+                appInstance = eval appScript
+                appInstance()
+                # appInstance = Function(appScript)
+                # do (appView)=> appInstance.call @, appView
+
+
+# appView.addSubView a = new KDView
+#   partial : "<marquee><h1>i call this an app!</h1></marquee>"
+# appView.$().css "background-color", "pink"
+# a.$().css backgroundColor : "red", color : "white"
+# return a
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
   addApps:->
     mainView = @
     @addSubView appView = new KDView

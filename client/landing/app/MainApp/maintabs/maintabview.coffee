@@ -107,7 +107,7 @@ class MainTabView extends KDTabView
       class        : KDView
     ,options
     paneInstance = new MainTabPane options,mainView
-    
+    # debugger
     # log 'options', options
     @listenTo 
       KDEventTypes        : "viewAppended"

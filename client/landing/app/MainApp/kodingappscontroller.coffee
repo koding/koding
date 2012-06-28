@@ -78,14 +78,26 @@ class KodingAppsController extends KDController
   
   defineApp:(app, script)->
     
-    KDApps[app.name] = 
-      """
-      (function() {
-      #{script}
-      }).call(appView);
-      """
+    KDApps[app.name] = script
 
-  compileSource:(name)->
+    # KDApps[app.name] = 
+    #   """
+    #   (function() {
+    #   #{script}
+    #   }).call(appView);
+    #   """
+  
+  getApp:(name, callback)->
+    kallback = =>
+      callback?()
+    
+    if KDApps[name]
+      callback KDApps[name]
+    else
+      @compileSource name, =>
+        callback KDApps[name]
+  
+  compileSource:(name, callback)->
     
     kallback = (app)=>
 
@@ -145,6 +157,7 @@ class KodingAppsController extends KDController
         
         @saveCompiledApp app, final
         @defineApp app, final
+        callback?()
 
     unless KodingAppsController.apps[name]
       @fetchApps (apps)=> kallback apps[name]
