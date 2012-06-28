@@ -45,7 +45,6 @@ $router->add_route('/event', function () {
       switch($event->name) {
       case 'channel_vacated' :
         $matches = array();
-        trace ('handling channel vacated event for', $event->channel);
         if (preg_match('/^private-(\w+)-/', $event->channel, $matches)) {
           list(, $channel_type) = $matches;
           handle_vacated_channel($channel_type, $event, $message->time_ms);
