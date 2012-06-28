@@ -17,8 +17,9 @@ class Shell12345 extends KDViewController
     resetRegexp = /reset\:.*?/
     @dmp = new diff_match_patch()
     @lastScreen = ""
-    @bufferedKeyStrokes = []
     @sendCount = 0
+    @keyStrokeCount = 0
+    @resetBufferedKeyStrokes()
     
     shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
       switch functionName
@@ -68,6 +69,7 @@ class Shell12345 extends KDViewController
         msg = "connection closed"
         if error.msg then msg += ",#{error.msg}"
         @setNotification msg
+        
       ping : () =>
         try
           @terminal.ping()
@@ -186,17 +188,18 @@ class Shell12345 extends KDViewController
       else
         window.T = terminal
         @sendCount = 0
+        @keyStrokeCount = 0 
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
-
+  
       
   loadView:(mainView)->
+
     @initiateTerminal (totalSessions)=>
-      mainView.registerListener
-        KDEventTypes : "resize"
-        listener     : @
-        callback     : @resizeTerminal
+
+      mainView.on "ViewResized", => @resizeTerminal
+
       mainView.input.on "data",(cmd)=>
         @send cmd
 
@@ -215,14 +218,20 @@ class Shell12345 extends KDViewController
   
   sendThrottled : _.throttle ->
     @sendCount++
-    @terminal.write @bufferedKeyStrokes,@sendCount
+    baseTime = @bufferedKeyStrokes[0][2]
+    k[2] = k[2] - baseTime  for k in @bufferedKeyStrokes
+    @terminal.write @bufferedKeyStrokes
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
-    @bufferedKeyStrokes = []
-  ,500
+    @resetBufferedKeyStrokes()
+  ,100
   
+  resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
+
   send: (command) ->
     # console.log "sending:"+command
-    @bufferedKeyStrokes.push [command,Date.now()]
+    delay = Date.now() #-@bufferedKeyStrokes[@bufferedKeyStrokes.length-1][1]
+    @bufferedKeyStrokes.push [@keyStrokeCount,@sendCount,delay,command]
+    @keyStrokeCount++
     @sendThrottled()
     # @terminal.write command
     

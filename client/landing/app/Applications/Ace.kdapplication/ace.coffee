@@ -21,11 +21,9 @@ class Ace extends KDView
   viewAppended:->
     
     require ['ace/ace'], (ace)=>
-      callback? ace
       @editor = ace.edit "editor#{@getId()}"
       @prepareEditor()
-      @emit "ace.ready"
-      
+      @utils.wait => @emit "ace.ready"
       @fetchContents (err, contents)=>
         @setContents contents if contents
         @editor.gotoLine 0
@@ -224,9 +222,7 @@ class Ace extends KDView
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          @listenTo
-            KDEventTypes        : 'ReceivedClickElsewhere'
-            listenedToInstance  : details
-            callback            : (pubInst,event)=>
-              @getSingleton('windowController').removeLayer @mainInputTabs
-              details.destroy()
+
+          details.on 'ReceivedClickElsewhere', =>
+            @getSingleton('windowController').removeLayer @mainInputTabs
+            details.destroy()

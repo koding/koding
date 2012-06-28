@@ -45,7 +45,7 @@ class ActivityActionsView extends KDView
       KDEventTypes  : "Click"      
       listener      : @
       callback      : ->
-        if @getSingleton('mainController').isUserLoggedIn()
+        if KD.isLoggedIn()
           activity.like (err)-> log arguments, 'you like me!'
     
     @commentLink.registerListener

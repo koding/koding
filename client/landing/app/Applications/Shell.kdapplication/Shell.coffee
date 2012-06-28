@@ -42,10 +42,11 @@ class ShellView extends KDView
       @client.write data
     else
       console.log "err: no @client"
-    
+
   _windowDidResize: ->
+
     @client?.resize @calculateSize()
-    @propagateEvent KDEventType : "resize"
+    @emit "ViewResized"
 
   calculateSize: ->
     obj =
