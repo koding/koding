@@ -28,8 +28,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @labelContent = new KDLabelView
       title : "Code Snip:"
 
-    @aceHolder = new KDView
-      cssClass : "code-snip-holder"
+    @aceWrapper = new KDView
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -73,6 +72,29 @@ class ActivityCodeSnippetWidget extends KDFormView
     
     @tagAutoComplete = @tagController.getView()
 
+    @loader = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#ffffff"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
+      click         : => 
+        log "ASDASDAS"
+
+    @syntaxSelect = new KDSelectBox
+      name          : "syntax"
+      selectOptions : __aceSettings.getSyntaxOptions()
+      defaultValue  : "javascript"
+      callback      : (value) => @emit "codeSnip.changeSyntax", value
+
+    @on "codeSnip.changeSyntax", (syntax)=>
+      @ace.setSyntax syntax
+
   submit:=>
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
@@ -109,41 +131,15 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   widgetShown:->
 
-    unless @ace
-      @aceHolder.addSubView @loader = new KDLoaderView
-        size          :
-          width       : 30
-          height      : 30
-        loaderOptions :
-          color       : "#ffffff"
-          shape       : "spiral"
-          diameter    : 30
-          density     : 30
-          range       : 0.4
-          speed       : 1
-          FPS         : 24
-        click         : => 
-          log "ASDASDAS"
-          @loadAce()
-      @loadAce()
-    else
-      @refreshEditorView()
+    unless @ace then @loadAce() else @refreshEditorView()
   
   snippetCount = 0
 
   loadAce:->
 
     @loader.show()
-    @ace.destroy() if @ace
-    @syntaxSelect.destroy() if @syntaxSelect
     
-    @aceHolder.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
-    @aceHolder.addSubView @syntaxSelect = new KDSelectBox
-      name          : "syntax"
-      selectOptions : __aceSettings.getSyntaxOptions()
-      defaultValue  : "javascript"
-      callback      : (value) => @emit "codeSnip.changeSyntax", value
-  
+    @aceWrapper.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
 
     @ace.on "ace.ready", =>
       @loader.destroy()
@@ -153,9 +149,6 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
       @emit "codeSnip.aceLoaded"
-
-    @on "codeSnip.changeSyntax", (syntax)=>
-      @ace.setSyntax syntax
 
   refreshEditorView:->
 
@@ -168,7 +161,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     lineHeight  = @ace.editor.renderer.lineHeight
     container   = @ace.editor.container
     height      = lineAmount * lineHeight
-    @aceHolder.setHeight height = lineAmount * lineHeight + 20
+    @$('.code-snip-holder').height height + 20
     @ace.editor.resize()
 
   viewAppended:()->
@@ -195,7 +188,11 @@ class ActivityCodeSnippetWidget extends KDFormView
         </div>
         <div class="formline">
           {{> @labelContent}}
-          {{> @aceHolder}}
+          <div class="code-snip-holder">
+            {{> @loader}}
+            {{> @aceWrapper}}
+            {{> @syntaxSelect}}
+          </div>
         </div>
         <div class="formline">
           {{> @labelAddTags}}

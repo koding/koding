@@ -208,6 +208,8 @@ __utils =
       fn = duration
       duration = 0
     setTimeout fn, duration
+  
+  killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
     cancelled = no
