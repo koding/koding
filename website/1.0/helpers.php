@@ -10,16 +10,17 @@ function trace () {
 }
 
 function handle_vacated_channel ($type, $event, $ms) {
-  global $kites;
+  $kite_controller = get_kite_controller();
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
+  $kite_uri = $kite_controller->get_kite_uri($kite_id, $requester_id);
   trace(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
     'toDo' => '_disconnect',
     'secretChannelId' => $event->channel,
-  );
-  
-  $uri = $kites[$kite_id]."?username={$requester_id}&data=".urlencode(json_encode($query));
-  @file_get_contents($uri);
+  ); 
+  $uri = $kite_uri."?username={$requester_id}&data=".urlencode(json_encode($query));
+  $result = @file_get_contents($uri);
+  trace($uri, $result);
 }
 
 function get_session () {
@@ -135,19 +136,19 @@ function get_kite_controller () {
   $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }
-
-$kites = array( 
-  'beta' => array(
-    'sharedHosting' => 'http://cl2.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl2.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl2.beta.service.aws.koding.com:4568/',
-  ),
-  'vpn' => array(
-    'sharedHosting' => 'http://cl3.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl3.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl3.beta.service.aws.koding.com:4568/',
-  ),
-);
+// 
+// $kites = array( 
+//   'beta' => array(
+//     'sharedHosting' => 'http://cl2.beta.service.aws.koding.com:4566/',
+//     'terminaljs'    => 'http://cl2.beta.service.aws.koding.com:4567/',
+//     'databases'     => 'http://cl2.beta.service.aws.koding.com:4568/',
+//   ),
+//   'vpn' => array(
+//     'sharedHosting' => 'http://cl3.beta.service.aws.koding.com:4566/',
+//     'terminaljs'    => 'http://cl3.beta.service.aws.koding.com:4567/',
+//     'databases'     => 'http://cl3.beta.service.aws.koding.com:4568/',
+//   ),
+// );
 
 // function get_next_kite_uri ($kite_name) {
 //   global $kites, $env;

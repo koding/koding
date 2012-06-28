@@ -3,6 +3,7 @@
 require_once 'router.php';
 require_once 'helpers.php';
 require_once 'kitecontroller.php';
+require_once 'lib/pusher.php';
 
 $router = new Router;
 
@@ -118,10 +119,8 @@ $router->add_route('/kite/disconnect', function () {
 });
 
 $router->add_route('/channel/auth', function () {
-  $input = file_get_contents('php://input');
-  parse_str($input);
-  trace('-------', $input);
-  $session = get_session();
-  trace('chris', $_POST, $channel_name, $session);
-  
+  $pusher = new Pusher('a6f121a130a44c7f5325', '9a2f248630abaf977547', 22120);
+  header('Content-type: text/javascript');
+  print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
+  die();
 });
