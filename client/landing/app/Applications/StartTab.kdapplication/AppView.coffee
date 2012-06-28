@@ -18,9 +18,9 @@ class StartTabMainView extends KDView
       tagName : "span"
       partial : "fetching apps..."
     
-    kac = @getSingleton("kodingAppsController")
+    kodingAppsController = @getSingleton("kodingAppsController")
 
-    kac.fetchApps (apps)=>
+    kodingAppsController.fetchApps (apps)=>
 
       temp.destroy()
       for app, manifest of apps
@@ -29,7 +29,7 @@ class StartTabMainView extends KDView
             tagName : "p"
             partial : "#{manifest.name} v#{manifest.version}"
             click   : => 
-              kac.getApp manifest.name, (appScript)=>
+              kodingAppsController.getApp manifest.name, (appScript)=>
                 mainView = @getSingleton('mainView')
                 mainView.mainTabView.showPaneByView
                   name         : manifest.name
@@ -37,10 +37,12 @@ class StartTabMainView extends KDView
                   type         : "application"
                 , (appView = new KDView)
                 
-                appInstance = eval appScript
-                appInstance()
+                eval appScript
+                
+                return appView
+
                 # appInstance = Function(appScript)
-                # do (appView)=> appInstance.call @, appView
+                # do (appView)=> appInstance.call null, appView
 
 
 # appView.addSubView a = new KDView
@@ -48,7 +50,9 @@ class StartTabMainView extends KDView
 # appView.$().css "background-color", "pink"
 # a.$().css backgroundColor : "red", color : "white"
 # return a
-  
+
+# do (appView)->
+#   appView.addSubview new AceView {}, FSHelper.createFileFromPath "localfile:/Untitled.txt"
   
 
 
