@@ -11,15 +11,16 @@ function trace () {
 
 function handle_vacated_channel ($type, $event, $ms) {
   global $kites;
+  trace('KITES', $kites);
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
   trace(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
     'toDo' => '_disconnect',
     'secretChannelId' => $event->channel,
-  );
-  
+  ); 
   $uri = $kites[$kite_id]."?username={$requester_id}&data=".urlencode(json_encode($query));
-  @file_get_contents($uri);
+  $result = @file_get_contents($uri);
+  trace($uri, $result);
 }
 
 function get_session () {
