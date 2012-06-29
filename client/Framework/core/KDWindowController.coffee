@@ -84,7 +84,7 @@ class KDWindowController extends KDController
       
       event.returnValue = msg if event # For IE and Firefox prior to version 4
 
-      return msg
+      return msg unless window.hash.location isnt 'localhost'
 
   setDragInAction:(action = no)->
     $('body')[if action then "addClass" else "removeClass"]("dragInAction")

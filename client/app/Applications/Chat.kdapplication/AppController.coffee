@@ -1,59 +1,54 @@
-# class Chat12345 extends AppController
-#   constructor:()->
-#     mainViewClass = KDView
-#     mainViewClass = KD.getPageClass('Activity') if KD.getPageClass('Activity')?
-# 
-#     @mainView = new mainViewClass {cssClass : "content-page" }
-#     super
-#   
-#   bringToFront:()->
-#     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes), options : {}, data : @mainView
-#     
-#   initAndBringToFront:(options,callback)->
-#     @bringToFront()
-#     callback()
-
-class ChatRoom
-
-
-  constructor:(options,callback)->
-    
-  
-  fetchRoom :({id},callback)->
-        
-
-    
-
-class @Chatter
+class @Chatter extends KDEventEmitter
   {mq} = bongo
   
   constructor:()->
-
+    @account = KD.whoami()
+    @username = @account.profile.nickname
   
   joinRoom:(options,callback)->
     
-    {id,callbacks} = options
+    {name,type,callbacks} = options
     
-
-    @name = "private-chat-#{__utils.getRandomNumber}"
+    name ?= __utils.getRandomNumber
+    type ?= "chat"
+    @name = "private-#{type}-#{name}"
     @room = mq.channel(@name)
-    
+    console.log "creating room with #{@name}"
     if @room?
-      callback @room
+      callback null,{room:@room,name:@name,isNew:yes}
     else
-      mq.subscribe(@name)
-      @room.bind 'pusher:subscription_succeeded', ->
+      @room = mq.subscribe(@name)
+      @room.bind 'pusher:subscription_succeeded', =>
         console.log('success', arguments)
-        callback null,@room
+        callback null,{room:@room,name:@name,isNew:yes}
+      @room.bind 'client-#{type}-msg',callbacks.data
+        
+  sendMsg : ({msg},callback) -> 
+    @room.trigger 'client-chat-msg',{msg,username:@username,date:Date.now()}
 
 
-        room.bind 'client-chat-msg',->
-          console.log arguments
+
+class @SharedDoc extends @Chatter
+  
+  
+  constructor:(options)->
+    {isMaster} = options
+    @isMaster = isMaster
+    @lastScreen = ""
+    super
     
+  
+  join :(options,callback)->
     
-  sendMsg : (options,callback)->
-    {msg} = options
-    @room.trigger 'client-chat-msg',msg
+    @joinRoom type:"sharedDoc",callbacks: data: @msgDidArrive,(err,res)->
+      
+  
+  @msgDidArrive: ({msg,username,date})->
+    @currentScreen = @dmp.patch_apply msg,@lastScreen
+    @emit "screenDidChange",@currentScreen
+  
+
+
     
     
       
