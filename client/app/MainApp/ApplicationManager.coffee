@@ -121,6 +121,7 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Demos.kdapplication"       : Demos12345
       "./client/app/Applications/Ace.kdapplication"         : Ace12345
       "./client/app/Applications/Shell.kdapplication"       : Shell12345
+      "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
     if classes[path]?
       new classes[path]
@@ -217,17 +218,16 @@ class ApplicationManager extends KDObject
     (views = @appViewsArray[index]).splice (views.indexOf data), 1
   
   passStorageToApp:(path, version, appInstance, callback)->
-    @getStorage path, version, (error, storage)->
+    @fetchStorage path, version, (error, storage)->
       if error then console.warn 'error'
       else
         appInstance.setStorage? storage
         callback?()
     
-  getStorage: (appId, version, callback) ->
-    notifyView = null
+  fetchStorage: (appId, version, callback) ->
 
+    notifyView = null
     # warn "System still trying to access application storage for #{appId}"
-    
     KD.whoami().fetchStorage {appId, version}, (error, storage) =>
       unless storage
         storage = {appId,version,bucket:{}} # creating a fake storage

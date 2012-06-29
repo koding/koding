@@ -17,6 +17,7 @@ class Members12345 extends AppController
     
 
   createFeed:(view)->
+
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -56,31 +57,11 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-      for name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'ItemWasAdded'
-          listener      : @
-          callback      : (pubInst, {view})=>
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToExpand'
-        listener      : @
-        callback      : (pubInst, member)=>
-          @createContentDisplay member
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToShowFollowerInfo'
-        listener      : @
-        callback      : (pubInst, member)=>
-          log 'MemberWantsToShowFollowerInfo'
-          @createFollowsContentDisplay member, 'followers'
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToShowFollowingInfo'
-        listener      : @
-        callback      : (pubInst, member)=>
-          @createFollowsContentDisplay member, 'following'
 
       view.addSubView controller.getView()
       
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
+
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -111,27 +92,7 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-      for name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'ItemWasAdded'
-          listener      : @
-          callback      : (pubInst, {view})=>
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToExpand'
-        listener      : @
-        callback      : (pubInst, member)=>
-          @createContentDisplay member
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToShowFollowerInfo'
-        listener      : @
-        callback      : (pubInst, member)=>
-          @createFollowsContentDisplay member, 'followers'
-      view.registerListener
-        KDEventTypes  : 'MemberWantsToShowFollowingInfo'
-        listener      : @
-        callback      : (pubInst, member)=>
-          log arguments
-          @createFollowsContentDisplay member, 'following'
+
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view

@@ -1,6 +1,6 @@
 fs                = require 'fs'
 path              = require 'path'
-sys               = require 'sys'
+sys               = require 'util'
 {spawn, exec}     = require 'child_process'
 sqwish            = require './node_modules/sqwish'
 stylus            = require 'stylus'

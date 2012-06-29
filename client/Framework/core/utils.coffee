@@ -203,11 +203,13 @@ __utils =
     parentPath.pop()
     return parentPath.join('/')
 
-  nextTick: (duration, fn) ->
+  wait: (duration, fn) ->
     if "function" is typeof duration
       fn = duration
       duration = 0
     setTimeout fn, duration
+  
+  killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
     cancelled = no
