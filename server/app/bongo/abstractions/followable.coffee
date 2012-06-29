@@ -44,128 +44,44 @@ class Followable extends jraphical.Module
             break
       callback err, followables
   
-  follow: bongo.secure do ->
-    # @helper
-    addToBucket =do ->
-      # @helper
-      addIt = (bucket, anchor, item, callback)->
-        bucket.add item, (err)->
+  follow: bongo.secure (client, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= {}
+    follower = client.connection.delegate
+    if @equals follower 
+      return callback(
+        new KodingError("Can't follow yourself")
+        @getAt('counts.followers')
+      )
+    @addFollower follower, returnCount : yes, (err, count)=>
+      if err
+        callback err
+      else
+        @setAt 'counts.followers',  count
+        @save()
+        # callback err, count
+        @emit 'FollowCountChanged'
+          followerCount   : @getAt('counts.followers')
+          followingCount  : @getAt('counts.following')
+          newFollower     : follower
+      
+        follower.updateFollowingCount()
+      
+        sourceId = @getId()
+        targetId = follower.getId()
+      
+        jraphical.Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
           if err
             callback err
           else
-            console.log bucket.getId()
-            jraphical.Relationship.one {
-              targetId: bucket.getId()
-              sourceName: bucket.constructor.name + 'Activity'
-              as: 'content'
-            }, (err, rel)->
-              if err
-                callback err
-              else if rel
-                konstructor = bongo.Base.constructors[rel.sourceName]
-                konstructor.one _id: rel.sourceId, (err, activity)->
-                  if err
-                    callback err
-                  else
-                    anchor.assureActivity activity, (err)->
-                      if err
-                        callback err
-                      else
-                        callback null, bucket
-              else
-                activity = CBucketActivity.create bucket
-                activity.save (err)->
-                  if err
-                    callback err
-                  else
-                    anchor.addActivity activity, (err)->
-                      if err
-                        callback err
-                      else
-                        activity.addSubject bucket, (err)->
-                          if err
-                            callback err
-                          else
-                            activity.update
-                              $set          :
-                                snapshot    : JSON.stringify(bucket)
-                              $addToSet     :
-                                snapshotIds : bucket.getId()
-                            , (err)->
-                              if err
-                                callback err
-                              else
-                                callback null, bucket
-
-      (groupName, relationship, item, anchor, callback)->
-        today = $gte: new Date Date.now() - 1000*60*60*12
-        followBucketConstructor = switch groupName
-          when 'source' then CFolloweeBucket
-          when 'target' then CFollowerBucket
-        existingBucketSelector = {
-          groupedBy   : groupName
-          sourceName  : relationship.sourceName
-          'anchor.id' : relationship[groupName+'Id']
-          'meta.createdAt'   : today
-        }
-        followBucketConstructor.one existingBucketSelector, (err, bucket)->
-          if err then callback err
-          else if bucket
-            addIt bucket, anchor, item, callback
-          else
-            bucket = new followBucketConstructor
-              groupedBy         : groupName
-              sourceName        : relationship.sourceName
-              anchor            :
-                constructorName : relationship[groupName+'Name']
-                id              : relationship[groupName+'Id']
-          
-            bucket.save (err)->
-              if err then callback err
-              else addIt bucket, anchor, item, callback
-              
-    # @helper  
-    addActivities =(relationship, source, target, callback)->
-      queue = []
-      fin = -> queue.fin()
-      queue.push -> addToBucket 'source', relationship, target, source, fin
-      queue.push -> addToBucket 'target', relationship, source, target, fin
-      dash queue, callback
-    
-    # @implementation
-    (client, options, callback)->
-      [callback, options] = [options, callback] unless callback
-      follower = client.connection.delegate
-      if @equals follower then return callback "Can't follow yourself, you egotistical maniac", @getAt('counts.followers')
-      @addFollower follower, returnCount : yes, (err, count)=>
-        if err
-          callback err
-        else
-          @setAt 'counts.followers',  count
-          @save()
-          # callback err, count
-          @emit 'FollowCountChanged'
-            followerCount   : @getAt('counts.followers')
-            followingCount  : @getAt('counts.following')
-            newFollower     : follower
-        
-          follower.updateFollowingCount()
-        
-          sourceId = @getId()
-          targetId = follower.getId()
-        
-          jraphical.Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
-            if err
-              callback err
-            else
-              emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
-              if emitActivity
-                addActivities relationship, @, follower, (err)->
-                  if err
-                    callback err
-                  else
-                    callback null, count
-              else callback null, count
+            emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
+            if emitActivity
+              CBucket.addActivities relationship, @, follower, (err)->
+                if err
+                  callback err
+                else
+                  callback null, count
+            else callback null, count
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate
