@@ -16,7 +16,7 @@ class JCodeSnip extends JPost
   
   @set
     sharedMethods : JPost.sharedMethods
-    schema        : jraphical.Message.schema
+    schema        : JPost.schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
   

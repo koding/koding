@@ -8,7 +8,7 @@ class JStatusUpdate extends JPost
 
   @set
     sharedMethods     : JPost.sharedMethods
-    schema            : jraphical.Message.schema
+    schema            : JPost.schema
     relationships     : JPost.relationships
 
   @getActivityType =-> CStatusActivity
