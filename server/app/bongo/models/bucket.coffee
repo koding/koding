@@ -20,11 +20,11 @@ class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CFolloweeBucket
           when 'target' then CFollowerBucket
-      when 'liker'
+      when 'like'
         switch groupName
           when 'source' then CLikeeBucket
           when 'target' then CLikerBucket
-      when 'replier'
+      when 'reply'
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket

@@ -3,7 +3,6 @@ class Notifying
   {ObjectRef} = bongo
   
   notify:(receiver, event, contents)->
-    contents.subject = ObjectRef(@).data
     receiver?.fetchPrivateChannel? (channel)=>
       channel.emit 'notification', {event, contents}
   

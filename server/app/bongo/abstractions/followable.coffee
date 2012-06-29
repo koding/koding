@@ -53,7 +53,7 @@ class Followable extends jraphical.Module
         new KodingError("Can't follow yourself")
         @getAt('counts.followers')
       )
-    @addFollower follower, returnCount : yes, (err, count)=>
+    @addFollower follower, respondWithCount : yes, (err, docs, count)=>
       if err
         callback err
       else
@@ -85,7 +85,7 @@ class Followable extends jraphical.Module
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate
-    @removeFollower follower, returnCount : yes, (err, count)=>
+    @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
       if err
         console.log err
       else
