@@ -1,5 +1,6 @@
 nodePath = require 'path'
 # configuration
+cwd = process.cwd()
 
 module.exports =
   name              : "sharedhosting"
@@ -10,17 +11,19 @@ module.exports =
     appId           : 22120
     key             : 'a6f121a130a44c7f5325'
     secret          : '9a2f248630abaf977547'
+  requestHandler    :
+    isEnabled       : yes
   apiUri            : 'https://dev-api.koding.com/1.0'
   usersPath         : '/Users/'
   vhostDir          : 'Sites'
   suspendDir        : '/var/www/suspended_vhosts/'
-  defaultVhostFiles : nodePath.join process.cwd(),"defaultVhostFiles"
+  defaultVhostFiles : nodePath.join cwd,"defaultVhostFiles"
   freeUsersGroup    : 'freeusers'
   liteSpeedUser     : 'lsws'
   defaultDomain     : 'beta.koding.com'
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true
-  processBaseDir    : process.cwd()
+  processBaseDir    : cwd
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'

@@ -3,5 +3,5 @@
 #
 class cloudlinux {
     include cloudlinux::cagefs_configs,cloudlinux::pam_lve,cloudlinux::lve,cloudlinux::cagefs_update,cloudlinux::cagefs_enable,cloudlinux::cagefs_remount_all
-    #cloudlinux::install_cagefs
+    include cloudlinux::lvestats
 }

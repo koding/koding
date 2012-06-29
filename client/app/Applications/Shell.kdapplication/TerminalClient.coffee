@@ -4,8 +4,9 @@ class TerminalClient
     @view = options.view
     @handler = options.handler
     @view.getDomElement().css("overflow","hidden").css("border","1 solid red");
-    @diffScriptParser = new DiffScript
+    # @diffScriptParser = new DiffScript
     @kb_buf = ''
+
 
   setHandler:(@handler)->
   reset:(size)->

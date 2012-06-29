@@ -47,7 +47,7 @@ class Activity12345 extends AppController
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"
-        title     : if mainController.isUserLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
+        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
     unless account instanceof bongo.api.JGuest
@@ -88,9 +88,9 @@ class Activity12345 extends AppController
     @createFollowedAndPublicTabs()
 
     # INITIAL HEIGHT SET FOR SPLIT
-    @utils.nextTick 1000, =>
+    @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
-      @getSingleton('windowController').notifyWindowResizeListeners()
+      mainView.notifyResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
@@ -127,12 +127,9 @@ class Activity12345 extends AppController
 
     allTab.addSubView activityListScrollView = activityListController.getView()
     
-    @listenTo 
-      KDEventTypes       : "resize"
-      listenedToInstance : @activitySplitView
-      callback           : (pubInst,event)=>
-        newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
-        activityListController.scrollView.setHeight newHeight
+    @activitySplitView.on "ViewResized", =>
+      newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
+      activityListController.scrollView.setHeight newHeight
     
     controller = @
     

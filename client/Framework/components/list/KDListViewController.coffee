@@ -28,11 +28,7 @@ class KDListViewController extends KDViewController
     
     super options, data
     
-    @listenTo
-      KDEventTypes        : 'ItemWasAdded'
-      listenedToInstance  : listView
-      callback            : (pubInst, itemInfo)=>
-        @registerItem pubInst, itemInfo
+    listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
 
     @listenTo
       KDEventTypes        : 'ItemIsBeingDestroyed'
@@ -97,10 +93,10 @@ class KDListViewController extends KDViewController
   CRUD OPERATIONS FOR ITEMS
   ###
 
-  registerItem:(pubInst, itemInfo)->
+  registerItem:(view, index)->
 
     options = @getOptions()
-    {index, view} = itemInfo
+
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
       @itemsOrdered.splice(actualIndex, 0, view)

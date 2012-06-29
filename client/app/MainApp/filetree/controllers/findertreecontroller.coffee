@@ -44,7 +44,7 @@ class NFinderTreeController extends JTreeViewController
     # @setFileListeners nodeData if o.fsListeners
     item = super nodeData, index
 
-  setItemListeners:(pubInst, {view})->
+  setItemListeners:(view, index)->
     
     super
     
@@ -171,18 +171,18 @@ class NFinderTreeController extends JTreeViewController
       return
     
     cb = @utils.getCancellableCallback (files)=>
-      clearTimeout folder.failTimer
+      @utils.killWait folder.failTimer
       nodeView.expand()
-      @initTree files
+      @addNodes files
       callback? nodeView
+      @emit "folder.expanded", nodeView.getData()
     
     folder = nodeView.getData()
 
-    folder.failTimer = setTimeout =>
+    folder.failTimer = @utils.wait 5000, =>
       @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
       folder.emit "fs.nothing.finished", []
       cb.cancel()
-    , 5000
 
     folder.fetchContents cb
     
@@ -191,6 +191,8 @@ class NFinderTreeController extends JTreeViewController
     return unless nodeView
     nodeData = nodeView.getData()
     {path} = nodeData
+    
+    @emit "folder.collapsed", nodeData
     
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -583,7 +585,7 @@ class NFinderTreeController extends JTreeViewController
 
   notify:(msg, style, details)->
     
-    return unless @getView().parent?.parent?.parent
+    return unless @getView().parent?
 
     notification.destroy() if notification
     
@@ -596,7 +598,8 @@ class NFinderTreeController extends JTreeViewController
       title     : msg or "Something went wrong"
       type      : "mini"
       cssClass  : "filetree #{style}"
-      container : @getView().parent.parent.parent # i know this is bad sinan 2012/5/21
+      container : @getView().parent
+      # duration  : 0
       duration  : if details then 5000 else 2500
       details   : details
       click     : ->
@@ -609,10 +612,7 @@ class NFinderTreeController extends JTreeViewController
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          @listenTo
-            KDEventTypes        : 'ReceivedClickElsewhere'
-            listenedToInstance  : details
-            callback            : (pubInst,event)=>
-              @getSingleton('windowController').removeLayer @mainInputTabs
-              details.destroy()
+          details.on 'ReceivedClickElsewhere', =>
+            @getSingleton('windowController').removeLayer @mainInputTabs
+            details.destroy()
               

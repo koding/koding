@@ -58,6 +58,14 @@ class Demos12345 extends AppController
           callback? null
       ]
 
+    mainView.addSubView a = new KDView
+      click : ->
+        log "click"
+      dblclick : ->
+        log "dblClick"
+
+
+
     # t = new JTreeViewController 
     #   addListsCollapsed : yes
     # , data
@@ -135,56 +143,56 @@ class Demos12345 extends AppController
     # mainView.addSubView new Dropee
     
       
-class Dragee extends KDCustomHTMLView
-  
-  constructor:(options, data)->
-    super
-      tagName       : "section"
-      cssClass      : "drag"
-      attributes    :
-        draggable   : "true"
-      bind          : "dragstart dragenter dragleave dragend dragover drop"
-      dragstart     : (pubInst, event)->
-        log event, event.type
-        e = event.originalEvent
-        e.dataTransfer.effectAllowed = 'copy' # only dropEffect='copy' will be dropable
-        e.dataTransfer.setData('Text', this.id) # required otherwise doesn't work
-        pubInst.setClass "drag-started"
-
-      dragenter     : (pubInst, event)->
-        log event.type
-
-      dragover      : (pubInst, event)->
-        event.preventDefault()
-        # event.originalEvent.dataTransfer.dropEffect = 'move'
-        log event.type
-        no
-
-      dragleave     : (pubInst, event)->
-        log event.type
-
-      drop          : (pubInst, event)->
-        log event.type
-        event.preventDefault()
-        event.stopPropagation()
-        no
-
-      dragend       : (pubInst, event)->
-        pubInst.unsetClass "drag-started"
-        log event.type
-
-    , data
-
-class Dropee extends KDCustomHTMLView
-  
-  constructor:(options, data)->
-    super
-      tagName       : "section"
-      cssClass      : "drop"
-      bind          : "dragenter dragleave dragover drop"
-      drop          : (pubInst, event)->
-        log event.type, "burdaki"
-        event.preventDefault()
-        event.stopPropagation()
-        no
-    , data
+# class Dragee extends KDCustomHTMLView
+#   
+#   constructor:(options, data)->
+#     super
+#       tagName       : "section"
+#       cssClass      : "drag"
+#       attributes    :
+#         draggable   : "true"
+#       bind          : "dragstart dragenter dragleave dragend dragover drop"
+#       dragstart     : (pubInst, event)->
+#         log event, event.type
+#         e = event.originalEvent
+#         e.dataTransfer.effectAllowed = 'copy' # only dropEffect='copy' will be dropable
+#         e.dataTransfer.setData('Text', this.id) # required otherwise doesn't work
+#         pubInst.setClass "drag-started"
+# 
+#       dragenter     : (pubInst, event)->
+#         log event.type
+# 
+#       dragover      : (pubInst, event)->
+#         event.preventDefault()
+#         # event.originalEvent.dataTransfer.dropEffect = 'move'
+#         log event.type
+#         no
+# 
+#       dragleave     : (pubInst, event)->
+#         log event.type
+# 
+#       drop          : (pubInst, event)->
+#         log event.type
+#         event.preventDefault()
+#         event.stopPropagation()
+#         no
+# 
+#       dragend       : (pubInst, event)->
+#         pubInst.unsetClass "drag-started"
+#         log event.type
+# 
+#     , data
+# 
+# class Dropee extends KDCustomHTMLView
+#   
+#   constructor:(options, data)->
+#     super
+#       tagName       : "section"
+#       cssClass      : "drop"
+#       bind          : "dragenter dragleave dragover drop"
+#       drop          : (pubInst, event)->
+#         log event.type, "burdaki"
+#         event.preventDefault()
+#         event.stopPropagation()
+#         no
+#     , data

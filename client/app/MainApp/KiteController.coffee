@@ -59,7 +59,10 @@ class KiteController extends KDController
   
   parseKiteResponse:({err, response}, options, callback)->
 
-    if err
+    if err and response
+        callback? err, response
+        warn "there were some errors parsing kite response:", err
+    else if err
       if err.kiteNotPresent
         @handleKiteNotPresent {err, response}, options, callback
       else if /No\ssuch\suser/.test err

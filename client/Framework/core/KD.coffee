@@ -72,8 +72,8 @@ KD = @KD or {}
     @appPartials = partials
 
   subscribe : (subscription)->
-    unless subscription.KDEventType.toLowerCase() is "resize"
-      @subscriptions.push subscription
+    # unless subscription.KDEventType.toLowerCase() is "resize"
+    @subscriptions.push subscription
 
 # FIXME: very wasteful way to remove subscriptions, vs. splice ??
   removeSubscriptions : (aKDViewInstance) ->

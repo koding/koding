@@ -51,7 +51,7 @@ class StartTabMainView extends KDView
     
     @recentFileViews = {}
     
-    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       storage.on "update", => @updateRecentFileViews()
 
@@ -70,7 +70,7 @@ class StartTabMainView extends KDView
 
   updateRecentFileViews:()->
     
-    appManager.getStorage 'Finder', '1.0', (err, storage)=>
+    appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       recentFilePaths = storage.getAt('bucket.recentFiles')
       # log "updating views", recentFilePaths.length
