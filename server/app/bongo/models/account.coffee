@@ -4,6 +4,7 @@ class JAccount extends Followable
     
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
+  @::mixin Notifiable::
 
   {secure,race} = bongo
   @share()
