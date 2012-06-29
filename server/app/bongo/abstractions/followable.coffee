@@ -133,19 +133,20 @@ class Followable extends jraphical.Module
       dash queue, callback
     
     # @implementation
-    (client,callback)->
+    (client, options, callback)->
+      [callback, options] = [options, callback] unless callback
       follower = client.connection.delegate
-      if @equals follower then return callback "Can't follow yourself, you egotistical maniac", @counts.followers
+      if @equals follower then return callback "Can't follow yourself, you egotistical maniac", @getAt('counts.followers')
       @addFollower follower, returnCount : yes, (err, count)=>
         if err
           callback err
         else
-          @counts.followers = count
+          @setAt 'counts.followers',  count
           @save()
           # callback err, count
           @emit 'FollowCountChanged'
-            followerCount   : @counts.followers
-            followingCount  : @counts.following
+            followerCount   : @getAt('counts.followers')
+            followingCount  : @getAt('counts.following')
             newFollower     : follower
         
           follower.updateFollowingCount()
@@ -157,11 +158,14 @@ class Followable extends jraphical.Module
             if err
               callback err
             else
-              addActivities relationship, @, follower, (err)->
-                if err
-                  callback err
-                else
-                  callback null, count
+              emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
+              if emitActivity
+                addActivities relationship, @, follower, (err)->
+                  if err
+                    callback err
+                  else
+                    callback null, count
+              else callback null, count
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate
@@ -173,8 +177,8 @@ class Followable extends jraphical.Module
           throw err if err
         callback err, count
         @emit 'FollowCountChanged'
-          followerCount   : @counts.followers
-          followingCount  : @counts.following
+          followerCount   : @getAt('counts.followers')
+          followingCount  : @getAt('counts.following')
           oldFollower     : follower
         follower.updateFollowingCount()
   
@@ -225,5 +229,5 @@ class Followable extends jraphical.Module
       bongo.Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
-        followerCount   : @counts.followers
-        followingCount  : @counts.following
+        followerCount   : @getAt('counts.followers')
+        followingCount  : @getAt('counts.following')
