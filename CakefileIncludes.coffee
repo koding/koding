@@ -81,6 +81,7 @@ Includes =
         followable                : "./server/app/bongo/abstractions/followable.coffee"
         filterable                : "./server/app/bongo/abstractions/filterable.coffee"
         taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"

@@ -30,10 +30,6 @@ class JCodeSnip extends JPost
         syntax    : data.syntax
       }]
       meta        : data.meta
-      # meta        : null
-      
-          
-    
     JPost.create.call @, client, codeSnip, callback
   
   modify: secure (client, data, callback)->
@@ -45,9 +41,7 @@ class JCodeSnip extends JPost
         content   : data.code
         syntax    : data.syntax
       }]
-    
     JPost::modify.call @, client, codeSnip, callback
-      # meta        : null
   
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback
