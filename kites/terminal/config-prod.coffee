@@ -1,8 +1,8 @@
 module.exports =
-  name    : "terminaljs"
+  name    : "terminal"
   port    : 4567
-  pidPath : "/var/run/node/TerminalJS.pid"
-  logFile : "/var/log/node/TerminalJS.log" 
+  pidPath : "/var/run/node/terminal.pid"
+  logFile : "/var/log/node/terminal.log" 
   pusher  :
     appId : 18240
     key   : 'a19c8bf6d2cad6c7a006'
