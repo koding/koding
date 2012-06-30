@@ -24,18 +24,6 @@ class NFinderTreeController extends JTreeViewController
     
     @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
     
-    # @listenTo 
-    #   KDEventTypes       : "WindowChangeKeyView"
-    #   listenedToInstance : @getSingleton("windowController")
-    #   callback           : (windowController, {view})=>
-    #     dimmed = yes
-    #     for listController in @listControllers
-    #       if view is listController.getView()
-    #         dimmed = no
-    #       
-    #     if dimmed
-    #       node.setClass "dimmed" for node in @selectedNodes
-    # @setFSListeners()
 
   addNode:(nodeData, index)->
     
@@ -382,6 +370,22 @@ class NFinderTreeController extends JTreeViewController
         @notify "#{file.type.capitalize()} extracted!", "success"
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
+  
+  compileApp:(nodeView)->
+    
+    folder = nodeView.getData()
+    folder.emit "fs.compile.started"
+    @getSingleton('kodingAppsController').compileSource FSHelper.trimExtension(folder.path), =>
+      log "ever here"
+      folder.emit "fs.compile.finished"
+      @notify "App compiled!", "success"
+      @utils.wait 500, => 
+        @refreshFolder nodeView, =>
+          @utils.wait =>
+            log @nodes["#{nodeView.path}/index.js"], "#{nodeView.path}/index.js"
+            @selectNode @nodes["#{nodeView.path}/index.js"]
+      
+    
     
     
   ###
@@ -405,6 +409,7 @@ class NFinderTreeController extends JTreeViewController
   contextMenuOperationOpenFile:(nodeView, contextMenuItem)-> @openFile nodeView
   contextMenuOperationOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
   contextMenuOperationPreviewFile:(nodeView, contextMenuItem)-> @previewFile nodeView
+  contextMenuOperationCompile:(nodeView, contextMenuItem)-> @compileApp nodeView
 
   ###
   CONTEXT MENU CREATE/MANAGE
