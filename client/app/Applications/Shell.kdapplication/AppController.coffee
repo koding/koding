@@ -47,6 +47,7 @@ class Shell12345 extends KDViewController
       for diff in (item while (item = _orderedMessages[i++])?)
         # console.log "updating screen with:",diff
         currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
+        # currentScreen = diff
         @getView().updateScreen(currentScreen)
         @lastScreen = currentScreen      
         @_lastMessageProcessed = i-1
