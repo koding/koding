@@ -11,7 +11,6 @@ os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
-
 console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
@@ -40,7 +39,7 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-
+        
   uploadFile:(options,callback)->
     #
     # options =
