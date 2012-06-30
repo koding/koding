@@ -13,6 +13,20 @@ app.finder.styl
 */
 }
 
+selectedNeighbor()
+  border-top-color  #E6981E
+  background        finderSelectedColor1
+
+dimmed()
+  border-color      #ccc transparent #c2c2c2 transparent
+  color             #282828
+  text-shadow       none
+  background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
+
+dimmedNeighbor()
+  border-top-color  finderDimmedColor1
+  background        finderDimmedColor2
+
 #finder-holder
   height                auto
   overflow              visible
@@ -32,25 +46,23 @@ app.finder.styl
     .kdlistitemview-finderitem
       .chevron-arrow
         hidden()
-
-selectedNeighbor()
-  border-top-color  #E6981E
-  background        finderSelectedColor1
-
-dimmed()
-  border-color      #ccc transparent #c2c2c2 transparent
-  color             #282828
-  text-shadow       none
-  background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
-
-dimmedNeighbor()
-  border-top-color  finderDimmedColor1
-  background        finderDimmedColor2
+  .dim
+    .kdlistitemview-finderitem.selected
+      dimmed()
+      &+.selected
+        dimmedNeighbor()
+      &+.jtreeview
+        .kdlistitemview-finderitem
+          &:first-child
+            &.selected
+              dimmedNeighbor()
+      
+    .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
+      dimmedNeighbor()
+    
 
 .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
   selectedNeighbor()
-  &.dimmed
-    dimmedNeighbor()
 
 .kdlistitemview-finderitem
   height              auto
@@ -87,17 +99,11 @@ dimmedNeighbor()
       text-shadow none
     &+.selected
       selectedNeighbor()
-      &.dimmed
-        dimmedNeighbor()
     &+.jtreeview
       .kdlistitemview-finderitem
         &:first-child
           &.selected
             selectedNeighbor()
-            &.dimmed
-              dimmedNeighbor()
-    &.dimmed
-      dimmed()
 
   &.unsaved
     span.icon
@@ -392,12 +398,6 @@ dimmedNeighbor()
         color white
         text-shadow none
 
-    &.selected.dimmed
-      border-color      #ccc transparent #c2c2c2 transparent
-      color             #282828
-      text-shadow       none
-      background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
-  
     &.unsaved
       span.icon
         color           black!important

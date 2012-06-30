@@ -154,6 +154,13 @@ class NFinderContextMenuController extends KDController
       delete items.Expand
     else
       delete items.Collapse
+      
+    if fileView.getData().getExtension() is "kdapp"
+      items.Refresh.separator   = yes
+      items['Application menu'] =
+        children    :
+          Compile   :
+            action  : "compile"
 
     return items
 
