@@ -7,7 +7,6 @@ _               = require 'underscore'
 
 console.log "my pid is:",process.pid
 
-
 module.exports = new Kite 'terminaljs'
 
   _connect:-> console.log "connect:",arguments
@@ -17,7 +16,7 @@ module.exports = new Kite 'terminaljs'
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
-     
+
     unless username and rows and cols and callbacks
       console.log "invalid options, usage : create({rows,cols,type,callbacks},callback)" 
     else
@@ -41,13 +40,13 @@ module.exports = new Kite 'terminaljs'
       _orderedMessages = {}
 
       consumeMessages = ->
-        
+
         while _orderedMessages[_lastMessageProcessed]
           terminal.write _orderedMessages[_lastMessageProcessed].cmd
           delete _orderedMessages[_lastMessageProcessed]
           _lastMessageProcessed++
           # console.log _orderedMessages,_lastMessageProcessed
-        
+
         ###
         for key,o of _orderedMessages
           do (key)->
@@ -57,9 +56,9 @@ module.exports = new Kite 'terminaljs'
               setTimeout ->
                 # console.log "skipping ahead.. missing keys didn't arrive in one sec.",{key,_lastMessageProcessed}
 
-                # 
+                #
                 if _lastMessageProcessed < key
-                  _lastMessageProcessed = key 
+                  _lastMessageProcessed = key
                   delete _orderedMessages[k] for k,oo in _orderedMessages when k < key
 
                 # consumeMessages()
@@ -75,17 +74,17 @@ module.exports = new Kite 'terminaljs'
           # _orderedMessages[d[0]] = group:d[1],time:d[2],cmd:d[3] for d in data
           # _orderedMessages = _.sortBy _orderedMessages,((e)-> return e[0])
           # console.log {data}
-          
+
           terminal.write d[3] for d in data
           # consumeMessages()
-          
+
           # process = (msg)->
           #   baseTime = msg[0][1]
           #   sendKeystroke = (bufferedKeystroke)->
           #     setTimeout (-> terminal.write bufferedKeystroke[0]),bufferedKeystroke[1]-baseTime
           #   sendKeystroke(cmd) for cmd in msg
-          #   
-          # 
+          #
+          #
           # _orderedMessages[messageNum] = data
           # # console.log _orderedMessages,_lastMessageProcessed
           # do (messageNum) ->
@@ -112,7 +111,7 @@ module.exports = new Kite 'terminaljs'
           #       else
           #         console.log "we waited for screenNr:#{messageNum} and it did arrive before 1sec."
           #     ,1000
-                  
+
         resize             : (rows, cols) -> terminal.setScreenSize rows, cols
         close              : ()->
           console.log "close is called"
