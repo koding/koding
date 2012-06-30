@@ -10,34 +10,42 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
     
-    path = "/Users/#{KD.whoami().profile.nickname}/Applications"
-    
-    @getSingleton("kiteController").run
-      withArgs  :
-        command : "ls #{path} -lpva"
-    , (err, response)=>
-      if err 
-        warn err
-      else
-        files = FSHelper.parseLsOutput [path], response
-        apps  = []
-        stack = []
-        for file in files
-          if /\.kdapp$/.test file.name
-            apps.push file
-        
-        apps.forEach (app)->
-          manifest = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-          stack.push (cb)->
-            manifest.fetchContents cb
-        
-        async.parallel stack, (err, results)=>
-          if err then warn err else
-            results.forEach (app)->
-              app = JSON.parse app
-              KodingAppsController.apps["#{app.name}"] = app
-            log KodingAppsController.apps
-            callback? KodingAppsController.apps
+    # log Object.keys(KodingAppsController.apps).length, ">>>>>"
+    # 
+    if Object.keys(KodingAppsController.apps).length is 0
+
+      path = "/Users/#{KD.whoami().profile.nickname}/Applications"
+  
+      @getSingleton("kiteController").run
+        withArgs  :
+          command : "ls #{path} -lpva"
+      , (err, response)=>
+        if err 
+          warn err
+        else
+          files = FSHelper.parseLsOutput [path], response
+          apps  = []
+          stack = []
+          for file in files
+            if /\.kdapp$/.test file.name
+              apps.push file
+      
+          apps.forEach (app)->
+            manifest = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
+            stack.push (cb)->
+              manifest.fetchContents cb
+      
+          async.parallel stack, (err, results)=>
+            if err then warn err else
+              results.forEach (app)->
+                app = JSON.parse app
+                KodingAppsController.apps["#{app.name}"] = app
+
+              callback? KodingAppsController.apps
+
+    else
+      
+      callback? KodingAppsController.apps
 
   addScript:(app, scriptInput, callback)->
     
@@ -47,9 +55,15 @@ class KodingAppsController extends KDController
           command : "cat #{@getAppPath app}/#{scriptInput}"
       , (err, response)=>
         if err then warn err
-        callback err, "#{response}"
+        
+        if /.coffee$/.test scriptInput
+          require ["coffee-script"], (coffee)->
+            js = coffee.compile response, { bare : yes }
+            callback err, js
+        else
+          callback err, response
     else
-      callback null, "#{scriptInput}"
+      callback null, scriptInput
   
   getAppPath:(app)->
 
@@ -63,7 +77,7 @@ class KodingAppsController extends KDController
     
     return path
   
-  saveCompiledApp:(app, script)->
+  saveCompiledApp:(app, script, callback)->
     
 
     @getSingleton("kiteController").run
@@ -75,6 +89,7 @@ class KodingAppsController extends KDController
     , (err, response)=>
       if err then warn err
       log err, response, "<<<<<<"
+      callback?()
   
   defineApp:(app, script)->
     
@@ -82,7 +97,7 @@ class KodingAppsController extends KDController
 
     # KDApps[app.name] = 
     #   """
-    #   (function() {
+    #   (function(appView) {
     #   #{script}
     #   }).call(appView);
     #   """
@@ -98,10 +113,15 @@ class KodingAppsController extends KDController
         callback KDApps[name]
   
   compileSource:(name, callback)->
+
+    log "ever compileSource"
+    
     
     kallback = (app)=>
-
-      return warn "No such app!" unless app
+      
+      log "ever kallback"
+      
+      return warn "#{name}: No such app!" unless app
 
       {source} = app
       {blocks} = source
@@ -121,7 +141,7 @@ class KodingAppsController extends KDController
       orderedBlocks.forEach (block)=>
         # log block.pre  if block.pre
         if block.pre
-          asyncStack.push (callback)=> @addScript app, block.pre, callback
+          asyncStack.push (cb)=> @addScript app, block.pre, cb
           
         # log ">>>>>>> processing block named #{block.name} <<<<<<<<"
         if block.files
@@ -132,32 +152,34 @@ class KodingAppsController extends KDController
                 do =>
                   # log fileExtras.pre  if fileExtras.pre
                   if fileExtras.pre
-                    asyncStack.push (callback)=> @addScript app, fileExtras.pre, callback 
+                    asyncStack.push (cb)=> @addScript app, fileExtras.pre, cb 
                   # log fileName
-                  asyncStack.push (callback)=> @addScript app, fileName, callback
+                  asyncStack.push (cb)=> @addScript app, fileName, cb
                   # log fileExtras.post if fileExtras.post
                   if fileExtras.post
-                    asyncStack.push (callback)=> @addScript app, fileExtras.post, callback
+                    asyncStack.push (cb)=> @addScript app, fileExtras.post, cb
             else
               # log file
-              asyncStack.push (callback)=> @addScript app, file, callback
+              asyncStack.push (cb)=> @addScript app, file, cb
         # log block.post if block.post
         if block.post
-          asyncStack.push (callback)=> 
-            @addScript app, block.post, callback
+          asyncStack.push (cb)=> @addScript app, block.post, cb
 
       async.parallel asyncStack, (error, result)=>
         
-        final = "/* KDAPP STARTS */"
+        log "ever async"
+        
+        final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
           final += "\n\n/* BLOCK STARTS */\n\n"
           final += "#{output}"
           final += "\n\n/* BLOCK ENDS */\n\n"
-        final += "/* KDAPP ENDS */"
+        final += "/* KDAPP ENDS */\n\n}).call();"
         
-        @saveCompiledApp app, final
-        @defineApp app, final
-        callback?()
+        
+        final = @defineApp app, final
+        @saveCompiledApp app, final, =>
+          callback?()
 
     unless KodingAppsController.apps[name]
       @fetchApps (apps)=> kallback apps[name]

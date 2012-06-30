@@ -6,6 +6,10 @@ class FSItem extends KDObject
   
   escapeFilePath = FSHelper.escapeFilePath
   
+  getExtension:->
+    [root, rest..., extension]  = @path.split '.'
+    extension or= ''
+
   @create:(path, type, callback)->
     
     FSItem.getSafePath path, (err, response)->

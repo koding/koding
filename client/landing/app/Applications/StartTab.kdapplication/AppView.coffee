@@ -53,6 +53,9 @@ class StartTabMainView extends KDView
 
 # do (appView)->
 #   appView.addSubview new AceView {}, FSHelper.createFileFromPath "localfile:/Untitled.txt"
+
+
+
   
 
 
