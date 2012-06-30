@@ -92,10 +92,15 @@ class StartTabMainView extends KDView
       tagName     : 'h3'
       partial     : 'Start with a workspace'
     for splitOption in @splitOptions
-      splitOptionsView.addSubView new SplitOptionsLink 
-        tab       : @
-      , splitOption
-    
+      splitOptionsView.addSubView new KDCustomHTMLView
+        tagName   : 'a'
+        cssClass  : 'start-tab-split-option'
+        partial   : splitOption.partial
+        click     : ->
+          appManager.notify()
+          # {tab} = @getOptions()
+          # appManager.replaceStartTabWithSplit @getData(), tab
+
     splitOptionsView.setClass 'expanded'  
     
     
@@ -183,41 +188,41 @@ class StartTabMainView extends KDView
   
   splitOptions : [
     {
-      partial               : '<div class="full-vert-l" /><div class="full-vert-r" />'
+      partial               : '<span class="fl w50"></span><span class="fr w50"></span>'
       splitType             : 'vertical'
       splittingFromStartTab : yes
       splits                : [1,1]
     },
     {
-      partial               : '<div class="half-horiz-l" /><div class="half-horiz-r" /><div class="full-horiz-b" />'
+      partial               : '<span class="fl h50 w50"></span><span class="fr h50 w50"></span><span class="h50 full-b"></span>'
       splitType             : 'horizontal'
       secondSplitType       : 'vertical'
       splittingFromStartTab : yes
       splits                : [2,1]
     },
     {
-      partial               : '<div class="full-horiz-t" /><div class="half-horiz-l" /><div class="half-horiz-r" />'
+      partial               : '<span class="h50 full-t"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
       splitType             : 'horizontal'
       secondSplitType       : 'vertical'
       splittingFromStartTab : yes
       splits                : [1,2]
     },
     {
-      partial               : '<div class="full-vert-r" /><div class="half-vert-t" /><div class="half-vert-b" />'
+      partial               : '<span class="fl w50 h50"></span><span class="fr w50 full-r"></span><span class="fl w50 h50"></span>'
       splitType             : 'vertical'
       secondSplitType       : 'horizontal'
       splittingFromStartTab : yes
       splits                : [2,1]
     },
     {
-      partial               : '<div class="full-vert-l" /><div class="half-vert-t-r" /><div class="half-vert-b-r" />'
+      partial               : '<span class="fl w50 full-l"></span><span class="fr w50 h50"></span><span class="fr w50 h50"></span>'
       splitType             : 'vertical'
       secondSplitType       : 'horizontal'
       splittingFromStartTab : yes
       splits                : [1,2]
     },
     {
-      partial               : '<div class="half-horiz-l-t" /><div class="half-horiz-r-t" /><div class="half-horiz-l" /><div class="half-horiz-r" />'
+      partial               : '<span class="fl w50 h50"></span><span class="fr w50 h50"></span><span class="fl w50 h50"></span><span class="fr w50 h50"></span>'
       splitType             : 'vertical'
       secondSplitType       : 'horizontal'
       splittingFromStartTab : yes
@@ -302,20 +307,5 @@ class StartTabRecentFileView extends JView
       else
         file.contents = contents
         appManager.openFile file
-
-class SplitOptionsLink extends KDView
-  constructor:(options, data)->
-    newPartial = data.partial
-    options = $.extend
-      tagName     : 'a'
-      cssClass    : 'start-tab-split-option'
-      partial     : newPartial
-    , options
-    super options, data
-    
-  click:(event)->
-    appManager.notify()
-    # {tab} = @getOptions()
-    # appManager.replaceStartTabWithSplit @getData(), tab
       
       
