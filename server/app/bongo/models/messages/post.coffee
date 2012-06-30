@@ -236,7 +236,7 @@ class JPost extends jraphical.Message
           callback err
         else
           unless likedBy
-            @addLikedBy delegate, returnCount: yes, (err, count)=>
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
@@ -256,7 +256,7 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            @addComment comment, returnCount: yes, (err, count)=>
+            @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
@@ -266,8 +266,10 @@ class JPost extends jraphical.Message
                   else
                     callback null, comment
                     @emit 'ReplyIsAdded', {
-                      replier : ObjectRef(delegate).data
-                      reply   : ObjectRef(comment).data
+                      subject       : ObjectRef(@).data
+                      replier 		  : ObjectRef(delegate).data
+                      reply   		  : ObjectRef(comment).data
+                      repliesCount	: count
                     }
                     @follow client, emitActivity: no, (err)->
                     @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?

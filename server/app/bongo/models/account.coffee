@@ -260,6 +260,8 @@ class JAccount extends Followable
                 if response?.error then callback new KodingError response.error
                 else callback null, __channelId: secretChannelId
   
+  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
+  
   tellKiteInternal : (account,options,callback)->
     {kiteId,kiteName,toDo,withArgs} = options
     
