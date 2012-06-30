@@ -1,14 +1,143 @@
-class Chat12345 extends AppController
-  constructor:()->
-    mainViewClass = KDView
-    mainViewClass = KD.getPageClass('Activity') if KD.getPageClass('Activity')?
 
-    @mainView = new mainViewClass {cssClass : "content-page" }
-    super
+
+
+
+class Chatter extends KDEventEmitter
+  {mq} = bongo
   
-  bringToFront:()->
-    @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes), options : {}, data : @mainView
+  constructor:()->
+    @account = KD.whoami()
+    @username = @account?.profile?.nickname ? "guest"
+    @type = "chat"
+    @messages = []
+    super
+  joinRoom:(options,callback)->
     
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
+    {name} = options
+    
+    name ?= __utils.getRandomNumber()
+    @name = "private-#{@type}-#{name}"
+    mq.fetchChannel @name,(channel,isNew)=>
+      console.log arguments
+      console.log @username+" joined this channel: #{@name}"
+
+      @room = channel      
+      @emit "ready",isNew
+      @attachListeners(isNew)
+      @send data:"join"
+      
+  attachListeners:(isNew)->
+    @room.on 'client-#{@type}-msg',(messages)=>
+      for msgObj in messages
+        @emit msgObj.event,msgObj
+      
+  sendThrottled : _.throttle ()->
+    @room.emit 'client-#{@type}-msg',@messages
+    @messages = []
+  ,150
+  
+  send : (options,callback) ->
+    options.date = Date.now()
+    options.sender = @username
+    options.event ?= "msg"
+    @messages.push options
+    @sendThrottled()
+
+
+class SharedDoc extends Chatter  
+  
+  constructor:(options)->
+    # {isMaster} = options
+    # @isMaster = isMaster ? null
+    @lastScreen = ""
+    super
+    @type = "sharedDoc"
+    @dmp = new diff_match_patch()
+    
+  attachListeners:(isNew)->
+    super isNew
+    #console.log "attachlisteners cagirdik"
+    @on "ready",(isNew)=>
+      #@isMaster = yes if isNew
+
+    @on "msg",({msg,sender,date})=>
+      # if sender isnt @username  
+      # console.log "sharedDoc geldi",arguments 
+      @currentScreen = (@dmp.patch_apply msg,@lastScreen)[0]
+      @lastScreen = @currentScreen
+      @emit "patchApplied",@currentScreen
+    @on "join",({sender,date})=>
+      console.log "#{sender} geldi hosgeldi",arguments
+        
+      
+  join :(options,callback)->    
+    @joinRoom options,(err,res)->
+  
+  send : ({newScreen},callback)->
+    console.log 'zz',arguments
+    patch = @dmp.patch_make @lastScreen, newScreen   
+    @lastScreen = newScreen
+    # console.log newScreen,patch
+    super msg:patch   
+      
+
+
+
+
+
+
+class ChatterView extends KDView
+  
+  viewAppended:->
+    @addSubView @joinButton = new KDButtonView
+      title    : "Share"
+      callback : =>
+        @emit "userWantsToJoin"
+    
+    @addSubView @input = new KDInputView
+      type    : "textarea"      
+      keyup   : =>
+        @emit 'newScreen',@input.getValue()
+
+      paste   : =>
+        @emit 'newScreen',@input.getValue()        
+
+    
+    @input.setHeight @getSingleton("windowController").winHeight-100
+    @input.setWidth  @getSingleton("windowController").winWidth-200
+    
+class Chat12345 extends AppController
+  
+  constructor:(options = {}, data)->
+    options.view = new ChatterView
+      cssClass : "content-page chat"
+
+    super options, data
+    view = @getView()
+    @sharedDoc = new SharedDoc
+    
+    @sharedDoc.on "patchApplied",(newScreen)=>
+      view.input.setValue newScreen
+    
+
+    
+  loadView:(view)->
+
+    view.on 'newScreen',(scr)=>
+      @sharedDoc.send {newScreen:scr}
+    
+    view.on 'userWantsToJoin',=>
+      @sharedDoc.join {name:"myDoc"}
+    
+  bringToFront:()->
+    super name : 'Chat'#, type : 'background'
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
