@@ -3,6 +3,7 @@
 require_once 'router.php';
 require_once 'helpers.php';
 require_once 'kitecontroller.php';
+require_once 'lib/pusher.php';
 
 $router = new Router;
 
@@ -39,13 +40,12 @@ $router->add_route('/kite/:kite_name', function ($params) {
 
 $router->add_route('/event', function () {
   @$message = json_decode(file_get_contents('php://input'));
-  // error_log(json_encode($message));
   if(isset($message)) {
     foreach ($message->events as $event) {
       switch($event->name) {
       case 'channel_vacated' :
         $matches = array();
-        if(preg_match('/^private-(\w+)-/', $event->channel, $matches)) {
+        if (preg_match('/^private-(\w+)-/', $event->channel, $matches)) {
           list(, $channel_type) = $matches;
           handle_vacated_channel($channel_type, $event, $message->time_ms);
         }
@@ -119,11 +119,8 @@ $router->add_route('/kite/disconnect', function () {
 });
 
 $router->add_route('/channel/auth', function () {
-  $input = file_get_contents('php://input');
-  parse_str($input);
-  trace('-------', $input);
-  $session = get_session();
-  
-  trace('chris', $_GET, $channel_name, $session);
-  
+  $pusher = new Pusher('a6f121a130a44c7f5325', '9a2f248630abaf977547', 22120);
+  header('Content-type: text/javascript');
+  print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
+  die();
 });

@@ -42,7 +42,6 @@ class JComment extends jraphical.Reply
                 message.removeReply rel, -> queue.fin()
       =>
         deleter = ObjectRef(delegate)
-        console.log deleter
         @update
           $unset      :
             body      : 1
