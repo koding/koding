@@ -19,31 +19,29 @@ class Chatter extends KDEventEmitter
     @name = "private-#{@type}-#{name}"
     mq.fetchChannel @name,(channel,isNew)=>
       console.log arguments
-      if isNew is yes
-        console.log @username+" created a channel: #{@name}"
-      else
-        console.log @username+" joined this channel: #{@name}"      
-      
+      console.log @username+" joined this channel: #{@name}"
+
       @room = channel      
       @emit "ready",isNew
       @attachListeners(isNew)
+      @send data:"join"
       
   attachListeners:(isNew)->
     @room.on 'client-#{@type}-msg',(messages)=>
       for msgObj in messages
-        @emit "msg",msgObj
+        @emit msgObj.event,msgObj
       
   sendThrottled : _.throttle ()->
     @room.emit 'client-#{@type}-msg',@messages
     @messages = []
   ,150
   
-  send : ({msg},callback) ->
-    msgObj = {msg,date:Date.now(),sender:@username}
-    @messages.push msgObj
+  send : (options,callback) ->
+    options.date = Date.now()
+    options.sender = @username
+    options.event ?= "msg"
+    @messages.push options
     @sendThrottled()
-
-
 
 
 class SharedDoc extends Chatter  
@@ -68,17 +66,25 @@ class SharedDoc extends Chatter
       @currentScreen = (@dmp.patch_apply msg,@lastScreen)[0]
       @lastScreen = @currentScreen
       @emit "patchApplied",@currentScreen
+    @on "join",({sender,date})=>
+      console.log "#{sender} geldi hosgeldi",arguments
         
       
   join :(options,callback)->    
     @joinRoom options,(err,res)->
   
   send : ({newScreen},callback)->
+    console.log 'zz',arguments
     patch = @dmp.patch_make @lastScreen, newScreen   
     @lastScreen = newScreen
     # console.log newScreen,patch
     super msg:patch   
       
+
+
+
+
+
 
 class ChatterView extends KDView
   
