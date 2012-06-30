@@ -382,8 +382,7 @@ class NFinderTreeController extends JTreeViewController
       @utils.wait 500, => 
         @refreshFolder nodeView, =>
           @utils.wait =>
-            log @nodes["#{nodeView.path}/index.js"], "#{nodeView.path}/index.js"
-            @selectNode @nodes["#{nodeView.path}/index.js"]
+            @selectNode @nodes["#{folder.path}/index.js"]
       
     
     
