@@ -106,6 +106,7 @@ class MainController extends KDController
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
       # appManager.openApplication "Activity", yes
+      # appManager.openApplication "StartTab", yes
       appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 

@@ -32,45 +32,46 @@ class Demos12345 extends AppController
       { title : "title 20", id : 20, parentId: 1}
     ]
     
-    window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
-      style           : "kdwhitebtn profilefollowbtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : "Unfollow"
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        left          : 3
-      states          : [
-        "Follow", (callback)->
-          # memberData.follow (err, response)=>
-          #   unless err
-          #     @setClass 'following-btn'
-          log "follow callback"
-          @hideLoader()
-          callback? null
-        "Unfollow", (callback)->
-          # memberData.unfollow (err, response)=>
-          #   unless err
-          #     @unsetClass 'following-btn'
-          log "unfollow callback"
-          @hideLoader()
-          callback? null
-      ]
+    # window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
+    #   style           : "kdwhitebtn profilefollowbtn"
+    #   title           : "Follow"
+    #   dataPath        : "followee"
+    #   defaultState    : "Unfollow"
+    #   loader          :
+    #     color         : "#333333"
+    #     diameter      : 18
+    #     left          : 3
+    #   states          : [
+    #     "Follow", (callback)->
+    #       # memberData.follow (err, response)=>
+    #       #   unless err
+    #       #     @setClass 'following-btn'
+    #       log "follow callback"
+    #       @hideLoader()
+    #       callback? null
+    #     "Unfollow", (callback)->
+    #       # memberData.unfollow (err, response)=>
+    #       #   unless err
+    #       #     @unsetClass 'following-btn'
+    #       log "unfollow callback"
+    #       @hideLoader()
+    #       callback? null
+    #   ]
+    # 
+    # mainView.addSubView a = new KDView
+    #   click : ->
+    #     log "click"
+    #   dblclick : ->
+    #     log "dblClick"
 
-    mainView.addSubView a = new KDView
-      click : ->
-        log "click"
-      dblclick : ->
-        log "dblClick"
 
 
-
-    # t = new JTreeViewController 
-    #   addListsCollapsed : yes
-    # , data
-    # mainView.addSubView t.getView()
-    # t.getView().$().height "auto"
+    t = new JTreeViewController 
+      # addListsCollapsed : yes
+      multipleSelection : yes
+    , data
+    mainView.addSubView t.getView()
+    t.getView().$().height "auto"
     
     
     # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
