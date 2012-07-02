@@ -56,30 +56,30 @@ class KDListView extends KDView
     else
       for item,i in @items
         if itemInstance and itemInstance is item or
-           itemData and itemdData is item.getData()
+           itemData and itemData is item.getData()
           @propagateEvent KDEventType: 'ItemIsBeingDestroyed', { view : item, index : i }
           @items.splice i,1
           item.destroy()
           return
 
   addItemView:(itemInstance,index,animation)->
-    @propagateEvent KDEventType: 'ItemWasAdded', { view: itemInstance, index }
+    @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
       @items.splice actualIndex, 0, itemInstance
       @appendItemAtIndex itemInstance, index, animation
     else
       @items[if @getOptions().lastToFirst then 'unshift' else 'push'] itemInstance
-      @appendItem itemInstance
+      @appendItem itemInstance, animation
     itemInstance
 
-  destroy:(animated = no,animationType = "slideUp",duration = 100)->
+  destroy:(animated = no, animationType = "slideUp", duration = 100)->
     for item in @items
       # log "destroying listitem", item
       item.destroy()
     super()
  
-  appendItem:(itemInstance,animation)->
+  appendItem:(itemInstance, animation)->
 
     itemInstance.setParent @
     scroll = @doIHaveToScroll()

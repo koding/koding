@@ -11,45 +11,22 @@ class KDWindowController extends KDController
   constructor:(options,data)->
     @windowResizeListeners = {}
     @keyView
+    @dragView
     @scrollingEnabled = yes
     @bindEvents()
     @setWindowProperties()
-    
-    @layers = layers = []
-    document.body.addEventListener 'mousedown', (e)=>
-      $('.twipsy').remove() # temporary for beta
-      @setDragInAction no # for cases when dragleave doesn't fire
-      lastLayer = layers[layers.length-1]
-      if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
-        lastLayer.propagateEvent (KDEventType: 'ReceivedClickElsewhere'), e
-    , yes
-
-    document.body.addEventListener 'mouseup', (e)=>
-      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
-    , yes
-
-    window.onbeforeunload = (event) =>
-      # event.preventDefault();
-      # event.stopImmediatePropagation();
-      # event.stopPropagation();
-
-      event or= window.event
-      msg = "Please make sure that you saved all your work."
-      
-      event.returnValue = msg if event # For IE and Firefox prior to version 4
-
-      return msg
-      
-
     super
   
   addLayer: (layer)->
+
     unless layer in @layers
       @layers.push layer
   
   removeLayer: (layer)->
-    index = @layers.indexOf(layer)
-    @layers.splice index, 1
+
+    if layer in @layers
+      index = @layers.indexOf(layer)
+      @layers.splice index, 1
   
   bindEvents:()->
 
@@ -76,7 +53,39 @@ class KDWindowController extends KDController
       @propagateEvent (KDEventType: 'DropOnWindow'), event
       @setDragInAction no
     , yes
-  
+    
+    @layers = layers = []
+
+    document.body.addEventListener 'mousedown', (e)=>
+      $('.twipsy').remove() # temporary for beta
+      lastLayer = layers[layers.length-1]
+
+      if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
+        lastLayer.emit 'ReceivedClickElsewhere', e
+    , yes
+
+    document.body.addEventListener 'mouseup', (e)=>
+      @unsetDragView e if @dragView
+      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
+    , yes
+    
+    document.body.addEventListener 'mousemove', (e)=>
+      @redirectMouseMoveEvent e
+    , yes
+    
+
+    window.onbeforeunload = (event) =>
+      # event.preventDefault();
+      # event.stopImmediatePropagation();
+      # event.stopPropagation();
+
+      event or= window.event
+      msg = "Please make sure that you saved all your work."
+      
+      event.returnValue = msg if event # For IE and Firefox prior to version 4
+
+      return msg
+
   setDragInAction:(action = no)->
     $('body')[if action then "addClass" else "removeClass"]("dragInAction")
     @dragInAction = action
@@ -107,6 +116,32 @@ class KDWindowController extends KDController
       newKeyView?.propagateEvent KDEventType : 'KDViewBecameKeyView'
       @propagateEvent (KDEventType: 'WindowChangeKeyView', globalEvent : yes), view: newKeyView
   
+  setDragView:(dragView)->
+    
+    @setDragInAction yes
+    @dragView = dragView
+  
+  unsetDragView:(e)->
+    
+    @setDragInAction no
+    @dragView.emit "DragFinished", e, @dragState
+    @dragView = null
+    
+    
+  redirectMouseMoveEvent:(event)->
+
+    view = @dragView
+    return unless @dragView
+    
+    {pageX, pageY}   = event
+    {startX, startY} = view.dragState
+
+    delta =
+      x : pageX - startX
+      y : pageY - startY
+    
+    view.drag event, delta
+  
   getKeyView:()->
     @keyView
 
@@ -129,7 +164,7 @@ class KDWindowController extends KDController
     @winWidth  = $(window).width()
     @winHeight = $(window).height()
   
-  notifyWindowResizeListeners:(event,throttle = no, duration = 17)->
+  notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
     if throttle
       clearTimeout @resizeNotifiersTimer if @resizeNotifiersTimer

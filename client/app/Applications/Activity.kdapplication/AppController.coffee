@@ -11,7 +11,7 @@ class Activity12345 extends AppController
     # command, environment are all a mess and 
     # devrim is currently working on refactoring them - 3/15/12 sah
 
-    # i kinda cleared that mess, still needs work - 26 April 2012
+    # i kind of cleared that mess, still needs work - 26 April 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -47,7 +47,7 @@ class Activity12345 extends AppController
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"
-        title     : if mainController.isUserLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
+        title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
     unless account instanceof bongo.api.JGuest
@@ -88,8 +88,9 @@ class Activity12345 extends AppController
     @createFollowedAndPublicTabs()
 
     # INITIAL HEIGHT SET FOR SPLIT
-    @utils.nextTick 1000, =>
-      @getSingleton('windowController').notifyWindowResizeListeners()
+    @utils.wait 1000, =>
+      # activitySplitView._windowDidResize()
+      mainView.notifyResizeListeners()
 
     loadIfMoreItemsIsNecessary = =>
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
@@ -126,12 +127,9 @@ class Activity12345 extends AppController
 
     allTab.addSubView activityListScrollView = activityListController.getView()
     
-    @listenTo 
-      KDEventTypes       : "resize"
-      listenedToInstance : @activitySplitView
-      callback           : (pubInst,event)=>
-        newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
-        activityListController.scrollView.setHeight newHeight
+    @activitySplitView.on "ViewResized", =>
+      newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
+      activityListController.scrollView.setHeight newHeight
     
     controller = @
     
@@ -151,8 +149,8 @@ class Activity12345 extends AppController
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
     $.ajax KD.apiUri+'/1.0'
-      data      :
-        data    : JSON.stringify(options)
+      data      : 
+        data    : JSON.stringify(_.extend options, selector)
         env     : KD.env
       dataType  : 'jsonp'
       success   : (data)->
@@ -193,7 +191,7 @@ class Activity12345 extends AppController
     selector =
       type        : 
         $in       : @currentFilter
-
+    
     options  =
       limit       : limit or= 20
       skip        : skip  or= @activityListController.getItemCount()
@@ -221,7 +219,8 @@ class Activity12345 extends AppController
     @currentFilter = if show? then [show] else [
       'CStatusActivity'
       'CCodeSnipActivity'
-      'CFollowerBucket'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
     ]
     @loadSomeTeasers -> 
       controller.isLoading = no

@@ -47,6 +47,8 @@ KD = @KD or {}
   
   isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
   
+  isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
+  
   setAuthKey:->
 
   requireLogin:(errMsg, callback)->
@@ -70,8 +72,8 @@ KD = @KD or {}
     @appPartials = partials
 
   subscribe : (subscription)->
-    unless subscription.KDEventType.toLowerCase() is "resize"
-      @subscriptions.push subscription
+    # unless subscription.KDEventType.toLowerCase() is "resize"
+    @subscriptions.push subscription
 
 # FIXME: very wasteful way to remove subscriptions, vs. splice ??
   removeSubscriptions : (aKDViewInstance) ->

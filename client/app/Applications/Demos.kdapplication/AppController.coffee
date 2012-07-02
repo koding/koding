@@ -111,10 +111,10 @@ class Demos12345 extends AppController
     #       title       : "remove children only"
     #       callback    : ->
     #         t.removeChildNodes form.inputs.remove.getValue()
-    #   callback        : (formElements)->
+    #   callback        : (formData)->
     #     t.addNode
-    #       title     : formElements.title
-    #       parentId  : formElements.parentId
+    #       title     : formData.title
+    #       parentId  : formData.parentId
     #     for node in t.indexedNodes
     #       log node.id, node.parentId, node.depth
 

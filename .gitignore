@@ -10,7 +10,6 @@ v8.log
 /website/js/requiresReload.txt
 /website_nonstatic/index.html
 /.build
-/terminaljs-lite/node_modules
 /.pydevproject
 /.settings
 client/app/app/*.js

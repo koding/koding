@@ -24,8 +24,9 @@ class AceSettingsView extends KDTreeItemView
     @softWrap       = new KDSelectBox 
       selectOptions : __aceSettings.softWrapOptions
       callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
+
     @syntax         = new KDSelectBox
-      selectOptions : __aceSettings.syntaxes
+      selectOptions : __aceSettings.getSyntaxOptions()
       callback      : (value) => button.emit "ace.changeSetting", "syntax", value
     @fontSize       = new KDSelectBox
       selectOptions : __aceSettings.fontSizes

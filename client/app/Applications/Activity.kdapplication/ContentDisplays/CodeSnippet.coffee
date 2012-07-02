@@ -28,21 +28,14 @@ class ContentDisplayCodeSnippet extends KDView
       @commentBox.commentController.fetchAllComments 0, (err, comments)=>
         controller = @commentBox.commentController
         listView   = controller.getListView()
-        listView.propagateEvent KDEventType: "BackgroundActivityFinished"
-        listView.handleEvent {type: 'AllCommentsWereAdded', comments}
+        listView.emit "BackgroundActivityFinished"
+        listView.emit "AllCommentsWereAdded"
         controller.removeAllItems()
         controller.instantiateListItems comments      
 
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
     @codeSnippetView = new CodeSnippetView {},@getData().attachments[0]
-
-  displayTags:(tags=[])->
-    if tags.length
-      'in ' + tags.map(
-        (tag)-> "<span class='tag'>#{tag}</span>"
-      ).join ''
-    else ''
 
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeSnipActivity
@@ -64,7 +57,7 @@ class ContentDisplayCodeSnippet extends KDView
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>

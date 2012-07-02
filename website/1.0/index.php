@@ -1,6 +1,7 @@
 <?php 
 
 require_once 'routes.php';
+require_once 'helpers.php';
 
 // $params = explode('/', preg_replace('/^\/\d+\.\d+\//', '', $_SERVER['REDIRECT_URL']));
 // // $route = array_shift($params);
@@ -25,7 +26,7 @@ if ($query['env']=="vpn"){
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
 }
-elseif ($query['env'] == "mongohq-dev") {
+elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == 'dev-api.koding.com') {
   $dbName = "koding";
   $dbHost = "staff.mongohq.com";
   $dbPort = "10016";
@@ -77,20 +78,28 @@ function respondWith($res){
 function getFeed($collection,$limit,$sort,$skip){
     global $mongo,$dbName,$query;
 
-    $type  =  $query["data"]["type_filter"];
-  
+    $type     = $query["data"]["type"];
+    $originId = isset($query["data"]["originId"]) ? new MongoId(
+      $query["data"]["originId"]
+    ) : array(
+      '$ne' => -1,
+    );
+
+    trace($type);
+
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
-    $type  = $type        ? $type : Array( '$nin' => Array('CFolloweeBucketActivity'));
+    $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
   
     switch ($collection){
         case 'cActivities':
             $cursor = $mongo->$dbName->$collection->find(
-              Array(
-                "snapshot"  => Array( '$exists'  => true ),
-                "type"      => $type
+              array(
+                "snapshot"  => array( '$exists'  => true ),
+                "type"      => $type,
+                "originId"  => $originId,
               ),
-              Array('snapshot' => true));
+              array('snapshot' => true));
 
             break;
         case 'jTags':

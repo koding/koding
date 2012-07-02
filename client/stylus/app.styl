@@ -156,13 +156,16 @@ body.loggedIn
   bg                  color,white
   z-index             1
   shadow              0 3px 4px 3px rgba(0,0,0,.15)
-  leftTransition()
+  &.transition
+    vendor            transition, width .3s linear\, left .3s linear
   &.no-shadow
     shadow            none
   &.with-finder
     left              260px
+  &.mouse-on-nav
+    left              173px!important
   &.social
-    left              160px
+    left              160px!important
   &.no-anim
     vendor            transition, none!important
 // body.loggedIn
@@ -176,7 +179,7 @@ body.loggedIn
 **  Navigation & Application Menu STYLES
 */
 
-.navigation-menu
+.kdlistview-navigation
   margin                0 0 25px 0
   overflow              visible
 
@@ -187,7 +190,7 @@ body.loggedIn
     margin              0 6px 0 0
     overflow            visible
 
-  &.kdlistview-acc-navigation
+  &.account
     margin                16px 0 15px 0
     .kdlistitemview.navigation-item
       min-width         135px
@@ -716,12 +719,11 @@ span.main-nav-icon
       &:hover
         span.icon
           bg(position,-160px -540px)
-    .avatar-separator
-      text-align            center
+
+    hr
       margin                0 11px
       border-top            1px solid rgba(44,41,36,.5)
       border-bottom         1px solid rgba(255,255,255,.07)
-      line-height           11px
       size                  auto,auto
 
 
@@ -968,7 +970,6 @@ span.main-nav-icon
       rounded     2px
       bg          color,linkColor1
       color       white
-
-
-
-
+      
+      
+      

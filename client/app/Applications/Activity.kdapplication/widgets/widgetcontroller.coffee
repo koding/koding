@@ -59,10 +59,10 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
     
-    log data
-    
     if data.activity
-      data.activity.modify data, (err, res)=>
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
         callback? err, res
         unless err
           new KDNotificationView type : "mini", title : "Updated successfully"
@@ -79,7 +79,9 @@ class ActivityUpdateWidgetController extends KDViewController
   codeSnippetWidgetSubmit:(data, callback)->
     
     if data.activity
-      data.activity.modify data, (err, res)=>
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
         callback? err, res
         unless err
           new KDNotificationView type : "mini", title : "Updated successfully"

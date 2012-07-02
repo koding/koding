@@ -105,13 +105,13 @@ class AppController extends KDViewController
   _removeOpenDocument:(document)->
     @openDocuments.splice (@openDocuments.indexOf document), 1
 
-  _createNewDocument:()->
-    document = new PreviewerView()
-    document.registerListener KDEventTypes:"viewIsReady", callback:@_loadDocumentView, listener:@
-    document.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@_closeDocument
-    @_addOpenDocument document
-    document
-  
+  # _createNewDocument:()->
+  #   document = new PreviewerView()
+  #   document.registerListener KDEventTypes:"viewIsReady", callback:@_loadDocumentView, listener:@
+  #   document.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@_closeDocument
+  #   @_addOpenDocument document
+  #   document
+  # 
   _closeDocument:(document)->
     document.parent.removeSubView document
     @_removeOpenDocument document

@@ -6,12 +6,9 @@ class JContextMenu extends KDView
     @windowController = @getSingleton "windowController"
     @windowController.addLayer @
 
-    @listenTo
-      KDEventTypes        : 'ReceivedClickElsewhere'
-      listenedToInstance  : @
-      callback            : (pubInst,event)=>
-        @windowController.removeLayer @
-        @destroy()
+    @on 'ReceivedClickElsewhere', =>
+      @windowController.removeLayer @
+      @destroy()
 
     if data
       @treeController = new JContextMenuTreeViewController 
