@@ -10,8 +10,6 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
     
-    # log Object.keys(KodingAppsController.apps).length, ">>>>>"
-    # 
     if Object.keys(KodingAppsController.apps).length is 0
 
       path = "/Users/#{KD.whoami().profile.nickname}/Applications"
