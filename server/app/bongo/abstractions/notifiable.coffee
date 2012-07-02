@@ -1,5 +1,8 @@
 class Notifiable
   
+  hat = require 'hat'
+  
+  getPrivateChannelName:-> "private-notifiable-#{@constructor.name}-#{hat()}"
+  
   fetchPrivateChannel:(callback)->
-    console.log 'sdfghjkl'
-    callback {foo:42}
+    bongo.fetchChannel @getPrivateChannelName(), callback

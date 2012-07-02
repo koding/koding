@@ -1,10 +1,10 @@
 class Notifying
   
+  {ObjectRef} = bongo
+  
   notify:(receiver, event, contents)->
-    console.log receiver
-    receiver?.fetchPrivateChannel? (err, channel)=>
-      unless err
-        channel.trigger 'notification', event, contents
+    receiver?.fetchPrivateChannel? (channel)=>
+      channel.emit 'notification', {event, contents}
   
   notifyOriginWhen:(events...)->
     @fetchOrigin (err, origin)=>
