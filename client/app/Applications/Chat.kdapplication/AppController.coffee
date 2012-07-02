@@ -1,7 +1,4 @@
 
-
-
-
 class Chatter extends KDEventEmitter
   {mq} = bongo
   
@@ -10,7 +7,11 @@ class Chatter extends KDEventEmitter
     @username = @account?.profile?.nickname ? "guest"
     @type = "chat"
     @messages = []
+    @participants = {}
+    @state = {}
+    @master = null
     super
+
   joinRoom:(options,callback)->
     
     {name} = options
@@ -22,21 +23,53 @@ class Chatter extends KDEventEmitter
       console.log @username+" joined this channel: #{@name}"
 
       @room = channel      
-      @emit "ready",isNew
-      @attachListeners(isNew)
-      @send data:"join"
+      @emit "ready"
+      @attachListeners()
+      @send event:"join"
       
-  attachListeners:(isNew)->
+      setTimeout =>
+        {master,nrOfParticipants} = @getRoomInfo()
+        if nrOfParticipants is 0
+          log "seems like nobody is in this room. You're now the master host.",@participants
+          @isMaster = yes
+        else
+          log "There are #{nrOfParticipants} people in this room.",@participants
+          @send event:"getScreen",recipient:master
+      ,1000
+  
+  getRoomInfo:->
+    i=0
+    for username,participant of @participants
+      master = username if participant.isMaster is yes
+      i++
+    @master = master
+    return master:master,nrOfParticipants:i
+      
+  attachListeners:()->  
     @room.on 'client-#{@type}-msg',(messages)=>
       for msgObj in messages
-        @emit msgObj.event,msgObj
+        {event,recipient} = msgObj
+        if recipient
+          @emit "#{event}-#{recipient}",msgObj
+        else
+          @emit event,msgObj    
+
       
-  sendThrottled : _.throttle ()->
-    @room.emit 'client-#{@type}-msg',@messages
-    @messages = []
-  ,150
+    
+  sendThrottled : ->
+    if @room
+      @room.emit 'client-#{@type}-msg',@messages
+      @messages = []
+      clearInterval @state.joiningIsInProgress if @state.joiningIsInProgress
+    else
+      unless @state.joiningIsInProgress
+        log "@room is not ready yet, will keep on trying every sec."
+        @state.joiningIsInProgress = setInterval (->@sendThrottled()),1000
+  
+  
   
   send : (options,callback) ->
+    # console.log "finally sending:",options
     options.date = Date.now()
     options.sender = @username
     options.event ?= "msg"
@@ -55,30 +88,57 @@ class SharedDoc extends Chatter
     @dmp = new diff_match_patch()
     
   attachListeners:(isNew)->
-    super isNew
+    super 
     #console.log "attachlisteners cagirdik"
     @on "ready",(isNew)=>
       #@isMaster = yes if isNew
 
-    @on "msg",({msg,sender,date})=>
+    @on "patch",({patch,sender,date})=>
       # if sender isnt @username  
-      # console.log "sharedDoc geldi",arguments 
-      @currentScreen = (@dmp.patch_apply msg,@lastScreen)[0]
+      console.log "sharedDoc on.msg geldi",arguments 
+      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
       @lastScreen = @currentScreen
       @emit "patchApplied",@currentScreen
+
     @on "join",({sender,date})=>
       console.log "#{sender} geldi hosgeldi",arguments
+      if @isMaster
+        @send event:"ping",screen:@lastScreen,isMaster:@isMaster
+      else
+        @send event:"ping"
+
+    @on "ping",({sender,screen,isMaster})=>
+      log "#{sender} said 'hi'.",arguments,@master
+      @participants[sender] = status:"online",lastPing:Date.now(),isMaster:isMaster
+      # if screen and sender is @master
+      if screen
+        @lastScreen = screen
+        @emit "screen",screen
+    
+    @on "getScreen-#{@username}",({sender})=>
+      log "#{sender} wanted to get the latest screen from me. sending.."
+      @send event:"screen",screen:@lastScreen,recipient:sender
+    
+    @on "screen-#{@username}",({screen,sender})->
+      log "i got screen from #{sender}"
+      @lastScreen = screen
+      @emit "screen",screen
         
       
   join :(options,callback)->    
     @joinRoom options,(err,res)->
   
-  send : ({newScreen},callback)->
-    console.log 'zz',arguments
-    patch = @dmp.patch_make @lastScreen, newScreen   
-    @lastScreen = newScreen
-    # console.log newScreen,patch
-    super msg:patch   
+  send : (options,callback)->
+    # console.log 'zz',arguments
+    {newScreen,event} = options
+    if newScreen
+      patch = @dmp.patch_make @lastScreen, newScreen      
+      @lastScreen = newScreen
+      super event:"patch",patch:patch
+    else
+      # log "sending",options
+      super options
+
       
 
 
@@ -119,14 +179,18 @@ class Chat12345 extends AppController
     @sharedDoc.on "patchApplied",(newScreen)=>
       view.input.setValue newScreen
     
+    @sharedDoc.on "screen",(newScreen)=>
+      view.input.setValue newScreen
 
     
   loadView:(view)->
 
     view.on 'newScreen',(scr)=>
+      # console.log 'newScreen',scr
       @sharedDoc.send {newScreen:scr}
     
     view.on 'userWantsToJoin',=>
+      console.log 'user joined'
       @sharedDoc.join {name:"myDoc"}
     
   bringToFront:()->
