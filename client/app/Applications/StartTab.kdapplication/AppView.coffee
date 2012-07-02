@@ -19,9 +19,8 @@ class StartTabMainView extends KDView
       partial : "fetching apps..."
     
     kodingAppsController = @getSingleton("kodingAppsController")
-
-    kodingAppsController.fetchApps (apps)=>
-
+    
+    kallback = (apps)=>
       temp.destroy()
       for app, manifest of apps
         do (app, manifest)=>
@@ -36,10 +35,28 @@ class StartTabMainView extends KDView
                   hiddenHandle : no
                   type         : "application"
                 , (appView = new KDView)
-                
+            
                 eval appScript
-                
+            
                 return appView
+    
+    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
+      
+      if err then warn err
+      else
+        if apps = storage.getAt "bucket.apps"
+          kallback apps
+        else
+          kodingAppsController.fetchApps (apps)=>
+            kallback apps
+            storage.update {
+              $set: { "bucket.apps" : apps }
+            }, => log arguments,"storage updated"
+
+
+
+
+
 
                 # appInstance = Function(appScript)
                 # do (appView)=> appInstance.call null, appView
