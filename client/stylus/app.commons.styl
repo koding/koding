@@ -304,6 +304,47 @@ button.editor-button
   display             inline-block
   font-size           11px
 
+.modal-topic-list
+  max-height    300px
+  min-height    300px
+
+  .topic-item
+    max-height      40px
+    border-bottom   1px solid #EEE
+    .topictext
+      padding   10px
+      .topicmeta
+        .ttag
+          > a
+            noTextDeco()
+            color   white!important
+          fl()
+
+        .stats
+          p
+            > a
+              noTextDeco()
+            fl()
+            span.icon
+              margin        2px 4px 0 0px
+              size          20px,20px
+              sprite()
+              bg            position,-141px -444px
+              size(18px,14px)
+              fl()
+            margin-right    8px
+
+          p.posts
+            span.icon
+              bg            position, 0 -634px
+
+          fr()
+
+        .button-container
+          margin-top       -6px
+          margin-bottom     4px
+          fr()
+
 .small-text
   font-size       80%
 

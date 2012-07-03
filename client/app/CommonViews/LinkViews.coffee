@@ -11,7 +11,7 @@ class KDAccount extends bongo.EventEmitter
 
   constructor:(data)->
     $.extend @, data if data
-    
+
 class LinkView extends KDCustomHTMLView
   constructor:(options, data)->
     options = $.extend
@@ -60,7 +60,7 @@ class TagLinkView extends LinkView
 
   pistachio:->
     super "{{#(title)}}"
-  
+
   click:->
     tag = @getData()
     appManager.tell "Topics", "createContentDisplay", tag
@@ -78,23 +78,24 @@ class LinkGroup extends KDCustomHTMLView
 
     super options, data
 
-    if @getData()?
+    if data?
       @createParticipantSubviews()
     else if options.group
       @loadFromOrigins options.group
-  
+
   loadFromOrigins:(group)->
 
+    # -3 means last three pieces?
     three = group.slice(-3)
     bongo.cacheable three, (err, bucketContents)=>
       @setData bucketContents
       @createParticipantSubviews()
       @render()
-  
+
   itemClass:(options, data)->
 
     new (@getOptions().subItemClass) options, data
-  
+
   createParticipantSubviews:->
 
     participants = @getData()
@@ -102,42 +103,54 @@ class LinkGroup extends KDCustomHTMLView
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()
     @template.update()
-  
+
   pistachio:->
 
     participants = @getData()
-    {hasMore, totalCount} = @getOptions()
-    tmpl = switch participants.length
-      when 1 then "{{> @participant0}}"
-      when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3
-        sep = if @participant0.getData() instanceof bongo.api.JAccount then ', ' else ' '
-        "{{> @participant0}}#{sep}{{> @participant1}}#{if hasMore then sep else ' and'} {{> @participant2}}"
-    tmpl += " and <a href='#' class='more'>#{totalCount-3} more</a>" if hasMore
-    return tmpl
-
-class ActivityChildViewTagGroup extends LinkGroup
-
-  render:->
-
-    @createParticipantSubviews()
-  
-  pistachio:->
-
-    participants = @getData()
-    {hasMore, totalCount} = @getOptions()
+    {hasMore, totalCount, group} = @getOptions()
 
     @more = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "more"
-      partial     : "#{participants.length-3} more"
+      partial     : "#{totalCount-3} more"
       attributes  :
         href      : "#"
         title     : "Click to view..."
-      click       : ->
-        new FollowedModalView {}, participants
+      click       : =>
+        new FollowedModalView {group}, @getData()
 
-    switch participants.length
+    sep = ' '
+    if @participant0 instanceof bongo.api.JAccount
+      sep = ', '
+    switch totalCount
+      when 0 then ""
+      when 1 then "{{> @participant0}}"
+      when 2 then "{{> @participant0}} and {{> @participant1}}"
+      when 3 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}}"
+      else "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @more}}"
+
+  render:->
+
+    @createParticipantSubviews()
+
+class ActivityChildViewTagGroup extends LinkGroup
+
+  pistachio:->
+
+    participants = @getData()
+    {hasMore, totalCount, group} = @getOptions()
+
+    @more = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "more"
+      partial     : "#{totalCount-3} more"
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : =>
+        new FollowedModalView {group}, @getData()
+
+    switch totalCount
       when 0 then ""
       when 1 then "in {{> @participant0}}"
       when 2 then "in {{> @participant0}}{{> @participant1}}"
@@ -145,52 +158,60 @@ class ActivityChildViewTagGroup extends LinkGroup
       when 4 then "in {{> @participant0}}{{> @participant1}}{{> @participant2}}{{> @participant3}}"
       else "in {{> @participant0}}{{> @participant1}}{{> @participant2}}and {{> @more}}"
 
-      
 class FollowedModalView extends KDModalView
-  
+
   titleMap = ->
-    account : "Followed members:"
-    tag     : "Followed tags:"
-  
+    account : "Followed members"
+    tag     : "Followed topics"
+
   listControllerMap = ->
     account : MembersListViewController
     tag     : KDListViewController
-  
+
   listItemMap = ->
     account : MembersListItemView
-    tag     : TopicsListItemView
-  
+    tag     : ModalTopicsListItem
+
   constructor:(options = {}, data)->
-    
+
     participants = data
 
     if participants[0] instanceof bongo.api.JAccount
       @type = "account"
     else if participants[0] instanceof bongo.api.JTag
       @type = "tag"
-    
-    options.title  = titleMap()[@type]
-    options.height = "auto"
+
+    options.title   = titleMap()[@type]
+    options.height  = "auto"
+    options.overlay = yes
 
     super
-    
-  # viewAppended:->
-  # 
-  #   @putList()
+
+  viewAppended:->
+    @putList()
 
   putList:->
 
-    participants = @getData()
-    
-    # controller = new listControllerMap()[@type]
-    # subclass of KDListViewController throws an error !!!
-    controller = new KDListViewController
-      view            : new KDListView
-        subItemClass  : listItemMap()[@type]
-    ,
-      items           : participants
-    
-    @addSubView controller.getView(), ".kdmodal-content"
+    {group} = @getOptions()
+    if group
+      bongo.cacheable group, (err, participants)=>
+        controller = new KDListViewController
+          view            : new KDListView
+            subItemClass  : listItemMap()[@type]
+            cssClass      : "modal-topic-list"
+        ,
+          items           : participants
+
+        @addSubView controller.getView(), ".kdmodal-content"
+    else
+      controller = new KDListViewController
+          view            : new KDListView
+            subItemClass  : listItemMap()[@type]
+            cssClass      : "modal-topic-list"
+        ,
+          items           : @getData()
+
+        @addSubView controller.getView(), ".kdmodal-content"
 
 class AvatarView extends LinkView
   constructor:(options,data)->
