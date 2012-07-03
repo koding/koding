@@ -3,14 +3,9 @@ log    = log4js.getLogger('[SharedHostingApi]')
 fs     = require 'fs'
 {exec} = require 'child_process'
 path   = require 'path'
+config = require('./config').FileSharing
 
-
-config = 
-  baseSharedDir : '/Shared'
-  baseDir : '/Users'
-  setfacl : '/usr/bin/setfacl'
-
-class fileSharing
+class FileSharing
 
   execFacl : (username, sharedDir) ->
     setfacl   = "#{config.setfacl} -m d:u:#{username}:rwx #{sharedDir} && #{config.setfacl} -m u:#{username}:rwx #{sharedDir}"
@@ -82,8 +77,9 @@ class fileSharing
            callback null
 
 
-share = new fileSharing
-module.exports = share
+fileSharing = new FileSharing
+module.exports = fileSharing
+
 
 #share.createSharedDir 'alekseymykhailov',(err)->
 #  if err?
