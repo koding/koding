@@ -181,37 +181,36 @@ class FollowedModalView extends KDModalView
     else if participants[0] instanceof bongo.api.JTag
       @type = "tag"
 
-    options.title   = titleMap()[@type]
-    options.height  = "auto"
-    options.overlay = yes
+    options.title    = titleMap()[@type]
+    options.height   = "auto"
+    options.overlay  = yes
+    options.cssClass = "modal-topic-wrapper"
 
     super
 
   viewAppended:->
-    @putList()
+    @prepareList()
 
-  putList:->
+  putList: (participants) ->
+    controller = new KDListViewController
+      view            : new KDListView
+        subItemClass  : listItemMap()[@type]
+        cssClass      : "modal-topic-list"
+    ,
+      items           : participants
+
+    @addSubView controller.getView(), ".kdmodal-content"
+
+  prepareList:->
 
     {group} = @getOptions()
+
     if group
       bongo.cacheable group, (err, participants)=>
-        controller = new KDListViewController
-          view            : new KDListView
-            subItemClass  : listItemMap()[@type]
-            cssClass      : "modal-topic-list"
-        ,
-          items           : participants
-
-        @addSubView controller.getView(), ".kdmodal-content"
+        if err then warn err
+        else @putList participants
     else
-      controller = new KDListViewController
-          view            : new KDListView
-            subItemClass  : listItemMap()[@type]
-            cssClass      : "modal-topic-list"
-        ,
-          items           : @getData()
-
-        @addSubView controller.getView(), ".kdmodal-content"
+      @putList @getData()
 
 class AvatarView extends LinkView
   constructor:(options,data)->
