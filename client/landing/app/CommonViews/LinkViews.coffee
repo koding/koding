@@ -185,6 +185,11 @@ class FollowedModalView extends KDModalView
     options.height   = "auto"
     options.overlay  = yes
     options.cssClass = "modal-topic-wrapper"
+    options.buttons  =
+      Close :
+        style : "modal-clean-gray"
+        callback : =>
+          @destroy()
 
     super
 
@@ -198,6 +203,9 @@ class FollowedModalView extends KDModalView
         cssClass      : "modal-topic-list"
     ,
       items           : participants
+
+    controller.getListView().on "closeTopicsModal", =>
+      @destroy()
 
     @addSubView controller.getView(), ".kdmodal-content"
 
