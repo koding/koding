@@ -115,7 +115,7 @@ class cloudlinux::cagefs_configs {
     file { "/etc/cagefs/cagefs.mp":
            source => "puppet:///modules/cloudlinux/etc/cagefs/cagefs.mp",
            notify => Class["cloudlinux::cagefs_remount_all"],
-           require => [Exec['cagefs_init'],Class[authconfig::service]] # remount cagefs only when sssd installed and running
+           require => [Exec['cagefs_init'],Class[authconfig::service],Class[cloudlinux::shared_dir]] # remount cagefs only when sssd installed and running
     }
 
 }
