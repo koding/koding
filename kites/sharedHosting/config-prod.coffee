@@ -35,3 +35,7 @@ module.exports =
     userDN   : 'ou=Beta,ou=People,dc=koding,dc=com'
     freeUID  : 'uid=betaUsersIDs,dc=koding,dc=com' # special record for next free uid, increments each time when create new user
     freeGroup: 'cn=freeusers,ou=Groups,dc=koding,dc=com'
+  FileSharing:
+    baseSharedDir : '/Shared'
+    baseDir : '/Users'
+    setfacl : '/usr/bin/setfacl'
