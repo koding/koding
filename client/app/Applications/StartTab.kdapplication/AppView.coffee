@@ -1,61 +1,91 @@
 class StartTabMainView extends KDView
+
   constructor:(options, data)->
-    options = $.extend
-      cssClass      : 'start-tab'
-    , options
-    super options, data
+
+    options.cssClass or= 'start-tab'
+
+    super
+
+    @appIcons = {}
     @listenWindowResize()
     
   viewAppended:()->
+
     # @addApps()
+    @addSubView @loader = new KDLoaderView
+      size          :
+        width       : 640
+        height      : 640
+      loaderOptions :
+        diameter    : 640
+        # speed       : 1
+        density     : 70
+        color       : "#ff9200"
+
+    @addSubView @button = new KDButtonView
+      title    : "refresh apps"
+      callback : =>
+        @button.hide()
+        @loader.show()
+        @removeAppIcons()
+        @fetchApps @putAppIcons
+    
+    @button.hide()
+
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
   
+  fetchApps:(callback)->
+
+    @getSingleton("kodingAppsController").fetchApps (apps)=>
+      callback apps
+      storage.update {
+        $set: { "bucket.apps" : apps }
+      }, => log arguments,"kodingAppsController storage updated"
+
   addRealApps:->
     
-    @addSubView temp = new KDCustomHTMLView
-      tagName : "span"
-      partial : "fetching apps..."
-    
-    kodingAppsController = @getSingleton("kodingAppsController")
+    @loader.show()
     
     kallback = (apps)=>
-      temp.destroy()
-      for app, manifest of apps
-        do (app, manifest)=>
-          @addSubView new KDCustomHTMLView
-            tagName : "p"
-            partial : "#{manifest.name} v#{manifest.version}"
-            click   : => 
-              kodingAppsController.getApp manifest.name, (appScript)=>
-                mainView = @getSingleton('mainView')
-                mainView.mainTabView.showPaneByView
-                  name         : manifest.name
-                  hiddenHandle : no
-                  type         : "application"
-                , (appView = new KDView)
-            
-                eval appScript
-            
-                return appView
+      @loader.hide()
+      @putAppIcons apps
     
     appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-      
       if err then warn err
       else
         if apps = storage.getAt "bucket.apps"
           kallback apps
         else
-          kodingAppsController.fetchApps (apps)=>
-            kallback apps
-            storage.update {
-              $set: { "bucket.apps" : apps }
-            }, => log arguments,"storage updated"
+          @fetchApps kallback
+  
+  removeAppIcons:->
+    
+    view.destroy() for app, view of @appIcons
+    @appIcons = {}
 
+  putAppIcons:(apps)->
 
+    @button.show()
+    for app, manifest of apps
+      do (app, manifest)=>
+        @addSubView @appIcons[manifest.name] = new KDCustomHTMLView
+          tagName : "p"
+          partial : "#{manifest.name} v#{manifest.version}"
+          click   : => @runApp app
 
+  runApp:(manifest)->
 
+    @getSingleton("kodingAppsController").getApp manifest.name, (appScript)=>
+      mainView = @getSingleton('mainView')
+      mainView.mainTabView.showPaneByView
+        name         : manifest.name
+        hiddenHandle : no
+        type         : "application"
+      , (appView = new KDView)
+      eval appScript
+      return appView
 
 
                 # appInstance = Function(appScript)

@@ -92,13 +92,6 @@ class KodingAppsController extends KDController
   defineApp:(app, script)->
     
     KDApps[app.name] = script
-
-    # KDApps[app.name] = 
-    #   """
-    #   (function(appView) {
-    #   #{script}
-    #   }).call(appView);
-    #   """
   
   getApp:(name, callback)->
     kallback = =>
