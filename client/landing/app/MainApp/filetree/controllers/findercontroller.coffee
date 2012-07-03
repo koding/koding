@@ -49,31 +49,31 @@ class NFinderController extends KDViewController
 
       @treeController.initTree [mount]
       
-      @fetchStorage (storage)=>
-        
-        recentFolders = if storage.bucket?.recentFolders?
-          storage.bucket.recentFolders
-        else 
-          [
-            "/Users/#{nickname}"
-            "/Users/#{nickname}/Sites"
-            "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com"
-            "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com/website"
-          ]
-      
-        @utils.wait 2000, =>
+      # @fetchStorage (storage)=>
+      #   
+      #   recentFolders = if storage.bucket?.recentFolders?
+      #     storage.bucket.recentFolders
+      #   else 
+      recentFolders = [
+        "/Users/#{nickname}"
+        "/Users/#{nickname}/Sites"
+        "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com"
+        "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com/website"
+      ]
+    
+      @utils.wait 2000, =>
 
-          a = Date.now()
-          mount.emit "fs.fetchContents.started"
-          KD.getSingleton('kiteController').run
-            withArgs  :
-              command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
-          , (err, response)=>
-            if response
-              files = FSHelper.parseLsOutput recentFolders, response
-              @treeController.addNodes files
-            log "#{(Date.now()-a)/1000}sec"
-            mount.emit "fs.fetchContents.finished"
+        a = Date.now()
+        mount.emit "fs.fetchContents.started"
+        KD.getSingleton('kiteController').run
+          withArgs  :
+            command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
+        , (err, response)=>
+          if response
+            files = FSHelper.parseLsOutput recentFolders, response
+            @treeController.addNodes files
+          log "#{(Date.now()-a)/1000}sec"
+          mount.emit "fs.fetchContents.finished"
       
     else
       mount         = FSHelper.createFile 
