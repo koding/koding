@@ -169,3 +169,25 @@ class TopicsListItemView extends KDListItemView
   _addLocationsList: ->
     @locationList = new TopicsLocationView {}, @getData().locations 
     @addSubView @locationList, '.personal'
+
+class ModalTopicsListItem extends TopicsListItemView
+
+  pistachio:->
+    """
+    <div class="topictext">
+      <div class="topicmeta">
+        <div class="button-container"></div>
+        {span.ttag{> @titleLink}}
+        <div class="stats">
+          <p class="posts">
+            <span class="icon"></span>
+            <a href="#">{{#(counts.tagged) or 0}}</a> Posts
+          </p>
+          <p class="fers">
+            <span class="icon"></span>
+            <a href="#">{{#(counts.followers) or 0}}</a> Followers
+          </p>
+        </div>
+      </div>
+    </div>
+    """
