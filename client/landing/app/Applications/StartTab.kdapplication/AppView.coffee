@@ -14,10 +14,10 @@ class StartTabMainView extends KDView
     # @addApps()
     @addSubView @loader = new KDLoaderView
       size          :
-        width       : 640
-        height      : 640
+        width       : 128
+        height      : 128
       loaderOptions :
-        diameter    : 640
+        diameter    : 128
         # speed       : 1
         density     : 70
         color       : "#ff9200"
@@ -40,9 +40,10 @@ class StartTabMainView extends KDView
 
     @getSingleton("kodingAppsController").fetchApps (apps)=>
       callback apps
-      storage.update {
-        $set: { "bucket.apps" : apps }
-      }, => log arguments,"kodingAppsController storage updated"
+      appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
+        storage.update {
+          $set: { "bucket.apps" : apps }
+        }, => log arguments,"kodingAppsController storage updated"
 
   addRealApps:->
     
@@ -58,7 +59,7 @@ class StartTabMainView extends KDView
         if apps = storage.getAt "bucket.apps"
           kallback apps
         else
-          @fetchApps kallback
+          @fetchApps (apps)=> kallback apps
   
   removeAppIcons:->
     
