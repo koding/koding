@@ -167,17 +167,38 @@ class TopicsListItemView extends KDListItemView
     @addSubView @skillList, '.profile-meta'
   
   _addLocationsList: ->
-    @locationList = new TopicsLocationView {}, @getData().locations 
+    @locationList = new TopicsLocationView {}, @getData().locations
     @addSubView @locationList, '.personal'
 
 class ModalTopicsListItem extends TopicsListItemView
+
+  constructor:(options,data)->
+
+    super options,data
+
+    @titleLink = new KDCustomHTMLView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+        class     : 'ttag'
+      pistachio   : '{{#(title)}}'
+    , data
+
+    @titleLink.registerListener
+      KDEventTypes  : 'click'
+      listener      : @
+      callback      : (pubInst, event)=>
+        tag = @getData()
+        appManager.tell "Topics", "createContentDisplay", tag
+        event.stopPropagation()
+        no
 
   pistachio:->
     """
     <div class="topictext">
       <div class="topicmeta">
         <div class="button-container"></div>
-        {span.ttag{> @titleLink}}
+        {{> @titleLink}}
         <div class="stats">
           <p class="posts">
             <span class="icon"></span>
