@@ -176,22 +176,13 @@ class ModalTopicsListItem extends TopicsListItemView
 
     super options,data
 
-    @titleLink = new KDCustomHTMLView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-        class     : 'ttag'
-      pistachio   : '{{#(title)}}'
-    , data
+    @titleLink = new TagLinkView null, data
 
     @titleLink.registerListener
       KDEventTypes  : 'click'
       listener      : @
       callback      : (pubInst, event)=>
-        tag = @getData()
-        appManager.tell "Topics", "createContentDisplay", tag
-        event.stopPropagation()
-        no
+        @getDelegate().emit "closeTopicsModal"
 
   pistachio:->
     """
