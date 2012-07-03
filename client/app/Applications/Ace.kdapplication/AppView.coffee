@@ -41,7 +41,6 @@ class AceView extends JView
       click         : (pubInst, event)-> @contextMenu event
       menu          : [@getAdvancedSettingsMenuItems()]
 
-      
     publicUrlCheck = /.*\/(.*\.beta.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
       style     : "clean-gray editor-button"
@@ -89,15 +88,15 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
-        {{> @previewButton}}
         {{> @saveButton}}
+        {{> @previewButton}}
+        {{> @advancedSettings}}
       </div>
     </div>
     <div class="kdview editor-main">
       {{> @ace}}
       <div class="editor-bottom-bar clearfix">
         {{> @caretPosition}}
-        {{> @advancedSettings}}
       </div>
     </div>
     """

@@ -79,7 +79,7 @@ module.exports =(options, callback)->
           cmd = exec "chown #{username} #{tmpFile};su -l #{username} -c 'sh #{tmpFile}'",(err,stdout,stderr)->
             if err?
               log.error "[ERROR] can't execute command \"#{command}\" for user #{username}: #{stderr}"
-              callback? stderr
+              callback? stderr,stdout
             else
               log.info "[OK] command \"#{command}\" executed for user #{username}"
               callback? null,stdout
