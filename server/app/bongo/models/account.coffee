@@ -6,7 +6,8 @@ class JAccount extends Followable
   @::mixin Taggable::
   @::mixin Notifiable::
 
-  {secure,race} = bongo
+  {ObjectId,secure,race} = bongo
+  {Relationship} = jraphical
   @share()
   Experience = 
     company           : String
@@ -30,7 +31,7 @@ class JAccount extends Followable
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance'
+        'byRelevance','chris'
       ]
       instance    : [
         'on','update','follow','unfollow','fetchFollowersWithRelationship'
@@ -105,7 +106,7 @@ class JAccount extends Followable
       #   targetType  : JAccount
       
       activity      :
-        as          : ['author','commenter','repliesActivity']
+        as          : 'activity'
         targetType  : CActivity
       
       privateMessage:
@@ -131,6 +132,17 @@ class JAccount extends Followable
   #       kiteId    : '*'
   #       toDo      : '_disconnect'
   #     , ->
+  
+  @chris =->
+    q = {"as":"activity","targetName":{"$in":["CRepliesActivity","CNewMemberBucketActivity","CFolloweeBucketActivity","CFollowerBucketActivity","CReplierBucketActivity","CReplieeBucketActivity","CLikerBucketActivity","CLikeeBucketActivity","CCommentActivity","CStatusActivity","CCodeSnipActivity","CQuestionActivity"]},"sourceName":"JAccount","sourceId":ObjectId("4eea4fd93e25516404000004")}
+    f = {"targetId":1,"data.flags":1,"targetName":1}
+    o = {}
+    Relationship.getCollection().find q, f, o, ->
+      [_, cursor] = arguments
+      cursor.toArray console.log.bind console, 'getCollection().find()'
+    Relationship.someData q, f, o, ->
+      [_, cursor] = arguments
+      cursor.toArray console.log.bind console, 'someData()'
   
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
@@ -259,6 +271,8 @@ class JAccount extends Followable
                 )
                 if response?.error then callback new KodingError response.error
                 else callback null, __channelId: secretChannelId
+  
+  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
   
   tellKiteInternal : (account,options,callback)->
     {kiteId,kiteName,toDo,withArgs} = options
@@ -411,33 +425,35 @@ class JAccount extends Followable
     unless @equals connection.delegate
       callback new Error 'Access denied.'
     else
-      @fetchActivities selector, options, @constructor.collectTeasersAllCallback (err, items)->
-        if err
-          callback err
-        else
-          items = for item in items
-            uniqueSourceOrigins = {}
-            for relationship in item \
-              when not uniqueSourceOrigins[targetOriginId = relationship.target.originId]? and
-                   not targetOriginId.equals connection.delegate.getId()
-              uniqueSourceOrigins[targetOriginId] = yes
-              sourceOriginId = relationship.source.originId
-              sourceOriginName = relationship.source.originType
-              targetOriginName = relationship.target.originType
-              {sourceId, targetId, sourceName, targetName, as, timestamp} = relationship
-              {
-                sourceOriginName
-                sourceOriginId
-                targetOriginName
-                targetOriginId
-                sourceName
-                sourceId
-                targetName
-                targetId
-                as
-                timestamp
-              }
-          callback null, items.filter (item)-> item.length > 0
+      debugger
+      @fetchActivities selector, options, ->#@constructor.collectTeasersAllCallback (err, items)->
+        console.log 'grrr', arguments
+        # if err
+        #   callback err
+        # else
+        #   items = for item in items
+        #     uniqueSourceOrigins = {}
+        #     for relationship in item \
+        #       when not uniqueSourceOrigins[targetOriginId = relationship.target.originId]? and
+        #            not targetOriginId.equals connection.delegate.getId()
+        #       uniqueSourceOrigins[targetOriginId] = yes
+        #       sourceOriginId = relationship.source.originId
+        #       sourceOriginName = relationship.source.originType
+        #       targetOriginName = relationship.target.originType
+        #       {sourceId, targetId, sourceName, targetName, as, timestamp} = relationship
+        #       {
+        #         sourceOriginName
+        #         sourceOriginId
+        #         targetOriginName
+        #         targetOriginId
+        #         sourceName
+        #         sourceId
+        #         targetName
+        #         targetId
+        #         as
+        #         timestamp
+        #       }
+        #   callback null, items.filter (item)-> item.length > 0
 
   update: bongo.secure (client, changes, callback) ->
     if client.connection.delegate.equals @

@@ -129,7 +129,9 @@ class JPost extends jraphical.Message
   fetchOrigin: (callback)->
     originType = @getAt 'originType'
     originId   = @getAt 'originId'
-    unless Base.constructors[originType]?.one {_id: originId}, callback
+    if Base.constructors[originType]?
+      Base.constructors[originType].one {_id: originId}, callback
+    else
       callback null
   
   modify: secure (client, formData, callback)->
@@ -236,7 +238,7 @@ class JPost extends jraphical.Message
           callback err
         else
           unless likedBy
-            @addLikedBy delegate, returnCount: yes, (err, count)=>
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
@@ -256,7 +258,7 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            @addComment comment, returnCount: yes, (err, count)=>
+            @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
@@ -265,12 +267,22 @@ class JPost extends jraphical.Message
                     callback err
                   else
                     callback null, comment
-                    @emit 'ReplyIsAdded', {
-                      replier : ObjectRef(delegate).data
-                      reply   : ObjectRef(comment).data
-                    }
-                    @follow client, emitActivity: no, (err)->
-                    @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                    @fetchOrigin (err, origin)=>
+                      if err
+                        console.log "Couldn't fetch the origin"
+                      else
+                        @emit 'ReplyIsAdded', {
+                          origin
+                          subject       : ObjectRef(@).data
+                          actorType     : 'replier'
+                          actionType    : 'reply'
+                          replier 		  : ObjectRef(delegate).data
+                          reply   		  : ObjectRef(comment).data
+                          repliesCount	: count
+                          relationship  : docs[0]
+                        }
+                        @follow client, emitActivity: no, (err)->
+                        @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.

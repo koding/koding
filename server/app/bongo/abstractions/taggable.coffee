@@ -26,7 +26,7 @@ class Taggable
               =>
                 tag.addContent @, {
                   as: taggedContentRole
-                  returnCount: yes
+                  respondWithCount: yes
                 }, (err, count)=>
                   if err then callback err
                   else queue.next()

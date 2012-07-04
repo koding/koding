@@ -258,19 +258,27 @@ Includes =
         Ace                   : "./client/app/Applications/Ace.kdapplication/ace.coffee"
         AceSettingsView       : "./client/app/Applications/Ace.kdapplication/acesettingsview.coffee"
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
+
+        # chatter
+        Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
         
-        #new terminal
-        TerminalError   :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
-        TerminalClient  :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
-        AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
-        Shell12345      :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
-        Shell           :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
-        DiffScript      :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
+        # anyterm shell
+        Shell12345            :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
+        Shell                 :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
+        TerminalError         :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
+        TerminalClient        :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
+
+        # DiffScript            :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
+
+        # termlib shell
+        # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
+        # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
+
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
         
       ApplicationPageViews :
-
+        activitycontroller          : "./client/app/MainApp/activitycontroller.coffee"
         # ACTIVITY VIEWS          
         activityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -340,7 +348,6 @@ Includes =
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
         inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
         inboxInnerNavigation          : "./client/app/Applications/Inbox.kdapplication/Views/InboxInnerNavigation.coffee"
-        inboxMessageDetail            : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee"
         inboxMessagesList             : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessagesList.coffee"
         inboxMessageThreadView        : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageThreadView.coffee"
         inboxNewMessageBar            : "./client/app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee"
@@ -512,39 +519,6 @@ Includes =
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
 
-        ### VOVAS FINDER CRAP - DEPRECATE ASAP ###
-
-        # FinderController                    : "./client/app/MainApp/Finder/FinderController.coffee"
-        # Finder                              : "./client/app/MainApp/Finder/Finder.coffee"
-        # FinderItemView                      : "./client/app/MainApp/Finder/FinderItemView.coffee"
-        # FinderCalculatorItemView            : "./client/app/MainApp/Finder/FinderCalculatorItemView.coffee"
-        # FolderItemView                      : "./client/app/MainApp/Finder/FolderItemView.coffee"
-        # MountItemView                       : "./client/app/MainApp/Finder/MountItemView.coffee"
-        # FileItemView                        : "./client/app/MainApp/Finder/FileItemView.coffee"
-        # SectionTitle                        : "./client/app/MainApp/Finder/SectionTitle.coffee"
-        # FinderEditInputView                 : "./client/app/MainApp/Finder/FinderEditInputView.coffee"
-        # FinderRemoveContainer               : "./client/app/MainApp/Finder/FinderRemoveContainer.coffee"
-        # FinderContextMenu                   : "./client/app/MainApp/Finder/FinderContextMenu.coffee"
-        # FinderContextMenuTreeViewController : "./client/app/MainApp/Finder/FinderContextMenuTreeViewController.coffee"
-        # DisabledFinderContextMenuItemView   : "./client/app/MainApp/Finder/DisabledFinderContextMenuItemView.coffee"
-        # GlobalSearchInput                   : "./client/app/MainApp/Finder/GlobalSearchInput.coffee"
-        # SearchResultItemsController         : "./client/app/MainApp/Finder/SearchResultItemsController.coffee"
-        # SearchResultItemsView               : "./client/app/MainApp/Finder/SearchResultItemsView.coffee"
-        # FinderGlobalSearch                  : "./client/app/MainApp/Finder/FinderGlobalSearch.coffee"
-        # FinderSearchResultItem              : "./client/app/MainApp/Finder/FinderSearchResultItem.coffee"
-        # MountContextMenuListController      : "./client/app/MainApp/Finder/MountContextMenuListController.coffee"
-        # MountContextMenuListItemView        : "./client/app/MainApp/Finder/MountContextMenuListItemView.coffee"
-        # SetPermissionsMenuView              : "./client/app/MainApp/Finder/SetPermissionsMenuView.coffee"
-        # SetPermissionsView                  : "./client/app/MainApp/Finder/SetPermissionsView.coffee"
-        # FinderBottomControlsListItem        : "./client/app/MainApp/Finder/FinderBottomControlsListItem.coffee"
-        # FinderBottomControls                : "./client/app/MainApp/Finder/FinderBottomControls.coffee"
-        # CommonNotificationView              : "./client/app/MainApp/Finder/CommonNotificationView.coffee"
-        # FsErrorNotificationView             : "./client/app/MainApp/Finder/FsErrorNotificationView.coffee"
-        # FinderDownloadIFrame                : "./client/app/MainApp/Finder/FinderDownloadIFrame.coffee"
-
-        ### VOVAS FINDER CRAP - DEPRECATE ASAP - DONT REMOVE THIS PLACEHOLDER. ###
-
-
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
         jqueryHash        : "./client/libs/jquery-hashchange.js"
@@ -655,7 +629,7 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
-
+        termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"
         # wmd           : "./client/css/wmd.css"

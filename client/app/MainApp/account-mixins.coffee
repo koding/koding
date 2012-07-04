@@ -6,7 +6,7 @@ AccountMixin = do ->
     JGuest::fetchNonce = ->
     
     nonces = []
-    
+
     fetchNonces = (callback)->
       KD.whoami().fetchNonces (err, moreNonces)->
         if err

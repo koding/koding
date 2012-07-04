@@ -116,11 +116,10 @@ app.aceeditor.styl
     position            relative
     overflow            hidden
     top                 0
-    left                0
+    left                6px
     padding             6px 8px 4px 0
     size                auto,auto
     line-height         1
-    fr()
     button
       margin-right      5px
     fieldset
@@ -136,7 +135,13 @@ app.aceeditor.styl
         margin          0
     .save-menu
       button
+        fl()
         padding-top     4px
+
+    .kdbuttonwithmenu-wrapper.editor-advanced-settings-menu
+      border-left         1px solid #e2e2e2
+      padding-top         2px
+      fr()
   
   &.disabled-subs
     .header-buttons
