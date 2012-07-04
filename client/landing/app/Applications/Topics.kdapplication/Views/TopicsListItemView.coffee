@@ -212,12 +212,10 @@ class ModalTopicsListItem extends TopicsListItemView
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.tagged) or 0}}</a> Posts
+            <span class="icon"></span>{{#(counts.tagged) or 0}} Posts
           </p>
           <p class="fers">
-            <span class="icon"></span>
-            <a href="#">{{#(counts.followers) or 0}}</a> Followers
+            <span class="icon"></span>{{#(counts.followers) or 0}} Followers
           </p>
         </div>
       </div>
