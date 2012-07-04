@@ -1,4 +1,3 @@
-
 class KDChannel extends KDEventEmitter
   {mq} = bongo
   
