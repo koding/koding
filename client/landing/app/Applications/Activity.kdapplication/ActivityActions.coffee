@@ -52,7 +52,6 @@ class ActivityActionsView extends KDView
       KDEventTypes  : "Click"
       listener      : @
       callback      : =>
-        debugger
         if KD.isLoggedIn()
           # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
