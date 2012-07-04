@@ -182,7 +182,7 @@ class ModalTopicsListItem extends TopicsListItemView
       KDEventTypes  : 'click'
       listener      : @
       callback      : (pubInst, event)=>
-        @getDelegate().emit "closeTopicsModal"
+        @getDelegate().emit "CloseTopicsModal"
 
   pistachio:->
     """

@@ -195,6 +195,7 @@ class FollowedModalView extends KDModalView
 
   viewAppended:->
     @prepareList()
+    @setPositions()
 
   putList: (participants) ->
     controller = new KDListViewController
@@ -204,7 +205,7 @@ class FollowedModalView extends KDModalView
     ,
       items           : participants
 
-    controller.getListView().on "closeTopicsModal", =>
+    controller.getListView().on "CloseTopicsModal", =>
       @destroy()
 
     @addSubView controller.getView(), ".kdmodal-content"
@@ -219,6 +220,7 @@ class FollowedModalView extends KDModalView
         else @putList participants
     else
       @putList @getData()
+
 
 class AvatarView extends LinkView
   constructor:(options,data)->
