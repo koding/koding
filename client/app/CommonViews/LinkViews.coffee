@@ -218,6 +218,11 @@ class FollowedModalView extends KDModalView
       bongo.cacheable group, (err, participants)=>
         if err then warn err
         else @putList participants
+        ###
+          bongo.api.JTag.markFollowing participants, (err, result)=>
+            if err then warn err
+            else @putList result
+        ###
     else
       @putList @getData()
 
