@@ -10,8 +10,16 @@ class MainController extends KDController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kodingAppsController", new KodingAppsController
+    @appReady ->
+      KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
+    
+    @on 'NotificationArrived', (notification)->
+      new KDNotificationView
+        type    : 'tray'
+        title   : 'notification arrived'
+        content : notification.event
   
   appReady:do ->
     applicationIsReady = no
@@ -42,8 +50,6 @@ class MainController extends KDController
         data      :
           n       : nonce
           env     : KD.env
-        success	  : callback
-        failure	  : callback
         xhrFields :
           withCredentials: yes
   
@@ -53,7 +59,14 @@ class MainController extends KDController
     @getVisitor().on 'change.logout', (account)=> @accountChanged account
 
   accountChanged:(account)->
-
+    mainController = KD.getSingleton 'mainController'
+    nickname = KD.whoami().getAt('profile.nickname')
+    if nickname
+      channelName = 'private-'+nickname+'-private'
+      bongo.mq.fetchChannel channelName, (channel)->
+        channel.on 'notification', (notification)->
+          mainController.emit 'NotificationArrived', notification
+    
     KDRouter.init()
     unless @mainViewController
       @loginScreen = new LoginView
@@ -105,8 +118,8 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
-      # appManager.openApplication "Demos", yes
+      # appManager.openApplication "Activity", yes
+      appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
