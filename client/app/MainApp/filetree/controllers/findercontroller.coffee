@@ -70,7 +70,7 @@ class NFinderController extends KDViewController
             command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
         , (err, response)=>
           if response
-            files = FSHelper.parseLsOutput recentFolders, response
+            files = FSHelper.parseLsOutput recentFolders
             @treeController.addNodes files
           log "#{(Date.now()-a)/1000}sec"
           mount.emit "fs.fetchContents.finished"
