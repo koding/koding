@@ -65,6 +65,10 @@ class KDListViewController extends KDViewController
     newItems = for listItem in items
       @getListView().addItem listItem
 
+    @emit("AllItemsAddedToList")
+
+    return newItems
+
   ###
   HELPERS
   ###
@@ -302,14 +306,14 @@ class KDListViewController extends KDViewController
   ###
   LAZY LOADER
   ###
-    
+
   showLazyLoader:->
 
     unless @lazyLoader
       @propagateEvent KDEventType : 'LazyLoadThresholdReached'
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
       @lazyLoader.addSubView @lazyLoader.canvas = new KDLoaderView 
-        size          : 
+        size          :
           width       : 16
         loaderOptions :
           color       : "#5f5f5f"
@@ -318,12 +322,12 @@ class KDListViewController extends KDViewController
           range       : 0.4
           speed       : 3
           FPS         : 24
-          
+
       @lazyLoader.canvas.show()
 
   hideLazyLoader:->
 
     if @lazyLoader
       @lazyLoader.canvas.hide()
-      @lazyLoader.destroy() 
+      @lazyLoader.destroy()
       @lazyLoader = null
