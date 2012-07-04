@@ -48,7 +48,7 @@ class Followable extends jraphical.Module
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
-    if @equals follower 
+    if @equals follower
       return callback(
         new KodingError("Can't follow yourself")
         @getAt('counts.followers')
