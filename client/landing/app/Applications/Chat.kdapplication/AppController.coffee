@@ -3,7 +3,8 @@ class KDChannel extends KDEventEmitter
   
   constructor:()->
     @account = KD.whoami()
-    @username = @account?.profile?.nickname ? "guest"+__utils.getRandomNumber()
+    @username = @account?.profile?.nickname
+    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
     @type = "base"
     @messages = []
     @participants = {}
@@ -166,6 +167,7 @@ class ChatterView extends KDView
     #     
     file = @getSingleton('docManager').createEmptyDocument()
     @addSubView @ace = new Ace {},file
+    window.A = @ace
       # type    : "textarea"      
       # keyup   : =>
       #   @emit 'newScreen',@input.getValue()
@@ -174,16 +176,33 @@ class ChatterView extends KDView
       #   @emit 'newScreen',@input.getValue()        
     @ace.on "ace.ready",=>
       @emit "userWantsToJoin"
+      
+      @ace.editor.getSession().on "onTextInput",(e)->
+        log "onTextInput",e
+
+      @ace.editor.getSession().on "onDocumentChange",(e)->
+        log "onDocumentChange",e
+      
       @ace.editor.getSession().on "change",(e)=>
-        log "e",e
+        # log "e",e
         {row,column}  = e.data.range.end
         cursorPosition  = {row,column}
         # @ace.setContents "abc"
-        # @emit 'cursorPositionChanged',cursorPosition
+        @emit 'cursorPositionChanged',cursorPosition
         # @emit 'newScreen',{screen:@ace.getContents(),event}
     
     # @input.setHeight @getSingleton("windowController").winHeight-100
     # @input.setWidth  @getSingleton("windowController").winWidth-500
+    
+  click : ->
+    @setKeyView()
+  
+  keyUp:(event) ->
+    unless event.altKey or event.metaKey or event.ctrlKey or event.shiftKey
+      @emit 'newScreen',{screen:@ace.getContents(),event}
+  
+  keyDown: ->  
+    # log "down",arguments    
     
 class Chat12345 extends AppController
   
