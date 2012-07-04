@@ -10,31 +10,50 @@ class TopicsListItemView extends KDListItemView
       attributes  :
         href      : '#'
       pistachio   : '{{#(title)}}'
-    , data
-    
-    @titleLink.registerListener
-      KDEventTypes  : 'click'
-      listener      : @
-      callback      : (pubInst, event)=>
+      click       : (pubInst, event) =>
         @titleReceivedClick()
         event.stopPropagation()
         no
+    , data
+
+    @followButton = new KDToggleButton
+      style           : if data.followee then "follow-btn following-topic" else "follow-btn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : if data.followee then "Following" else "Follow"
+      loader          :
+        color         : "#333333"
+        diameter      : 10
+        left          : 2
+        top           : 2
+      states          : [
+        "Follow", (callback)->
+          data.follow (err, response)=>
+            @hideLoader()
+            unless err
+              @setClass 'following-btn following-topic'
+              callback? null
+        "Following", (callback)->
+          data.unfollow (err, response)=>
+            @hideLoader()
+            unless err
+              @unsetClass 'following-btn following-topic'
+              callback? null
+      ]
+    , data
 
   titleReceivedClick:(event)->
     tag = @getData()
     @propagateEvent KDEventType: 'TopicWantsToExpand', tag
-  
+
   viewAppended:->
     @setClass "topic-item"
     
     @setTemplate @pistachio()
     @template.update()
     
-    if @getData().followee
-      @unfollowTheButton()
-    else
-      @followTheButton()
-  
+ 
+  ###
   followTheButton:->
     {profile} = topic = @getData()
     
@@ -71,7 +90,8 @@ class TopicsListItemView extends KDListItemView
               topic.followee = yes
               @unfollowTheButton()
     @addSubView @followButton, '.button-container'
-  
+  ###
+
   setFollowerCount:(count)->
     @$('.followers a').html count
 
@@ -121,7 +141,7 @@ class TopicsListItemView extends KDListItemView
             <a href="#">{{#(counts.followers) or 0}}</a> Followers
           </p>
         </div>
-        <div class="button-container"></div> 
+        <div class="button-container">{{> @followButton}}</div>
       </div>
     </div>
     """
@@ -188,7 +208,7 @@ class ModalTopicsListItem extends TopicsListItemView
     """
     <div class="topictext">
       <div class="topicmeta">
-        <div class="button-container"></div>
+        <div class="button-container">{{> @followButton}}</div>
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
