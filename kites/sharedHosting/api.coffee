@@ -45,7 +45,7 @@ module.exports = new Kite 'sharedHosting'
     # options =
     #    contents   : String # file text content
     #
-    console.log 'attempting to upload file', options
+    console.log 'attempting to upload file'#, options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
     filename = hat()
