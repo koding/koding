@@ -11,6 +11,15 @@ class nginx_proxy::config {
         notify  => Class["nginx_proxy::service"],
     }
     
+    file { "/etc/nginx/conf.d/beta.koding.com.conf":
+        ensure  => file,
+        source  => "puppet:///modules/nginx_proxy/etc/conf.d/beta.koding.com.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["nginx_proxy::service"],
+    }
+     
     file { "/etc/nginx/conf.d/koding.com.conf":
         ensure  => file,
         source  => "puppet:///modules/nginx_proxy/etc/conf.d/koding.com.conf",
@@ -19,10 +28,13 @@ class nginx_proxy::config {
         require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["nginx_proxy::service"],
     }
-    
-    file { "/etc/nginx/conf.d/hosting_upstream_map":
+    file { "/etc/nginx/conf.d/default.conf":
         ensure  => file,
-        replace=>"no", # Only add a file if it’s absent
-        require => [Class["nginx_proxy::install"],File['/etc/nginx/conf.d/koding.com.conf']],
+        source  => "puppet:///modules/nginx_proxy/etc/conf.d/default.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["nginx_proxy::service"],
     }
+
 }
