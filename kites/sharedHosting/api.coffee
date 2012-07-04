@@ -11,11 +11,10 @@ os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
 
-# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
-
 console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
+  
   
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -40,13 +39,13 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-
+        
   uploadFile:(options,callback)->
     #
     # options =
     #    contents   : String # file text content
     #
-    console.log 'attempting to upload file', options
+    console.log 'attempting to upload file'#, options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
     filename = hat()
@@ -232,7 +231,7 @@ module.exports = new Kite 'sharedHosting'
     
     {username,uid,domainName} = options
     
-    domainName ?= "#{username}.beta.koding.com"
+    domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd

@@ -1,8 +1,6 @@
 class TabHandleView extends KDView
-  setDomElement:()->
-    @domElement = $ "<b>Terminal</b>
-      <span class='kdcustomhtml terminal icon'></span>"
 
+  setDomElement:()-> @domElement = $ "<b>Terminal</b><span class='kdcustomhtml terminal icon'></span>"
 
 class Shell12345 extends KDViewController
 
@@ -46,7 +44,8 @@ class Shell12345 extends KDViewController
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
         # console.log "updating screen with:",diff
-        currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
+        patch = (@dmp.patch_fromText diff)
+        currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
         # currentScreen = diff
         @getView().updateScreen(currentScreen)
         @lastScreen = currentScreen      
@@ -249,3 +248,50 @@ class Shell12345 extends KDViewController
 #   #the reason I'm returning the whole instance right now is because propagateEvent includes the whole thing anyway. switch to emit/on and we can change this...
 #   return application
 
+# class Shell1234512345 extends AppController
+# 
+#   constructor:(options = {}, data)->
+#     options.view = new KDView
+#       cssClass : "content-page"
+#       domId    : "termDiv"
+#       
+#     super options, data
+# 
+#   bringToFront:()=>
+#     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
+#       options :
+#         name              : 'Terminal'
+#         type              : 'application'
+#         tabHandleView     : new TabHandleView()
+#         hiddenHandle      : no
+#         applicationType   : 'Shell.kdapplication'
+#       data : @getView()
+#       
+#     appManager.addOpenTab @getView(), 'Shell.kdapplication'
+#     @getView().input.setFocus()
+# 
+#   loadView:(mainView)->
+# 
+#     @termOpen()
+# 
+#   termOpen : ->
+# 
+#     @term = new Terminal
+#       x         : 0 # @view.getWidth()  #220
+#       y         : 0 # @view.getHeight() #70
+#       rows      : @getView().getHeight()/16
+#       cols      : @getView().getWidth()/7
+#       termDiv   : @getView().getDomId()
+#       bgColor   : "#232e45"
+#       greeting  : "%+r **** termlib.js globbing sample **** %-r%n%ntype any text and hit ESC or TAB for globbing.%ntype \"exit\" to quit.%n "
+#       # handler: termHandler
+#       # exitHandler: termExitHandler
+#       # ctrlHandler: termCtrlHandler
+#       # printTab: false
+#       # closeOnESC: false
+# 
+#     @term.open()
+#     # mainPane = (if (document.getElementById) then document.getElementById("mainPane") else document.all.mainPane)
+#     # # mainPane = document.getElementById @view.getDomId
+#     # mainPane.className = "lh15 dimmed"  if mainPane
+#     # window.TT = term

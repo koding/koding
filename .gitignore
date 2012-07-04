@@ -12,11 +12,8 @@ v8.log
 /.build
 /.pydevproject
 /.settings
-client/app/app/*.js
-client/app/css/*.js
-client/app/stylus/*.js
 *conflicted\ copy\ 201*
-
+node_modules/.bin
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
