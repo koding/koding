@@ -23,9 +23,8 @@ class TopicsListItemView extends KDListItemView
       defaultState    : if data.followee then "Following" else "Follow"
       loader          :
         color         : "#333333"
-        diameter      : 10
-        left          : 2
-        top           : 2
+        diameter      : 18
+        top           : 11
       states          : [
         "Follow", (callback)->
           data.follow (err, response)=>
