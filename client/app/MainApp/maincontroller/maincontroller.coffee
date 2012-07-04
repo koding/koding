@@ -10,6 +10,8 @@ class MainController extends KDController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kodingAppsController", new KodingAppsController
+    @appReady ->
+      KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
     

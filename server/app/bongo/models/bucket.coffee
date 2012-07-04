@@ -14,6 +14,17 @@ class CBucket extends jraphical.Module
       migrant       : Boolean
       meta          : require "bongo/bundles/meta"
   
+  add:(item, callback)->
+    member = ObjectRef(item)
+    @update {
+      $set          :
+        modifiedAt  : new Date
+      $addToSet     :
+        group       : member.data
+    }, (err)=>
+      @emit 'ItemWasAdded', member.data
+      callback err
+
   getBucketConstructor =(groupName, role)->
     switch role
       when 'follower'
@@ -28,7 +39,6 @@ class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
-          
   
   addToBucket =do ->
     # @helper
@@ -60,6 +70,8 @@ class CBucket extends jraphical.Module
               activity.save (err)->
                 if err
                   callback err
+                else unless 'function' is typeof anchor.addActivity
+                  callback null, bucket
                 else
                   anchor.addActivity activity, (err)->
                     if err
@@ -111,22 +123,15 @@ class CBucket extends jraphical.Module
   @addActivities =(relationship, source, target, callback)->
     queue = []
     fin = -> queue.fin()
+    # TODO: it can be horribly inefficient to convert things to and from objectrefs
+    #       favor convenience for now, however.
+    if ObjectRef.isObjectRef(source) then queue.push ->
+      ObjectRef.populate [source, target], (err, populated)->
+        [source, target] = populated
+        queue.fin()
     queue.push -> addToBucket 'source', relationship, target, source, fin
     queue.push -> addToBucket 'target', relationship, source, target, fin
     dash queue, callback
-  # save:(callback)->
-  #   Model::save.call @, callback
-  #   
-  add:(item, callback)->
-    member = ObjectRef(item)
-    @update {
-      $set          :
-        modifiedAt  : new Date
-      $addToSet     :
-        group       : member.data
-    }, (err)=>
-      @emit 'ItemWasAdded', member.data
-      callback err
 
 class CNewMemberBucket extends CBucket
   
@@ -157,7 +162,7 @@ class CReplierBucket extends CBucket
   @set
     schema          : CBucket.schema
   
-class CReplyeeBucket extends CBucket
+class CReplieeBucket extends CBucket
 
   @share()
   
@@ -182,7 +187,15 @@ class CBucketActivity extends CActivity
   
   @setRelationships
     subject       :
-      targetType  : [CFollowerBucket, CFolloweeBucket, CNewMemberBucket]
+      targetType  : [
+        CFollowerBucket
+        CFolloweeBucket
+        CNewMemberBucket
+        CLikerBucket
+        CLikeeBucket
+        CReplierBucket
+        CReplieeBucket
+      ]
       as          : 'content'
 
   @create =({constructor:{name}})->
@@ -209,28 +222,28 @@ class CFollowerBucketActivity extends CBucketActivity
     schema          : CActivity.schema
     relationships   : CBucketActivity.relationships
 
-class CReplierBucket extends CBucketActivity
+class CReplierBucketActivity extends CBucketActivity
   @share()
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
     relationships   : CBucketActivity.relationships
 
-class CReplieeBucket extends CBucketActivity
+class CReplieeBucketActivity extends CBucketActivity
   @share()
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
     relationships   : CBucketActivity.relationships
 
-class CLikerBucket extends CBucketActivity
+class CLikerBucketActivity extends CBucketActivity
   @share()
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
     relationships   : CBucketActivity.relationships
 
-class CLikeeBucket extends CBucketActivity
+class CLikeeBucketActivity extends CBucketActivity
   @share()
   @set
     encapsulatedBy  : CActivity
