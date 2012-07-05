@@ -44,7 +44,6 @@ class TopicsListItemView extends KDListItemView
   titleReceivedClick:(event)->
     tag = @getData()
     appManager.tell "Topics", "createContentDisplay", tag
-    # @propagateEvent KDEventType: 'TopicWantsToExpand', tag
 
   viewAppended:->
     @setClass "topic-item"
