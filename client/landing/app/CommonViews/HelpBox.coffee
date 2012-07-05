@@ -5,16 +5,16 @@ class HelpBox extends JView
     options.cssClass or= "help-box"
     options.title    or= "NEED HELP?"
     options.subtitle or= "Learn about sharing"
-    
+
     data.title    = options.title
     data.subtitle = options.subtitle
-    
+
     super options, data
 
   click:->
 
     # @getSingleton('mainController').emit "ShowInstructionsBook"
-    
+
   pistachio:()->
 
     """
