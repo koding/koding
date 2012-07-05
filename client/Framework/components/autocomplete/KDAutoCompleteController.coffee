@@ -373,7 +373,7 @@ class KDAutoCompleteController extends KDViewController
     {nothingFoundItemClass} = @getOptions()
     view = new nothingFoundItemClass
       delegate: @dropdown.getListView()
-      userInput: if suggestion then suggestion else @getView().getValue()
+      userInput: suggestion or @getView().getValue()
   
   showNoDataFound: ->
     noItemFoundView = @getNoItemFoundView()
