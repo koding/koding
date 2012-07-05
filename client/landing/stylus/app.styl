@@ -443,14 +443,19 @@ span.main-nav-icon
       shadow        none
       span.close-tab
         bg          color,transparent
+      span.error
+        color         red
 
     &.plus
+      padding       0 0 0 16px
       span.icon
         margin      1px 5px 0 -5px
         size        20px,20px
         sprite()
         bg          position,-60px -260px
         fl()
+      b
+        margin-right  0
       &:hover
         bg          color,rgba(255,255,255,.3)
         color       rgba(255, 255, 255, 0.9)
@@ -464,6 +469,20 @@ span.main-nav-icon
         b
           width     auto
           visible()
+
+    .chevron-arrow-separator
+      display         none
+      
+    .chevron-arrow
+      position        absolute
+      left            2px
+      top             2px
+      size            20px,20px
+      bg              position,-120px -480px
+
+    span.error
+      color           lightCoral
+      font-style      normal
 
 .avatararea-popup
   height                auto

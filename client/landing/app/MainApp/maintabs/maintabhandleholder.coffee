@@ -32,13 +32,12 @@ class MainTabHandleHolder extends KDView
         { title : 'Contribute An Editor', id : 7,  parentId : null, callback:(source, event)=> appManager.notify() }
       ]
       
-    @addSubView @plusHandle = new KDButtonViewWithMenu
-      style                   : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
-      title                   : "<b class='hidden'>Click here to start</b>"
-      icon                    : no
-      delegate                : @
-      menu                    : [menu]
-      callback                : => (event)-> splitButton.contextMenu event
+    @addSubView @plusHandle = new KDCustomHTMLView
+      cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
+      partial  : "<b class='hidden'>Click here to start</b>"
+      delegate : @
+      # menu     : [menu]
+      # callback : => (event)-> splitButton.contextMenu event
     
   removePlusHandle:()->
     @plusHandle.destroy()

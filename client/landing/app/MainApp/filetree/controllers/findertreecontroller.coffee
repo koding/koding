@@ -371,44 +371,76 @@ class NFinderTreeController extends JTreeViewController
         @refreshFolder @nodes[file.parentPath], =>
           @selectNode @nodes[response.path]
   
-  compileApp:(nodeView)->
+  compileApp:(nodeView, callback)->
     
     folder = nodeView.getData()
     folder.emit "fs.compile.started"
-    @getSingleton('kodingAppsController').compileSource FSHelper.trimExtension(folder.path), =>
+    name = FSHelper.trimExtension folder.path
+    @getSingleton('kodingAppsController').compileSource name, =>
       log "ever here"
       folder.emit "fs.compile.finished"
       @notify "App compiled!", "success"
+      callback?()
       @utils.wait 500, => 
         @refreshFolder nodeView, =>
           @utils.wait =>
             @selectNode @nodes["#{folder.path}/index.js"]
       
+  publishApp:(nodeView)->
+    
+    folder               = nodeView.getData()
+    name                 = FSHelper.trimExtension folder.path
+    kodingAppsController = @getSingleton('kodingAppsController')
+    
+    folder.emit "fs.publish.started"
+    
+    kodingAppsController.getApp name, (appScript)=>
+      
+      log "got the app", name
+      manifest    = KodingAppsController.apps[name]
+      publishPath = FSHelper.escapeFilePath "/opt/Apps/#{manifest.name}/#{manifest.version}"
+      
+      log "trying to publish"
+      @getSingleton('kiteController').run
+        toDo        : "uploadFile"
+        withArgs    :
+          path      : publishPath
+          contents  : appScript
+      , (err, res)=>
+        log "publish finished", err, res
+        if err then warn err
+        else
+          log res
+          folder.emit "fs.publish.finished"
+          @notify "App published!", "success"
     
     
-    
+
   ###
   CONTEXT MENU OPERATIONS
   ###
 
-  contextMenuOperationExpand:(nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  contextMenuOperationCollapse:(nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  contextMenuOperationRefresh:(nodeView, contextMenuItem)-> @refreshFolder nodeView
-  contextMenuOperationCreateFile:(nodeView, contextMenuItem)-> @createFile nodeView
-  contextMenuOperationCreateFolder:(nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  contextMenuOperationRename:(nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  contextMenuOperationDelete:(nodeView, contextMenuItem)-> @confirmDelete nodeView
-  contextMenuOperationDuplicate:(nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  contextMenuOperationExtract:(nodeView, contextMenuItem)-> @extractFiles nodeView
-  contextMenuOperationZip:(nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  contextMenuOperationTarball:(nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  contextMenuOperationUpload:(nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationDownload:(nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationGitHubClone:(nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationOpenFile:(nodeView, contextMenuItem)-> @openFile nodeView
+  contextMenuOperationExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
+  contextMenuOperationCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  contextMenuOperationRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  contextMenuOperationCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
+  contextMenuOperationCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
+  contextMenuOperationRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
+  contextMenuOperationDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
+  contextMenuOperationDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
+  contextMenuOperationExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
+  contextMenuOperationZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
+  contextMenuOperationTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
+  contextMenuOperationUpload:       (nodeView, contextMenuItem)-> appManager.notify()
+  contextMenuOperationDownload:     (nodeView, contextMenuItem)-> appManager.notify()
+  contextMenuOperationGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
+  contextMenuOperationOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+
   contextMenuOperationOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationPreviewFile:(nodeView, contextMenuItem)-> @previewFile nodeView
-  contextMenuOperationCompile:(nodeView, contextMenuItem)-> @compileApp nodeView
+
+  contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
+  contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
+  contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
 
   ###
   CONTEXT MENU CREATE/MANAGE

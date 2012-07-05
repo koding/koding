@@ -1,4 +1,4 @@
-class StartTabMainView extends KDView
+class StartTabMainView extends JView
 
   constructor:(options, data)->
 
@@ -9,10 +9,7 @@ class StartTabMainView extends KDView
     @appIcons = {}
     @listenWindowResize()
     
-  viewAppended:()->
-
-    # @addApps()
-    @addSubView @loader = new KDLoaderView
+    @loader = new KDLoaderView
       size          :
         width       : 128
         height      : 128
@@ -22,7 +19,8 @@ class StartTabMainView extends KDView
         density     : 70
         color       : "#ff9200"
 
-    @addSubView @button = new KDButtonView
+    @button = new KDButtonView
+      cssClass : "editor-button"
       title    : "refresh apps"
       callback : =>
         @button.hide()
@@ -30,7 +28,10 @@ class StartTabMainView extends KDView
         @removeAppIcons()
         @fetchApps (apps)=> @putAppIcons apps
 
-    @addSubView @clear = new KDButtonView
+    @button.hide()
+
+    @clear = new KDButtonView
+      cssClass : "editor-button"
       title    : "clear appstorage"
       callback : =>
         @loader.show()
@@ -40,21 +41,44 @@ class StartTabMainView extends KDView
             @loader.hide()
             log arguments, "kodingAppsController storage cleared"
     
-    @addSubView @appItemContainer = new AppItemContainer
-      cssClass: 'app-item-container', delegate : @
+    @appItemContainer = new AppItemContainer
+      cssClass : 'app-item-container'
+      delegate : @
     
-    @button.hide()
+    @recentFilesWrapper = new KDView
+      cssClass : 'file-container'
+  
+  viewAppended:->
+
+    super
 
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+  
+  pistachio:->
+    """
+    <h1 class="kdview start-tab-header">To start from a new file, select an editor <span>or open an existing file from your file tree</span></h1>
+    {{> @loader}}
+    <div class='app-button-holder'>
+      {{> @button}}
+      {{> @clear}}
+    </div>
+    {{> @appItemContainer}}
+    <div class='start-tab-split-options expanded'>
+      <h3>Start with a workspace</h3>
+    </div>
+    <div class='start-tab-recent-container'>
+      <h3>Recent files:</h3>
+      {{> @recentFilesWrapper}}
+    </div>
+    """
   
   fetchApps:(callback)->
 
     @getSingleton("kodingAppsController").fetchApps (apps)=>
       callback apps
       appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
-        log apps
         storage.update {
           $set: { "bucket.apps" : apps }
         }, => log arguments,"kodingAppsController storage updated"
@@ -114,64 +138,17 @@ class StartTabMainView extends KDView
       eval appScript
       return appView
 
-
-                # appInstance = Function(appScript)
-                # do (appView)=> appInstance.call null, appView
-
-
-# appView.addSubView a = new KDView
-#   partial : "<marquee><h1>i call this an app!</h1></marquee>"
-# appView.$().css "background-color", "pink"
-# a.$().css backgroundColor : "red", color : "white"
-# return a
-
-# do (appView)->
-#   appView.addSubview new AceView {}, FSHelper.createFileFromPath "localfile:/Untitled.txt"
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-      
   addSplitOptions:->
-
-    @addSubView splitOptionsView = new KDView
-      cssClass    : 'start-tab-split-options'
-    splitOptionsView.addSubView new KDView
-      tagName     : 'h3'
-      partial     : 'Start with a workspace'
-
     for splitOption in getSplitOptions()
-      splitOptionsView.addSubView new KDCustomHTMLView
+      option = new KDCustomHTMLView
         tagName   : 'a'
         cssClass  : 'start-tab-split-option'
         partial   : splitOption.partial
-        click     : ->
-          appManager.notify()
-          # {tab} = @getOptions()
-          # appManager.replaceStartTabWithSplit @getData(), tab
+        click     : -> appManager.notify()
+      @addSubView option, '.start-tab-split-options'
 
-    splitOptionsView.setClass 'expanded'  
-    
-    
   addRecentFiles:->
 
-    @addSubView @recentFilesWrapper = new KDView
-      cssClass    : 'start-tab-recent-container file-container'
-    
-    @recentFilesWrapper.addSubView new KDView
-      tagName     : 'h3'
-      partial     : 'Recent Files'
-    
     @recentFileViews = {}
     
     appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
