@@ -69,7 +69,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-    
+
     @tagAutoComplete = @tagController.getView()
 
     @loader = new KDLoaderView
@@ -83,7 +83,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         range       : 0.4
         speed       : 1
         FPS         : 24
-      click         : => 
+      click         : =>
         log "ASDASDAS"
 
     @syntaxSelect = new KDSelectBox
@@ -92,7 +92,21 @@ class ActivityCodeSnippetWidget extends KDFormView
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
 
+    @updateSyntaxTag = (syntax)=>
+      # Remove already appended syntax tag from submit queue if exists
+      oldSyntax = @ace.getSyntax()
+      subViews = @tagController.itemWrapper.getSubViews().slice()
+      for item in subViews
+        if item.getData().title is oldSyntax
+          @tagController.removeFromSubmitQueue(item)
+
+      {selectedItemsLimit} = @tagController.getOptions()
+      # Add new syntax tag to submit queue
+      if @tagController.selectedItemCounter < selectedItemsLimit
+        @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
+
     @on "codeSnip.changeSyntax", (syntax)=>
+      @updateSyntaxTag syntax
       @ace.setSyntax syntax
 
   submit:=>
@@ -108,18 +122,19 @@ class ActivityCodeSnippetWidget extends KDFormView
     @ace.setContents "//your code snippet goes here..."
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
+    @updateSyntaxTag 'javascript'
 
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit code snippet"
     @addCustomData "activity", activity
     {title, body, tags} = activity
     {syntax, content} = activity.attachments[0]
-    
+
     @tagController.reset()
     @tagController.setDefaultValue tags or []
-    
+
     fillForm = =>
-      @title.setValue Encoder.htmlDecode title 
+      @title.setValue Encoder.htmlDecode title
       @description.setValue Encoder.htmlDecode body
       @ace.setContents Encoder.htmlDecode content
       @syntaxSelect.setValue Encoder.htmlDecode syntax
@@ -148,6 +163,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setTheme()
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
+      @updateSyntaxTag 'javascript'
       @emit "codeSnip.aceLoaded"
 
   refreshEditorView:->

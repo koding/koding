@@ -107,7 +107,7 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper.setClass "kdautocomplete hidden #{@getOptions().listWrapperCssClass}"
     KDView.appendToDOMBody dropdownWrapper
   
-  hideDropdown:-> 
+  hideDropdown:->
     dropdownWrapper = @dropdown.getView()
     dropdownWrapper.$().fadeOut 75
 
@@ -117,7 +117,7 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper.unsetClass "hidden"
     input  = @getView()
     offset = input.$().offset()
-    
+
     offset.top += input.getHeight()
     dropdownWrapper.$().css offset
 
@@ -280,6 +280,7 @@ class KDAutoCompleteController extends KDViewController
 
     path = @getCollectionPath()
     
+    itemName  = "#{name}-#{@selectedItemCounter++}"
     if form
       collection = form.getCustomData path
       collection = [] unless collection?
@@ -292,9 +293,9 @@ class KDAutoCompleteController extends KDViewController
         else
           $suggest          : itemValue
       )
-      @selectedItemCounter++
+      if item.getOptions().userInput is not ""
+        @selectedItemCounter++
     else
-      itemName  = "#{name}-#{@selectedItemCounter++}"
       @addHiddenInputItem path.join('.'),itemValue
 
     @addSelectedItemData data
@@ -368,11 +369,11 @@ class KDAutoCompleteController extends KDViewController
       else
         @dropdown.getListView().addItemView view
   
-  getNoItemFoundView: ->
+  getNoItemFoundView:(suggestion) ->
     {nothingFoundItemClass} = @getOptions()
     view = new nothingFoundItemClass
       delegate: @dropdown.getListView()
-      userInput: @getView().getValue()
+      userInput: if suggestion then suggestion else @getView().getValue()
   
   showNoDataFound: ->
     noItemFoundView = @getNoItemFoundView()
