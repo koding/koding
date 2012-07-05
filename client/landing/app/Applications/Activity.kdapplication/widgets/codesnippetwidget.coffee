@@ -1,9 +1,9 @@
 class ActivityCodeSnippetWidget extends KDFormView
-  
+
   constructor:->
 
     super
-    
+
     @labelTitle = new KDLabelView
       title         : "Title:"
       cssClass      : "first-label"
@@ -12,13 +12,13 @@ class ActivityCodeSnippetWidget extends KDFormView
       name          : "title"
       placeholder   : "Give a title to your code snippet..."
       validate      :
-        rules       : 
+        rules       :
           required  : yes
         messages    :
           required  : "Code snippet title is required!"
 
     @labelDescription = new KDLabelView
-      title : "Description:"  
+      title : "Description:"
 
     @description = new KDInputView
       label       : @labelDescription
@@ -36,17 +36,17 @@ class ActivityCodeSnippetWidget extends KDFormView
     @cancelBtn = new KDButtonView
       title    : "Cancel"
       style    : "modal-cancel"
-      callback : => 
+      callback : =>
         @reset()
         @parent.getDelegate().emit "ResetWidgets"
-  
+
     @submitBtn = new KDButtonView
       style : "clean-gray"
       title : "Share your Code Snippet"
       type  : 'submit'
-  
+
     @heartBox = new HelpBox
-      subtitle    : "About Code Sharing" 
+      subtitle    : "About Code Sharing"
       tooltip     :
         title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
 
@@ -103,7 +103,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     subViews = @tagController.itemWrapper.getSubViews().slice()
     for item in subViews
       if item.getData().title is oldSyntax
-        log "Removing ...", oldSyntax
         @tagController.removeFromSubmitQueue(item)
         break
 
@@ -151,13 +150,13 @@ class ActivityCodeSnippetWidget extends KDFormView
   widgetShown:->
 
     unless @ace then @loadAce() else @refreshEditorView()
-  
+
   snippetCount = 0
 
   loadAce:->
 
     @loader.show()
-    
+
     @aceWrapper.addSubView @ace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
 
     @ace.on "ace.ready", =>
