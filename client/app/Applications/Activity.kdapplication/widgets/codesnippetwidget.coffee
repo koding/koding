@@ -92,22 +92,26 @@ class ActivityCodeSnippetWidget extends KDFormView
       defaultValue  : "javascript"
       callback      : (value) => @emit "codeSnip.changeSyntax", value
 
-    @updateSyntaxTag = (syntax)=>
-      # Remove already appended syntax tag from submit queue if exists
-      oldSyntax = @ace.getSyntax()
-      subViews = @tagController.itemWrapper.getSubViews().slice()
-      for item in subViews
-        if item.getData().title is oldSyntax
-          @tagController.removeFromSubmitQueue(item)
-
-      {selectedItemsLimit} = @tagController.getOptions()
-      # Add new syntax tag to submit queue
-      if @tagController.selectedItemCounter < selectedItemsLimit
-        @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
-
     @on "codeSnip.changeSyntax", (syntax)=>
       @updateSyntaxTag syntax
       @ace.setSyntax syntax
+
+  updateSyntaxTag:(syntax)=>
+    # Remove already appended syntax tag from submit queue if exists
+    # oldSyntax = __aceSettings.syntaxAssociations[@ace.getSyntax()][0]
+    oldSyntax = @ace.getSyntax()
+    subViews = @tagController.itemWrapper.getSubViews().slice()
+    for item in subViews
+      if item.getData().title is oldSyntax
+        log "Removing ...", oldSyntax
+        @tagController.removeFromSubmitQueue(item)
+        break
+
+    {selectedItemsLimit} = @tagController.getOptions()
+    # Add new syntax tag to submit queue
+    if @tagController.selectedItemCounter < selectedItemsLimit
+      # syntax = __aceSettings.syntaxAssociations[syntax][0]
+      @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
   submit:=>
     @addCustomData "code", @ace.getContents()
@@ -167,13 +171,11 @@ class ActivityCodeSnippetWidget extends KDFormView
       @emit "codeSnip.aceLoaded"
 
   refreshEditorView:->
-
     lines = @ace.editor.selection.doc.$lines
     lineAmount = if lines.length > 15 then 15 else if lines.length < 5 then 5 else lines.length
     @setAceHeightByLines lineAmount
 
   setAceHeightByLines: (lineAmount) ->
-
     lineHeight  = @ace.editor.renderer.lineHeight
     container   = @ace.editor.container
     height      = lineAmount * lineHeight
