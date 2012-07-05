@@ -204,6 +204,11 @@ ul.inbox-list
   border-left         1px solid #e8e8e8
 
 
+.kdautocompletelistitem
+  .ttag
+    margin-right    0
+    vertical-align  middle
+
 .compose-message-modal
 
   input.kdinput.text,
@@ -240,14 +245,14 @@ ul.inbox-list
       padding         1px
       bg(color,white)
       size(16px,16px)
-        
+
     span.profile
       margin-left     21px
       display         block
       overflow        hidden
 
 .kdautocomplete.users
-  .kdview.kdlistview.kdautocompletelist      
+  .kdview.kdlistview.kdautocompletelist
     .kdautocompletelistitem
       max-width       365px
       line-height     28px
@@ -266,22 +271,16 @@ ul.inbox-list
         padding-right 10px
         display       block
         overflow      hidden
-      
+
       span.nick
         visibility    hidden
+
       .nick-matches
         span.nick
           visibility  visible
-          
-  .kdautocompletelist      
+
+  .kdautocompletelist
     .kdautocompletelistitem
       &:nth-child(even)
         bg            color,rgba(227,239,246,.5)
-
-
-
-
-
-
-
 
