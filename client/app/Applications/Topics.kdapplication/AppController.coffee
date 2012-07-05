@@ -55,14 +55,6 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
-      for name,listController of controller.resultsController.listControllers
-        listController.getListView().on (view, index)=>
-          view.registerListener
-            KDEventTypes  : 'TopicWantsToExpand'
-            listener      : @
-            callback      : (pubInst, tag)=>
-              @createContentDisplay tag
-
       view.addSubView controller.getView()
 
   loadView:(mainView)->
