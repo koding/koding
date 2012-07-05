@@ -1,14 +1,14 @@
 class Activity12345 extends AppController
-  
+
   constructor:(options={})->
     options.view = new KDView cssClass : "content-page activity"
     super options
-    CodeSnippetView.on 'CodeSnippetWantsSave', (data)=> 
+    CodeSnippetView.on 'CodeSnippetWantsSave', (data)=>
       @saveCodeSnippet data.title, Encoder.htmlDecode data.content
-  
+
   saveCodeSnippet:(title, content)->
-    # This custom method is used because FS, 
-    # command, environment are all a mess and 
+    # This custom method is used because FS,
+    # command, environment are all a mess and
     # devrim is currently working on refactoring them - 3/15/12 sah
 
     # i kind of cleared that mess, still needs work - 26 April 2012 sinan
@@ -30,20 +30,20 @@ class Activity12345 extends AppController
         title    : "Please login!"
         type     : 'mini'
         duration : 2500
-  
+
   bringToFront:()->
     super name : 'Activity'
-    
+
   initAndBringToFront:(options,callback)->
     @environment = options.environment
     super
-  
+
   loadView:(mainView)->
-    
+
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
-    
-    
+
+
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"
@@ -51,10 +51,10 @@ class Activity12345 extends AppController
         subtitle  : ""
 
     unless account instanceof bongo.api.JGuest
-        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt} 
+        # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
-      mainView.addSubView updateWidget = new ActivityUpdateWidget 
+      mainView.addSubView updateWidget = new ActivityUpdateWidget
         cssClass: 'activity-update-widget-wrapper'
 
       updateWidgetController = new ActivityUpdateWidgetController
@@ -69,7 +69,7 @@ class Activity12345 extends AppController
     # mainView.addSubView new CommonFeedMessage
     #   title           : "<p> Since you're new to Koding, so we've prepared these helper boxes to introduce you to the system. This is your Activity Feed. It displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community.</p>"
     #   messageLocation : 'Activity'
-    
+
     activityInnerNavigation = new ActivityInnerNavigation
     @activityTabView = new KDTabView
       cssClass : "maincontent-tabs feeder-tabs"
@@ -80,7 +80,7 @@ class Activity12345 extends AppController
       sizes     : [139,null]
       minimums  : [10,null]
       resizable : no
-    
+
     # ADD SPLITVIEW
     mainView.addSubView activitySplitView
 
@@ -95,20 +95,20 @@ class Activity12345 extends AppController
     loadIfMoreItemsIsNecessary = =>
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
         @continueLoadingTeasers()
-    
+
     @filter null, loadIfMoreItemsIsNecessary
-    
+
     bongo.api.CActivity.on 'feed.new', (activities) =>
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
-    
-    activityInnerNavigation.registerListener 
+
+    activityInnerNavigation.registerListener
       KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
       listener      : @
       callback      : (pubInst, data)=>
         @filter data.type
-  
-  ownActivityArrived:(activity)->      
+
+  ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
 
   createFollowedAndPublicTabs:->
@@ -117,22 +117,22 @@ class Activity12345 extends AppController
       cssClass : "activity-content"
 
     # SECOND TAB = ALL ACTIVITIES, SORT AND POST NEW
-    @activityTabView.addPane allTab = new KDTabPaneView 
+    @activityTabView.addPane allTab = new KDTabPaneView
       cssClass : "activity-content"
-    
+
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
       subItemClass      : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
-    
+
     @activitySplitView.on "ViewResized", =>
       newHeight = @activitySplitView.getHeight() - 28 # HEIGHT OF THE HEADER
       activityListController.scrollView.setHeight newHeight
-    
+
     controller = @
-    
+
     activityListController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
       listener      : @
@@ -144,19 +144,19 @@ class Activity12345 extends AppController
       @loadSomeTeasers =>
         @activityListController.isLoading = no
         @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
-    
-  
+
+
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
     $.ajax KD.apiUri+'/1.0'
-      data      : 
+      data      :
         data    : JSON.stringify(_.extend options, selector)
         env     : KD.env
       dataType  : 'jsonp'
       success   : (data)->
         bongo.reviveFromJSONP data, (err, instances)->
           callback instances
-    # 
+    #
     # bongo.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
     #     callback? activities
@@ -167,7 +167,7 @@ class Activity12345 extends AppController
     # devrim's api
     # should make the selector work
     selector =
-      type      : 
+      type      :
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
@@ -189,15 +189,15 @@ class Activity12345 extends AppController
     {skip, limit} = range
 
     selector =
-      type        : 
+      type        :
         $in       : @currentFilter
-    
+
     options  =
       limit       : limit or= 20
       skip        : skip  or= @activityListController.getItemCount()
       sort        :
         createdAt : -1
-    
+
     @fetchTeasers selector, options, (activities)=>
       if activities
         for activity in activities
@@ -222,15 +222,15 @@ class Activity12345 extends AppController
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
     ]
-    @loadSomeTeasers -> 
+    @loadSomeTeasers ->
       controller.isLoading = no
       callback?()
-  
+
   createContentDisplay:(activity)->
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
-  
+
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.propagateEvent
@@ -238,7 +238,7 @@ class Activity12345 extends AppController
     ,contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity 
+    controller = new ContentDisplayControllerActivity
       title       : "Status Update"
       type        : "status"
       contentView : new ContentDisplayStatusUpdate {},activity
@@ -247,7 +247,7 @@ class Activity12345 extends AppController
     @showContentDisplay contentDisplay
 
   createCodeSnippetContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity 
+    controller = new ContentDisplayControllerActivity
       title       : "Code Snippet"
       type        : "codesnip"
       contentView : new ContentDisplayCodeSnippet {},activity
@@ -265,8 +265,8 @@ class ActivityListController extends KDListViewController
     options.view              or= new KDListView viewOptions, data
     super
     @hiddenItems = []
-  
-  loadView:(mainView)->  
+
+  loadView:(mainView)->
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -276,19 +276,19 @@ class ActivityListController extends KDListViewController
       listener      : @
       callback      : => @unhideNewHiddenItems()
     super
-  
+
   doesActivityBelongToLoggedinUser:(activity)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()       
+    {currentDelegate} = @getSingleton('mainController').getVisitor()
     id = currentDelegate.getId()
     id? and id in [activity.originId, activity.anchor?.id]
-    
+
   ownActivityArrived:(activity)->
     # log activity
     view = @getListView().addHiddenItem activity, 0
     view.addChildView activity, ()=>
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()
-  
+
   newActivityArrived:(activity)->
     # log activity
     unless @doesActivityBelongToLoggedinUser activity
@@ -299,15 +299,15 @@ class ActivityListController extends KDListViewController
         when bongo.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
-  
+
   addHiddenItem:(activity, index, animation = null)->
     instance = @getListView().addHiddenItem activity, index, animation
     @hiddenItems.push instance
     instance
-  
+
   addItem:(activity, index, animation = null) ->
     @getListView().addItem activity, index, animation
-  
+
   unhideNewHiddenItems:->
     $firstHidden = @getListView().$('.hidden-item').eq(0)
     top = $firstHidden.position().top
@@ -316,10 +316,4 @@ class ActivityListController extends KDListViewController
         # log "and here???",item,@hiddenItems
         item.show()
       @hiddenItems = []
-
-
-
-
-
-
 
