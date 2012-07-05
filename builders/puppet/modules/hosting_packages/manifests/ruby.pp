@@ -4,7 +4,7 @@
 class hosting_packages::ruby {
     
     # modules installed from RPM
-    $ruby_modules = ["ruby-mysql","ruby-sqlite3","ruby-devel","ruby19-devel","ruby-irb","ruby19-irb","rubygems","rubygems19" ]
+    $ruby_modules = ["ruby-mysql","ruby-sqlite3","ruby-devel","ruby19-devel","ruby-irb","ruby19-irb","rubygems","rubygems19","ruby-rdoc","ruby19-rdoc","rubygem19-rdoc"]
     
     package { ["ruby","ruby19"]:
         ensure => installed,
