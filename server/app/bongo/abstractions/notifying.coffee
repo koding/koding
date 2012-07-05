@@ -18,6 +18,7 @@ class Notifying
         channel.emit 'notification', {event, contents}
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
+      debugger
       console.log 'There was an error adding bucket activities', err if err
       
   notifyOriginWhen:(events...)->
