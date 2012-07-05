@@ -51,40 +51,48 @@ app.starttab.styl
       font-weight     normal
       padding-top     5px
   
-  .app-item-container
-    padding         20px 0
-    width           100%
+.app-item-container
+  padding         20px 0
+  width           100%
   
-  .start-tab-item
-    border-radius   4px
-    box-sizing      border-box
+  figure
     color           #333
     display         inline-block
     min-width       120px
     max-width       200px
     overflow        visible
     padding         20px
-    position        relative
     text-align      center
-    transition      width .2s ease-out
-    transition      all .3s ease-in-out
     vertical-align  top
     width           20%
+    rounded         4px
+    vendor          transition, width .2s ease-out\, height .2s ease-out
+    borderBox()
     noTextDeco()
     
+    .kdloader
+      position      absolute
+      top           50%
+      left          50%
+      margin        -20px 0 0 -20px
+      z-index       1000
+    
+    p
+      rounded       4px
+
+    img
+      width         100%
+    
     strong
-      font-size       13px
-      display         block
+      font-size     13px
+      display       block
     
     span
-      color           #333
+      color         #333
       noTextDeco()
-    
-    img
-      width           100%
-      
+
     span > span
-      font-size       11px
+      font-size     11px
   
     &.disabled
       padding-bottom      40px

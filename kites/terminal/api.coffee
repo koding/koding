@@ -1,11 +1,9 @@
 config          = require './config'
 Kite            = require 'kite'
 _               = require 'underscore'
-dmp             = new (new require('diff_match_patch')).diff_match_patch() 
-# {FakeTerminal,FakeController} = require './faketerminal'
 
 {Terminal}  = require("terminaljs").Terminal
-{htmlify}   = require("terminaljs")
+# {htmlify}   = require("terminaljs")
 
 console.log "my pid is:",process.pid
 
@@ -27,13 +25,15 @@ module.exports = new Kite 'terminaljs'
 
       #create a real one.
       terminal = new Terminal "su -l #{username}",rows,cols
-      terminal.lastScreen = ""
+      # terminal.lastScreen = ""
       nr = 0
       terminal.on "data", (screen)-> 
-        # scr = ( screen.row(line) for line in [0..screen.rows]).join "\n"
-        scr = htmlify.convert screen
-        patch = dmp.patch_make terminal.lastScreen, scr
-        terminal.lastScreen = scr
+        #scr = ( screen.row(line) for line in [0..screen.rows]).join "\n"
+        #scr = htmlify.convert screen
+        patch = terminal.getHtml()
+        # console.log(patch)
+        # patch = dmp.patch_make terminal.lastScreen, scr        
+        # terminal.lastScreen = scr
         callbacks.data patch, nr++
 
       _lastMessageProcessed = 0

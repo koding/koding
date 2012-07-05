@@ -166,6 +166,8 @@ __utils =
         "3gp","wmv","flv","swf","wma","rm","rpm","rv"
       ]
       sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
+      app     : ["kdapp"]
+      
 
     for own type,set of _extension_sets
       for ext in set
