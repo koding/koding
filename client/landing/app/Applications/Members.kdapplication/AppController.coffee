@@ -131,8 +131,6 @@ class Members12345 extends AppController
     contentDisplay = controller.getView()
     if doShow
       @showContentDisplay contentDisplay
-    else
-      log "You are already in that profile, bitch. "
 
     return contentDisplay
 
