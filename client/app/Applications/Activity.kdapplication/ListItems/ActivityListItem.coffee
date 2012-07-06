@@ -1,5 +1,5 @@
 class ActivityListItemView extends KDListItemView
-  
+
   getActivityChildConstructors = ->
     # CStatusActivity     : StatusActivityItemView
     JStatusUpdate       : StatusActivityItemView
@@ -8,33 +8,33 @@ class ActivityListItemView extends KDListItemView
     JQuestionActivity   : QuestionActivityItemView
     JDiscussionActivity : DiscussionActivityItemView
     JLinkActivity       : LinkActivityItemView
-    
+
   getActivityChildCssClass = ->
     CFollowerBucket     : "system-message"
     CFolloweeBucket     : "system-message"
     CNewMemberBucket    : "system-message"
-  
+
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
     JTag      : TagFollowBucketItemView
-  
+
   constructor:(options,data)->
     options = options ? {}
     options.type = "activity"
     super options, data
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
-    
+
 
     unless options.isHidden
       if 'function' is typeof data.fetchTeaser
         data.fetchTeaser? (err, teaser)=> @addChildView teaser
       else
         @addChildView data
-        
+
   addChildView:(data,callback)->
     {constructorName} = data.bongo_
-    childConstructor = 
+    childConstructor =
       if /CNewMemberBucket$/.test constructorName
         NewMemberBucketItemView
       else if /Bucket$/.test constructorName
@@ -47,13 +47,13 @@ class ActivityListItemView extends KDListItemView
       callback?()
 
   partial:-> ''
-  
+
   show:->
     @getData().fetchTeaser? (err, teaser)=>
       # log teaser,":::"
       @addChildView teaser, =>
         @slideIn()
-  
+
   # render:->
 
   slideIn:(callback)->
@@ -66,7 +66,7 @@ class ActivityListItemView extends KDListItemView
           .css({backgroundColor : "transparent"})
           .removeClass('hidden-item')
         callback?()
-  
+
 class ActivityItemChild extends KDView
 
   constructor:(options, data)->
@@ -81,15 +81,15 @@ class ActivityItemChild extends KDView
     @author = new ProfileLinkView {
       origin
     }
-    
+
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
       subItemClass  : TagLinkView
     , data.tags
-    
+
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
-    
+
     if data.originId is KD.whoami().getId()
       @settingsButton = new KDButtonViewWithMenu
         style       : 'transparent activity-settings-context'
@@ -109,15 +109,15 @@ class ActivityItemChild extends KDView
         callback    : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
-    
+
     super
-    
+
     data.on 'TagsChanged', (tagRefs)=>
       bongo.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
         @tags.render()
-    
+
     data.on 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
         @parent.destroy()
@@ -126,12 +126,12 @@ class ActivityItemChild extends KDView
           isRemovable : no
           parent      : @parent
           cssClass    : 'half-white'
-    
+
     @getData().watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
-    
+
     @contentDisplayController = @getSingleton "contentDisplayController"
-  
+
   confirmDeletePost:(data)->
 
     modal = new KDModalView
@@ -146,11 +146,11 @@ class ActivityItemChild extends KDView
             color    : "#ffffff"
             diameter : 16
           callback   : =>
-            data.delete (err)=> 
+            data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err then @emit 'ActivityIsDeleted'
-              else new KDNotificationView 
+              else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"

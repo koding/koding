@@ -4,17 +4,17 @@ class Members12345 extends AppController
       view : mainView = (new MembersMainView cssClass : "content-page members")
     ,options
     super options,data
-  
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
         name : 'Members'
       data : @getView()
-    
+
   initAndBringToFront:(options, callback)->
     @bringToFront()
     callback()
-    
+
 
   createFeed:(view)->
 
@@ -23,7 +23,7 @@ class Members12345 extends AppController
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
-        subtitle            : "Learn About Members" 
+        subtitle            : "Learn About Members"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"
@@ -59,7 +59,7 @@ class Members12345 extends AppController
     }, (controller)=>
 
       view.addSubView controller.getView()
-      
+
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -69,7 +69,7 @@ class Members12345 extends AppController
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
-        subtitle            : "Learn About Members" 
+        subtitle            : "Learn About Members"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">These people are all members of koding.com. Learn more about them and their interests, activity and coding prowess here.</p>"
           placement         : "above"
@@ -96,7 +96,7 @@ class Members12345 extends AppController
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view
-      
+
 
   createFollowsContentDisplay:(account, filter)->
     newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
@@ -106,70 +106,73 @@ class Members12345 extends AppController
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed mainView
-  
+
   showMemberContentDisplay:(pubInst, event)=>
     {content} = event
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerMember null, content
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-  
+
   showVisitorContentDisplay:(pubInst, event)=>
     {content} = event
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerVisitor null, content
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-  
-  createContentDisplay:(account,doShow = yes)->
+
+  createContentDisplay:(account, doShow = yes)->
     if account.equals @getSingleton('mainController').getVisitor().currentDelegate
       controllerClass = ContentDisplayControllerVisitor
     else
       controllerClass = ContentDisplayControllerMember
-      
+
     controller = new controllerClass null, account
     contentDisplay = controller.getView()
     if doShow
       @showContentDisplay contentDisplay
+    else
+      log "You are already in that profile, bitch. "
+
     return contentDisplay
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-    
+
   setCurrentViewNumber:(type)->
     {currentDelegate} = @getSingleton('mainController').getVisitor()
-    # typeClass = 
-    currentDelegate.count? type, (err, count)=> 
+    # typeClass =
+    currentDelegate.count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   fetchFeedForHomePage:(callback)->
-    options = 
+    options =
       limit     : 6
       skip      : 0
       sort      :
         "meta.modifiedAt": -1
     selector = {}
     bongo.api.JAccount.someWithRelationship selector, options, callback
-  
-    
+
+
 class MembersListViewController extends KDListViewController
   _windowDidResize:()->
     @scrollView.setHeight @getView().getHeight() - 28
-    
+
   loadView:(mainView)->
     log mainView
     super
-    
+
     @listenTo
       KDEventTypes        : 'itemWasAdded'
       listenedToInstance  : @getListView()
       callback            : (pubInst, {view})=>
         @addListenersForItem view
-      
+
   addItem:(member, index, animation = null) ->
     @getListView().addItem member, index, animation
-  
+
   addListenersForItem:(item)->
     data = item.getData()
 
@@ -189,10 +192,10 @@ class MembersListViewController extends KDListViewController
 
   followAccount:(pubInst, {account,callback})->
     account.follow callback
-  
+
   unfollowAccount:(pubInst, {account,callback})->
     account.unfollow callback
-  
+
   reloadView:()->
     {query, skip, limit, currentFilter} = @getOptions()
     controller = @
@@ -205,7 +208,7 @@ class MembersListViewController extends KDListViewController
         myItem.isMyItem()
         myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showVisitorContentDisplay
       controller._windowDidResize()
-  
+
   pageDown:()->
     listController = @
     {query, skip, limit, currentFilter} = @getOptions()
@@ -221,7 +224,7 @@ class MembersListViewController extends KDListViewController
         listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no
         listController.propagateEvent KDEventType : 'LazyLoadComplete'
-  
+
   getTotalMemberCount:(callback)=>
     {currentDelegate} = @getSingleton('mainController').getVisitor()
     currentDelegate.count? @getOptions().filterName, callback
