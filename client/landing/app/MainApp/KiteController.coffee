@@ -38,15 +38,15 @@ class KiteController extends KDController
       @status = no
   
   resetKiteIds:(kiteName = "sharedHosting", callback)->
-
-    @account.fetchKiteIds {kiteName}, (err,kiteIds)=>
-      if err
-        notify "Backend is not responding, trying to fix..."
-      else
-        notify "Backend servers are ready."
-        @kiteIds[kiteName] = kiteIds
-      callback err, kiteIds
-  
+#
+#    @account.fetchKiteIds {kiteName}, (err,kiteIds)=>
+#      if err
+#        notify "Backend is not responding, trying to fix..."
+#      else
+#        notify "Backend servers are ready."
+#        @kiteIds[kiteName] = kiteIds
+#      callback err, kiteIds
+#  
   run:(options = {}, callback)->
 
     options.kiteName or= "sharedHosting"

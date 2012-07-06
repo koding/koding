@@ -98,7 +98,7 @@ class Activity12345 extends AppController
 
     @filter null, loadIfMoreItemsIsNecessary
 
-    bongo.api.CActivity.on 'feed.new', (activities) =>
+    @getSingleton('activityController').on 'ActivitiesArrived', (activities)=>
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
