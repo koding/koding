@@ -3,8 +3,6 @@ class ContentDisplayController extends KDController
     super options
     @displays = {}
     @attachListeners()
-    @lastShownViewDataId = null
-    @lastShownViewConstructorName = null
 
   attachListeners:->
     @registerListener
@@ -32,24 +30,11 @@ class ContentDisplayController extends KDController
         @hideAllContentDisplays()
 
   showContentDisplay:(view)->
-    log "View: ", view.constructor.name
-    ###
-    if view.getData().getId?() is @lastShownViewDataId and
-       view.constructor.name is @lastShownViewConstructorName
-      new KDNotificationView
-        title      : "Already in this!"
-        type       : "mini"
-      return
-    ###
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper
-
-    # @lastShownViewDataId = view.getData().getId?()
-    # @lastShownViewConstructorName = view.constructor.name
-
     @slideWrapperIn wrapper
 
   hideContentDisplay:(view)->
