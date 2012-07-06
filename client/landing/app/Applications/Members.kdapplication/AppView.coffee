@@ -88,7 +88,7 @@ class MembersListItemView extends KDListItemView
     options.type = "members"
     super options,data
     memberData = @getData()
-    @avatar = new AvatarStaticView
+    @avatar = new AvatarView
       size:
         width: 60
         height: 60
