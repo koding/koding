@@ -42,7 +42,7 @@ class MessagesListController extends KDListViewController
 
   fetchNotificationTeasers:(callback)->
     {currentDelegate} = @getSingleton('mainController').getVisitor()
-    console.log 'im kule', currentDelegate
+    # console.log 'im kule', currentDelegate
     currentDelegate.fetchActivityTeasers? {
       targetName: $in: [
         'CReplieeBucketActivity'
