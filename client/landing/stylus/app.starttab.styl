@@ -179,20 +179,20 @@ app.starttab.styl
       text-overflow     ellipsis
     
     &:hover
-      background-color      #ff9200
+      bg                color, #ff9200
   
   .start-tab-no-recent-files
     font-size         14px
     padding-top       30px
  
 .start-tab-split-options
-  height            80px
-  position          absolute
-  width             100%
-  bottom            -146px
-  text-align        center
-  transition        all .5s ease-in-out
-  
+  height              80px
+  position            absolute
+  width               100%
+  bottom              -146px
+  text-align          center
+  transition          all .5s ease-in-out
+  padding-bottom      10px
   &.expanded
     bottom            126px
   
@@ -204,6 +204,7 @@ app.starttab.styl
 .start-tab-split-option
   background        white
   display           inline-block
+  vertical-align    top
   margin-right      10px
   padding           3px
   size              42px, 32px
