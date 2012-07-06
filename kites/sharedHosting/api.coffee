@@ -142,16 +142,21 @@ module.exports = new Kite 'sharedHosting'
     
     {username, version, appName, userAppPath} = options
 
-    publishPath = "/opt/Apps/#{username}/#{appName}/#{version}"
-    appPath     = "#{publishPath}/index.js"
-
-    mkdirp publishPath, (err)->
+    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+    
+    mkdirp versionedPath, (err)->
       if err then console.error err
-      else fs.readFile userAppPath, (err, appScript)->
-        if err then console.error err
-        else fs.writeFile appPath, appScript, 'utf-8', (err)=>
+      else
+        fs.readFile userAppPath, (err, appScript)->
           if err then console.error err
-          else callback?()
+          else
+            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)=>
+              if err then console.error err
+              else 
+                fs.symlink latestPath, versionedPath, 'dir', (err)=>
+                  if err then console.error err
+                  else callback?()
 
   
   createSystemUser : (options,callback)->
