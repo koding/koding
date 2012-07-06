@@ -10,9 +10,9 @@ bongo.use (remote, connection)->
 
 # Cacheable = new Cacheable
 
-setTimeout ->
-  appManager.openApplication("Chat")
-,5000
+  # setTimeout ->
+  # appManager.openApplication("Chat")
+  # ,5000
 
 firstLoad = yes  
 connectionLostModalId = null
