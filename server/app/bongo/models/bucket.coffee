@@ -1,6 +1,6 @@
 class CBucket extends jraphical.Module
 
-  {Model, ObjectRef, ObjectId, dash} = bongo
+  {Model, ObjectRef, ObjectId, dash, daisy} = bongo
 
   @set
     broadcastable   : yes
@@ -118,20 +118,28 @@ class CBucket extends jraphical.Module
           bucket.save (err)->
             if err then callback err
             else addIt bucket, anchor, item, callback
-
-  # @helper  
+  
+  getPopulator =(items..., callback)->
+    -> ObjectRef.populate items, (err, populated)-> callback err, populated
+  
+  # @implementation  
   @addActivities =(relationship, source, target, callback)->
     queue = []
-    fin = -> queue.fin()
+    next = -> queue.next()
     # TODO: it can be horribly inefficient to convert things to and from objectrefs
-    #       favor convenience for now, however.
-    if ObjectRef.isObjectRef(source) then queue.push ->
-      ObjectRef.populate [source, target], (err, populated)->
-        [source, target] = populated
-        queue.fin()
-    queue.push -> addToBucket 'source', relationship, target, source, fin
-    queue.push -> addToBucket 'target', relationship, source, target, fin
-    dash queue, callback
+    #       favor programmer convenience for now, however. C.T.
+    if ObjectRef.isObjectRef(source)
+      queue.push getPopulator source, (err, populated)->
+        [source] = populated
+        queue.next(err)
+    if ObjectRef.isObjectRef(target)
+      queue.push getPopulator target, (err, populated)->
+        [target] = populated
+        queue.next(err)
+    queue.push -> addToBucket 'source', relationship, target, source, next
+    queue.push -> addToBucket 'target', relationship, source, target, next
+    queue.push callback
+    daisy queue
 
 class CNewMemberBucket extends CBucket
   

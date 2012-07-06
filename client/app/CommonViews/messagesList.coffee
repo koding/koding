@@ -43,21 +43,22 @@ class MessagesListController extends KDListViewController
   fetchNotificationTeasers:(callback)->
     {currentDelegate} = @getSingleton('mainController').getVisitor()
     console.log 'im kule', currentDelegate
-    currentDelegate.fetchActivityTeasers? {},
-      options: {}
-        # limit: 8
-        # sort:
-        #   timestamp: -1
-      targetOptions: 
-        query:
-          type:
-            # $in: ['CRepliesActivity','CFollowActivity']
-            $in: ['CReplierBucketActivity', 'CFollowerBucketActivity']
-    , (err, items)=>
+    currentDelegate.fetchActivityTeasers? {
+      targetName: $in: [
+        'CReplieeBucketActivity'
+        'CFolloweeBucketActivity'
+        'CLikeeBucketActivity'
+      ]
+    }, {
+      options:
+        limit: 8
+        sort:
+          timestamp: -1
+    }, (err, items)=>
       if err
         warn "There was a problem fetching notifications!",err
       else
-        @instantiateListItems items
+        #@instantiateListItems items
         @propagateEvent KDEventType : 'NotificationCountDidChange', {count : items.length}
         callback? items
 

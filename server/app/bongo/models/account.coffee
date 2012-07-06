@@ -1,10 +1,13 @@
-class JAccount extends Followable
+class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
-    
+  
+  @mixin Followable
+  @::mixin Followable::
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
   @::mixin Notifiable::
+  
 
   {ObjectId,secure,race} = bongo
   {Relationship} = jraphical
@@ -31,7 +34,7 @@ class JAccount extends Followable
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance','chris'
+        'byRelevance'
       ]
       instance    : [
         'on','update','follow','unfollow','fetchFollowersWithRelationship'
@@ -118,7 +121,7 @@ class JAccount extends Followable
         targetType  : JAppStorage
       
       limit:
-        as          : ['invite']
+        as          : 'invite'
         targetType  : JLimit
       
       tag:
@@ -132,18 +135,18 @@ class JAccount extends Followable
   #       kiteId    : '*'
   #       toDo      : '_disconnect'
   #     , ->
-  
-  @chris =->
-    q = {"as":"activity","targetName":{"$in":["CRepliesActivity","CNewMemberBucketActivity","CFolloweeBucketActivity","CFollowerBucketActivity","CReplierBucketActivity","CReplieeBucketActivity","CLikerBucketActivity","CLikeeBucketActivity","CCommentActivity","CStatusActivity","CCodeSnipActivity","CQuestionActivity"]},"sourceName":"JAccount","sourceId":ObjectId("4eea4fd93e25516404000004")}
-    f = {"targetId":1,"data.flags":1,"targetName":1}
-    o = {}
-    Relationship.getCollection().find q, f, o, ->
-      [_, cursor] = arguments
-      cursor.toArray console.log.bind console, 'getCollection().find()'
-    Relationship.someData q, f, o, ->
-      [_, cursor] = arguments
-      cursor.toArray console.log.bind console, 'someData()'
-  
+  # 
+  # @chris =->
+  #   q = {"as":"activity","targetName":{"$in":["CRepliesActivity","CNewMemberBucketActivity","CFolloweeBucketActivity","CFollowerBucketActivity","CReplierBucketActivity","CReplieeBucketActivity","CLikerBucketActivity","CLikeeBucketActivity","CCommentActivity","CStatusActivity","CCodeSnipActivity","CQuestionActivity"]},"sourceName":"JAccount","sourceId":ObjectId("4eea4fd93e25516404000004")}
+  #   f = {"targetId":1,"data.flags":1,"targetName":1}
+  #   o = {}
+  #   Relationship.getCollection().find q, f, o, ->
+  #     [_, cursor] = arguments
+  #     cursor.toArray console.log.bind console, 'getCollection().find()'
+  #   Relationship.someData q, f, o, ->
+  #     [_, cursor] = arguments
+  #     cursor.toArray console.log.bind console, 'someData()'
+  # 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
 
@@ -171,10 +174,6 @@ class JAccount extends Followable
         for doc in docs
           results.push doc.profile.fullname
         callback err, results
-
-  constructor:(options)->
-    super options
-    @kites = {}
   
   # fetchNonce: bongo.secure (client, callback)->
   #   {delegate} = client.connection
@@ -209,8 +208,6 @@ class JAccount extends Followable
                 callback err
               else
                 callback null, nonces
-
-  answerToLifeTheUniverseAndEverything:(callback)-> callback 42
   
   fetchKiteIds: bongo.secure ({connection}, options, callback)->
     {kiteName} = options
@@ -397,7 +394,7 @@ class JAccount extends Followable
     secure ({connection}, options, callback)->
       [callback, options] = [options, callback] unless callback
       unless @equals connection.delegate
-        callback new Error 'Access denied.'
+        callback new KodingError 'Access denied.'
       else
         options or= {}
         selector = 
@@ -417,17 +414,18 @@ class JAccount extends Followable
   
   fetchNotificationsTimeline: bongo.secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
-      callback new Error 'Access denied.'
+      callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
   
   fetchActivityTeasers : bongo.secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
-      callback new Error 'Access denied.'
+      callback new KodingError 'Access denied.'
     else
       debugger
-      @fetchActivities selector, options, ->#@constructor.collectTeasersAllCallback (err, items)->
-        console.log 'grrr', arguments
+      @fetchActivities selector, options, callback
+        #@constructor.collectTeasersAllCallback (err, items)->
+#        console.log 'grrr', arguments
         # if err
         #   callback err
         # else
@@ -464,21 +462,21 @@ class JAccount extends Followable
     if @equals client.connection.delegate
       oldFetchMounts.call @,callback
     else
-      callback new Error "access denied for guest."
+      callback new KodingError "access denied for guest."
 
   oldFetchRepos = @::fetchRepos  
   fetchRepos: bongo.secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchRepos.call @,callback
     else
-      callback new Error "access denied for guest."    
+      callback new KodingError "access denied for guest."    
 
   oldFetchDatabases = @::fetchDatabases  
   fetchDatabases: bongo.secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchDatabases.call @,callback
     else
-      callback new Error "access denied for guest."    
+      callback new KodingError "access denied for guest."    
 
   # 
   # getEnvironments:(callback)->
