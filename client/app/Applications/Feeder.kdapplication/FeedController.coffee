@@ -6,7 +6,7 @@ class FeedController extends KDViewController
       sorts     : options.sort
       help      : options.help
       delegate  : @
-    
+
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
       subItemClass  : options.subItemClass
@@ -24,7 +24,7 @@ class FeedController extends KDViewController
     options.filter        or= {}
     options.sort          or= {}
     options.limitPerPage  or= 20
-    
+
     options.dataType      or= null
 
     super options, null
@@ -38,42 +38,42 @@ class FeedController extends KDViewController
       listener      : @
       callback      : (pubInst, item)=>
         @selectFilter item.type
-    
+
     @facetsController.registerListener
       KDEventTypes  : 'SortDidChange'
       listener      : @
       callback      : (pubInst, item)=>
         @changeActiveSort item.type
-    
+
     @resultsController.getView().registerListener
       KDEventTypes  : 'PaneDidShow'
       listener      : @
       callback      : (pubInst, event)=>
         filterName  = @selection.name
         sortName    = @selection.activeSort or @defaultSort.name
-        @facetsController.highlight filterName, sortName 
+        @facetsController.highlight filterName, sortName
 
     @resultsController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
       listener      : @
       callback      : =>
         @loadFeed()
-    
+
     @defineFilter name, filter for own name, filter of options.filter
     @defineSort name, sort for own name, sort of options.sort
     @getNewFeedItems() if options.dynamicDataType?
-    
+
   getNewFeedItems:()->
     {dynamicDataType} = @getOptions()
     dynamicDataType.on 'feed.new', (items) =>
       @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
-    
+
   defineFilter:(name, filter)->
     filter.name     = name
     @filters[name]  = filter
     if filter.isDefault or not @selection?
       @selection    = filter
-  
+
   defineSort:(name, sort)->
     sort.name     = name
     @sorts[name]  = sort
@@ -83,7 +83,7 @@ class FeedController extends KDViewController
   loadView:(mainView)->
     @loadFeed() if @getOptions().autoPopulate
     mainView._windowDidResize()
-  
+
   selectFilter:(name)->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
@@ -94,22 +94,22 @@ class FeedController extends KDViewController
     @selection.activeSort = name
     @resultsController.listControllers[@selection.name].removeAllItems()
     @loadFeed()
-    
-  getFeedSelector:-> 
-    console.log @filters
+
+  getFeedSelector:->
+    # console.log @filters
     {}
-  
+
   getFeedOptions:->
     options = sort : {}
-    
+
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
-    
+
     options.sort[sort.name] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
-  
+
   loadFeed:(filter = @selection)->
 
     options  = @getFeedOptions()
