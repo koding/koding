@@ -10,6 +10,7 @@ Includes =
         dependencies    : "./server/dependencies.coffee"
         errors          : "./server/app/errors.coffee"
         initConfig      : "./server/app/initConfig.coffee"
+        emailer         : "./server/app/emailer.coffee"
         # base            : "./server/app/base.coffee"
         utils           : "./server/app/utils.coffee"
         jspath          : "./server/app/jspath.coffee"
@@ -278,7 +279,7 @@ Includes =
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
         
       ApplicationPageViews :
-
+        activitycontroller          : "./client/app/MainApp/activitycontroller.coffee"
         # ACTIVITY VIEWS          
         activityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -348,7 +349,6 @@ Includes =
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
         inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
         inboxInnerNavigation          : "./client/app/Applications/Inbox.kdapplication/Views/InboxInnerNavigation.coffee"
-        inboxMessageDetail            : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageDetail.coffee"
         inboxMessagesList             : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessagesList.coffee"
         inboxMessageThreadView        : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageThreadView.coffee"
         inboxNewMessageBar            : "./client/app/Applications/Inbox.kdapplication/Views/InboxNewMessageBar.coffee"

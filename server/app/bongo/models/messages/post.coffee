@@ -45,9 +45,9 @@ class JPost extends jraphical.Message
       tag             :
         targetType    : JTag
         as            : 'tag'
-      follower      :
-        as          : 'follower'
-        targetType  : JAccount
+      follower        :
+        as            : 'follower'
+        targetType    : JAccount
 
   @getAuthorType =-> JAccount
 
@@ -127,7 +127,9 @@ class JPost extends jraphical.Message
   fetchOrigin: (callback)->
     originType = @getAt 'originType'
     originId   = @getAt 'originId'
-    unless Base.constructors[originType]?.one {_id: originId}, callback
+    if Base.constructors[originType]?
+      Base.constructors[originType].one {_id: originId}, callback
+    else
       callback null
   
   modify: secure (client, formData, callback)->
@@ -239,6 +241,19 @@ class JPost extends jraphical.Message
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchOrigin (err, origin)=>
+                  if err
+                    console.log "Couldn't fetch the origin"
+                  else
+                    @emit 'LikeIsAdded', {
+                      origin
+                      subject       : ObjectRef(@).data
+                      actorType     : 'liker'
+                      actionType    : 'like'
+                      liker    		  : ObjectRef(delegate).data
+                      likesCount	  : count
+                      relationship  : docs[0]
+                    }
           else
             callback new KodingError 'You already like this.'
             ###
@@ -272,14 +287,22 @@ class JPost extends jraphical.Message
                     callback err
                   else
                     callback null, comment
-                    @emit 'ReplyIsAdded', {
-                      subject       : ObjectRef(@).data
-                      replier 		  : ObjectRef(delegate).data
-                      reply   		  : ObjectRef(comment).data
-                      repliesCount	: count
-                    }
-                    @follow client, emitActivity: no, (err)->
-                    @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                    @fetchOrigin (err, origin)=>
+                      if err
+                        console.log "Couldn't fetch the origin"
+                      else
+                        @emit 'ReplyIsAdded', {
+                          origin
+                          subject       : ObjectRef(@).data
+                          actorType     : 'replier'
+                          actionType    : 'reply'
+                          replier 		  : ObjectRef(delegate).data
+                          reply   		  : ObjectRef(comment).data
+                          repliesCount	: count
+                          relationship  : docs[0]
+                        }
+                        @follow client, emitActivity: no, (err)->
+                        @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
