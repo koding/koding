@@ -5,7 +5,7 @@ class KDButtonViewWithMenu extends KDButtonView
   setDomElement:(cssClass = '')->
     @domElement = $ """
       <div class='kdbuttonwithmenu-wrapper #{cssClass}'>
-        <button class='kdbutton clean-gray with-icon with-menu' id='#{@getId()}'>
+        <button class='kdbutton #{cssClass} with-icon with-menu' id='#{@getId()}'>
           <span class='icon hidden'></span>
         </button>
         <span class='chevron-arrow-separator'></span>

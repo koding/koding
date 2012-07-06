@@ -6,7 +6,7 @@ class KDButtonView extends KDView
     options.title     or= ""            # a String
     # options.style     or= "clean-gray"  # a String of one of button styles ==> DEPRECATE THIS
     options.type      or= "button"      # a String of submit, reset, button
-    options.cssClass  or= options.style or= ""            # a String
+    options.cssClass  or= options.style or= "clean-gray"            # a String
     options.icon      or= no            # a Boolean value
     options.iconOnly  or= no            # a Boolean value
     options.iconClass or= ""            # a String  
