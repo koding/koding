@@ -10,6 +10,7 @@ Includes =
         dependencies    : "./server/dependencies.coffee"
         errors          : "./server/app/errors.coffee"
         initConfig      : "./server/app/initConfig.coffee"
+        emailer         : "./server/app/emailer.coffee"
         # base            : "./server/app/base.coffee"
         utils           : "./server/app/utils.coffee"
         jspath          : "./server/app/jspath.coffee"

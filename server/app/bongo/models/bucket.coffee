@@ -138,7 +138,8 @@ class CBucket extends jraphical.Module
         queue.next(err)
     queue.push -> addToBucket 'source', relationship, target, source, next
     queue.push -> addToBucket 'target', relationship, source, target, next
-    daisy queue, callback
+    queue.push callback
+    daisy queue
 
 class CNewMemberBucket extends CBucket
   

@@ -46,9 +46,9 @@ class JPost extends jraphical.Message
       tag             :
         targetType    : JTag
         as            : 'tag'
-      follower      :
-        as          : 'follower'
-        targetType  : JAccount
+      follower        :
+        as            : 'follower'
+        targetType    : JAccount
     
 
   @getAuthorType =-> JAccount
@@ -243,6 +243,19 @@ class JPost extends jraphical.Message
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchOrigin (err, origin)=>
+                  if err
+                    console.log "Couldn't fetch the origin"
+                  else
+                    @emit 'LikeIsAdded', {
+                      origin
+                      subject       : ObjectRef(@).data
+                      actorType     : 'liker'
+                      actionType    : 'like'
+                      liker    		  : ObjectRef(delegate).data
+                      likesCount	  : count
+                      relationship  : docs[0]
+                    }
           else
             callback new Error 'You already liked this.'
   
