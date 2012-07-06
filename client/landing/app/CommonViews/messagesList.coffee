@@ -45,8 +45,9 @@ class MessagesListController extends KDListViewController
     console.log 'im kule', currentDelegate
     currentDelegate.fetchActivityTeasers? {
       targetName: $in: [
-        'CReplierBucketActivity'
-        # 'CReplieeBucketActivity'
+        'CReplieeBucketActivity'
+        'CFolloweeBucketActivity'
+        'CLikeeBucketActivity'
       ]
     }, {
       options:
@@ -54,11 +55,10 @@ class MessagesListController extends KDListViewController
         sort:
           timestamp: -1
     }, (err, items)=>
-      console.log 'bitch please', arguments
       if err
         warn "There was a problem fetching notifications!",err
       else
-        @instantiateListItems items
+        #@instantiateListItems items
         @propagateEvent KDEventType : 'NotificationCountDidChange', {count : items.length}
         callback? items
 
