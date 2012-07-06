@@ -403,26 +403,20 @@ class NFinderTreeController extends JTreeViewController
       publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
       
       log "trying to publish"
+      log options = 
+        toDo          : "publishApp"
+        withArgs      :
+          version     : manifest.version
+          appName     : manifest.name
+          userAppPath : "#{folder.path}/index.js"
       
-      kiteController.run
-        withArgs  : 
-          command : "mkdir -p #{publishPath}"
-      , (err, res)=>
-        log "publish folder created", err, res
+      kiteController.run options, (err, res)=>
+        log "publish finished", err, res
         if err then warn err
         else
-          kiteController.run
-            toDo        : "uploadFile"
-            withArgs    :
-              path      : publishPath
-              contents  : appScript
-          , (err, res)=>
-            log "publish finished", err, res
-            if err then warn err
-            else
-              log res
-              folder.emit "fs.publish.finished"
-              @notify "App published!", "success"
+          log res
+          folder.emit "fs.publish.finished"
+          @notify "App published!", "success"
     
     
 
