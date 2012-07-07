@@ -10,16 +10,11 @@ class MainController extends KDController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kodingAppsController", new KodingAppsController
+    KD.registerSingleton "notificationController", new NotificationController
     @appReady ->
       KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
-
-    @on 'NotificationArrived', (notification)->
-      new KDNotificationView
-        type    : 'tray'
-        title   : 'notification arrived'
-        content : notification.event
 
   appReady:do ->
     applicationIsReady = no
@@ -59,13 +54,8 @@ class MainController extends KDController
     @getVisitor().on 'change.logout', (account)=> @accountChanged account
 
   accountChanged:(account)->
-    mainController = KD.getSingleton 'mainController'
-    nickname = KD.whoami().getAt('profile.nickname')
-    if nickname
-      channelName = 'private-'+nickname+'-private'
-      bongo.mq.fetchChannel channelName, (channel)->
-        channel.on 'notification', (notification)->
-          mainController.emit 'NotificationArrived', notification
+
+    @emit "AccountChanged", account
 
     KDRouter.init()
     unless @mainViewController
