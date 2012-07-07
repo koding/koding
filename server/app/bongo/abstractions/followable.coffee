@@ -88,6 +88,7 @@ class Followable extends jraphical.Module
                 if emitActivity
                   CBucket.addActivities relationship, @, follower, (err)->
                     if err
+                      # console.log "An Error occured: ", err
                       callback err
                     else
                       callback null, count
