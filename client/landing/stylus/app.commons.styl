@@ -274,7 +274,6 @@ button.editor-button
 
 .ttag
   padding             0 6px
-  // bg                  color, #E80
   bg                  color, linkColor1
   color               white!important
   rounded             3px
@@ -285,12 +284,15 @@ button.editor-button
   text-transform      none
   display             inline-block
   vertical-align      top
-
-  vendor              transition-property, max-width
-  vendor              transition-duration, .4s
   max-width           120px
-
   noTextDeco()
+
+  &.expandable
+    vendor            transition, max-width .4s linear
+    &:hover
+      max-width       300px
+      > span
+        overflow      visible
 
   > span
     text-overflow       ellipsis
@@ -300,12 +302,6 @@ button.editor-button
     width               100%
     margin              0
     display             block
-    // line-height         16px
-
-  &.expanded
-    max-width         300px
-    > span
-      overflow        visible
 
 .link-group
   display             inline-block

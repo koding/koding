@@ -56,21 +56,17 @@ class ProfileLinkView extends LinkView
 class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
-    if data.title.length > 20
-      if options.dontexpand
-        options = $.extend
-          tooltip     :
-            title     : data.title
-            placement : "above"
-            offset    : 1
-            delayIn   : 120
-        , options
-      else
-        options = $.extend
-          bind        : "mouseenter mouseleave"
-        , options
+    options.expandable ?= yes
+    if not options.expandable and data.title.length > 20
+      options.tooltip =
+        title     : data.title
+        placement : "above"
+        delayIn   : 120
+        offset    : 1
     super options, data
-    @setClass "ttag"
+
+    @setClass "ttag expandable"
+    @unsetClass "expandable" unless options.expandable
 
   pistachio:->
     super "{{#(title)}}"
@@ -78,12 +74,6 @@ class TagLinkView extends LinkView
   click:->
     tag = @getData()
     appManager.tell "Topics", "createContentDisplay", tag
-
-  mouseEnter:->
-    @setClass "expanded"
-
-  mouseLeave:->
-    @unsetClass "expanded"
 
 class LinkGroup extends KDCustomHTMLView
 
