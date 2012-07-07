@@ -2,7 +2,7 @@ class FollowBucketItemView extends KDView
   cssClassMap = ->
     JTag      : "topic"
     JAccount  : "account"
-  
+
   constructor:(options,data)->
     options = $.extend options,
       cssClass : "follow bucket #{cssClassMap()[data.sourceName]}"
@@ -11,15 +11,15 @@ class FollowBucketItemView extends KDView
     @anchor = new ProfileLinkView {
       origin: data.anchor
     }
-    
+
     @group = new LinkGroup {
       group         : data.group
       itemsToShow   : 3
       subItemClass  : options.subItemLinkClass
     }
-    
+
     @getData().on 'ItemWasAdded', -> log 'heres the event, sinan', arguments
-  
+
   pistachio:->
     """
     <span class='icon'></span>
@@ -27,11 +27,11 @@ class FollowBucketItemView extends KDView
     <span class='action'>followed</span>
     {{> @group}}
     """
-  
+
   render:->
-  
+
   addCommentBox:->
-  
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -45,15 +45,15 @@ class NewMemberBucketItemView extends KDView
     super options,data
 
     @anchor = new ProfileLinkView origin: data.anchor
-    
+
   render:->
-  
+
   addCommentBox:->
-  
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-  
+
   pistachio:->
     """
     <span class='icon'></span>
@@ -63,14 +63,14 @@ class NewMemberBucketItemView extends KDView
 
 
 class AccountFollowBucketItemView extends FollowBucketItemView
-  
+
   constructor:(options, data)->
     options.subItemLinkClass or= ProfileLinkView
     options.subItemCssClass or= 'profile'
     super
 
 class TagFollowBucketItemView extends FollowBucketItemView
-  
+
   constructor:(options, data)->
     options.subItemLinkClass or= TagLinkView
     options.subItemCssClass or= 'topic'
