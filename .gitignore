@@ -60,3 +60,5 @@ node_modules/.bin
 /node_modules/jsonify
 /node_modules/browserify
 /node_modules/.DS_Store
+
+node_modules/cron/
