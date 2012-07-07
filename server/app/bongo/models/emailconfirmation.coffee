@@ -83,7 +83,7 @@ class JEmailConfirmation extends jraphical.Module
   confirm:(callback)-> @update {$set: status: 'confirmed'}, callback
   
   send:(callback)->
-    postmark.send
+    Emailer.send
       From      : 'hi@koding.com'
       To        : @getAt('email')
       Subject   : @getSubject()

@@ -210,41 +210,41 @@ class Watcher extends EventEmitter
 
   compileFile: (file,callback)->
     ext = file.path.split(".").pop()    
-    fs.readFile file.path, 'utf-8',(err,newContent)=>
-      if err
-        console.log err
-        throw new Error "Couldn't open #{file.path}"
-        process.exit()
-      else
-        switch ext
-          when "styl"
-            stylus(newContent).set('compress',true).use(nib()).render (err,css)=>
-              unless err
-                file.contents = css
-                callback file
-              else
-                log.info "error with styl file at #{file.path}"
-          when "coffee"
-      
-            try
-              file.contentsCs = newContent
-              # if file.section is "Client"
-              #   file.contents = postProcess source:(cs.compile newContent,bare:yes)
-              #   # log.debug file.contents
-              # else
-              file.contents = cs.compile newContent,bare:yes
-              #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
-            catch error
-              errd = yes
-              log.error "#{(error.stack.split "\n")[0]} at: #{file.path}"
-              @emit "CoffeeScript Compile Error",file.path,(error.stack.split "\n")[0]
-
-        
+    newContent = fs.readFileSync file.path, 'utf-8' #,(err,newContent)=>
+    # if err
+    #   console.log err
+    #   throw new Error "Couldn't open #{file.path}"
+    #   process.exit()
+    # else
+    switch ext
+      when "styl"
+        stylus(newContent).set('compress',true).use(nib()).render (err,css)=>
+          unless err
+            file.contents = css
             callback file
-      
           else
-            file.contents = newContent
-            callback file
+            log.info "error with styl file at #{file.path}"
+      when "coffee"
+  
+        try
+          file.contentsCs = newContent
+          # if file.section is "Client"
+          #   file.contents = postProcess source:(cs.compile newContent,bare:yes)
+          #   # log.debug file.contents
+          # else
+          file.contents = cs.compile newContent,bare:yes
+          #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
+        catch error
+          errd = yes
+          log.error "#{(error.stack.split "\n")[0]} at: #{file.path}"
+          @emit "CoffeeScript Compile Error",file.path,(error.stack.split "\n")[0]
+
+    
+        callback file
+  
+      else
+        file.contents = newContent
+        callback file
         
 module.exports  = Watcher
 

@@ -1,12 +1,27 @@
 class JPost extends jraphical.Message
   
+  @mixin Followable
+  @::mixin Followable::
   @::mixin Taggable::
+  @::mixin Notifying::
   
-  {secure,dash,daisy} = bongo
+  {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
+  
+  schema = _.extend {}, jraphical.Message.schema, {
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
+  }
+  
   
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
@@ -16,6 +31,7 @@ class JPost extends jraphical.Message
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify'
       ]
+    schema            : schema
     relationships     : 
       comment         : JComment
       participant     :
@@ -30,6 +46,10 @@ class JPost extends jraphical.Message
       tag             :
         targetType    : JTag
         as            : 'tag'
+      follower        :
+        as            : 'follower'
+        targetType    : JAccount
+    
 
   @getAuthorType =-> JAccount
 
@@ -100,7 +120,20 @@ class JPost extends jraphical.Message
         -> 
           status.addParticipant delegate, 'author'
       ]
-
+  
+  constructor:->
+    super
+    @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
+    @notifyFollowersWhen 'ReplyIsAdded'
+  
+  fetchOrigin: (callback)->
+    originType = @getAt 'originType'
+    originId   = @getAt 'originId'
+    if Base.constructors[originType]?
+      Base.constructors[originType].one {_id: originId}, callback
+    else
+      callback null
+  
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
@@ -182,8 +215,8 @@ class JPost extends jraphical.Message
             queue.next()
       ->
         CActivity.update _id: activityId, {
-          $set      : {snapshot: JSON.stringify teaser}
-          $pullAll  : {snapshotIds: rel.getAt 'targetId'}
+          $set      : { snapshot     : JSON.stringify teaser }
+          $pullAll  : { snapshotIds  : rel.getAt 'targetId'  }
         }, -> queue.next()
       
       callback
@@ -205,16 +238,29 @@ class JPost extends jraphical.Message
           callback err
         else
           unless likedBy
-            @addLikedBy delegate, returnCount: yes, (err, count)=>
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchOrigin (err, origin)=>
+                  if err
+                    console.log "Couldn't fetch the origin"
+                  else
+                    @emit 'LikeIsAdded', {
+                      origin
+                      subject       : ObjectRef(@).data
+                      actorType     : 'liker'
+                      actionType    : 'like'
+                      liker    		  : ObjectRef(delegate).data
+                      likesCount	  : count
+                      relationship  : docs[0]
+                    }
           else
             callback new Error 'You already liked this.'
   
-  reply: secure ({connection}, replyType, comment, callback)->
-    {delegate} = connection
+  reply: secure (client, replyType, comment, callback)->
+    {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
@@ -225,7 +271,7 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            @addComment comment, returnCount: yes, (err, count)=>
+            @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
@@ -234,7 +280,22 @@ class JPost extends jraphical.Message
                     callback err
                   else
                     callback null, comment
-                    @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                    @fetchOrigin (err, origin)=>
+                      if err
+                        console.log "Couldn't fetch the origin"
+                      else
+                        @emit 'ReplyIsAdded', {
+                          origin
+                          subject       : ObjectRef(@).data
+                          actorType     : 'replier'
+                          actionType    : 'reply'
+                          replier 		  : ObjectRef(delegate).data
+                          reply   		  : ObjectRef(comment).data
+                          repliesCount	: count
+                          relationship  : docs[0]
+                        }
+                        @follow client, emitActivity: no, (err)->
+                        @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
