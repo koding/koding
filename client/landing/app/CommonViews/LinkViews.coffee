@@ -54,8 +54,13 @@ class ProfileLinkView extends LinkView
     appManager.tell "Members", "createContentDisplay", account
 
 class TagLinkView extends LinkView
-  constructor:->
-    super
+
+  constructor:(options = {}, data)->
+    if data.title.length > 20
+      options = $.extend
+        bind : "mouseenter mouseleave"
+      , options
+    super options, data
     @setClass "ttag"
 
   pistachio:->
@@ -64,6 +69,12 @@ class TagLinkView extends LinkView
   click:->
     tag = @getData()
     appManager.tell "Topics", "createContentDisplay", tag
+
+  mouseEnter:->
+    @setClass "expanded"
+
+  mouseLeave:->
+    @unsetClass "expanded"
 
 class LinkGroup extends KDCustomHTMLView
 
