@@ -39,7 +39,6 @@ class ShellView extends KDView
     @input.setFocus()
 
   updateScreen:(data)->
-
     if @client
       @client.write data
     else

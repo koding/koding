@@ -44,7 +44,9 @@ class Shell12345 extends KDViewController
       i = _lastMessageProcessed
       for diff in (item while (item = _orderedMessages[i++])?)
         # console.log "updating screen with:",diff
-        currentScreen = (@dmp.patch_apply diff,@lastScreen)[0]
+        patch = (@dmp.patch_fromText diff)
+        currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
+        # currentScreen = diff
         @getView().updateScreen(currentScreen)
         @lastScreen = currentScreen      
         @_lastMessageProcessed = i-1
@@ -160,12 +162,12 @@ class Shell12345 extends KDViewController
     #     callback?()
 
   getKiteIds : (options,callback)->
-    @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->
-      unless err
-        @kiteIds = kiteIds
-        callback? null,kiteIds
-      else
-        callback? err
+#    @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->
+#      unless err
+#        @kiteIds = kiteIds
+#        callback? null,kiteIds
+#      else
+#        callback? err
 
   initiateTerminal : (callback)->
     view = @getView()
@@ -221,7 +223,7 @@ class Shell12345 extends KDViewController
     @terminal.write @bufferedKeyStrokes
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
     @resetBufferedKeyStrokes()
-  ,250
+  ,100
   
   resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
 
