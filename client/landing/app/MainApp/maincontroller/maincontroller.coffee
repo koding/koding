@@ -14,13 +14,13 @@ class MainController extends KDController
       KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
-    
+
     @on 'NotificationArrived', (notification)->
       new KDNotificationView
         type    : 'tray'
         title   : 'notification arrived'
         content : notification.event
-  
+
   appReady:do ->
     applicationIsReady = no
     queue = []
@@ -32,7 +32,7 @@ class MainController extends KDController
         applicationIsReady = yes
         listener() for listener in queue
         queue = []
-  
+
   authorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
       $.ajax
@@ -52,7 +52,7 @@ class MainController extends KDController
           env     : KD.env
         xhrFields :
           withCredentials: yes
-  
+
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
     @getVisitor().on 'change.login', (account)=> @accountChanged account
@@ -66,7 +66,7 @@ class MainController extends KDController
       bongo.mq.fetchChannel channelName, (channel)->
         channel.on 'notification', (notification)->
           mainController.emit 'NotificationArrived', notification
-    
+
     KDRouter.init()
     unless @mainViewController
       @loginScreen = new LoginView
@@ -93,7 +93,7 @@ class MainController extends KDController
                   console.log err
                 else
                   console.log "environment is created for #{account.getAt('profile.nickname')}"
-              
+
     else
       @createLoggedOutState account
       @deauthorizeServices()
@@ -111,15 +111,15 @@ class MainController extends KDController
       @mainViewController.sidebarController.accountChanged account
       appManager.openApplication "Home"
       @mainViewController.getView().decorateLoginState no
-      
-  
+
+
   createLoggedInState:(account)->
     wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Activity", yes
-      appManager.openApplication "Demos", yes
+      appManager.openApplication "Activity", yes
+      # appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
@@ -134,7 +134,7 @@ class MainController extends KDController
 
     @listenTo
       KDEventTypes : "KDBackendConnectedEvent"
-      callback     : ()=> 
+      callback     : ()=>
         @initiateApplication()
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
@@ -147,7 +147,7 @@ class MainController extends KDController
             duration  : 2000
       else
         @goToPage pageInfo
-    
+
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
       book.fillPage index
