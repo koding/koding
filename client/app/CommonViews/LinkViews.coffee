@@ -57,9 +57,18 @@ class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
     if data.title.length > 20
-      options = $.extend
-        bind : "mouseenter mouseleave"
-      , options
+      if options.dontexpand
+        options = $.extend
+          tooltip     :
+            title     : data.title
+            placement : "above"
+            offset    : 1
+            delayIn   : 120
+        , options
+      else
+        options = $.extend
+          bind        : "mouseenter mouseleave"
+        , options
     super options, data
     @setClass "ttag"
 
