@@ -267,7 +267,7 @@ build = (options)->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
       
-    if changes.Server? 
+    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
       builder.buildServer "",()-> 
       builder.processMonitor.restartProcess() unless options.dontStart
     if changes.Client?.StylusFiles? 
