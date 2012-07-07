@@ -283,13 +283,15 @@ button.editor-button
   line-height         16px
   font-weight         700
   text-transform      none
-  // vertical-align      top
   display             inline-block
-  max-width           120px
   vertical-align      top
-  
+
+  vendor              transition-property, max-width
+  vendor              transition-duration, .4s
+  max-width           120px
+
   noTextDeco()
-  
+
   > span
     text-overflow       ellipsis
     white-space         nowrap
@@ -299,6 +301,11 @@ button.editor-button
     margin              0
     display             block
     // line-height         16px
+
+  &.expanded
+    max-width         300px
+    > span
+      overflow        visible
 
 .link-group
   display             inline-block
