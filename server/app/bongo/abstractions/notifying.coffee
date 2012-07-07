@@ -29,18 +29,17 @@ class Notifying
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
       console.log 'There was an error adding bucket activities', err.toString?() if err
-      console.log 'preqwerty'
       if receiver instanceof JAccount
-        console.log 'qwertyui'
-        JUser.one username: receiver.getAt('profile.nickname'), (err, user)->
-          console.log 
-          Emailer.send {
-            From      : Notifying.getNotificationEmail()
-            To        : user.getAt('email')
-            Subject   : Notifying.getNotificationSubject event, contents
-            TextBody  : Notifying.getNotificationBody event, contents
-          }, -> 
-            console.log 'ARRRRGUMENTS', arguments
+        username = receiver.getAt('profile.nickname')
+        JUser.someData {username}, {email: 1}, (err, cursor)->
+          if err
+            console.log "Could not load user record for #{username}"
+          else cursor.nextObject (err, user)->
+            {email} = user
+            notification = new JEmailNotification email, receiver, event, contents
+            notification.save (err)->
+              if err
+                console.log "There was an error saving the notification."
 
   notifyOriginWhen:(events...)->
     @setNotifiers events, (event, contents)=>

@@ -57,4 +57,5 @@ node_modules/.bin
 /node_modules/terminaljs-lite_
 /node_modules/jsonify
 /node_modules/browserify
+/node_modules/cron
 /node_modules/.DS_Store
