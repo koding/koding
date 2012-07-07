@@ -195,7 +195,7 @@ class ModalTopicsListItem extends TopicsListItemView
 
     super options,data
 
-    @titleLink = new TagLinkView null, data
+    @titleLink = new TagLinkView {"dontexpand": yes}, data
 
     @titleLink.registerListener
       KDEventTypes  : 'click'
