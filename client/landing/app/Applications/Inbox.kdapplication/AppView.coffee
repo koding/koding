@@ -109,12 +109,10 @@ class PageInbox extends KDView
   createNotificationsTab:->
     @inboxTabs.addPane tab = new KDTabPaneView cssClass : "notifications-tab"
 
-    inboxNotificationsList = new InboxMessagesList
-      cssClass      : "inbox-list notifications"
-      subItemClass  : NotificationListItem
-
     inboxNotificationsController = new MessagesListController
-      view           : inboxNotificationsList
+      view            : inboxNotificationsList = new InboxMessagesList
+        cssClass      : "inbox-list notifications"
+        subItemClass  : NotificationListItem
     
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
