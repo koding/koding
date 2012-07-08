@@ -56,7 +56,7 @@ class JAccount extends jraphical.Module
       counts                : Followable.schema.counts
       environmentIsCreated  : Boolean
       profile               :
-        about               : 
+        about               :
           type              : String
           default           : "I'm still trying to find my way in the world..."
         nickname            :
@@ -156,7 +156,7 @@ class JAccount extends jraphical.Module
           ( 'profile.firstName' : seed )
           ( 'profile.lastName'  : seed )
         ],
-      _id     : 
+      _id     :
         $nin  : blacklist
     },{
       limit

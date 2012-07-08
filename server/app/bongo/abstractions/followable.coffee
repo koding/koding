@@ -1,8 +1,8 @@
 class Followable extends jraphical.Module
-  
+
   {dash} = bongo
   {Relationship} = jraphical
-  
+
   @set
     schema          :
       counts        :
@@ -14,7 +14,7 @@ class Followable extends jraphical.Module
           default   : 0
     relationships   :
       activity      : CActivity
-  
+
   count: bongo.secure (client, filter, callback)->
     unless @equals client.connection.delegate
       callback new Error 'Access denied'
@@ -26,11 +26,11 @@ class Followable extends jraphical.Module
           jraphical.Relationship.count targetId : @getId(), as : 'follower', callback
         else
           @constructor.count {}, callback
-  
+
   @someWithRelationship = bongo.secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
-  
+
   @markFollowing = bongo.secure (client, followables, callback)->
     jraphical.Relationship.all
       targetId : client.connection.delegate.getId()
@@ -44,12 +44,12 @@ class Followable extends jraphical.Module
             relationships.splice index,1
             break
       callback err, followables
-  
+
   follow: bongo.secure (client, options, callback)->
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
-    if @equals follower 
+    if @equals follower
       return callback(
         new KodingError("Can't follow yourself")
         @getAt('counts.followers')
@@ -67,6 +67,7 @@ class Followable extends jraphical.Module
         callback new KodingError('already following...'), count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
+
           if err
             callback err
           else
@@ -77,7 +78,7 @@ class Followable extends jraphical.Module
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
               newFollower     : follower
-      
+
             follower.updateFollowingCount()
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
@@ -87,6 +88,7 @@ class Followable extends jraphical.Module
                 if emitActivity
                   CBucket.addActivities relationship, @, follower, (err)->
                     if err
+                      # console.log "An Error occured: ", err
                       callback err
                     else
                       callback null, count
@@ -106,7 +108,7 @@ class Followable extends jraphical.Module
           followingCount  : @getAt('counts.following')
           oldFollower     : follower
         follower.updateFollowingCount()
-  
+
   fetchFollowing: (query, page, callback)->
     _.extend query,
       targetId  : @getId()
@@ -118,7 +120,7 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   fetchFollowers: (query, page, callback)->
     _.extend query,
       targetId  : @getId()
@@ -129,11 +131,11 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   fetchFollowersWithRelationship: bongo.secure (client, query, page, callback)->
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
-  
+
   fetchFollowingWithRelationship: bongo.secure (client, query, page, callback)->
     @fetchFollowing query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
@@ -148,7 +150,7 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   updateFollowingCount: ()->
     jraphical.Relationship.count targetId:@_id, as:'follower', (error, count)=>
       bongo.Model::update.call @, $set: 'counts.following': count, (err)->

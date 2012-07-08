@@ -8,14 +8,14 @@ class JTreeItemView extends KDListItemView
     super options, data
     @setClass "jtreeitem"
     @expanded = no
-  
+
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-    
+
     """
     <span class='icon'></span>
     {{#(title)}}
@@ -29,9 +29,9 @@ class JTreeItemView extends KDListItemView
 
     @expanded = yes
     @setClass "expanded"
-      
+
   collapse:(callback)->
-    
+
     @expanded = no
     @unsetClass "expanded"
 

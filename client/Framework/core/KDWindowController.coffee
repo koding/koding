@@ -73,7 +73,6 @@ class KDWindowController extends KDController
       @redirectMouseMoveEvent e
     , yes
 
-
     unless window.location.hostname is 'localhost'
       window.onbeforeunload = (event) =>
         event or= window.event

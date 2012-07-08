@@ -1,13 +1,13 @@
 class JPost extends jraphical.Message
-  
+
   @mixin Followable
   @::mixin Followable::
   @::mixin Taggable::
   @::mixin Notifying::
-  
+
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
-  
+
   schema = _.extend {}, jraphical.Message.schema, {
     counts        :
       followers   :
@@ -17,8 +17,7 @@ class JPost extends jraphical.Message
         type      : Number
         default   : 0
   }
-  
-  
+
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
     emitFollowingActivities: yes
@@ -37,7 +36,7 @@ class JPost extends jraphical.Message
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
-      likedBy         : 
+      likedBy         :
         targetType    : JAccount
         as            : 'like'
       repliesActivity :
@@ -49,7 +48,6 @@ class JPost extends jraphical.Message
       follower        :
         as            : 'follower'
         targetType    : JAccount
-    
 
   @getAuthorType =-> JAccount
 
@@ -257,8 +255,17 @@ class JPost extends jraphical.Message
                       relationship  : docs[0]
                     }
           else
-            callback new Error 'You already liked this.'
-  
+            callback new KodingError 'You already like this.'
+            ###
+            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+                console.log err
+              else
+                count ?= 1
+                @update ($set: 'meta.likes': count), callback
+            ###
+
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
