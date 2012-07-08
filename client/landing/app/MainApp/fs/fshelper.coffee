@@ -36,7 +36,7 @@ class FSHelper
     return date
 
   @parseLsOutput = (parentPaths, response) ->
-    log "ls response",response
+    # log "ls response",response
     data = []
     return data unless response
     strings = response.split '\n\n'
