@@ -2,7 +2,7 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JStatusUpdate       : "status update"
+    JStatusUpdate       : "status"
     JCodeSnip           : "code snippet"
     JQuestionActivity   : "question"
     JDiscussionActivity : "discussion"
@@ -28,11 +28,11 @@ class NotificationController extends KDObject
 
     # NOTIFICATION SAMPLES
 
-    # 1 - < user fullname > commented on your < activity type >.
-    # 2 - < user fullname > also commented on the < activity type > that you commented.
-    # 3 - < user fullname > liked your < activity type >.
+    # 1 - < actor fullname > commented on your < activity type >.
+    # 2 - < actor fullname > also commented on the < activity type > that you commented.
+    # 3 - < actor fullname > liked your < activity type >.
 
-    # 4 - < user fullname > just sent you a private message.
+    # 4 - < actor fullname > just sent you a private message.
 
     options = {}
     {origin, subject, actionType, replier, liker} = notification.contents

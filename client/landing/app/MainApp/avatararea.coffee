@@ -83,14 +83,16 @@ class AvatarAreaIconMenu extends KDView
   accountChanged:(account)->
     if KD.isLoggedIn()
       @unsetClass "invisible"
+      notificationsPopup = @avatarNotificationsPopup
+      messagesPopup      = @avatarMessagesPopup
       #do not remove the timeout it should give dom sometime before putting an extra load
-      @avatarNotificationsPopup.loaderTimeout = setTimeout =>
-        @avatarNotificationsPopup.listController.fetchNotificationTeasers()
-      ,3000
+      notificationsPopup.loaderTimeout = @utils.wait 5000, =>
+        notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
+          notificationsPopup.listController.instantiateListItems teasers
 
-      @avatarMessagesPopup.loaderTimeout = setTimeout =>
-        @avatarMessagesPopup.listController.fetchMessages()
-      ,3000
+      messagesPopup.loaderTimeout = @utils.wait 5000, =>
+        messagesPopup.listController.fetchMessages()
+
     else
       @setClass "invisible"
 
@@ -263,38 +265,42 @@ class AvatarPopupMessages extends AvatarPopup
       
 
 class PopupList extends KDListView
-  constructor:(options,data)->
-    options = $.extend
-      tagName   : "ul"
-      cssClass  : "avatararea-popup-list"
-    ,options
+
+  constructor:(options = {}, data)->
+    
+    options.tagName     or= "ul"
+    options.cssClass    or= "avatararea-popup-list"
+    options.lastToFirst or= yes
+  
     super options,data
   
 class PopupNotificationListItem extends NotificationListItem
-  constructor:(options,data)->
-    options = $.extend
-      tagName        : "li"
-      linkGroupClass : ProfileTextGroup
-      avatarClass    : AvatarStaticView
-    ,options
+  
+  constructor:(options = {}, data)->
+    
+    options.tagName        or= "li"
+    options.linkGroupClass or= ProfileTextGroup
+    options.avatarClass    or= AvatarStaticView
 
-    super options,data
+    super options, data
 
   pistachio:->
     """
+      <span class='icon'></span>
       <span class='avatar'>{{> @avatar}}</span>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(0.as)}} {{@getActivityPlot #(0.sourceName)}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
         <footer>
-          <time>{{$.timeago @getLatestTimeStamp #(0.timestamp)}}</time>
+          <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
         </footer>
       </div>
     """
+  
   click:(event)->
-    appManager.openApplication 'Inbox'
-    appManager.tell "Inbox", "goToNotifications", @
+
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    super
 
 
 class PopupMessageListItem extends KDListItemView

@@ -35,14 +35,10 @@ class CommentListViewController extends KDListViewController
     
     listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
 
-      listView.emit "BackgroundActivityStarted"
-
       # some problems when logged out server doesnt responds
       @utils.wait 5000, -> listView.emit "BackgroundActivityFinished"
       
       @fetchAllComments 0, (err, comments)=>
-        listView.emit "BackgroundActivityFinished"
-        listView.emit "AllCommentsWereAdded"
         @removeAllItems()
         @instantiateListItems comments
 
@@ -67,9 +63,14 @@ class CommentListViewController extends KDListViewController
       callback err,comments
   
   fetchAllComments:(skipCount=3, callback = noop)=>
-
+    
+    listView = @getListView()
+    listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
-    message.restComments skipCount, callback
+    message.restComments skipCount, (err, comments)=>
+      listView.emit "BackgroundActivityFinished"
+      listView.emit "AllCommentsWereAdded"
+      callback err, comments
   
   replaceAllComments:(comments)->
     @removeAllItems()
