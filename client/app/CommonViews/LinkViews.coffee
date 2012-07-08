@@ -49,9 +49,11 @@ class ProfileLinkView extends LinkView
   pistachio:->
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-  click:->
+  click:(event)->
     account = @getData()
     appManager.tell "Members", "createContentDisplay", account
+    event.stopPropagation()
+    no
 
 class TagLinkView extends LinkView
 
