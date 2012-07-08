@@ -404,6 +404,12 @@ h4.kdheaderview
       text-shadow         0 1px 0 #444
 
   &.tray
+    vendor                transition, bottom .3s ease-in-out
+    bottom                -100px
+  &.growl
+    vendor                transition, top .3s ease-in-out
+    top                   -100px
+  &.tray
   &.growl
     background-color      rgba(0,0,0,.4)
     .kdnotification-title
@@ -427,13 +433,19 @@ h4.kdheaderview
       bg                  position, -80px -540px
       sprite()
       &:hover
-        text-shadow       0 1px 0 #444
+        text-shadow       0 1px 0 #444        
     &.mini
       padding             5px 25px 5px 5px
       rounded             5px
       a.kdnotification-close
-        top               6px
-        right             4px
+        top               8px
+        right             7px
+        size              16px,16px
+        bg                position, -82px -542px
+        rounded           2px
+        &:hover
+          bg              position, -82px -522px
+          bg              color, white
       .kdnotification-title
         font-size         12px
         line-height       16px

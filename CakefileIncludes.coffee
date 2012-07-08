@@ -527,7 +527,7 @@ Includes =
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
         jqueryHash        : "./client/libs/jquery-hashchange.js"
-        jqueryAutoGrow    : "./client/libs/jquery-autogrow.js"
+        # jqueryAutoGrow    : "./client/libs/jquery-autogrow.js"
         jqueryTimeAgo     : "./client/libs/jquery-timeago.js"
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"

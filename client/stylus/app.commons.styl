@@ -1188,14 +1188,34 @@ figure.code-container
 
 
 .kdnotification.mini.realtime
-  .kdnotification-title
-    font-size         13px
+  max-width           180px
+  rounded             2px
+  padding-left        8px
+  text-shadow         0 1px 0 rgba(0, 0, 0, .5)
+  shadow              0 1px 5px rgba(0, 0, 0, .5)
+  bg                  color, rgba(0, 0, 0, .55)
+  border              1px solid rgba(0, 0, 0, 0.3)
+  .kdnotification-title span
+    size              20px, 12px
+    display           inline-block
+    sprite()
+  &.like
+    .kdnotification-title span
+      bg              position, -82px -604px
+  &.reply
+    .kdnotification-title span
+      bg              position, -82px -624px
 
+  .kdnotification-title
+    font-size         12px
+    line-height       20px
+
+  
   .kdnotification-content
     line-height       20px
 
-  a.kdnotification-close
-    position          absolute
+  a.kdnotification-close:hover
+    shadow            0 1px 0 rgba(0,0,0,.5)
 
 
 
