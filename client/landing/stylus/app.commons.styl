@@ -1092,18 +1092,17 @@ figure.code-container
     padding             10px
     margin              0
     overflow            visible
-    size                auto,auto
-    bg                  color,#2E2E2E
-    // rounded             4px 4px 0 0
-    rounded             4px
+    size                auto, auto
+    bg                  color, #2E2E2E
+    rounded             3px
     word-wrap           normal
     white-space         pre
-    min-height          56px
+    min-height          36px
     code
       max-height        250px
       overflow          auto
-      padding           6px 6px 15px 6px
-      bg                color,transparent
+      padding           6px
+      bg                color, transparent
   > strong
     position          absolute
     right             -1px
@@ -1119,22 +1118,25 @@ figure.code-container
   .button-bar
     position          absolute
     bg                color,transparent
-    // height            37px
-    top               27px
+    bottom            -30px
     right             6px
-    // border-top        1px solid rgba(255, 255, 255, 0.4)
-    // rounded           0 0 4px 4px
+    overflow          hidden
+    shadow            0 -1px 10px rgba(0,0,0,0.3)
+    vendor            transition, bottom .15s ease-in-out //.3s
     button
-      margin          5px 5px 0 0
-      vendor          transition, opacity .15s linear
-      opacity         0
-      fr()
-      &:hover
-        opacity       1
-  &:hover
-    .button-bar
-      button
-        opacity       .8
+      margin          0
+      rounded         0
+      border-width    1px 1px 0 1px
+      border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+      fl()
+      &:first-child
+        rounded       3px 0 0 0
+      &:last-child
+        rounded       0 3px 0 0
+        border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
+  &:hover .button-bar
+    bottom        0
 
 /* feed messages */
 .activity
