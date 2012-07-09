@@ -55,7 +55,12 @@ class ActivityActionsView extends KDView
         if KD.isLoggedIn()
           # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
-            log arguments, 'you like me!'
+            # log arguments, 'you like me!'
+            if err
+              new KDNotificationView
+                title     : "You already liked this!"
+                duration  : 1300
+            # FIXME Implement Unlike behaviour
             ###
             newCount = @likeCount.data.meta.likes
             if oldCount < newCount then @likeLink.updatePartial("Unlike")
