@@ -596,10 +596,10 @@ class KDView extends KDObject
         if "string" is typeof options.handle
           return if $(event.target).closest(options.handle).length is 0
 
-        top    = parseInt @$().css("top"), 10
-        right  = parseInt @$().css("right"), 10
-        bottom = parseInt @$().css("bottom"), 10
-        left   = parseInt @$().css("left"), 10
+        top    = parseInt @$()[0].style.top, 10
+        right  = parseInt @$()[0].style.right, 10
+        bottom = parseInt @$()[0].style.bottom, 10
+        left   = parseInt @$()[0].style.left, 10
 
         @dragState.startX     = event.pageX
         @dragState.startY     = event.pageY
@@ -607,8 +607,9 @@ class KDView extends KDObject
         @dragState.right      = right
         @dragState.bottom     = bottom
         @dragState.left       = left
-        @dragState.directionX = if isNaN right  then "left" else "right"
-        @dragState.directionY = if isNaN bottom then "top"  else "bottom"
+
+        @dragState.directionX = unless isNaN left then "left" else "right"
+        @dragState.directionY = unless isNaN top  then "top"  else "bottom"
 
         @getSingleton('windowController').setDragView @
         @emit "DragStarted", event, @dragState
