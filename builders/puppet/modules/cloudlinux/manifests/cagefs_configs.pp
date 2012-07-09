@@ -46,6 +46,11 @@ class cloudlinux::cagefs_configs {
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/python.cfg",
         require => [Class['hosting_packages::python'],Exec['cagefs_init']]
     }
+    file { "/etc/cagefs/conf.d/php.cfg":
+        source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/php.cfg",
+        require => [Class['hosting_packages::php'],Exec['cagefs_init']]
+    }
+
 
     file { "/etc/cagefs/conf.d/ruby.cfg":
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/ruby.cfg",
