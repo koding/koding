@@ -112,7 +112,10 @@ class ActivityItemChild extends KDView
 
     super
 
+    data = @getData()
+
     data.on 'TagsChanged', (tagRefs)=>
+      # log tagRefs, ">>>>>"
       bongo.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
@@ -127,7 +130,7 @@ class ActivityItemChild extends KDView
           parent      : @parent
           cssClass    : 'half-white'
 
-    @getData().watch 'repliesCount', (count)=>
+    data.watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
 
     @contentDisplayController = @getSingleton "contentDisplayController"
