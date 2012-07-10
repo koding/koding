@@ -26,7 +26,7 @@ class CommentView extends KDView
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
     
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
-
+    
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
@@ -43,8 +43,11 @@ class CommentView extends KDView
     @listenTo
       KDEventTypes : "CommentLinkReceivedClick"
       listenedToInstance : @commentList
-      callback : =>
+      callback : (pubInst, event) =>
         @commentForm.commentInput.setFocus()
+        
+    @commentList.on "CommentCountClicked", => 
+      @commentList.emit "AllCommentsLinkWasClicked"
 
     @listenTo
       KDEventTypes : "CommentViewShouldReset"

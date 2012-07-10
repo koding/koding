@@ -55,6 +55,12 @@ class CommentListItemView extends KDListItemView
         listenedToInstance : @deleteLink
         callback           : => @confirmDeleteComment data
   
+  render:->
+    # if @getData().getAt 'deletedAt'
+    #   @emit 'CommentIsDeleted'
+    @setTemplate @pistachio()
+    super
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -83,7 +89,7 @@ class CommentListItemView extends KDListItemView
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
-              unless err then @emit 'CommentIsDeleted'
+              unless err # then @emit 'CommentIsDeleted'
               else new KDNotificationView 
                 type     : "mini"
                 cssClass : "error editor"
@@ -91,8 +97,6 @@ class CommentListItemView extends KDListItemView
         # cancel       :
         #   style      : "modal-cancel"
         #   callback   : => modal.destroy()
-        
-    
   
   pistachio:->
     if @getData().getAt 'deletedAt'
