@@ -56,9 +56,12 @@ class CommentListItemView extends KDListItemView
         callback           : => @confirmDeleteComment data
   
   render:->
-    # if @getData().getAt 'deletedAt'
-    #   @emit 'CommentIsDeleted'
-    @setTemplate @pistachio()
+    if @getData().getAt 'deletedAt'
+      @setClass "deleted"
+      if @deleter
+        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+      else
+        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
     super
 
   viewAppended:->
@@ -99,17 +102,6 @@ class CommentListItemView extends KDListItemView
         #   callback   : => modal.destroy()
   
   pistachio:->
-    if @getData().getAt 'deletedAt'
-      @setClass "deleted"
-      if @deleter
-        """
-        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>
-        """
-      else
-        """
-        <div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>
-        """
-    else
       """
       <div class='item-content-comment clearfix'>
         <span class='avatar'>{{> @avatar}}</span>
