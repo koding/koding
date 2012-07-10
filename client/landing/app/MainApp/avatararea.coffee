@@ -7,9 +7,12 @@ class AvatarAreaIconLink extends KDCustomHTMLView
         href      : "#"
     ,options
     super options,data
+    @count = 0
   
   updateCount:(newCount = 0)->
+    
     @$('.count cite').text newCount
+    @count = newCount
 
     if newCount is 0
       @$('.count').removeClass "in"
@@ -64,21 +67,17 @@ class AvatarAreaIconMenu extends KDView
     @attachListeners()
   
   attachListeners:->
-    @avatarNotificationsPopup.listController.registerListener
-      KDEventTypes  : 'NotificationCountDidChange'
-      listener      : @ 
-      callback      : (publishingInstance, event)=>
-        {count} = event
-        clearTimeout @avatarNotificationsPopup.loaderTimeout
-        @notificationsIcon.updateCount count
 
-    @avatarMessagesPopup.listController.registerListener
-      KDEventTypes  : 'MessageCountDidChange'
-      listener      : @
-      callback      : (publishingInstance, event)=>
-        {count} = event
-        clearTimeout @avatarMessagesPopup.loaderTimeout
-        @messagesIcon.updateCount count
+    # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
+    #   @notificationsIcon.updateCount @notificationsIcon.count + 1
+
+    @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
+      @utils.killWait @avatarNotificationsPopup.loaderTimeout
+      @notificationsIcon.updateCount count
+
+    @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
+      @utils.killWait @avatarMessagesPopup.loaderTimeout
+      @messagesIcon.updateCount count
   
   accountChanged:(account)->
     if KD.isLoggedIn()

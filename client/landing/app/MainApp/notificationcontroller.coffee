@@ -22,6 +22,7 @@ class NotificationController extends KDObject
       channelName = 'private-'+nickname+'-private'
       bongo.mq.fetchChannel channelName, (channel)=>
         channel.on 'notification', (notification)=>
+          @emit "NotificationHasArrived", notification
           @prepareNotification notification
 
   prepareNotification: (notification)->
@@ -38,18 +39,23 @@ class NotificationController extends KDObject
     {origin, subject, actionType, replier, liker} = notification.contents
     isMine = origin._id is KD.whoami()._id
     actor  = replier or liker
-    log subject.id
     
     bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       
-      actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+      actorName        = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+      originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
+      if actorName is originatorName
+        originatorName = "their own"
+        separator      = ""
+      else
+        separator      = "'s"
       
       switch actionType
         when "reply"
           if isMine   # 1
             options.title = "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
           else        # 2
-            options.title = "#{actorName} also commented on the #{subjectMap()[subject.constructorName]} that you commented."
+            options.title = "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
         when "like"   # 3
           options.title = "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
 
