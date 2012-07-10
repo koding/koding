@@ -62,6 +62,7 @@ class CommentListItemView extends KDListItemView
         @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
       else
         @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
+      @emit 'CommentIsDeleted'
     super
 
   viewAppended:->
@@ -92,15 +93,13 @@ class CommentListItemView extends KDListItemView
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
-              unless err # then @emit 'CommentIsDeleted'
-              else new KDNotificationView 
+              # unless err then @emit 'CommentIsDeleted'
+              # else
+              if err then new KDNotificationView 
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
-  
+
   pistachio:->
       """
       <div class='item-content-comment clearfix'>
