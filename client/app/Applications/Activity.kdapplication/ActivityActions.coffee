@@ -3,7 +3,10 @@ class ActivityActionsView extends KDView
     super
     activity = @getData()
     @commentLink  = new ActivityActionLink    {partial : "Comment"}
-    @commentCount = new ActivityCommentCount  {}, activity
+    @commentCount = new ActivityCommentCount   
+      click       : =>
+        @getDelegate().emit "CommentCountClicked"
+    , activity
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
@@ -70,8 +73,8 @@ class ActivityActionsView extends KDView
     @commentLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
-      callback      : ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
+      callback      : (pubInst, event) ->
+        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
