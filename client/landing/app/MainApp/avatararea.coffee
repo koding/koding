@@ -218,6 +218,10 @@ class AvatarPopupNotifications extends AvatarPopup
         appManager.tell 'Inbox', "goToNotifications"
         @hide()
 
+  show:->
+    super
+    KD.whoami().glanceActivities -> console.log arguments
+    
 class AvatarPopupMessages extends AvatarPopup
   
   viewAppended:->
@@ -262,7 +266,7 @@ class AvatarPopupMessages extends AvatarPopup
   show:->
     super
     @listController.fetchMessages()
-      
+    KD.whoami().glanceMessages -> console.log arguments
 
 class PopupList extends KDListView
 
