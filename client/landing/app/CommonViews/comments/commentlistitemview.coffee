@@ -57,12 +57,8 @@ class CommentListItemView extends KDListItemView
   
   render:->
     if @getData().getAt 'deletedAt'
-      @setClass "deleted"
-      if @deleter
-        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
-      else
-        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
       @emit 'CommentIsDeleted'
+    @setTemplate @pistachio()
     super
 
   viewAppended:->
@@ -99,8 +95,18 @@ class CommentListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-
+        # cancel       :
+        #   style      : "modal-cancel"
+        #   callback   : => modal.destroy()
+  
   pistachio:->
+    if @getData().getAt 'deletedAt'
+      @setClass "deleted"
+      if @deleter
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+      else
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
+    else
       """
       <div class='item-content-comment clearfix'>
         <span class='avatar'>{{> @avatar}}</span>
@@ -114,45 +120,3 @@ class CommentListItemView extends KDListItemView
         </div>
       </div>
       """
-  
-  # updatePartial:->
-  #   data = @getData()
-  #   # return unless 'object' is typeof data # TODO: hack
-  #   super
-  #   @_partialUpdated = yes
-  # 
-  #   title = new Date(data.meta.createdAt).format 'h:MM TT "<cite>"mmm d, yyyy"</cite>"'
-  #   @$('time').twipsy title : title, placement : "right", offset : 5, delayIn : 300, html : yes, animate : yes
-  # 
-  # partial:(comment, account)->
-  #   return unless "object" is typeof comment
-  #   unless account
-  #     account =
-  #       profile:
-  #         fullname: 'Loading...'
-  #         username: 'Loading...'
-  #         avatar  : ''
-  #         hash    : ''
-  #     fallbackUrl = ""
-  #     title = "Default avatar"
-  #     profile = account.profile
-  #   else
-  #     profile = account.profile
-  #     host = "http://#{location.host}/"
-  #     fallbackUrl = "url(http://www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
-  #     title = "#{profile.firstName} #{profile.lastName}'s avatar"
-  # 
-  #   """
-  #     <div class='item-content-comment clearfix'>
-  #       <span class='avatar'>
-  #         <a href='/#' title='#{title}' style='background-image:#{fallbackUrl}'></a>
-  #       </span>
-  #       <div class='comment-contents clearfix'>
-  #         <p class='comment-body'>
-  #           <a class='user-fullname' title='#{profile.firstName} #{profile.lastName}' href='/#/profile/#{profile.username}'>#{profile.firstName} #{profile.lastName}:</a>
-  #           <span>#{__utils.applyTextExpansions comment.body}</span>
-  #         </p>
-  #         <time>#{$.timeago new Date(comment.meta.createdAt)}</time>
-  #       </div>
-  #     </div>
-  #   """
