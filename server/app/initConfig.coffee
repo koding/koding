@@ -31,7 +31,7 @@ dbCallback= (err)->
 
 dbUrl = switch process.argv[3] or 'local'
   when "local"
-    "mongodb://localhost:27017/kodingen3?auto_reconnect"
+    "mongodb://localhost:27017/koding?auto_reconnect"
   when "sinan"
     "mongodb://localhost:27017/kodingen?auto_reconnect"
   when "vpn"

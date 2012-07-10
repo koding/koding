@@ -19,6 +19,7 @@ module.exports = class EmailQueue extends EventEmitter
     @tasks[taskName].stop()
   
   removeItem:(notification)->
+    console.log 'Attempting to remove an item.', notification._id
     @notifications.removeById notification._id, (err)->
       if err
         console.log 'There was an error deleting the queued notification'
@@ -26,8 +27,11 @@ module.exports = class EmailQueue extends EventEmitter
       else
         console.log 'Notification is removed'
   
-  next:->
-    if ++@index is @length then @emit 'QueueIsEmpty', @length
+  markAsAttempted:(notification)->
+    @notifications.update {_id: notification._id}, {$set: status: 'attempted'},
+      (err)-> if err then console.log 'There was an error', err
+  
+  next:-> if ++@index is @length then @emit 'QueueIsEmpty', @length
   
   populateObjectRefs:(ctx, callback)->
     objectRefs = []
@@ -36,14 +40,15 @@ module.exports = class EmailQueue extends EventEmitter
       if ObjectRef.isObjectRef(value)
         objectRefs.push =>
           ObjectRef.populate @db, value, (err, populated)->
-            populated._constructorName = value.constructorName
-            ctx[key] = populated
+            if populated?
+              populated._constructorName = value.constructorName
+              ctx[key] = populated
             objectRefs.fin()
     dash objectRefs, callback
 
   forEach:(callback)->
     @index = 0
-    @notifications.find {}, (err, cursor)=>
+    @notifications.find status: 'queued', (err, cursor)=>
       if err
         callback err
       else cursor.count (err, count)=>

@@ -9,7 +9,7 @@ class JAccount extends jraphical.Module
   @::mixin Notifiable::
   
 
-  {ObjectId,secure,race} = bongo
+  {ObjectId,secure,race,dash} = bongo
   {Relationship} = jraphical
   @share()
   Experience = 
@@ -43,7 +43,7 @@ class JAccount extends jraphical.Module
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
         'fetchFollowedTopics', 'tellKite2','fetchKiteChannelId'
-        'fetchNonces'
+        'fetchNonces', 'glanceMessages', 'glanceActivities'
       ]
     schema                  :
       skillTags             : [String]
@@ -149,7 +149,7 @@ class JAccount extends jraphical.Module
   # 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
-
+    
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
@@ -175,7 +175,7 @@ class JAccount extends jraphical.Module
           results.push doc.profile.fullname
         callback err, results
   
-  # fetchNonce: bongo.secure (client, callback)->
+  # fetchNonce: secure (client, callback)->
   #   {delegate} = client.connection
   #   unless @equals delegate
   #     callback new KodingError 'Access denied.'
@@ -192,7 +192,18 @@ class JAccount extends jraphical.Module
   #             else
   #               callback null, nonce
   
-  fetchNonces: bongo.secure (client, callback)->
+  glanceMessages: secure (client, callback)-> console.log 'glancing messages'
+  
+  glanceActivities: secure (client, callback)->
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
+      if err
+        callback err
+      else
+        queue = activities.map (activity)->
+          -> activity.mark client, 'glanced', -> queue.fin()
+        dash queue, callback
+  
+  fetchNonces: secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
       callback new KodingError 'Access denied.'
@@ -209,7 +220,7 @@ class JAccount extends jraphical.Module
               else
                 callback null, nonces
   
-  fetchKiteIds: bongo.secure ({connection}, options, callback)->
+  fetchKiteIds: secure ({connection}, options, callback)->
     {kiteName} = options
     {hostname} = kiteConfig.kites[kiteName]
     if kiteName in ["sharedHosting","terminaljs","fsWatcher"]
@@ -222,14 +233,14 @@ class JAccount extends jraphical.Module
         if err then console.dir err else
           callback? null,kiteIds
   
-  fetchKiteChannelId: bongo.secure (client, kiteName, callback)->
+  fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
   
-  tellKite2: bongo.secure bongo.useMQ (client, channelId, args, callback)->
+  tellKite2: secure bongo.useMQ (client, channelId, args, callback)->
     {delegate} = client.connection
     {kiteId, toDo} = args
     unless delegate instanceof JAccount
@@ -355,7 +366,7 @@ class JAccount extends jraphical.Module
                 else
                   callback err        
                   
-  tellKite: bongo.secure ({connection}, options, callback)->
+  tellKite: secure ({connection}, options, callback)->
 
     #
     # USAGE :
@@ -412,17 +423,16 @@ class JAccount extends jraphical.Module
               else
                 callback null, messages
   
-  fetchNotificationsTimeline: bongo.secure ({connection}, selector, options, callback)->
+  fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
   
-  fetchActivityTeasers : bongo.secure ({connection}, selector, options, callback)->
+  fetchActivityTeasers : secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
-      debugger
       @fetchActivities selector, options, callback
         #@constructor.collectTeasersAllCallback (err, items)->
 #        console.log 'grrr', arguments
@@ -453,26 +463,26 @@ class JAccount extends jraphical.Module
         #       }
         #   callback null, items.filter (item)-> item.length > 0
 
-  update: bongo.secure (client, changes, callback) ->
+  update: secure (client, changes, callback) ->
     if client.connection.delegate.equals @
       jraphical.Module::update.call @, changes, callback
 
   oldFetchMounts = @::fetchMounts
-  fetchMounts: bongo.secure (client,callback)->
+  fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchMounts.call @,callback
     else
       callback new KodingError "access denied for guest."
 
   oldFetchRepos = @::fetchRepos  
-  fetchRepos: bongo.secure (client,callback)->
+  fetchRepos: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchRepos.call @,callback
     else
       callback new KodingError "access denied for guest."    
 
   oldFetchDatabases = @::fetchDatabases  
-  fetchDatabases: bongo.secure (client,callback)->
+  fetchDatabases: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchDatabases.call @,callback
     else
@@ -500,7 +510,7 @@ class JAccount extends jraphical.Module
               else
                 callback null,environment    
   
-  getDefaultEnvironment: bongo.secure (client, callback)->
+  getDefaultEnvironment: secure (client, callback)->
     unless @equals client.connection.delegate
       return callback null, 'Not enough privileges'
 
@@ -513,7 +523,7 @@ class JAccount extends jraphical.Module
     {profile} = @data
     profile.firstName+' '+profile.lastName
   
-  fetchStorage: bongo.secure (client, options, callback)->
+  fetchStorage: secure (client, options, callback)->
     account = @
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"

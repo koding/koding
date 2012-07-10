@@ -5,7 +5,7 @@ postmark  = require('postmark') argv.p
 
 populateTemplate =(message, callback)->
   {event} = message.notification
-  template = nodePath.join('../templates/', event)
+  template = nodePath.join '../templates/', event.toLowerCase()
   try
     injected = require template
   catch e
@@ -18,8 +18,8 @@ process.on 'message', (message)->
     if err
       console.log 'THERE WAS AN ERROR:', err
     else
-      injectedMessage.To    = message.notification.email
-      injectedMessage.From  = 'hi@koding.com'
+      console.log 'SENDING A MESSAGE TO POSTMARK'
+      process.send 'ATTEMPTING'
       postmark.send injectedMessage, ->
         console.log 'RESPONSE FROM POSTMARK', arguments
         process.send 'FINISHED'

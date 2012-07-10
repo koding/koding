@@ -61,7 +61,7 @@ Includes =
 
       Models :
         jchannel                  : "./server/app/bongo/models/channel.coffee"
-
+        jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
         jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
         # bongo models:
         # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
@@ -75,8 +75,6 @@ Includes =
 
         # activity redo:
 
-        cactivity                 : "./server/app/bongo/models/activity.coffee"
-        cbucket                   : "./server/app/bongo/models/bucket.coffee"
 
         # abstractions
         followable                : "./server/app/bongo/abstractions/followable.coffee"
@@ -84,6 +82,12 @@ Includes =
         taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
         notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
+        flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
+        
+        
+        cactivity                 : "./server/app/bongo/models/activity.coffee"
+        cbucket                   : "./server/app/bongo/models/bucket.coffee"
+        
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"

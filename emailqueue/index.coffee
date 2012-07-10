@@ -15,6 +15,8 @@ process.on 'uncaughtException', (err)->
 
 queue.scheduleTask 'Instant updates from Koding', '*/10 * * * * *', ->
   worker = new EmailWorker config
+  worker.on 'SendAttempt', (notification)->
+    queue.markAsAttempted notification
   queue.once 'QueueIsEmpty', (length)->
     console.log 'The queue is empty', length
     setTimeout (-> worker.kill()), 500

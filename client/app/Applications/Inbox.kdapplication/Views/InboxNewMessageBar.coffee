@@ -81,7 +81,7 @@ class InboxNewMessageBar extends KDView
       selectedItemClass   : MemberAutoCompletedItemView
       outputWrapper       : recipientsWrapper
       form                : modal.modalTabs.forms.sendForm
-      itemDataPath        : "profile.nickname"
+      # itemDataPath        : "profile.nickname"
       listWrapperCssClass : "users"
       dataSource          : (args, callback)=>
         {inputValue} = args

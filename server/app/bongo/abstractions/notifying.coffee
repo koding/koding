@@ -39,7 +39,7 @@ class Notifying
             notification = new JEmailNotification email, receiver, event, contents
             notification.save (err)->
               if err
-                console.log "There was an error saving the notification."
+                console.log "There was an error saving the notification.", err, err.errors
 
   notifyOriginWhen:(events...)->
     @setNotifiers events, (event, contents)=>
