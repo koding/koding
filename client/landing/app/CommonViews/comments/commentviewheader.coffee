@@ -53,7 +53,7 @@ class CommentViewHeader extends JView
   ownCommentDeleted:->
     if @newCount > 0
       @newCount++
-
+    
   render:->
 
     # Get correct number of items in list from controller
@@ -97,7 +97,10 @@ class CommentViewHeader extends JView
     else
       @newItemsLink.unsetClass('in')
 
-    if @onListCount is @oldCount
+    if @onListCount > @oldCount
+      @onListCount = @oldCount
+
+    if @onListCount is @oldCount and @newCount is 0
       @hide()
     else
       @show()
