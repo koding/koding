@@ -37,7 +37,7 @@ class MessagesListController extends KDListViewController
       for message in messages
         unreadCount++ unless message.flags_?.read
           
-      @propagateEvent KDEventType : "MessageCountDidChange", {count : unreadCount}
+      @emit "MessageCountDidChange", unreadCount
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
@@ -58,8 +58,8 @@ class MessagesListController extends KDListViewController
       if err
         warn "There was a problem fetching notifications!",err
       else
-        @propagateEvent KDEventType : 'NotificationCountDidChange', {count : items.length}
         callback? items
+        @emit 'NotificationCountDidChange', items.length
 
 
 class NotificationListItem extends KDListItemView
@@ -91,7 +91,7 @@ class NotificationListItem extends KDListItemView
 
     @setClass bucketNameMap()[data.bongo_.constructorName]
     
-    @snapshot = JSON.parse data.snapshot.replace /\&quot;/g, "\""
+    @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
         
     # group = data.map (participant)->
     #   constructorName : participant.targetOriginName
