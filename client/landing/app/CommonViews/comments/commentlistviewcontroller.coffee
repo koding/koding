@@ -30,7 +30,6 @@ class CommentListViewController extends KDListViewController
 
     listView.on 'ItemWasAdded', (view, index)=>
       view.on 'CommentIsDeleted', ->
-        log "I JUST EMMITED!!"
         listView.emit "CommentIsDeleted"
     
     listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
