@@ -64,7 +64,6 @@ class ActivityStatusUpdateWidget extends KDFormView
       selectedItemsLimit  : 5
       listWrapperCssClass : "tags"
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         updateWidget = @getDelegate()
