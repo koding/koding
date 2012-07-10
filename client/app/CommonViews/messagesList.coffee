@@ -55,12 +55,9 @@ class MessagesListController extends KDListViewController
       if err
         warn "There was a problem fetching notifications!",err
       else
-        unglanced = items.filter (item)-> item.flags_?.glanced isnt yes
-        @propagateEvent KDEventType : 'NotificationCountDidChange', {
-          count : unglanced.length
-        }
+        unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
+        @emit 'NotificationCountDidChange', unglanced.length
         callback? items
-        @emit 'NotificationCountDidChange', items.length
 
 class NotificationListItem extends KDListItemView
 

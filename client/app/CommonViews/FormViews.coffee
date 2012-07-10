@@ -366,6 +366,7 @@ class PersonalFormSkillTagView extends KDFormView
       name                : "skillTags"
       cssClass            : 'skilltag-form'
       type                : "tags"
+      itemDataPath        : 'title'
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : SkillTagAutoCompletedItem
       outputWrapper       : tagWrapper

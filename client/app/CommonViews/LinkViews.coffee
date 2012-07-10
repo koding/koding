@@ -105,12 +105,10 @@ class LinkGroup extends KDCustomHTMLView
       @render()
 
   itemClass:(options, data)->
-
     new (@getOptions().subItemClass) options, data
 
   createParticipantSubviews:->
     participants = @getData()
-    console.log participants
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()

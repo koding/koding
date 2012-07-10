@@ -28,7 +28,7 @@ class Notifying
         channel.emit 'notification', {event, contents}
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
-      console.log 'There was an error adding bucket activities', err.toString?() if err
+      console.log 'There was an error adding bucket activities'
       if receiver instanceof JAccount
         username = receiver.getAt('profile.nickname')
         JUser.someData {username}, {email: 1}, (err, cursor)->
@@ -36,7 +36,12 @@ class Notifying
             console.log "Could not load user record for #{username}"
           else cursor.nextObject (err, user)->
             {email} = user
-            notification = new JEmailNotification email, receiver, event, contents
+            notification = new JEmailNotification(
+              email
+              receiver
+              event
+              contents
+            )
             notification.save (err)->
               if err
                 console.log "There was an error saving the notification.", err, err.errors
