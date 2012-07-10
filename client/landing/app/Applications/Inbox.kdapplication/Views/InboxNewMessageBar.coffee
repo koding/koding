@@ -81,12 +81,12 @@ class InboxNewMessageBar extends KDView
       selectedItemClass   : MemberAutoCompletedItemView
       outputWrapper       : recipientsWrapper
       form                : modal.modalTabs.forms.sendForm
-      # itemDataPath        : "profile.nickname"
+      itemDataPath        : "profile.nickname"
       listWrapperCssClass : "users"
+      submitValuesAsText  : yes
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in recipient.getSelectedItemData())
-        # callback []
         @propagateEvent KDEventType : "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
 
     toField.addSubView recipient.getView()

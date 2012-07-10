@@ -78,6 +78,9 @@ class AvatarAreaIconMenu extends KDView
     @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
       @utils.killWait @avatarMessagesPopup.loaderTimeout
       @messagesIcon.updateCount count
+    
+    @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
+      @notificationsIcon.updateCount 0
   
   accountChanged:(account)->
     if KD.isLoggedIn()
@@ -219,7 +222,7 @@ class AvatarPopupNotifications extends AvatarPopup
 
   show:->
     super
-    KD.whoami().glanceActivities -> console.log arguments
+    KD.whoami().glanceActivities ->
     
 class AvatarPopupMessages extends AvatarPopup
   
@@ -265,7 +268,7 @@ class AvatarPopupMessages extends AvatarPopup
   show:->
     super
     @listController.fetchMessages()
-    KD.whoami().glanceMessages -> console.log arguments
+    KD.whoami().glanceMessages ->
 
 class PopupList extends KDListView
 
