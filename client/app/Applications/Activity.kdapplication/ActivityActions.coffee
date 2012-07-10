@@ -3,7 +3,10 @@ class ActivityActionsView extends KDView
     super
     activity = @getData()
     @commentLink  = new ActivityActionLink    {partial : "Comment"}
-    @commentCount = new ActivityCommentCount  {}, activity
+    @commentCount = new ActivityCommentCount   
+      click       : =>
+        @getDelegate().emit "CommentCountClicked"
+    , activity
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
@@ -55,7 +58,12 @@ class ActivityActionsView extends KDView
         if KD.isLoggedIn()
           # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
-            log arguments, 'you like me!'
+            # log arguments, 'you like me!'
+            if err
+              new KDNotificationView
+                title     : "You already liked this!"
+                duration  : 1300
+            # FIXME Implement Unlike behaviour
             ###
             newCount = @likeCount.data.meta.likes
             if oldCount < newCount then @likeLink.updatePartial("Unlike")
@@ -65,8 +73,8 @@ class ActivityActionsView extends KDView
     @commentLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
-      callback      : ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
+      callback      : (pubInst, event) ->
+        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
