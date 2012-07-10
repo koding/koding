@@ -6,10 +6,13 @@ class CommentViewHeader extends JView
 
     super options, data
 
-    @newCount    = 0
-    @onListCount = 0
+    @maxCommentToShow       = 3
+    @oldCount               = data.repliesCount
+    @newCount               = 0
+    @allCommentsLinkClicked = no
+    @onListCount            = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
-    unless data.repliesCount? and data.repliesCount > 3
+    unless data.repliesCount? and data.repliesCount > @maxCommentToShow
       @onListCount = data.repliesCount
       @hide()
 
@@ -19,7 +22,6 @@ class CommentViewHeader extends JView
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()
-      @hide()
 
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
@@ -30,40 +32,78 @@ class CommentViewHeader extends JView
 
     @newItemsLink = new KDCustomHTMLView
       tagName   : "a"
-      cssClass  : "new-count"
+      cssClass  : "new-items"
       click     : => list.emit "AllCommentsLinkWasClicked", @
 
   ownCommentArrived:->
+    
+    # log "OWNCOMMENTARRIVED"
 
     @onListCount++
-    @newCount--
+
+    # If there are same number of comments in list with total 
+    # comment size means we don't need to show new item count
+    if @onListCount is @getData().repliesCount
+      @newItemsLink.unsetClass('in')
+    else
+      @newItemsLink.setClass('in')
+
+    # If its our comments so it's not a new comment
+    if @newCount > 0 then @newCount--
+
     @updateNewCount()
 
   render:->
 
-    @show() if @getData().repliesCount > 3
-    # this sucks if a comment is deleted
-    @newCount++
-    @utils.wait => @updateNewCount()
-    super
+    # log "RENDER"
 
-  hide:->
+    # Show View all bla bla link if there are more comments
+    # than maxCommentToShow
+    @show() if @getData().repliesCount > @maxCommentToShow and @onListCount < @getData.repliesCount
 
-    @$().slideUp 150
+    # Check the oldCount before update anything
+    # if its less means someone deleted a comment
+    # otherwise it meanse we have a new comment
+    # if nothing changed it means user clicked like button
+    # so we don't need to touch anything
+    if @getData().repliesCount > @oldCount
+      # log "ITEM ADDED"
+      @newCount++
+    else if @getData().repliesCount < @oldCount
+      # log "ITEM DELETED"
+      if @newCount > 0 then @newCount--
+      if @onListCount > 0 then @onListCount--
+    else
+      # log "LIKE CLICKED"
+
+    # If the count is changed then we need to update UI
+    if @getData().repliesCount isnt @oldCount
+      @oldCount = @getData().repliesCount
+      @utils.wait => @updateNewCount()
     super
 
   updateNewCount:->
 
-    # log @newCount, @onListCount
+    # log "UPDATENEWCOUNT", @onListCount, @newCount
+    
+    # If there is no comments so we can not have new comments
+    if @getData.repliesCount == 0 then @newCount = 0
 
-    if @newCount > 0
+    # If we have comments more than 0 we should show the new item link
+    else if @newCount > 0 and @newCount isnt @getData.repliesCount
       @show()
       @newItemsLink.updatePartial "#{@newCount} new"
+      @newItemsLink.setClass('in')
     else
-      @newItemsLink.setPartial ""
+      @newItemsLink.unsetClass('in')
+      if @onListCount is @oldCount
+        @hide()
+
+  hide:->
+    @$().slideUp 150
+    super
 
   show:->
-
     @$().slideDown 150
     super
 
