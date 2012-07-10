@@ -56,8 +56,8 @@ class CommentListItemView extends KDListItemView
         callback           : => @confirmDeleteComment data
   
   render:->
-    # if @getData().getAt 'deletedAt'
-    #   @emit 'CommentIsDeleted'
+    if @getData().getAt 'deletedAt'
+      @emit 'CommentIsDeleted'
     @setTemplate @pistachio()
     super
 
@@ -89,8 +89,9 @@ class CommentListItemView extends KDListItemView
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
-              unless err # then @emit 'CommentIsDeleted'
-              else new KDNotificationView 
+              # unless err then @emit 'CommentIsDeleted'
+              # else
+              if err then new KDNotificationView 
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
