@@ -27,11 +27,11 @@ class CommentListViewController extends KDListViewController
 
   startListeners:->
     listView = @getListView()
-    
-    # listView.on 'ItemWasAdded', (view, index)=>
-      # view.on 'CommentIsDeleted', ->
-        # view.setClass "deleted"
-        # view.$().html "<div class='item-content-comment clearfix'><span>This comment has been deleted.</span></div>"
+
+    listView.on 'ItemWasAdded', (view, index)=>
+      view.on 'CommentIsDeleted', ->
+        log "I JUST EMMITED!!"
+        listView.emit "CommentIsDeleted"
     
     listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
 
