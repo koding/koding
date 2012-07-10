@@ -67,14 +67,14 @@ class CommentViewHeader extends JView
     # if nothing changed it means user clicked like button
     # so we don't need to touch anything
     if @getData().repliesCount > @oldCount
-      log "ITEM ADDED"
+      # log "ITEM ADDED"
       @newCount++
     else if @getData().repliesCount < @oldCount
-      log "ITEM DELETED"
+      # log "ITEM DELETED"
       if @newCount > 0 then @newCount--
       if @onListCount > 0 then @onListCount--
     else
-      log "LIKE CLICKED"
+      # log "LIKE CLICKED"
 
     # If the count is changed then we need to update UI
     if @getData().repliesCount isnt @oldCount
