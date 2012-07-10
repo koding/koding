@@ -154,7 +154,6 @@ class Apps12345 extends AppController
       outputWrapper       : selectedItemWrapper
       listWrapperCssClass : "tags"
       form                : forms['Technical Stuff']
-      itemDataPath        : "title"
       valuesSavedAsString : yes
       dataSource          : (args, callback)=>
         {inputValue} = args

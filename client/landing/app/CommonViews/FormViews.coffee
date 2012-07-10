@@ -371,7 +371,6 @@ class PersonalFormSkillTagView extends KDFormView
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)
