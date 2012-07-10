@@ -58,7 +58,8 @@ class CommentViewHeader extends JView
 
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    @onListCount = @parent.commentController.getItemCount()
+    if @parent.commentController.getItemCount()
+      @onListCount = @parent.commentController.getItemCount()
     
     _newCount = @getData().repliesCount
 
@@ -72,10 +73,8 @@ class CommentViewHeader extends JView
     # if nothing changed it means user clicked like button
     # so we don't need to touch anything
     if _newCount > @oldCount
-      # log "ITEM ADDED"
       @newCount++
     else if _newCount < @oldCount
-      # log "ITEM DELETED"
       if @newCount > 0 then @newCount--
     
     # If the count is changed then we need to update UI
@@ -88,17 +87,20 @@ class CommentViewHeader extends JView
   updateNewCount:->
 
     # If there is no comments so we can not have new comments
-    if @oldCount == 0 then @newCount = 0
+    if @oldCount is 0 then @newCount = 0
 
     # If we have comments more than 0 we should show the new item link
-    if @newCount > 0 and @newCount isnt @oldCount
+    if @newCount > 0
       @show()
       @newItemsLink.updatePartial "#{@newCount} new"
       @newItemsLink.setClass('in')
     else
       @newItemsLink.unsetClass('in')
-      if @onListCount is @oldCount
-        @hide
+
+    if @onListCount is @oldCount
+      @hide()
+    else
+      @show()
       
   hide:->
     @$().slideUp 150
