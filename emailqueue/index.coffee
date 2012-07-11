@@ -23,7 +23,8 @@ queue.scheduleTask 'Instant updates from Koding', '*/10 * * * * *', ->
   queue.forEach (err, notification, user)->
     if err then console.log err
     else if notification? and user?
-      emailFrequency = user.emailFrequency?[notification.event] or 'instant'
+      {emailFrequency} = user
+      emailFrequency = emailFrequency?[notification.event] or emailFrequency?.global or 'instant'
       if emailFrequency is 'never'
         queue.removeItem notification
       else if emailFrequency is 'instant'

@@ -17,7 +17,6 @@ class Members12345 extends AppController
 
 
   createFeed:(view)->
-
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -162,11 +161,7 @@ class MembersListViewController extends KDListViewController
     log mainView
     super
 
-    @listenTo
-      KDEventTypes        : 'itemWasAdded'
-      listenedToInstance  : @getListView()
-      callback            : (pubInst, {view})=>
-        @addListenersForItem view
+    @getListView().on 'ItemWasAdded', (view)=> @addListenersForItem view
 
   addItem:(member, index, animation = null) ->
     @getListView().addItem member, index, animation
