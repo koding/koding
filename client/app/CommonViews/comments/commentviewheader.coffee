@@ -2,9 +2,12 @@ class CommentViewHeader extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "show-more-comments"
+    options.cssClass       = "show-more-comments"
+    options.itemTypeString = options.itemTypeString or "comments"
 
     super options, data
+
+    data = @getData()
 
     @maxCommentToShow = 3
     @oldCount         = data.repliesCount
@@ -26,7 +29,7 @@ class CommentViewHeader extends JView
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
-      pistachio : "View all {{#(repliesCount)}} comments..."
+      pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
       click     : => list.emit "AllCommentsLinkWasClicked", @
     , data
 
@@ -39,7 +42,7 @@ class CommentViewHeader extends JView
     
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    @onListCount = @parent.commentController.getItemCount()
+    @onListCount = @parent.commentController?.getItemCount?()
 
     # If there are same number of comments in list with total 
     # comment size means we don't need to show new item count
@@ -56,9 +59,10 @@ class CommentViewHeader extends JView
     
   render:->
 
+    log "HERE IS: ", @parent
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    if @parent.commentController.getItemCount()
+    if @parent.commentController?.getItemCount?()
       @onListCount = @parent.commentController.getItemCount()
     
     _newCount = @getData().repliesCount
