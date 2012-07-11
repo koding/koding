@@ -6,7 +6,7 @@ class InboxMessageThreadView extends CommentView
   
   createSubViews:(data)->
 
-    @commentList = new CommentListView
+    @commentList = new KDListView
       type          : "comments"
       subItemClass  : InboxMessageReplyView
       delegate      : @

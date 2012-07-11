@@ -59,11 +59,11 @@ class ActivityCodeSnippetWidget extends KDFormView
       type                : "tags"
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : TagAutoCompletedItemView
+      itemDataPath        : 'title'
       outputWrapper       : @selectedItemWrapper
       selectedItemsLimit  : 5
       listWrapperCssClass : "tags"
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         updateWidget = @getDelegate()

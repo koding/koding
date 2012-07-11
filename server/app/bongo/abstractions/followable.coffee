@@ -3,17 +3,14 @@ class Followable extends jraphical.Module
   {dash} = bongo
   {Relationship} = jraphical
 
-  @set
-    schema          :
-      counts        :
-        followers   :
-          type      : Number
-          default   : 0
-        following   :
-          type      : Number
-          default   : 0
-    relationships   :
-      activity      : CActivity
+  @schema =
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
 
   count: bongo.secure (client, filter, callback)->
     unless @equals client.connection.delegate

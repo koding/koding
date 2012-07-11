@@ -1,6 +1,7 @@
+{EventEmitter} = require 'events'
 {fork} = require 'child_process'
 
-module.exports = class EmailWorker
+module.exports = class EmailWorker extends EventEmitter
 
   constructor:(@config)->
     flags = ['-p', config.postmark.apiKey, '--sharedHosting']
@@ -10,7 +11,8 @@ module.exports = class EmailWorker
     @child.send {notification, user}
     @child.once 'message', (message)=>
       switch message
-        when 'FINISHED' then callback null
+        when 'ATTEMPTING'   then @emit 'SendAttempt', notification
+        when 'FINISHED'     then callback null
         else
           callback new Error 'Really bad error.  Seriously.'
   

@@ -105,19 +105,18 @@ class LinkGroup extends KDCustomHTMLView
       @render()
 
   itemClass:(options, data)->
-
     new (@getOptions().subItemClass) options, data
 
   createParticipantSubviews:->
-
     participants = @getData()
+    # log "createParticipantSubviews",participants
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-
+    # log "in pistachio again",">>>>>>>>>>>>>>"
     participants = @getData()
     {hasMore, totalCount, group} = @getOptions()
 
@@ -142,13 +141,14 @@ class LinkGroup extends KDCustomHTMLView
       else "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @more}}"
 
   render:->
-
+    # log "rendering",">>>>>>>>>>>>>>"
     @createParticipantSubviews()
+
 
 class ActivityChildViewTagGroup extends LinkGroup
 
   pistachio:->
-
+    # log "in pistachio again",">>>>>>>>>>>>>>"
     participants = @getData()
     {hasMore, totalCount, group} = @getOptions()
 

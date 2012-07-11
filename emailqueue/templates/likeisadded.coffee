@@ -2,18 +2,18 @@ nicenames = require '../nicenames'
 
 module.exports = (data)->
   {receiver, email} = data.notification
-  {reply, replier, subject} = data.notification.contents
+  {liker, subject} = data.notification.contents
   messageType = nicenames[subject._constructorName]
   {
     To        : email
     From      : 'hi@koding.com'
     Subject   : 
-      "[Koding] #{replier.profile.firstName} #{replier.profile.lastName} replied to your #{messageType}"
+      "[Koding] #{liker.profile.firstName} #{liker.profile.lastName} liked to your #{messageType}"
     TextBody  :
       """
       Hey-o #{receiver.profile.firstName} #{receiver.profile.lastName},
 
-      #{replier.profile.firstName} #{replier.profile.lastName} replied to your #{messageType}.
+      #{liker.profile.firstName} #{liker.profile.lastName} liked to your #{messageType}.
 
       That's all I know.
 

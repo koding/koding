@@ -43,6 +43,7 @@ class CBucket extends jraphical.Module
   addToBucket =do ->
     # @helper
     addIt = (bucket, anchor, item, callback)->
+      isOwn = anchor.equals item
       bucket.add item, (err)->
         if err
           callback err
@@ -59,6 +60,8 @@ class CBucket extends jraphical.Module
               konstructor.one _id: rel.sourceId, (err, activity)->
                 if err
                   callback err
+                else if isOwn
+                  callback null, bucket
                 else
                   anchor.assureActivity activity, (err)->
                     if err
@@ -73,20 +76,22 @@ class CBucket extends jraphical.Module
                 else unless 'function' is typeof anchor.addActivity
                   callback null, bucket
                 else
-                  anchor.addActivity activity, (err)->
+                  activity.addSubject bucket, (err)->
                     if err
                       callback err
                     else
-                      activity.addSubject bucket, (err)->
+                      activity.update
+                        $set          :
+                          snapshot    : JSON.stringify(bucket)
+                        $addToSet     :
+                          snapshotIds : bucket.getId()
+                      , (err)->
                         if err
                           callback err
+                        else if isOwn
+                          callback null, bucket
                         else
-                          activity.update
-                            $set          :
-                              snapshot    : JSON.stringify(bucket)
-                            $addToSet     :
-                              snapshotIds : bucket.getId()
-                          , (err)->
+                          anchor.addActivity activity, (err)->
                             if err
                               callback err
                             else

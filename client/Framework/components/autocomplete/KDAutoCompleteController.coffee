@@ -15,7 +15,7 @@ class KDAutoCompleteController extends KDViewController
       itemDataPath          : ''
       separator             : ','
       wrapper               : 'parent'
-      valuesSavedAsString   : no
+      submitValuesAsText   : no
       defaultValue          : []
     ,options
 
@@ -267,15 +267,15 @@ class KDAutoCompleteController extends KDViewController
   addItemToSubmitQueue:(item,data)->
     data or= item.getData()
 
-    {itemDataPath,form} = @getOptions()
+    {itemDataPath,form,submitValuesAsText} = @getOptions()
 
     if data
-      itemValue = if @options.valuesSavedAsString then JsPath.getAt data, itemDataPath else data
+      itemValue = if submitValuesAsText then JsPath.getAt data, itemDataPath else data
     else
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
       @addSuggestion itemValue
-
+    
     return no if @isItemAlreadySelected data
 
     path = @getCollectionPath()
@@ -287,7 +287,9 @@ class KDAutoCompleteController extends KDViewController
       form.addCustomData path, collection
       id = itemValue.getId?()
       collection.push(
-        if id?
+        if submitValuesAsText
+          itemValue
+        else if id?
           constructorName   : itemValue.constructor.name
           id                : id
         else
@@ -299,7 +301,7 @@ class KDAutoCompleteController extends KDViewController
       @addHiddenInputItem path.join('.'),itemValue
 
     @addSelectedItemData data
-    @addSelectedItem itemName,data
+    @addSelectedItem itemName, data
     # debugger
     @getView().setValue @dropdownPrefix = ""
 

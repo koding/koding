@@ -4,6 +4,8 @@ class JPost extends jraphical.Message
   @::mixin Followable::
   @::mixin Taggable::
   @::mixin Notifying::
+  @mixin Flaggable
+  @::mixin Flaggable::
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -52,6 +54,8 @@ class JPost extends jraphical.Message
   @getAuthorType =-> JAccount
 
   @getActivityType =-> CActivity
+  
+  @getFlagRole =-> ['sender', 'recipient']
   
   createKodingError =(err)->
     kodingErr = new KodingError(err.message)
@@ -151,12 +155,6 @@ class JPost extends jraphical.Message
       ]
     else
       callback new KodingError "Access denied"
-
-  mark: secure ({connection:{delegate}}, flag, callback)->
-    @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
-    
-  unmark: secure ({connection:{delegate}}, flag, callback)->
-    @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
 
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'

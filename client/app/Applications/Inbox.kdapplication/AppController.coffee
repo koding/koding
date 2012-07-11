@@ -167,10 +167,12 @@ class Inbox12345 extends AppController
     @selection = {}
   
   sendMessage:(messageDetails, callback)->
+    console.log messageDetails
     bongo.api.JPrivateMessage.create messageDetails, callback
   
   prepareMessage:(formOutput, callback)=>
-    {body, subject, recipients} = formOutput    
+    {body, subject, recipients} = formOutput
+    
     to = recipients.join ' '
     
     @sendMessage {to, body, subject}, (err, message)->
