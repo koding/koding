@@ -14,6 +14,8 @@ class CBucket extends jraphical.Module
       migrant       : Boolean
       meta          : require "bongo/bundles/meta"
   
+  fetchTeaser:(callback)-> callback null, @
+  
   add:(item, callback)->
     member = ObjectRef(item)
     @update {

@@ -172,9 +172,7 @@ class JAccount extends jraphical.Module
       else
         queue = activities.map (activity)->
           -> activity.mark client, 'glanced', -> queue.fin()
-        dash queue, ->
-          console.log 'wtheck'
-          callback arguments...
+        dash queue, callback
   
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection

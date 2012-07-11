@@ -25,4 +25,7 @@ class CStatusActivity extends CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema
     relationships   :
-      subject       : JStatusUpdate
+      subject       :
+        type        : JStatusUpdate
+        as          : 'content'
+      
