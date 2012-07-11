@@ -95,8 +95,8 @@ class HomeSlideShow extends KDScrollView
     
     @$().animate scrollLeft : pos * one, 500
     
-    @$('li').removeClass "in"
-    @$('li').eq(pos).addClass "in"
+    # @$('li').removeClass "in"
+    # @$('li').eq(pos).addClass "in"
 
     if pos is 0
       @emit "FirstSlideShown"
