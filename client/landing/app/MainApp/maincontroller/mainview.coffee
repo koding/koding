@@ -62,6 +62,7 @@ class MainView extends KDView
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
+      cssClass  : "hidden"
       attributes: 
         href    : "#"
       click     : (pubInst,event)=>
@@ -127,12 +128,14 @@ class MainView extends KDView
       $('body').addClass "loggedIn"
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"
+      @logo.show()
       @buttonHolder.hide()
     else
       $('body').removeClass "loggedIn"
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      @buttonHolder.show()
+      # @buttonHolder.show()
+      @logo.hide()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()
