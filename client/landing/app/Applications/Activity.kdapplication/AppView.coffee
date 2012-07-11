@@ -50,7 +50,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title : "FEED"
     items : [
         # { title : "Followed", type : "follow" }
-        { title : "Public",   type : "public" }
+        { title : "Public" }
       ]
 
   showMenuData :
