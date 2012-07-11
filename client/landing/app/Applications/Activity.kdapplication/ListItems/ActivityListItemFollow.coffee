@@ -18,7 +18,7 @@ class FollowBucketItemView extends KDView
       subItemClass  : options.subItemLinkClass
     }
 
-    @getData().on 'ItemWasAdded', -> log 'heres the event, sinan', arguments
+    #@getData().on 'ItemWasAdded', -> log 'heres the event, sinan', arguments
 
   pistachio:->
     """
