@@ -20,8 +20,8 @@ class InboxMessageDetail extends KDView
     """ 
     <div class='message-body'>
       <header>
-        <div>Conversation with <span class="profile-wrapper">{{> @group}}</span> <span class="add">+</span></div>
         <h1>{{@utils.applyTextExpansions #(subject)}}</h1>
+        <div>Conversation with <span class="profile-wrapper">{{> @group}}</span> <span class="add hidden">+</span></div>
       </header>
       <section>
         <div class='meta'>
