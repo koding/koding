@@ -78,6 +78,9 @@ class AvatarAreaIconMenu extends KDView
     @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
       @utils.killWait @avatarMessagesPopup.loaderTimeout
       @messagesIcon.updateCount count
+    
+    @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
+      @notificationsIcon.updateCount 0
   
   accountChanged:(account)->
     if KD.isLoggedIn()
@@ -217,6 +220,10 @@ class AvatarPopupNotifications extends AvatarPopup
         appManager.tell 'Inbox', "goToNotifications"
         @hide()
 
+  show:->
+    super
+    KD.whoami().glanceActivities ->
+    
 class AvatarPopupMessages extends AvatarPopup
   
   viewAppended:->
@@ -261,7 +268,7 @@ class AvatarPopupMessages extends AvatarPopup
   show:->
     super
     @listController.fetchMessages()
-      
+    KD.whoami().glanceMessages ->
 
 class PopupList extends KDListView
 
