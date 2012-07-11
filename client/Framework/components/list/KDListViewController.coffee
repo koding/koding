@@ -15,7 +15,7 @@ class KDListViewController extends KDViewController
 
     if options.subItemClass
       viewOptions.subItemClass = options.subItemClass
-    
+
     @setListView listView = options.view or new KDListView viewOptions
 
     if options.scrollView
@@ -25,9 +25,9 @@ class KDListViewController extends KDViewController
 
     if options.wrapper
       options.view = new KDView cssClass : "listview-wrapper"
-    
+
     super options, data
-    
+
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
 
     @listenTo
@@ -41,7 +41,7 @@ class KDListViewController extends KDViewController
         KDEventTypes        : 'KeyDownOnList'
         listenedToInstance  : listView
         callback            : (listView, event)=> @keyDownPerformed listView, event
-    
+
 
   loadView:(mainView)->
 
@@ -55,15 +55,18 @@ class KDListViewController extends KDViewController
       @registerListener KDEventTypes : 'LazyLoadComplete', listener : @, callback : @hideLazyLoader
 
     @instantiateListItems(@getData().items or [])
-    @listenTo 
+    @listenTo
       KDEventTypes       : "ReceivedMouseUpElsewhere"
       listenedToInstance : @getSingleton("windowController")
       callback           : (windowController, event)-> @mouseUpHappened windowController, event
 
   instantiateListItems:(items)->
-
     newItems = for listItem in items
       @getListView().addItem listItem
+
+    @emit("AllItemsAddedToList")
+
+    return newItems
 
   ###
   HELPERS
@@ -76,19 +79,19 @@ class KDListViewController extends KDViewController
   getItemsOrdered:->
 
     @itemsOrdered
-  
+
   getItemCount:->
 
     @itemsOrdered.length
-  
+
   setListView:(listView)->
 
     @listView = listView
-  
+
   getListView:->
 
     @listView
-  
+
   ###
   CRUD OPERATIONS FOR ITEMS
   ###
@@ -104,22 +107,22 @@ class KDListViewController extends KDViewController
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
     if view.getData()?
       @itemsIndexed[view.getItemDataId()] = view
-    
+
     if options.selection
       @listenTo
         KDEventTypes        : 'click'
         listenedToInstance  : view
         callback            : (view, event)=> @selectItem view, event
-    
+
     if options.multipleSelection
-      @listenTo 
+      @listenTo
         KDEventTypes       : ["mousedown","mouseenter"]
         listenedToInstance : view
-        callback           : (view, event)=> 
+        callback           : (view, event)=>
           switch event.type
             when "mousedown"  then @mouseDownHappenedOnItem view, event
             when "mouseenter" then @mouseEnterHappenedOnItem view, event
-    
+
 
   unregisterItem:(pubInst,itemInfo)->
 
@@ -134,16 +137,16 @@ class KDListViewController extends KDViewController
 
     @removeAllItems()
     @instantiateListItems items
-  
+
   removeAllItems:->
 
     itemsOrdered  = @itemsOrdered
     @itemsOrdered = []
     @itemsIndexed = {}
-    
+
     listView = @getListView()
     listView.empty() if listView.items.length
-    
+
     return itemsOrdered
 
   ###
@@ -163,7 +166,7 @@ class KDListViewController extends KDViewController
         @mouseDownTempItem = null
         @selectItem item, event
       , 300
-        
+
     else
       @mouseDown = no
       @mouseDownTempItem = null
@@ -173,7 +176,7 @@ class KDListViewController extends KDViewController
     clearTimeout @mouseDownTimer
     @mouseDown = no
     @mouseDownTempItem = null
-  
+
   mouseEnterHappenedOnItem:(item, event)->
 
     clearTimeout @mouseDownTimer
@@ -198,13 +201,13 @@ class KDListViewController extends KDViewController
   ITEM SELECTION
   ###
 
-  # bad naming because of backwards compatibility i didn't 
+  # bad naming because of backwards compatibility i didn't
   # change the method name during refactoring - Sinan 10 May 2012
   selectItem:(item, event = {})->
 
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
-    
+
     if item?
       if event.shiftKey and @selectedItems.length > 0
         @selectItemsByRange @selectedItems[0], item
@@ -213,9 +216,9 @@ class KDListViewController extends KDViewController
           @selectSingleItem item
         else
           @deselectSingleItem item
-    
+
     return @selectedItems
-  
+
   selectItemBelowOrAbove:(event)->
 
     direction         = if event.which is 40 then "down" else "up"
@@ -238,20 +241,20 @@ class KDListViewController extends KDViewController
           # to be deselected item is NOT in @selectedItems
           if @itemsOrdered[lastSelectedIndex + addend ]
             @selectSingleItem @itemsOrdered[lastSelectedIndex + addend ]
-  
+
   selectNextItem:(item, event)->
-    
+
     [item] = @selectedItems unless item
     selectedIndex = @itemsOrdered.indexOf item
     @selectItem @itemsOrdered[selectedIndex + 1]
-    
+
   selectPrevItem:(item, event)->
 
     [item] = @selectedItems unless item
     selectedIndex = @itemsOrdered.indexOf item
     @selectItem @itemsOrdered[selectedIndex + -1]
-  
-          
+
+
   deselectAllItems:()->
 
     for selectedItem in @selectedItems
@@ -260,7 +263,7 @@ class KDListViewController extends KDViewController
       @selectedItems = []
       @getListView().unsetClass "last-item-selected"
       @itemDeselectionPerformed deselectedItems
-      
+
   deselectSingleItem:(item)->
 
     item.removeHighlight()
@@ -268,7 +271,7 @@ class KDListViewController extends KDViewController
     if item is @itemsOrdered[@itemsOrdered.length-1]
       @getListView().unsetClass "last-item-selected"
     @itemDeselectionPerformed [item]
-  
+
   selectSingleItem:(item)->
 
     unless item in @selectedItems
@@ -277,12 +280,12 @@ class KDListViewController extends KDViewController
       if item is @itemsOrdered[@itemsOrdered.length-1]
         @getListView().setClass "last-item-selected"
       @itemSelectionPerformed()
-  
+
   selectAllItems:()->
 
     @selectSingleItem item for item in @itemsOrdered
-    
-  
+
+
   selectItemsByRange:(item1, item2)->
 
     indicesToBeSliced = [@itemsOrdered.indexOf(item1), @itemsOrdered.indexOf(item2)]
@@ -302,14 +305,14 @@ class KDListViewController extends KDViewController
   ###
   LAZY LOADER
   ###
-    
+
   showLazyLoader:->
 
     unless @lazyLoader
       @propagateEvent KDEventType : 'LazyLoadThresholdReached'
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
-      @lazyLoader.addSubView @lazyLoader.canvas = new KDLoaderView 
-        size          : 
+      @lazyLoader.addSubView @lazyLoader.canvas = new KDLoaderView
+        size          :
           width       : 16
         loaderOptions :
           color       : "#5f5f5f"
@@ -318,12 +321,12 @@ class KDListViewController extends KDViewController
           range       : 0.4
           speed       : 3
           FPS         : 24
-          
+
       @lazyLoader.canvas.show()
 
   hideLazyLoader:->
 
     if @lazyLoader
       @lazyLoader.canvas.hide()
-      @lazyLoader.destroy() 
+      @lazyLoader.destroy()
       @lazyLoader = null

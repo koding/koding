@@ -28,4 +28,13 @@ class nginx_proxy::config {
         require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["nginx_proxy::service"],
     }
+    file { "/etc/nginx/conf.d/default.conf":
+        ensure  => file,
+        source  => "puppet:///modules/nginx_proxy/etc/conf.d/default.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["nginx_proxy::service"],
+    }
+
 }

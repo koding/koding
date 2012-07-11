@@ -53,7 +53,7 @@ class Home12345 extends AppController
   createActivity:->
     @activityController = new KDListViewController
       view            : new KDListView
-        lastToFirst   : no
+        lastToFirst   : yes
         subItemClass  : HomeActivityItem
 
     @mainView.widgetHolder.activity = @activityController.getView()

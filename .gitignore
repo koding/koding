@@ -14,6 +14,8 @@ v8.log
 /.settings
 *conflicted\ copy\ 201*
 node_modules/.bin
+*.swp
+*.swo
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -57,4 +59,5 @@ node_modules/.bin
 /node_modules/terminaljs-lite_
 /node_modules/jsonify
 /node_modules/browserify
+/node_modules/cron
 /node_modules/.DS_Store

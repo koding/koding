@@ -216,7 +216,7 @@ __aceSettings =
     clojure     : ["Clojure"      , "clj"]
     java        : ["Java"         , "java"]
     javascript  : ["JavaScript"   , "js"]
-    json        : ["JSON"         , "json"]
+    json        : ["JSON"         , "json|manifest|kdapp"]
     latex       : ["LaTeX"        , "latex|tex|ltx|bib"]
     less        : ["LESS"         , "less"]
     liquid      : ["Liquid"       , "liquid"]
