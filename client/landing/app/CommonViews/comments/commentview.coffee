@@ -26,6 +26,7 @@ class CommentView extends KDView
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
     
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
+    @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
     
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply

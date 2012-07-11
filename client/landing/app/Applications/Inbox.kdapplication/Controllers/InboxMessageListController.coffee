@@ -7,7 +7,7 @@ class InboxMessageListController extends KDListViewController
   loadMessages:->
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
     controller = @
-    
+    debugger
     currentDelegate.fetchMail? (err, messages, participantsInfo)->
       controller.instantiateListItems messages
 

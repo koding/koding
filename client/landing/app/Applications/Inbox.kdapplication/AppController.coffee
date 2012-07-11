@@ -173,8 +173,6 @@ class Inbox12345 extends AppController
   prepareMessage:(formOutput, callback)=>
     {body, subject, recipients} = formOutput
     
-    # bongo.cacheable recipients
-    
     to = recipients.join ' '
     
     @sendMessage {to, body, subject}, (err, message)->
