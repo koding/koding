@@ -41,26 +41,23 @@ class MessagesListController extends KDListViewController
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    # console.log 'im kule', currentDelegate
-    currentDelegate.fetchActivityTeasers? {
+    KD.whoami().fetchActivityTeasers? {
       targetName: $in: [
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
       ]
     }, {
-      options:
-        limit: 8
-        sort:
-          timestamp: -1
+      limit: 8
+      sort:
+        timestamp: -1
     }, (err, items)=>
       if err
         warn "There was a problem fetching notifications!",err
       else
+        unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
+        @emit 'NotificationCountDidChange', unglanced.length
         callback? items
-        @emit 'NotificationCountDidChange', items.length
-
 
 class NotificationListItem extends KDListItemView
 

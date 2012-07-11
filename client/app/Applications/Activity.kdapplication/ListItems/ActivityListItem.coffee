@@ -111,9 +111,8 @@ class ActivityItemChild extends KDView
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     super
-
+    
     data = @getData()
-
     data.on 'TagsChanged', (tagRefs)=>
       # log tagRefs, ">>>>>"
       bongo.cacheable tagRefs, (err, tags)=>

@@ -105,7 +105,6 @@ class LinkGroup extends KDCustomHTMLView
       @render()
 
   itemClass:(options, data)->
-
     new (@getOptions().subItemClass) options, data
 
   createParticipantSubviews:->

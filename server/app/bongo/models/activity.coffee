@@ -1,6 +1,11 @@
 class CActivity extends jraphical.Capsule
   {ObjectId, race} = bongo
   
+  @mixin Flaggable
+  @::mixin Flaggable::
+  
+  @getFlagRole =-> 'activity'
+  
   jraphical.Snapshot.watchConstructor @
   
   @share()
