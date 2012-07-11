@@ -1,48 +1,87 @@
 class HomeMainView extends JView
 
-  viewAppended:->
-    
-    @listenWindowResize()
+  constructor:->
+
     super
-    @_windowDidResize()
 
-  _windowDidResize:->
-
-    {winHeight, winWidth} = @getSingleton('windowController')
-
-    slideAmount = @$('li').length
-
-    @$('section').height winHeight - @$('h1').height() - @$('h2').height() - 51 - 130
-    @$('ul').width winWidth * slideAmount
-    @$('li').width winWidth
+    @slideShow = new HomeSlideShow
+      tagName : "section"
 
   pistachio:->
     
     """
     <h1>Isn't it about time to say goodbye to localhost? </h1>
     <h2>We're a few developers who think there is a better way to work. </h2>
-    <section>
-      <ul class="clearfix">
-        <li>
-          <img src="https://api.koding.com/images/demo-screenshots/sc-code.png" />
-          <p class="flex-caption">A free, fully featured Cloud Development environment. Create and edit code from anywhere.</p>
-        </li>
-        <li>
-          <img src="https://api.koding.com/images/demo-screenshots/sc-activity.png" />
-          <p class="flex-caption">An active community where you can share work, collaborate and meet people who can help you with your projects.</p>
-        </li>
-        <li>
-          <img src="https://api.koding.com/images/demo-screenshots/sc-terminal.png" />
-          <p class="flex-caption">A fully functional Terminal in your browser.</p>
-        </li>
-        <li>
-          <img src="https://api.koding.com/images/demo-screenshots/sc-apps.png" />
-          <p class="flex-caption">An App Catalog to install common web apps, user contributed apps and scripts and more.</p>
-        </li>
-      </ul>
-    </section>
-    """
+    {{> @slideShow}}
+    """    
+
+class HomeSlideShow extends KDScrollView
+
+  constructor:->
+
+    super
+
+    @leftArrow = new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "arrow left"
+      partial  : "<span></span>"
+
+    @rightArrow = new KDCustomHTMLView
+      tagName  : "a"
+      cssClass : "arrow right"
+      partial  : "<span></span>"
+
+  viewAppended:->
     
+    @setTemplate @pistachio()
+    @template.update()
+    @listenWindowResize()
+    @_windowDidResize()
+
+  _windowDidResize:->
+
+    {winHeight, winWidth} = @getSingleton('windowController')
+    slideAmount = @$('li').length
+    @setHeight winHeight - @parent.$('h1').height() - @parent.$('h2').height() - 51 - 130
+    @$('ul').width winWidth * slideAmount
+    @$('li').width winWidth
+
+  mouseWheel:(event)->
+
+    @utils.killWait @timer
+    @timer = @utils.wait 300, =>
+      total  = @getScrollWidth()
+      actual = @$().scrollLeft()
+      amount = @$('li').length
+      one    = total / amount
+      pos    = Math.round actual / one
+      @$().animate scrollLeft : pos * one, 300
+
+  pistachio:->
+
+    host = if location.hostname is "localhost" then "" else "https://api.koding.com"
+    """
+    {{> @leftArrow}}
+    {{> @rightArrow}}
+    <ul class="clearfix">
+      <li>
+        <img src="#{host}/images/demo-screenshots/sc-code.jpg" />
+        <p class="flex-caption">A free, fully featured Cloud Development environment. Create and edit code from anywhere.</p>
+      </li>
+      <li>
+        <img src="#{host}/images/demo-screenshots/sc-activity.jpg" />
+        <p class="flex-caption">An active community where you can share work, collaborate and meet people who can help you with your projects.</p>
+      </li>
+      <li>
+        <img src="#{host}/images/demo-screenshots/sc-terminal.jpg" />
+        <p class="flex-caption">A fully functional Terminal in your browser.</p>
+      </li>
+      <li>
+        <img src="#{host}/images/demo-screenshots/sc-apps.jpg" />
+        <p class="flex-caption">An App Catalog to install common web apps, user contributed apps and scripts and more.</p>
+      </li>
+    </ul>
+    """
 
 
 
