@@ -41,8 +41,8 @@ class JAccount extends jraphical.Module
         'fetchFollowingWithRelationship','getDefaultEnvironment'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
-        'fetchFollowedTopics', 'tellKite2','fetchKiteChannelId'
+        'fetchStorage','count','addTags','fetchLimit'
+        'fetchFollowedTopics', 'fetchKiteChannelId'
         'fetchNonces', 'glanceMessages', 'glanceActivities'
       ]
     schema                  :
@@ -222,18 +222,18 @@ class JAccount extends jraphical.Module
               else
                 callback null, nonces
   
-  fetchKiteIds: secure ({connection}, options, callback)->
-    {kiteName} = options
-    {hostname} = kiteConfig.kites[kiteName]
-    if kiteName in ["sharedHosting","terminaljs","fsWatcher"]
-      kiteController.query {kiteName, hostname}, (err,kiteIds)=>
-        log.debug "got the kites",{kiteIds}
-        if err then console.dir err else
-          callback? null,kiteIds
-    else
-      kiteController.query {kiteName}, (err,kiteIds)=>
-        if err then console.dir err else
-          callback? null,kiteIds
+  # fetchKiteIds: secure ({connection}, options, callback)->
+  #   {kiteName} = options
+  #   {hostname} = kiteConfig.kites[kiteName]
+  #   if kiteName in ["sharedHosting","terminaljs","fsWatcher"]
+  #     kiteController.query {kiteName, hostname}, (err,kiteIds)=>
+  #       log.debug "got the kites",{kiteIds}
+  #       if err then console.dir err else
+  #         callback? null,kiteIds
+  #   else
+  #     kiteController.query {kiteName}, (err,kiteIds)=>
+  #       if err then console.dir err else
+  #         callback? null,kiteIds
   
   fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
@@ -242,148 +242,148 @@ class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
   
-  tellKite2: secure bongo.useMQ (client, channelId, args, callback)->
-    {delegate} = client.connection
-    {kiteId, toDo} = args
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied'
-    secretChannelId = channelId #+ delegate.profile.nickname
-    JChannel.one {secretChannelId}, (err, channel)->
-      if err
-        callback err
-      else if channel?
-        callback new KodingError 'Unavailable channel id'
-      else
-        delegateId = delegate.getId()
-        channel = new JChannel {
-          publicChannelId: delegateId + kiteId + Date.now() + '_private'
-          secretChannelId
-          subscribers: unless args.toDo in ['_disconnect', '_connect']
-            [kiteId, delegateId].filter (item)-> item?
-        }
-        channel.save (err)->
-          if err then callback err
-          else
-            args.secretChannelId  = secretChannelId
-            args.callbackId       = callback.id
-            args.requesterId      = client.connection.remoteId
-            args.subscriberCount  = channel.getAt('subscribers')?.length or 0
-            # uri = "http://localhost:1337/?data=#{
-            uri = "https://api.koding.com/1.1/kite/sharedHosting?data=#{
-              encodeURIComponent JSON.stringify args
-            }"
-            nodeRequest uri, (err, response, body)->
-              if err then callback err
-              else
-                try response = JSON.parse body
-                catch e then return callback new KodingError(
-                  "Invalid response: #{body}"
-                )
-                if response?.error then callback new KodingError response.error
-                else callback null, __channelId: secretChannelId
-  
+  # tellKite2: secure bongo.useMQ (client, channelId, args, callback)->
+  #   {delegate} = client.connection
+  #   {kiteId, toDo} = args
+  #   unless delegate instanceof JAccount
+  #     return callback new KodingError 'Access denied'
+  #   secretChannelId = channelId #+ delegate.profile.nickname
+  #   JChannel.one {secretChannelId}, (err, channel)->
+  #     if err
+  #       callback err
+  #     else if channel?
+  #       callback new KodingError 'Unavailable channel id'
+  #     else
+  #       delegateId = delegate.getId()
+  #       channel = new JChannel {
+  #         publicChannelId: delegateId + kiteId + Date.now() + '_private'
+  #         secretChannelId
+  #         subscribers: unless args.toDo in ['_disconnect', '_connect']
+  #           [kiteId, delegateId].filter (item)-> item?
+  #       }
+  #       channel.save (err)->
+  #         if err then callback err
+  #         else
+  #           args.secretChannelId  = secretChannelId
+  #           args.callbackId       = callback.id
+  #           args.requesterId      = client.connection.remoteId
+  #           args.subscriberCount  = channel.getAt('subscribers')?.length or 0
+  #           # uri = "http://localhost:1337/?data=#{
+  #           uri = "https://api.koding.com/1.1/kite/sharedHosting?data=#{
+  #             encodeURIComponent JSON.stringify args
+  #           }"
+  #           nodeRequest uri, (err, response, body)->
+  #             if err then callback err
+  #             else
+  #               try response = JSON.parse body
+  #               catch e then return callback new KodingError(
+  #                 "Invalid response: #{body}"
+  #               )
+  #               if response?.error then callback new KodingError response.error
+  #               else callback null, __channelId: secretChannelId
+  # 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
   
-  tellKiteInternal : (account,options,callback)->
-    {kiteId,kiteName,toDo,withArgs} = options
-    
-    if not account?.profile?.nickname
-      # log.error "account.tellKite is called from another class, it can only be called from a browser"
-      return callback? "you can only call account.tellKite from a browser."
-        
-    # {delegate} = connection
-    {kiteName,kiteId,toDo,withArgs} = options
-    
-    # KITE SECURITY BACKBONE - NEVER REMOVE.
-    withArgs ?= {}
-    withArgs.username = account.profile.nickname
-    # 
-        
-    completeTheRequest = ({kiteId,toDo,options},env,callback) =>
-      kiteController.tell {kiteId, toDo, withArgs,callback},(err)=>
-        # log.debug "unsetting the kite"
-        if err
-          newErr = {
-            kiteMsg        : err
-            kiteNotPresent : true
-            kiteName
-            kiteId
-          }
-          log.error err
-          callback newErr
-          env.unsetKite {kiteId},(err)->
-            unless err
-              # log.debug "kite is unset",env
-              
-            else
-              # log.debug err
-        
-    unless @equals account
-      err = "Guest can't access kites."
-      log.error err
-      callback new KodingError err
-    else
-      # # log.debug "getting the kite"
-      @fetchEnvironment (err,env)=>
-        # console.log "--sdf->",arguments       
-        if err
-          callback 'problem with db, try later.'
-        else if env
-          # log.debug "env is there", env
-          if kiteId and kiteName
-            env.setKite kiteName,kiteId,(err)=>
-              unless err
-                completeTheRequest {kiteId,toDo,withArgs},env,callback
-              else
-                callback "couldn't set the kite, please try again."
-          
-          else if kiteName
-            env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
-              if err
-                log.error err
-                callback err
-              else
-                completeTheRequest {kiteId,toDo,withArgs},env,callback
-          else
-            callback "you must provide kiteName or kiteId"
-        else
-          # create env
-          # # log.debug "create new env"
-          env = new JEnvironment kites: {testKite:"1234"}
-          # # log.debug env
-
-          env.save (err)=>
-            if err
-              # # log.debug "couldn't save the env to db"
-            else
-              # # log.debug "we're cool"
-              @addEnvironment env,(err)->
-                unless err
-                  env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
-                    if err
-                      log.error err
-                      callback err
-                    else
-                      completeTheRequest {kiteId,toDo,withArgs},env,callback
-                else
-                  callback err        
-                  
-  tellKite: secure ({connection}, options, callback)->
-
-    #
-    # USAGE :
-    #
-    # options =
-    #   kiteName  : String      # sharedHosting
-    #   toDo      : String      # createFile
-    #   withArgs  : Array       # client provided data to be passed to the kite function
-    #
-    
-    if not connection?.delegate?.profile?.nickname
-      # log.error "account.tellKite is called from another class, it can only be called from a browser"
-      return callback? "you can only call account.tellKite from a browser."
-    else
-      @tellKiteInternal @,options,callback
+  # tellKiteInternal : (account,options,callback)->
+  #   {kiteId,kiteName,toDo,withArgs} = options
+  #   
+  #   if not account?.profile?.nickname
+  #     # log.error "account.tellKite is called from another class, it can only be called from a browser"
+  #     return callback? "you can only call account.tellKite from a browser."
+  #       
+  #   # {delegate} = connection
+  #   {kiteName,kiteId,toDo,withArgs} = options
+  #   
+  #   # KITE SECURITY BACKBONE - NEVER REMOVE.
+  #   withArgs ?= {}
+  #   withArgs.username = account.profile.nickname
+  #   # 
+  #       
+  #   completeTheRequest = ({kiteId,toDo,options},env,callback) =>
+  #     kiteController.tell {kiteId, toDo, withArgs,callback},(err)=>
+  #       # log.debug "unsetting the kite"
+  #       if err
+  #         newErr = {
+  #           kiteMsg        : err
+  #           kiteNotPresent : true
+  #           kiteName
+  #           kiteId
+  #         }
+  #         log.error err
+  #         callback newErr
+  #         env.unsetKite {kiteId},(err)->
+  #           unless err
+  #             # log.debug "kite is unset",env
+  #             
+  #           else
+  #             # log.debug err
+  #       
+  #   unless @equals account
+  #     err = "Guest can't access kites."
+  #     log.error err
+  #     callback new KodingError err
+  #   else
+  #     # # log.debug "getting the kite"
+  #     @fetchEnvironment (err,env)=>
+  #       # console.log "--sdf->",arguments       
+  #       if err
+  #         callback 'problem with db, try later.'
+  #       else if env
+  #         # log.debug "env is there", env
+  #         if kiteId and kiteName
+  #           env.setKite kiteName,kiteId,(err)=>
+  #             unless err
+  #               completeTheRequest {kiteId,toDo,withArgs},env,callback
+  #             else
+  #               callback "couldn't set the kite, please try again."
+  #         
+  #         else if kiteName
+  #           env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
+  #             if err
+  #               log.error err
+  #               callback err
+  #             else
+  #               completeTheRequest {kiteId,toDo,withArgs},env,callback
+  #         else
+  #           callback "you must provide kiteName or kiteId"
+  #       else
+  #         # create env
+  #         # # log.debug "create new env"
+  #         env = new JEnvironment kites: {testKite:"1234"}
+  #         # # log.debug env
+  # 
+  #         env.save (err)=>
+  #           if err
+  #             # # log.debug "couldn't save the env to db"
+  #           else
+  #             # # log.debug "we're cool"
+  #             @addEnvironment env,(err)->
+  #               unless err
+  #                 env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
+  #                   if err
+  #                     log.error err
+  #                     callback err
+  #                   else
+  #                     completeTheRequest {kiteId,toDo,withArgs},env,callback
+  #               else
+  #                 callback err        
+  #                 
+  # tellKite: secure ({connection}, options, callback)->
+  # 
+  #   #
+  #   # USAGE :
+  #   #
+  #   # options =
+  #   #   kiteName  : String      # sharedHosting
+  #   #   toDo      : String      # createFile
+  #   #   withArgs  : Array       # client provided data to be passed to the kite function
+  #   #
+  #   
+  #   if not connection?.delegate?.profile?.nickname
+  #     # log.error "account.tellKite is called from another class, it can only be called from a browser"
+  #     return callback? "you can only call account.tellKite from a browser."
+  #   else
+  #     @tellKiteInternal @,options,callback
 
   addTags: secure (client, tagPath, tags, callback)->
     Taggable::addTags.call @, client, tags, (err)=>
@@ -415,6 +415,7 @@ class JAccount extends jraphical.Module
             as: options.as
           else
             {}
+        options.fetchMail = yes
         @fetchPrivateMessages selector, options, (err, messages)->
           if err
             callback err
