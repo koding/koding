@@ -158,8 +158,6 @@ bongo.connect (api, conn)->
     changeLoginState = (delegate)->
       cyclePrivateChannel(delegate)
       mainController.getVisitor().currentDelegate = delegate
-      bongo.api.JUser.fetchUser (err,user)=>
-        mainController.getVisitor().authenticatedUser = user
 
     mainController.getVisitor().on 'change.login', changeLoginState
     mainController.getVisitor().on 'change.logout', changeLoginState

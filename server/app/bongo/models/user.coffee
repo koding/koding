@@ -49,6 +49,7 @@ class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       tenderAppLink : String
+      emailFrequency: Object
 
     relationships       :
       ownAccount        :
