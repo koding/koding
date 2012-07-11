@@ -96,7 +96,7 @@ class Inbox12345 extends AppController
             KDEventTypes: 'viewAppended'
             listener: @
             callback: =>
-              data.restComments 0, (err, comments)-> log arguments, data
+              data.restComments 0, (err, comments)-> # log arguments, data
           
           paneView.addSubView detail
           paneView.detail = detail
