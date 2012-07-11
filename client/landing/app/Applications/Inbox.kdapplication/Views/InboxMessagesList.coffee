@@ -1,20 +1,23 @@
 class InboxMessagesList extends KDListView
-  constructor:(options,data)->
-    options = $.extend
-      cssClass  : "inbox-list message-list"
-      tagName   : "ul"
-    ,options
+
+  constructor:(options = {},data)->
+
+    options.cssClass  : "inbox-list message-list"
+    options.tagName   : "ul"
+
     super options,data
 
 class InboxMessagesListItem extends KDListItemView
   
-  constructor:(options,data)->
-    options = $.extend
-      tagName : "li"
-      cssClass: 'unread'
-      bind    : "mouseenter mouseleave"
-    ,options
-    super options,data
+  constructor:(options = {},data)->
+    
+    options.tagName  = "li"
+    options.cssClass = "unread"
+    options.bind     = "mouseenter mouseleave"
+
+    super options, data
+
+    data = @getData()
 
     group = data.participants.map (participant)->
       constructorName : participant.sourceName
