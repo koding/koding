@@ -1,12 +1,14 @@
 class ContentDisplayStatusUpdate extends KDView
+
   constructor:(options, data)->
-    options = $.extend
-      tooltip     :
-        title     : "Status Update"
-        offset    : 3
-        selector  : "span.type-icon"
-    ,options
+
+    options.tooltip or=
+      title     : "Status Update"
+      offset    : 3
+      selector  : "span.type-icon"
+
     super options,data
+
     @setClass 'activity-item status'
 
     origin =
@@ -21,29 +23,35 @@ class ContentDisplayStatusUpdate extends KDView
     @author = new ProfileLinkView {origin}
 
     @commentBox = new CommentView null, data
-    # temp for beta
-    # take this bit to comment view
-    if data.repliesCount? and data.repliesCount > 0
-      @commentBox.commentController.fetchAllComments 0, (err, comments)=>
-        controller = @commentBox.commentController
-        listView   = controller.getListView()
-        listView.emit "BackgroundActivityFinished"
-        listView.emit "AllCommentsWereAdded"
-        controller.removeAllItems()
-        controller.instantiateListItems comments      
-    @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
     
-    data = @getData()
+    @actionLinks = new ActivityActionsView
+      delegate : @commentBox.commentList
+      cssClass : "comment-header"
+    , data
 
-    data.on 'update', -> log 'data.onUpdate', arguments
+    @tags = new ActivityChildViewTagGroup
+      itemsToShow   : 3
+      subItemClass  : TagLinkView
+    , data.tags
+
   
   viewAppended:()->
-    return if @getData().constructor is bongo.api.CStatusActivity
+    
+    # return if @getData().constructor is bongo.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
   
+    # temp for beta
+    # take this bit to comment view
+    if @getData().repliesCount? and @getData().repliesCount > 0
+      commentController = @commentBox.commentController
+      commentController.fetchAllComments 0, (err, comments)->
+        commentController.removeAllItems()
+        commentController.instantiateListItems comments      
+
   pistachio:->
+    
     """
     <span>
       {{> @avatar}}
@@ -56,6 +64,7 @@ class ContentDisplayStatusUpdate extends KDView
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>

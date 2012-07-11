@@ -50,7 +50,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title : "FEED"
     items : [
         # { title : "Followed", type : "follow" }
-        { title : "Public",   type : "public" }
+        { title : "Public" }
       ]
 
   showMenuData :
@@ -72,16 +72,11 @@ class ListGroupFeedItem extends CommonInnerNavigationListItem
 
 class ListGroupShowMeItem extends ListGroupFeedItem
   click: (event) =>
-    unless @getData().disabledForBeta
-      @_navigateTo @getData().type
-    else
+    if @getData().disabledForBeta
       new KDNotificationView
         title : "Coming Soon!"
         duration : 1000
-
       
-  _navigateTo: (type) ->
-    @handleEvent type: 'ActivityNavigation', show: type
 
 class ActivityListHeader extends KDView
   constructor:->
