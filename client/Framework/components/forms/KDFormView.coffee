@@ -65,7 +65,7 @@ class KDFormView extends KDView
   removeCustomData:(path)->
     path = path.split '.' if 'string' is typeof path
     [pathUntil..., last] = path 
-    isArrayElement = not isNaN +path
+    isArrayElement = not isNaN +last
     if isArrayElement
       JsPath.spliceAt @customData, pathUntil, last
     else

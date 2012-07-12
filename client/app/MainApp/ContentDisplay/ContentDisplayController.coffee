@@ -3,7 +3,7 @@ class ContentDisplayController extends KDController
     super options
     @displays = {}
     @attachListeners()
-  
+
   attachListeners:->
     @registerListener
       KDEventTypes  : "ContentDisplayWantsToBeShown"
@@ -20,15 +20,15 @@ class ContentDisplayController extends KDController
     appManager.registerListener
       KDEventTypes  : "ApplicationShowedAView"
       listener      : @
-      callback      : => 
+      callback      : =>
         @hideAllContentDisplays()
 
     @registerListener
       KDEventTypes  : "ContentDisplaysShouldBeHidden"
       listener      : @
-      callback      : => 
+      callback      : =>
         @hideAllContentDisplays()
-  
+
   showContentDisplay:(view)->
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
@@ -39,17 +39,17 @@ class ContentDisplayController extends KDController
 
   hideContentDisplay:(view)->
     @slideWrapperOut view
-    
+
   hideAllContentDisplays:->
     displayIds = (id for id,display of @displays)
     return if displayIds.length is 0
-    
+
     lastId = displayIds.pop()
     for id in displayIds
       @destroyView @displays[id]
-    
+
     @slideWrapperOut @displays[lastId]
-  
+
   slideWrapperIn:(wrapper)->
     wrapper.$().animate left : "0%",200
 

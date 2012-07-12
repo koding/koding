@@ -27,6 +27,7 @@ print """\
   </h2> </div>
 <nav>
 	<ul>
+    <li><a href="index.html">HTML</a></li>
 		<li><a href="php.php">PHP</a></li>
 		<li><a class="active" href="python.py">Python</a></li>
 		<li><a href="perl.pl">Perl</a></li>

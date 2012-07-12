@@ -67,8 +67,7 @@ AccountMixin = do ->
                   withCredentials: yes
               }
       
-      getKiteUri =(kiteName)->
-        KD.apiUri+"/1.0/kite/#{kiteName}"
+      getKiteUri =(kiteName)-> KD.apiUri+"/1.0/kite/#{kiteName}"
       
       sendCommand =(channelId, kiteName, args, callbackId)->
         scrubber = new Scrubber localStore

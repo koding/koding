@@ -5,6 +5,19 @@ fs = require 'fs'
 hat = require 'hat'
 {exec} = require 'child_process'
 
+containsAnyChar =(haystack, needle)->
+ # for char in needle
+ #   if ~haystack.indexOf char
+ #     return yes
+ # no
+ a = createRegExp needle
+ return a.test haystack
+
+
+createRegExp = (str, flags)->
+ RegExp '('+str.split('').join('|')+')', flags
+
+
 # HELPERS
 createTmpDir =(username, callback)->
   tmpDir = "/Users/#{username}/.tmp"
@@ -15,11 +28,11 @@ createTmpDir =(username, callback)->
           callback? err
           log.error err
         else
-          log.debug ".tmp dir is there"
+          # log.debug ".tmp dir is there"
           callback? null
     else
       if stat.isDirectory()
-        log.debug ".tmp dir is there"
+        # log.debug ".tmp dir is there"
         callback? null
       else
         log.error ".tmp file is found where we need .tmp directory. deleting.."
@@ -51,6 +64,36 @@ prepareForBashExecute =(options, callback)->
         if err then callback? err
         else callback null, tmpfile
 
+execute = (options,callback)->
+
+  {filename,command,username} = options
+  if filename
+    execStr = "chown #{username} #{filename};su -l #{username} -c 'sh #{filename}'"
+    unlink = yes
+  else if command
+    cmd = exec "su -l #{username} -c '#{command}'"
+    unlink = no
+  
+  cmd = exec execStr,(err,stdout,stderr)->
+    respond arguments,callback
+    fs.unlink tmpFile if unlink is yes
+
+
+respond = (options,callback)->
+
+  if Array.isArray options
+    [err,stdout,stderr] = options
+  else
+    {err,stdout,stderr} = options
+
+  if err?
+    log.error "[ERROR] stderr for command \"#{command}\" for user #{username}: #{stderr}"
+    callback? stderr,stdout
+  else
+    # log.info "[OK] command \"#{command}\" executed for user #{username}"
+    callback? null,stdout
+
+
 module.exports =(options, callback)->
   #
   # this method will execute any system command inside user's env
@@ -60,11 +103,14 @@ module.exports =(options, callback)->
   #   command  : String #bash command
   #
   # START
-  # 1- create tmpdir /Users/[username]/.tmp
-  # 2- create tmpfile /Users/[username]/.tmp/tmp_[uniqid].txt
-  # 3- write the command inside the tmp file
-  # 4- bash execute the tmp file with su -l [username]
-  # 5- delete the tmpfile.
+  # if command.contains anyOf ";&|><*?`$(){}[]!#'"
+    # 1- create tmpdir /Users/[username]/.tmp
+    # 2- create tmpfile /Users/[username]/.tmp/tmp_[uniqid].txt
+    # 3- write the command inside the tmp file
+    # 4- bash execute the tmp file with su -l [username]
+    # 5- delete the tmpfile.
+  # else
+  #   1- execute command with su -l username -c 'command'
 
   {username,command} = options
 
@@ -73,17 +119,25 @@ module.exports =(options, callback)->
     if error?
       callback? error
     else
-      prepareForBashExecute options, (err, tmpFile)->
-        log.info tmpFile
-        unless err
-          cmd = exec "chown #{username} #{tmpFile};su -l #{username} -c 'sh #{tmpFile}'",(err,stdout,stderr)->
-            if err?
-              log.error "[ERROR] can't execute command \"#{command}\" for user #{username}: #{stderr}"
-              callback? stderr,stdout
-            else
-              log.info "[OK] command \"#{command}\" executed for user #{username}"
-              callback? null,stdout
-            fs.unlink tmpFile
-        else
-          log.error err
-          callback err
+
+      chars = ";&|><*?`$(){}[]!#"
+      reg = createRegExp chars
+      reg.test command
+
+      if containsAnyChar command,chars
+        prepareForBashExecute options, (err, filename)->          
+          unless err
+            execute {filename,username},callback
+          else
+            log.error err
+            callback err
+      else
+        execute {command,username},callback
+
+
+
+
+
+
+
+
