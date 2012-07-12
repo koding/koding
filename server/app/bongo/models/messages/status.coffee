@@ -26,6 +26,6 @@ class CStatusActivity extends CActivity
     schema          : CActivity.schema
     relationships   :
       subject       :
-        type        : JStatusUpdate
+        targetType  : JStatusUpdate
         as          : 'content'
       

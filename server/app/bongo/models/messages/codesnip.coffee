@@ -56,6 +56,6 @@ class CCodeSnipActivity extends CActivity
     schema          : CActivity.schema
     relationships   :
       subject       :
-        type        : JCodeSnip
+        targetType  : JCodeSnip
         as          : 'content'
       
