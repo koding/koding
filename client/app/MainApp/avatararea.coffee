@@ -249,6 +249,9 @@ class AvatarPopupMessages extends AvatarPopup
       view         : @_popupList
       maxItems     : 5
 
+    @getSingleton('notificationController').on "NewMessageArrived", => 
+      @listController.fetchMessages()
+
     @listController.registerListener
       KDEventTypes  : "AvatarPopupShouldBeHidden"
       listener      : @
