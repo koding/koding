@@ -44,7 +44,6 @@ node base {
                 "parted.x86_64",
                 "sysstat",
                 "rsync",
-                "mc",
                 "nano",
                 "wget",
                 "curl",

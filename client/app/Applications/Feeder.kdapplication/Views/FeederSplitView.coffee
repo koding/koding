@@ -7,13 +7,14 @@ class FeederSplitView extends ContentPageSplitBelowHeader
 
     super options
     
+    # loook what this is, there is some sabotage going on here 6/2012 Sinan
+    
     @listenTo
       KDEventTypes    : 'FeedMessageDialogClosed'
       callback        : (pubInst, {data}, event)=>
         @setHeight @getHeight() + data
-        @getSingleton("windowController").notifyWindowResizeListeners { type: 'resize' }
+        @notifyResizeListeners()
         # this works, but there has to be a better way.
-        setTimeout =>
+        @utils.wait 250, =>
           @setHeight @getHeight() + data
-        , 250
 

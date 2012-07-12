@@ -11,6 +11,7 @@ class JTag extends Followable
   @share()
 
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
     sharedMethods   :

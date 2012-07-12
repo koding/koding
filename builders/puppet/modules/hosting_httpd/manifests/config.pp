@@ -22,6 +22,10 @@ class hosting_httpd::config {
     file { "/etc/php.d/apc.ini":
         source  => "puppet:///modules/hosting_httpd/etc/php.d/apc.ini",
     }
+    file { "/etc/php.d/prepend.php":
+        source  => "puppet:///modules/hosting_httpd/etc/php.d/prepend.php",
+    }
+
 
 
     file { "/etc/httpd/conf.d/php.conf":
@@ -50,6 +54,13 @@ class hosting_httpd::config {
 	source  => "puppet:///modules/hosting_httpd/usr/local/safe-bin/php-wrapper",
         require => File["/usr/local/safe-bin/"],
 	notify => Class["cloudlinux::cagefs_update"],
+    }
+
+    file { "/usr/bin/pear":
+	    mode => "755",
+	    source  => "puppet:///modules/hosting_httpd/usr/bin/pear",
+        require => Class["hosting_packages::php"],
+	    notify => Class["cloudlinux::cagefs_update"],
     }
 
 }

@@ -12,7 +12,8 @@ class KDModalView extends KDView
       buttons        : null          # an Object of button options
       fx             : no            # a Boolean
       view           : null          # a KDView instance
-      draggable      : no
+      draggable      :
+        handle       : ".kdmodal-title"
       # TO BE IMPLEMENTED
       resizable      : no            # a Boolean
     ,options
@@ -99,7 +100,7 @@ class KDModalView extends KDView
     @$().width value
 
   setPositions:()->
-    @utils.nextTick =>
+    @utils.wait =>
       {position} = @getOptions()
       newPosition = {}
   
@@ -136,7 +137,7 @@ class KDModalView extends KDView
   display:()->
 
     if @getOptions().fx
-      @utils.nextTick =>
+      @utils.wait =>
         @setClass "active"
 
   addInnerSubView:(view)->

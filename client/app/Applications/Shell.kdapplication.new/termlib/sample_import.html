@@ -1,0 +1,306 @@
+<html>
+<head>
+	<title>termlib Text Import Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// *** text import sample ***
+// mass:werk, N.Landsteiner 2007
+
+var term;
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				greeting: '%+r **** termlib.js import sample **** %-r%n%n * any text is simply echoed%n * for imports use the links at the left%n * type "exit" to quit.%n ',
+				handler: termHandler,
+				exitHandler: termExitHandler
+			}
+		);
+		term.open();
+		
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termHandler() {
+	// default handler + exit
+	this.newLine();
+	if (this.lineBuffer.search(/^\s*exit\s*$/i) == 0) {
+		this.close();
+		return;
+	}
+	else if (this.lineBuffer != '') {
+		this.type('You typed: '+this.lineBuffer);
+		this.newLine();
+	}
+	this.prompt();
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+
+// demo hooks
+
+function testInsertAsTypedText() {
+	if ((!term) || (term.closed)) {
+		alert('Please open a terminal first!');
+		return;
+	}
+	var t=prompt('Please enter a text to be typed:');
+	if (t) TermGlobals.insertText(t);
+}
+
+var useMultiLineImport=false;
+
+function testMultiLine(funcFlag) {
+	if ((!term) || (term.closed)) {
+		alert('Please open a terminal first!');
+		return;
+	}
+	// set flag for handler
+	// if true, we'll use importMultiLineText(), else importEachLine()
+	useMultiLineImport=funcFlag;
+	
+	// set global keylock (else no key stroke will reach the form element)
+	TermGlobals.keylock = true;
+	
+	// and show the multiline prompt
+	TermGlobals.setVisible('promptDiv', true);
+	document.forms.promptForm.content.focus();
+	// input will by handled by promptHandler
+}
+
+function promptHandler(text) {
+	// hide the dialog
+	TermGlobals.setVisible('promptDiv', false);
+	
+	// reset keylock and import the text
+	TermGlobals.keylock = false;
+	if (text) {
+		if (useMultiLineImport) {
+			TermGlobals.importMultiLine(text);
+		}
+		else {
+			TermGlobals.importEachLine(text);
+		}
+	}
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+tt {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			Text Import Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			<p><a href="javascript:testInsertAsTypedText()" onfocus="if(this.blur)this.blur();" class="termopen">&gt; test insertText()&nbsp;</a></p>
+			<p><a href="javascript:testMultiLine(false)" onfocus="if(this.blur)this.blur();" class="termopen">&gt; test importEachLine()&nbsp;</a></p>
+			<p><a href="javascript:testMultiLine(true)" onfocus="if(this.blur)this.blur();" class="termopen">&gt; test importMultiLine()&nbsp;</a></p>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2007<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" id="mainPane">
+		<p><b style="letter-spacing: 1px;">How to import text to a termlib.js Terminal object.</b><br>&nbsp;</p>
+		<p>This page demos 3 different methods of <tt>TermGlobals</tt> for text import:</p>
+		<ul>
+		<li><tt>TermGlobals.insertText( text:String )</tt><br>
+			Auto-types a given text at the current cursor position.<br>
+			this is a true input (just as it came form the keyboard).<br>
+			Works only with single line input.<br>
+			&nbsp;</li>
+		<li><tt>TermGlobals.importEachLine( text:String )</tt><br>
+			Types multiline input to the current command line.<br>
+			The given text exchanges any text on the current command line.<br>
+			Each line is executed separately - just as if it would have<br>
+			been typed with a trailing &lt;ENTER&gt; each.<br>
+			&nbsp;
+			</li>
+		<li><tt>TermGlobals.importMultiLine( text:String )</tt><br>
+			Imports multiple lines of text as one input, fakes terminal input.<br>
+			The whole text will be imported as one string using &quot;\n&quot; as line<br>
+			separator. (As all non-printable characters the newline will be<br>
+			displayed as a caret [CARET/CIRCUMFLEX ACCENT] using <tt>type()</tt>.)<br>
+			As with <tt>TermGlobals.importEachLine()</tt> any text in the current<br>
+			command line will be lost.<br>
+			&nbsp;
+			</li>
+		</ul>
+		
+		<p>Note on forms for input:<br>
+		Be sure to set <tt>TermGlobals.keylock</tt> to <i><tt>true</tt></i> before waiting for any form input!</p>
+			
+		<p>All three methods act on the currently active Terminal-object and return their<br> success. A negative return value indicates an inactive terminal, or a global or<br>
+		individual lock =&gt; <tt>((TermGlobals.keylock) || (TermGlobals.activeTerm.lock))</tt>.</p>
+	</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+<div id="promptDiv" style="position:absolute; top: 60px; left: 340px; background-color: #ddd; border-color: #fff #888 #888 #fff; border-width: 1px; border-style: solid;z-index:2; visibility: hidden;">
+	<table border="0" cellspacing="8" cellpadding="2">
+	<tr>
+	<td style="font-family: arial,helvetica,sans-serif; font-size: 12px; color: #000;">Please enter a text to import:</td>
+	</tr>
+	<form id="promptForm">
+	<tr>
+	<td><textarea name="content" cols="40" rows="6""></textarea></td>
+	</tr>
+	<tr>
+	<td align="right">
+		<input type="button" value="Cancel" onclick="promptHandler(null, false); this.form.content.value='';">
+		<input type="button" value="Import" onclick="promptHandler(this.form.content.value); this.form.content.value='';">
+	</td>
+	</tr>
+	</form>
+	</table>
+</div>
+
+</body>
+</html>                                                                     

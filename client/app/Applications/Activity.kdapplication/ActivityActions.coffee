@@ -38,21 +38,14 @@ class ActivityActionsView extends KDView
     activity    = @getData()
     commentList = @getDelegate()
 
-    commentList.registerListener
-      KDEventTypes  : "BackgroundActivityStarted"
-      listener      : @
-      callback      : => @loader.show()
-
-    commentList.registerListener
-      KDEventTypes  : "BackgroundActivityFinished"
-      listener      : @
-      callback      : => @loader.hide()
+    commentList.on "BackgroundActivityStarted", => @loader.show()
+    commentList.on "BackgroundActivityFinished", => @loader.hide()
       
     @likeLink.registerListener
       KDEventTypes  : "Click"      
       listener      : @
       callback      : ->
-        if @getSingleton('mainController').isUserLoggedIn()
+        if KD.isLoggedIn()
           activity.like (err)-> log arguments, 'you like me!'
     
     @commentLink.registerListener

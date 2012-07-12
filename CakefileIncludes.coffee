@@ -81,6 +81,8 @@ Includes =
         followable                : "./server/app/bongo/abstractions/followable.coffee"
         filterable                : "./server/app/bongo/abstractions/filterable.coffee"
         taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
+        notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -264,7 +266,6 @@ Includes =
         Shell12345      :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
         Shell           :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
         DiffScript      :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
-        
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
         
@@ -445,15 +446,22 @@ Includes =
         Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
-        CommentView                 : "./client/app/CommonViews/CommentView.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
 
+        CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
+        CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
+        CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
+        CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
+        CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
+
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
-        Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
+        sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
+        sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
+        sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
 
         # BOOK
-        BookView                      : "./client/app/MainApp/book.coffee"
+        BookView                    : "./client/app/MainApp/book.coffee"
 
         #maintabs
         
@@ -500,7 +508,9 @@ Includes =
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
 
-        KodingMainViewController  : "./client/app/MainApp/KodingMainViewController.coffee"
+        KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
+        KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
+        KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
 
         ### VOVAS FINDER CRAP - DEPRECATE ASAP ###
 
