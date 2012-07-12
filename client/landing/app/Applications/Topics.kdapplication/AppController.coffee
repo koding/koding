@@ -1,5 +1,5 @@
 class Topics12345 extends AppController
-  
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -8,26 +8,26 @@ class Topics12345 extends AppController
     ,options
     super options,data
     @controllers = {}
-  
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
         name : 'Topics'
       data : @getView()
-    
+
   initAndBringToFront:(options,callback)->
     @bringToFront()
     callback()
-  
+
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : TopicsListItemView
       limitPerPage          : 20
-      # feedMessage           : 
+      # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
       help                  :
-        subtitle            : "Learn About Topics" 
+        subtitle            : "Learn About Topics"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">Topic Tags organize content that users share on Koding. Follow the topics you are interested in and we'll include the tagged items in your activity feed.</p>"
           placement         : "above"
@@ -55,23 +55,15 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
-      for name,listController of controller.resultsController.listControllers
-        listController.getListView().on (view, index)=>
-          view.registerListener
-            KDEventTypes  : 'TopicWantsToExpand'
-            listener      : @
-            callback      : (pubInst, tag)=>
-              @createContentDisplay tag
-
       view.addSubView controller.getView()
 
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
-  
+
   fetchFeedForHomePage:(callback)->
-    options = 
+    options =
       limit     : 6
       skip      : 0
       sort      :

@@ -571,7 +571,25 @@ span.main-nav-icon
     font-size           11px
     line-height         15px
     color               #8e8e8e
-    borderBox() 
+    borderBox()
+    span.icon
+      position          absolute
+      top               33px
+      left              35px
+      size              20px, 20px
+      display           block
+
+      sprite()
+    &.comment
+      span.icon
+        bg              position, -80px -580px
+    &.like
+      span.icon
+        bg              position, -80px -560px
+    &.follow
+      span.icon
+        bg              position, -80px -560px
+
     span.avatar
       border            1px solid #e3e3e3
       padding           1px
