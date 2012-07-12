@@ -24,10 +24,10 @@ class NotificationController extends KDObject
       bongo.mq.fetchChannel channelName, (channel)=>
         channel.on 'notification', (notification)=>
           @emit "NotificationHasArrived", notification
-          @prepareNotification notification
+          @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
-
+    console.log notification
     # NOTIFICATION SAMPLES
 
     # 1 - < actor fullname > commented on your < activity type >.
