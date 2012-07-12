@@ -164,7 +164,7 @@ class JAccount extends jraphical.Module
           prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
         user.update {$set: emailFrequency: prefs}, callback
   
-  glanceMessages: secure (client, callback)-> console.log 'glancing messages'
+  glanceMessages: secure (client, callback)->
   
   glanceActivities: secure (client, callback)->
     @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
