@@ -49,9 +49,10 @@ module.exports = new Kite 'sharedHosting'
     # console.log 'attempting to upload file', options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
+    log.debug "uploadFile is called",options.path
     filename = hat()
     tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf-8', (err)=>
+    fs.writeFile tmpPath,contents,'utf8', (err)=>
       unless err
         @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
           unless err
