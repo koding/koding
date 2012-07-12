@@ -68,13 +68,12 @@ class CActivity extends jraphical.Capsule
   
   @captureSortCounts =(callback)->
     selector = {
-      type  : 'CStatusActivity'
+      type: {$in: ['CStatusActivity','CCodeSnipActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}
       ]
     }
-    console.log JSON.stringify selector
     @someData selector, {
       _id: 1
     }, (err, cursor)->
@@ -108,22 +107,24 @@ class CActivity extends jraphical.Capsule
                       console.log _id, JSON.stringify selector2
                     else
                       {targetName, targetId} = doc1
-                      console.log targetName
                       Base.constructors[targetName].someData {
                         _id: targetId
                       },{
                         'repliesCount'  : 1
                         'meta'          : 1
-                      }, (err, doc2)->
+                      }, (err, cursor)->
                         if err
                           queue.fin(err)
                         else
-                          {repliesCount, meta} = doc2
-                          console.log 'META', meta
-                          CActivity.update {_id}, $set:
-                            'sort.repliesCount' : repliesCount
-                            'sort.likesCount'   : meta?.likes or 0
-                          , -> console.log 'hello', queue.fin()
+                          cursor.nextObject (err, doc2)->
+                            if err
+                              queue.fin(err)
+                            else
+                              {repliesCount, meta} = doc2
+                              op = $set:
+                                 'sorts.repliesCount' : repliesCount
+                                 'sorts.likesCount'   : meta?.likes or 0
+                              CActivity.update {_id}, op, -> queue.fin()
                         
               
   

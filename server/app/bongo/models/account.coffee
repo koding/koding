@@ -26,6 +26,7 @@ class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
     indexes:
