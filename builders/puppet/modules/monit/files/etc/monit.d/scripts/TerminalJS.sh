@@ -1,10 +1,10 @@
 #!/bin/bash
 
 BASE_DIR="/mnt/storage0/koding"
-APP_DIR="${BASE_DIR}/terminaljs-lite/"
+APP_DIR="${BASE_DIR}/kites/terminal/"
 #APP_DIR='/home/node/kfmjs/terminaljs-lite/'
 APP_FILE='index.coffee'
-NAME="terminaljs-lite"
+NAME="terminal"
 PID_FILE="/var/run/node/TerminalJS.pid"
 LOG_FILE="/var/log/node/TerminalJS.log"
 
