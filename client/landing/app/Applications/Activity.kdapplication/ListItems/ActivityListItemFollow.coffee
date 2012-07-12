@@ -1,4 +1,5 @@
 class FollowBucketItemView extends KDView
+
   cssClassMap = ->
     JTag      : "topic"
     JAccount  : "account"

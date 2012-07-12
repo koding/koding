@@ -106,13 +106,13 @@ class ContentDisplayControllerMember extends KDViewController
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
       sort                  :
-        'counts.followers'  :
+        'sorts.likesCount'  :
           title             : "Most popular"
           direction         : -1
-        'meta.modifiedAt'   :
+        'modifiedAt'        :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'sorts.repliesCount':
           title             : "Most activity"
           direction         : -1
         # and more

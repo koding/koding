@@ -70,7 +70,10 @@ class AvatarAreaIconMenu extends KDView
 
     # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
     #   @notificationsIcon.updateCount @notificationsIcon.count + 1
-
+    
+    @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
+      @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+    
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
@@ -87,6 +90,9 @@ class AvatarAreaIconMenu extends KDView
       @unsetClass "invisible"
       notificationsPopup = @avatarNotificationsPopup
       messagesPopup      = @avatarMessagesPopup
+      messagesPopup.listController.removeAllItems()
+      notificationsPopup.listController.removeAllItems()
+      
       #do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
         notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
@@ -113,6 +119,7 @@ class AvatarPopup extends KDView
     @listenWindowResize()
 
   show:->
+    @utils.killWait @loaderTimeout
     @_windowDidResize()
     @_windowController.addLayer @
     @getSingleton('mainController').emit "AvatarPopupIsActive"
@@ -195,6 +202,7 @@ class AvatarPopupNotifications extends AvatarPopup
 
     @_popupList = new PopupList 
       subItemClass : PopupNotificationListItem
+      # lastToFirst   : yes
 
     @listController = new MessagesListController 
       view         : @_popupList
@@ -222,6 +230,10 @@ class AvatarPopupNotifications extends AvatarPopup
 
   show:->
     super
+    @listController.fetchNotificationTeasers (notifications)=>
+      @listController.removeAllItems()
+      @listController.instantiateListItems notifications
+
     KD.whoami().glanceActivities ->
     
 class AvatarPopupMessages extends AvatarPopup
@@ -231,7 +243,7 @@ class AvatarPopupMessages extends AvatarPopup
     
     @_popupList = new PopupList
       subItemClass  : PopupMessageListItem
-      lastToFirst   : yes
+      # lastToFirst   : yes
     
     @listController = new MessagesListController 
       view         : @_popupList
@@ -276,7 +288,7 @@ class PopupList extends KDListView
     
     options.tagName     or= "ul"
     options.cssClass    or= "avatararea-popup-list"
-    options.lastToFirst or= yes
+    # options.lastToFirst or= no
   
     super options,data
   

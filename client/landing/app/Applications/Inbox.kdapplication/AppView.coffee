@@ -47,7 +47,7 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      lastToFirst : yes
+      # lastToFirst : yes
       delegate    : @
       subItemClass  : InboxMessagesListItem
     inboxMessageBody = new KDView cssClass : "message-body-wrap"
@@ -67,7 +67,7 @@ class PageInbox extends KDView
       views     : [inboxMessagesList,@inboxMessagesContainer]
       cssClass  : "messages-split" 
       resizable : yes
-      minimums  : [280, null]
+      minimums  : [150, null]
 
     tab.addSubView messagesSplit
     messagesSplit._windowDidResize()
