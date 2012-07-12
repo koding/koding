@@ -61,8 +61,8 @@ class PageInbox extends KDView
       delegate  : @inboxMessagesContainer
 
     @newMessageBar.on "RefreshButtonClicked", =>
-      inboxMessageListController.removeAllItems()
-      inboxMessageListController.loadMessages()
+      inboxMessageListController.loadMessages =>
+        @newMessageBar.refreshButton.hideLoader()
     
     inboxMessageListController.loadMessages()
       
