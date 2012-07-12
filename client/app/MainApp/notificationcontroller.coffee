@@ -27,7 +27,7 @@ class NotificationController extends KDObject
           @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
-    console.log notification
+    
     # NOTIFICATION SAMPLES
 
     # 1 - < actor fullname > commented on your < activity type >.
@@ -35,25 +35,20 @@ class NotificationController extends KDObject
     # 3 - < actor fullname > liked your < activity type >.
 
     # 4 - < actor fullname > just sent you a private message.
-    log notification, ">>>>"
+    
     options = {}
-    {origin, subject, actionType, replier, liker} = notification.contents
-    isMine = origin._id is KD.whoami()._id
-    actor  = replier or liker
+    {origin, subject, actionType, replier, liker, sender} = notification.contents
+    
+    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no    
+    actor  = replier or liker or sender
     
     bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       
       actorName        = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
-      originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
-      if actorName is originatorName
-        originatorName = "their own"
-        separator      = ""
-      else
-        separator      = "'s"
       
-      switch actionType
+      options.title = switch actionType
         when "reply"
-          options.title = if isMine
+          if isMine
             switch subject.constructorName 
               when "JPrivateMessage"
                 "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
@@ -64,10 +59,19 @@ class NotificationController extends KDObject
               when "JPrivateMessage"
                 "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
               else
+                originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
+                if actorName is originatorName
+                  originatorName = "their own"
+                  separator      = ""
+                else
+                  separator      = "'s"
                 "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
 
         when "like"   # 3
-          options.title = "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
+          "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
+        when "newMessage"
+          @emit "NewMessageArrived"
+          "#{actorName} sent you a new #{subjectMap()[subject.constructorName]}."
 
       options.click = ->
         view = @
