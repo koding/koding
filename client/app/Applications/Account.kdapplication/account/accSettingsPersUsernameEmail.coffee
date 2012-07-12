@@ -103,11 +103,13 @@ class AccountEditUsername extends KDView
       cssClass     : "main-label"
     
     emailFrequency = user.getAt('emailFrequency.global')
-    console.log emailFrequency, user, user.data
+    log "EMFREQ:", emailFrequency, user, user.data
+
     @emailOptOutView.addSubView new KDRySwitch
       defaultValue  : if emailFrequency is 'never' then off else on
-      callback      :(state)-> 
+      callback      : (state)-> 
         account.setEmailPreferences global: state, ->
           new KDNotificationView
-            title: 'Email preferences were saved.'
-    
+            duration : 2000
+            title    : if state then 'You will get notifications by email.' \
+                                else 'You will no longer get email notifications by email.'
