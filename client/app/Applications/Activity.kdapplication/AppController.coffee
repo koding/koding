@@ -271,15 +271,12 @@ class ActivityListController extends KDListViewController
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
 
-    @activityHeader.registerListener
-      KDEventTypes  : "UnhideHiddenNewItems"
-      listener      : @
-      callback      : => @unhideNewHiddenItems()
+    @activityHeader.on "UnhideHiddenNewItems", => @unhideNewHiddenItems()
+    
     super
 
-  doesActivityBelongToLoggedinUser:(activity)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    id = currentDelegate.getId()
+  isMine:(activity)->    
+    id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
   ownActivityArrived:(activity)->
@@ -290,8 +287,10 @@ class ActivityListController extends KDListViewController
         view.slideIn()
 
   newActivityArrived:(activity)->
-    # log activity
-    unless @doesActivityBelongToLoggedinUser activity
+    
+    # log activity, ">>>>>"
+    
+    unless @isMine activity
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
     else

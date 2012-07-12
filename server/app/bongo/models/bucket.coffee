@@ -25,6 +25,8 @@ class CBucket extends jraphical.Module
       @emit 'ItemWasAdded', member.data
       callback err
 
+  fetchTeaser:(callback)-> callback null, @
+  
   getBucketConstructor =(groupName, role)->
     switch role
       when 'follower'
@@ -219,6 +221,7 @@ class CNewMemberBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CFolloweeBucketActivity extends CBucketActivity
@@ -226,6 +229,7 @@ class CFolloweeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CFollowerBucketActivity extends CBucketActivity
@@ -233,6 +237,7 @@ class CFollowerBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CReplierBucketActivity extends CBucketActivity
@@ -240,6 +245,7 @@ class CReplierBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CReplieeBucketActivity extends CBucketActivity
@@ -247,6 +253,7 @@ class CReplieeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CLikerBucketActivity extends CBucketActivity
@@ -254,6 +261,7 @@ class CLikerBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CLikeeBucketActivity extends CBucketActivity
@@ -261,5 +269,6 @@ class CLikeeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 

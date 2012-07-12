@@ -1,9 +1,9 @@
 class InboxMessagesList extends KDListView
 
-  constructor:(options = {},data)->
+  constructor:(options = {}, data)->
 
-    options.cssClass  : "inbox-list message-list"
-    options.tagName   : "ul"
+    options.cssClass  = "inbox-list message-list"
+    options.tagName   = "ul"
 
     super options,data
 
