@@ -37,8 +37,8 @@ class JPrivateMessage extends JPost
             fin err
           else
             recipient.sendNotification 'NewPrivateMessageHasArrived',
-              sender  : ObjectRef(sender).data
-              message : ObjectRef(pm).data
+              origin  : ObjectRef(sender).data
+              subject : ObjectRef(pm).data
             fin()
             # jraphical.Channel.fetchPrivateChannelById recipient.getId(), (err, channel)->
             #   channel.publish sender, pm
