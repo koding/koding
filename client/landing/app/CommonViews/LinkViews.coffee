@@ -31,22 +31,37 @@ class LinkView extends KDCustomHTMLView
       @loadFromOrigin options.origin
 
   loadFromOrigin:(origin)->
-    bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
-      @setData origin
+
+    callback = (data)=>
+      @setData data
       @render()
-      @$().attr "href","/#!/#{origin.profile?.nickname}"
-      # @$().twipsy title : "@#{origin.profile.nickname}", placement : "left"
+
+    if origin.constructorName
+      bongo.cacheable origin.constructorName, origin.id, (err, origin)=> 
+        callback origin
+    else
+      callback origin
 
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
 class ProfileLinkView extends LinkView
-  constructor:->
-    super
+  
+  constructor:(options, data)->
+
+    super options, data
+
+    @$().attr "href","/#!/#{data?.profile?.nickname}"
     @setClass "profile"
 
+  render:->
+    data = @getData()
+    @$().attr "href","/#!/#{data.profile?.nickname}"
+    super
+
   pistachio:->
+    
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
@@ -97,12 +112,19 @@ class LinkGroup extends KDCustomHTMLView
 
   loadFromOrigins:(group)->
 
+    callback = (data)=>
+      @setData data
+      @createParticipantSubviews()
+      @render()
+
+    if group[0]?.bongo_?.constructorName isnt "ObjectRef"
+      callback group
+      return
+
     # -3 means last three pieces?
     three = group.slice(-3)
     bongo.cacheable three, (err, bucketContents)=>
-      @setData bucketContents
-      @createParticipantSubviews()
-      @render()
+      callback bucketContents
 
   itemClass:(options, data)->
     new (@getOptions().subItemClass) options, data
