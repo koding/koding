@@ -40,9 +40,9 @@ $router->add_route('/kite/:kite_name', function ($params) {
 
 $router->add_route('/event', function () {
   @$message = json_decode(file_get_contents('php://input'));
-  if(isset($message)) {
+  if (isset($message)) {
     foreach ($message->events as $event) {
-      switch($event->name) {
+      switch ($event->name) {
       case 'channel_vacated' :
         $matches = array();
         if (preg_match('/^private-(\w+)-/', $event->channel, $matches)) {

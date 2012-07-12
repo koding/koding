@@ -1,1 +1,1 @@
-class Emailer then Emailer = postmark
+Emailer = postmark

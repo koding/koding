@@ -7,7 +7,7 @@ class Notifying
   
   @getNotificationSubject =-> 'You have pending notifications.'
   
-  @getNotificationBody =(event, contents)-> 
+  @getNotificationTextBody =(event, contents)-> 
     """
     event name: #{event};
     contents: #{JSON.stringify(contents)};
@@ -23,24 +23,21 @@ class Notifying
   notify:(receiver, event, contents)->
     actor = contents[contents.actorType]
     {origin} = contents
-    if actor? and not receiver.getId().equals actor.id
+    if actor? and not receiver.getId().equals actor.id # don't notify the person who triggered the action
       receiver?.fetchPrivateChannel? (channel)=>
         channel.emit 'notification', {event, contents}
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
-      console.log 'There was an error adding bucket activities', err.toString?() if err
-      console.log 'preqwerty'
-      if receiver instanceof JAccount
-        console.log 'qwertyui'
-        JUser.one username: receiver.getAt('profile.nickname'), (err, user)->
-          console.log 
-          Emailer.send {
-            From      : Notifying.getNotificationEmail()
-            To        : user.getAt('email')
-            Subject   : Notifying.getNotificationSubject event, contents
-            TextBody  : Notifying.getNotificationBody event, contents
-          }, -> 
-            console.log 'ARRRRGUMENTS', arguments
+    if receiver instanceof JAccount
+      JUser.one username: receiver.getAt('profile.nickname'), (err, user)->
+        console.log 
+        Emailer.send {
+          From      : Notifying.getNotificationEmail()
+          To        : user.getAt('email')
+          Subject   : Notifying.getNotificationSubject event, contents
+          TextBody  : Notifying.getNotificationTextBody event, contents
+        }, -> 
+          console.log 'ARRRRGUMENTS', arguments
 
   notifyOriginWhen:(events...)->
     @setNotifiers events, (event, contents)=>

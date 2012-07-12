@@ -22,14 +22,14 @@ class Taggable
               =>
                 @addTag tag, (err)=>
                   if err then callback err
-                  else queue.next()
+                  else do queue.next
               =>
                 tag.addContent @, {
                   as: taggedContentRole
                   respondWithCount: yes
                 }, (err, count)=>
                   if err then callback err
-                  else queue.next()
+                  else do queue.next
               =>
                 incCount = {}
                 incCount["counts.#{taggedContentRole}"] = 1
