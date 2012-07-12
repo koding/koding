@@ -90,7 +90,7 @@ class NotificationListItem extends KDListItemView
     @setClass bucketNameMap()[data.bongo_.constructorName]
     
     @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
-        
+
     # group = data.map (participant)->
     #   constructorName : participant.targetOriginName
     #   id              : participant.targetOriginId

@@ -11,6 +11,17 @@ class InboxNewMessageBar extends KDView
       style       : "clean-gray"
       icon        : yes
       iconOnly    : yes
+      iconClass   : "refresh"
+      tooltip     : 
+        title     : "Refresh"
+        placement : "left"
+      callback    : =>
+        @emit 'RefreshButtonClicked'
+
+    @addSubView markAsReadBtn = new KDButtonView
+      style       : "clean-gray"
+      icon        : yes
+      iconOnly    : yes
       iconClass   : "mark-unread"
       tooltip     : 
         title     : "Mark as Unread"
