@@ -70,7 +70,10 @@ class AvatarAreaIconMenu extends KDView
 
     # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
     #   @notificationsIcon.updateCount @notificationsIcon.count + 1
-
+    
+    @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
+      @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+    
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
