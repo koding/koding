@@ -183,21 +183,33 @@ class JPost extends jraphical.Message
         @emit 'PostIsDeleted', 1
         callback null
   
+  fetchActivityId:(callback)->
+    Relationship.one {
+      targetId    : @getId()
+      sourceName  : /Activity$/
+    }, (err, rel)->
+      if err
+        callback err
+      else
+        callback null, rel.getAt 'sourceId'
+  
+  fetchActivity:(callback)->
+    @fetchActivityId (err, id)->
+      if err
+        callback err
+      else
+        CActivity.one _id: id, callback 
+  
   removeReply:(rel, callback)->
     id = @getId()
     teaser = null
     activityId = null
+    repliesCount = @getAt 'repliesCount'
     queue = [
       ->
-        Relationship.one {
-          targetId    : id
-          sourceName  : /Activity$/
-        }, (err, rel)->
-          if err
-            queue.next err
-          else
-            activityId = rel.getAt 'sourceId'
-            queue.next()
+        @fetchActivityId (err, activityId_)->
+          activityId = activityId_
+          queue.next()
       ->
         rel.update $set: 'data.deletedAt': new Date, -> queue.next()
       =>
@@ -211,8 +223,11 @@ class JPost extends jraphical.Message
             queue.next()
       ->
         CActivity.update _id: activityId, {
-          $set      : { snapshot     : JSON.stringify teaser }
-          $pullAll  : { snapshotIds  : rel.getAt 'targetId'  }
+          $set:
+            snapshot: JSON.stringify teaser
+            'sorts.repliesCount': repliesCount - 1
+          $pullAll:
+            snapshotIds: rel.getAt 'targetId'
         }, -> queue.next()
       
       callback
@@ -239,6 +254,11 @@ class JPost extends jraphical.Message
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchActivityId (err, id)->
+                  CActivity.update {_id: id}, {
+                    $set: 'sorts.likesCount': count
+                  }, ->
+                    console.log err if err
                 @fetchOrigin (err, origin)=>
                   if err
                     console.log "Couldn't fetch the origin"
@@ -280,11 +300,16 @@ class JPost extends jraphical.Message
               if err
                 callback err
               else
-                @update $inc: repliesCount: 1, (err)=>
+                @update $set: repliesCount: count, (err)=>
                   if err
                     callback err
                   else
                     callback null, comment
+                    @fetchActivityId (err, id)->
+                      CActivity.update {_id: id}, {
+                        $set: 'sorts.repliesCount': count
+                      }, ->
+                        console.log err if err
                     @fetchOrigin (err, origin)=>
                       if err
                         console.log "Couldn't fetch the origin"
