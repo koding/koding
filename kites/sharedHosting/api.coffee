@@ -206,7 +206,7 @@ module.exports = new Kite 'sharedHosting'
       cn: username
     
     # first of all we have to connect and bind to ldap
-    ldapClient = ldap.createClient url:config.ldap.ldapUrl
+    ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
       if err?
         log.error error = "[ERROR] Can't bind to LDAP server #{config.ldap.ldapUrl}: #{err.message}"
