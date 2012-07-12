@@ -7,6 +7,20 @@ class InboxNewMessageBar extends KDView
       style     : "clean-gray new-message-button"
       callback  : => @createNewMessageModal()
 
+    @addSubView @refreshButton = new KDButtonView
+      style       : "clean-gray"
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : "refresh"
+      loader      :
+        color     : "#777777"
+        diameter  : 24
+      tooltip     : 
+        title     : "Refresh"
+        placement : "left"
+      callback    : =>
+        @emit 'RefreshButtonClicked'
+
     @addSubView markAsReadBtn = new KDButtonView
       style       : "clean-gray"
       icon        : yes
