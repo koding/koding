@@ -61,8 +61,10 @@ class MessagesListController extends KDListViewController
 class NotificationListItem extends KDListItemView
 
   activityNameMap = ->
-    JStatusUpdate : "your status update."
-    JCodeSnip     : "your status update."
+    JStatusUpdate   : "your status update."
+    JCodeSnip       : "your status update."
+    JAccount        : "started following you."
+    JPrivateMessage : "your private message."
 
   bucketNameMap = ->
     CReplieeBucketActivity  : "comment"
@@ -71,9 +73,9 @@ class NotificationListItem extends KDListItemView
 
   actionPhraseMap = ->
     comment : "commented on"
-    reply   : "commented on"
+    reply   : "replied to"
     like    : "liked"
-    follow  : "followed"
+    follow  : ""
     share   : "shared"
     commit  : "committed"
   
@@ -102,6 +104,10 @@ class NotificationListItem extends KDListItemView
         height : 40
       origin   : group[0]
 
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
   pistachio:->
     """
       <div class='avatar-wrapper fl'>
@@ -123,19 +129,24 @@ class NotificationListItem extends KDListItemView
   
   getActionPhrase:()->
     data = @getData()
-    return actionPhraseMap()[bucketNameMap()[data.bongo_.constructorName]]
+    if @snapshot.anchor.constructorName is "JPrivateMessage"
+      @unsetClass "comment"
+      @setClass "reply"
+      actionPhraseMap().reply
+    else
+      actionPhraseMap()[bucketNameMap()[data.bongo_.constructorName]]
 
   getActivityPlot:()->
     data = @getData()
     return activityNameMap()[@snapshot.anchor.constructorName]
     
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
   click:->
-    bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
-      appManager.tell "Activity", "createContentDisplay", post
+    
+    if @snapshot.anchor.constructorName is "JPrivateMessage"
+      appManager.openApplication "Inbox"
+    else
+      bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
+        appManager.tell "Activity", "createContentDisplay", post
 
     # {sourceName,sourceId} = @getData()[0]
     # contentDisplayController = @getSingleton('contentDisplayController')

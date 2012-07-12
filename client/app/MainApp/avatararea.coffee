@@ -87,6 +87,9 @@ class AvatarAreaIconMenu extends KDView
       @unsetClass "invisible"
       notificationsPopup = @avatarNotificationsPopup
       messagesPopup      = @avatarMessagesPopup
+      messagesPopup.listController.removeAllItems()
+      notificationsPopup.listController.removeAllItems()
+      
       #do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
         notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
@@ -113,6 +116,7 @@ class AvatarPopup extends KDView
     @listenWindowResize()
 
   show:->
+    @utils.killWait @loaderTimeout
     @_windowDidResize()
     @_windowController.addLayer @
     @getSingleton('mainController').emit "AvatarPopupIsActive"
@@ -223,6 +227,10 @@ class AvatarPopupNotifications extends AvatarPopup
 
   show:->
     super
+    @listController.fetchNotificationTeasers (notifications)=>
+      @listController.removeAllItems()
+      @listController.instantiateListItems notifications
+
     KD.whoami().glanceActivities ->
     
 class AvatarPopupMessages extends AvatarPopup
