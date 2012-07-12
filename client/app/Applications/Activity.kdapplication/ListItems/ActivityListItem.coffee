@@ -71,17 +71,16 @@ class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
-    origin = {
+    origin =
       constructorName  : data.originType
       id               : data.originId
-    }
+
     @avatar = new AvatarView {
       size    : {width: 40, height: 40}
       origin
     }
-    @author = new ProfileLinkView {
-      origin
-    }
+    
+    @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
