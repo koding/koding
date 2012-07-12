@@ -46,7 +46,7 @@ class KDNotificationView extends KDView
   
   notificationSetPositions:()->
     @setClass @notificationType
-    sameTypeNotifications = @notificationGetSameTypeNotifications @notificationType
+    sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
     
     if @getOptions().container
       winHeight = @getOptions().container.getHeight()
@@ -60,15 +60,15 @@ class KDNotificationView extends KDView
         for notification,i in sameTypeNotifications
           bottomMargin += $(notification).outerHeight() + 8 if i isnt 0
         styles =
-          bottom: "#{bottomMargin}px"
-          right : "8px"
+          bottom: bottomMargin
+          right : 8
       when "growl"
         topMargin = 8
         for notification,i in sameTypeNotifications
           topMargin += $(notification).outerHeight() + 8 if i isnt 0
         styles =
-          top   : "#{topMargin}px"
-          right : "8px"
+          top   : topMargin
+          right : 8
       when "mini"
         styles =
           top   : 0
@@ -81,12 +81,11 @@ class KDNotificationView extends KDView
     @getDomElement().css styles
   
   notificationRepositionOtherNotifications:()->
-    sameTypeNotifications = @notificationGetSameTypeNotifications @notificationType
-    heights = []
-    for notificationDiv,i in sameTypeNotifications
-      heights.push $(notificationDiv).outerHeight()
     
-    for notificationDiv,i in sameTypeNotifications
+    sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
+    heights = ($(elm).outerHeight() for elm,i in sameTypeNotifications)
+    
+    for elm,i in sameTypeNotifications
       switch @notificationType
         when "tray", "growl"
           newValue = 0
@@ -95,9 +94,7 @@ class KDNotificationView extends KDView
             if j isnt 0 then newValue += h else newValue = 8
           options = {}
           options[position] = newValue + i*8
-          $(notificationDiv).animate options
-
-  notificationGetSameTypeNotifications:(type)-> $("body").find ".kdnotification.#{type}"
+          $(elm).css options
 
   notificationSetCloseHandle:(closeManually = no)->
     @notificationCloseHandle = @getDomElement().find ".kdnotification-close"

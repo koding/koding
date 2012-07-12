@@ -10,12 +10,12 @@ hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
-
-# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+mkdirp    = require 'mkdirp'
 
 console.log "new sharedhosting api."
 
 module.exports = new Kite 'sharedHosting'
+  
   
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -40,18 +40,19 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-
+        
   uploadFile:(options,callback)->
     #
     # options =
     #    contents   : String # file text content
     #
-    console.log 'attempting to upload file', options
+    # console.log 'attempting to upload file', options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
+    log.debug "uploadFile is called",options.path
     filename = hat()
     tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf-8', (err)=>
+    fs.writeFile tmpPath,contents,'utf8', (err)=>
       unless err
         @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
           unless err
@@ -138,6 +139,37 @@ module.exports = new Kite 'sharedHosting'
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
 
+  publishApp:(options, callback)->
+
+    {username, version, appName, userAppPath} = options
+
+    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+
+    cb = (err)->
+      if err then console.error err
+      else callback? null
+
+    mkdirp versionedPath, (err)->
+      if err then cb err
+      else
+        fs.readFile userAppPath, (err, appScript)->
+          if err then cb err
+          else
+            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+              if err then cb err
+              else
+                fs.stat latestPath, (err, statObj)->
+                  if err
+                    exec "ln -s #{versionedPath} #{latestPath}", cb
+                  else
+                    if statObj.isSymbolicLink() or statObj.isFile()
+                      exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else if statObj.isDirectory() and appName.length?
+                      exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else
+                      cb new KodingError "Something went wrong"
+
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
@@ -174,7 +206,7 @@ module.exports = new Kite 'sharedHosting'
       cn: username
     
     # first of all we have to connect and bind to ldap
-    ldapClient = ldap.createClient url:config.ldap.ldapUrl
+    ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
       if err?
         log.error error = "[ERROR] Can't bind to LDAP server #{config.ldap.ldapUrl}: #{err.message}"
@@ -350,4 +382,5 @@ module.exports = new Kite 'sharedHosting'
                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{username}"
                   res = "[OK] user #{username} was successfully unsuspended"
                   log.info res; callback? null, res
+
 

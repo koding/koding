@@ -6,7 +6,7 @@ class FSFolder extends FSFile
     # a = Date.now()
     @kiteController.run
       withArgs  :
-        command : "ls #{@path} -lpva --group-directories-first --time-style=full-iso"
+        command : "ls #{@path} -Llpva --group-directories-first --time-style=full-iso"
     , (err, response)=>
       # log "------------------------------------------------------------------"
       # log "l flag response in: #{Date.now()-a} msec."

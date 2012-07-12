@@ -113,9 +113,13 @@ app.activity.styl
   .kdlistitemview-activity
     border-bottom         1px solid rgba(0, 0, 0, 0.075)
     width                 auto
+    vendor                transition, left .3s ease-in-out\, background-color .3s ease-in-out
+    background-color      #ffffff
+    left                  0
     borderBox()
     &.hidden-item
       border-width        0              
+      background-color    #FDF5D9
       left                -100%
 
   .system-message
@@ -538,7 +542,7 @@ button.kdbutton.dark
   .help-box
     float                   left
     overflow                hidden
-    width                   150px
+    width                   auto
     height                  auto
 
 form.status-widget

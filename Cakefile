@@ -10,7 +10,7 @@ option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 
-ProgressBar     = require './builders/node_modules/progress'
+ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
@@ -125,6 +125,21 @@ targetPaths =
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
+
+task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
+  
+  options.port      = 3000
+  options.host      = "localhost"
+  options.database  = "beta" 
+  options.port      = "3000"
+  options.dontStart = yes
+  options.uglify    = yes
+  options.useStatic = yes
+    
+  invoke 'build'
+
+
+
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
   {our_modules, npm_modules} = require "./CakeNodeModules"
@@ -182,8 +197,6 @@ task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in .
 
 task 'build', 'optimized version for deployment', (options)->  
   invoke 'checkModules'
-  
-  options = options    
   require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
   options.port      or= 3000
   options.host      or= "localhost"
@@ -254,7 +267,7 @@ build = (options)->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
       
-    if changes.Server? 
+    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
       builder.buildServer "",()-> 
       builder.processMonitor.restartProcess() unless options.dontStart
     if changes.Client?.StylusFiles? 

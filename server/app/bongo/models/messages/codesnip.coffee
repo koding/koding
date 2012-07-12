@@ -55,4 +55,7 @@ class CCodeSnipActivity extends CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema
     relationships   :
-      subject       : JCodeSnip
+      subject       :
+        targetType  : JCodeSnip
+        as          : 'content'
+      
