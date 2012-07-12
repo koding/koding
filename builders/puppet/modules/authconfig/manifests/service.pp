@@ -1,6 +1,6 @@
 class authconfig::service {
   service { "sssd":
-    ensure => stopped,
+    ensure => running,
     hasstatus => true,
     hasrestart => true,
     enable => true,
