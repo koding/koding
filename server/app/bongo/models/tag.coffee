@@ -6,11 +6,12 @@ class JTag extends Followable
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
   
-  {Inflector,secure} = bongo
+  {ObjectRef,Inflector,secure,daisy} = bongo
   
   @share()
 
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
     sharedMethods   :
@@ -30,7 +31,7 @@ class JTag extends Followable
         validate    : [
           'invalid tag name'
           (value)->
-            0 < value.length <= 32 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
+            0 < value.length <= 256 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
         ]
       body          : String
       counts        :
@@ -77,31 +78,51 @@ class JTag extends Followable
         collectTeasers node for node in contents
       
       
-  @handleFreetags = bongo.secure (client, tags, callbackForEach=->)->
+  @handleFreetags = bongo.secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
-    console.log tags
-    tags.forEach (tag)->
-      if tag?.$suggest?
-        console.log "it's a tag, ", tag
-        JTag.create client, {title: tag.$suggest}, (err, tag)->
-          callbackForEach err, tag
-      else
-        existingTagIds.push bongo.ObjectId tag.id
-    JTag.all (_id: $in: existingTagIds), (err, existingTags)->
-      if err
-        callbackForEach err
-      else
-        callbackForEach null, tag for tag in existingTags
+    daisy queue = [
+      ->
+        fin =(i)-> if i is tagRefs.length-1 then queue.next()
+        tagRefs.forEach (tagRef, i)->
+          if tagRef?.$suggest?
+            newTag = {title: tagRef.$suggest.trim()}
+            JTag.one newTag, (err, tag)->
+              if err
+                callbackForEach err
+              else if tag?
+                callbackForEach null, tag
+                fin i
+              else
+                JTag.create client, newTag, (err, tag)->
+                  if err
+                    callbackForEach err
+                  else
+                    tagRefs[i] = ObjectRef(tag).data
+                    callbackForEach null, tag
+                    fin i
+          else
+            existingTagIds.push bongo.ObjectId tagRef.id
+            fin i
+      ->
+        JTag.all (_id: $in: existingTagIds), (err, existingTags)->
+          if err
+            callbackForEach err
+          else
+            callbackForEach null, tag for tag in existingTags
+    ]
   
   @create = secure (client, data, callback)->
-    {connection:{delegate}} = client
+    {delegate} = client.connection
     tag = new @ data
     tag.save (err)->
       if err
         callback err
       else
         tag.addCreator delegate, (err)->
-          callback null, tag
+          if err
+            callback err
+          else
+            callback null, tag
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist}  = options

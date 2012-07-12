@@ -22,14 +22,14 @@ class KDFormViewWithFields extends KDFormView
     @addSubView @buttonField = new KDView cssClass : "formline button-field clearfix"
     # for buttonOptions in buttons
     buttons.forEach (buttonOptions)=>
-      {callback} = buttonOptions
-      oldCallback = callback or noop
+      # {callback} = buttonOptions
+      # oldCallback = callback or noop
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.title] = button
-      newCallback = =>
-        @addCustomData '__clickedButton',buttonOptions.title
-        oldCallback.call button, button, @getData()
-      button.setCallback newCallback
+      # newCallback = =>
+        # @addCustomData '__clickedButton',buttonOptions.title
+        # oldCallback.call button, button, @getData()
+      # button.setCallback newCallback
 
       
   createField:(data,field)->

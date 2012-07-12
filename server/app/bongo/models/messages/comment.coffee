@@ -1,21 +1,57 @@
 class JComment extends jraphical.Reply
   
-  {ObjectId} = require 'bongo'
+  {ObjectId,ObjectRef,dash,daisy} = require 'bongo'
+  {Relationship}  = require 'jraphical'
   
   @share()
 
-  @setSchema 
-    body        :
-      type      : String
-      required  : yes
-    originType  :
-      type      : String
-      required  : yes
-    originId    :
-      type      : ObjectId
-      required  : yes
-    meta        : require 'bongo/bundles/meta'
-
+  @set
+    sharedMethods :
+      instance    : ['delete']
+    schema        :
+      body        :
+        type      : String
+        required  : yes
+      originType  :
+        type      : String
+        required  : yes
+      originId    :
+        type      : ObjectId
+        required  : yes
+      deletedAt   : Date
+      deletedBy   : ObjectRef
+      meta        : require 'bongo/bundles/meta'
+  
+  delete: bongo.secure (client, callback)->
+    {delegate} = client.connection
+    {getDeleteHelper} = Relationship
+    id = @getId()
+    queue = [
+      ->
+        Relationship.one {
+          targetId  : id
+          as        : 'reply'
+        }, (err, rel)->
+          if err
+            queue.fin err
+          else
+            rel.fetchSource (err, message)->
+              if err
+                queue.fin err
+              else
+                message.removeReply rel, -> queue.fin()
+      =>
+        deleter = ObjectRef(delegate)
+        @update
+          $unset      :
+            body      : 1
+          $set        :
+            deletedAt : new Date
+            deletedBy : deleter
+        , -> queue.fin()
+    ]
+    dash queue, callback
+  
 class CCommentActivity extends CActivity
   
   {Relationship} = jraphical

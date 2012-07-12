@@ -62,19 +62,19 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
-      callback : (formElements)=> @doLogin formElements
+      callback : (formData)=> @doLogin formData
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
-      callback : (formElements)=> @doRegister formElements
+      callback : (formData)=> @doRegister formData
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
-      callback : (formElements)=> @doRecover formElements
+      callback : (formData)=> @doRecover formData
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
-      callback : (formElements)=> @doReset formElements
+      callback : (formData)=> @doReset formData
 
   viewAppended:->
     @windowController = @getSingleton("windowController")
@@ -123,8 +123,8 @@ class LoginView extends KDScrollView
       @animateToForm 'login'
       @doLogin {username, password}
 
-  doRecover:(formElements)->
-    bongo.api.JPasswordRecovery.recoverPassword formElements['username-or-email'], (err)=>
+  doRecover:(formData)->
+    bongo.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
       @recoverForm.button.hideLoader()
       if err
         new KDNotificationView
@@ -136,10 +136,10 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
-  doRegister:(formElements)->
-    {kodingenUser} = formElements
-    formElements.agree = 'on'
-    bongo.api.JUser.register formElements, (error, result)=>
+  doRegister:(formData)->
+    {kodingenUser} = formData
+    formData.agree = 'on'
+    bongo.api.JUser.register formData, (error, result)=>
       @registerForm.button.hideLoader()
       if error
         {message} = error

@@ -1,4 +1,4 @@
-AccountSettingLists.develop.keysController = class AccountSshKeyListController extends KDListViewController
+class AccountSshKeyListController extends KDListViewController
   constructor:(options,data)->
     data = $.extend
       items : [
@@ -10,7 +10,7 @@ AccountSettingLists.develop.keysController = class AccountSshKeyListController e
     ,data
     super options,data    
 
-AccountSettingLists.develop.keys = class AccountSshKeyList extends KDListView
+class AccountSshKeyList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName       : "ul"

@@ -81,6 +81,8 @@ Includes =
         followable                : "./server/app/bongo/abstractions/followable.coffee"
         filterable                : "./server/app/bongo/abstractions/filterable.coffee"
         taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
+        notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -264,7 +266,6 @@ Includes =
         Shell12345      :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
         Shell           :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
         DiffScript      :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
-        
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
         
@@ -323,12 +324,14 @@ Includes =
                                       
         # MEMBERS VIEWS               
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
-        memberDisplay                 : "./client/app/Applications/Members.kdapplication/ContentDisplays/Member.coffee"
-        personalProfileDisplay        : "./client/app/Applications/Members.kdapplication/ContentDisplays/PersonalProfile.coffee"
+        membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
+        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
+        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
                                       
         # START TAB VIEWS                 
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
-                                      
+
         # INBOX CONTROLLERS                 
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
         inboxNotificationsController  : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxNotificationsController.coffee"
@@ -352,7 +355,6 @@ Includes =
         FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
-        FeedView                      : "./client/app/Applications/Feeder.kdapplication/FeedView.coffee"
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
         FeederTabView                 : "./client/app/Applications/Feeder.kdapplication/Views/FeederTabView.coffee"
 
@@ -371,7 +373,6 @@ Includes =
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
         # ACCOUNT SETTINGS    
-        accountMain                    : "./client/app/Applications/Account.kdapplication/AppView.coffee"
                                       
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
         accountUsername               : "./client/app/Applications/Account.kdapplication/account/accSettingsPersUsernameEmail.coffee"
@@ -386,6 +387,7 @@ Includes =
         accountPayMethods             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee"
         accountPayHistory             : "./client/app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee"
         accountSubs                   : "./client/app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee"
+        accountMain                   : "./client/app/Applications/Account.kdapplication/AppView.coffee"
         
         # CONTENT DISPLAY VIEWS
         contentDisplay                : "./client/app/MainApp/ContentDisplay/ContentDisplay.coffee"
@@ -444,13 +446,23 @@ Includes =
         Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
-        CommentView                 : "./client/app/CommonViews/CommentView.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
 
+        CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
+        CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
+        CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
+        CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
+        CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
+
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
-        Sidebar                     : "./client/app/MainApp/Sidebar.coffee"
-        
+        sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
+        sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
+        sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
+
+        # BOOK
+        BookView                    : "./client/app/MainApp/book.coffee"
+
         #maintabs
         
         MainTabView                 : "./client/app/MainApp/maintabs/maintabview.coffee"
@@ -496,7 +508,9 @@ Includes =
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
 
-        KodingMainViewController  : "./client/app/MainApp/KodingMainViewController.coffee"
+        KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
+        KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
+        KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
 
         ### VOVAS FINDER CRAP - DEPRECATE ASAP ###
 
@@ -622,6 +636,7 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
+        book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"

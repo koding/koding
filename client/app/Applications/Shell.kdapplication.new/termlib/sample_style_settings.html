@@ -1,0 +1,395 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+	<title>termlib Style Settings Sample</title>
+	<script language="JavaScript" type="text/javascript" src="termlib.js"></script>
+
+<script type="text/javascript">
+<!--
+
+// *** text wrap sample ***
+// mass:werk, N.Landsteiner 2007
+
+
+/*
+   define a new style for bold
+   style-code:        16,
+   mark up:           'b',
+   HTML-opening part: '<b>'
+   HTML-closing part: '<\/b>'
+   
+   use method TermGlobals.assignStyle( <style-code>, <markup>, <HTMLopen>, <HTMLclose> )
+   <style-code> must be a power of 2 between 0 and 256 (<style-code> = 2^n, 0 <= n <= 7)
+*/
+
+TermGlobals.assignStyle( 16, 'b', '<b>', '<\/b>' );
+
+/*
+   define a new style for small
+   style-code:        32,
+   mark up:           'm' (for "miniature", "s" already in use for strike),
+   HTML-opening part: '<span style="font-size:10px; letter-spacing:2px;">'
+   HTML-closing part: '<\/span>'
+*/
+
+TermGlobals.assignStyle( 32, 'm', '<span style="font-size:10px; letter-spacing:2px;">', '<\/span>' );
+
+// custom styles done
+
+
+var text = [
+	'This is a sample text to demonstrate our custom styles %+bbold%-b and %+mminiature%-m.',
+	'',
+	'With some luck, the following lines are of same width:',
+	'',
+	'   Normal:    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',
+	'   Bold:      %+bABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%-b',
+	'   Miniature: %+mABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%-m',
+	'',
+	'This is the list of our styles in use:',
+	'',
+	'   * %+rreverse%-r    (predefined)',
+	'   * %+uunderline%-u  (predefined)',
+	'   * %+iitalics%-i    (predefined)',
+	'   * %+sstrike%-s     (predefined)',
+	'   * %+bbold%-b       (custom style)',
+	'   * %+mminiature%-m  (custom style)',
+	'',
+	'Use %+bbold%-b only with a CSS definition of "letter-spacing: 1px;" for ".term", since bold letters do need some extra space as they are rendered.',
+	'We recommend not to change style #1 ("r": reverse), since this style is used by the cursor in block mode.',
+	' '
+];
+
+var help = [
+	'%+r **** termlib.js style config sample **** %-r',
+	' ',
+	' This sample installs and uses a custom %+bbold%-b style.',
+	' ',
+	' * type "test" for a sample text using bold.',
+	' * type "help" to see this page.',
+	' * type "exit" to quit.',
+	' '
+]
+
+var term;
+
+function termOpen() {
+	if ((!term) || (term.closed)) {
+		term = new Terminal(
+			{
+				x: 220,
+				y: 70,
+				termDiv: 'termDiv',
+				bgColor: '#232e45',
+				greeting: help.join('%n'),
+				handler: termHandler,
+				exitHandler: termExitHandler,
+				wrapping: true
+			}
+		);
+		term.open();
+		
+		// dimm UI text
+		var mainPane = (document.getElementById)?
+			document.getElementById('mainPane') : document.all.mainPane;
+		if (mainPane) mainPane.className = 'lh15 dimmed';
+	}
+}
+
+function termExitHandler() {
+	// reset the UI
+	var mainPane = (document.getElementById)?
+		document.getElementById('mainPane') : document.all.mainPane;
+	if (mainPane) mainPane.className = 'lh15';
+}
+
+function termHandler() {
+	// default handler + exit
+	this.newLine();
+	if (this.lineBuffer.match(/^\s*exit\s*$/i)) {
+		this.close();
+		return;
+	}
+	if (this.lineBuffer.match(/^\s*test\s*$/i)) {
+		this.clear();
+		this.write(text);
+	}
+	else if (this.lineBuffer.match(/^\s*help\s*$/i)) {
+		this.clear();
+		this.write(help);
+	}
+	else if (this.lineBuffer != '') {
+		// echo with write for wrapping, but escape any mark-up
+		this.write('You wrote: '+this.lineBuffer.replace(/%/g, '%%'));
+		this.newLine();
+	}
+	this.prompt();
+}
+
+
+// demo hooks
+
+function test(command) {
+	if ((!term) || (term.closed)) {
+		alert('Please open the terminal first!');
+		return;
+	}
+	TermGlobals.importEachLine( command );
+}
+
+//-->
+</script>
+
+<style type="text/css">
+body,p,a,td {
+	font-family: courier,fixed,swiss,sans-serif;
+	font-size: 12px;
+	color: #cccccc;
+}
+.lh15 {
+	line-height: 15px;
+}
+
+.term {
+	font-family: "Courier New",courier,fixed,monospace;
+	font-size: 12px;
+	color: #94aad6;
+	background: none;
+	letter-spacing: 1px;
+}
+.term .termReverse {
+	color: #232e45;
+	background: #95a9d5;
+}
+
+a,a:link,a:visited {
+	text-decoration: none;
+	color: #77dd11;
+}
+a:hover {
+	text-decoration: underline;
+	color: #77dd11;
+}
+a:active {
+	text-decoration: underline;
+	color: #eeeeee;
+}
+
+a.termopen,a.termopen:link,a.termopen:visited {
+	text-decoration: none;
+	color: #77dd11;
+	background: none;
+}
+a.termopen:hover {
+	text-decoration: none;
+	color: #222222;
+	background: #77dd11;
+}
+a.termopen:active {
+	text-decoration: none;
+	color: #222222;
+	background: #eeeeee;
+}
+
+table.inventory td {
+	padding-bottom: 20px !important;
+}
+
+pre,tt {
+	font-family: courier,fixed,monospace;
+	color: #ccffaa;
+	font-size: 12px;
+	line-height: 15px;
+}
+
+li {
+	line-height: 15px;
+	margin-bottom: 8px !important;
+}
+
+.dimmed,.dimmed *,.dimmed * * {
+	background-color: #222222 !important;
+	color: #333333 !important;
+}
+
+@media print {
+	body { background-color: #ffffff; }
+	body,p,a,td,li,tt {
+		color: #000000;
+	}
+	pre,.prop {
+		color: #000000;
+	}
+	h1 {
+		color: #000000;
+	}
+	a,a:link,a:visited {
+		color: #000000;
+	}
+	a:hover {
+		color: #000000;
+	}
+	a:active {
+		color: #000000;
+	}
+	table.inventory {
+		display: none;
+	}
+}
+
+</style>
+</head>
+
+
+<body bgcolor="#222222" link="#77dd11" text="#cccccc" alink="#eeeeee" vlink="#77dd11"
+topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0" marginheight="0" marginwidth="0">
+
+<table border="0" cellspacing="20" cellpadding="0" align="center">
+<tr>
+	<td nowrap><a href="index.html">termlib.js home</a></td>
+	<td>|</td>
+	<td nowrap><a href="multiterm_test.html">multiple terminals</a></td>
+	<td>|</td>
+	<td nowrap><a href="parser_sample.html">parser</a></td>
+	<td>|</td>
+	<td nowrap><a href="faq.html">faq</a></td>
+	<td>|</td>
+	<td nowrap><a href="readme.txt" title="readme.txt (text/plain)">documentation</a></td>
+	<td>|</td>
+	<td nowrap><a href="samples.html" style="color: #cccccc;">samples</a></td>
+</tr>
+</table>
+
+<table border="0" cellspacing="20" cellpadding="0">
+	<tr valign="top">
+	<td nowrap>
+		<table border="0" cellspacing="0" cellpadding="0" width="190" class="inventory">
+		<tr><td nowrap>
+			Style Settings Sample<br>&nbsp;
+		</td></tr>
+		<tr><td nowrap>
+			<a href="javascript:termOpen()" onfocus="if(this.blur)this.blur();" onmouseover="window.status='open terminal'; return true" onmouseout="window.status=''; return true" class="termopen">&gt; open terminal &nbsp;</a>
+		</td></tr>
+		<tr><td nowrap>
+			<p><a href="javascript:test('test')" onfocus="if(this.blur)this.blur();" class="termopen">&gt; show sample text&nbsp;</a></p>
+		</td></tr>
+		<tr><td nowrap>
+			&nbsp;
+		</td></tr>
+		<tr><td nowrap class="lh15">
+			&nbsp;<br>
+			(c) mass:werk,<br>N. Landsteiner 2005-2007<br>
+			<a href="http://www.masswerk.at/" target="_blank">http://www.masswerk.at</a>
+		</td></tr>
+		</table>
+	</td>
+	<td class="lh15" width="560" id="mainPane">
+		<p><b style="letter-spacing: 1px;">Introducing Style Settings</b><br>&nbsp;</p>
+		<p>Version 1.4 of &quot;termlib.js&quot; introduces configurations for styles and associated markup.</p>
+		
+		<p>The method <tt>TermGlobals.assignStyle()</tt> allows you to
+		install a custom style and associated mark up with a single method call.</p>
+		<p><tt>TermGlobals.assignStyle()</tt> takes four arguments:</p>
+		
+		<table border="0" cellspacing="0" cellpadding="3">
+		<tr valign="top">
+			<td nowrap class="lh15"><tt>&lt;style-code&gt;</tt><td>
+			<td class="lh15">The code to be used in the style vector for this style.<br>
+			<tt>&lt;style-code&gt;</tt> must be a power of 2 between 0 and 256 (<tt>&lt;style-code&gt;</tt> = 2^n, 0 &lt;= n &lt;= 7)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap class="lh15"><tt>&lt;markup&gt;</tt><td>
+			<td class="lh15">The one letter markup to be associated with this style (case insensitive).<br>
+			&quot;p&quot; and &quot;c&quot; are reserved.</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap class="lh15"><tt>&lt;HTMLopen&gt;</tt><td>
+			<td class="lh15">The opening HTML clause to be written before a range in this style.<br>
+			(This is used as a line of text is rendered to the terminal display.)</td>
+		</tr>
+		<tr valign="top">
+			<td nowrap class="lh15"><tt>&lt;HTMLclose&gt;</tt><td>
+			<td class="lh15">The closing HTML clause to be written after a range in this style.<br>
+			(This is used as a line of text is rendered to the terminal display.)</td>
+		</tr>
+		</table>
+		
+		
+		<p>As an example we will install a style &quot;b&quot; for <b>bold</b> and use style #16 (2^4) for this.<br>
+		To have this all ready before needed, you would want to do this before opening any instance of <tt>Terminal</tt>:</p>
+		
+<pre>
+  TermGlobals.assignStyle( 16, 'b', '&lt;b&gt;', '&lt;/b&gt;' );
+</pre>
+		
+		<p>&nbsp;</p>
+		<p>Now we can use our new style and markup in any <tt>write()</tt> statement like this:</p>
+<pre>
+  myTerm.write('This is %+bBOLD%-b.');
+
+</pre>
+
+		<p>Now as we have installed our new &quot;bold&quot; style, we see that any bold letters are running wider then any plain text using the same letters. Since we want a well behaved terminal output, we'll have definitely to fix this.</p>
+		<p>We will apply some kerning to provide the extra space required for bold letters.
+		To do this, we'll add a &quot;<tt>letter-spacing</tt>&quot; definition to our CSS rule &quot;.term&quot; (if it's not already there):</p>
+
+<pre>  .term
+  {
+     font-family: &quot;Courier New&quot;,courier,fixed,monospace;
+     font-size: 12px;
+
+     /* ... any other definitions ... */
+
+     letter-spacing: 1px;
+  }</pre>
+		
+		<p>&nbsp;</p>
+		<p>(As we can now see, installing a bold style involves some synchronized CSS and HTML coding. This is also the reason why bold is not in the standard set of termlib.js styles.)</p>
+		
+		<p>&nbsp;</p>
+		
+		<p>As a second example we'll install a small style &quot;m&quot; (&quot;minature&quot;, &quot;s&quot; is already in use for strike) with style code 32 (2^5).</p>
+		<p>This should be rendered with <tt>font-size</tt>: 10px.<br>
+		To preserve our mono-spced appearance we'll have to adjust the kerning for the smaller character-width.<br>
+		So we'll use a custom HTML span with a style attribute for this:</p>
+
+<pre>
+  TermGlobals.assignStyle(
+                           32,
+                           'm',
+                           '&lt;span style=&quot;font-size:10px; letter-spacing:2px;&quot;&gt;',
+                           '&lt;/span&gt;'
+                         );
+
+</pre>
+		<p>As above we can now use this in a <tt>write()</tt> statement like this:</p>
+<pre>
+  myTerm.write('This is %+mSMALL%-m.');
+</pre>
+
+		<p>&nbsp;</p>
+		<p>Finally you could define a style as some kind of makro using the HTMl-parts (3rd and 4th argument) for visible information:</p>
+
+<pre>
+  TermGlobals.assignStyle( 64, 'e', 'ERROR: ', '!' );
+  
+  myTerm.write('%+eYou did not enter enter a valid number%-e');
+  
+  // &quot;ERROR: You did not enter enter a valid number!&quot;
+</pre>
+		
+		<p>&nbsp;</p>
+		<p>Notes:<br>
+		With version 1.4 <tt>TermGlobals</tt> is just a reference to <tt>Terminal.prototype.globals</tt>.<br>
+		Since the term &quot;<tt>TermGlobals</tt>&quot; is handy outside any handler, we used this as a shortcut.</p>
+		<p>Unlike any other methods <tt>TermGlobals.assignStyle()</tt> alerts any errors. (Since these alerts should only occure in development phase, this provides an easy debugging facillity without any notice to application users.)</p>
+		<p>You usually would not want to change style #1 (reverse) since this style is used by the cursor in block mode.</p>
+		<p>&nbsp;</p>
+	</td>
+	</tr>
+</table>
+
+<div id="termDiv" style="position:absolute; visibility: hidden; z-index:1;"></div>
+
+</body>
+</html>                                                                     

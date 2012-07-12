@@ -41,6 +41,26 @@ var Range = require('./range').Range;
 var EventEmitter = require("./lib/event_emitter").EventEmitter;
 var oop = require("./lib/oop");
 
+/**
+ * class PlaceHolder
+ *
+ * TODO
+ *
+ **/
+
+/**
+ * new PlaceHolder(session, length, pos, others, mainClass, othersClass)
+ * - session (Document): The document to associate with the anchor
+ * - length (Number): The starting row position
+ * - pos (Number): The starting column position
+ * - others (String):
+ * - mainClass (String):
+ * - othersClass (String):
+ *
+ *  TODO
+ *
+ **/
+
 var PlaceHolder = function(session, length, pos, others, mainClass, othersClass) {
     var _self = this;
     this.length = length;
@@ -60,7 +80,8 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
     
     this.$pos = pos;
     // Used for reset
-    this.$undoStackDepth = session.getUndoManager().$undoStack ? session.getUndoManager().$undoStack.length : -1;
+    var undoStack = session.getUndoManager().$undoStack || session.getUndoManager().$undostack || {length: -1};
+    this.$undoStackDepth =  undoStack.length;
     this.setup();
 
     session.selection.on("changeCursor", this.$onCursorChange);
@@ -70,6 +91,12 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
 
     oop.implement(this, EventEmitter);
 
+    /**
+     * PlaceHolder.setup()
+     *
+     * TODO
+     *
+     **/
     this.setup = function() {
         var _self = this;
         var doc = this.doc;
@@ -90,6 +117,12 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         session.setUndoSelect(false);
     };
     
+    /**
+     * PlaceHolder.showOtherMarkers()
+     *
+     * TODO
+     *
+     **/
     this.showOtherMarkers = function() {
         if(this.othersActive) return;
         var session = this.session;
@@ -104,6 +137,12 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         });
     };
     
+    /**
+     * PlaceHolder.hideOtherMarkers()
+     *
+     * Hides all over markers in the [[EditSession `EditSession`]] that are not the currently selected one.
+     *
+     **/
     this.hideOtherMarkers = function() {
         if(!this.othersActive) return;
         this.othersActive = false;
@@ -112,6 +151,12 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         }
     };
 
+    /**
+     * PlaceHolder@onUpdate(e)
+     * 
+     * Emitted when the place holder updates.
+     *
+     **/
     this.onUpdate = function(event) {
         var delta = event.data;
         var range = delta.range;
@@ -174,6 +219,13 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         this.$updating = false;
     };
     
+    /**
+     * PlaceHolder@onCursorChange(e)
+     * 
+     * Emitted when the cursor changes.
+     *
+     **/
+
     this.onCursorChange = function(event) {
         if (this.$updating) return;
         var pos = this.session.selection.getCursor();
@@ -186,6 +238,12 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         }
     };
     
+    /**
+     * PlaceHolder.detach()
+     * 
+     * TODO
+     *
+     **/    
     this.detach = function() {
         this.session.removeMarker(this.markerId);
         this.hideOtherMarkers();
@@ -198,11 +256,17 @@ var PlaceHolder = function(session, length, pos, others, mainClass, othersClass)
         this.session.setUndoSelect(true);
     };
     
+    /**
+     * PlaceHolder.cancel()
+     * 
+     * TODO
+     *
+     **/
     this.cancel = function() {
         if(this.$undoStackDepth === -1)
             throw Error("Canceling placeholders only supported with undo manager attached to session.");
         var undoManager = this.session.getUndoManager();
-        var undosRequired = undoManager.$undoStack.length - this.$undoStackDepth;
+        var undosRequired = (undoManager.$undoStack || undoManager.$undostack).length - this.$undoStackDepth;
         for (var i = 0; i < undosRequired; i++) {
             undoManager.undo(true);
         }

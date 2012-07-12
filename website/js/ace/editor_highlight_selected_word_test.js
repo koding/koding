@@ -70,6 +70,16 @@ var lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
              "libero vehicula odio, eget bibendum mauris velit eu lorem.\n" +
              "consectetur";
 
+function callHighlighterUpdate(session, firstRow, lastRow) {
+    var rangeCount = 0;
+    var  mockMarkerLayer = { drawSingleLineMarker: function() {rangeCount++;} }
+    session.$searchHighlight.update([], mockMarkerLayer, session, {
+        firstRow: firstRow,
+        lastRow: lastRow
+    });
+    return rangeCount;
+}
+
 module.exports = {
     setUp: function(next) {
         this.session = new EditSession(lipsum);
@@ -87,9 +97,13 @@ module.exports = {
         this.editor.moveCursorTo(0, 9);
         this.selection.selectWord();
 
+        var highlighter = this.editor.session.$searchHighlight;
+        assert.ok(highlighter != null);
+
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "ipsum");
-        assert.equal(this.session.$selectionOccurrences.length, 1);
+        assert.equal(highlighter.cache.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 2);
     },
 
     "test: highlight a word and clear highlight": function() {
@@ -98,10 +112,11 @@ module.exports = {
 
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "ipsum");
-        assert.equal(this.session.$selectionOccurrences.length, 1);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 2);
 
-        this.session.getMode().clearSelectionHighlight(this.editor);
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        this.session.highlight("");
+        assert.equal(this.session.$searchHighlight.cache.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: highlight another word": function() {
@@ -110,22 +125,23 @@ module.exports = {
 
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "dolor");
-        assert.equal(this.session.$selectionOccurrences.length, 3);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 4);
     },
 
     "test: no selection, no highlight": function() {
         this.selection.clearSelection();
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: select a word, no highlight": function() {
-        this.editor.setHighlightSelectedWord(false);
         this.selection.moveCursorTo(0, 14);
         this.selection.selectWord();
 
+        this.editor.setHighlightSelectedWord(false);
+
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "dolor");
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: select a word with no matches": function() {
@@ -148,7 +164,7 @@ module.exports = {
         this.selection.setSelectionRange(match);
 
         assert.equal(this.session.getTextRange(match), "Mauris");
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 1);
     },
 
     "test: partial word selection 1": function() {
@@ -158,7 +174,7 @@ module.exports = {
 
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "dolo");
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: partial word selection 2": function() {
@@ -168,7 +184,7 @@ module.exports = {
 
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "dolor ");
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: partial word selection 3": function() {
@@ -179,7 +195,7 @@ module.exports = {
 
         var range = this.selection.getRange();
         assert.equal(this.session.getTextRange(range), "olor");
-        assert.equal(this.session.$selectionOccurrences.length, 0);
+        assert.equal(callHighlighterUpdate(this.session, 0, 0), 0);
     },
 
     "test: select last word": function() {
@@ -204,7 +220,7 @@ module.exports = {
         this.selection.setSelectionRange(match);
 
         assert.equal(this.session.getTextRange(match), "consectetur");
-        assert.equal(this.session.$selectionOccurrences.length, 2);
+        assert.equal(callHighlighterUpdate(this.session, 0, 1), 3);
     }
 };
 

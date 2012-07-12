@@ -56,22 +56,19 @@ class Topics12345 extends AppController
           direction         : -1
     }, (controller)=>
       for name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'ItemWasAdded'
-          listener      : @
-          callback      : (pubInst, {view})=>
-            view.registerListener
-              KDEventTypes  : 'TopicWantsToExpand'
-              listener      : @
-              callback      : (pubInst, tag)=>
-                @createContentDisplay tag
+        listController.getListView().on (view, index)=>
+          view.registerListener
+            KDEventTypes  : 'TopicWantsToExpand'
+            listener      : @
+            callback      : (pubInst, tag)=>
+              @createContentDisplay tag
 
       view.addSubView controller.getView()
 
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formElements)=> @addATopic formElements
+    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
   
   fetchFeedForHomePage:(callback)->
     options = 
@@ -83,9 +80,9 @@ class Topics12345 extends AppController
     selector = {}
     bongo.api.JTag.someWithRelationship selector, options, callback
 
-  # addATopic:(formElements)->
-  #   # log formElements,"controller"
-  #   bongo.api.JTag.create formElements, (err, tag)->
+  # addATopic:(formData)->
+  #   # log formData,"controller"
+  #   bongo.api.JTag.create formData, (err, tag)->
   #     if err
   #       warn err,"there was an error creating topic!"
   #     else

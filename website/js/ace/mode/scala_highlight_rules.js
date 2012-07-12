@@ -65,7 +65,7 @@ var ScalaHighlightRules = function() {
                 token : "comment",
                 regex : "\\/\\/.*$"
             },
-            new DocCommentHighlightRules().getStartRule("doc-start"),
+            DocCommentHighlightRules.getStartRule("doc-start"),
             {
                 token : "comment", // multi line comment
                 merge : true,
@@ -75,11 +75,16 @@ var ScalaHighlightRules = function() {
                 token : "string.regexp",
                 regex : "[/](?:(?:\\[(?:\\\\]|[^\\]])+\\])|(?:\\\\/|[^\\]/]))*[/]\\w*\\s*(?=[).,;]|$)"
             }, {
-                token : "string", // single line
-                regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
+                token : "string",
+                regex : '"""',
+                next : "tstring"
             }, {
-                token : "string", // single line
-                regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+                token : "string",
+                regex : '"(?=.)', // " strings can't span multiple lines
+                next : "string"
+            }, {
+                token : "symbol.constant", // single line
+                regex : "'[\\w\\d_]+"
             }, {
                 token : "constant.numeric", // hex
                 regex : "0[xX][0-9a-fA-F]+\\b"
@@ -131,11 +136,41 @@ var ScalaHighlightRules = function() {
                 merge : true,
                 regex : ".+"
             }
+        ],
+        "string" : [
+            {
+                token : "escape",
+                regex : '\\\\"',
+            }, {
+                token : "string",
+                merge : true,
+                regex : '"',
+                next : "start"
+            }, {
+                token : "string.invalid",
+                regex : '[^"\\\\]*$',
+                next : "start"
+            }, {
+                token : "string",
+                regex : '[^"\\\\]+',
+                merge : true
+            }
+        ],
+        "tstring" : [
+            {
+                token : "string", // closing comment
+                regex : '"{3,5}',
+                next : "start"
+            }, {
+                token : "string", // comment spanning whole line
+                merge : true,
+                regex : ".+?"
+            }
         ]
     };
     
     this.embedRules(DocCommentHighlightRules, "doc-",
-        [ new DocCommentHighlightRules().getEndRule("start") ]);
+        [ DocCommentHighlightRules.getEndRule("start") ]);
 };
 
 oop.inherits(ScalaHighlightRules, TextHighlightRules);

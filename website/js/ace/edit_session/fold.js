@@ -39,7 +39,7 @@
 define(function(require, exports, module) {
 "use strict";
 
-/**
+/*
  * Simple fold-data struct.
  **/
 var Fold = exports.Fold = function(range, placeholder) {
@@ -76,7 +76,7 @@ var Fold = exports.Fold = function(range, placeholder) {
     };
 
     this.addSubFold = function(fold) {
-        if (this.range.isEequal(fold))
+        if (this.range.isEqual(fold))
             return this;
 
         if (!this.range.containsRange(fold))

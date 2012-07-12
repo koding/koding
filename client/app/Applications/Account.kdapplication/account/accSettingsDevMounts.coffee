@@ -1,4 +1,4 @@
-AccountSettingLists.develop.mountsController = class AccountMountListController extends KDListViewController
+class AccountMountListController extends KDListViewController
 
   mapBongoInstanceToView = (mount) ->
     mount.type ?= mount.constructor.name
@@ -22,8 +22,8 @@ AccountSettingLists.develop.mountsController = class AccountMountListController 
     list.registerListener
       KDEventTypes  : "UpdateFormSubmitted"
       listener      : @
-      callback      : (pubInst,{listItem, formElements})=>
-        @updateMount listItem, formElements
+      callback      : (pubInst,{listItem, formData})=>
+        @updateMount listItem, formData
 
   loadView:->
     super
@@ -52,8 +52,8 @@ AccountSettingLists.develop.mountsController = class AccountMountListController 
     #     items.push item
     #   @instantiateListItems items
 
-  updateMount:(listItem, formElements)=>
-    f = formElements
+  updateMount:(listItem, formData)=>
+    f = formData
 
     switch f.operation
       when "delete"
@@ -130,7 +130,7 @@ AccountSettingLists.develop.mountsController = class AccountMountListController 
     @getListView().destroyModal()
 
 
-AccountSettingLists.develop.mounts = class AccountMountList extends KDListView
+class AccountMountList extends KDListView
 
   mapBongoInstanceToView = (mount) ->
     mount.type ?= mount.constructor.name
@@ -174,7 +174,7 @@ AccountSettingLists.develop.mounts = class AccountMountList extends KDListView
       height    : "auto" 
       buttons   : yes
     
-    formElements = _fe = ()->
+    formData = _fe = ()->
       type :
         label : new KDLabelView 
           title : "Select Type:"
@@ -271,8 +271,8 @@ AccountSettingLists.develop.mounts = class AccountMountList extends KDListView
       lines = {}
       form = new KDFormView 
         cssClass : "clearfix"
-        callback : (formElements)=>
-          @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formElements}
+        callback : (formData)=>
+          @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formData}
       
       height =  items.length*75
 

@@ -2,7 +2,6 @@
 
 BASE_DIR="/mnt/storage0/koding"
 APP_DIR="${BASE_DIR}/terminaljs-lite/"
-#APP_DIR='/home/node/kfmjs/terminaljs-lite/'
 APP_FILE='index.coffee'
 NAME="terminaljs-lite"
 PID_FILE="/var/run/node/TerminalJS.pid"

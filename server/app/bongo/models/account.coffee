@@ -4,6 +4,7 @@ class JAccount extends Followable
     
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
+  @::mixin Notifiable::
 
   {secure,race} = bongo
   @share()
@@ -21,6 +22,8 @@ class JAccount extends Followable
     #       text        : String
     #     ]
   @set
+    tagRole             : 'skill'
+    taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
     sharedMethods :
@@ -256,6 +259,8 @@ class JAccount extends Followable
                 )
                 if response?.error then callback new KodingError response.error
                 else callback null, __channelId: secretChannelId
+  
+  getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
   
   tellKiteInternal : (account,options,callback)->
     {kiteId,kiteName,toDo,withArgs} = options

@@ -131,7 +131,8 @@ button.kdbutton.with-icon
 //   padding       8px 8px 8px 0
 //   line-height   14px
 
-button.kdbutton.with-icon,button.kdbutton.icon-only
+button.kdbutton.with-icon
+button.kdbutton.icon-only
   span.icon
     sprite()
     bg(position,20px 20px)
@@ -272,27 +273,36 @@ button.editor-button
       bg(position,-70px -460px)
 
 .ttag
-  padding             3px 6px
+  padding             0 6px
   // bg                  color, #E80
   bg                  color, linkColor1
   color               white!important
   rounded             3px
   margin-right        5px
   font-size           10px
-  line-height         10px
+  line-height         16px
   font-weight         700
   text-transform      none
   // vertical-align      top
   display             inline-block
+  max-width           120px
+  vertical-align      top
+  
   noTextDeco()
   
   > span
+    text-overflow       ellipsis
+    white-space         nowrap
     display             inline-block
+    overflow            hidden
+    width               100%
     margin              0
-    line-height         1
+    display             block
+    // line-height         16px
 
 .link-group
   display             inline-block
+  font-size           11px
 
 .small-text
   font-size       80%
@@ -806,7 +816,7 @@ button.cancel-edit-button
         display         block
         cursor          pointer
         margin-bottom   5px
-  .help-heart
+  .help-box
     top               -34px
     left              10px
     width             180px
@@ -825,10 +835,11 @@ button.cancel-edit-button
       margin            9px 5px 0 0
 
 /* sitewide help */
-.help-heart
+.help-box
   color                 #c5c5c5
   height                auto!important
-  span
+
+  > span
     margin-right        6px
     size(20px,20px)
     sprite()
@@ -838,12 +849,12 @@ button.cancel-edit-button
   > div
     font-size           9px
     overflow            hidden
-    // width               100px // breaks the link in modals to two lines. -sinan.
-    // fl()
+
     a
       font-size         11px
       text-decoration   none
       color             #ffbb60
+
     cite
       font-style          normal
       display             block
@@ -851,12 +862,13 @@ button.cancel-edit-button
   &:hover
     color               #000
     cursor              pointer
+
+    > span
+      bg                position,-120px -500px
+
     a
       color             #ff9202
       text-decoration   underline
-    span
-      sprite()
-      bg(position,-120px -500px)
 
 .feeder-tabs
   width                     auto
@@ -937,7 +949,7 @@ button.cancel-edit-button
     margin-bottom         30px
   .actions-sort.active,.actions-tags.active
     height              auto
-  .help-heart
+  .help-box
     position            absolute
     bottom              10px
   > button
@@ -1022,16 +1034,20 @@ button.cancel-edit-button
       bg              position, -60px -241px  
 
 
-
 figure.code-container
   position              relative
+  margin-bottom         10px
   pre
-    padding             10px 10px 0 10px
+    padding             10px
     margin              0
     overflow            visible
     size                auto,auto
     bg                  color,#2E2E2E
+    // rounded             4px 4px 0 0
     rounded             4px
+    word-wrap           normal
+    white-space         pre
+    min-height          56px
     code
       max-height        250px
       overflow          auto
@@ -1050,13 +1066,24 @@ figure.code-container
     text-transform    uppercase
     shadow            0 1px 1px rgba(0, 0, 0, 0.54)
   .button-bar
-    bg                color,#1E1E1E
-    height            37px
-    border-top        1px solid rgba(255, 255, 255, 0.4)
-    rounded           0 0 4px 4px
+    position          absolute
+    bg                color,transparent
+    // height            37px
+    top               27px
+    right             6px
+    // border-top        1px solid rgba(255, 255, 255, 0.4)
+    // rounded           0 0 4px 4px
     button
-      margin          5px 0 0 5px
-
+      margin          5px 5px 0 0
+      vendor          transition, opacity .15s linear
+      opacity         0
+      fr()
+      &:hover
+        opacity       1
+  &:hover
+    .button-bar
+      button
+        opacity       .8
 
 /* feed messages */
 .activity

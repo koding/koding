@@ -26,7 +26,7 @@ if ($query['env']=="vpn"){
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
 }
-elseif ($query['env'] == "mongohq-dev") {
+elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == 'dev-api.koding.com') {
   $dbName = "koding";
   $dbHost = "staff.mongohq.com";
   $dbPort = "10016";
@@ -82,11 +82,11 @@ function getFeed($collection,$limit,$sort,$skip){
     $originId = isset($query["data"]["originId"]) ? new MongoId(
       $query["data"]["originId"]
     ) : array(
-      '$exists' => TRUE,
+      '$ne' => -1,
     );
-    
+
     trace($type);
-  
+
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
