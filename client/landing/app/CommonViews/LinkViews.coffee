@@ -195,8 +195,8 @@ class ActivityChildViewTagGroup extends LinkGroup
 class FollowedModalView extends KDModalView
 
   titleMap = ->
-    account : "Followed members"
-    tag     : "Followed topics"
+    account : "members"
+    tag     : "topics"
 
   listControllerMap = ->
     account : MembersListViewController
