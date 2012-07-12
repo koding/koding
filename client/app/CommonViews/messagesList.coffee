@@ -11,8 +11,7 @@ class MessagesListController extends KDListViewController
   
   constructor:(options, data)->
     options.subItemClass or= InboxMessagesListItem
-    options.listView or= new MessagesListView
-      # lastToFirst : yes
+    options.listView     or= new MessagesListView
 
     super options, data
 
@@ -27,7 +26,7 @@ class MessagesListController extends KDListViewController
       as          : 'recipient'
       limit       : 10
       sort        :
-        timestamp : 1
+        timestamp : -1
     , (err, messages)=>
       # @propagateEvent KDEventType : "ClearMessagesListLoaderTimeout"
       @removeAllItems()
