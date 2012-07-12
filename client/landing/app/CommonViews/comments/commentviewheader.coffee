@@ -59,7 +59,6 @@ class CommentViewHeader extends JView
     
   render:->
 
-    log "HERE IS: ", @parent
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
     if @parent.commentController?.getItemCount?()
@@ -110,12 +109,12 @@ class CommentViewHeader extends JView
       @show()
       
   hide:->
-    @$().slideUp 150
-    super
+    @unsetClass "in"
+    # super
 
   show:->
-    @$().slideDown 150
-    super
+    @setClass "in"
+    # super
 
   pistachio:->
     """
