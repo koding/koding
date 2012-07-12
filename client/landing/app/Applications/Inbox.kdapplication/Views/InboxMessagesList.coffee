@@ -27,6 +27,8 @@ class InboxMessagesListItem extends KDListItemView
         return no
       else return yes
     
+    log group,">>>>"
+
     @participants = new ProfileTextGroup {group}
     @avatar       = new AvatarView {
       size    : {width: 40, height: 40}

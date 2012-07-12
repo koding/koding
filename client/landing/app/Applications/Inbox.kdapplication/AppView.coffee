@@ -47,7 +47,7 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      lastToFirst : yes
+      # lastToFirst : yes
       delegate    : @
       subItemClass  : InboxMessagesListItem
     inboxMessageBody = new KDView cssClass : "message-body-wrap"

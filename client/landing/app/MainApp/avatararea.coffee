@@ -195,6 +195,7 @@ class AvatarPopupNotifications extends AvatarPopup
 
     @_popupList = new PopupList 
       subItemClass : PopupNotificationListItem
+      # lastToFirst   : yes
 
     @listController = new MessagesListController 
       view         : @_popupList
@@ -231,7 +232,7 @@ class AvatarPopupMessages extends AvatarPopup
     
     @_popupList = new PopupList
       subItemClass  : PopupMessageListItem
-      lastToFirst   : yes
+      # lastToFirst   : yes
     
     @listController = new MessagesListController 
       view         : @_popupList
@@ -276,7 +277,7 @@ class PopupList extends KDListView
     
     options.tagName     or= "ul"
     options.cssClass    or= "avatararea-popup-list"
-    options.lastToFirst or= yes
+    # options.lastToFirst or= no
   
     super options,data
   
