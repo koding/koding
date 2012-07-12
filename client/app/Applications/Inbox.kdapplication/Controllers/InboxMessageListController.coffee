@@ -4,8 +4,12 @@ class InboxMessageListController extends KDListViewController
     super
     @selectedMessages = {}
   
-  loadMessages:->
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    controller = @
-    currentDelegate.fetchMail? (err, messages, participantsInfo)->
-      controller.instantiateListItems messages
+  loadMessages:(callback)->
+    @removeAllItems()
+    KD.whoami().fetchMail
+      limit       : 20
+      sort        :
+        timestamp : -1
+    , (err, messages)=>
+      @instantiateListItems messages
+      callback?()
