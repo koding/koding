@@ -64,7 +64,7 @@ class KDListViewController extends KDViewController
     newItems = for listItem in items
       @getListView().addItem listItem
 
-    @emit("AllItemsAddedToList")
+    @emit "AllItemsAddedToList"
 
     return newItems
 

@@ -26,6 +26,7 @@ class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
     indexes:
@@ -163,7 +164,7 @@ class JAccount extends jraphical.Module
           prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
         user.update {$set: emailFrequency: prefs}, callback
   
-  glanceMessages: secure (client, callback)-> console.log 'glancing messages'
+  glanceMessages: secure (client, callback)->
   
   glanceActivities: secure (client, callback)->
     @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
@@ -172,9 +173,7 @@ class JAccount extends jraphical.Module
       else
         queue = activities.map (activity)->
           -> activity.mark client, 'glanced', -> queue.fin()
-        dash queue, ->
-          console.log 'wtheck'
-          callback arguments...
+        dash queue, callback
   
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
@@ -199,7 +198,10 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
-
+  
+  fetchPrivateChannel:(callback)->
+    bongo.fetchChannel @getPrivateChannelName(), callback
+  
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   addTags: secure (client, tagPath, tags, callback)->
@@ -232,6 +234,7 @@ class JAccount extends jraphical.Module
             as: options.as
           else
             {}
+        options.limit     = 8
         options.fetchMail = yes
         @fetchPrivateMessages selector, options, (err, messages)->
           if err
@@ -279,7 +282,7 @@ class JAccount extends jraphical.Module
       oldFetchDatabases.call @,callback
     else
       callback new KodingError "access denied for guest."    
-
+  
   createEnvironment:(options,callback)->
     @fetchEnvironment "hosts.hostname":res.backend,(err,environment)=>
       if err then callback err

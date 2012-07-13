@@ -49,9 +49,10 @@ module.exports = new Kite 'sharedHosting'
     # console.log 'attempting to upload file', options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
+    log.debug "uploadFile is called",options.path
     filename = hat()
     tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf-8', (err)=>
+    fs.writeFile tmpPath,contents,'utf8', (err)=>
       unless err
         @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
           unless err
@@ -205,7 +206,7 @@ module.exports = new Kite 'sharedHosting'
       cn: username
     
     # first of all we have to connect and bind to ldap
-    ldapClient = ldap.createClient url:config.ldap.ldapUrl
+    ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
       if err?
         log.error error = "[ERROR] Can't bind to LDAP server #{config.ldap.ldapUrl}: #{err.message}"
