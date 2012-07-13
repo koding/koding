@@ -2,10 +2,10 @@ class KDModalController extends KDViewController
   modalViewTypes = 
     blocking      : KDBlockingModalView
     loading       : KDModalViewLoad
-  
+
   listeningTo = []
   systemModals = {}
-  
+
   @createAndShowNewModal = (options)->
     {
       type                     # type of modal view to be created (string type or constructor of subClass of KDModalView)
@@ -19,25 +19,25 @@ class KDModalController extends KDViewController
       cssClass                 # a String
       buttons                  # an Object of button options
       fx                       # a Boolean
-      draggable      
+      draggable
       # TO BE IMPLEMENTED
       resizable                 # a Boolean
     } = options
-    
-    
+
+
     modalView = (new type? options) or (new modalViewTypes[type]? options) or new KDModalView options
-    
+
     modalView.registerListener KDEventTypes: 'KDModalViewDestroyed', listener : @, callback: (modalView)=> delete systemModals[modalView.getId()]
     systemModals[id = modalView.getId()] = modalView
-    
+
     (view or modalView).registerListener KDEventTypes:'KDModalShouldClose', listener:@, callback:do (modalView)->
       ->
         modalView.destroy()
-    
+
     return id
-  
+
   @getModalById = (id)->
     systemModals[id]
-  
+
   @setListeningTo = (obj)->
     listeningTo.push obj

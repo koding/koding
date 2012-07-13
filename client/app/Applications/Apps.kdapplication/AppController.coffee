@@ -18,7 +18,7 @@ class Apps12345 extends AppController
     
   loadView:(mainView)->
     mainView.createCommons()
-    @createFeed()
+    # @createFeed()
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -154,8 +154,7 @@ class Apps12345 extends AppController
       outputWrapper       : selectedItemWrapper
       listWrapperCssClass : "tags"
       form                : forms['Technical Stuff']
-      itemDataPath        : "title"
-      valuesSavedAsString : yes
+      itemDataPath        : 'title'
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)

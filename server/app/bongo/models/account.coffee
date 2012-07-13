@@ -9,7 +9,7 @@ class JAccount extends jraphical.Module
   @::mixin Notifiable::
   
 
-  {ObjectId,secure,race} = bongo
+  {ObjectId,secure,race,dash} = bongo
   {Relationship} = jraphical
   @share()
   Experience = 
@@ -26,6 +26,7 @@ class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
     indexes:
@@ -41,9 +42,9 @@ class JAccount extends jraphical.Module
         'fetchFollowingWithRelationship','getDefaultEnvironment'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','tellKite','fetchLimit','fetchKiteIds'
-        'fetchFollowedTopics', 'tellKite2','fetchKiteChannelId'
-        'fetchNonces'
+        'fetchStorage','count','addTags','fetchLimit'
+        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
+        'fetchNonces', 'glanceMessages', 'glanceActivities'
       ]
     schema                  :
       skillTags             : [String]
@@ -56,9 +57,7 @@ class JAccount extends jraphical.Module
       counts                : Followable.schema.counts
       environmentIsCreated  : Boolean
       profile               :
-        about               :
-          type              : String
-          default           : "I'm still trying to find my way in the world..."
+        about               : String
         nickname            :
           type              : String
           validate          : (value)->
@@ -128,28 +127,9 @@ class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : JTag
 
-  # bongo.on 'clientDidDisconnect', (connection)->
-  #   if connection?.delegate instanceof JAccount
-  #     {remoteId, delegate} = connection
-  #     delegate.tellKite2 {connection}, null,
-  #       kiteId    : '*'
-  #       toDo      : '_disconnect'
-  #     , ->
-  # 
-  # @chris =->
-  #   q = {"as":"activity","targetName":{"$in":["CRepliesActivity","CNewMemberBucketActivity","CFolloweeBucketActivity","CFollowerBucketActivity","CReplierBucketActivity","CReplieeBucketActivity","CLikerBucketActivity","CLikeeBucketActivity","CCommentActivity","CStatusActivity","CCodeSnipActivity","CQuestionActivity"]},"sourceName":"JAccount","sourceId":ObjectId("4eea4fd93e25516404000004")}
-  #   f = {"targetId":1,"data.flags":1,"targetName":1}
-  #   o = {}
-  #   Relationship.getCollection().find q, f, o, ->
-  #     [_, cursor] = arguments
-  #     cursor.toArray console.log.bind console, 'getCollection().find()'
-  #   Relationship.someData q, f, o, ->
-  #     [_, cursor] = arguments
-  #     cursor.toArray console.log.bind console, 'someData()'
-  # 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
-
+    
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
@@ -175,24 +155,27 @@ class JAccount extends jraphical.Module
           results.push doc.profile.fullname
         callback err, results
   
-  # fetchNonce: bongo.secure (client, callback)->
-  #   {delegate} = client.connection
-  #   unless @equals delegate
-  #     callback new KodingError 'Access denied.'
-  #   else
-  #     client.connection.remote.fetchClientId (clientId)->
-  #       JSession.one {clientId}, (err, session)->
-  #         if err
-  #           callback err
-  #         else
-  #           nonce = hat()
-  #           session.update $set: {nonce}, (err)->
-  #             if err
-  #               callback err
-  #             else
-  #               callback null, nonce
+  setEmailPreferences: secure (client, prefs, callback)->
+    JUser.fetchUser client, (err, user)->
+      if err
+        callback err
+      else
+        Object.keys(prefs).forEach (granularity)->
+          prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
+        user.update {$set: emailFrequency: prefs}, callback
   
-  fetchNonces: bongo.secure (client, callback)->
+  glanceMessages: secure (client, callback)->
+  
+  glanceActivities: secure (client, callback)->
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
+      if err
+        callback err
+      else
+        queue = activities.map (activity)->
+          -> activity.mark client, 'glanced', -> queue.fin()
+        dash queue, callback
+  
+  fetchNonces: secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
       callback new KodingError 'Access denied.'
@@ -209,168 +192,17 @@ class JAccount extends jraphical.Module
               else
                 callback null, nonces
   
-  fetchKiteIds: bongo.secure ({connection}, options, callback)->
-    {kiteName} = options
-    {hostname} = kiteConfig.kites[kiteName]
-    if kiteName in ["sharedHosting","terminaljs","fsWatcher"]
-      kiteController.query {kiteName, hostname}, (err,kiteIds)=>
-        log.debug "got the kites",{kiteIds}
-        if err then console.dir err else
-          callback? null,kiteIds
-    else
-      kiteController.query {kiteName}, (err,kiteIds)=>
-        if err then console.dir err else
-          callback? null,kiteIds
-  
-  fetchKiteChannelId: bongo.secure (client, kiteName, callback)->
+  fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
   
-  tellKite2: bongo.secure bongo.useMQ (client, channelId, args, callback)->
-    {delegate} = client.connection
-    {kiteId, toDo} = args
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied'
-    secretChannelId = channelId #+ delegate.profile.nickname
-    JChannel.one {secretChannelId}, (err, channel)->
-      if err
-        callback err
-      else if channel?
-        callback new KodingError 'Unavailable channel id'
-      else
-        delegateId = delegate.getId()
-        channel = new JChannel {
-          publicChannelId: delegateId + kiteId + Date.now() + '_private'
-          secretChannelId
-          subscribers: unless args.toDo in ['_disconnect', '_connect']
-            [kiteId, delegateId].filter (item)-> item?
-        }
-        channel.save (err)->
-          if err then callback err
-          else
-            args.secretChannelId  = secretChannelId
-            args.callbackId       = callback.id
-            args.requesterId      = client.connection.remoteId
-            args.subscriberCount  = channel.getAt('subscribers')?.length or 0
-            # uri = "http://localhost:1337/?data=#{
-            uri = "https://api.koding.com/1.1/kite/sharedHosting?data=#{
-              encodeURIComponent JSON.stringify args
-            }"
-            nodeRequest uri, (err, response, body)->
-              if err then callback err
-              else
-                try response = JSON.parse body
-                catch e then return callback new KodingError(
-                  "Invalid response: #{body}"
-                )
-                if response?.error then callback new KodingError response.error
-                else callback null, __channelId: secretChannelId
+  fetchPrivateChannel:(callback)->
+    bongo.fetchChannel @getPrivateChannelName(), callback
   
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
-  
-  tellKiteInternal : (account,options,callback)->
-    {kiteId,kiteName,toDo,withArgs} = options
-    
-    if not account?.profile?.nickname
-      # log.error "account.tellKite is called from another class, it can only be called from a browser"
-      return callback? "you can only call account.tellKite from a browser."
-        
-    # {delegate} = connection
-    {kiteName,kiteId,toDo,withArgs} = options
-    
-    # KITE SECURITY BACKBONE - NEVER REMOVE.
-    withArgs ?= {}
-    withArgs.username = account.profile.nickname
-    # 
-        
-    completeTheRequest = ({kiteId,toDo,options},env,callback) =>
-      kiteController.tell {kiteId, toDo, withArgs,callback},(err)=>
-        # log.debug "unsetting the kite"
-        if err
-          newErr = {
-            kiteMsg        : err
-            kiteNotPresent : true
-            kiteName
-            kiteId
-          }
-          log.error err
-          callback newErr
-          env.unsetKite {kiteId},(err)->
-            unless err
-              # log.debug "kite is unset",env
-              
-            else
-              # log.debug err
-        
-    unless @equals account
-      err = "Guest can't access kites."
-      log.error err
-      callback new KodingError err
-    else
-      # # log.debug "getting the kite"
-      @fetchEnvironment (err,env)=>
-        # console.log "--sdf->",arguments       
-        if err
-          callback 'problem with db, try later.'
-        else if env
-          # log.debug "env is there", env
-          if kiteId and kiteName
-            env.setKite kiteName,kiteId,(err)=>
-              unless err
-                completeTheRequest {kiteId,toDo,withArgs},env,callback
-              else
-                callback "couldn't set the kite, please try again."
-          
-          else if kiteName
-            env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
-              if err
-                log.error err
-                callback err
-              else
-                completeTheRequest {kiteId,toDo,withArgs},env,callback
-          else
-            callback "you must provide kiteName or kiteId"
-        else
-          # create env
-          # # log.debug "create new env"
-          env = new JEnvironment kites: {testKite:"1234"}
-          # # log.debug env
-
-          env.save (err)=>
-            if err
-              # # log.debug "couldn't save the env to db"
-            else
-              # # log.debug "we're cool"
-              @addEnvironment env,(err)->
-                unless err
-                  env.getKiteId {kiteName,discover:yes,setKite:yes},(err,kiteId)->
-                    if err
-                      log.error err
-                      callback err
-                    else
-                      completeTheRequest {kiteId,toDo,withArgs},env,callback
-                else
-                  callback err        
-                  
-  tellKite: bongo.secure ({connection}, options, callback)->
-
-    #
-    # USAGE :
-    #
-    # options =
-    #   kiteName  : String      # sharedHosting
-    #   toDo      : String      # createFile
-    #   withArgs  : Array       # client provided data to be passed to the kite function
-    #
-    
-    if not connection?.delegate?.profile?.nickname
-      # log.error "account.tellKite is called from another class, it can only be called from a browser"
-      return callback? "you can only call account.tellKite from a browser."
-    else
-      @tellKiteInternal @,options,callback
 
   addTags: secure (client, tagPath, tags, callback)->
     Taggable::addTags.call @, client, tags, (err)=>
@@ -402,6 +234,8 @@ class JAccount extends jraphical.Module
             as: options.as
           else
             {}
+        options.limit     = 8
+        options.fetchMail = yes
         @fetchPrivateMessages selector, options, (err, messages)->
           if err
             callback err
@@ -412,79 +246,43 @@ class JAccount extends jraphical.Module
               else
                 callback null, messages
   
-  fetchNotificationsTimeline: bongo.secure ({connection}, selector, options, callback)->
+  fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
   
-  fetchActivityTeasers : bongo.secure ({connection}, selector, options, callback)->
+  fetchActivityTeasers : secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
-      debugger
       @fetchActivities selector, options, callback
-        #@constructor.collectTeasersAllCallback (err, items)->
-#        console.log 'grrr', arguments
-        # if err
-        #   callback err
-        # else
-        #   items = for item in items
-        #     uniqueSourceOrigins = {}
-        #     for relationship in item \
-        #       when not uniqueSourceOrigins[targetOriginId = relationship.target.originId]? and
-        #            not targetOriginId.equals connection.delegate.getId()
-        #       uniqueSourceOrigins[targetOriginId] = yes
-        #       sourceOriginId = relationship.source.originId
-        #       sourceOriginName = relationship.source.originType
-        #       targetOriginName = relationship.target.originType
-        #       {sourceId, targetId, sourceName, targetName, as, timestamp} = relationship
-        #       {
-        #         sourceOriginName
-        #         sourceOriginId
-        #         targetOriginName
-        #         targetOriginId
-        #         sourceName
-        #         sourceId
-        #         targetName
-        #         targetId
-        #         as
-        #         timestamp
-        #       }
-        #   callback null, items.filter (item)-> item.length > 0
 
-  update: bongo.secure (client, changes, callback) ->
+  update: secure (client, changes, callback) ->
     if client.connection.delegate.equals @
       jraphical.Module::update.call @, changes, callback
 
   oldFetchMounts = @::fetchMounts
-  fetchMounts: bongo.secure (client,callback)->
+  fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchMounts.call @,callback
     else
       callback new KodingError "access denied for guest."
 
   oldFetchRepos = @::fetchRepos  
-  fetchRepos: bongo.secure (client,callback)->
+  fetchRepos: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchRepos.call @,callback
     else
       callback new KodingError "access denied for guest."    
 
   oldFetchDatabases = @::fetchDatabases  
-  fetchDatabases: bongo.secure (client,callback)->
+  fetchDatabases: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchDatabases.call @,callback
     else
       callback new KodingError "access denied for guest."    
-
-  # 
-  # getEnvironments:(callback)->
-  #   
-  #   callback
-  # 
-  # createDefaultEnvironment:(options,callback)->
-  #   
+  
   createEnvironment:(options,callback)->
     @fetchEnvironment "hosts.hostname":res.backend,(err,environment)=>
       if err then callback err
@@ -500,7 +298,7 @@ class JAccount extends jraphical.Module
               else
                 callback null,environment    
   
-  getDefaultEnvironment: bongo.secure (client, callback)->
+  getDefaultEnvironment: secure (client, callback)->
     unless @equals client.connection.delegate
       return callback null, 'Not enough privileges'
 
@@ -513,7 +311,7 @@ class JAccount extends jraphical.Module
     {profile} = @data
     profile.firstName+' '+profile.lastName
   
-  fetchStorage: bongo.secure (client, options, callback)->
+  fetchStorage: secure (client, options, callback)->
     account = @
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"

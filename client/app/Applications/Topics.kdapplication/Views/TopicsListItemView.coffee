@@ -43,7 +43,7 @@ class TopicsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     tag = @getData()
-    @propagateEvent KDEventType: 'TopicWantsToExpand', tag
+    appManager.tell "Topics", "createContentDisplay", tag
 
   viewAppended:->
     @setClass "topic-item"
@@ -195,7 +195,7 @@ class ModalTopicsListItem extends TopicsListItemView
 
     super options,data
 
-    @titleLink = new TagLinkView null, data
+    @titleLink = new TagLinkView {expandable: no}, data
 
     @titleLink.registerListener
       KDEventTypes  : 'click'

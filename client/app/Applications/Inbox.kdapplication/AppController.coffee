@@ -23,6 +23,7 @@ class Inbox12345 extends AppController
     callback()
   
   fetchMessages:(options, callback)->
+    # log "FETCH MESSAGES INTERNAL"
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
     currentDelegate.fetchMail? options, callback
   
@@ -95,7 +96,7 @@ class Inbox12345 extends AppController
             KDEventTypes: 'viewAppended'
             listener: @
             callback: =>
-              data.restComments 0, (err, comments)-> log arguments, data
+              data.restComments 0, (err, comments)-> # log arguments, data
           
           paneView.addSubView detail
           paneView.detail = detail
@@ -122,7 +123,7 @@ class Inbox12345 extends AppController
       KDEventTypes: 'MessageShouldBeDisowned'
       listener    : @
       callback    : do=>
-        disownAll =(items, callback)->
+        disownAll = (items, callback)->
           disownItem = race (i, item, fin)->
             item.data.disown (err)->
               if err
@@ -131,12 +132,15 @@ class Inbox12345 extends AppController
                 fin()
           , callback
           disownItem item for own id, item of items
-        =>
+        (pubInst, modal) =>
+          log modal
           disownAll @selection, =>
+            log "2", modal
             for own id, {item, paneView} of @selection
               item.destroy()
               paneView.destroy()
               @deselectMessages()
+            modal.destroy()
   
     newMessageBar.registerListener
       KDEventTypes: 'MessageShouldBeMarkedAsUnread'
@@ -167,10 +171,12 @@ class Inbox12345 extends AppController
     @selection = {}
   
   sendMessage:(messageDetails, callback)->
+    log "I just send a new message: ", messageDetails
     bongo.api.JPrivateMessage.create messageDetails, callback
   
   prepareMessage:(formOutput, callback)=>
-    {body, subject, recipients} = formOutput    
+    {body, subject, recipients} = formOutput
+    
     to = recipients.join ' '
     
     @sendMessage {to, body, subject}, (err, message)->

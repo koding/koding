@@ -88,15 +88,15 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
-        {{> @saveButton}}
         {{> @previewButton}}
-        {{> @advancedSettings}}
+        {{> @saveButton}}
       </div>
     </div>
     <div class="kdview editor-main">
       {{> @ace}}
       <div class="editor-bottom-bar clearfix">
         {{> @caretPosition}}
+        {{> @advancedSettings}}
       </div>
     </div>
     """

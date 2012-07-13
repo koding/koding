@@ -29,34 +29,61 @@ class LinkView extends KDCustomHTMLView
     super options, data
     if data.fake and options.origin
       @loadFromOrigin options.origin
-  
+
   loadFromOrigin:(origin)->
-    bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
-      @setData origin
+
+    callback = (data)=>
+      @setData data
       @render()
-      @$().attr "href","/#!/#{origin.profile?.nickname}" 
-      # @$().twipsy title : "@#{origin.profile.nickname}", placement : "left"
+
+    if origin.constructorName
+      bongo.cacheable origin.constructorName, origin.id, (err, origin)=> 
+        callback origin
+    else
+      callback origin
 
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
 class ProfileLinkView extends LinkView
-  constructor:->
-    super
+  
+  constructor:(options, data)->
+
+    super options, data
+
+    @$().attr "href","/#!/#{data?.profile?.nickname}"
     @setClass "profile"
 
+  render:->
+    data = @getData()
+    @$().attr "href","/#!/#{data.profile?.nickname}"
+    super
+
   pistachio:->
+    
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-  click:->
+  click:(event)->
     account = @getData()
     appManager.tell "Members", "createContentDisplay", account
+    event.stopPropagation()
+    no
 
 class TagLinkView extends LinkView
-  constructor:->
-    super
-    @setClass "ttag"
+
+  constructor:(options = {}, data)->
+    options.expandable ?= yes
+    if not options.expandable and data.title.length > 20
+      options.tooltip =
+        title     : data.title
+        placement : "above"
+        delayIn   : 120
+        offset    : 1
+    super options, data
+
+    @setClass "ttag expandable"
+    @unsetClass "expandable" unless options.expandable
 
   pistachio:->
     super "{{#(title)}}"
@@ -85,27 +112,33 @@ class LinkGroup extends KDCustomHTMLView
 
   loadFromOrigins:(group)->
 
-    # -3 means last three pieces?
-    three = group.slice(-3)
-    bongo.cacheable three, (err, bucketContents)=>
-      @setData bucketContents
+    callback = (data)=>
+      @setData data
       @createParticipantSubviews()
       @render()
 
-  itemClass:(options, data)->
+    if group[0].constructorName
+      three = group.slice(-3)
+      bongo.cacheable three, (err, bucketContents)=>
+        callback bucketContents
+    else
+      callback group
 
+    # -3 means last three pieces?
+
+  itemClass:(options, data)->
     new (@getOptions().subItemClass) options, data
 
   createParticipantSubviews:->
-
     participants = @getData()
+    # log "createParticipantSubviews",participants
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-
+    # log "in pistachio again",">>>>>>>>>>>>>>"
     participants = @getData()
     {hasMore, totalCount, group} = @getOptions()
 
@@ -130,13 +163,14 @@ class LinkGroup extends KDCustomHTMLView
       else "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @more}}"
 
   render:->
-
+    # log "rendering",">>>>>>>>>>>>>>"
     @createParticipantSubviews()
+
 
 class ActivityChildViewTagGroup extends LinkGroup
 
   pistachio:->
-
+    # log "in pistachio again",">>>>>>>>>>>>>>"
     participants = @getData()
     {hasMore, totalCount, group} = @getOptions()
 
@@ -161,8 +195,8 @@ class ActivityChildViewTagGroup extends LinkGroup
 class FollowedModalView extends KDModalView
 
   titleMap = ->
-    account : "Followed members"
-    tag     : "Followed topics"
+    account : "members"
+    tag     : "topics"
 
   listControllerMap = ->
     account : MembersListViewController
@@ -194,19 +228,36 @@ class FollowedModalView extends KDModalView
     super
 
   viewAppended:->
+    @loader = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#cccccc"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
+
+    @addSubView @loader, ".kdmodal-content"
+    @loader.show()
+
     @prepareList()
     @setPositions()
 
   putList: (participants) ->
     controller = new KDListViewController
-      view            : new KDListView
-        subItemClass  : listItemMap()[@type]
-        cssClass      : "modal-topic-list"
-    ,
-      items           : participants
+      view              : new KDListView
+        subItemClass    : listItemMap()[@type]
+        cssClass        : "modal-topic-list"
+    , items             : participants
 
     controller.getListView().on "CloseTopicsModal", =>
       @destroy()
+
+    controller.on "AllItemsAddedToList", =>
+      @loader.destroy()
 
     @addSubView controller.getView(), ".kdmodal-content"
 
@@ -237,11 +288,11 @@ class AvatarView extends LinkView
     ,options
     options.cssClass = "avatarview #{options.cssClass}"
     super options,data
-  
+
   click:->
     account = @getData()
     appManager.tell "Members", "createContentDisplay", account
-  
+
   render:->
     return unless @getData()
     {profile} = @getData()
@@ -253,7 +304,7 @@ class AvatarView extends LinkView
 
   viewAppended:->
     @render() if @getData()
-    
+
 class AvatarStaticView extends AvatarView
   constructor:(options, data)->
     options = $.extend
@@ -263,7 +314,7 @@ class AvatarStaticView extends AvatarView
     super options, data
 
   click: noop
-  
+
 class AvatarSwapView extends AvatarView
   constructor:(options,data)->
     options = $.extend
@@ -272,7 +323,7 @@ class AvatarSwapView extends AvatarView
     super options,data
 
   click:-> noop
-  
+
   setFileUpload:->
     if @swapAvatarView and @swapAvatarView.isInDom()
       @swapAvatarView.destroy()
@@ -326,7 +377,7 @@ class AutoCompleteProfileTextView extends ProfileTextView
       str = str.replace RegExp(userInput, 'gi'), (match)=>
         if isNick then @setClass 'nick-matches'
         return "<b>#{match}</b>"
-  
+
   pistachio:->
     "{{@highlightMatch #(profile.firstName)+' '+#(profile.lastName)}}" +
       if @getOptions().shouldShowNick then """
@@ -335,4 +386,4 @@ class AutoCompleteProfileTextView extends ProfileTextView
         </span>
         """
       else ''
-      
+

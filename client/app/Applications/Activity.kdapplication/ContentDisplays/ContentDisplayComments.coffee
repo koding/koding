@@ -1,8 +1,18 @@
-class ContentDisplayComments extends KDView
-  viewAppended:->
-    {activity} = @getData()
-    # @addSubView (new CommentView null, activity),".topictext"
-    commentView = new CommentView null, activity
-    activityActions = new ActivityActionsView delegate : commentView.commentList, cssClass : "comment-header",activity
-    @addSubView activityActions
-    @addSubView commentView
+class ContentDisplayComments extends JView
+
+  constructor:(options, data)->
+
+    super
+
+    @commentView     = new CommentView {}, data    
+    @activityActions = new ActivityActionsView
+      delegate : @commentView.commentList
+      cssClass : "comment-header"
+    , data
+
+  pistachio:->
+
+    """
+    {{> @activityActions}}
+    {{> @commentView}}
+    """

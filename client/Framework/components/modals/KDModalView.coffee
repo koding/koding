@@ -43,11 +43,11 @@ class KDModalView extends KDView
     # TODO: it is now displayed with setPositions method fix that and make .display work
     @display()
     @setPositions()
-    
+
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).on "keydown.modal",(e)=>
       @destroy() if e.which is 27
-    
+
     @listenTo
       KDEventTypes: "childAppended"
       listenedToInstance: @

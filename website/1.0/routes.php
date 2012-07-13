@@ -7,6 +7,38 @@ require_once 'lib/pusher.php';
 
 $router = new Router;
 
+$router->add_route('/collab',function($params){
+
+  header("Content-type: text/plain");
+
+  $out = $_REQUEST['q'];
+
+  $in = "";
+  ini_set("display_errors", 0);
+  $fp = fsockopen("localhost", 3017, $errno, $errstr, 5);
+  ini_set("display_errors", 1);
+  if (!$fp) {
+    # PHP can't connect to Python daemon.
+    $in = "\n";
+  } else {
+    if (get_magic_quotes_gpc()) {
+      # Some servers have magic quotes enabled, some disabled.
+      $out = stripslashes($out);
+    }
+    fwrite($fp, $out);
+    while (!feof($fp)) {
+      $in .= fread($fp, 1024);
+    }
+    fclose($fp);
+  }
+
+  #echo "-Sent-\n";
+  #echo $out;
+  #echo "-Received-\n";
+  echo $in;
+
+});
+
 $router->add_route('/kite/:kite_name', function ($params) {
   global $respond;
   $kite_controller = get_kite_controller();
