@@ -20,8 +20,8 @@ class InboxMessageDetail extends KDView
     """ 
     <div class='message-body'>
       <header>
-        <h1>{{@utils.applyTextExpansions #(subject)}}</h1>
-        <div>Conversation with <span class="profile-wrapper">{{> @group}}</span> <span class="add hidden">+</span></div>
+        <h1>{{@utils.applyTextExpansions #(subject) or '(No Title)'}}</h1>
+        <p>Conversation with <span class="profile-wrapper">{{> @group}}</span> <span class="add hidden">+</span></p>
       </header>
       <section>
         <div class='meta'>
@@ -47,10 +47,11 @@ class InboxMessageDetail extends KDView
   fetchComments:(callback)->
     pm = @getData()
     pm.commentsByRange to: 3, (err, comments)->
-      log comments
+      comments.reverse() # temporary solution until we refactor InboxMessageThreadView - 07/2012 Sinan
       callback err, comments
 
   enhanceBody:(body)->
+    body or= "(No message body)"
     body = @utils.applyTextExpansions body
     body = body.replace /(\n|&#10;)/g, '<br>'
     return body

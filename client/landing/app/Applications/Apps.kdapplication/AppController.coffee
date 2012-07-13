@@ -18,7 +18,7 @@ class Apps12345 extends AppController
     
   loadView:(mainView)->
     mainView.createCommons()
-    @createFeed()
+    # @createFeed()
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
