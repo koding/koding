@@ -234,7 +234,7 @@ class JAccount extends jraphical.Module
             as: options.as
           else
             {}
-        options.limit = 8
+        options.limit     = 8
         options.fetchMail = yes
         @fetchPrivateMessages selector, options, (err, messages)->
           if err
