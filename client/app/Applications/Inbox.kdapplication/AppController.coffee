@@ -23,7 +23,7 @@ class Inbox12345 extends AppController
     callback()
   
   fetchMessages:(options, callback)->
-    log "FETCH MESSAGES INTERNAL"
+    # log "FETCH MESSAGES INTERNAL"
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
     currentDelegate.fetchMail? options, callback
   
@@ -96,7 +96,7 @@ class Inbox12345 extends AppController
             KDEventTypes: 'viewAppended'
             listener: @
             callback: =>
-              data.restComments 0, (err, comments)-> log arguments, data
+              data.restComments 0, (err, comments)-> # log arguments, data
           
           paneView.addSubView detail
           paneView.detail = detail

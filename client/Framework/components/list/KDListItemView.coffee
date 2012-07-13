@@ -1,13 +1,17 @@
 class KDListItemView extends KDView
-  constructor:(options,data)->
-    options = options ? {}
+
+  constructor:(options = {},data)->
+
     options.type      = options.type ? "default"
     options.cssClass  = "kdlistitemview kdlistitemview-#{options.type} #{options.cssClass ? ''}"
     options.bind    or= "mouseenter mouseleave"
+
     super options,data
+
     @content = {}
 
   viewAppended:()->
+    
     @setPartial @partial @data
   
   partial:()->
@@ -17,16 +21,20 @@ class KDListItemView extends KDView
       </div>"
       
   dim:()->
+    
     @getDomElement().addClass "dimmed"
 
   undim:()->
+    
     @getDomElement().removeClass "dimmed"
   
   highlight:()->
+    
     @setClass "selected"
     @unsetClass "dimmed"
 
   removeHighlight:()->
+    
     @unsetClass "selected"
     @unsetClass "dimmed"
 

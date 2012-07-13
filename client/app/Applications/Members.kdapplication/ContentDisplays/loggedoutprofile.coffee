@@ -18,7 +18,7 @@ class LoggedOutProfile extends KDView
       loader          :
         color         : "#333333"
         diameter      : 18
-        left          : 3
+        # left          : 3
       states          : [
         "Follow", (callback)->
           memberData.follow (err, response)=>
