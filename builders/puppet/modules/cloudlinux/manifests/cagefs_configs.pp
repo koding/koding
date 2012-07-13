@@ -46,7 +46,17 @@ class cloudlinux::cagefs_configs {
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/python.cfg",
         require => [Class['hosting_packages::python'],Exec['cagefs_init']]
     }
-    
+    file { "/etc/cagefs/conf.d/php.cfg":
+        source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/php.cfg",
+        require => [Class['hosting_packages::php'],Exec['cagefs_init']]
+    }
+
+
+    file { "/etc/cagefs/conf.d/ruby.cfg":
+        source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/ruby.cfg",
+        require => [Class['hosting_packages::ruby'],Exec['cagefs_init']]
+    }
+     
     #file { "/etc/cagefs/conf.d/mail.cfg":
     #    ensure => file,
     #    source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/mail.cfg",
@@ -110,12 +120,17 @@ class cloudlinux::cagefs_configs {
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/tools.cfg",
            require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
     }
+
+    file { "/etc/cagefs/conf.d/procps.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/procps.cfg",
+           require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
+    }
    
    
     file { "/etc/cagefs/cagefs.mp":
            source => "puppet:///modules/cloudlinux/etc/cagefs/cagefs.mp",
            notify => Class["cloudlinux::cagefs_remount_all"],
-           require => [Exec['cagefs_init'],Class[authconfig::service]] # remount cagefs only when sssd installed and running
+           require => [Exec['cagefs_init'],Class[authconfig::service],Class[cloudlinux::shared_dir]] # remount cagefs only when sssd installed and running
     }
 
 }

@@ -290,8 +290,6 @@ class Sidebar extends JView
     items : [
         title : "Invite Friends", loggedIn : yes
       ,
-        title : "Beta Feedback",  loggedIn : yes,  path : "Tender.kdapplication"
-      ,
         title : "Account",        loggedIn : yes
       ,
         title : "Logout",         loggedIn : yes,  action : "logout",  

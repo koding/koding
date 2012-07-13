@@ -94,7 +94,7 @@ function get_mongo_host () {
   global $env;
   $hosts = array(
     'vpn'   => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
-    'beta'  => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@db0.beta.system.aws.koding.com',
+    'beta'  => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost',
   );
   return $hosts[$env];
 }

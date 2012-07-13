@@ -38,7 +38,7 @@ class KDTabPaneView extends KDView
   
   viewAppended:()->
     {name} = @getOptions()
-    @setClass "kdtabpaneview #{name or ''}"
+    @setClass "kdtabpaneview"# #{name or ''}" Why do we need something like crazy?
     super
 
   setTitle:(title)->

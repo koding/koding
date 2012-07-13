@@ -1,11 +1,11 @@
 class JPrivateMessage extends JPost
-  {secure,race} = bongo
+  {ObjectRef, secure, race} = bongo
   
   @share()
   
   @set
     sharedMethods     :
-      static          : ['create','on','one']
+      static          : ['create','on']
       instance        : ['on','reply','restComments','commentsByRange','like','fetchLikedByes','disown','collectParticipants','mark','unmark']
     schema        : jraphical.Message.schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
@@ -36,14 +36,19 @@ class JPrivateMessage extends JPost
           if err
             fin err
           else
-            jraphical.Channel.fetchPrivateChannelById recipient.getId(), (err, channel)->
-              channel.publish sender, pm
-              fin()
+            recipient.sendNotification 'NewPrivateMessageHasArrived',
+              actorType   : 'sender'
+              actionType  : 'newMessage'
+              sender      : ObjectRef(sender).data
+              subject     : ObjectRef(pm).data
+            fin()
+            # jraphical.Channel.fetchPrivateChannelById recipient.getId(), (err, channel)->
+            #   channel.publish sender, pm
       , callback
       deliver recipient, pm for recipient in recipients
 
     secure (client, data, callback)->
-      {connection:{delegate}} = client
+      {delegate} = client.connection
       {to, subject, body} = data
       if 'string' is typeof to
         to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.
