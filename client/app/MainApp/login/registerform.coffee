@@ -162,11 +162,16 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
+    
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
         @password.input.setValue ''
         @password.input.validate()
+      
+      @button.hideLoader()
+      @invitationCode.notify msg
+
 
   usernameCheckTimer = null
   

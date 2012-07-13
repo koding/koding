@@ -285,7 +285,15 @@ Includes =
       ApplicationPageViews :
 
         # ACTIVITY VIEWS
-        activityAppView             : "./client/app/Applications/Activity.kdapplication/AppView.coffee"
+
+        # Activity commons
+        actActions                  : "./client/app/Applications/Activity.kdapplication/views/activityactions.coffee"
+        activityinnernavigation     : "./client/app/Applications/Activity.kdapplication/views/activityinnernavigation.coffee"
+        activitylistheader          : "./client/app/Applications/Activity.kdapplication/views/activitylistheader.coffee"
+        activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
+        listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
+
+        # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
         activityWidget              : "./client/app/Applications/Activity.kdapplication/widgets/widgetview.coffee"
         activityWidgetButton        : "./client/app/Applications/Activity.kdapplication/widgets/widgetbutton.coffee"
@@ -294,9 +302,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
-        # Activity commons
-        actActions                  : "./client/app/Applications/Activity.kdapplication/ActivityActions.coffee"
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
+        
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"

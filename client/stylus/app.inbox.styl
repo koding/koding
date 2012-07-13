@@ -49,6 +49,8 @@ app.inbox.styl
         bg              position,-120px -420px
       &.mark-unread
         bg              position,-140px -480px
+      &.refresh
+        bg              position,-120px -580px
 
 .inbox-tabview,
 .inbox-tabview>.kdtabpaneview
@@ -76,11 +78,14 @@ app.inbox.styl
   .message-body-wrap
     overflow                  auto
   .message-body
-    border-bottom             1px solid #e5e5e5
+    // border-bottom             1px solid #e5e5e5
     header
-      padding                 15px 26px 18px 26px
+      padding                 11px
       border-bottom           1px solid #dedede
-      div
+      p
+        font-size             11px
+        color                 #777
+        line-height           20px
         .add
           color               linkColor1
           border              1px solid #cecece
@@ -94,28 +99,32 @@ app.inbox.styl
       h1
         font-size             18px
         font-weight           bold
-        margin-top            5px
+        margin-bottom         5px
+    
     section
       color                   #777
-      padding                 11px 30px 15px 30px
+      padding                 11px
       p
         margin-bottom         20px
         line-height           20px
         font-sizer            13px
       .meta
-        padding               10px 0px
+        padding               0 0 10px 0px
         span.time
           font-size           11px
           color               #999
 
   .reply-to-thread-box
     border-top                1px solid #e5e5e5
-    padding                   15px 30px 17px 30px
+    padding                   11px
     width                     auto
+    gradient                  #fafafa, #fff
     borderBox()
 
     textarea
       width                   100%
+      min-height              150px
+      resize                  auto
 
 .comment-body,.message-body,.show-more
   a
@@ -128,9 +137,10 @@ app.inbox.styl
 
 .thread-container
   .show-more
-    padding                   10px 30px
-    border-bottom             1px solid #e5e5e5
+    padding                   11px
+    // border-bottom             1px solid #e5e5e5
     bg                        color,#f9f9f9
+    shadow                    0 0 6px -2px rgba(0,0,0,.3) inset
     a
       font-weight             600
 
@@ -143,14 +153,15 @@ app.inbox.styl
 ul.inbox-list
   margin                  0
   padding                 0
-  height                  100%
   overflow                visible
+  min-height              100%
   li
     cursor                pointer
     height                auto
     padding               7px 11px
     border-bottom         1px solid #e0e0df
     font-size             82%
+    // min-width             280px
     borderBox()
     &.unread
       background          rgba(250, 239, 223, .5)

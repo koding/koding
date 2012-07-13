@@ -1,5 +1,6 @@
 class CActivity extends jraphical.Capsule
-  {ObjectId, race} = bongo
+  {Base, ObjectId, race, dash} = bongo
+  {Relationship} = jraphical
   
   @mixin Flaggable
   @::mixin Flaggable::
@@ -12,11 +13,25 @@ class CActivity extends jraphical.Capsule
   
   @set
     feedable          : yes
+    # indexes           :
+    #   'sorts.repliesCount'  : 'sparse'
+    #   'sorts.likesCount'    : 'sparse'
+    #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
-      static          : ['one','some','all','on','someData','teasers']
+      static          : ['one','some','all','on','someData','teasers','captureSortCounts']
       instance        : ['fetchTeaser']
     schema            :
       # teaserSnapshot  : Object
+      sorts           :
+        repliesCount  :
+          type        : Number
+          default     : 0
+        likesCount    :
+          type        : Number
+          default     : 0
+        followerCount :
+          type        : Number
+          default     : 0
       snapshot        : String
       snapshotIds     : [ObjectId]
       createdAt       :
@@ -50,6 +65,68 @@ class CActivity extends jraphical.Capsule
   #                   $addToSet:
   #                     snapshotIds: subject.getId()
   #                 , callback
+  
+  @captureSortCounts =(callback)->
+    selector = {
+      type: {$in: ['CStatusActivity','CCodeSnipActivity']}
+      $or: [
+        {'sorts.repliesCount' : $exists:no}
+        {'sorts.likesCount'   : $exists:no}
+      ]
+    }
+    @someData selector, {
+      _id: 1
+    }, (err, cursor)->
+      if err
+        callback err
+      else
+        queue = []
+        cursor.each (err, doc)->
+          if err
+            callback err
+          else unless doc?
+            dash queue, callback
+          else
+            {_id} = doc
+            queue.push ->
+              selector2 = {
+                sourceId  : _id
+                as        : 'content'
+              }
+              Relationship.someData selector2, {
+                targetName  : 1
+                targetId    : 1
+              }, (err, cursor)->
+                if err
+                  callback err
+                else
+                  cursor.nextObject (err, doc1)->
+                    if err
+                      queue.fin(err)
+                    else unless doc1?
+                      console.log _id, JSON.stringify selector2
+                    else
+                      {targetName, targetId} = doc1
+                      Base.constructors[targetName].someData {
+                        _id: targetId
+                      },{
+                        'repliesCount'  : 1
+                        'meta'          : 1
+                      }, (err, cursor)->
+                        if err
+                          queue.fin(err)
+                        else
+                          cursor.nextObject (err, doc2)->
+                            if err
+                              queue.fin(err)
+                            else
+                              {repliesCount, meta} = doc2
+                              op = $set:
+                                 'sorts.repliesCount' : repliesCount
+                                 'sorts.likesCount'   : meta?.likes or 0
+                              CActivity.update {_id}, op, -> queue.fin()
+                        
+              
   
   fetchTeaser:(callback)->
     @fetchSubject (err, subject)->

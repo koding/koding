@@ -27,7 +27,7 @@ if ($query['env']=="dev"){
 }
 else {
   $dbName = "beta_koding";
-  $dbHost = "db0.beta.system.aws.koding.com";
+  $dbHost = "localhost";
   $dbPort = "27017";
   $dbUser = "beta_koding_user";
   $dbPass = "lkalkslakslaksla1230000";

@@ -1,7 +1,10 @@
 class CBucket extends jraphical.Module
 
   {Model, ObjectRef, ObjectId, dash, daisy} = bongo
-
+  
+  @mixin Notifying
+  @::mixin Notifying::
+  
   @set
     broadcastable   : yes
     schema          :
@@ -14,6 +17,8 @@ class CBucket extends jraphical.Module
       migrant       : Boolean
       meta          : require "bongo/bundles/meta"
   
+  fetchTeaser:(callback)-> callback null, @
+  
   add:(item, callback)->
     member = ObjectRef(item)
     @update {
@@ -25,6 +30,8 @@ class CBucket extends jraphical.Module
       @emit 'ItemWasAdded', member.data
       callback err
 
+  fetchTeaser:(callback)-> callback null, @
+  
   getBucketConstructor =(groupName, role)->
     switch role
       when 'follower'
@@ -91,6 +98,8 @@ class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
+                          console.log 'this is an important code path'
+                          anchor.sendNotification 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err
@@ -219,6 +228,7 @@ class CNewMemberBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CFolloweeBucketActivity extends CBucketActivity
@@ -226,6 +236,7 @@ class CFolloweeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CFollowerBucketActivity extends CBucketActivity
@@ -233,6 +244,7 @@ class CFollowerBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CReplierBucketActivity extends CBucketActivity
@@ -240,6 +252,7 @@ class CReplierBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CReplieeBucketActivity extends CBucketActivity
@@ -247,6 +260,7 @@ class CReplieeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CLikerBucketActivity extends CBucketActivity
@@ -254,6 +268,7 @@ class CLikerBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 
 class CLikeeBucketActivity extends CBucketActivity
@@ -261,5 +276,6 @@ class CLikeeBucketActivity extends CBucketActivity
   @set
     encapsulatedBy  : CActivity
     schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
     relationships   : CBucketActivity.relationships
 

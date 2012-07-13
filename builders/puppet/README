@@ -1,4 +1,4 @@
-Adding a program to shared hosting:
+Adding a program to shared hosting (to be used by all our users so be careful.):
 
 1- add your tool to hosting_packages/manifests/tools.pp
 2- make sure tools.pp is in hosting_packages/manifests/init.pp
