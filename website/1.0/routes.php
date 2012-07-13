@@ -119,8 +119,11 @@ $router->add_route('/kite/disconnect', function () {
 });
 
 $router->add_route('/channel/auth', function () {
-  $pusher = new Pusher('a6f121a130a44c7f5325', '9a2f248630abaf977547', 22120);
+  $pusher = new Pusher('a19c8bf6d2cad6c7a006', '51f7913fbb446767a9fb', 22120);
   header('Content-type: text/javascript');
+  header('Access-Control-Allow-Origin: https://beta.koding.com');
+  header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+  header('Access-Control-Allow-Credentials: true');
   print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
   die();
 });
