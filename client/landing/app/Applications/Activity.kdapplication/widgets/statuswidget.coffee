@@ -75,7 +75,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     
   switchToSmallView:->
     
-    @parent.setClass "no-shadow"
+    @parent.setClass "no-shadow" if @parent # monkeypatch when loggedout this was giving an error
     @largeInput.setHeight 33
     @$('>div.large-input, >div.formline').hide()
     @smallInput.show()

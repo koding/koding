@@ -10,30 +10,38 @@ class ActivityListItemView extends KDListItemView
     JLinkActivity       : LinkActivityItemView
 
   getActivityChildCssClass = ->
-    CFollowerBucket     : "system-message"
-    CFolloweeBucket     : "system-message"
-    CNewMemberBucket    : "system-message"
+
+    CFollowerBucket           : "system-message"
+    CFolloweeBucket           : "system-message"
+    CNewMemberBucket          : "system-message"
+    CFollowerBucketActivity   : "system-message"
+    CFolloweeBucketActivity   : "system-message"
+    CNewMemberBucketActivity  : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
     JTag      : TagFollowBucketItemView
 
-  constructor:(options,data)->
-    options = options ? {}
+  constructor:(options = {},data)->
+    
     options.type = "activity"
+    
     super options, data
+    
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
-
     unless options.isHidden
       if 'function' is typeof data.fetchTeaser
-        data.fetchTeaser? (err, teaser)=> @addChildView teaser
+        data.fetchTeaser? (err, teaser)=> 
+          @addChildView teaser
       else
         @addChildView data
 
-  addChildView:(data,callback)->
+  addChildView:(data, callback)->
+    
     {constructorName} = data.bongo_
+
     childConstructor =
       if /CNewMemberBucket$/.test constructorName
         NewMemberBucketItemView
@@ -41,6 +49,7 @@ class ActivityListItemView extends KDListItemView
         getBucketMap()[data.sourceName]
       else
         getActivityChildConstructors()[constructorName]
+
     if childConstructor
       childView = new childConstructor({}, data)
       @addSubView childView
@@ -49,38 +58,29 @@ class ActivityListItemView extends KDListItemView
   partial:-> ''
 
   show:->
+
     @getData().fetchTeaser? (err, teaser)=>
-      # log teaser,":::"
-      @addChildView teaser, =>
-        @slideIn()
+      @addChildView teaser, => @slideIn()
 
-  # render:->
+  slideIn:()-> @$().removeClass 'hidden-item'
 
-  slideIn:(callback)->
-    @$()
-      .show()
-      .animate({backgroundColor : "#FDF5D9", left : 0}, 400)
-      .delay(500)
-      .animate {backgroundColor : "#ffffff"}, 400, ()->
-        $(this)
-          .css({backgroundColor : "transparent"})
-          .removeClass('hidden-item')
-        callback?()
+    
+
 
 class ActivityItemChild extends KDView
 
   constructor:(options, data)->
-    origin = {
+
+    origin =
       constructorName  : data.originType
       id               : data.originId
-    }
+
     @avatar = new AvatarView {
       size    : {width: 40, height: 40}
       origin
     }
-    @author = new ProfileLinkView {
-      origin
-    }
+    
+    @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
@@ -101,7 +101,7 @@ class ActivityItemChild extends KDView
         menu        : [
           type      : "contextmenu"
           items     : [
-#            { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
+            # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
             { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
             { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
           ]

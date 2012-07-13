@@ -16,8 +16,11 @@ class InboxMessageThreadView extends CommentView
       view: @commentList
     , data
     
-    
-    @addSubView showMore = new InboxShowMoreLink delegate: @commentList, data
+    @addSubView showMore = new CommentViewHeader
+      delegate: @commentList
+      itemTypeString: "replies"
+    , data
+
     showMore.unsetClass "show-more-comments"
     showMore.setClass "show-more"
     @addSubView @commentList

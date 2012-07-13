@@ -127,12 +127,12 @@ class MembersListItemView extends KDListItemView
 
     @location = new LocationView {},memberData
 
+    @profileLink = new ProfileLinkView {}, memberData
+
   click:(event)->
     member = @getData()
     targetATag = $(event.target).closest('a')
-    if targetATag.is ".propagateProfile"
-      appManager.tell "Members", "createContentDisplay", member
-    else if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
+    if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
       appManager.tell "Members", "createFollowsContentDisplay", member, 'followers'
     else if targetATag.is(".following") and targetATag.find('.data').text() isnt '0'
       appManager.tell "Members", "createFollowsContentDisplay", @getData(), 'following'
@@ -162,7 +162,7 @@ class MembersListItemView extends KDListItemView
 
       <div class='member-details'>
         <header class='personal'>
-          <h3><a href='#' class='propagateProfile'>{{#(profile.firstName)}} {{#(profile.lastName)}}</a></h3> <span>{{> @location}}</span>
+          <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
 
         <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
