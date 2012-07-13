@@ -149,6 +149,17 @@ class RegisterInlineForm extends LoginViewInlineForm
         color       : "#ffffff"
         diameter    : 21
     
+    @disabledNotice = new KDCustomHTMLView
+      tagName       : "section"
+      cssClass      : "disabled-notice"
+      partial       : """
+                      <p>
+                      <b>REGISTRATIONS ARE CURRENTLY DISABLED</b>
+                      We're sorry for that, please follow us on <a href='http://twitter.com/koding' target='_blank'>twitter</a>
+                      if you want to be notified when registrations are enabled again.
+                      </p>
+                      """
+    
     @invitationCode = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
@@ -296,4 +307,5 @@ class RegisterInlineForm extends LoginViewInlineForm
       {{> @invitationCode}}
     </div>
     <div>{{> @button}}</div>
+    {{> @disabledNotice}}
     """
