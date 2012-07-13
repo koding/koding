@@ -1,7 +1,7 @@
 <?php
 
 $env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
-$respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
+$respond = 'json_respond';
 
 function trace () {
   error_log(implode(' ', array_map(function ($value) {
@@ -59,8 +59,11 @@ function print_cors_headers () {
     header('Access-Control-Allow-Origin: '.$origin);
     header('Access-Control-Allow-Credentials: true');
     header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
-    header('Content-type: text/javascript');
   }
+}
+
+function print_json_headers () {
+  header('Content-type: text/javascript');
 }
 
 function get_token ($session) {
@@ -78,18 +81,15 @@ function get_token ($session) {
 }
 
 function jsonp_respond ($ob) {
-  header('Content-type: text/javascript');
-  $out = is_string($ob) ? $ob : json_encode($ob);
-  print $_REQUEST['callback'].'('.$out.')';
-  die();
+  trace('jsonp_respond should never be used!');
 }
 
 function json_respond ($ob) {
   print_cors_headers();
+  print_json_headers();
   $out = is_array($ob) ? json_encode($ob) : $ob;
   print $out;
   die();
-#  }
 }
 
 function access_denied ($msg=NULL) {
@@ -145,38 +145,3 @@ function get_kite_controller () {
   $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }
-// 
-// $kites = array( 
-//   'beta' => array(
-//     'sharedHosting' => 'http://cl2.beta.service.aws.koding.com:4566/',
-//     'terminaljs'    => 'http://cl2.beta.service.aws.koding.com:4567/',
-//     'databases'     => 'http://cl2.beta.service.aws.koding.com:4568/',
-//   ),
-//   'vpn' => array(
-//     'sharedHosting' => 'http://cl3.beta.service.aws.koding.com:4566/',
-//     'terminaljs'    => 'http://cl3.beta.service.aws.koding.com:4567/',
-//     'databases'     => 'http://cl3.beta.service.aws.koding.com:4568/',
-//   ),
-// );
-
-// function get_next_kite_uri ($kite_name) {
-//   global $kites, $env;
-//   return $kites[$env][$kite_name];
-// }
-// 
-// function get_kite ($kite_name, $username) {
-//   $db = get_mongo_db();
-//   $connection = $db->jKiteConnections->findOne(array(
-//     'kiteName' => $kite_name,
-//     'username' => $username,
-//   ), array('kiteUri' => 1));
-//   if(!isset($connection)) {
-//     $connection = array(
-//       'kiteName' => $kite_name,
-//       'username' => $username,
-//       'kiteUri' => get_next_kite_uri($kite_name),
-//     );
-//     $mongo->$db->jKiteConnections->save($connection);
-//   }
-//   return $connection['kiteUri'];
-// }

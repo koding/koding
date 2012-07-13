@@ -153,6 +153,7 @@ $router->add_route('/kite/disconnect', function () {
 $router->add_route('/channel/auth', function () {
   $pusher = new Pusher('a19c8bf6d2cad6c7a006', '51f7913fbb446767a9fb', 22120);
   print_cors_headers();
+  print_json_headers();
   print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
   die();
 });
