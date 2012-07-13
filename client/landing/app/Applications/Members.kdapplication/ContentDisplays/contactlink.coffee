@@ -70,6 +70,7 @@ class MemberMailLink extends KDCustomHTMLView
       form                : modal.modalTabs.forms.sendForm
       itemDataPath        : "profile.nickname"
       listWrapperCssClass : "users"
+      submitValuesAsText  : yes
       # defaultValue        : [member]
       dataSource          : (args, callback)=>
         {inputValue} = args

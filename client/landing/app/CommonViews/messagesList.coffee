@@ -11,8 +11,7 @@ class MessagesListController extends KDListViewController
   
   constructor:(options, data)->
     options.subItemClass or= InboxMessagesListItem
-    options.listView or= new MessagesListView
-      # lastToFirst : yes
+    options.listView     or= new MessagesListView
 
     super options, data
 
@@ -27,7 +26,7 @@ class MessagesListController extends KDListViewController
       as          : 'recipient'
       limit       : 10
       sort        :
-        timestamp : 1
+        timestamp : -1
     , (err, messages)=>
       # @propagateEvent KDEventType : "ClearMessagesListLoaderTimeout"
       @removeAllItems()
@@ -37,76 +36,77 @@ class MessagesListController extends KDListViewController
       for message in messages
         unreadCount++ unless message.flags_?.read
           
-      @propagateEvent KDEventType : "MessageCountDidChange", {count : unreadCount}
+      @emit "MessageCountDidChange", unreadCount
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    console.log 'im kule', currentDelegate
-    currentDelegate.fetchActivityTeasers? {
+    KD.whoami().fetchActivityTeasers? {
       targetName: $in: [
-        'CReplierBucketActivity'
-        # 'CReplieeBucketActivity'
+        'CReplieeBucketActivity'
+        'CFolloweeBucketActivity'
+        'CLikeeBucketActivity'
       ]
     }, {
-      options:
-        limit: 8
-        sort:
-          timestamp: -1
+      limit: 8
+      sort:
+        timestamp: -1
     }, (err, items)=>
-      console.log 'bitch please', arguments
       if err
         warn "There was a problem fetching notifications!",err
       else
-        @instantiateListItems items
-        @propagateEvent KDEventType : 'NotificationCountDidChange', {count : items.length}
+        unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
+        @emit 'NotificationCountDidChange', unglanced.length
         callback? items
-
-
-  instantiateListItems:(items = [])->
-    listView = @getListView()
-    items.forEach (itemModel) =>
-      itemView = listView.itemClass delegate : listView,itemModel
-      itemView.registerListener KDEventTypes : 'click', listener : @, callback : listView.itemClicked
-
-      @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] itemView
-      @itemsIndexed[itemView.getItemDataId()] = itemView
-      listView.addItemView itemView
-
-      itemView
 
 class NotificationListItem extends KDListItemView
 
   activityNameMap = ->
-    JStatusUpdate : "your status update."
-    JCodeSnip     : "your status update."
+    JStatusUpdate   : "your status update."
+    JCodeSnip       : "your status update."
+    JAccount        : "started following you."
+    JPrivateMessage : "your private message."
+
+  bucketNameMap = ->
+    CReplieeBucketActivity  : "comment"
+    CFolloweeBucketActivity : "follow"
+    CLikeeBucketActivity    : "like"
 
   actionPhraseMap = ->
     comment : "commented on"
-    reply   : "commented on"
-    # reply   : "replied to"
-    follow  : "followed"
+    reply   : "replied to"
+    like    : "liked"
+    follow  : ""
     share   : "shared"
     commit  : "committed"
   
-  constructor:(options,data)->
-    options = $.extend
-      tagName        : "li"
-      linkGroupClass : LinkGroup
-      avatarClass    : AvatarView
-    ,options
+  constructor:(options = {}, data)->
 
-    super options,data
+    options.tagName        or= "li"
+    options.linkGroupClass or= LinkGroup
+    options.avatarClass    or= AvatarView
 
-    group = data.map (participant)->
-      constructorName : participant.targetOriginName
-      id              : participant.targetOriginId
+    super options, data
+
+    @setClass bucketNameMap()[data.bongo_.constructorName]
+    
+    @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
+
+    # group = data.map (participant)->
+    #   constructorName : participant.targetOriginName
+    #   id              : participant.targetOriginId
+
+    {group} = @snapshot
     
     @participants = new options.linkGroupClass {group}
-    @avatar       = new options.avatarClass {
-      size    : {width: 40, height: 40}
-      origin  : group[0]
-    }
+    @avatar       = new options.avatarClass
+      size     : 
+        width  : 40
+        height : 40
+      origin   : group[0]
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
 
   pistachio:->
     """
@@ -114,34 +114,46 @@ class NotificationListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
-        <p>{{> @participants}} {{@getActionPhrase #(0.as)}} {{@getActivityPlot #(0.sourceName)}}</p>
+        <p>{{> @participants}} {{@getActionPhrase #(dummy)}} {{@getActivityPlot #(dummy)}}</p>
         <footer>
-          <time>{{$.timeago @getLatestTimeStamp #(0.timestamp)}}</time>
+          <time>{{$.timeago @getLatestTimeStamp #(dummy)}}</time>
         </footer>
       </div>
     """
   
   getLatestTimeStamp:()->
     data = @getData()
-    return data.slice(-1)[0].timestamp
+    # lastUpdateAt = @snapshot.group[@snapshot.group.length-1]
+    lastUpdateAt = @snapshot.group.modifiedAt
+    return lastUpdateAt or data.createdAt
   
-  getActionPhrase:(as)->
-    return actionPhraseMap()[as]
+  getActionPhrase:()->
+    data = @getData()
+    if @snapshot.anchor.constructorName is "JPrivateMessage"
+      @unsetClass "comment"
+      @setClass "reply"
+      actionPhraseMap().reply
+    else
+      actionPhraseMap()[bucketNameMap()[data.bongo_.constructorName]]
 
-  getActivityPlot:(sourceName)->
-    return activityNameMap()[sourceName]
+  getActivityPlot:()->
+    data = @getData()
+    return activityNameMap()[@snapshot.anchor.constructorName]
     
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
   click:->
-    {sourceName,sourceId} = @getData()[0]
-    contentDisplayController = @getSingleton('contentDisplayController')
-    list = @getDelegate()
-    list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    bongo.cacheable sourceName, sourceId, (err, source)=>
-      appManager.tell "Activity", "createContentDisplay", source
+    
+    if @snapshot.anchor.constructorName is "JPrivateMessage"
+      appManager.openApplication "Inbox"
+    else
+      bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
+        appManager.tell "Activity", "createContentDisplay", post
+
+    # {sourceName,sourceId} = @getData()[0]
+    # contentDisplayController = @getSingleton('contentDisplayController')
+    # list = @getDelegate()
+    # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
+    # bongo.cacheable sourceName, sourceId, (err, source)=>
+    #   appManager.tell "Activity", "createContentDisplay", source
     
 
 
