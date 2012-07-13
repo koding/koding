@@ -52,6 +52,17 @@ function require_valid_session () {
   return $session;
 }
 
+function print_cors_headers () {
+  $headers = getallheaders();
+  $origin = $headers['Origin'];
+  if (in_array($origin, array('https://koding.com', 'https://beta.koding.com'))) {
+    header('Access-Control-Allow-Origin: '.$origin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
+    header('Content-type: text/javascript');
+  }
+}
+
 function get_token ($session) {
   if (!isset($session['tokens'])) {
     trace('no session tokens! ');
@@ -74,14 +85,7 @@ function jsonp_respond ($ob) {
 }
 
 function json_respond ($ob) {
-#  trace('htis is a test', $_SERVER['HTTP_ORIGIN']);
-#  if (isset($_SERVER['HTTP_ORIGIN'])
-#   && in_array($_SERVER['HTTP_ORIGIN'], array('https://beta.koding.com', 'https://koding.com')
-#  )) {
-  header('Access-Control-Allow-Origin: https://beta.koding.com');
-  header('Access-Control-Allow-Credentials: true');
-  header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
-  header('Content-type: text/javascript');
+  print_cors_headers();
   $out = is_array($ob) ? json_encode($ob) : $ob;
   print $out;
   die();
