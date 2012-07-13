@@ -171,18 +171,18 @@ class NFinderTreeController extends JTreeViewController
       return
     
     cb = @utils.getCancellableCallback (files)=>
-      clearTimeout folder.failTimer
+      @utils.killWait folder.failTimer
       nodeView.expand()
       @addNodes files
       callback? nodeView
+      @emit "folder.expanded", nodeView.getData()
     
     folder = nodeView.getData()
 
-    folder.failTimer = setTimeout =>
+    folder.failTimer = @utils.wait 5000, =>
       @notify "Couldn't fetch files!", null, "Sorry, a problem occured while communicating with servers, please try again later."
       folder.emit "fs.nothing.finished", []
       cb.cancel()
-    , 5000
 
     folder.fetchContents cb
     
@@ -191,6 +191,8 @@ class NFinderTreeController extends JTreeViewController
     return unless nodeView
     nodeData = nodeView.getData()
     {path} = nodeData
+    
+    @emit "folder.collapsed", nodeData
     
     if @listControllers[path]
       @listControllers[path].getView().collapse =>

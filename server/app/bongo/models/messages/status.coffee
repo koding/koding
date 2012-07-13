@@ -8,7 +8,7 @@ class JStatusUpdate extends JPost
 
   @set
     sharedMethods     : JPost.sharedMethods
-    schema            : jraphical.Message.schema
+    schema            : JPost.schema
     relationships     : JPost.relationships
 
   @getActivityType =-> CStatusActivity
@@ -25,4 +25,7 @@ class CStatusActivity extends CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema
     relationships   :
-      subject       : JStatusUpdate
+      subject       :
+        targetType  : JStatusUpdate
+        as          : 'content'
+      

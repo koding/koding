@@ -1,14 +1,14 @@
 class DocumentManager extends KDObject
-  
+
   untitledNumber = 0
 
   constructor:->
 
     super
     @openDocuments = []
-  
+
   getOpenDocuments:->
-    
+
     return @openDocuments
 
   addOpenDocument:(doc)->
@@ -24,7 +24,6 @@ class DocumentManager extends KDObject
     docs    = @getOpenDocuments()
     postfix = if untitledNumber is 0 then "" else "_#{untitledNumber}"
     doc     = FSHelper.createFileFromPath "localfile:/Untitled#{postfix}.txt"
-    
+
     return doc
-    
-    
+

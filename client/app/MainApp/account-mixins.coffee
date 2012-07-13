@@ -6,7 +6,7 @@ AccountMixin = do ->
     JGuest::fetchNonce = ->
     
     nonces = []
-    
+
     fetchNonces = (callback)->
       KD.whoami().fetchNonces (err, moreNonces)->
         if err
@@ -67,8 +67,7 @@ AccountMixin = do ->
                   withCredentials: yes
               }
       
-      getKiteUri =(kiteName)->
-        KD.apiUri+"/1.0/kite/#{kiteName}"
+      getKiteUri =(kiteName)-> KD.apiUri+"/1.0/kite/#{kiteName}"
       
       sendCommand =(channelId, kiteName, args, callbackId)->
         scrubber = new Scrubber localStore
@@ -106,7 +105,7 @@ AccountMixin = do ->
               # join an extra channel here so that we can listen for the vacated webhook.
               connChannel = bongo.mq.subscribe secretChannelId+'-conn'
               connChannel.bind 'pusher:subscription_succeeded', ->
-                log 'SUBSCRIPTION SUCCEEDED', secretChannelId
+                # log 'SUBSCRIPTION SUCCEEDED', secretChannelId
                 myMessageHandler = messageHandler.bind null, secretChannelId
                 channel.bind 'message', myMessageHandler
                 channel.bind 'error', myMessageHandler

@@ -1,19 +1,17 @@
 class Followable extends jraphical.Module
-  
+
   {dash} = bongo
-  
-  @set
-    schema          :
-      counts        :
-        followers   :
-          type      : Number
-          default   : 0
-        following   :
-          type      : Number
-          default   : 0
-    relationships   :
-      activity      : CActivity
-  
+  {Relationship} = jraphical
+
+  @schema =
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
+
   count: bongo.secure (client, filter, callback)->
     unless @equals client.connection.delegate
       callback new Error 'Access denied'
@@ -25,11 +23,11 @@ class Followable extends jraphical.Module
           jraphical.Relationship.count targetId : @getId(), as : 'follower', callback
         else
           @constructor.count {}, callback
-  
+
   @someWithRelationship = bongo.secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
-  
+
   @markFollowing = bongo.secure (client, followables, callback)->
     jraphical.Relationship.all
       targetId : client.connection.delegate.getId()
@@ -43,129 +41,59 @@ class Followable extends jraphical.Module
             relationships.splice index,1
             break
       callback err, followables
+
+  follow: bongo.secure (client, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= {}
+    follower = client.connection.delegate
+    if @equals follower
+      return callback(
+        new KodingError("Can't follow yourself")
+        @getAt('counts.followers')
+      )
+
+    sourceId = @getId()
+    targetId = follower.getId()
   
-  follow: bongo.secure do ->
-    # @helper
-    addToBucket =do ->
-      # @helper
-      addIt = (bucket, anchor, item, callback)->
-        bucket.add item, (err)->
+    Relationship.count {
+      sourceId, targetId, as:'follower'
+    }, (err, count)=>
+      if err
+        callback err
+      else if count > 0
+        callback new KodingError('already following...'), count
+      else
+        @addFollower follower, respondWithCount : yes, (err, docs, count)=>
+
           if err
             callback err
           else
-            console.log bucket.getId()
-            jraphical.Relationship.one {
-              targetId: bucket.getId()
-              sourceName: bucket.constructor.name + 'Activity'
-              as: 'content'
-            }, (err, rel)->
+            @setAt 'counts.followers',  count
+            @save()
+            # callback err, count
+            @emit 'FollowCountChanged'
+              followerCount   : @getAt('counts.followers')
+              followingCount  : @getAt('counts.following')
+              newFollower     : follower
+
+            follower.updateFollowingCount()
+            Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
-              else if rel
-                konstructor = bongo.Base.constructors[rel.sourceName]
-                konstructor.one _id: rel.sourceId, (err, activity)->
-                  if err
-                    callback err
-                  else
-                    anchor.assureActivity activity, (err)->
-                      if err
-                        callback err
-                      else
-                        callback null, bucket
               else
-                activity = CBucketActivity.create bucket
-                activity.save (err)->
-                  if err
-                    callback err
-                  else
-                    anchor.addActivity activity, (err)->
-                      if err
-                        callback err
-                      else
-                        activity.addSubject bucket, (err)->
-                          if err
-                            callback err
-                          else
-                            activity.update
-                              $set          :
-                                snapshot    : JSON.stringify(bucket)
-                              $addToSet     :
-                                snapshotIds : bucket.getId()
-                            , (err)->
-                              if err
-                                callback err
-                              else
-                                callback null, bucket
-
-      (groupName, relationship, item, anchor, callback)->
-        today = $gte: new Date Date.now() - 1000*60*60*12
-        followBucketConstructor = switch groupName
-          when 'source' then CFolloweeBucket
-          when 'target' then CFollowerBucket
-        existingBucketSelector = {
-          groupedBy   : groupName
-          sourceName  : relationship.sourceName
-          'anchor.id' : relationship[groupName+'Id']
-          'meta.createdAt'   : today
-        }
-        followBucketConstructor.one existingBucketSelector, (err, bucket)->
-          if err then callback err
-          else if bucket
-            addIt bucket, anchor, item, callback
-          else
-            bucket = new followBucketConstructor
-              groupedBy         : groupName
-              sourceName        : relationship.sourceName
-              anchor            :
-                constructorName : relationship[groupName+'Name']
-                id              : relationship[groupName+'Id']
-          
-            bucket.save (err)->
-              if err then callback err
-              else addIt bucket, anchor, item, callback
-              
-    # @helper  
-    addActivities =(relationship, source, target, callback)->
-      queue = []
-      fin = -> queue.fin()
-      queue.push -> addToBucket 'source', relationship, target, source, fin
-      queue.push -> addToBucket 'target', relationship, source, target, fin
-      dash queue, callback
-    
-    # @implementation
-    (client,callback)->
-      follower = client.connection.delegate
-      if @equals follower then return callback "Can't follow yourself, you egotistical maniac", @counts.followers
-      @addFollower follower, returnCount : yes, (err, count)=>
-        if err
-          callback err
-        else
-          @counts.followers = count
-          @save()
-          # callback err, count
-          @emit 'FollowCountChanged'
-            followerCount   : @counts.followers
-            followingCount  : @counts.following
-            newFollower     : follower
-        
-          follower.updateFollowingCount()
-        
-          sourceId = @getId()
-          targetId = follower.getId()
-        
-          jraphical.Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
-            if err
-              callback err
-            else
-              addActivities relationship, @, follower, (err)->
-                if err
-                  callback err
-                else
-                  callback null, count
+                emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
+                if emitActivity
+                  CBucket.addActivities relationship, @, follower, (err)->
+                    if err
+                      # console.log "An Error occured: ", err
+                      callback err
+                    else
+                      callback null, count
+                else callback null, count
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate
-    @removeFollower follower, returnCount : yes, (err, count)=>
+    @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
       if err
         console.log err
       else
@@ -173,11 +101,11 @@ class Followable extends jraphical.Module
           throw err if err
         callback err, count
         @emit 'FollowCountChanged'
-          followerCount   : @counts.followers
-          followingCount  : @counts.following
+          followerCount   : @getAt('counts.followers')
+          followingCount  : @getAt('counts.following')
           oldFollower     : follower
         follower.updateFollowingCount()
-  
+
   fetchFollowing: (query, page, callback)->
     _.extend query,
       targetId  : @getId()
@@ -189,7 +117,7 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   fetchFollowers: (query, page, callback)->
     _.extend query,
       targetId  : @getId()
@@ -200,11 +128,11 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   fetchFollowersWithRelationship: bongo.secure (client, query, page, callback)->
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
-  
+
   fetchFollowingWithRelationship: bongo.secure (client, query, page, callback)->
     @fetchFollowing query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
@@ -219,11 +147,11 @@ class Followable extends jraphical.Module
         ids = (rel.sourceId for rel in docs)
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
-  
+
   updateFollowingCount: ()->
     jraphical.Relationship.count targetId:@_id, as:'follower', (error, count)=>
       bongo.Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
-        followerCount   : @counts.followers
-        followingCount  : @counts.following
+        followerCount   : @getAt('counts.followers')
+        followingCount  : @getAt('counts.following')

@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['byCode','__sendBetaInvites']#,,'__createBetaInvites']
+      static        : ['create','byCode']#,,'__sendBetaInvites','__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -83,7 +83,7 @@ class JInvitation extends jraphical.Module
               #   if shortenedUrl?
                   # shortenedUrl = url
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
-              postmark.send
+              Emailer.send
                 From      : @getInviteEmail()
                 To        : email
                 Subject   : '[Koding] Here is your beta invite!'
@@ -213,9 +213,8 @@ class JInvitation extends jraphical.Module
                     subject   : customMessage.subject
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
-                    # url       : "#{protocol}#{host}:#{port}/invitation/#{encodeURIComponent code}"
                     url       : "#{protocol}#{host}/invitation/#{encodeURIComponent code}"
-                  postmark.send
+                  Emailer.send
                     From      : @getInviteEmail()
                     To        : email
                     Subject   : @getInviteSubject(messageOptions)

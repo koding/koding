@@ -11,6 +11,7 @@ class JTag extends Followable
   @share()
 
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
     sharedMethods   :
@@ -18,9 +19,12 @@ class JTag extends Followable
         "update",'follow', 'unfollow', 'fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers'
         ]
-      static        : ["one","on","some","all","create",'someWithRelationship','byRelevance']
+      static        : [
+        "one","on","some","all","create",
+        'someWithRelationship','byRelevance'#,'markFollowing'
+        ]
     schema          :
-      title         : 
+      title         :
         type        : String
         set         : (value)-> value.trim()
         required    : yes
