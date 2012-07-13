@@ -19,11 +19,9 @@ class JVisitor extends bongo.Model
   defineProperty(@, 'users', value: {})
   
   @isRegistrationEnabled =(callback)->
-    {mongo} = bongo
-    prefs = mongo.collection('jRegistrationPreferences')
-    prefs.findOne {}, (err, doc)->
-      callback doc?.registrationIsEnabled or no
-  
+    JRegistrationPreferences.one {}, (err, prefs)->
+      callback err? or prefs?.registrationIsEnabled or no
+
   @getVersion=(callback)->
     fs.readFile "./.revision",'utf-8',(err,data)->
       version = data.replace("\n", "")

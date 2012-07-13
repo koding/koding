@@ -100,7 +100,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-
+        
+        jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
+        
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
