@@ -24,6 +24,7 @@ node_modules/.bin
 /node_modules/braintree
 /node_modules/browserify
 /node_modules/coffee-script
+/node_modules/cron
 /node_modules/dateformat
 /node_modules/dropbox
 /node_modules/eventemitter2
