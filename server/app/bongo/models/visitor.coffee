@@ -4,7 +4,7 @@ class JVisitor extends bongo.Model
   
   @set
     sharedMethods :
-      static      : ['on','getVersion']
+      static      : ['on','getVersion','isRegistrationEnabled']
       instance    : ['start','on','off','many','once']
     schema        :
       createdAt   :
@@ -18,6 +18,11 @@ class JVisitor extends bongo.Model
   defineProperty(@, 'guests', value: {})
   defineProperty(@, 'users', value: {})
   
+  @isRegistrationEnabled =(callback)->
+    {mongo} = bongo
+    prefs = mongo.collection('jRegistrationPreferences')
+    prefs.findOne {}, (err, doc)->
+      callback doc?.registrationIsEnabled or no
   
   @getVersion=(callback)->
     fs.readFile "./.revision",'utf-8',(err,data)->
