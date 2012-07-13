@@ -150,11 +150,6 @@ $router->add_route('/kite/disconnect', function () {
   }
 });
 
-$router->add_route('/chris', function () {
-  header('Access-Control-Allow-Origin: https://beta.koding.com');
-  var_export(getallheaders());
-});
-
 $router->add_route('/channel/auth', function () {
   $pusher = new Pusher('a19c8bf6d2cad6c7a006', '51f7913fbb446767a9fb', 22120);
   print_cors_headers();
