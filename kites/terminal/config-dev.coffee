@@ -1,3 +1,5 @@
+nodePath = require 'path'
+
 module.exports =
   name    : "terminaljs"
   port    : 4567
@@ -10,3 +12,4 @@ module.exports =
   apiUri  : 'https://dev-api.koding.com/1.0'
   requestHandler :
     isEnabled    : yes
+    joinedChannelsFile : nodePath.join( __dirname, '.tmp/join-channels-file.txt' )
