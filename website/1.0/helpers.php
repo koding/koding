@@ -54,7 +54,7 @@ function require_valid_session () {
 
 function print_cors_headers () {
   $headers = getallheaders();
-  $origin = $headers['Origin'];
+  list($origin) = explode(' ', $headers['Origin']);
   if (in_array($origin, array('https://koding.com', 'https://beta.koding.com'))) {
     header('Access-Control-Allow-Origin: '.$origin);
     header('Access-Control-Allow-Credentials: true');
