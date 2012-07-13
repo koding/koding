@@ -100,7 +100,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-
+        
+        jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
+        
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -577,6 +579,7 @@ Includes =
         #pusher            : "./client/libs/pusher.min.js"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
+        sha1              : "./client/libs/sha1.encapsulated.coffee"
         # jquery            : "./client/libs/jquery-1.7.1.js"
         # jquery            : "./client/libs/jquery-1.7.1.min.js"
         # jqueryUi          : "./client/libs/jquery-ui-1.8.16.custom.min.js"

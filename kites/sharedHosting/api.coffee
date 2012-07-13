@@ -46,12 +46,13 @@ module.exports = new Kite 'sharedHosting'
     # options =
     #    contents   : String # file text content
     #
-    console.log 'attempting to upload file', options
+    # console.log 'attempting to upload file', options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
+    log.debug "uploadFile is called",options.path
     filename = hat()
     tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf-8', (err)=>
+    fs.writeFile tmpPath,contents,'utf8', (err)=>
       unless err
         @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
           unless err
@@ -137,31 +138,38 @@ module.exports = new Kite 'sharedHosting'
               else
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
-  
+
   publishApp:(options, callback)->
-    
+
     {username, version, appName, userAppPath} = options
 
     latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
     versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
-    
-    console.log latestPath, versionedPath, version, appName, userAppPath, username
-    
+
+    cb = (err)->
+      if err then console.error err
+      else callback? null
+
     mkdirp versionedPath, (err)->
-      if err then console.error err,"mkdirp erorro"
+      if err then cb err
       else
         fs.readFile userAppPath, (err, appScript)->
-          if err then console.error err,"readfile errorr"
+          if err then cb err
           else
             fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
-              if err then console.error err,"sondan bir"
-              else 
-                # fs.symlink latestPath, versionedPath, 'dir', (err)=>
-                exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err)->
-                  if err then console.error err,"son error"
-                  else callback?()
+              if err then cb err
+              else
+                fs.stat latestPath, (err, statObj)->
+                  if err
+                    exec "ln -s #{versionedPath} #{latestPath}", cb
+                  else
+                    if statObj.isSymbolicLink() or statObj.isFile()
+                      exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else if statObj.isDirectory() and appName.length?
+                      exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else
+                      cb new KodingError "Something went wrong"
 
-  
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
@@ -198,7 +206,7 @@ module.exports = new Kite 'sharedHosting'
       cn: username
     
     # first of all we have to connect and bind to ldap
-    ldapClient = ldap.createClient url:config.ldap.ldapUrl
+    ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
       if err?
         log.error error = "[ERROR] Can't bind to LDAP server #{config.ldap.ldapUrl}: #{err.message}"
