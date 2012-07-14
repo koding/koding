@@ -4,9 +4,9 @@ class ContentDisplayControllerMember extends KDViewController
       view : mainView = new KDView
         cssClass : 'member content-display'
     ,options
-      
+
     super options, data
-  
+
   loadView:(mainView)->
     member = @getData()
 
@@ -15,25 +15,25 @@ class ContentDisplayControllerMember extends KDViewController
     subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
 
     contentDisplayController = @getSingleton "contentDisplayController"
-    
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
         contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
-    
+
     memberProfile = @addProfileView member
     memberStream  = @addActivityView member
-    
+
     # unless KD.isMine member
-    #   @listenTo 
+    #   @listenTo
     #     KDEventTypes       : "mouseenter"
     #     listenedToInstance : memberProfile
     #     callback           : => @mouseEnterOnHeader()
-    
+
     memberProfile.on 'FollowButtonClicked', @followAccount
     memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
-  
+
   addProfileView:(member)->
 
     return @getView().addSubView memberProfile = new LoggedOutProfile
@@ -41,9 +41,9 @@ class ContentDisplayControllerMember extends KDViewController
       bind     : "mouseenter"
       delegate : @getView()
     , member
-  
+
   # mouseEnterOnFeed:->
-  # 
+  #
   #   clearTimeout @intentTimer
   #   @intentTimer = setTimeout =>
   #     @getView().$('.profilearea').css "overflow", "hidden"
@@ -51,9 +51,9 @@ class ContentDisplayControllerMember extends KDViewController
   #     @utils.wait 300,=>
   #       @getSingleton('windowController').notifyWindowResizeListeners()
   #   , 500
-  # 
+  #
   # mouseEnterOnHeader:->
-  # 
+  #
   #   clearTimeout @intentTimer
   #   @intentTimer = setTimeout =>
   #     @getView().unsetClass "small-header"
@@ -61,13 +61,13 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getSingleton('windowController').notifyWindowResizeListeners()
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
-  
+
   followAccount:(account, callback)->
     account.follow callback
-  
+
   unfollowAccount:(account,callback)->
     account.unfollow callback
-    
+
   addActivityView:(account)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -76,7 +76,7 @@ class ContentDisplayControllerMember extends KDViewController
       listCssClass          : "activity-related"
       limitPerPage          : 20
       help                  :
-        subtitle            : "Learn Personal feed" 
+        subtitle            : "Learn Personal feed"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
@@ -106,24 +106,24 @@ class ContentDisplayControllerMember extends KDViewController
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
       sort                  :
-        'counts.followers'  :
+        'sorts.likesCount'  :
           title             : "Most popular"
           direction         : -1
-        'meta.modifiedAt'   :
+        'modifiedAt'        :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'sorts.repliesCount':
           title             : "Most activity"
           direction         : -1
         # and more
     }, (controller)=>
       #put listeners here, look for the other feeder instances
-      
+
       # unless KD.isMine account
-      #   @listenTo 
+      #   @listenTo
       #     KDEventTypes       : "mouseenter"
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
       log controller
       @getView().addSubView controller.getView()
-    
+

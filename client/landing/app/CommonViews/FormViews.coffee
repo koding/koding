@@ -366,12 +366,12 @@ class PersonalFormSkillTagView extends KDFormView
       name                : "skillTags"
       cssClass            : 'skilltag-form'
       type                : "tags"
+      itemDataPath        : 'title'
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : SkillTagAutoCompletedItem
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)

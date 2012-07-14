@@ -133,8 +133,6 @@ class NavigationInviteLink extends NavigationLink
         content                 : ""
         width                   : 500
         height                  : "auto"
-        position                :
-          top                    : 150
         cssClass                : "invitation-modal"
         tabs                    :
           callback              : (formData)=> 
