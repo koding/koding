@@ -2,12 +2,12 @@ class Demos12345 extends AppController
   constructor:(options = {}, data)->
     options.view = new DemosMainView
       cssClass : "content-page demos"
-      
+
     super options, data
 
   bringToFront:()->
     super name : 'Demos'#, type : 'background'
-  
+
   loadView:(mainView)->
     data = [
       { title : "title 1",  id : 1,  parentId: 0}
@@ -31,7 +31,8 @@ class Demos12345 extends AppController
       { title : "title 19", id : 19, parentId: 11}
       { title : "title 20", id : 20, parentId: 1}
     ]
-    
+
+    ###
     window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
       title           : "Follow"
@@ -63,32 +64,33 @@ class Demos12345 extends AppController
         log "click"
       dblclick : ->
         log "dblClick"
+    ###
 
 
+    t = new JTreeViewController
+      addListsCollapsed : yes
+      multipleSelection : yes
+      dragdrop          : yes
+    , data
+    mainView.addSubView t.getView()
+    t.getView().$().height "auto"
 
-    # t = new JTreeViewController 
-    #   addListsCollapsed : yes
-    # , data
-    # mainView.addSubView t.getView()
-    # t.getView().$().height "auto"
-    
-    
     # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
     # mainView.addSubView b = new KDButtonView
     #   title     : "render"
-    #   callback  : -> 
+    #   callback  : ->
     #     log "being rendered"
     #     a.render.call a
-    # 
+    #
 
     # controller = new MembersListViewController
     #   subItemClass : MembersListItemView
     # , items : [KD.whoami()]
-    #   
+    #
     # mainView.addSubView controller.getView()
 
     # KD.whoami().on "update", => log "data has changed"
-    
+
     # mainView.addSubView form = new KDFormViewWithFields
     #   fields          :
     #     title         :
@@ -111,7 +113,7 @@ class Demos12345 extends AppController
     #           for node in t.selectedNodes
     #             t.removeNode t.getNodeId(node.getData())
     #             null
-    #         #   
+    #         #
     #         # t.removeNode form.inputs.remove.getValue()
     #         # for node in t.indexedNodes
     #         #   log node.id, node.parentId, node.depth
@@ -128,23 +130,23 @@ class Demos12345 extends AppController
 
     # mainView.addSubView new KDButtonGroupView
     #   buttons      :
-    #     a          : 
+    #     a          :
     #       callback : ->
     #         number = @utils.getRandomNumber(20)
-    #         finderController.addNode parentId : number, title : "#{number}'s child" 
-    #     b          : 
+    #         finderController.addNode parentId : number, title : "#{number}'s child"
+    #     b          :
     #       callback : -> log "b"
-    #     c          : 
+    #     c          :
     #       callback : -> log "c"
 
-    
+
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dropee
-    
-      
+
+
 # class Dragee extends KDCustomHTMLView
-#   
+#
 #   constructor:(options, data)->
 #     super
 #       tagName       : "section"
@@ -158,33 +160,33 @@ class Demos12345 extends AppController
 #         e.dataTransfer.effectAllowed = 'copy' # only dropEffect='copy' will be dropable
 #         e.dataTransfer.setData('Text', this.id) # required otherwise doesn't work
 #         pubInst.setClass "drag-started"
-# 
+#
 #       dragenter     : (pubInst, event)->
 #         log event.type
-# 
+#
 #       dragover      : (pubInst, event)->
 #         event.preventDefault()
 #         # event.originalEvent.dataTransfer.dropEffect = 'move'
 #         log event.type
 #         no
-# 
+#
 #       dragleave     : (pubInst, event)->
 #         log event.type
-# 
+#
 #       drop          : (pubInst, event)->
 #         log event.type
 #         event.preventDefault()
 #         event.stopPropagation()
 #         no
-# 
+#
 #       dragend       : (pubInst, event)->
 #         pubInst.unsetClass "drag-started"
 #         log event.type
-# 
+#
 #     , data
-# 
+#
 # class Dropee extends KDCustomHTMLView
-#   
+#
 #   constructor:(options, data)->
 #     super
 #       tagName       : "section"

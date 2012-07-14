@@ -1,13 +1,15 @@
 class JPost extends jraphical.Message
-  
+
   @mixin Followable
   @::mixin Followable::
   @::mixin Taggable::
   @::mixin Notifying::
-  
+  @mixin Flaggable
+  @::mixin Flaggable::
+
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
-  
+
   schema = _.extend {}, jraphical.Message.schema, {
     counts        :
       followers   :
@@ -17,8 +19,7 @@ class JPost extends jraphical.Message
         type      : Number
         default   : 0
   }
-  
-  
+
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
     emitFollowingActivities: yes
@@ -37,7 +38,7 @@ class JPost extends jraphical.Message
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
-      likedBy         : 
+      likedBy         :
         targetType    : JAccount
         as            : 'like'
       repliesActivity :
@@ -49,11 +50,12 @@ class JPost extends jraphical.Message
       follower        :
         as            : 'follower'
         targetType    : JAccount
-    
 
   @getAuthorType =-> JAccount
 
   @getActivityType =-> CActivity
+  
+  @getFlagRole =-> ['sender', 'recipient']
   
   createKodingError =(err)->
     kodingErr = new KodingError(err.message)
@@ -154,12 +156,6 @@ class JPost extends jraphical.Message
     else
       callback new KodingError "Access denied"
 
-  mark: secure ({connection:{delegate}}, flag, callback)->
-    @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
-    
-  unmark: secure ({connection:{delegate}}, flag, callback)->
-    @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
-
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
     unless delegate.getId().equals originId
@@ -187,21 +183,33 @@ class JPost extends jraphical.Message
         @emit 'PostIsDeleted', 1
         callback null
   
+  fetchActivityId:(callback)->
+    Relationship.one {
+      targetId    : @getId()
+      sourceName  : /Activity$/
+    }, (err, rel)->
+      if err
+        callback err
+      else
+        callback null, rel.getAt 'sourceId'
+  
+  fetchActivity:(callback)->
+    @fetchActivityId (err, id)->
+      if err
+        callback err
+      else
+        CActivity.one _id: id, callback 
+  
   removeReply:(rel, callback)->
     id = @getId()
     teaser = null
     activityId = null
+    repliesCount = @getAt 'repliesCount'
     queue = [
       ->
-        Relationship.one {
-          targetId    : id
-          sourceName  : /Activity$/
-        }, (err, rel)->
-          if err
-            queue.next err
-          else
-            activityId = rel.getAt 'sourceId'
-            queue.next()
+        @fetchActivityId (err, activityId_)->
+          activityId = activityId_
+          queue.next()
       ->
         rel.update $set: 'data.deletedAt': new Date, -> queue.next()
       =>
@@ -215,8 +223,11 @@ class JPost extends jraphical.Message
             queue.next()
       ->
         CActivity.update _id: activityId, {
-          $set      : { snapshot     : JSON.stringify teaser }
-          $pullAll  : { snapshotIds  : rel.getAt 'targetId'  }
+          $set:
+            snapshot: JSON.stringify teaser
+            'sorts.repliesCount': repliesCount - 1
+          $pullAll:
+            snapshotIds: rel.getAt 'targetId'
         }, -> queue.next()
       
       callback
@@ -243,6 +254,11 @@ class JPost extends jraphical.Message
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchActivityId (err, id)->
+                  CActivity.update {_id: id}, {
+                    $set: 'sorts.likesCount': count
+                  }, ->
+                    console.log err if err
                 @fetchOrigin (err, origin)=>
                   if err
                     console.log "Couldn't fetch the origin"
@@ -257,8 +273,17 @@ class JPost extends jraphical.Message
                       relationship  : docs[0]
                     }
           else
-            callback new Error 'You already liked this.'
-  
+            callback new KodingError 'You already like this.'
+            ###
+            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+                console.log err
+              else
+                count ?= 1
+                @update ($set: 'meta.likes': count), callback
+            ###
+
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
@@ -275,11 +300,16 @@ class JPost extends jraphical.Message
               if err
                 callback err
               else
-                @update $inc: repliesCount: 1, (err)=>
+                @update $set: repliesCount: count, (err)=>
                   if err
                     callback err
                   else
                     callback null, comment
+                    @fetchActivityId (err, id)->
+                      CActivity.update {_id: id}, {
+                        $set: 'sorts.repliesCount': count
+                      }, ->
+                        console.log err if err
                     @fetchOrigin (err, origin)=>
                       if err
                         console.log "Couldn't fetch the origin"

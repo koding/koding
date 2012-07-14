@@ -1,11 +1,11 @@
 class Taggable
-  
+
   {ObjectRef,daisy} = bongo
   {Relationship} = jraphical
-  
+
   getTaggedContentRole  :-> @constructor.taggedContentRole or 'tagged'
   getTagRole            :-> @constructor.tagRole           or 'tag'
-    
+
   addTags: bongo.secure (client, tags, options, callback)->
     [callback, options] = [options, callback] unless callback
     options or= silent: no

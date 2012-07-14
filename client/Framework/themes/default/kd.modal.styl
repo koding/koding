@@ -6,13 +6,18 @@
 /* 
 **  KDModal STYLES
 */
+.dragInAction
+  .kdmodal
+    vendor            transition, none  
+
 .kdmodal
   position            absolute
   background-color    browser-bg
   z-index             10001
   left                -9999px
-  shadow(0 3px 15px #444)
-  rounded(5px)
+  vendor              transition, top .15s ease-out
+  shadow              0 3px 15px #444
+  rounded             5px
   .kdmodal-title
     color             k-orange
     font-size         16px

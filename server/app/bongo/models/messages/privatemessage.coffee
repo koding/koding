@@ -43,7 +43,7 @@ class JPrivateMessage extends JPost
       deliver recipient, pm for recipient in recipients
 
     secure (client, data, callback)->
-      {connection:{delegate}} = client
+      {delegate} = client.connection
       {to, subject, body} = data
       if 'string' is typeof to
         to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.

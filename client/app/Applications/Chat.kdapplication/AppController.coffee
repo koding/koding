@@ -1,11 +1,11 @@
-
-class Chatter extends KDEventEmitter
+class KDChannel extends KDEventEmitter
   {mq} = bongo
   
   constructor:()->
     @account = KD.whoami()
-    @username = @account?.profile?.nickname ? "guest"
-    @type = "chat"
+    @username = @account?.profile?.nickname
+    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
+    @type = "base"
     @messages = []
     @participants = {}
     @state = {}
@@ -56,7 +56,7 @@ class Chatter extends KDEventEmitter
 
       
     
-  sendThrottled : ->
+  sendThrottled : _.throttle ->
     if @room
       @room.emit 'client-#{@type}-msg',@messages
       @messages = []
@@ -64,8 +64,11 @@ class Chatter extends KDEventEmitter
     else
       unless @state.joiningIsInProgress
         log "@room is not ready yet, will keep on trying every sec."
-        @state.joiningIsInProgress = setInterval (->@sendThrottled()),1000
-  
+        @state.joiningIsInProgress = setInterval ->
+          log "trying to join to the @room"
+          @sendThrottled()
+        ,1000
+  ,110
   
   
   send : (options,callback) ->
@@ -76,8 +79,16 @@ class Chatter extends KDEventEmitter
     @messages.push options
     @sendThrottled()
 
+class Chat extends KDChannel
+  
+  constructor:->
+    super
+    @msgHistory = []
+    @type = "chat"
+  attachListeners:->
 
-class SharedDoc extends Chatter  
+
+class SharedDoc extends KDChannel  
   
   constructor:(options)->
     # {isMaster} = options
@@ -87,7 +98,7 @@ class SharedDoc extends Chatter
     @type = "sharedDoc"
     @dmp = new diff_match_patch()
     
-  attachListeners:(isNew)->
+  attachListeners:->
     super 
     #console.log "attachlisteners cagirdik"
     @on "ready",(isNew)=>
@@ -95,17 +106,18 @@ class SharedDoc extends Chatter
 
     @on "patch",({patch,sender,date})=>
       # if sender isnt @username  
-      console.log "sharedDoc on.msg geldi",arguments 
+      # console.log "sharedDoc on.patch geldi",arguments 
       @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
       @lastScreen = @currentScreen
-      @emit "patchApplied",@currentScreen
+      @emit "patchApplied",@currentScreen,sender
 
     @on "join",({sender,date})=>
       console.log "#{sender} geldi hosgeldi",arguments
-      if @isMaster
-        @send event:"ping",screen:@lastScreen,isMaster:@isMaster
-      else
-        @send event:"ping"
+      # make this  efficient later.
+      # if @isMaster
+      @send event:"ping",screen:@lastScreen #,isMaster:@isMaster
+      # else
+      #   @send event:"ping"
 
     @on "ping",({sender,screen,isMaster})=>
       log "#{sender} said 'hi'.",arguments,@master
@@ -149,49 +161,88 @@ class SharedDoc extends Chatter
 class ChatterView extends KDView
   
   viewAppended:->
-    @addSubView @joinButton = new KDButtonView
-      title    : "Share"
-      callback : =>
-        @emit "userWantsToJoin"
-    
-    @addSubView @input = new KDInputView
-      type    : "textarea"      
-      keyup   : =>
-        @emit 'newScreen',@input.getValue()
+    # @addSubView @joinButton = new KDButtonView
+    #   title    : "Share"
+    #   callback : =>
+    #     
+    file = @getSingleton('docManager').createEmptyDocument()
+    @addSubView @ace = new Ace {},file
+    window.A = @ace
+      # type    : "textarea"      
+      # keyup   : =>
+      #   @emit 'newScreen',@input.getValue()
+      # 
+      # paste   : =>
+      #   @emit 'newScreen',@input.getValue()        
+    @ace.on "ace.ready",=>
+      @emit "userWantsToJoin"
+      
+      @ace.editor.getSession().on "onTextInput",(e)->
+        log "onTextInput",e
 
-      paste   : =>
-        @emit 'newScreen',@input.getValue()        
-
+      @ace.editor.getSession().on "onDocumentChange",(e)->
+        log "onDocumentChange",e
+      
+      @ace.editor.getSession().on "change",(e)=>
+        # log "e",e
+        {row,column}  = e.data.range.end
+        cursorPosition  = {row,column}
+        # @ace.setContents "abc"
+        @emit 'cursorPositionChanged',cursorPosition
+        # @emit 'newScreen',{screen:@ace.getContents(),event}
     
-    @input.setHeight @getSingleton("windowController").winHeight-100
-    @input.setWidth  @getSingleton("windowController").winWidth-200
+    # @input.setHeight @getSingleton("windowController").winHeight-100
+    # @input.setWidth  @getSingleton("windowController").winWidth-500
+    
+  click : ->
+    @setKeyView()
+  
+  keyUp:(event) ->
+    unless event.altKey or event.metaKey or event.ctrlKey or event.shiftKey
+      @emit 'newScreen',{screen:@ace.getContents(),event}
+  
+  keyDown: ->  
+    # log "down",arguments    
     
 class Chat12345 extends AppController
   
   constructor:(options = {}, data)->
     options.view = new ChatterView
-      cssClass : "content-page chat"
-
+      #cssClass : "content-page chat"
+    @cursorPosition = {}
+    
     super options, data
-    view = @getView()
+    @view = @getView()
     @sharedDoc = new SharedDoc
     
-    @sharedDoc.on "patchApplied",(newScreen)=>
-      view.input.setValue newScreen
-    
+    @sharedDoc.on "patchApplied",(newScreen,sender)=>
+      # view.input.setValue newScreen
+      log "#{sender} sent a new patch."
+      @setScreen newScreen
+      
     @sharedDoc.on "screen",(newScreen)=>
-      view.input.setValue newScreen
-
+      # view.input.setValue newScreen
+      @setScreen newScreen
+  
+  setScreen:(newScreen)->
+    {row,column}  = @cursorPosition
+    @view.ace.setContents newScreen
+    @view.ace.editor.getSession().getSelection().selectionLead.setPosition row,column
     
+  
   loadView:(view)->
 
-    view.on 'newScreen',(scr)=>
-      # console.log 'newScreen',scr
-      @sharedDoc.send {newScreen:scr}
+    view.on 'newScreen',({screen})=>
+      # console.log 'newScreen',scr      
+      @sharedDoc.send {newScreen:screen}
     
     view.on 'userWantsToJoin',=>
       console.log 'user joined'
       @sharedDoc.join {name:"myDoc"}
+    
+    view.on 'cursorPositionChanged',(cursorPosition)=>
+      log "cursorPosition",cursorPosition
+      @cursorPosition = cursorPosition
     
   bringToFront:()->
     super name : 'Chat'#, type : 'background'

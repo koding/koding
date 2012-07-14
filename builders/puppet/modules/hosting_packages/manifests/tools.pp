@@ -2,7 +2,7 @@
 class hosting_packages::tools {
     
     
-    $tools = ["htop"]
+    $tools = ["htop","mc"]
     
     package { $tools:
         ensure  => installed,

@@ -36,7 +36,7 @@ class FSHelper
     return date
 
   @parseLsOutput = (parentPaths, response) ->
-
+    # log "ls response",response
     data = []
     return data unless response
     strings = response.split '\n\n'
@@ -97,6 +97,7 @@ class FSHelper
       constructor = switch data.type
         when "folder" then FSFolder
         when "mount"  then FSMount
+        when "symLink" then FSFolder
         else FSFile
     
       instance = new constructor data

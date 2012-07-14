@@ -1,69 +1,119 @@
 class CommentViewHeader extends JView
 
   constructor:(options = {}, data)->
-    
-    options.cssClass = "show-more-comments"
-    
-    super options, data
-    
-    @newCount    = 0
-    @onListCount = 0
 
-    unless data.repliesCount? and data.repliesCount > 3
+    options.cssClass       = "show-more-comments"
+    options.itemTypeString = options.itemTypeString or "comments"
+
+    super options, data
+
+    data = @getData()
+
+    @maxCommentToShow = 3
+    @oldCount         = data.repliesCount
+    @newCount         = 0
+    @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
+
+    unless data.repliesCount? and data.repliesCount > @maxCommentToShow
       @onListCount = data.repliesCount
       @hide()
 
     list = @getDelegate()
 
-    list.on "AllCommentsWereAdded", => 
+    list.on "AllCommentsWereAdded", =>
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()
       @hide()
-    
+
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
-      pistachio : "View all {{#(repliesCount)}} comments..."
+      pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
       click     : => list.emit "AllCommentsLinkWasClicked", @
     , data
 
     @newItemsLink = new KDCustomHTMLView
       tagName   : "a"
-      cssClass  : "new-count"
+      cssClass  : "new-items"
       click     : => list.emit "AllCommentsLinkWasClicked", @
-      
+
   ownCommentArrived:->
     
-    @onListCount++
-    @newCount--
+    # Get correct number of items in list from controller
+    # I'm not sure maybe its not a good idea
+    @onListCount = @parent.commentController?.getItemCount?()
+
+    # If there are same number of comments in list with total 
+    # comment size means we don't need to show new item count
+    @newItemsLink.unsetClass('in')
+    
+    # If its our comments so it's not a new comment
+    if @newCount > 0 then @newCount--
+
     @updateNewCount()
 
-  render:->
+  ownCommentDeleted:->
+    if @newCount > 0
+      @newCount++
     
-    @show() if @getData().repliesCount > 3
-    # this sucks if a comment is deleted
-    @newCount++
-    @utils.wait => @updateNewCount()
-    super
-      
-  hide:->
+  render:->
 
-    @$().slideUp 150
+    log "HERE IS: ", @parent
+    # Get correct number of items in list from controller
+    # I'm not sure maybe its not a good idea
+    if @parent.commentController?.getItemCount?()
+      @onListCount = @parent.commentController.getItemCount()
+    
+    _newCount = @getData().repliesCount
+
+    # Show View all bla bla link if there are more comments
+    # than maxCommentToShow
+    @show() if _newCount > @maxCommentToShow and @onListCount < _newCount
+
+    # Check the oldCount before update anything
+    # if its less means someone deleted a comment
+    # otherwise it meanse we have a new comment
+    # if nothing changed it means user clicked like button
+    # so we don't need to touch anything
+    if _newCount > @oldCount
+      @newCount++
+    else if _newCount < @oldCount
+      if @newCount > 0 then @newCount--
+    
+    # If the count is changed then we need to update UI
+    if _newCount isnt @oldCount
+      @oldCount = _newCount
+      @utils.wait => @updateNewCount()
+
     super
 
   updateNewCount:->
-    
-    log @newCount, @onListCount
-    
+
+    # If there is no comments so we can not have new comments
+    if @oldCount is 0 then @newCount = 0
+
+    # If we have comments more than 0 we should show the new item link
     if @newCount > 0
       @show()
       @newItemsLink.updatePartial "#{@newCount} new"
+      @newItemsLink.setClass('in')
     else
-      @newItemsLink.setPartial ""
-    
-  show:->
+      @newItemsLink.unsetClass('in')
 
+    if @onListCount > @oldCount
+      @onListCount = @oldCount
+
+    if @onListCount is @oldCount and @newCount is 0
+      @hide()
+    else
+      @show()
+      
+  hide:->
+    @$().slideUp 150
+    super
+
+  show:->
     @$().slideDown 150
     super
 

@@ -10,6 +10,7 @@ hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
+mkdirp    = require 'mkdirp'
 
 console.log "new sharedhosting api."
 
@@ -136,7 +137,31 @@ module.exports = new Kite 'sharedHosting'
               else
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
+  
+  publishApp:(options, callback)->
+    
+    {username, version, appName, userAppPath} = options
 
+    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+    
+    console.log latestPath, versionedPath, version, appName, userAppPath, username
+    
+    mkdirp versionedPath, (err)->
+      if err then console.error err,"mkdirp erorro"
+      else
+        fs.readFile userAppPath, (err, appScript)->
+          if err then console.error err,"readfile errorr"
+          else
+            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+              if err then console.error err,"sondan bir"
+              else 
+                # fs.symlink latestPath, versionedPath, 'dir', (err)=>
+                exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err)->
+                  if err then console.error err,"son error"
+                  else callback?()
+
+  
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
@@ -349,4 +374,5 @@ module.exports = new Kite 'sharedHosting'
                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{username}"
                   res = "[OK] user #{username} was successfully unsuspended"
                   log.info res; callback? null, res
+
 
