@@ -17,7 +17,7 @@ class JTreeItemView extends KDListItemView
   pistachio:->
 
     """
-    <span class='icon'></span>
+    <span class='arrow'></span>
     {{#(title)}}
     """
 

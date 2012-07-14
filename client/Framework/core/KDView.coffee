@@ -34,6 +34,7 @@ class KDView extends KDObject
 # #
 
   constructor:(options = {},data)->
+    
     o = options
     o.tagName     or= "div"     # a String of a HTML tag
     o.domId       or= null      # a String
@@ -688,13 +689,16 @@ class KDView extends KDObject
 
   putOverlay:(options = {})->
 
-    {isRemovable, cssClass, parent, animated} = options
+    {isRemovable, cssClass, parent, animated, color} = options
 
     isRemovable ?= yes
     cssClass    ?= "transparent"
     parent      ?= "body"           #body or a KDView instance
 
     @$overlay = $ "<div />", class : "kdoverlay #{cssClass} #{if animated then "animated"}"
+    
+    if color
+      @$overlay.css "background-color" : color
 
     if parent is "body"
       @$overlay.appendTo "body"
@@ -715,6 +719,7 @@ class KDView extends KDObject
       @$overlay.on "click.overlay", @removeOverlay.bind @
 
   removeOverlay:()->
+    
     @emit "OverlayWillBeRemoved"
     kallback = =>
       @$overlay.off "click.overlay"
