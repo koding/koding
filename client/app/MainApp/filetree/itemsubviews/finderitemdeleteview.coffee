@@ -7,8 +7,7 @@ class NFinderItemDeleteView extends JView
     @button = new KDButtonView
       title     : 'Delete'
       style     : 'clean-red'
-      callback  : =>
-        @propagateEvent KDEventType : "FinderDeleteConfirmation", yes
+      callback  : => @emit "FinderDeleteConfirmation", yes
 
     @cancel = new KDCustomHTMLView
       tagName   : 'a'
@@ -16,8 +15,7 @@ class NFinderItemDeleteView extends JView
         href    : '#'
         title   : 'Cancel'
       cssClass  : 'cancel'
-      click     : =>
-        @propagateEvent KDEventType : "FinderDeleteConfirmation", no
+      click     : => @emit "FinderDeleteConfirmation", no
     
     @label = new KDLabelView
       title     : 'Are you sure?'
@@ -39,7 +37,7 @@ class NFinderItemDeleteView extends JView
 
     switch event.which
       when 27 #esc
-        @propagateEvent KDEventType : "FinderDeleteConfirmation", no
+        @emit "FinderDeleteConfirmation", no
         no
       when 9
         unless @button.$().is(":focus")

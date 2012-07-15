@@ -98,7 +98,7 @@ class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
-    log data, "><><><><><><><><"
+    # log data, "><><><><><><><><"
 
     origin = {
       constructorName  : data.originType
