@@ -89,6 +89,7 @@ class KiteController {
   private function get_next_kite_uri ($kite_name) {
     $clusters = $this->clusters[$kite_name];
     $kite = $clusters[0]->get_next_kite_uri();
+    error_log("hello kite why are you failing?".json_encode($clusters));
     // $kite = $clusters[0]->kites[0];
     if (!isset($kite)) {
       error_log('found no kites');

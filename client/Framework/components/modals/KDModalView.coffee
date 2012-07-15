@@ -43,10 +43,16 @@ class KDModalView extends KDView
     # TODO: it is now displayed with setPositions method fix that and make .display work
     @display()
     @setPositions()
-    
+
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).on "keydown.modal",(e)=>
       @destroy() if e.which is 27
+
+    @listenTo
+      KDEventTypes: "childAppended"
+      listenedToInstance: @
+      callback:->
+        @setPositions()
 
   setDomElement:(cssClass)->
     @domElement = $ "
@@ -94,7 +100,7 @@ class KDModalView extends KDView
       @$().height value
       @modalHeight = value
 
-  setModalWidth:(value)-> 
+  setModalWidth:(value)->
     # if isNaN value
     @modalWidth = value
     @$().width value
@@ -104,7 +110,7 @@ class KDModalView extends KDView
       {position} = @getOptions()
       newPosition = {}
   
-      newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@modalHeight/2)
+      newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@getHeight()/2)
       newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
       newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
       @$().css newPosition

@@ -1,11 +1,12 @@
 fs                = require 'fs'
-sys               = require 'sys'
+sys               = require 'util'
 {spawn, exec}     = require 'child_process'
 {EventEmitter}    = require 'events'
 log4js            = require "./node_modules/log4js"
 log               = log4js.getLogger("[ProcessMonitor]")
 util              = require 'util'
 _                 = require './node_modules/underscore'
+
 
 class ProcessMonitor extends EventEmitter
   

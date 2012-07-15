@@ -1,0 +1,13 @@
+task 'cl3','runs dev kites',(options)->
+
+  processes.run
+    cmd : 'cd ./pinger && cake run'
+    restart: no
+
+  processes.run
+    cmd : 'cd ./sharedHosting && cake run'
+    restart: no
+
+  processes.run
+    cmd : 'cd ./terminaljs && cake run'
+    restart: no
