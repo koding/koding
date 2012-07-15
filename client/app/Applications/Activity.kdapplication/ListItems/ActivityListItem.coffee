@@ -55,62 +55,32 @@ class ActivityListItemView extends KDListItemView
       @addSubView childView
       callback?()
 
-  # addChildView:(data, callback)->
-    
-  #   {constructorName} = data.bongo_
-    
-  #   if /CNewMemberBucket$/.test constructorName
-  #     @addSubView new NewMemberBucketItemView {}, data
-  #   else if /Bucket$/.test constructorName
-  #     @addSubView new getBucketMap()[data.sourceName] {}, data
-  #   else
-  #     @addSubView new getActivityChildConstructors()[constructorName] {}, data
-    
-  #   callback?()
-
   partial:-> ''
 
   show:->
 
-    log @getData(), @getData().fetchTeaser?, ">>>>"
-
     @getData().fetchTeaser? (err, teaser)=>
-      log teaser,":::"
       @addChildView teaser, => @slideIn()
 
-  slideIn:(callback)->
+  slideIn:()-> @$().removeClass 'hidden-item'
 
-    @$().removeClass 'hidden-item'
-    @utils.wait 400, => callback?()
-
-    # @$()
-    #   .show()
-    #   .animate({backgroundColor : "#FDF5D9", left : 0}, 400)
-    #   .delay(500)
-    #   .animate {backgroundColor : "#ffffff"}, 400, ()->
-    #     $(this)
-    #       .css({backgroundColor : "transparent"})
-    #       .removeClass('hidden-item')
-    #     callback?()
+    
 
 
 class ActivityItemChild extends KDView
 
   constructor:(options, data)->
 
-    # log data, "><><><><><><><><"
-
-    origin = {
+    origin =
       constructorName  : data.originType
       id               : data.originId
-    }
+
     @avatar = new AvatarView {
       size    : {width: 40, height: 40}
       origin
     }
-    @author = new ProfileLinkView {
-      origin
-    }
+    
+    @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3

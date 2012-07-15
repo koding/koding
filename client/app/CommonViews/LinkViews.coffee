@@ -117,14 +117,14 @@ class LinkGroup extends KDCustomHTMLView
       @createParticipantSubviews()
       @render()
 
-    if group[0]?.bongo_?.constructorName isnt "ObjectRef"
+    if group[0].constructorName
+      three = group.slice(-3)
+      bongo.cacheable three, (err, bucketContents)=>
+        callback bucketContents
+    else
       callback group
-      return
 
     # -3 means last three pieces?
-    three = group.slice(-3)
-    bongo.cacheable three, (err, bucketContents)=>
-      callback bucketContents
 
   itemClass:(options, data)->
     new (@getOptions().subItemClass) options, data
@@ -195,8 +195,8 @@ class ActivityChildViewTagGroup extends LinkGroup
 class FollowedModalView extends KDModalView
 
   titleMap = ->
-    account : "Followed members"
-    tag     : "Followed topics"
+    account : "members"
+    tag     : "topics"
 
   listControllerMap = ->
     account : MembersListViewController

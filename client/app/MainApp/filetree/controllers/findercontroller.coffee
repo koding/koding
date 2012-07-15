@@ -94,7 +94,7 @@ class NFinderController extends KDViewController
         if response
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
-        log "#{(Date.now()-timer)/1000}sec"
+        log "#{(Date.now()-timer)/1000}sec !"
         mount.emit "fs.fetchContents.finished"
 
 
