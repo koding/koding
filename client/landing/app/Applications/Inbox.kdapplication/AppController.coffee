@@ -23,7 +23,7 @@ class Inbox12345 extends AppController
     callback()
   
   fetchMessages:(options, callback)->
-    log "FETCH MESSAGES INTERNAL"
+    # log "FETCH MESSAGES INTERNAL"
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
     currentDelegate.fetchMail? options, callback
   

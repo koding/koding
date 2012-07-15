@@ -106,10 +106,8 @@ class SharedDoc extends KDChannel
 
     @on "patch",({patch,sender,date})=>
       # if sender isnt @username  
-      # console.log "sharedDoc on.patch geldi",arguments 
-      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
-      @lastScreen = @currentScreen
-      @emit "patchApplied",@currentScreen,sender
+      # console.log "sharedDoc on.patch geldi",arguments
+      @registerAndEmitScreen patch,sender,date
 
     @on "join",({sender,date})=>
       console.log "#{sender} geldi hosgeldi",arguments
@@ -135,7 +133,18 @@ class SharedDoc extends KDChannel
       log "i got screen from #{sender}"
       @lastScreen = screen
       @emit "screen",screen
-        
+
+  registerAndEmitScreen:({patch})->
+    sha1 = SHA1.hex_sha1 @lastScreen
+    if @screens[sha1]?
+      # nothing changed on screen, no need to emit.
+    else
+      (@screens[sha1] ?= []).push {patch,sender}
+      
+      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]      
+      @lastScreen = @currentScreen
+      @emit "patchApplied",@currentScreen,sender
+
       
   join :(options,callback)->    
     @joinRoom options,(err,res)->
@@ -198,8 +207,12 @@ class ChatterView extends KDView
     @setKeyView()
   
   keyUp:(event) ->
-    unless event.altKey or event.metaKey or event.ctrlKey or event.shiftKey
-      @emit 'newScreen',{screen:@ace.getContents(),event}
+    # log "SHA1-hex",SHA1.hex_sha1 @ace.getContents()
+    # log "SHA1-b64",SHA1.b64_sha1 @ace.getContents()
+    # log "SHA1-any",SHA1.any_sha1 @ace.getContents()
+
+      
+    @emit 'newScreen',{screen:@ace.getContents()}
   
   keyDown: ->  
     # log "down",arguments    

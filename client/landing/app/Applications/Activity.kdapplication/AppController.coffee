@@ -288,8 +288,6 @@ class ActivityListController extends KDListViewController
 
   newActivityArrived:(activity)->
     
-    # log activity, ">>>>>"
-    
     unless @isMine activity
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
