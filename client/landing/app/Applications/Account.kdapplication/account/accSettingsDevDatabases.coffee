@@ -80,7 +80,7 @@ class AccountDatabaseListController extends KDListViewController
   deleteDatabase:(listItem)->
     data     = listItem.getData()
     @talkToKite
-      toDo     : @commands[data.type].remove
+      toDo     : @commands[data.dbType].remove
       withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
@@ -100,7 +100,7 @@ class AccountDatabaseListController extends KDListViewController
     log "Requested DB Type", data
     
     @talkToKite
-      toDo          : @commands[data.type].update
+      toDo          : @commands[data.dbType].update
       withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
@@ -450,7 +450,3 @@ class AccountDatabaseListItem extends KDListItemView
       </div>
       <a href='#' class='action-link'>Edit</a>
     """
-
-
-
-
