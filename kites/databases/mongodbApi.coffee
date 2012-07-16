@@ -87,7 +87,7 @@ class MongoDB
                 else
                   log.debug res
                   log.info "[OK] user #{dbConf.dbUser} and database #{dbConf.dbName} has been created"
-                  log.indo dbConf
+                  log.info dbConf
                   callback? null,dbConf
 
   changePassword : (options,callback)->
