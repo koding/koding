@@ -2,11 +2,9 @@ mongo   = require 'mongodb'
 log4js  = require 'log4js'
 config  = require('./config').mongo
 
-
 logFile = '/var/log/node/MongoDBApi.log'
 log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
-
 
 class MongoDB
 
@@ -65,7 +63,8 @@ class MongoDB
     # -------------------------------    
     
     dbConf = {dbName,dbUser,dbPass}
-    dbConf.host = @config.databases.mongodb.host
+    dbConf.dbHost = @mongoHost
+    dbConf.dbType = "mongo"
 
     db = new mongo.Db dbConf.dbName, @server
 
@@ -88,6 +87,7 @@ class MongoDB
                 else
                   log.debug res
                   log.info "[OK] user #{dbConf.dbUser} and database #{dbConf.dbName} has been created"
+                  log.indo dbConf
                   callback? null,dbConf
 
   changePassword : (options,callback)->
@@ -124,11 +124,6 @@ class MongoDB
                 log.info "[OK] password for user #{dbUser} in database #{dbName} has been changed"
                 callback? null,"[OK] password for user #{dbUser} in database #{dbName} has been changed"
 
-
-
-
-
-
   removeDatabase : (options,callback)->
 
     #
@@ -159,7 +154,4 @@ class MongoDB
               callback? null,"[OK] database #{dbName} has been removed"
 
 mongoDB = new MongoDB config
-
 module.exports = mongoDB
-
-
