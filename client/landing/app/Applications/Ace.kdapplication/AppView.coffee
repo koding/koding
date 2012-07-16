@@ -183,6 +183,7 @@ class AceView extends JView
       dragdrop          : yes
       foldersOnly       : yes
       contextMenu       : no
+
     finder = @finderController.getView()
 
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null
