@@ -74,7 +74,7 @@ class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
     options.expandable ?= yes
-    if not options.expandable and data.title.length > 20
+    if not options.expandable and data.title.length > 16
       options.tooltip =
         title     : data.title
         placement : "above"
