@@ -66,6 +66,10 @@ class KDModalView extends KDView
       </div>
     </div>"
 
+  addSubView:(view, selector = ".kdmodal-content")->
+
+    super view, selector
+
   setButtons:(buttonDataSet)->
     
     @buttons or= {}
@@ -93,7 +97,7 @@ class KDModalView extends KDView
 
   setModalHeight:(value)->
     if value is "auto"
-      @$().css "min-height","100px"
+      # @$().css "min-height","100px"
       @$().css "height","auto"
       @modalHeight = @getHeight()
     else 

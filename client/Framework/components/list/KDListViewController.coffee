@@ -29,19 +29,9 @@ class KDListViewController extends KDViewController
     super options, data
 
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
-
-    @listenTo
-      KDEventTypes        : 'ItemIsBeingDestroyed'
-      listenedToInstance  : listView
-      callback            : (pubInst, itemInfo)=> @unregisterItem pubInst, itemInfo
-
+    listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem pubInst, itemInfo
     if options.keyNav
-      listView.setOption "keyNav", yes
-      @listenTo
-        KDEventTypes        : 'KeyDownOnList'
-        listenedToInstance  : listView
-        callback            : (listView, event)=> @keyDownPerformed listView, event
-
+      listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
   loadView:(mainView)->
 

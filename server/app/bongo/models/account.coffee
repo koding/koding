@@ -44,7 +44,7 @@ class JAccount extends jraphical.Module
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities'
+        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
       ]
     schema                  :
       skillTags             : [String]
@@ -199,6 +199,14 @@ class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
   
+  fetchRole: secure ({connection}, callback)->
+    
+    admins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
+    if connection.delegate.profile.nickname in admins
+      callback null, role : "super-admin"
+    else
+      callback null, role : "regular"
+
   fetchPrivateChannel:(callback)->
     bongo.fetchChannel @getPrivateChannelName(), callback
   

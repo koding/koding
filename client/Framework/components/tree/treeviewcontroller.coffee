@@ -430,30 +430,34 @@ class JTreeViewController extends KDViewController
 
   showDragOverFeedback:(nodeView, event)->
 
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.setClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.setClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
+    log "show", nodeView.getData().name
+    # nodeData = nodeView.getData()
+    # if nodeData.type isnt "file"
+    #   nodeView.setClass "drop-target"
+    # else
+    #   @nodes[nodeData.parentPath]?.setClass "drop-target"
+    #   @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
 
     nodeView.setClass "items-hovering"
 
   clearDragOverFeedback:(nodeView, event)->
 
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.unsetClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.unsetClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
+    log "clear", nodeView.getData().name
+    # nodeData = nodeView.getData()
+    # if nodeData.type isnt "file"
+    #   nodeView.unsetClass "drop-target"
+    # else
+    #   @nodes[nodeData.parentPath]?.unsetClass "drop-target"
+    #   @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
 
     nodeView.unsetClass "items-hovering"
 
   clearAllDragFeedback:->
 
-    listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
-    nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
+    # @getView().$('.drop-target').removeClass "drop-target"
+    # @getView().$('.items-hovering').removeClass "items-hovering"
+    # listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
+    # nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
 
   ###
   HANDLING MOUSE EVENTS

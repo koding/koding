@@ -54,6 +54,20 @@ class Sidebar extends JView
     
     @accNav = @accNavController.getView()
 
+    @adminNavController = new NavigationController
+      view           : new NavigationList
+        type         : "navigation"
+        cssClass     : "account admin"
+        subItemClass : AdminNavigationLink
+        bind         : "mouseenter mouseleave"
+        mouseenter   : => @animateLeftNavIn()
+        mouseleave   : => @animateLeftNavOut()
+      wrapper        : no
+      scrollView     : no
+    , adminNavItems
+
+    @adminNav = @adminNavController.getView()
+
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
@@ -167,6 +181,7 @@ class Sidebar extends JView
       {{> @nav}}
       <hr>
       {{> @accNav}}
+      {{> @adminNav}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
@@ -308,3 +323,61 @@ class Sidebar extends JView
       ,  
         title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts"
     ]
+
+  adminNavItems = 
+    id    : "admin-navigation"
+    title : "admin-navigation"
+    items : [
+        title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
+    ]
+
+
+class KiteSelectorModal extends KDModalView
+  
+  constructor: (options = {}, data) ->
+
+    options.title = "Select kites"
+
+    super options, data
+
+    @putTable()
+
+  fetchKites:-> 
+    # dummy
+    sharedHosting :
+      hosts       : ["cl0", "cl1", "cl2", "cl3"]
+    Databases     :
+      hosts       : ["cl0", "cl1", "cl2", "cl3"]
+    terminal      :
+      hosts       : ["cl0", "cl1", "cl2", "cl3"]
+
+  putTable:->
+
+    for own name, kite of @fetchKites()
+
+      sanitizeHosts = (hosts)->
+        selectOptions = []
+        hosts.forEach (host)->
+          selectOptions.push 
+            value : host
+            title : host
+        return selectOptions
+
+      selectOptions = sanitizeHosts kite.hosts
+
+      @addSubView field = new KDView
+        cssClass : "modalformline"
+      
+      field.addSubView new KDLabelView
+        title    : name
+      
+      field.addSubView new KDSelectBox
+        selectOptions : selectOptions
+        cssClass      : "fr"
+        defaultValue  : "cl3"
+
+
+
+
+
+

@@ -481,7 +481,7 @@ class NFinderTreeController extends JTreeViewController
 
   dragOver: (nodeView, event)->
 
-    @showDragOverFeedback nodeView, event
+    # @showDragOverFeedback nodeView, event
     super
 
   lastEnteredNode = null

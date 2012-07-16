@@ -228,7 +228,7 @@ class FollowedModalView extends KDModalView
     super
 
   viewAppended:->
-    @loader = new KDLoaderView
+    @addSubView @loader = new KDLoaderView
       size          :
         width       : 30
       loaderOptions :
@@ -240,7 +240,6 @@ class FollowedModalView extends KDModalView
         speed       : 1
         FPS         : 24
 
-    @addSubView @loader, ".kdmodal-content"
     @loader.show()
 
     @prepareList()
@@ -259,7 +258,7 @@ class FollowedModalView extends KDModalView
     controller.on "AllItemsAddedToList", =>
       @loader.destroy()
 
-    @addSubView controller.getView(), ".kdmodal-content"
+    @addSubView controller.getView()
 
   prepareList:->
 
