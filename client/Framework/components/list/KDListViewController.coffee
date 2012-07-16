@@ -29,7 +29,7 @@ class KDListViewController extends KDViewController
     super options, data
 
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
-    listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem pubInst, itemInfo
+    listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
       listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
@@ -114,9 +114,9 @@ class KDListViewController extends KDViewController
             when "mouseenter" then @mouseEnterHappenedOnItem view, event
 
 
-  unregisterItem:(pubInst,itemInfo)->
+  unregisterItem:(itemInfo)->
 
-    @propagateEvent KDEventType : "UnregisteringItem", itemInfo
+    @emit "UnregisteringItem", itemInfo
     {index, view} = itemInfo
     actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
     @itemsOrdered.splice actualIndex, 1

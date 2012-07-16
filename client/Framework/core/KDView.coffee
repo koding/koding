@@ -45,14 +45,15 @@ class KDView extends KDObject
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
     o.draggable   or= null      # an Object holding draggable options and/or events
-    o.droppable   or= null      # an Object holding jQuery UI droppable options and/or events
-    o.resizable   or= null      # an Object holding jQuery UI resizable options and/or events
+    o.droppable   or= null      # TBDL
     o.size        or= null      # an Object holding width and height properties
     o.position    or= null      # an Object holding top/right/bottom/left properties (would force view to be positioned absolutely)
     o.attributes  or= null      # an Object holding attribute key/value pairs e.g. {href:'#',title:'my picture'}
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of twipsy options
+    # TO BE IMPLEMENTED
+    o.resizable   or= null      # TBDL
     super o,data
 
     data?.on? 'update', => @render()

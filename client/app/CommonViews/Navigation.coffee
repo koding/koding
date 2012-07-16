@@ -70,7 +70,7 @@ class NavigationInviteLink extends NavigationLink
       pistachio: "{{#(quota)-#(usage)}}"
 
     @utils.wait 10000, =>
-      KD.whoami().fetchLimit 'invite', (err, limit)=>
+      KD.whoami().fetchLimit? 'invite', (err, limit)=>
         if limit?
           @show()
           @count.setData limit

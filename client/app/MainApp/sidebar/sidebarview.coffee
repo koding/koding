@@ -64,9 +64,10 @@ class Sidebar extends JView
         mouseleave   : => @animateLeftNavOut()
       wrapper        : no
       scrollView     : no
-    , adminNavItems
 
     @adminNav = @adminNavController.getView()
+
+    @resetAdminNavController()
 
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
@@ -92,6 +93,14 @@ class Sidebar extends JView
 
     @listenWindowResize()
   
+  resetAdminNavController:->
+    @utils.wait 1000, =>
+      @adminNavController.removeAllItems()
+      if KD.isLoggedIn()
+        KD.whoami().fetchRole (err, role)=>
+          if role is "super-admin"
+            @adminNavController.instantiateListItems adminNavItems.items
+
   setListeners:->
 
     mainView = @getDelegate()
@@ -105,8 +114,8 @@ class Sidebar extends JView
 
     $fp = @$('#finder-panel')
     cp  = @contentPanel
-    @wc  = @getSingleton "windowController"
-    fpLastWidth    = null
+    @wc = @getSingleton "windowController"
+    fpLastWidth = null
 
     @finderResizeHandle.on "ClickedButNotDragged", =>
       unless fpLastWidth
@@ -161,6 +170,7 @@ class Sidebar extends JView
     
     @navController.reset()
     @accNavController.reset()
+    @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
     
@@ -342,39 +352,41 @@ class KiteSelectorModal extends KDModalView
 
     @putTable()
 
-  fetchKites:-> 
-    # dummy
-    sharedHosting :
-      hosts       : ["cl0", "cl1", "cl2", "cl3"]
-    Databases     :
-      hosts       : ["cl0", "cl1", "cl2", "cl3"]
-    terminal      :
-      hosts       : ["cl0", "cl1", "cl2", "cl3"]
 
   putTable:->
 
-    for own name, kite of @fetchKites()
+    KD.whoami().fetchAllKites (err, kites)=>
+      if err
+        new KDNotificationView
+          title : err.message
+        @destroy()
+      else
+        i = 1
+        for own name, kite of kites
+          sanitizeHosts = (hosts)->
+            selectOptions = []
+            hosts.forEach (host)->
+              selectOptions.push 
+                value : host
+                title : host
+            return selectOptions
 
-      sanitizeHosts = (hosts)->
-        selectOptions = []
-        hosts.forEach (host)->
-          selectOptions.push 
-            value : host
-            title : host
-        return selectOptions
+          selectOptions = sanitizeHosts kite.hosts
 
-      selectOptions = sanitizeHosts kite.hosts
-
-      @addSubView field = new KDView
-        cssClass : "modalformline"
-      
-      field.addSubView new KDLabelView
-        title    : name
-      
-      field.addSubView new KDSelectBox
-        selectOptions : selectOptions
-        cssClass      : "fr"
-        defaultValue  : "cl3"
+          @addSubView field = new KDView
+            cssClass : "modalformline"
+          
+          field.addSubView new KDLabelView
+            title    : name
+          
+          field.addSubView new KDSelectBox
+            selectOptions : selectOptions
+            cssClass      : "fr"
+            defaultValue  : "cl#{i}"
+            callback      : do ->
+              kiteName = name
+              (value)-> log value, kiteName, "selected kite"
+          i++
 
 
 

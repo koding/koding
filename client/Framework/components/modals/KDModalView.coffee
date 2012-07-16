@@ -1,25 +1,23 @@
 class KDModalView extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      overlay        : no            # a Boolean
-      overlayClick   : yes           # a Boolean
-      height         : "auto"        # a Number for pixel value or a String e.g. "100px" or "20%" or "auto"
-      width          : 400           # a Number for pixel value or a String e.g. "100px" or "20%"
-      position       : {}            # an Object holding top and left values
-      title          : null          # a String of text or HTML
-      content        : null          # a String of text or HTML
-      cssClass       : ""            # a String
-      buttons        : null          # an Object of button options
-      fx             : no            # a Boolean
-      view           : null          # a KDView instance
-      draggable      :
-        handle       : ".kdmodal-title"
-      # TO BE IMPLEMENTED
-      resizable      : no            # a Boolean
-    ,options
 
+  constructor:(options = {}, data)->
 
-    super options,data
+    options.overlay      or= no            # a Boolean
+    options.overlayClick or= yes           # a Boolean
+    options.height       or= "auto"        # a Number for pixel value or a String e.g. "100px" or "20%" or "auto"
+    options.width        or= 400           # a Number for pixel value or a String e.g. "100px" or "20%"
+    options.position     or= {}            # an Object holding top and left values
+    options.title        or= null          # a String of text or HTML
+    options.content      or= null          # a String of text or HTML
+    options.cssClass     or= ""            # a String
+    options.buttons      or= null          # an Object of button options
+    options.fx           or= no            # a Boolean
+    options.view         or= null          # a KDView instance
+    options.draggable    or= handle : ".kdmodal-title"
+    # TO BE IMPLEMENTED
+    options.resizable    or= no            # a Boolean
+
+    super options, data
 
     @putOverlay options.overlay                   if options.overlay
     @setClass "fx"                                if options.fx
@@ -68,6 +66,7 @@ class KDModalView extends KDView
 
   addSubView:(view, selector = ".kdmodal-content")->
 
+    selector = null if @$(selector).length is 0
     super view, selector
 
   setButtons:(buttonDataSet)->
@@ -149,9 +148,6 @@ class KDModalView extends KDView
     if @getOptions().fx
       @utils.wait =>
         @setClass "active"
-
-  addInnerSubView:(view)->
-    @addSubView view,".kdmodal-content"
 
   destroy:()->
     $(window).off "keydown.modal"
