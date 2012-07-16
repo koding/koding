@@ -12,4 +12,4 @@ module.exports =
   apiUri  : 'https://dev-api.koding.com/1.0'
   requestHandler :
     isEnabled    : yes
-    joinedChannelsFile : nodePath.join( __dirname, '.tmp/join-channels-file.txt' )
+    joinedChannelsDir : nodePath.join( __dirname, '.tmp/joined-channels/' )
