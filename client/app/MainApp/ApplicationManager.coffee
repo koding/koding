@@ -58,7 +58,7 @@ class ApplicationManager extends KDObject
     appManager = @
 
     beforeCallback = (appInstance)->
-      appManager.propagateEvent KDEventType : "AppManagerOpensAnApplication", appInstance
+      appManager.emit "AppManagerOpensAnApplication", appInstance
       if doBringToFront
         appManager.setFrontApp path
       callback? appInstance
