@@ -61,7 +61,7 @@ class CommentViewHeader extends JView
 
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    if @parent.commentController?.getItemCount?()
+    if @parent?.commentController?.getItemCount?()
       @onListCount = @parent.commentController.getItemCount()
     
     _newCount = @getData().repliesCount
