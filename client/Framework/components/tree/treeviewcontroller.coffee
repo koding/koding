@@ -487,7 +487,7 @@ class JTreeViewController extends KDViewController
 
   click:(nodeView, event)->
 
-    if /icon/.test event.target.className
+    if /arrow/.test event.target.className
       @toggle nodeView
       return @selectedItems
 
