@@ -33,9 +33,10 @@ class NotificationController extends KDObject
     # 1 - < actor fullname > commented on your < activity type >.
     # 2 - < actor fullname > also commented on the < activity type > that you commented.
     # 3 - < actor fullname > liked your < activity type >.
+    # 4 - < actor fullname > sent you a private message.
+    # 5 - < actor fullname > replied to your private message.
+    # 6 - < actor fullname > also replied to your private message.
 
-    # 4 - < actor fullname > just sent you a private message.
-    
     options = {}
     {origin, subject, actionType, replier, liker, sender} = notification.contents
     
@@ -44,7 +45,7 @@ class NotificationController extends KDObject
     
     bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       
-      actorName        = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+      actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
       
       options.title = switch actionType
         when "reply"
@@ -54,7 +55,7 @@ class NotificationController extends KDObject
                 "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
               else
                 "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
-          else        # 2
+          else
             switch subject.constructorName 
               when "JPrivateMessage"
                 "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
@@ -67,11 +68,11 @@ class NotificationController extends KDObject
                   separator      = "'s"
                 "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
 
-        when "like"   # 3
+        when "like"
           "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
         when "newMessage"
           @emit "NewMessageArrived"
-          "#{actorName} sent you a new #{subjectMap()[subject.constructorName]}."
+          "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
 
       options.click = ->
         view = @
