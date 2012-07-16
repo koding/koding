@@ -1,6 +1,6 @@
 <?php
 
-$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'mongohq-dev';
+$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
 $respond = isset($_REQUEST['callback']) ? 'jsonp_respond' : 'json_respond';
 
 function trace () {
@@ -74,6 +74,10 @@ function jsonp_respond ($ob) {
 }
 
 function json_respond ($ob) {
+#  trace('htis is a test', $_SERVER['HTTP_ORIGIN']);
+#  if (isset($_SERVER['HTTP_ORIGIN'])
+#   && in_array($_SERVER['HTTP_ORIGIN'], array('https://beta.koding.com', 'https://koding.com')
+#  )) {
   header('Access-Control-Allow-Origin: https://beta.koding.com');
   header('Access-Control-Allow-Credentials: true');
   header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
@@ -81,6 +85,7 @@ function json_respond ($ob) {
   $out = is_array($ob) ? json_encode($ob) : $ob;
   print $out;
   die();
+#  }
 }
 
 function access_denied ($msg=NULL) {

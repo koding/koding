@@ -136,15 +136,15 @@ class KodingAppsController extends KDController
 
       async.parallel asyncStack, (error, result)=>
         
-        final = "/* KDAPP STARTS */"
+        _final = "/* KDAPP STARTS */"
         result.forEach (output)=>
-          final += "\n\n/* BLOCK STARTS */\n\n"
-          final += "#{output}"
-          final += "\n\n/* BLOCK ENDS */\n\n"
-        final += "/* KDAPP ENDS */"
+          _final += "\n\n/* BLOCK STARTS */\n\n"
+          _final += "#{output}"
+          _final += "\n\n/* BLOCK ENDS */\n\n"
+        _final += "/* KDAPP ENDS */"
         
-        @saveCompiledApp app, final
-        @defineApp app, final
+        @saveCompiledApp app, _final
+        @defineApp app, _final
 
     unless KodingAppsController.apps[name]
       @fetchApps (apps)=> kallback apps[name]

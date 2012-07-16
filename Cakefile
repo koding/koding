@@ -68,17 +68,20 @@ targetPaths =
       tmpFileCompiled = tmpFile+".js"
       fs.writeFile tmpFile,js,(err)-> 
         execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+        console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
+            console.log "23",arguments
           else if stdout
+            console.log "12",arguments
           else throw err
           bar.tick() for ko in [ticks...totalTicks]
           fs.readFile tmpFileCompiled,'utf8',(err,data)->
             clearInterval a
             unless err
               callback null,data
-              fs.unlink tmpFileCompiled,->
-              fs.unlink tmpFile,->
+              # fs.unlink tmpFileCompiled,->
+              # fs.unlink tmpFile,->
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err

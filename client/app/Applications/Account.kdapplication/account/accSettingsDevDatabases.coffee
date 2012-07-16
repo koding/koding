@@ -2,6 +2,19 @@ class AccountDatabaseListController extends KDListViewController
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+
+    @commands =
+      mysql    :
+        create : "createMysqlDatabase"
+        remove : "removeMysqlDatabase"
+        update : "changeMysqlPassword"
+        fetch  : "fetchMysqlDatabases"
+      mongo    :
+        create : "createMongoDatabase"
+        remove : "removeMongoDatabase"
+        update : "changeMongoPassword"
+        fetch  : "fetchMongoDatabases"
+
     list = @getListView()
 
     list.registerListener
@@ -52,22 +65,22 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
     
-    @getSingleton("kiteController").run
-      kiteName  : "databases"
-      toDo      : "fetchMysqlDatabases"
-      withArgs  : { username : KD.whoami().profile.nickname}
-    , (err, response)=>
-      if err then warn err
-      else
-        @instantiateListItems response
-        callback?()
+    for dbtype in ['mysql', 'mongo']
+      @talkToKite
+        toDo      : @commands[dbtype].fetch
+        withArgs  :
+          dbUser  : KD.whoami().profile.nickname
+      , (err, response)=>
+        log "RESPONSE: ", response
+        if err then warn err
+        else
+          @instantiateListItems response
+          callback?()
 
   deleteDatabase:(listItem)->
-    
     data     = listItem.getData()
-
     @talkToKite
-      toDo     : "removeMysqlDatabase"
+      toDo     : @commands[data.dbType].remove
       withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
@@ -84,9 +97,10 @@ class AccountDatabaseListController extends KDListViewController
   updateDatabase:(listItem, formData)->
 
     data = listItem.getData()
-
+    log "Requested DB Type", data
+    
     @talkToKite
-      toDo          : "changeMysqlPassword"
+      toDo          : @commands[data.dbType].update
       withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
@@ -102,6 +116,8 @@ class AccountDatabaseListController extends KDListViewController
 
   addDatabase:->
 
+    dbtype = @getListView().modal.modalTabs.forms["On Koding"].inputs.Type.getValue()
+
     {nickname} = KD.whoami().profile
     pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
     dbName  = md5.digest("#{Math.random()*1e18}").substr(-(15-nickname.length))
@@ -109,11 +125,12 @@ class AccountDatabaseListController extends KDListViewController
     dbPass  = pass.substr(-40)
     
     @talkToKite
-      toDo      : "createMysqlDatabase"
+      toDo      : @commands[dbtype].create
       withArgs  : {dbName, dbUser, dbPass}
     , (err, response)=>
       {modal} = @getListView()
       modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
+      log "ADDED: ", response
       if err
         @notify "An error occured, try again later!", "error"
       else
@@ -123,6 +140,7 @@ class AccountDatabaseListController extends KDListViewController
   
   talkToKite:(options, callback)->
 
+    log "Run on kite:", options.toDo
     @getSingleton("kiteController").run
       kiteName  : "databases"
       toDo      : options.toDo
@@ -197,10 +215,10 @@ class AccountDatabaseList extends KDListView
                 itemClass     : KDSelectBox 
                 type          : "select"
                 name          : "type"
-                defaultValue  : "JDatabaseMySql"
+                defaultValue  : "mysql"
                 selectOptions : [
-                  { title : "MySql",    value : "JDatabaseMySql" }
-                  { title : "Mongo",    value : "JDatabaseMongo" }
+                  { title : "MySql",    value : "mysql" }
+                  { title : "Mongo",    value : "mongo" }
                   # { title : "PostGre",  value : "JDatabasePostGre" }
                   # { title : "CouchDB",  value : "JDatabaseCouchDb" }
                 ]
@@ -397,12 +415,14 @@ class AccountDatabaseList extends KDListView
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
 
+    log "Create Item with Data", data
+
     options.tagName = "li"
     
-    data.type   or= "mysql"
-    data.color  or= "yellow"
-    data.title  or= "MySql DB"
-    data.dbHost or= "mysql0.db.koding.com"
+    data.dbType   or= "mysql"
+    data.color    or= if data.type == "mysql" then "yellow" else "green"
+    data.title    or= if data.type == "mysql" then "MySql DB" else "Mongo DB"
+    data.dbHost   or= "mysql0.db.koding.com"
 
     super options,data
     
@@ -417,17 +437,16 @@ class AccountDatabaseListItem extends KDListItemView
     """
       <div class='labelish'>
         <span class='icon #{data.color}'></span>
-        <span class='blacktag'>#{data.type} : #{data.dbName}</span>
+        <span class='blacktag'>#{data.dbType}</span>
       </div>
       <div class='labelish'>
-        <a href='#'>user: </a><span class='lightText'>#{data.dbName}</span>
+        <a href='#'>dbname: </a><span class='lightText'>#{data.dbName}</span>
+      </div>
+      <div class='labelish'>
+        <a href='#'>user: </a><span class='lightText'>#{data.dbUser}</span>
       </div>
       <div class='labelish'>
         <a href='#'>host: </a><span class='lightText'>#{data.dbHost}</span>
       </div>
       <a href='#' class='action-link'>Edit</a>
     """
-
-
-
-
