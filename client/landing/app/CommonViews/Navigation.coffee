@@ -52,25 +52,12 @@ class NavigationLink extends KDListItemView
 
     "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
-# class NavigationBetaFeedbackLink extends NavigationLink
-
-#   viewAppended:()->
-    
-#     @utils.wait 5000, =>
-#       bongo.api.JUser.fetchUser (err,user)=>
-#         @data.link = user.tenderAppLink
-#         @getDomElement().append @partial @data
-#         # @handleEvent { type : "viewAppended"}
-#         @setViewReady()
+class AdminNavigationLink extends NavigationLink
   
-#   partial:(data)->
+  mouseDown:(event)->
 
-#     "<a class='title' href='#{data.link}' target='_blank'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>"
-  
-#   mouseDown:(event)->
-
-#     event.stopPropagation()
-#     no
+    cb = @getData().callback
+    cb.call @ if cb
 
 class NavigationInviteLink extends NavigationLink
   
