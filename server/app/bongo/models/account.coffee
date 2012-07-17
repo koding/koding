@@ -44,7 +44,8 @@ class JAccount extends jraphical.Module
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities'
+        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
+        'fetchAllKites'
       ]
     schema                  :
       skillTags             : [String]
@@ -199,6 +200,34 @@ class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
   
+  # temp dummy stuff
+
+  dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
+  
+  isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+
+  fetchRole: secure ({connection}, callback)->
+    
+    if isDummyAdmin connection.delegate.profile.nickname
+      callback null, "super-admin"
+    else
+      callback null, "regular"
+
+  fetchAllKites: secure ({connection}, callback)->
+
+    if isDummyAdmin connection.delegate.profile.nickname
+      callback null,
+        sharedHosting :
+          hosts       : ["cl0", "cl1", "cl2", "cl3"]
+        Databases     :
+          hosts       : ["cl0", "cl1", "cl2", "cl3"]
+        terminal      :
+          hosts       : ["cl0", "cl1", "cl2", "cl3"]
+    else
+      callback new KodingError "Permission denied!"
+
+  # temp dummy stuff ends
+
   fetchPrivateChannel:(callback)->
     bongo.fetchChannel @getPrivateChannelName(), callback
   
@@ -214,11 +243,17 @@ class JAccount extends jraphical.Module
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all targetName: 'JPrivateMessage', targetId: message.getId(), sourceId: $ne: delegate.getId(), (err, rels)->
+        jraphical.Relationship.all 
+          targetName  : 'JPrivateMessage', 
+          targetId    : message.getId(), 
+          sourceId    : 
+            $ne       : delegate.getId()
+        , (err, rels)->
           if err
             callback err
           else
-            message.participants = (rel for rel in rels when register.sign rel.sourceId) # only include unique participants.
+            # only include unique participants.
+            message.participants = (rel for rel in rels when register.sign rel.sourceId)
             fin()
       , callback
       fetchParticipants(message) for message in messages when message?
