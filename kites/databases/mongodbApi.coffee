@@ -1,7 +1,7 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
 config  = require('./config').mongo
-
+{daisy} = require "sinkrow"
 logFile = '/var/log/node/MongoDBApi.log'
 #log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
@@ -35,7 +35,7 @@ class MongoDB
     id.substr 0, length
 
   getDbUsers : (dbName,callback)->
-    
+    log.debug 'does call'
 
     db = new mongo.Db dbName, @server, native_parser: false
     db.open (err,db)=>
@@ -43,15 +43,16 @@ class MongoDB
         log.error error = "[ERROR] can't open database #{dbName}: #{err}"
       else
         db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
+          log.error err if err
           db.collection "system.users",(err,collection)=>
+            log.error err if err
             collection.find({},{fields:user:1}).toArray (err,items)->
+              log.error err if err
               usernames = []
-              l = items.length
               for user in items
                 usernames.push user.user
-                l--
-                if l is 0
-                  callback usernames
+              console.log "miki",usernames
+              callback usernames
 
   fetchDatabaseList :(options, callback)->
     #
@@ -80,19 +81,20 @@ class MongoDB
                   callback? error
                 else
                   users_dbs = []
+                  dbInfo = []
                   for db in result.documents[0].databases
                      users_dbs.push db.name if db.name.match username
-                  
-                  dbInfo = []
-                  l = users_dbs.length
-                  for users_db in users_dbs
-                    l--
-                    @getDbUsers users_db,(usersArray)=>
-                      dbInfo.push { dbName: users_db, dbUser: usersArray }
-                      if l is 0
-                        callback dbInfo
-
-
+                  queue = []
+                  users_dbs.forEach (users_db, index)=>
+                    queue.push =>
+                      @getDbUsers users_db,(usersArray)=>
+                        log.debug "x",users_db,index,usersArray
+                        dbInfo.push { dbName: users_db, dbUser: usersArray }
+                        queue.next()
+                  queue.push ->
+                    log.debug 'info FINALLY', dbInfo
+                    callback null, dbInfo
+                  daisy queue
           
 
   createDatabase : (options,callback)->
