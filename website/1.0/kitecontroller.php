@@ -44,17 +44,21 @@ class KiteController {
     foreach ($clusters as $index=>$cluster) {
       if ($cluster->trustPolicy->test('byHostname', $parsed_uri['host'])
        && $cluster->add_kite($uri)) {
+        $pinger = $this->get_kite('pinger', 'kc');
+        if (!isset($pinger)) {
+          error_log('Pinger kite could not be reached!');
+          return FALSE;
+        }
         if ($kite_name != 'pinger') {
-          $pinger = $this->get_kite('pinger', 'kc');
-          if (isset($pinger)) {
-            $pinger->startPinging(array(
-              'kiteName'  => $kite_name,
-              'uri'       => $uri,
-              'interval'  => 5000,
-            ));
-          }
-          else {
-            error_log('Pinger kite could not be reached!');
+          $pinger->startPinging(array(
+            'kiteName'  => $kite_name,
+            'uri'       => $uri,
+            'interval'  => 5000,
+          ));
+        }
+        else {
+          foreach ($this->clusters as $cluster) {
+            trace($cluster);
           }
         }
         array_push($result['addedTo'], $index);
