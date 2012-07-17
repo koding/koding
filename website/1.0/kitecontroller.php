@@ -58,7 +58,19 @@ class KiteController {
         }
         else {
           foreach ($this->clusters as $cluster) {
-            trace($cluster);
+            foreach ($cluster as $node) {
+              if ($node->name == 'pinger') {
+                continue;
+              }
+              $kites = $node->get_kites();
+              foreach ($kites as $kite) {
+                $pinger->startPinging(array(
+                  'kiteName' => $node->kite_name,
+                  'uri' => $kite,
+                  'interval' => 5000,
+                ));
+              }
+            }
           }
         }
         array_push($result['addedTo'], $index);
