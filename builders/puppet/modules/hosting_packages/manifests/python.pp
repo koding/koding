@@ -4,7 +4,6 @@ class hosting_packages::python {
     # modules installed from RPM
     $python_modules = ["pymongo-gridfs",
                         "pymongo",
-                        "python27",
                         "python27-devel",
                         "python27-tools",
                         "MySQL-python",
@@ -14,7 +13,7 @@ class hosting_packages::python {
                         "python-setuptools"
                       ]
     
-    package { "python":
+    package { ["python","python27"]:
         ensure => installed,
     }
     

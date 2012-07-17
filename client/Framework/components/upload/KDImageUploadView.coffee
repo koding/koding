@@ -9,11 +9,8 @@ class KDImageUploadView extends KDFileUploadView
       callback      : (pubInst, {name, img, index})=>
         form.addCustomData "#{options.fieldName}.#{index}.#{name}", img.data
 
-    @listController.registerListener
-      KDEventTypes  : 'UnregisteringItem'
-      listener      : @
-      callback      : (pubInst, {view, index})=>
-        form.removeCustomData "#{options.fieldName}.#{index}"
+    @listController.on 'UnregisteringItem', ({view, index})=>
+      form.removeCustomData "#{options.fieldName}.#{index}"
   
   constructor:(options={})->
     options.actions or= []

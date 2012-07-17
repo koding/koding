@@ -27,7 +27,7 @@ class JTreeViewController extends KDViewController
 
     dragHelper       = document.createElement 'img'
     dragHelper.src   = '/images/multiple-item-drag-helper.png'
-    dragHelper.width = 110;
+    dragHelper.width = 110
 
   constructor:(options = {},data)->
 
@@ -53,29 +53,29 @@ class JTreeViewController extends KDViewController
     @nodes                        = {}
     @indexedNodes                 = []
     @selectedNodes                = []
-    
+
   loadView:(treeView)->
 
     @initTree @getData()
     @setKeyView()
     @setMainListeners()
-    
+
     @registerBoundaries()
 
 
   registerBoundaries:->
-    @boundaries = 
+    @boundaries =
       top     : @getView().getY()
       left    : @getView().getX()
       width   : @getView().getWidth()
       height  : @getView().getHeight()
-  
+
   ###
   HELPERS
   ###
 
   initTree:(nodes)->
-    
+
     @removeAllNodes()
     @addNode node for node in nodes
 
@@ -85,21 +85,21 @@ class JTreeViewController extends KDViewController
     for node in @indexedNodes
       # log @nodes[@getNodeId(node)].expanded, node
       log @getNodeId(node), @getNodePId(node), node.depth
-  
+
   getNodeId:(nodeData)->
 
     return nodeData[@getOptions().nodeIdPath]
-  
+
   getNodePId:(nodeData)->
-    
+
     return nodeData[@getOptions().nodeParentIdPath]
-  
+
   repairIds:(nodeData)->
 
     options = @getOptions()
     idPath  = options.nodeIdPath
     pIdPath = options.nodeParentIdPath
-    
+
     nodeData[idPath] or= @utils.getUniqueId()
     nodeData[idPath]   = "#{@getNodeId nodeData}"
     nodeData[pIdPath]  = if @getNodePId nodeData then "#{@getNodePId nodeData}" else "0"
@@ -114,11 +114,11 @@ class JTreeViewController extends KDViewController
 
     if @getNodePId(nodeData) isnt "0" and not @nodes[@getNodePId nodeData]
       if options.addOrphansToRoot then nodeData[pIdPath] = "0" else nodeData = no
-    
+
     return nodeData
 
   isNodeVisible:(nodeView)->
-    
+
     nodeData = nodeView.getData()
     parentNode = @nodes[@getNodePId nodeData]
     if parentNode
@@ -131,10 +131,10 @@ class JTreeViewController extends KDViewController
 
 
   areSibling:(node1, node2)->
-    
+
     node1PId = @getNodePId node1.getData()
     node2PId = @getNodePId node2.getData()
-    
+
     return node1PId is node2PId
   
   ###
@@ -152,7 +152,6 @@ class JTreeViewController extends KDViewController
     view = @getView()
     @getSingleton("windowController").removeLayer view
     view.setClass "dim"
-  
   
   ###
   CRUD OPERATIONS FOR NODES
@@ -174,11 +173,11 @@ class JTreeViewController extends KDViewController
       @addSubList @nodes[parentId], parentId
 
     list.addItem nodeData, index
-  
+
   addNodes:(nodes)->
-  
+
     @addNode node for node in nodes
-  
+
   removeNode:(id)->
 
     nodeIndexToRemove = null
@@ -197,11 +196,11 @@ class JTreeViewController extends KDViewController
       delete @nodes[id]
 
   removeNodeView:(nodeView)->
-    
+
     @removeNode @getNodeId nodeView.getData()
 
   removeAllNodes:->
-    
+
     if @listControllers["0"]
       @listControllers["0"].itemsOrdered.forEach (itemView)=>
         @removeNodeView itemView
@@ -232,7 +231,7 @@ class JTreeViewController extends KDViewController
       @nodes[@getNodePId nodeData].decorateSubItemsState()
     return unless @listControllers[id]
     @addSubList nodeView, id
-  
+
   getChildNodes :(aParentNode)->
     children = []
     @indexedNodes.forEach (node, index)=>
@@ -241,7 +240,7 @@ class JTreeViewController extends KDViewController
     if children.length then children else no
 
   addIndexedNode:(nodeData)->
-    
+
     neighbor = null
     getPreviousNeighbor = (aParentNode)=>
       neighbor = aParentNode
@@ -250,7 +249,7 @@ class JTreeViewController extends KDViewController
         lastChild = children[children.length-1]
         # @selectNode @nodes[@getNodeId lastChild.node]
         neighbor = getPreviousNeighbor lastChild.node
-    
+
       return neighbor
 
     # if node parent is present
@@ -261,9 +260,9 @@ class JTreeViewController extends KDViewController
       @indexedNodes.splice neighborIndex + 1, 0, nodeData
     else
       @indexedNodes.push nodeData
-      
+
   removeIndexedNode:(nodeData)->
-    
+
     if nodeData in @indexedNodes
       index = @indexedNodes.indexOf nodeData
       @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
@@ -271,18 +270,18 @@ class JTreeViewController extends KDViewController
       # todo: make decoration with events
       if @nodes[@getNodePId nodeData] and not @getChildNodes(@nodes[@getNodePId nodeData].getData())
         @nodes[@getNodePId nodeData].decorateSubItemsState(no)
-    
-    
+
+
   ###
   CREATING LISTS
   ###
-  
+
   registerListData:(node)->
 
     parentId = @getNodePId(node)
     @listData[parentId] or= []
     @listData[parentId].push node
-  
+
   createList:(listId, listItems)->
 
     options = @getOptions()
@@ -299,9 +298,9 @@ class JTreeViewController extends KDViewController
 
     @setListenersForList listId
     return @listControllers[listId]
-  
+
   addSubList:(nodeView, id)->
-    
+
     o = @getOptions()
     listToBeAdded = @listControllers[id].getView()
     if nodeView
@@ -315,16 +314,16 @@ class JTreeViewController extends KDViewController
     else
       @getView().addSubView listToBeAdded
 
-      
-    
-  
+
+
+
   ###
   REGISTERING LISTENERS
   ###
 
   setMainListeners:->
-    
-    @listenTo 
+
+    @listenTo
       KDEventTypes       : "ReceivedMouseUpElsewhere"
       listenedToInstance : @getSingleton("windowController")
       callback           : (windowController, event)=>
@@ -334,10 +333,10 @@ class JTreeViewController extends KDViewController
 
   setListenersForList:(listId)->
 
-    @listControllers[listId].getView().on 'ItemWasAdded', (view, index)=> 
+    @listControllers[listId].getView().on 'ItemWasAdded', (view, index)=>
       @setItemListeners view, index
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : ["ItemSelectionPerformed","ItemDeselectionPerformed"]
       listenedToInstance : @listControllers[listId]
       callback           : (listController, {event, items}, {subscription})=>
@@ -354,67 +353,67 @@ class JTreeViewController extends KDViewController
 
   setItemListeners:(view, index)->
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : "viewAppended"
       listenedToInstance : view
       callback           : (view)=> @nodeWasAdded view
 
 
     mouseEvents = ["dblclick", "click", "mousedown", "mouseup", "mouseenter", "mousemove"]
-    
+
     if @getOptions().contextMenu
       mouseEvents.push "contextmenu"
 
     if @getOptions().dragdrop
       mouseEvents = mouseEvents.concat ["dragstart", "dragenter", "dragleave", "dragend", "dragover", "drop"]
-    
+
     @listenTo
       KDEventTypes       : mouseEvents
       listenedToInstance : view
       callback           : (pubInst, event)=> @mouseEventHappened pubInst, event
-      
-        
+
+
   ###
   NODE SELECTION
   ###
 
 
   organizeSelectedNodes:(listController, nodes, event = {})->
-    
+
     unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
       @deselectAllNodes(listController)
 
     for node in nodes
       unless node in @selectedNodes
         @selectedNodes.push node
-  
+
   deselectNodes:(listController, nodes, event)->
 
     for node in nodes
       if node in @selectedNodes
         @selectedNodes.splice @selectedNodes.indexOf(node), 1
-  
+
   deselectAllNodes:(exceptThisController)->
-    
+
     for own id, listController of @listControllers
       if listController isnt exceptThisController
         listController.deselectAllItems()
     @selectedNodes = []
-  
+
   selectNode:(nodeView, event)->
-    
+
     return unless nodeView
     @setFocusState()
     @listControllers[@getNodePId nodeView.getData()].selectItem nodeView, event
 
   deselectNode:(nodeView, event)->
-    
+
     @listControllers[@getNodePId nodeView.getData()].deselectSingleItem nodeView, event
-  
+
   selectFirstNode:->
-  
+
     @selectNode @nodes[@getNodeId @indexedNodes[0]]
-  
+
   selectNodesByRange:(node1, node2)->
 
     indicesToBeSliced = [@indexedNodes.indexOf(node1.getData()), @indexedNodes.indexOf(node2.getData())]
@@ -428,11 +427,11 @@ class JTreeViewController extends KDViewController
   ###
 
   toggle:(nodeView)->
-    
+
     if nodeView.expanded then @collapse nodeView else @expand nodeView
-    
+
   expand:(nodeView)->
-    
+
     nodeData = nodeView.getData()
     nodeView.expand()
     @listControllers[@getNodeId nodeData]?.getView().expand()
@@ -447,33 +446,46 @@ class JTreeViewController extends KDViewController
   ###
   DND UI FEEDBACKS
   ###
-  
-  showDragOverFeedback:(nodeView, event)->
-    
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.setClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.setClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
-    
-    nodeView.setClass "items-hovering"
 
-  clearDragOverFeedback:(nodeView, event)->
-    
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.unsetClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.unsetClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
+  # THESE 3 METHODS BELOW SHOULD BE REFACTORRED MAKES THE UI HORRIBLY SLUGGISH ON DND - Sinan 07/2012
 
-    nodeView.unsetClass "items-hovering"
-  
-  clearAllDragFeedback:->
+  showDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
+
+      # log "show", nodeView.getData().name    
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.setClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.setClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
+
+      nodeView.setClass "items-hovering"
+
+    , 100
+
+  clearDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
     
-    listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
-    nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
+      # log "clear", nodeView.getData().name
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.unsetClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.unsetClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
+
+      nodeView.unsetClass "items-hovering"
+
+    , 100
+
+  clearAllDragFeedback: ->
+
+    @utils.wait 101, =>
+      @getView().$('.drop-target').removeClass "drop-target"
+      @getView().$('.items-hovering').removeClass "items-hovering"
+      listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
+      nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
 
   ###
   HANDLING MOUSE EVENTS
@@ -496,26 +508,30 @@ class JTreeViewController extends KDViewController
       when "dragover"    then @dragOver nodeView, event
       when "dragend"     then @dragEnd nodeView, event
       when "drop"        then @drop nodeView, event
-  
+
   dblClick:(nodeView, event)->
-    
+
     @toggle nodeView
 
   click:(nodeView, event)->
-    
+
+    if /arrow/.test event.target.className
+      @toggle nodeView
+      return @selectedItems
+
     @lastEvent = event
     @deselectAllNodes() unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
-    
+
     if nodeView?
       if event.shiftKey and @selectedNodes.length > 0 and @getOptions().multipleSelection
         @selectNodesByRange @selectedNodes[0], nodeView
       else
         @selectNode nodeView, event
-    
+
     return @selectedItems
 
   contextMenu:(nodeView, event)->
-  
+
   mouseDown:(nodeView, event)->
 
     @lastEvent = event
@@ -529,18 +545,18 @@ class JTreeViewController extends KDViewController
         @mouseDownTempItem = null
         @selectNode nodeView, event
       , 1000
-        
+
     else
       @mouseIsDown = no
       @mouseDownTempItem = null
-  
+
   mouseUp:(pubInst, event)->
     
     clearTimeout @mouseDownTimer
     @mouseIsDown = no
     @cancelDrag = no
     @mouseDownTempItem = null
-  
+
   mouseEnter:(nodeView, event)->
 
     clearTimeout @mouseDownTimer
@@ -564,15 +580,15 @@ class JTreeViewController extends KDViewController
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
     transferredData = (@getNodeId node.getData() for node in @selectedNodes)
     e.dataTransfer.setData('Text', transferredData.join()) # required otherwise doesn't work
-    
+
     if @selectedNodes.length > 1
       e.dataTransfer.setDragImage dragHelper, -10, 0
-    
+
     # this doesnt work in webkit only firefox
 
     # items = for node in @selectedNodes
     #   node.getData()
-    # 
+    #
     # options = @getOptions()
     # draggedListController = new KDListViewController
     #   wrapper        : no
@@ -584,7 +600,7 @@ class JTreeViewController extends KDViewController
     #     cssClass     : "drag-helper-list"
     #     subItemClass : JTreeItemView
     # , {items}
-    # 
+    #
     # @tempDragList = draggedListController.getView()
     # KDView.appendToDOMBody @tempDragList
     # @tempDragList.$().css top : e.pageY, left : e.pageY
@@ -621,15 +637,15 @@ class JTreeViewController extends KDViewController
   ###
 
   setKeyView:->
-    
+
     if @listControllers[0]
       @getSingleton("windowController").setKeyView @listControllers[0].getListView()
-      
+
   keyEventHappened:(event)->
 
     key = keyMap()[event.which]
     [nodeView] = @selectedNodes
-    
+
     return unless nodeView
 
     switch key
@@ -648,7 +664,7 @@ class JTreeViewController extends KDViewController
         @getView().scrollToSubView? nodeView
 
   performDownKey:(nodeView, event)->
-    
+
     if @selectedNodes.length > 1
       nodeView = @selectedNodes[@selectedNodes.length-1]
       unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
@@ -668,9 +684,9 @@ class JTreeViewController extends KDViewController
           return nextNode
       else
         @performDownKey nextNode, event
-    
+
   performUpKey:(nodeView, event)->
-    
+
     if @selectedNodes.length > 1
       nodeView = @selectedNodes[@selectedNodes.length-1]
       unless (event.metaKey or event.ctrlKey or event.shiftKey) and @getOptions().multipleSelection
@@ -690,17 +706,17 @@ class JTreeViewController extends KDViewController
       else
         @performUpKey nextNode, event
     return nextNode
-    
+
   performRightKey:(nodeView, event)->
-    
+
     @expand nodeView
     # o = @getOptions()
     # @addNode
     #   title     : "some title"
     #   parentId  : @getNodeId nodeData
-    
+
   performLeftKey:(nodeView, event)->
-    
+
     nodeData = nodeView.getData()
     if @nodes[@getNodePId nodeData]
       parentNode = @nodes[@getNodePId nodeData]
@@ -708,10 +724,10 @@ class JTreeViewController extends KDViewController
     return parentNode
 
   performBackspaceKey:(nodeView, event)->
-    
+
     # nodeData = nodeView.getData()
     # @removeNode @getNodeId nodeData
-  
+
   performEnterKey:(nodeView, event)->
 
     # nodeData = nodeView.getData()

@@ -68,17 +68,20 @@ targetPaths =
       tmpFileCompiled = tmpFile+".js"
       fs.writeFile tmpFile,js,(err)-> 
         execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+        console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
+            console.log "23",arguments
           else if stdout
+            console.log "12",arguments
           else throw err
           bar.tick() for ko in [ticks...totalTicks]
           fs.readFile tmpFileCompiled,'utf8',(err,data)->
             clearInterval a
             unless err
               callback null,data
-              fs.unlink tmpFileCompiled,->
-              fs.unlink tmpFile,->
+              # fs.unlink tmpFileCompiled,->
+              # fs.unlink tmpFile,->
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
@@ -267,7 +270,7 @@ build = (options)->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
       
-    if changes.Server? 
+    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
       builder.buildServer "",()-> 
       builder.processMonitor.restartProcess() unless options.dontStart
     if changes.Client?.StylusFiles? 

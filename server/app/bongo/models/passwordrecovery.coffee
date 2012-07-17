@@ -93,7 +93,7 @@ class JPasswordRecovery extends jraphical.Module
               # url         : "#{protocol}#{host}:#{port}/recover/#{encodeURIComponent token}"
               url         : "#{protocol}#{host}/recover/#{encodeURIComponent token}"
               requestedAt : certificate.getAt('requestedAt')
-            postmark.send
+            Emailer.send
               From      : @getPasswordRecoveryEmail()
               To        : email
               Subject   : @getPasswordRecoverySubject()

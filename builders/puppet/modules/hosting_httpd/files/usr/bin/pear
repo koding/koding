@@ -1,0 +1,3 @@
+#!/bin/sh
+exec /usr/bin/php -C -d include_path=/usr/share/pear \
+    -d output_buffering=1 -d open_basedir="${HOME}:/tmp:/bin:/etc:/lib:/lib64:/sbin:/usr" /usr/share/pear/pearcmd.php "$@"

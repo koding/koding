@@ -27,8 +27,8 @@ class KDSelectBox extends KDInputView
   bindEvents:()->
     @_$select.bind "blur change focus",(event)=>
       # log "kdselectbox change" if event.type is "change"
-      @getCallback()? @getValue()
-      @emit event.type,event,@getValue()
+      @getCallback()? @getValue() if event.type is "change"
+      @emit event.type, event, @getValue()
       @handleEvent event
     super
 

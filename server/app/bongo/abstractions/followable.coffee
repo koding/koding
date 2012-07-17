@@ -1,18 +1,16 @@
 class Followable extends jraphical.Module
 
   {dash} = bongo
+  {Relationship} = jraphical
 
-  @set
-    schema          :
-      counts        :
-        followers   :
-          type      : Number
-          default   : 0
-        following   :
-          type      : Number
-          default   : 0
-    relationships   :
-      activity      : CActivity
+  @schema =
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
 
   count: bongo.secure (client, filter, callback)->
     unless @equals client.connection.delegate
@@ -53,35 +51,45 @@ class Followable extends jraphical.Module
         new KodingError("Can't follow yourself")
         @getAt('counts.followers')
       )
-    @addFollower follower, respondWithCount : yes, (err, docs, count)=>
+
+    sourceId = @getId()
+    targetId = follower.getId()
+  
+    Relationship.count {
+      sourceId, targetId, as:'follower'
+    }, (err, count)=>
       if err
         callback err
+      else if count > 0
+        callback new KodingError('already following...'), count
       else
-        @setAt 'counts.followers',  count
-        @save()
-        # callback err, count
-        @emit 'FollowCountChanged'
-          followerCount   : @getAt('counts.followers')
-          followingCount  : @getAt('counts.following')
-          newFollower     : follower
+        @addFollower follower, respondWithCount : yes, (err, docs, count)=>
 
-        follower.updateFollowingCount()
-
-        sourceId = @getId()
-        targetId = follower.getId()
-
-        jraphical.Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
           if err
             callback err
           else
-            emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
-            if emitActivity
-              CBucket.addActivities relationship, @, follower, (err)->
-                if err
-                  callback err
-                else
-                  callback null, count
-            else callback null, count
+            @setAt 'counts.followers',  count
+            @save()
+            # callback err, count
+            @emit 'FollowCountChanged'
+              followerCount   : @getAt('counts.followers')
+              followingCount  : @getAt('counts.following')
+              newFollower     : follower
+
+            follower.updateFollowingCount()
+            Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
+              if err
+                callback err
+              else
+                emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
+                if emitActivity
+                  CBucket.addActivities relationship, @, follower, (err)->
+                    if err
+                      # console.log "An Error occured: ", err
+                      callback err
+                    else
+                      callback null, count
+                else callback null, count
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate

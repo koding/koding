@@ -173,8 +173,10 @@ class CodeSnippetView extends KDCustomHTMLView
 
   pistachio:->
     """
-    {pre{> @codeView}}
-    <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+    <div class='kdview'>
+      {pre{> @codeView}}
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+    </div>
     {{> @syntaxMode}}
     """
   
