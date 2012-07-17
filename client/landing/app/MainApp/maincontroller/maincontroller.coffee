@@ -3,7 +3,9 @@ class MainController extends KDController
   wasLoggedIn = no
 
   constructor:()->
+    
     super
+    
     window.appManager = new ApplicationManager
     KD.registerSingleton "docManager", new DocumentManager
     KD.registerSingleton "windowController", new KDWindowController
@@ -128,7 +130,6 @@ class MainController extends KDController
         @initiateApplication()
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-
       if pageInfo.pageName is 'Logout'
         bongo.api.JUser.logout ->
           new KDNotificationView

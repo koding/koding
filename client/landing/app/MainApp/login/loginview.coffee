@@ -196,5 +196,15 @@ class LoginView extends KDScrollView
     @$().css options
       
   animateToForm: (name)->
+    if name is "register"
+      bongo.api.JVisitor.isRegistrationEnabled (status)=>
+        if status is no
+          @registerForm.$('div').hide()
+          @registerForm.$('section').show()
+          log "Registrations are disabled!!!"
+        else
+          @registerForm.$('section').hide()
+          @registerForm.$('div').show()
+
     @unsetClass "register recover login reset"
     @setClass name

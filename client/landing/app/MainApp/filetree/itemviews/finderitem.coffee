@@ -18,46 +18,22 @@ class NFinderItem extends JTreeItemView
     @childView = new childConstructor {}, data
     @childView.$().css "margin-left", (data.depth+1)*10
 
-    @deleteView = new NFinderItemDeleteView
-      cssClass : "hidden"
-    , data
-
-    @renameView = new NFinderItemRenameView
-      cssClass : "hidden"
-    , data
-    @renameView.$().css "margin-left", ((data.depth+1)*10)+2
-
-    @listenTo
-      KDEventTypes       : "FinderDeleteConfirmation"
-      listenedToInstance : @deleteView
-      callback           : (pubInst, confirmation)=>
-        @callback? confirmation
-        @resetView()
-
-    @listenTo
-      KDEventTypes       : "FinderRenameConfirmation"
-      listenedToInstance : @renameView
-      callback           : (pubInst, newValue)->
-        @callback? newValue
-        @resetView()
-
-  showOnly:(view)->
-    
-    @deleteView.hide()
-    @childView.hide()
-    @renameView.hide()
-    @getSingleton("windowController").setKeyView view
-    view.show()
-
   resetView:(view)->
 
-    @deleteView.hide()
-    @renameView.hide()
+    if @deleteView
+      @deleteView.destroy()
+      delete @deleteView
+    
+    if @renameView
+      @renameView.destroy() 
+      delete @renameView
+    
     @childView.show()
     @beingDeleted = no
     @beingEdited = no
     @callback = null
     @unsetClass "being-deleted being-edited"
+    # @setKeyView()
   
   confirmDelete:(callback)->
     
@@ -66,21 +42,34 @@ class NFinderItem extends JTreeItemView
     
   showDeleteView:->
     
+    return if @deleteView
     @setClass "being-deleted"
     @beingDeleted = yes
-    @showOnly @deleteView
+    @childView.hide()
+    data = @getData()
+    @addSubView @deleteView = new NFinderItemDeleteView {}, data
+    @deleteView.on "FinderDeleteConfirmation", (confirmation)=>
+      @callback? confirmation
+      @resetView()
+    @deleteView.setKeyView()
 
   showRenameView:(callback)->
     
+    return if @renameView
+    @setClass "being-edited"
     @beingEdited = yes
     @callback = callback
-    @setClass "being-edited"
-    @showOnly @renameView
+    @childView.hide()
+    data = @getData()
+    @addSubView @renameView = new NFinderItemRenameView {}, data
+    @renameView.$().css "margin-left", ((data.depth+1)*10)+2
+    @renameView.on "FinderRenameConfirmation", (newValue)=>
+      @callback? newValue
+      @resetView()
+    @renameView.input.setFocus()
     
   pistachio:-> 
 
     """
     {{> @childView}}
-    {{> @deleteView}}
-    {{> @renameView}}
     """
