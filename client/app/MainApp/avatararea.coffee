@@ -300,8 +300,8 @@ class PopupNotificationListItem extends NotificationListItem
   constructor:(options = {}, data)->
     
     options.tagName        or= "li"
-    options.linkGroupClass or= ProfileTextGroup
-    options.avatarClass    or= AvatarStaticView
+    options.linkGroupClass or= LinkGroup
+    options.avatarClass    or= AvatarView
 
     super options, data
 

@@ -44,7 +44,7 @@ class KDView extends KDObject
     o.pistachio   or= null      # a String of Pistachio
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
-    o.draggable   or= null      # an Object holding draggable options and/or events
+    o.draggable   or= null      # an Object holding draggable options and/or events !!! NOT HTML5 !!!
     o.droppable   or= null      # TBDL
     o.size        or= null      # an Object holding width and height properties
     o.position    or= null      # an Object holding top/right/bottom/left properties (would force view to be positioned absolutely)

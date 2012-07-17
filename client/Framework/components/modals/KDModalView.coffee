@@ -117,6 +117,8 @@ class KDModalView extends KDView
       newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
       newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
       @$().css newPosition
+      @$().css opacity : 1
+
 
   putOverlay:()->
     @$overlay = $ "<div/>"

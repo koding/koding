@@ -430,36 +430,43 @@ class JTreeViewController extends KDViewController
 
   # THESE 3 METHODS BELOW SHOULD BE REFACTORRED MAKES THE UI HORRIBLY SLUGGISH ON DND - Sinan 07/2012
 
-  showDragOverFeedback:(nodeView, event)->
+  showDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
 
-    # log "show", nodeView.getData().name
-    nodeData = nodeView.getData()
-    if nodeData.type isnt "file"
-      nodeView.setClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.setClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
+      # log "show", nodeView.getData().name    
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.setClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.setClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
 
-    nodeView.setClass "items-hovering"
+      nodeView.setClass "items-hovering"
 
-  clearDragOverFeedback:(nodeView, event)->
+    , 100
 
-    # log "clear", nodeView.getData().name
-    nodeData = nodeView.getData()
-    if nodeData.type isnt "file"
-      nodeView.unsetClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.unsetClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
+  clearDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
+    
+      # log "clear", nodeView.getData().name
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.unsetClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.unsetClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
 
-    nodeView.unsetClass "items-hovering"
+      nodeView.unsetClass "items-hovering"
 
-  clearAllDragFeedback:->
+    , 100
 
-    @getView().$('.drop-target').removeClass "drop-target"
-    @getView().$('.items-hovering').removeClass "items-hovering"
-    listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
-    nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
+  clearAllDragFeedback: ->
+
+    @utils.wait 101, =>
+      @getView().$('.drop-target').removeClass "drop-target"
+      @getView().$('.items-hovering').removeClass "items-hovering"
+      listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
+      nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
 
   ###
   HANDLING MOUSE EVENTS
