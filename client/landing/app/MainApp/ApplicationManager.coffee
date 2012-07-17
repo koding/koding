@@ -101,6 +101,7 @@ class ApplicationManager extends KDObject
 
   openFileWithApplication:(file, applicationPath)->
     @openApplication applicationPath, no, (appInstance)->
+      # log appInstance, file
       appInstance.openFile file
 
   tell:(path, command, rest...)->
