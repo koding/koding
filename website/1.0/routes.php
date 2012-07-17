@@ -151,6 +151,7 @@ $router->add_route('/kite/disconnect', function () {
 });
 
 $router->add_route('/channel/auth', function () {
+  global $pusher_key, $pusher_secret, $pusher_app_id;
   $pusher = new Pusher('a19c8bf6d2cad6c7a006', '51f7913fbb446767a9fb', 22120);
   print_cors_headers();
   print_json_headers();
