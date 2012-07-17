@@ -114,7 +114,6 @@ class ActivityCodeSnippetWidget extends KDFormView
       @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
   submit:=>
-    debugger
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
     super
@@ -168,7 +167,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setTheme()
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
-      @updateSyntaxTag 'javascript'
+      @once @updateSyntaxTag 'javascript'
       @emit "codeSnip.aceLoaded"
 
   refreshEditorView:->
