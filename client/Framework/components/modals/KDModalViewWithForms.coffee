@@ -2,7 +2,7 @@ class KDModalViewWithForms extends KDModalView
   constructor:(options,data)->
     @modalButtons = []
     super options,data
-    @addInnerSubView @modalTabs = new KDTabViewWithForms options.tabs
+    @addSubView @modalTabs = new KDTabViewWithForms options.tabs
 
 
 # new KDModalViewWithForms
