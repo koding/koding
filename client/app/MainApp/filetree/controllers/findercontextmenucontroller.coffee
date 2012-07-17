@@ -158,9 +158,12 @@ class NFinderContextMenuController extends KDController
     if fileView.getData().getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
-        children    :
-          Compile   :
-            action  : "compile"
+        children                  :
+          Compile                 :
+            action                : "compile"
+            separator             : yes
+          "Publish to App Catalog":
+            action                : "publish"
 
     return items
 

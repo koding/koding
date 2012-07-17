@@ -162,12 +162,12 @@ class Shell12345 extends KDViewController
     #     callback?()
 
   getKiteIds : (options,callback)->
-    @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->
-      unless err
-        @kiteIds = kiteIds
-        callback? null,kiteIds
-      else
-        callback? err
+#    @account.fetchKiteIds {kiteName:"terminaljs"},(err,kiteIds)->
+#      unless err
+#        @kiteIds = kiteIds
+#        callback? null,kiteIds
+#      else
+#        callback? err
 
   initiateTerminal : (callback)->
     view = @getView()

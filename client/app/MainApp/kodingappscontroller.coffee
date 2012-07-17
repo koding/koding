@@ -162,8 +162,8 @@ class KodingAppsController extends KDController
         
         
         final = @defineApp app, final
-        callback?()
-        @utils.wait 100, @saveCompiledApp app, final
+        @saveCompiledApp app, final, =>
+          callback?()
 
     unless KodingAppsController.apps[name]
       @fetchApps (apps)=> kallback apps[name]

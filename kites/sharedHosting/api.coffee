@@ -10,6 +10,7 @@ hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
+mkdirp    = require 'mkdirp'
 
 console.log "new sharedhosting api."
 
@@ -136,7 +137,28 @@ module.exports = new Kite 'sharedHosting'
               else
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
+  
+  publishApp:(options, callback)->
+    
+    {username, version, appName, userAppPath} = options
 
+    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+    
+    mkdirp versionedPath, (err)->
+      if err then console.error err
+      else
+        fs.readFile userAppPath, (err, appScript)->
+          if err then console.error err
+          else
+            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)=>
+              if err then console.error err
+              else 
+                fs.symlink latestPath, versionedPath, 'dir', (err)=>
+                  if err then console.error err
+                  else callback?()
+
+  
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
