@@ -7,8 +7,9 @@ class NFinderItemRenameView extends JView
     @input = new KDHitEnterInputView
       defaultValue  : data.name
       type          : "text"
-      callback      : (newValue)=>
-        @propagateEvent KDEventType : "FinderRenameConfirmation", newValue
+      mousedown     : (pubInst, event)->
+        log event,">>>>"
+      callback      : (newValue)=> @emit "FinderRenameConfirmation", newValue
 
     @cancel = new KDCustomHTMLView
       tagName       : 'a'
@@ -16,8 +17,7 @@ class NFinderItemRenameView extends JView
         href        : '#'
         title       : 'Cancel'
       cssClass      : 'cancel'
-      click         : =>
-        @propagateEvent KDEventType : "FinderRenameConfirmation", (data.name)
+      click         : => @emit "FinderRenameConfirmation", (data.name)
 
   show:->
     
