@@ -46,6 +46,20 @@ AccountMixin = do ->
         log 'CHANGING TRANSPORT: ', transport
         transports[channelId] = transport
       
+      resetTransport = (channelId)->
+        delete transports[channelId]
+      
+      getCommandFailover =(secretChannelId, options, callback)->
+        kallback = __utils.getCancellableCallback callback
+        kanceller = __utils.getCancellableCallback =>
+          kallback.cancel()
+          resetTransport(secretChannelId)
+          @tellKite options, callback
+        setTimeout kanceller, 5000
+        ->
+          kanceller.cancel()
+          kallback arguments...
+      
       sendScrubbedCommand =(channelId, url, options)->
         transport = transports[channelId]
         data =
@@ -113,9 +127,10 @@ AccountMixin = do ->
                 callback channel
       
       (options, callback)->
+        account = @
         @fetchKiteChannelName options.kiteName, (err, secretChannelId)->
           fetchChannel secretChannelId, (channel)->
             options.secretChannelId = secretChannelId
             options.withArgs or= {}
-            args = [options, callback]
+            args = [options, getCommandFailover.call account, secretChannelId, options, callback]
             sendCommand secretChannelId, options.kiteName, args
