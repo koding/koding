@@ -51,6 +51,7 @@ class InboxMessageDetail extends KDView
       callback err, comments
 
   enhanceBody:(body)->
+    body or= "(No message body)"
     body = @utils.applyTextExpansions body
     body = body.replace /(\n|&#10;)/g, '<br>'
     return body

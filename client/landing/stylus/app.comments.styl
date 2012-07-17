@@ -149,11 +149,21 @@ app.comments.styl
           borderBox()
 
   .show-more-comments
-    size                  auto, auto
-    bg                    color,#F8F8F8
-    border-bottom         1px solid #E0E0DF
-    padding               6px 10px
-    rounded(4px 4px 0 0)
+    size                  auto, 0
+    bg                    color,#F8F8F8        
+    padding               0 10px
+    rounded               4px 4px 0 0
+    line-height           27px
+    vendor                transition, height .15s linear
+    borderBox()
+    &.in
+      height              27px
+      border-bottom       1px solid #E0E0DF
+
+    &.has-new-items
+      a.new-count
+        display           inline
+    
     a
       line-height         14px
       color               #299FC6
@@ -166,9 +176,6 @@ app.comments.styl
       position            absolute
       right               15px
       top                 11px
-    &.has-new-items
-      a.new-count
-        display           inline
 
     .new-items
       left                  500px

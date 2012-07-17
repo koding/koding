@@ -47,7 +47,7 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      lastToFirst : yes
+      # lastToFirst : yes
       delegate    : @
       subItemClass  : InboxMessagesListItem
     inboxMessageBody = new KDView cssClass : "message-body-wrap"
@@ -59,9 +59,14 @@ class PageInbox extends KDView
     tab.addSubView @newMessageBar = new InboxNewMessageBar 
       cssClass  : "new-message-bar clearfix"
       delegate  : @inboxMessagesContainer
+
+    @newMessageBar.on "RefreshButtonClicked", =>
+      inboxMessageListController.loadMessages =>
+        @newMessageBar.refreshButton.hideLoader()
     
     inboxMessageListController.loadMessages()
-    
+      
+
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList,@inboxMessagesContainer]

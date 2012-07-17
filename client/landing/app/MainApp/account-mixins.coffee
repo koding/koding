@@ -105,7 +105,7 @@ AccountMixin = do ->
               # join an extra channel here so that we can listen for the vacated webhook.
               connChannel = bongo.mq.subscribe secretChannelId+'-conn'
               connChannel.bind 'pusher:subscription_succeeded', ->
-                log 'SUBSCRIPTION SUCCEEDED', secretChannelId
+                # log 'SUBSCRIPTION SUCCEEDED', secretChannelId
                 myMessageHandler = messageHandler.bind null, secretChannelId
                 channel.bind 'message', myMessageHandler
                 channel.bind 'error', myMessageHandler
