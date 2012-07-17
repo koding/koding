@@ -96,8 +96,13 @@ class KiteCluster {
   public function add_kite ($uri) {
     error_log('trying to add a kite', $uri);
     if (in_array($uri, $this->get_kites())) {
-      error_log("Kite at $uri already registered.  Refusing to add again.");
-      return FALSE;
+      if ($this->kite_name == 'pinger') {
+        return TRUE;
+      }
+      else {
+        error_log("Kite at $uri already registered.  Refusing to add again.");
+        return FALSE;
+      }
     }
     else {
       $db = get_mongo_db();
