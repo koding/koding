@@ -238,10 +238,27 @@ app.login-signup.styl
 
 .login-form
 
+  section
+    position              relative
+    margin                40px 0
+    top                   0
+    text-align            center
+    overflow              hidden
+    p
+      height              220px
+      padding             76px 10px      
+      b
+        font-size         13px
+        display           block
+        line-height       28px
+        text-shadow       0 1px 0 rgba(0,0,0,.5)
+      a 
+        color             #ff9200
+        noTextDeco()
+  
   >div
     position              relative
     text-align            center
-
     .kdview
       width               78%
       margin              0 auto 5px auto
@@ -267,19 +284,19 @@ app.login-signup.styl
           bg              position, -480px -40px!important
           opacity         1
       
-    p
-      size              78%, 0
-      margin            0 auto
-      color             #f2f2f2
-      font-size         10px
-      line-height       18px
-      bg                color, rgba(0, 0, 0, 0.2)
-      rounded           4px
-      padding           0 6px
-      text-shadow       0 1px 0 #111
-      overflow          hidden
-      vendor            transition, height .15s ease-out
-      borderBox()
+  p
+    size              78%, 0
+    margin            0 auto
+    color             #f2f2f2
+    font-size         10px
+    line-height       18px
+    bg                color, rgba(0, 0, 0, 0.2)
+    rounded           4px
+    padding           0 6px
+    text-shadow       0 1px 0 #111
+    overflow          hidden
+    vendor            transition, height .15s ease-out
+    borderBox()
 
   .password-confirm
     margin-bottom       0!important
