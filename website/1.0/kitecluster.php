@@ -94,7 +94,7 @@ class KiteCluster {
   }
   
   public function add_kite ($uri) {
-    error_log('trying to add a kite', $uri);
+    trace('trying to add a kite', $uri);
     if (in_array($uri, $this->get_kites())) {
       if ($this->kite_name == 'pinger') {
         return TRUE;

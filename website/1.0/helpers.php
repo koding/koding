@@ -1,6 +1,18 @@
 <?php
 
-$env = isset($_REQUEST['env']) ? $_REQUEST['env'] : 'beta';
+if ($_SERVER['SERVER_NAME'] == 'api.koding.com') {
+  $env = 'beta';
+  $pusher_key = 'a19c8bf6d2cad6c7a006';
+  $pusher_secret = '51f7913fbb446767a9fb';
+  $pusher_app_id = 18240;
+}
+else {
+  $env = 'mongohq-dev';
+  $pusher_key = 'a6f121a130a44c7f5325';
+  $pusher_secret = '9a2f248630abaf977547';
+  $pusher_app_id = 22120;
+}
+
 $respond = 'json_respond';
 
 function trace () {
