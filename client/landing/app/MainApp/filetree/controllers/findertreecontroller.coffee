@@ -261,7 +261,7 @@ class NFinderTreeController extends JTreeViewController
           @nodes[nodeView.getData().path] = nodeView
           nodeView.childView.render()
 
-      @setKeyView()
+      # @setKeyView()
       @beingEdited = null
 
   createFile:(nodeView, type = "file")->
