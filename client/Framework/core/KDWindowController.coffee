@@ -20,11 +20,15 @@ class KDWindowController extends KDController
   addLayer: (layer)->
 
     unless layer in @layers
+      log "layer added", layer
       @layers.push layer
+      layer.on 'KDObjectWillBeDestroyed', =>
+        @removeLayer layer
 
   removeLayer: (layer)->
 
     if layer in @layers
+      log "layer removed", layer
       index = @layers.indexOf(layer)
       @layers.splice index, 1
 
@@ -61,7 +65,7 @@ class KDWindowController extends KDController
       lastLayer = layers[layers.length-1]
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
-        log lastLayer, "ReceivedClickElsewhere"
+        # log lastLayer, "ReceivedClickElsewhere"
         lastLayer.emit 'ReceivedClickElsewhere', e
         @removeLayer lastLayer
     , yes
@@ -100,7 +104,7 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
-    log newKeyView, "newKeyView"
+    # log newKeyView, "newKeyView"
 
     @oldKeyView = @keyView
     @keyView = newKeyView
@@ -145,11 +149,8 @@ class KDWindowController extends KDController
 
   registerWindowResizeListener:(instance)->
     @windowResizeListeners[instance.id] = instance
-    instance.registerListener
-      KDEventTypes  : "KDObjectWillBeDestroyed"
-      listener      : @
-      callback      : =>
-        delete @windowResizeListeners[instance.id]
+    instance.on "KDObjectWillBeDestroyed", =>
+      delete @windowResizeListeners[instance.id]
 
   setWindowProperties:(event)->
     @winWidth  = $(window).width()

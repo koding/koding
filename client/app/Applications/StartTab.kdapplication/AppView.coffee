@@ -8,6 +8,15 @@ class StartTabMainView extends JView
 
     @appIcons = {}
     @listenWindowResize()
+
+    mainView = @getSingleton('mainView')
+    
+    mainView.sidebar.finderResizeHandle.on "DragInAction", =>
+      log "DragInAction", mainView.contentPanel.getWidth()
+    
+    mainView.sidebar.finderResizeHandle.on "DragFinished", =>
+      @utils.wait 301, =>
+        log "DragFinished", mainView.contentPanel.getWidth()
     
     @loader = new KDLoaderView
       size          :
@@ -51,16 +60,27 @@ class StartTabMainView extends JView
   viewAppended:->
 
     super
-
-    @addRealApps()
+    @addApps()
+    # @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+
+  _windowDidResize:->
+
+    
+
+  addApps:->
+    
+    for app in apps
+      @appItemContainer.addSubView new StartTabOldAppView 
+        tab       : @
+      , app
   
   pistachio:->
     """
     <h1 class="kdview start-tab-header">To start from a new file, select an editor <span>or open an existing file from your file tree</span></h1>
-    {{> @loader}}
-    <div class='app-button-holder'>
+    <div class='hidden'>{{> @loader}}</div>
+    <div class='app-button-holder hidden'>
       {{> @button}}
       {{> @clear}}
     </div>
@@ -233,6 +253,42 @@ class StartTabMainView extends JView
       },
     ]
 
+  apps = [
+    {
+      name      : 'Ace Editor'
+      type      : 'Code Editor'
+      appToOpen : 'Ace'
+      image     : '../images/icn-ace.png'
+    },
+    {
+      name      : 'CodeMirror'
+      type      : 'Code Editor'
+      appToOpen : 'CodeMirror'
+      image     : '../images/icn-codemirror.png'
+      disabled  : yes
+    },
+    {
+      name      : 'yMacs'
+      type      : 'Code Editor'
+      appToOpen : 'YMacs'
+      image     : '../images/icn-ymacs.png'
+      disabled  : yes
+    },
+    {
+      name      : 'Pixlr'
+      type      : 'Image Editor'
+      appToOpen : 'Pixlr'
+      image     : '../images/icn-pixlr.png'
+      disabled  : yes
+    },
+    {
+      name      : 'Get more...'
+      appToOpen : 'Apps'
+      image     : '../images/icn-appcatalog.png'
+      catalog   : yes
+    }
+  ]
+
 
 class AppItemContainer extends KDView
   parentDidResize:->
@@ -277,6 +333,37 @@ class StartTabAppView extends JView
       <strong>{{ #(name)}} {{ #(version)}}</strong>
       <span>{{ #(type)}}</span>
     """
+
+class StartTabOldAppView extends KDView
+  
+  constructor:(options, data)->
+    newClass = if data.disabled? then 'start-tab-item disabled' else if data.catalog? then 'start-tab-item appcatalog' else 'start-tab-item'
+    options = $.extend
+      tagName     : 'figure'
+      cssClass    : newClass
+    , options
+    super options, data
+    
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+    
+  pistachio:->
+    {image} = @getData()
+    """
+      <img src="#{image}" />
+      <strong>{{ #(name)}}</strong>
+      <span>{{ #(type)}}</span>
+    """
+    
+  click:(event)->
+    {appToOpen, disabled} = @getData()
+    {tab}                 = @getOptions()
+    if appToOpen isnt "Apps"
+      appManager.replaceStartTabWithApplication appToOpen, tab unless disabled
+    else 
+      appManager.openApplication appToOpen
+
 
 class StartTabRecentFileView extends JView
   constructor:(options, data)->

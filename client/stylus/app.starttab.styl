@@ -41,13 +41,13 @@ app.starttab.styl
 //   text-shadow     0 1px 0 white
 
 .start-tab-header
-  color           #34312E
-  font-size       18px
-  font-weight     600
-  height          auto
-  margin-bottom   20px
-  padding-top     50px
-  text-align      center
+  color             #34312E
+  font-size         18px
+  font-weight       600
+  height            auto
+  margin-bottom     20px
+  padding-top       50px
+  text-align        center
   
   span
     color           #6A645E
@@ -57,8 +57,9 @@ app.starttab.styl
     padding-top     5px
   
 .app-item-container
-  padding         20px 0
-  width           100%
+  padding           20px 0
+  width             100%
+  overflow          visible
   
   figure
     color           #333
@@ -100,25 +101,25 @@ app.starttab.styl
       font-size     11px
   
     &.disabled
-      padding-bottom      40px
+      padding-bottom      20px
       
       img
       strong
       span.data
-        opacity         .5
+        opacity           .5
         
       &:after
+        content           'Coming Soon'
         background        black
         border-radius     0 0 4px 4px
-        bottom            0
+        bottom            -20px
         color             #FF9200
-        content           'Coming Soon'
         display           block
         left              0
         position          absolute
         opacity           0
         padding           5px 0
-        transition        opacity .3s linear
+        transition        bottom .3s linear
         text-shadow       none
         visibility        none
         width             100%
@@ -126,6 +127,7 @@ app.starttab.styl
       &:hover:after
         display           block
         opacity           1
+        bottom            0
         visibility        visible
     
     &:hover

@@ -1,28 +1,28 @@
 class JContextMenu extends KDView
+
   constructor:(options,data)->
 
     super options,data
+
     @setClass "jcontextmenu"
     @getSingleton("windowController").addLayer @
 
-    @on 'ReceivedClickElsewhere', =>
-      @destroy()
-
-    @on 'ItemIsbeingDestroyed', =>
-      @getSingleton("windowController").removeLayer @
+    @on 'ReceivedClickElsewhere', => @destroy()
 
     if data
-      @treeController = new JContextMenuTreeViewController 
-        delegate          : @
-      , data
+      @treeController = new JContextMenuTreeViewController delegate : @, data
       @addSubView @treeController.getView()
+      @treeController.getView().on 'ReceivedClickElsewhere', => @destroy()
+    
     KDView.appendToDOMBody @
 
   childAppended:->
+
     @positionContextMenu()
     super
 
   positionContextMenu:()->
+
     event       = @getOptions().event
     mainHeight  = @getSingleton('mainView').getHeight()
     
