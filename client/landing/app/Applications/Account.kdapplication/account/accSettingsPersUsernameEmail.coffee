@@ -1,14 +1,12 @@
 class AccountEditUsername extends KDView
-  constructor:->
-    super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
-    @user    = KD.getSingleton('mainController').getVisitor().authenticatedUser
-    
-    
   viewAppended:->
     # =================
     # ADDING EMAIL FORM
     # =================
+    bongo.api.JUser.fetchUser (err,user)=>
+      @putContents KD.whoami(), user
+
+  putContents:(account, user)->
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView
@@ -21,7 +19,7 @@ class AccountEditUsername extends KDView
     emailInputs = new KDView cssClass : "hiddenval clearfix"
     emailInputs.addSubView emailInput = new KDInputView
       label        : emailLabel
-      defaultValue : @user.email
+      defaultValue : user.email
       placeholder  : "you@yourdomain.com..."
       name         : "email"
     emailInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
@@ -38,8 +36,8 @@ class AccountEditUsername extends KDView
 
     nonEmailInputs.addSubView emailSpan = new KDCustomHTMLView
       tagName      : "span"
-      partial      : @user.email
-      cssClass     : "static-text status-#{@user.status}"
+      partial      : user.email
+      cssClass     : "static-text status-#{user.status}"
     nonEmailInputs.addSubView emailEdit = new KDCustomHTMLView
       tagName      : "a"
       partial      : "Edit"
@@ -56,7 +54,7 @@ class AccountEditUsername extends KDView
     # =================
     # ADDING USERNAME FORM
     # =================
-    @addSubView @usernameForm = usernameForm = new KDFormView
+    @addSubView usernameForm = usernameForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView
           type  : "mini"
@@ -68,7 +66,7 @@ class AccountEditUsername extends KDView
     usernameInputs = new KDView cssClass : "hiddenval clearfix"
     usernameInputs.addSubView usernameInput = new KDInputView
       label        : usernameLabel
-      defaultValue : @account.profile.nickname
+      defaultValue : account.profile.nickname
       placeholder  : "username..."
       name         : "username"
     usernameInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
@@ -81,10 +79,10 @@ class AccountEditUsername extends KDView
       cssClass     : "cancel-link"
 
     # USERNAME STATIC PART
-    @usernameNonInputs = usernameNonInputs = new KDView cssClass : "initialval clearfix"
+    usernameNonInputs = usernameNonInputs = new KDView cssClass : "initialval clearfix"
     usernameNonInputs.addSubView usernameSpan = new KDCustomHTMLView
       tagName      : "span"
-      partial      : @account.profile.nickname
+      partial      : account.profile.nickname
       cssClass     : "static-text"
     usernameNonInputs.addSubView usernameEdit = new KDCustomHTMLView
       tagName      : "a"
@@ -98,3 +96,20 @@ class AccountEditUsername extends KDView
     
     @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews
+    
+    @addSubView @emailOptOutView = new KDFormView
+    @emailOptOutView.addSubView new KDLabelView
+      title        : "Email notifications"
+      cssClass     : "main-label"
+    
+    emailFrequency = user.getAt('emailFrequency.global')
+    log "EMFREQ:", emailFrequency, user, user.data
+
+    @emailOptOutView.addSubView new KDRySwitch
+      defaultValue  : if emailFrequency is 'never' then off else on
+      callback      : (state)-> 
+        account.setEmailPreferences global: state, ->
+          new KDNotificationView
+            duration : 2000
+            title    : if state then 'You will get notifications by email.' \
+                                else 'You will no longer get email notifications by email.'

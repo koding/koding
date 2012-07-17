@@ -1,9 +1,18 @@
 class ActivityActionsView extends KDView
+
   constructor:->
+
     super
+
     activity = @getData()
-    @commentLink  = new ActivityActionLink    {partial : "Comment"}
-    @commentCount = new ActivityCommentCount  {}, activity
+    @commentLink  = new ActivityActionLink
+      partial : "Comment"
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Show all"
+      click       : =>
+        @getDelegate().emit "CommentCountClicked"
+    , activity
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
@@ -11,7 +20,7 @@ class ActivityActionsView extends KDView
         placement : "above"
         offset    : 3
 
-    @likeCount    = new ActivityLikeCount     {}, activity
+    @likeCount    = new ActivityLikeCount {}, activity
     @likeLink     = new ActivityActionLink
       partial     : "Like"
       ###
@@ -21,9 +30,10 @@ class ActivityActionsView extends KDView
         offset    : 3
       ###
 
-    @loader       = new KDLoaderView          size : width : 14
+    @loader       = new KDLoaderView size : width : 14
 
   viewAppended:->
+    
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
@@ -31,7 +41,7 @@ class ActivityActionsView extends KDView
     @loader.hide()
 
   pistachio:->
-    tmpl =
+
     """
     {{> @loader}}
     {{> @commentLink}}{{> @commentCount}} ·
@@ -42,6 +52,7 @@ class ActivityActionsView extends KDView
     """
 
   attachListeners:->
+
     activity    = @getData()
     commentList = @getDelegate()
 
@@ -55,7 +66,12 @@ class ActivityActionsView extends KDView
         if KD.isLoggedIn()
           # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
-            log arguments, 'you like me!'
+            # log arguments, 'you like me!'
+            if err
+              new KDNotificationView
+                title     : "You already liked this!"
+                duration  : 1300
+            # FIXME Implement Unlike behaviour
             ###
             newCount = @likeCount.data.meta.likes
             if oldCount < newCount then @likeLink.updatePartial("Unlike")
@@ -65,8 +81,8 @@ class ActivityActionsView extends KDView
     @commentLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
-      callback      : ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
+      callback      : (pubInst, event) ->
+        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
