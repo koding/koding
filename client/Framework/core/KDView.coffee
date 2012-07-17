@@ -653,6 +653,7 @@ class KDView extends KDObject
 # #
 # EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults
 # #
+
   notifiesOthers:(event)->#notifies the rest of the code when event happens?
     yes
 
@@ -661,28 +662,6 @@ class KDView extends KDObject
 
   acceptsKeyStatus:()->#can become the key view
     yes
-
-# #
-# DEFAULT CONTEXT MENU OPTIONS, DEPRECATED 2012/5/14 Sinan
-# #
-
-  # classContextMenu:()->
-  #   items = @classContextMenuItems()
-  #   items.concat @contextMenuItems if @contextMenuItems?
-  #   items
-  #
-  # classContextMenuItems:()->
-  #   items = []
-  #
-  # setContextMenuItems:(menuItems)->
-  #   @contextMenuItems = menuItems
-
-# #
-# SETTING JQUERY UI RESIZABLE
-# #
-
-  makeResizable:(options)->
-    @getDomElement().resizable options
 
 # #
 # HELPER METHODS
@@ -741,9 +720,9 @@ class KDView extends KDObject
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
-    o.delayIn   or= 300
+    o.delayIn   or= 0
     o.html      or= yes
-    o.animate   or= yes
+    o.animate   or= no
     o.selector  or= null
 
     @listenTo

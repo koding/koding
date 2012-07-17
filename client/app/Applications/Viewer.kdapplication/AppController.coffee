@@ -22,8 +22,8 @@ class Viewer12345 extends KDViewController
       KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
     ,
       options:
-        hiddenHandle    :no
-        type            :'application'
+        hiddenHandle    : no
+        type            : 'application'
         name            : path
         applicationType : 'Viewer.kdApplication'
       data : frontDocument
