@@ -11,7 +11,7 @@ class JEmailNotification extends bongo.Model
     status    :
       type    : String
       default : 'queued'
-      enum    : ['Invalid status',['queued', 'attempted']]
+      enum    : ['Invalid status',['queued','attempted']]
     
   constructor:(email, receiver, event, contents)->
     super {email, receiver, event, contents}
