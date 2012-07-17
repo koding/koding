@@ -61,7 +61,9 @@ class KDWindowController extends KDController
       lastLayer = layers[layers.length-1]
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
+        log lastLayer, "ReceivedClickElsewhere"
         lastLayer.emit 'ReceivedClickElsewhere', e
+        @removeLayer lastLayer
     , yes
 
     document.body.addEventListener 'mouseup', (e)=>
@@ -98,17 +100,12 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
+    log newKeyView, "newKeyView"
 
-    newKeyViewAcceptsKeyStatus = ()->
-      return not newKeyView? or newKeyView?.acceptsKeyStatus()
-    oldKeyViewResignsKeyStatus = ()->
-      return not @keyView? or @keyView.resignsKeyStatus()
-
-    if newKeyViewAcceptsKeyStatus() and oldKeyViewResignsKeyStatus()
-      @oldKeyView = @keyView
-      @keyView = newKeyView
-      newKeyView?.propagateEvent KDEventType : 'KDViewBecameKeyView'
-      @propagateEvent (KDEventType: 'WindowChangeKeyView', globalEvent : yes), view: newKeyView
+    @oldKeyView = @keyView
+    @keyView = newKeyView
+    newKeyView?.emit 'KDViewBecameKeyView'
+    @emit 'WindowChangeKeyView', newKeyView
 
   setDragView:(dragView)->
 

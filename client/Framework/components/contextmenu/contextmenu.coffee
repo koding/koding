@@ -3,12 +3,13 @@ class JContextMenu extends KDView
 
     super options,data
     @setClass "jcontextmenu"
-    @windowController = @getSingleton "windowController"
-    @windowController.addLayer @
+    @getSingleton("windowController").addLayer @
 
     @on 'ReceivedClickElsewhere', =>
-      @windowController.removeLayer @
       @destroy()
+
+    @on 'ItemIsbeingDestroyed', =>
+      @getSingleton("windowController").removeLayer @
 
     if data
       @treeController = new JContextMenuTreeViewController 

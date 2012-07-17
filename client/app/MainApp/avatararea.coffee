@@ -127,7 +127,6 @@ class AvatarPopup extends KDView
     @
 
   hide:->
-    @_windowController.removeLayer @
     @getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
     @
