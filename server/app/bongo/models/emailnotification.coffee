@@ -1,6 +1,9 @@
 class JEmailNotification extends bongo.Model
   
   @setSchema
+    timestamp :
+      type    : Date
+      default : -> new Date
     email     : String
     receiver  : Object
     event     : String
