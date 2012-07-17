@@ -10,7 +10,7 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = 0
   
   updateCount:(newCount = 0)->
-    
+    log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
     @count = newCount
 
@@ -141,7 +141,7 @@ class AvatarPopup extends KDView
     @listenTo
       KDEventTypes        : 'click'
       listenedToInstance  : @avatarPopupTab
-      callback        :(pubInst, event)->
+      callback:(pubInst, event)->
         @hide()
   
   _windowDidResize:=>
@@ -151,8 +151,6 @@ class AvatarPopup extends KDView
       avatarTopOffset = @$().offset().top
       @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 50
     
-
-
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
   show:->
