@@ -114,10 +114,11 @@ class KeyboardHelperModalView extends KDModalView
       @destroy() if e.which is 27
 
   setDomElement:(cssClass)->
-    @domElement = $ "
-    <div class='kdmodal keyboard-helper #{cssClass}'>
-      <span class='close-icon'></span>
-    </div>"
+    @domElement = $ """
+                    <div class='kdmodal keyboard-helper #{cssClass}'>
+                      <span class='close-icon'></span>
+                    </div>
+                    """
 
   click:(e)->
     @destroy() if $(e.target).is(".close-icon")

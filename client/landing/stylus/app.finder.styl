@@ -241,15 +241,19 @@ dimmedNeighbor()
   .finder-resize-handle
     cursor            ew-resize           
     position          absolute
-    width             14px
-    min-width         14px
+    width             4px
     top               0!important
     right             0!important
     z-index           1
+    overflow          visible
     span
       display         block
+      position        absolute
       height          45px
+      width           14px
       bg              position, -55px -173px
+      top             0
+      right           0
       sprite()
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
