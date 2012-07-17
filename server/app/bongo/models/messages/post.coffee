@@ -9,7 +9,9 @@ class JPost extends jraphical.Message
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
-
+  
+  {log} = console
+  
   schema = _.extend {}, jraphical.Message.schema, {
     counts        :
       followers   :
@@ -206,7 +208,7 @@ class JPost extends jraphical.Message
     activityId = null
     repliesCount = @getAt 'repliesCount'
     queue = [
-      ->
+      =>
         @fetchActivityId (err, activityId_)->
           activityId = activityId_
           queue.next()
@@ -257,21 +259,18 @@ class JPost extends jraphical.Message
                 @fetchActivityId (err, id)->
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
-                  }, ->
-                    console.log err if err
+                  }, log
                 @fetchOrigin (err, origin)=>
-                  if err
-                    console.log "Couldn't fetch the origin"
-                  else
-                    @emit 'LikeIsAdded', {
-                      origin
-                      subject       : ObjectRef(@).data
-                      actorType     : 'liker'
-                      actionType    : 'like'
-                      liker    		  : ObjectRef(delegate).data
-                      likesCount	  : count
-                      relationship  : docs[0]
-                    }
+                  if err then log "Couldn't fetch the origin"
+                  else @emit 'LikeIsAdded', {
+                    origin
+                    subject       : ObjectRef(@).data
+                    actorType     : 'liker'
+                    actionType    : 'like'
+                    liker    		  : ObjectRef(delegate).data
+                    likesCount	  : count
+                    relationship  : docs[0]
+                  }
           else
             callback new KodingError 'You already like this.'
             ###
@@ -308,8 +307,7 @@ class JPost extends jraphical.Message
                     @fetchActivityId (err, id)->
                       CActivity.update {_id: id}, {
                         $set: 'sorts.repliesCount': count
-                      }, ->
-                        console.log err if err
+                      }, log
                     @fetchOrigin (err, origin)=>
                       if err
                         console.log "Couldn't fetch the origin"

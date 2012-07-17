@@ -284,7 +284,10 @@ button.editor-button
   text-transform      none
   display             inline-block
   vertical-align      top
-  max-width           120px
+  max-width           90px
+  text-overflow       ellipsis
+  white-space         nowrap
+  overflow            hidden
   noTextDeco()
 
   &.expandable
@@ -309,7 +312,6 @@ button.editor-button
 
 .modal-topic-wrapper
   min-width     440px
-  top           -1000px
   .kdloader
     display                 block
     margin                  20px auto
@@ -1206,6 +1208,9 @@ figure.code-container
   &.reply
     .kdnotification-title span
       bg              position, -82px -624px
+  &.newMessage
+    .kdnotification-title span
+      bg              position, -102px -604px
 
   .kdnotification-title
     font-size         12px

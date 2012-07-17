@@ -23,9 +23,14 @@ class Notifying
   notify:(receiver, event, contents)->
     actor = contents[contents.actorType]
     {origin} = contents
+<<<<<<< HEAD
     if actor? and not receiver.getId().equals actor.id # don't notify the person who triggered the action
       receiver?.fetchPrivateChannel? (channel)=>
         channel.emit 'notification', {event, contents}
+=======
+    if actor? and not receiver.getId().equals actor.id
+      receiver?.sendNotification event, contents
+>>>>>>> fd1a51b8f7abf945dc77c141c3bb8d49ee6a02ff
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
       console.log 'There was an error adding bucket activities'

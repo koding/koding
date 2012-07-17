@@ -1,7 +1,10 @@
 class CBucket extends jraphical.Module
 
   {Model, ObjectRef, ObjectId, dash, daisy} = bongo
-
+  
+  @mixin Notifying
+  @::mixin Notifying::
+  
   @set
     broadcastable   : yes
     schema          :
@@ -95,6 +98,8 @@ class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
+                          console.log 'this is an important code path'
+                          anchor.sendNotification 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err

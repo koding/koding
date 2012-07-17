@@ -56,5 +56,12 @@ class hosting_httpd::config {
 	notify => Class["cloudlinux::cagefs_update"],
     }
 
+    file { "/usr/bin/pear":
+	    mode => "755",
+	    source  => "puppet:///modules/hosting_httpd/usr/bin/pear",
+        require => Class["hosting_packages::php"],
+	    notify => Class["cloudlinux::cagefs_update"],
+    }
+
 }
 

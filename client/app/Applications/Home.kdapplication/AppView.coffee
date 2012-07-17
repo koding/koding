@@ -279,6 +279,22 @@ class HomeWidgetHolder extends KDView
       Websites  :
         count   : "00000"
     
+    @moreActivity = new KDCustomHTMLView
+      tagName : 'a'
+      partial : "Want to See More Activity"
+      click   : => @notify()
+    @moreTopics = new KDCustomHTMLView
+      tagName : 'a'
+      partial : "View More Topics?"
+      click   : => @notify()
+    @moreMembers = new KDCustomHTMLView
+      tagName : 'a'
+      partial : "View More Members"
+      click   : => @notify()
+  
+  notify:->
+    new KDNotificationView
+      title : 'Please login/register!'
     
   showLoaders:->
     @membersLoader.show()
@@ -293,7 +309,7 @@ class HomeWidgetHolder extends KDView
       {{> @membersLoader}}
       {{> @members}}
       <footer>
-        <a href="#">View More Members</a>
+        {{> @moreMembers}}
       </footer>
     </aside>
     <section>
@@ -304,7 +320,7 @@ class HomeWidgetHolder extends KDView
       {{> @activityLoader}}
       {{> @activity}}
       <footer>
-        <a href="#">Want to See More Activity?</a>
+        {{> @moreActivity}}
       </footer>
     </section>
     <aside>
@@ -312,7 +328,7 @@ class HomeWidgetHolder extends KDView
       {{> @topicsLoader}}
       {{> @topics}}
       <footer>
-        <a href="#">View More Topics?</a>
+        {{> @moreTopics}}
       </footer>
     </aside>
     """
@@ -396,15 +412,15 @@ class HomeTopicItemView extends KDListItemView
 
   followerText:(count)->
     if count < 2
-      "#{count} Follower"
+      "#{count} Post"
     else
-      "#{count} Followers"
+      "#{count} Posts"
 
   pistachio:->
     """
     {span.fl.ttag{ #(title)}}
     <p class='right-overflow'>
-       <small>{{ @followerText #(counts.followers)}}</small>
+       <small>{{ @followerText #(counts.tagged) or 0}}</small>
     </p>
     """
 
@@ -422,13 +438,27 @@ class HomeActivityItem extends KDListItemView
     options.type = "activity"
     super options,data
 
-    @user = new ProfileTextView
-      tagName           : "strong"
-      origin            :
-        id              : data.originId or data.anchor.id
-        constructorName : data.originType or data.anchor.constructorName
+
+    if data.anchor?.constructorName is "JTag"    
+      @user = new ProfileTextView
+        tagName           : "strong"
+        origin            :
+          id              : data.group[0].id
+          constructorName : data.group[0].constructorName
+        click             : -> no
+    else
+      @user = new ProfileTextView
+        tagName           : "strong"
+        origin            :
+          id              : data.originId or data.anchor.id
+          constructorName : data.originType or data.anchor.constructorName
+
 
   getActivityPhrase:(constructorName)->
+    data = @getData()
+    if data.anchor?.constructorName is "JTag"
+      return "has followed a topic."
+
     switch constructorName
       when "JStatusUpdate"    then "posted a status update."
       when "JCodeSnip"        then "shared some code."
