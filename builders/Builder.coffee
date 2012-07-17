@@ -121,4 +121,6 @@ module.exports = class Builder
         throw err if err
         unless err 
           log.info "Index.html is ready."
+          if require("os").platform() is 'linux'
+            exec "notify-send \"Koding instance updated\""
           callback? null

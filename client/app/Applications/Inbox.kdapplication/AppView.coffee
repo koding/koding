@@ -137,26 +137,6 @@ class PageInbox extends KDView
       mainView.inboxTabs.showPane mainView["_tab_#{type}"]
     @commonInnerNavigation.selectNavTab type
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
     options.cssClass = "clearfix member-suggestion-item"

@@ -78,8 +78,8 @@ respond = (options,callback)->
     {err,stdout,stderr} = options
 
   if err?
-    log.error "[ERROR] stderr for command \"#{command}\" for user #{username}: #{stderr}"
-    callback? stderr,stdout
+    callback stderr,stdout
+    log.error "[ERROR]",{err,stdout,stderr}
   else
     # log.info "[OK] command \"#{command}\" executed for user #{username}"
     callback? null,stdout
