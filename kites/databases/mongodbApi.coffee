@@ -3,7 +3,7 @@ log4js  = require 'log4js'
 config  = require('./config').mongo
 
 logFile = '/var/log/node/MongoDBApi.log'
-log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
+#log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
 
 class MongoDB
@@ -34,6 +34,67 @@ class MongoDB
     id += Math.random().toString(36).substr(2) while id.length < length
     id.substr 0, length
 
+  getDbUsers : (dbName,callback)->
+    
+
+    db = new mongo.Db dbName, @server, native_parser: false
+    db.open (err,db)=>
+      if err?
+        log.error error = "[ERROR] can't open database #{dbName}: #{err}"
+      else
+        db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
+          db.collection "system.users",(err,collection)=>
+            collection.find({},{fields:user:1}).toArray (err,items)->
+              usernames = []
+              l = items.length
+              for user in items
+                usernames.push user.user
+                l--
+                if l is 0
+                  callback usernames
+
+  fetchDatabaseList :(options, callback)->
+    #
+    # options =
+    #   username : koding user
+
+    {username} = options
+    username = new RegExp '^'+username
+
+    db = new mongo.Db 'admin', @server, native_parser: false
+
+    db.open (err,db)=>
+      if err?
+        log.error error = "[ERROR] can't open database #{dbConf.dbName}: #{err}"
+        callback? error
+      else
+        db.admin (err,adm)=>
+          adm.authenticate @mongoUser, @mongoPass,(err)=>
+            if err?
+              console.log error = "[ERROR] " + err
+              callback? error
+            else
+              adm.command listDatabases:1, (err,result)=>
+                if err?
+                  log.error error = "[ERROR]: #{err}"
+                  callback? error
+                else
+                  users_dbs = []
+                  for db in result.documents[0].databases
+                     users_dbs.push db.name if db.name.match username
+                  
+                  dbInfo = []
+                  l = users_dbs.length
+                  for users_db in users_dbs
+                    l--
+                    @getDbUsers users_db,(usersArray)=>
+                      dbInfo.push { dbName: users_db, dbUser: usersArray }
+                      if l is 0
+                        callback dbInfo
+
+
+          
+
   createDatabase : (options,callback)->
 
     #
@@ -63,8 +124,14 @@ class MongoDB
     # -------------------------------    
     
     dbConf = {dbName,dbUser,dbPass}
+
     dbConf.dbHost = @mongoHost
-    dbConf.dbType = "mongo"
+    dbConf.dbType = "mongo"/
+
+    dbConf.dbPass = uniqueId()
+    dbConf.dbUser = dbConf.dbName
+
+    console.log dbConf
 
     db = new mongo.Db dbConf.dbName, @server
 
@@ -106,7 +173,7 @@ class MongoDB
 
     {username,dbUser,dbName,dbPass,newPassword} = options
 
-    checkIfStarts
+    #checkIfStarts
 
     db = new mongo.Db dbName, @server
     db.open (err,db)=>
@@ -155,3 +222,16 @@ class MongoDB
 
 mongoDB = new MongoDB config
 module.exports = mongoDB
+
+options =
+   username : "gokment"   
+   dbName    : "dlskdlskdlsk"
+
+
+mongoDB.fetchDatabaseList options,(res)->
+  console.log res
+#dbs =  ['gokment_c219e4c7','gokment_df539bb7']
+#for db in dbs
+#  do (db)->
+#    mongoDB.getDbUsers db, (res)->
+#      console.log res
