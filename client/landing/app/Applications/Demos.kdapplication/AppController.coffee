@@ -31,38 +31,33 @@ class Demos12345 extends AppController
       { title : "title 19", id : 19, parentId: 11}
       { title : "title 20", id : 20, parentId: 1}
     ]
-    
-    # window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
-    #   style           : "kdwhitebtn profilefollowbtn"
-    #   title           : "Follow"
-    #   dataPath        : "followee"
-    #   defaultState    : "Unfollow"
-    #   loader          :
-    #     color         : "#333333"
-    #     diameter      : 18
-    #     left          : 3
-    #   states          : [
-    #     "Follow", (callback)->
-    #       # memberData.follow (err, response)=>
-    #       #   unless err
-    #       #     @setClass 'following-btn'
-    #       log "follow callback"
-    #       @hideLoader()
-    #       callback? null
-    #     "Unfollow", (callback)->
-    #       # memberData.unfollow (err, response)=>
-    #       #   unless err
-    #       #     @unsetClass 'following-btn'
-    #       log "unfollow callback"
-    #       @hideLoader()
-    #       callback? null
-    #   ]
-    # 
-    # mainView.addSubView a = new KDView
-    #   click : ->
-    #     log "click"
-    #   dblclick : ->
-    #     log "dblClick"
+
+    ###
+    window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
+      style           : "kdwhitebtn profilefollowbtn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : "Unfollow"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        left          : 3
+      states          : [
+        "Follow", (callback)->
+          # memberData.follow (err, response)=>
+          #   unless err
+          #     @setClass 'following-btn'
+          log "follow callback"
+          @hideLoader()
+          callback? null
+        "Unfollow", (callback)->
+          # memberData.unfollow (err, response)=>
+          #   unless err
+          #     @unsetClass 'following-btn'
+          log "unfollow callback"
+          @hideLoader()
+          callback? null
+      ]
 
     mainView.addSubView a = new KDView
       click : ->

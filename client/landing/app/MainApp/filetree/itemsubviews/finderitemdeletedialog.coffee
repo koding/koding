@@ -40,7 +40,7 @@ class NFinderDeleteDialog extends KDModalView
         cssClass  : "delete-file #{item.getData().type}"
         partial   : "<span class='icon'></span>#{item.getData().name}"
     
-    @addSubView scrollView, ".kdmodal-content"
+    @addSubView scrollView
 
   destroy:->
     @getSingleton("windowController").revertKeyView()

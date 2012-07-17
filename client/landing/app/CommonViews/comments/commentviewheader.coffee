@@ -2,7 +2,7 @@ class CommentViewHeader extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass       = "show-more-comments"
+    options.cssClass       = "show-more-comments in"
     options.itemTypeString = options.itemTypeString or "comments"
 
     super options, data

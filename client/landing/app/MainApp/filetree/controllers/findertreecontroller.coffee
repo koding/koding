@@ -24,7 +24,6 @@ class NFinderTreeController extends JTreeViewController
 
     @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
 
-
   addNode:(nodeData, index)->
 
     o = @getOptions()
@@ -467,10 +466,9 @@ class NFinderTreeController extends JTreeViewController
 
     {action} = contextMenuItem.getData()
     if action
-      # return false if you don't want contextmenu to disappear
-      shouldDestroy = @["contextMenuOperation#{action.capitalize()}"]? nodeView, contextMenuItem
-      if shouldDestroy isnt no
+      if @["contextMenuOperation#{action.capitalize()}"]?
         @contextMenuController.destroyContextMenu()
+      @["contextMenuOperation#{action.capitalize()}"]? nodeView, contextMenuItem
 
   ###
   RESET STATES
@@ -653,6 +651,5 @@ class NFinderTreeController extends JTreeViewController
 
           @getSingleton('windowController').addLayer details
           details.on 'ReceivedClickElsewhere', =>
-            @getSingleton('windowController').removeLayer @mainInputTabs
             details.destroy()
 

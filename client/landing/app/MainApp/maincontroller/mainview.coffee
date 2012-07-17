@@ -145,7 +145,7 @@ class MainView extends KDView
 
   createSideBar:->
     @sidebar = new Sidebar domId : "sidebar", delegate : @
-    @propagateEvent KDEventType : "SidebarCreated", @sidebar
+    @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
     
   changeHomeLayout:(isLoggedIn)->

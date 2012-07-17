@@ -153,16 +153,16 @@ class KodingAppsController extends KDController
         
         log "ever async"
         
-        final = "(function() {\n\n/* KDAPP STARTS */"
+        _final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
-          final += "\n\n/* BLOCK STARTS */\n\n"
-          final += "#{output}"
-          final += "\n\n/* BLOCK ENDS */\n\n"
-        final += "/* KDAPP ENDS */\n\n}).call();"
+          _final += "\n\n/* BLOCK STARTS */\n\n"
+          _final += "#{output}"
+          _final += "\n\n/* BLOCK ENDS */\n\n"
+        _final += "/* KDAPP ENDS */\n\n}).call();"
         
         
-        final = @defineApp app, final
-        @saveCompiledApp app, final, =>
+        _final = @defineApp app, _final
+        @saveCompiledApp app, _final, =>
           callback?()
 
     unless KodingAppsController.apps[name]

@@ -42,7 +42,6 @@ class AbstractPersonalFormView extends KDFormView
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @resetInputValue()
-      @windowController.removeLayer @
         
   resetInputValue:-> no
 
@@ -159,7 +158,6 @@ class PersonalFormAboutWrapperView extends KDView
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @formView.resetInputValue()
-      @windowController.removeLayer @
 
   viewAppended:->
     super

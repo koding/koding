@@ -289,7 +289,7 @@ class AccountMountList extends KDListView
     {form,lines} = createForm ["type","title","hostname","username","password","port","accessKey","secret"]
     lines.accessKey.hide()
     lines.secret.hide()    
-    modal.addSubView form,".kdmodal-content"
+    modal.addSubView form
     # modal.setHeight 450
 
     if data

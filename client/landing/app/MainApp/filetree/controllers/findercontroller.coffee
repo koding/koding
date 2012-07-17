@@ -2,52 +2,53 @@ class NFinderController extends KDViewController
 
   constructor:(options = {}, data)->
 
+    {nickname}  = KD.whoami().profile
+    
     options.view = new KDView cssClass : "nfinder file-container"
+    treeOptions  = {}
+    treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
+    treeOptions.nodeIdPath        = options.nodeIdPath        or= "path"
+    treeOptions.nodeParentIdPath  = options.nodeParentIdPath  or= "parentPath"
+    treeOptions.dragdrop          = options.dragdrop           ?= yes
+    treeOptions.foldersOnly       = options.foldersOnly        ?= no
+    treeOptions.multipleSelection = options.multipleSelection  ?= yes
+    treeOptions.addOrphansToRoot  = options.addOrphansToRoot   ?= no
+    treeOptions.putDepthInfo      = options.putDepthInfo       ?= yes
+    treeOptions.contextMenu       = options.contextMenu        ?= yes
+    treeOptions.fsListeners       = options.fsListeners        ?= no
+    treeOptions.initialPath       = options.initialPath        ?= "/Users/#{nickname}"
+    treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
+    treeOptions.initDelay         = options.initDelay         or= 0
+    treeOptions.useStorage        = options.useStorage         ?= no
+    treeOptions.delegate          = @
+
     super options, data
 
     @kiteController = @getSingleton('kiteController')
-    {nickname} = KD.whoami().profile
-    treeOptions =
-      treeItemClass     : options.treeItemClass     or NFinderItem
-      nodeIdPath        : options.nodeIdPath        or "path"
-      nodeParentIdPath  : options.nodeParentIdPath  or "parentPath"
-      dragdrop          : options.dragdrop           ? yes
-      foldersOnly       : options.foldersOnly        ? no
-      multipleSelection : options.multipleSelection  ? yes
-      addOrphansToRoot  : options.addOrphansToRoot   ? no
-      putDepthInfo      : options.putDepthInfo       ? yes
-      contextMenu       : options.contextMenu        ? yes
-      fsListeners       : options.fsListeners        ? no
-      initialPath       : options.initialPath        ? "/Users/#{nickname}"
-      maxRecentFolders  : options.maxRecentFolders  or 10
-      delegate          : @
-
     @treeController = new NFinderTreeController treeOptions, []
-
-    @defaultStructureLoaded = no
 
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
     @treeController.on "folder.expanded", (folder)=> @setRecentFolder folder.path
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
 
-    @listenTo
-      KDEventTypes       : "AppManagerOpensAnApplication"
-      listenedToInstance : appManager
-      callback           : (pubInst, appInst)=>
-        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
-          @loadDefaultStructure()
-
-    @loadDefaultStructureTimer = @utils.wait 5000, =>
-      @loadDefaultStructure()
-
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
+    @reset()
+    if @treeController.getOptions().useStorage
+      @defaultStructureLoaded = no
 
-  reset:()->
+      appManager.on "AppManagerOpensAnApplication", (appInst)=>
+        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
+          @loadDefaultStructure()
+  
+      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+        @loadDefaultStructure()
+
+  reset:->
 
     delete @_storage
-    {initialPath} = @getOptions() # not used, fix this
+    {initialPath} = @treeController.getOptions() # not used, fix this
 
     mount = if KD.isLoggedIn()
       {nickname}    = KD.whoami().profile
@@ -69,9 +70,9 @@ class NFinderController extends KDViewController
     @defaultStructureLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
-    return unless KD.isLoggedIn()
+    return unless KD.isLoggedIn()    
     {nickname} = KD.whoami().profile
-
+    
     @fetchStorage (storage)=>
       recentFolders = if storage.bucket?.recentFolders? and storage.bucket.recentFolders.length > 0
         storage.bucket.recentFolders
@@ -112,7 +113,7 @@ class NFinderController extends KDViewController
       # recentFiles = storage.getAt('bucket.recentFiles') or []
       recentFiles = if storage.bucket?.recentFiles? then storage.bucket.recentFiles else []
       unless filePath in recentFiles
-        recentFiles.pop() if recentFiles.length is @getOptions().maxRecentFiles
+        recentFiles.pop() if recentFiles.length is @treeController.getOptions().maxRecentFiles
         recentFiles.unshift filePath
 
       storage.update {
