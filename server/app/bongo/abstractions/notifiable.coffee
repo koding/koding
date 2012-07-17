@@ -8,6 +8,5 @@ class Notifiable
     bongo.fetchChannel @getPrivateChannelName(), callback
   
   sendNotification:(event, contents)->
-    debugger
     @fetchPrivateChannel? (channel)=>
       channel.emit 'notification', {event, contents}

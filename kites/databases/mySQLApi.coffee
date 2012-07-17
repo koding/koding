@@ -9,7 +9,6 @@ logFile = '/var/log/node/MySQLApi.log'
 log     = log4js.addAppender log4js.fileAppender(logFile), "[MySQLApi]"
 log     = log4js.getLogger('[MySQLApi]')
 
-
 class AccessError extends Error
   constructor:(@message)->
 
@@ -19,9 +18,6 @@ class KodingError extends Error
     Error.call @
     @message = message
     @name = 'KodingError'
-
-
-
 
 class MySQL
 
@@ -149,7 +145,8 @@ class MySQL
     # -------------------------------    
     
     sendResult = (err,result)=>
-      result.host = @config.databases.mysql[0].host
+      result.dbType = "mysql"
+      result.dbHost = @config.databases.mysql[0].host
       console.log "RES: ", result
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
   
@@ -250,7 +247,6 @@ class MySQL
     unless dbUser.substr(0,username.length+1) is username+"_"
       return callback new KodingError "You can only remove a database user that you own."
     # -------------------------------
-
     
     @mysqlClient.query "DROP USER #{dbUser}",(err)=>
       if err?
@@ -362,14 +358,10 @@ class MySQL
   #           log.info r = "[OK] database dump for #{dbName} created in #{backupDir}/#{dbName}-#{timeStamp}.sql"
   #           callback? null,r
 
-
-# mySQL = new MySQL config
-
-
-# module.exports = mySQL
+mySQL = new MySQL config
+module.exports = mySQL
 
 # mySQL.test()
-
 
 #options =
 #  username : "aleksey007"
@@ -381,7 +373,6 @@ class MySQL
 #   console.log "removing"
 #   console.log options
 #   console.log "err:#{err}", res
-
 
 #mySQL.createDatabase options , (err,res)->
 #   console.log "creating"
@@ -395,6 +386,3 @@ class MySQL
 #  else
 #    console.log result
 #
-
-
-

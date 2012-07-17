@@ -2,6 +2,7 @@ class JTag extends Followable
   
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
+  
   # @mixin Followable       # brings only static methods
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
