@@ -1,35 +1,25 @@
 class KDButtonView extends KDView
 
-  @styles = [
-    "minimal","clean-gray","cupid-green","cupid-blue","blue-pill"
-    "dribbble","slick-black","thoughtbot","blue-candy","purple-candy"
-    "shiny-blue","small-blue","skip","clean-red","small-gray","transparent"
-  ]
-
   constructor:(options = {},data)->
-    options = $.extend
-      callback     : noop          # a Function
-      title        : ""            # a String
-      style        : "clean-gray"  # a String of one of button styles
-      type         : "button"      # a String of submit, reset, button
-      cssClass     : ""            # a String
-      icon         : no            # a Boolean value
-      iconOnly     : no            # a Boolean value
-      iconClass    : ""            # a String  
-      disabled     : no            # a Boolean value
-      hint         : null          # a String of HTML ---> not yet implemented
-      loader       : no
-      # name         : ""
-      # value        : ""
-    ,options
+
+    options.callback  or= noop          # a Function
+    options.title     or= ""            # a String
+    # options.style     or= "clean-gray"  # a String of one of button styles ==> DEPRECATE THIS
+    options.type      or= "button"      # a String of submit, reset, button
+    options.cssClass  or= options.style or= "clean-gray"            # a String
+    options.icon      or= no            # a Boolean value
+    options.iconOnly  or= no            # a Boolean value
+    options.iconClass or= ""            # a String  
+    options.disabled  or= no            # a Boolean value
+    options.hint      or= null          # a String of HTML ---> not yet implemented
+    options.loader    or= no
     
     super options,data
+    
+    @setClass options.style
 
     @setCallback options.callback
     @setTitle options.title
-    @setButtonStyle options.style
-    # @setName options.name           if options.name
-    # @setValue options.value         if options.value
     @setIconClass options.iconClass if options.iconClass
     @unhideIcon()                   if options.icon
     @setIconOnly options.iconOnly   if options.iconOnly
@@ -39,13 +29,12 @@ class KDButtonView extends KDView
       @listenTo 
         KDEventTypes       : "viewAppended"
         listenedToInstance : @
-        callback           : ->
-          @setLoader()
+        callback           : -> @setLoader()
     
 
-  setDomElement:()->
+  setDomElement:(cssClass)->
     @domElement = $ """
-      <button type='#{@getOptions().type}' class='kdbutton clean-gray' id='#{@getId()}'>
+      <button type='#{@getOptions().type}' class='kdbutton #{cssClass}' id='#{@getId()}'>
         <span class='icon hidden'></span>
         <span class='button-title'>Title</span>
       </button>
@@ -61,25 +50,11 @@ class KDButtonView extends KDView
   
   getCallback:()-> @buttonCallback
   
-  # setName:(name)->
-  #   @$().attr {name}
-  # 
-  # setValue:(value)->
-  #   @$().attr {value}
-  
   unhideIcon:()->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
   
   
-  # refactor this
-  # this seems unnecessary just use cssClass maybe
-  setButtonStyle:(newStyle)->
-    {styles} = @constructor
-    for style in styles
-      @getDomElement().removeClass style
-    @getDomElement().addClass newStyle
-
   setIconClass:(iconClass)->
     @$('.icon').attr 'class','icon'
     @$('.icon').addClass iconClass

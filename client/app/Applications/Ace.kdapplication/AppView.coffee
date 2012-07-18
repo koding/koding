@@ -17,7 +17,7 @@ class AceView extends JView
 
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
-      style         : "clean-gray editor-button save-menu"
+      style         : "editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
       callback      : ()=> 
@@ -44,7 +44,7 @@ class AceView extends JView
 
     publicUrlCheck = /.*\/(.*\.(beta\.)*koding\.com)\/website\/(.*)/
     @previewButton = new KDButtonView
-      style     : "clean-gray editor-button"
+      style     : "editor-button"
       icon      : yes
       iconOnly  : yes
       iconClass : "preview"

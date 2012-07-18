@@ -20,11 +20,15 @@ class KDWindowController extends KDController
   addLayer: (layer)->
 
     unless layer in @layers
+      # log "layer added", layer
       @layers.push layer
+      layer.on 'KDObjectWillBeDestroyed', =>
+        @removeLayer layer
 
   removeLayer: (layer)->
 
     if layer in @layers
+      # log "layer removed", layer
       index = @layers.indexOf(layer)
       @layers.splice index, 1
 
@@ -61,7 +65,9 @@ class KDWindowController extends KDController
       lastLayer = layers[layers.length-1]
 
       if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
+        # log lastLayer, "ReceivedClickElsewhere"
         lastLayer.emit 'ReceivedClickElsewhere', e
+        @removeLayer lastLayer
     , yes
 
     document.body.addEventListener 'mouseup', (e)=>
@@ -98,17 +104,12 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
+    # log newKeyView, "newKeyView"
 
-    newKeyViewAcceptsKeyStatus = ()->
-      return not newKeyView? or newKeyView?.acceptsKeyStatus()
-    oldKeyViewResignsKeyStatus = ()->
-      return not @keyView? or @keyView.resignsKeyStatus()
-
-    if newKeyViewAcceptsKeyStatus() and oldKeyViewResignsKeyStatus()
-      @oldKeyView = @keyView
-      @keyView = newKeyView
-      newKeyView?.propagateEvent KDEventType : 'KDViewBecameKeyView'
-      @propagateEvent (KDEventType: 'WindowChangeKeyView', globalEvent : yes), view: newKeyView
+    @oldKeyView = @keyView
+    @keyView = newKeyView
+    newKeyView?.emit 'KDViewBecameKeyView'
+    @emit 'WindowChangeKeyView', newKeyView
 
   setDragView:(dragView)->
 
@@ -148,11 +149,8 @@ class KDWindowController extends KDController
 
   registerWindowResizeListener:(instance)->
     @windowResizeListeners[instance.id] = instance
-    instance.registerListener
-      KDEventTypes  : "KDObjectWillBeDestroyed"
-      listener      : @
-      callback      : =>
-        delete @windowResizeListeners[instance.id]
+    instance.on "KDObjectWillBeDestroyed", =>
+      delete @windowResizeListeners[instance.id]
 
   setWindowProperties:(event)->
     @winWidth  = $(window).width()

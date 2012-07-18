@@ -136,8 +136,23 @@ class JTreeViewController extends KDViewController
     node2PId = @getNodePId node2.getData()
 
     return node1PId is node2PId
+  
+  ###
+  DECORATORS
+  ###
+  
+  setFocusState:->
+    
+    view = @getView()
+    @getSingleton("windowController").addLayer view
+    view.unsetClass "dim"
+  
+  setBlurState:->
 
-
+    view = @getView()
+    @getSingleton("windowController").removeLayer view
+    view.setClass "dim"
+  
   ###
   CRUD OPERATIONS FOR NODES
   ###
@@ -311,7 +326,10 @@ class JTreeViewController extends KDViewController
     @listenTo
       KDEventTypes       : "ReceivedMouseUpElsewhere"
       listenedToInstance : @getSingleton("windowController")
-      callback           : (windowController, event)-> @mouseUp windowController, event
+      callback           : (windowController, event)=>
+        @mouseUp windowController, event
+
+    @getView().on "ReceivedClickElsewhere", => @setBlurState()
 
   setListenersForList:(listId)->
 
@@ -385,6 +403,7 @@ class JTreeViewController extends KDViewController
   selectNode:(nodeView, event)->
 
     return unless nodeView
+    @setFocusState()
     @listControllers[@getNodePId nodeView.getData()].selectItem nodeView, event
 
   deselectNode:(nodeView, event)->
@@ -532,7 +551,7 @@ class JTreeViewController extends KDViewController
       @mouseDownTempItem = null
 
   mouseUp:(pubInst, event)->
-
+    
     clearTimeout @mouseDownTimer
     @mouseIsDown = no
     @cancelDrag = no

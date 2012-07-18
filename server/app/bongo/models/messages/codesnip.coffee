@@ -41,6 +41,7 @@ class JCodeSnip extends JPost
         content   : data.code
         syntax    : data.syntax
       }]
+      meta        : data.meta
     JPost::modify.call @, client, codeSnip, callback
   
   reply: secure (client, comment, callback)->

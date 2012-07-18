@@ -224,5 +224,4 @@ class Ace extends KDView
           @getSingleton('windowController').addLayer details
 
           details.on 'ReceivedClickElsewhere', =>
-            @getSingleton('windowController').removeLayer @mainInputTabs
             details.destroy()
