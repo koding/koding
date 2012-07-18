@@ -225,13 +225,13 @@ class MongoDB
 mongoDB = new MongoDB config
 module.exports = mongoDB
 
-options =
-   username : "gokment"   
-   dbName    : "dlskdlskdlsk"
+# options =
+#    username : "gokment"   
+#    dbName    : "dlskdlskdlsk"
 
 
-mongoDB.fetchDatabaseList options,(res)->
-  console.log res
+# mongoDB.fetchDatabaseList options,(res)->
+#   console.log res
 #dbs =  ['gokment_c219e4c7','gokment_df539bb7']
 #for db in dbs
 #  do (db)->
