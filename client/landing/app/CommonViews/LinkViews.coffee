@@ -73,7 +73,7 @@ class ProfileLinkView extends LinkView
 class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
-    options.expandable ?= yes
+    options.expandable ?= no
     if not options.expandable and data.title.length > 16
       options.tooltip =
         title     : data.title
