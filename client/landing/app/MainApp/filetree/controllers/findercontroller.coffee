@@ -80,8 +80,8 @@ class NFinderController extends KDViewController
         [
           "/Users/#{nickname}"
           "/Users/#{nickname}/Sites"
-          "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com"
-          "/Users/#{nickname}/Sites/#{nickname}.beta.koding.com/website"
+          "/Users/#{nickname}/Sites/#{nickname}.koding.com"
+          "/Users/#{nickname}/Sites/#{nickname}.koding.com/website"
         ]
 
       timer = Date.now()
