@@ -199,7 +199,7 @@ class MongoDB
     db = new mongo.Db dbName, @server
     db.open (err,db)=>
       db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
-        if err?G
+        if err?
           log.error "[ERROR] can't authenticate user #{dbUser} with current password: #{err}"
           callback? "[ERROR] can't authenticate user #{dbUser} with current password: #{err}"
         else
