@@ -383,4 +383,3 @@ module.exports = new Kite 'sharedHosting'
                   res = "[OK] user #{username} was successfully unsuspended"
                   log.info res; callback? null, res
 
-

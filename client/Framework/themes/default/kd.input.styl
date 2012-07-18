@@ -155,6 +155,7 @@ div.kdselectbox
 .kdinputswitch-ry
   font-family           sans
   width                 60px
+  rounded               2px
   a
     display             inline-block
     border              1px solid #cfcfcf
@@ -168,7 +169,6 @@ div.kdselectbox
     text-shadow         0 1px 0 #ffffff
     text-transform      uppercase
     size                28px,auto
-    rounded             0 1px 0 rgba(255, 255, 255, 0.69)
     gradient1           #e6e5e5,85.3%,white,23.9%
     shadow              0 1px 0 rgba(255, 255, 255, 0.69)
     &:hover
@@ -185,7 +185,7 @@ div.kdselectbox
       gradient1         #f49f3f,82.7%,#e18931,30%
       &.off
         color               rgb(140,140,140)
-        gradient1           white,85.9%,#e6e5e5,23.3%
+        gradient1           white, 85.9%, #e6e5e5, 23.3%
         border              1px solid #cfcfcf
         text-shadow         0 0 0 #ccc
         shadow              0 1px 0 rgba(255,255,255,0.69), inset 0 3px 6px -5px rgba(0,0,0,0.69)
@@ -203,7 +203,16 @@ div.kdselectbox
       font-size         11px
       padding           9px 0px
       width             36px
-      
+  &.dark
+    a
+      shadow            none
+      &:hover
+        shadow          none
+      &.active
+        shadow          none
+        &.off
+          shadow        none
+
 
 
   

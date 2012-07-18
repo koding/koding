@@ -123,7 +123,8 @@ class ActivityCodeSnippetWidget extends KDFormView
     @removeCustomData "activity"
     @title.setValue ''
     @description.setValue ''
-    @ace.setContents "//your code snippet goes here..."
+    @utils.wait =>
+      @ace.setContents "//your code snippet goes here..."
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
     @updateSyntaxTag 'javascript'

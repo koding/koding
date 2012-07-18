@@ -138,8 +138,13 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.dontStart = yes
   options.uglify    = yes
   options.useStatic = yes
-    
-  invoke 'build'
+
+  rev = fs.readFileSync "./.revision"
+  prompt.start()
+  prompt.get [{message:"Enter new revision number - current:#{rev}",name:'p'}],  (err, result) ->
+    fs.writeFileSync "./.revision",result.p
+    console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{result.p}"
+    invoke 'build'
 
 
 

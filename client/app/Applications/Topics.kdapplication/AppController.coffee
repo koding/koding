@@ -1,7 +1,5 @@
 class Topics12345 extends AppController
   
-  listItemClass = TopicsListItemView
-
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -9,6 +7,7 @@ class Topics12345 extends AppController
       view : new TopicsMainView(cssClass : "content-page topics")
     ,options
     super options,data
+    @listItemClass = TopicsListItemView
     @controllers = {}
 
   bringToFront:()->
@@ -23,7 +22,7 @@ class Topics12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : listItemClass
+      subItemClass          : @listItemClass
       limitPerPage          : 20
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -63,7 +62,8 @@ class Topics12345 extends AppController
     mainView.createCommons()
     KD.whoami().fetchRole (err, role) =>
       if role is "super-admin"
-        listItemClass = TopicsListItemViewEditable
+        @listItemClass = TopicsListItemViewEditable
+
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
@@ -71,7 +71,7 @@ class Topics12345 extends AppController
       @updateTopic topic
   
   updateTopic:(topic)->
-    log "Update this: ", topic
+    # log "Update this: ", topic
     controller = @
     modal = new KDModalViewWithForms
       title                       : "Update topic " + topic.title

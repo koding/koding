@@ -1,12 +1,14 @@
 class MainTabHandleHolder extends KDView
+
   viewAppended:->
+
     mainView = @getDelegate()
     @addPlusHandle()
         
     @listenTo
-      KDEventTypes : ["PaneDidShow","PaneRemoved"]
+      KDEventTypes       : ["PaneDidShow","PaneRemoved"]
       listenedToInstance : mainView.mainTabView
-      callback: @_repositionPlusHandle
+      callback           : @_repositionPlusHandle
       
     @listenWindowResize()
   
@@ -18,28 +20,39 @@ class MainTabHandleHolder extends KDView
     @setWidth mainView.mainTabView.getWidth() - 100
 
   addPlusHandle:()->
-    menu =
-      type : "contextmenu"
-      items : [
-        { title : 'New Tab',              id : 1,  parentId : null, callback:(source, event)=> appManager.tell "StartTab", 'openFreshTab'}
-        { type  : 'divider' }
-        { title : 'Ace Editor',           id : 2,  parentId : null, callback:(source, event)=> appManager.newFileWithApplication "Ace"}
-        { title : 'CodeMirror',           id : 3,  parentId : null, callback:(source, event)=> appManager.notify() }
-        { title : 'yMacs',                id : 4,  parentId : null, callback:(source, event)=> appManager.notify() }
-        { title : 'Pixlr',                id : 5,  parentId : null, callback:(source, event)=> appManager.notify() }
-        { type  : 'divider' }
-        { title : 'Search the App Store', id : 6,  parentId : null, callback:(source, event)=> appManager.notify() }
-        { title : 'Contribute An Editor', id : 7,  parentId : null, callback:(source, event)=> appManager.notify() }
-      ]
-      
-    @addSubView @plusHandle = new KDButtonViewWithMenu
-      style                   : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
-      title                   : "<b class='hidden'>Click here to start</b>"
-      icon                    : no
-      delegate                : @
-      menu                    : [menu]
-      callback                : => (event)-> splitButton.contextMenu event
-    
+
+    @addSubView @plusHandle = new KDCustomHTMLView
+      cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus first last'
+      partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
+      delegate : @
+      click    : =>
+        unless @plusHandle.$().hasClass('first')
+          contextMenu = new JContextMenu
+            event    : event
+            delegate : @plusHandle
+          , 
+            'New Tab'              :            
+              callback             : (source, event)=> 
+                appManager.tell "StartTab", 'openFreshTab'
+                contextMenu.destroy()
+              separator            : yes
+            'Ace Editor'           :         
+              callback             : (source, event)=> 
+                appManager.newFileWithApplication "Ace"
+                contextMenu.destroy()
+            'CodeMirror'           :         
+              callback             : (source, event)=> appManager.notify()
+            'yMacs'                :          
+              callback             : (source, event)=> appManager.notify()
+            'Pixlr'                :          
+              callback             : (source, event)=> appManager.notify()
+              separator            : yes
+            'Search the App Store' :
+              callback             : (source, event)=> appManager.notify()
+            'Contribute An Editor' :
+              callback             : (source, event)=> appManager.notify()
+
+
   removePlusHandle:()->
     @plusHandle.destroy()
   

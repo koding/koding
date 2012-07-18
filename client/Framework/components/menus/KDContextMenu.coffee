@@ -8,7 +8,6 @@ class KDContextMenu extends KDView
     @windowController.addLayer @
 
     @on 'ReceivedClickElsewhere', =>
-      @windowController.removeLayer @
       @destroy()
 
     @listenTo

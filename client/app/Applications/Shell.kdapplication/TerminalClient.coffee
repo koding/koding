@@ -175,7 +175,6 @@ class TerminalClient
     @handler command
 
   esc_seq: (s) ->
-    console.log s
     String.fromCharCode(27) + "[" + s
     
 
