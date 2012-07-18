@@ -1,8 +1,7 @@
 class TopicsListItemView extends KDListItemView
-  constructor:(options,data)->
-    options = options ? {} 
+
+  constructor:(options = {}, data)->
     options.type = "topics"
-    options.bind = "mouseenter mouseleave"
     super options,data
     
     @titleLink = new KDCustomHTMLView
@@ -15,6 +14,17 @@ class TopicsListItemView extends KDListItemView
         event.stopPropagation()
         no
     , data
+
+    if options.editable
+      @settingsButton = new KDCustomHTMLView
+        tagName     : 'a'
+        cssClass    : 'edit-topic'
+        pistachio   : '<span class="icon"></span>Edit'
+        click       : (pubInst, event) =>
+          @getSingleton('mainController').emit 'TopicItemEditLinkClicked', data
+      , null
+    else    
+      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @followButton = new KDToggleButton
       style           : if data.followee then "follow-btn following-topic" else "follow-btn"
@@ -47,11 +57,10 @@ class TopicsListItemView extends KDListItemView
 
   viewAppended:->
     @setClass "topic-item"
-    
+
     @setTemplate @pistachio()
     @template.update()
     
- 
   ###
   followTheButton:->
     {profile} = topic = @getData()
@@ -127,6 +136,7 @@ class TopicsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
+      {{> @settingsButton}}
       {h3{> @titleLink}}
       {article{#(body)}}
       <div class="topicmeta clearfix">
@@ -220,3 +230,9 @@ class ModalTopicsListItem extends TopicsListItemView
       </div>
     </div>
     """
+
+class TopicsListItemViewEditable extends TopicsListItemView
+
+  constructor:(options = {}, data)->
+    options.editable = yes
+    super options, data

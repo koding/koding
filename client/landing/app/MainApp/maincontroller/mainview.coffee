@@ -1,12 +1,39 @@
+class LoadingScreen extends KDView
+  
+  constructor:(options = {}, data)->
+
+    options.cssClass = "main-loading"
+
+    super options, data
+    
+    @setPartial @partial()
+
+  partial:->
+    
+    """
+    <figure>
+      <ul>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+    </figure>
+    """
+
 class MainView extends KDView
   
   viewAppended:->
+    # @utils.wait 1000, =>
+    
     # @putLoader()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
     @createSideBar()
-    @removeLoader()
+    # @removeLoader()
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
   
@@ -36,9 +63,9 @@ class MainView extends KDView
   putLoader:->
 
   removeLoader:->
-    # mainController = @getSingleton("mainController")
-    # mainController.loader.hide()
-    # @loadingScreen.hide()
+    # @utils.wait 10000, =>
+    @getSingleton("loadingScreen").destroy()
+    delete KD.singletons.loadingScreen
     $('body').removeClass 'loading'
   
   createMainPanels:->
