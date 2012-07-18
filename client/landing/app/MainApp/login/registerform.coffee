@@ -205,13 +205,19 @@ class RegisterInlineForm extends LoginViewInlineForm
         @username.loader.show()
         bongo.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
-          {kodingUser, kodingenUser} = response
+          {kodingUser, kodingenUser, forbidden} = response
           if err
             if response?.kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
               @hideOldUserFeedback()
           else
-            if kodingUser and kodingenUser
+            if forbidden
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
+              @hideOldUserFeedback()
+            else if kodingenUser and forbidden
+              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
+              @hideOldUserFeedback()
+            else if kodingUser and kodingenUser
               # log "contact support"
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
               @hideOldUserFeedback()
