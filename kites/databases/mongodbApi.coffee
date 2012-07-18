@@ -35,7 +35,6 @@ class MongoDB
     id.substr 0, length
 
   getDbUsers : (dbName,callback)->
-    log.debug 'does call'
 
     db = new mongo.Db dbName, @server, native_parser: false
     db.open (err,db)=>
@@ -51,7 +50,6 @@ class MongoDB
               usernames = []
               for user in items
                 usernames.push user.user
-              console.log "miki",usernames
               callback usernames
 
   fetchDatabaseList :(options, callback)->
@@ -88,11 +86,9 @@ class MongoDB
                   users_dbs.forEach (users_db, index)=>
                     queue.push =>
                       @getDbUsers users_db,(usersArray)=>
-                        log.debug "x",users_db,index,usersArray
                         dbInfo.push { dbName: users_db, dbUser: usersArray }
                         queue.next()
                   queue.push ->
-                    log.debug 'info FINALLY', dbInfo
                     callback null, dbInfo
                   daisy queue
           
@@ -227,11 +223,13 @@ module.exports = mongoDB
 
 options =
    username : "gokment"   
-   dbName    : "dlskdlskdlsk"
+   dbName    : "dlskdldskdlskd1111skdlsk"
 
+#mongoDB.createDatabase options,(err,res)->
+#  console.log err,res
 
-mongoDB.fetchDatabaseList options,(res)->
-  console.log res
+mongoDB.fetchDatabaseList options,(err,res)->
+  console.log err,res
 #dbs =  ['gokment_c219e4c7','gokment_df539bb7']
 #for db in dbs
 #  do (db)->
