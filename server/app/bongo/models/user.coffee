@@ -146,7 +146,7 @@ class JUser extends jraphical.Module
                   tokens        :
                     token       : hat()
                     expires     : new Date(Date.now() + 1000*60*60*24*14)
-                    authority   : 'beta.koding.com'
+                    authority   : 'koding.com'
                     requester   : 'api.koding.com'
               }, (err)->
                 if err
@@ -293,7 +293,7 @@ class JUser extends jraphical.Module
                                       tokens        :
                                         token       : hat()
                                         expires     : new Date(Date.now() + 1000*60*60*24*14)
-                                        authority   : 'beta.koding.com'
+                                        authority   : 'koding.com'
                                         requester   : 'api.koding.com'
                                   }, (err, docs)->
                                     if err
