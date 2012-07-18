@@ -143,6 +143,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   prompt.start()
   prompt.get [{message:"Enter new revision number - current:#{rev}",name:'p'}],  (err, result) ->
     fs.writeFileSync "./.revision",result.p
+    version = targetPaths.version = result.p
     console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{result.p}"
     invoke 'build'
 
