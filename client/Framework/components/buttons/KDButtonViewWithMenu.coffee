@@ -22,7 +22,7 @@ class KDButtonViewWithMenu extends KDButtonView
     if $(event.target).is(".chevron-arrow")
       @contextMenu event
       return no
-    @getCallback().call @,event
+    @getCallback().call @, event
 
   contextMenu:(event)->
     @createContextMenu event
@@ -46,13 +46,14 @@ class KDButtonViewWithMenu extends KDButtonView
       controller = new (contextControllerClass or KDContextMenuTreeViewController) {
         subItemClass
         view
-      }
-      , menuTreeData
+      }, menuTreeData
 
       # @listenTo 
       #   KDEventTypes : "itemsAdded"
       #   listenedToInstance : controller
       #   callback : ()=> @buttonMenu.positionContextMenu()
+      @utils.wait 100, =>
+        @buttonMenu.positionContextMenu()
 
     KDView.appendToDOMBody @buttonMenu
     

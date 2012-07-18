@@ -20,7 +20,7 @@ class KDWindowController extends KDController
   addLayer: (layer)->
 
     unless layer in @layers
-      log "layer added", layer
+      # log "layer added", layer
       @layers.push layer
       layer.on 'KDObjectWillBeDestroyed', =>
         @removeLayer layer
@@ -28,7 +28,7 @@ class KDWindowController extends KDController
   removeLayer: (layer)->
 
     if layer in @layers
-      log "layer removed", layer
+      # log "layer removed", layer
       index = @layers.indexOf(layer)
       @layers.splice index, 1
 

@@ -113,7 +113,7 @@ app.activity.styl
   .kdlistitemview-activity
     border-bottom         1px solid rgba(0, 0, 0, 0.075)
     width                 auto
-    vendor                transition, left .3s ease-in-out\, background-color .3s ease-in-out
+    vendor                transition, left .6s ease-in-out\, background-color .6s ease-in-out .6s
     background-color      #ffffff
     left                  0
     borderBox()
@@ -212,15 +212,16 @@ app.activity.styl
         bg(position,-630px -376px)
 
     &:hover
-      .activity-settings-menu
+      div.activity-settings-menu
         opacity         1
 
-    .activity-settings-menu
+    div.activity-settings-menu
       vendor            transition, opacity .1s ease-out
-      opacity           .1
+      size              21px, 18px
+      opacity           .6
       position          absolute
       top               0
-      right             12px
+      right             20px
       z-index           10
       button.kdbutton.with-icon
         padding         1px 2px
