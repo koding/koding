@@ -9,13 +9,13 @@
    - Double click a folder in your file tree to view its contents.
    
    - Public files are located in:
-     "/USERNAME/Sites/USERNAME.beta.koding.com/website"
+     "/USERNAME/Sites/USERNAME.koding.com/website"
      
      every file under that location can be viewed with URL
-     "http://USERNAME.beta.koding.com"
+     "http://USERNAME.koding.com"
    
-     e.g. /USERNAME/Sites/USERNAME.beta.koding.com/website/1.txt
-     is at http://USERNAME.beta.koding.com/1.txt
+     e.g. /USERNAME/Sites/USERNAME.koding.com/website/1.txt
+     is at http://USERNAME.koding.com/1.txt
 
    - Double-click on a file to open it within your editor.
    
