@@ -1,24 +1,56 @@
 class Taggable
-  
-  getTagRole:-> @constructor.tagRole or 'tagged'
-  
-  addTags: bongo.secure (client, tags, callback)->
-    tagRole = @getTagRole()
+
+  {ObjectRef,daisy} = bongo
+  {Relationship} = jraphical
+
+  getTaggedContentRole  :-> @constructor.taggedContentRole or 'tagged'
+  getTagRole            :-> @constructor.tagRole           or 'tag'
+
+  addTags: bongo.secure (client, tags, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= silent: no
+    taggedContentRole = @getTaggedContentRole()
     tagCount = 0
-    JTag.handleFreetags client, tags, (err, tag)=>
-      if err
-        callback err
+    @removeAllTags client, silent: tags.length > 0, (err)=>
+      if err then callback err
+      else unless tags.length then callback null
       else
-        @addTag tag, (err)=>
-          if err
-            callback err
-          else tag.addContent @, as: tagRole, returnCount: yes, (err, count)->
-            if err
-              callback err
-            else
-              incCount = {}
-              incCount["counts.#{tagRole}"] = 1
-              tag.update $inc: incCount, (err)->
-                if err then callback err
-                else if ++tagCount is tags.length
-                  callback null
+        JTag.handleFreetags client, tags, (err, tag)=>
+          if err then callback err
+          else
+            daisy queue = [
+              =>
+                @addTag tag, (err)=>
+                  if err then callback err
+                  else queue.next()
+              =>
+                tag.addContent @, {
+                  as: taggedContentRole
+                  respondWithCount: yes
+                }, (err, count)=>
+                  if err then callback err
+                  else queue.next()
+              =>
+                incCount = {}
+                incCount["counts.#{taggedContentRole}"] = 1
+                tag.update $inc: incCount, (err)=>
+                  if err then callback err
+                  else if ++tagCount is tags.length
+                    @emit 'TagsChanged', tags unless options.silent
+                    callback null
+            ]
+
+  removeAllTags: bongo.secure (client, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= silent: no
+    Relationship.remove $or: [{
+      as        : @getTaggedContentRole()
+      targetId  : @getId()
+    },{
+      as        : @getTagRole()
+      sourceId  : @getId()
+    }], (err)=>
+      if err then callback err
+      else
+        @emit 'TagsChanged', [] unless options.silent
+        callback null

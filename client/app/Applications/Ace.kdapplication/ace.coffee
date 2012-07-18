@@ -21,15 +21,12 @@ class Ace extends KDView
   viewAppended:->
     
     require ['ace/ace'], (ace)=>
-      callback? ace
       @editor = ace.edit "editor#{@getId()}"
       @prepareEditor()
-      @emit "ace.ready"
-
+      @utils.wait => @emit "ace.ready"
       @fetchContents (err, contents)=>
-        if err then warn err else
-          @setContents contents if contents
-          @editor.gotoLine 0
+        @setContents contents if contents
+        @editor.gotoLine 0
 
 
   prepareEditor:->
@@ -73,16 +70,14 @@ class Ace extends KDView
         
   requestSave:->
 
-    file     = @getData()
     contents = @getContents()
     return @notify "Nothing to save!" unless contents isnt @lastSavedContents
-    file.emit "ace.requests.save", contents
+    @emit "ace.requests.save", contents
 
   requestSaveAs:->
 
-    file     = @getData()
     contents = @getContents()
-    file.emit "ace.requests.saveAs", contents
+    @emit "ace.requests.saveAs", contents
 
     
   fetchContents:(callback)->
@@ -152,13 +147,15 @@ class Ace extends KDView
   
   setSyntax:(mode)->
     
+    file = @getData()
+    mode or= file.syntax
+    
     unless mode
-      file = @getData()
       ext  = @utils.getFileExtension file.path
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
-      mode or= "javascript"
+      mode or= "text"
     
     require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
@@ -225,9 +222,6 @@ class Ace extends KDView
             click     : -> details.destroy()
 
           @getSingleton('windowController').addLayer details
-          @listenTo
-            KDEventTypes        : 'ReceivedClickElsewhere'
-            listenedToInstance  : details
-            callback            : (pubInst,event)=>
-              @getSingleton('windowController').removeLayer @mainInputTabs
-              details.destroy()
+
+          details.on 'ReceivedClickElsewhere', =>
+            details.destroy()

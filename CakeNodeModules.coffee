@@ -1,7 +1,7 @@
 module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
-    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow"
+    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector"
   ]
   npm_modules :
     bitly				    : '1.2.3'
@@ -18,7 +18,7 @@ module.exports =
     hat				      : '0.0.3'
     inspect				  : '0.0.2'
 
-    ldapjs				  : '0.4.8'
+    # ldapjs				  : '0.4.8' # sharedhosting kite req. moved to ./kites/sharedhosting
     log				      : '1.2.0'
     log4js				  : '0.4.1'
 
@@ -40,6 +40,7 @@ module.exports =
     underscore			: '1.2.3'
     url				      : '0.4.9'
     validator				: '0.2.0'
-    
+    'http-proxy'    : '0.8.1'
     jsonify         : '0.0.0'
     browserify      : '1.10.12'
+    cron            : '0.3.4'

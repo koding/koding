@@ -1,35 +1,25 @@
 class KDButtonView extends KDView
 
-  @styles = [
-    "minimal","clean-gray","cupid-green","cupid-blue","blue-pill"
-    "dribbble","slick-black","thoughtbot","blue-candy","purple-candy"
-    "shiny-blue","small-blue","skip","clean-red","small-gray","transparent"
-  ]
-
   constructor:(options = {},data)->
-    options = $.extend
-      callback     : noop          # a Function
-      title        : ""            # a String
-      style        : "clean-gray"  # a String of one of button styles
-      type         : "button"      # a String of submit, reset, button
-      cssClass     : ""            # a String
-      icon         : no            # a Boolean value
-      iconOnly     : no            # a Boolean value
-      iconClass    : ""            # a String  
-      disabled     : no            # a Boolean value
-      hint         : null          # a String of HTML ---> not yet implemented
-      loader       : no
-      # name         : ""
-      # value        : ""
-    ,options
+
+    options.callback  or= noop          # a Function
+    options.title     or= ""            # a String
+    # options.style     or= "clean-gray"  # a String of one of button styles ==> DEPRECATE THIS
+    options.type      or= "button"      # a String of submit, reset, button
+    options.cssClass  or= options.style or= "clean-gray"            # a String
+    options.icon      or= no            # a Boolean value
+    options.iconOnly  or= no            # a Boolean value
+    options.iconClass or= ""            # a String  
+    options.disabled  or= no            # a Boolean value
+    options.hint      or= null          # a String of HTML ---> not yet implemented
+    options.loader    or= no
     
     super options,data
+    
+    @setClass options.style
 
     @setCallback options.callback
     @setTitle options.title
-    @setButtonStyle options.style
-    # @setName options.name           if options.name
-    # @setValue options.value         if options.value
     @setIconClass options.iconClass if options.iconClass
     @unhideIcon()                   if options.icon
     @setIconOnly options.iconOnly   if options.iconOnly
@@ -39,13 +29,12 @@ class KDButtonView extends KDView
       @listenTo 
         KDEventTypes       : "viewAppended"
         listenedToInstance : @
-        callback           : ->
-          @setLoader()
+        callback           : -> @setLoader()
     
 
-  setDomElement:()->
+  setDomElement:(cssClass)->
     @domElement = $ """
-      <button type='#{@getOptions().type}' class='kdbutton clean-gray' id='#{@getId()}'>
+      <button type='#{@getOptions().type}' class='kdbutton #{cssClass}' id='#{@getId()}'>
         <span class='icon hidden'></span>
         <span class='button-title'>Title</span>
       </button>
@@ -61,25 +50,11 @@ class KDButtonView extends KDView
   
   getCallback:()-> @buttonCallback
   
-  # setName:(name)->
-  #   @$().attr {name}
-  # 
-  # setValue:(value)->
-  #   @$().attr {value}
-  
   unhideIcon:()->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
   
   
-  # refactor this
-  # this seems unnecessary just use cssClass maybe
-  setButtonStyle:(newStyle)->
-    {styles} = @constructor
-    for style in styles
-      @getDomElement().removeClass style
-    @getDomElement().addClass newStyle
-
   setIconClass:(iconClass)->
     @$('.icon').attr 'class','icon'
     @$('.icon').addClass iconClass
@@ -106,8 +81,14 @@ class KDButtonView extends KDView
         range       : loader.range    || 0.4
         speed       : loader.speed    || 1.5
         FPS         : loader.FPS      || 24
+
     @addSubView @loader, null, yes
-    @loader.$().css position : "absolute", left : 5, top : 5
+    @loader.$().css
+      position    : "absolute"
+      left        : loader.left or "50%"
+      top         : loader.top or "50%"
+      marginTop   : -(loader.diameter/2)
+      marginLeft  : -(loader.diameter/2)
     @loader.hide()
   
   showLoader:->
@@ -143,32 +124,21 @@ class KDButtonView extends KDView
   triggerClick:()-> @doOnSubmit()
 
 class KDToggleButton extends KDButtonView
+
   constructor:(options = {},data)->
+
     options = $.extend
-      dataPath : null          # a JsPath String
-      states   : []            # an Array of Objects in form of stateName : callback key/value pairs
+      dataPath     : null          # a JsPath String
+      defaultState : null          # a String
+      states       : []            # an Array of Objects in form of stateName : callback key/value pairs
     ,options
 
     super options,data
-    @setDefaultStates()
-    @setState()
     
-    @attachListener()
+    @setState options.defaultState
     
-  attachListener:->
-    {dataPath} = @getOptions()
-    if dataPath
-      @getData().on dataPath, =>
-        @setState dataPath
-
-  setDefaultStates:->
-    {states} = @getOptions()
-    if states.length < 3
-      @options.states = ['default',-> warn "no state options passed" ]
-    else
-      return
-
   getStateIndex:(name)->
+
     {states} = @getOptions()
     unless name
       return 0
@@ -176,16 +146,22 @@ class KDToggleButton extends KDButtonView
       for state,index in states
         if name is state
           return index
-
+  
+  decorateState:(name)-> @setTitle @state
+  
+  getState:-> @state
+  
   setState:(name)->
+    
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
+    @decorateState name
     
-    @setTitle @state
-    @setCallback states[index + 1].bind @, @toggleState.bind @
+    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
+
     {states} = @getOptions()
     nextState = states[@stateIndex + 2] or states[0]
     unless err

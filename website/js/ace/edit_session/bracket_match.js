@@ -40,9 +40,36 @@ define(function(require, exports, module) {
 "use strict";
 
 var TokenIterator = require("../token_iterator").TokenIterator;
+var Range = require("../range").Range;
 
+/**
+ * class BracketMatch
+ *
+ * 
+ *
+ *
+ **/
+
+/**
+ * new BracketMatch(position)
+ * - platform (String): Identifier for the platform; must be either `'mac'` or `'win'`
+ * - commands (Array): A list of commands
+ *
+ * TODO
+ *
+ *
+ **/
 function BracketMatch() {
 
+    /**
+     * new findMatchingBracket(position)
+     * - position (Number): Identifier for the platform; must be either `'mac'` or `'win'`
+     * - commands (Array): A list of commands
+     *
+     * TODO
+     *
+     *
+     **/
     this.findMatchingBracket = function(position) {
         if (position.column == 0) return null;
 
@@ -50,15 +77,56 @@ function BracketMatch() {
         if (charBeforeCursor == "") return null;
 
         var match = charBeforeCursor.match(/([\(\[\{])|([\)\]\}])/);
-        if (!match) {
+        if (!match)
             return null;
+
+        if (match[1])
+            return this.$findClosingBracket(match[1], position);
+        else
+            return this.$findOpeningBracket(match[2], position);
+    };
+    
+    this.getBracketRange = function(pos) {
+        var line = this.getLine(pos.row);
+        var before = true, range;
+
+        var chr = line.charAt(pos.column-1);
+        var match = chr && chr.match(/([\(\[\{])|([\)\]\}])/);
+        if (!match) {
+            chr = line.charAt(pos.column);
+            pos.column++;
+            match = chr && chr.match(/([\(\[\{])|([\)\]\}])/);
+            before = false;
         }
+        if (!match)
+            return null;
 
         if (match[1]) {
-            return this.$findClosingBracket(match[1], position);
+            var bracketPos = this.$findClosingBracket(match[1], pos);
+            if (!bracketPos)
+                return null;
+            range = Range.fromPoints(pos, bracketPos);
+            if (!before) {
+                range.end.column++;
+                range.start.column--;
+            }
+            range.cursor = range.end;
         } else {
-            return this.$findOpeningBracket(match[2], position);
+            var bracketPos = this.$findOpeningBracket(match[2], pos);
+            if (!bracketPos)
+                return null;
+            range = Range.fromPoints(bracketPos, pos);
+            if (!before) {
+                range.start.column++;
+                range.end.column--;
+            }
+            range.cursor = range.start;
         }
+        
+        if (!before)
+            pos.column--;
+        
+        return range;
     };
 
     this.$brackets = {
@@ -70,21 +138,24 @@ function BracketMatch() {
         "}": "{"
     };
 
-    this.$findOpeningBracket = function(bracket, position) {
+    this.$findOpeningBracket = function(bracket, position, typeRe) {
         var openBracket = this.$brackets[bracket];
         var depth = 1;
 
         var iterator = new TokenIterator(this, position.row, position.column);
         var token = iterator.getCurrentToken();
-        if (!token) return null;
+        if (!token)
+            token = iterator.stepForward();
+        if (!token)
+            return
         
-        // token.type contains a period-delimited list of token identifiers
-        // (e.g.: "constant.numeric" or "paren.lparen").  Create a pattern that
-        // matches any token containing the same identifiers or a subset.  In
-        // addition, if token.type includes "rparen", then also match "lparen".
-        // So if type.token is "paren.rparen", then typeRe will match "lparen.paren".
-        var typeRe = new RegExp("(\\.?" +
-            token.type.replace(".", "|").replace("rparen", "lparen|rparen") + ")+");
+         if (!typeRe){
+            typeRe = new RegExp(
+                "(\\.?" +
+                token.type.replace(".", "\\.").replace("rparen", ".paren")
+                + ")+"
+            );
+        }
         
         // Start searching in token, just before the character at position.column
         var valueIndex = position.column - iterator.getCurrentTokenColumn() - 2;
@@ -123,21 +194,24 @@ function BracketMatch() {
         return null;
     };
 
-    this.$findClosingBracket = function(bracket, position) {
+    this.$findClosingBracket = function(bracket, position, typeRe, allowBlankLine) {
         var closingBracket = this.$brackets[bracket];
         var depth = 1;
 
         var iterator = new TokenIterator(this, position.row, position.column);
         var token = iterator.getCurrentToken();
-        if (!token) return null;
+        if (!token)
+            token = iterator.stepForward();
+        if (!token)
+            return
 
-        // token.type contains a period-delimited list of token identifiers
-        // (e.g.: "constant.numeric" or "paren.lparen").  Create a pattern that
-        // matches any token containing the same identifiers or a subset.  In
-        // addition, if token.type includes "lparen", then also match "rparen".
-        // So if type.token is "lparen.paren", then typeRe will match "paren.rparen".
-        var typeRe = new RegExp("(\\.?" +
-            token.type.replace(".", "|").replace("lparen", "lparen|rparen") + ")+");
+        if (!typeRe){
+            typeRe = new RegExp(
+                "(\\.?" +
+                token.type.replace(".", "\\.").replace("lparen", ".paren")
+                + ")+"
+            );
+        }
 
         // Start searching in token, after the character at position.column
         var valueIndex = position.column - iterator.getCurrentTokenColumn();
@@ -165,6 +239,12 @@ function BracketMatch() {
             // whose type matches typeRe
             do {
                 token = iterator.stepForward();
+                if (allowBlankLine) {
+                    // if you've reached the doc end, or, you match a new content  line 
+                    if (token === null || token.type == "string") {
+                        return {row: iterator.getCurrentTokenRow() + (token === null ? 1 : -1), column: 0}; 
+                    }
+                }
             } while (token && !typeRe.test(token.type));
 
             if (token == null)

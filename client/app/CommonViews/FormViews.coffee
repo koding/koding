@@ -39,20 +39,16 @@ class AbstractPersonalFormView extends KDFormView
   pistachio:-> ''
 
   setListeners:->
-    @listenTo 
-      KDEventTypes        : "ReceivedClickElsewhere"
-      listenedToInstance  : @
-      callback:(pubInst, event)->
-        @unsetClass 'active'
-        @resetInputValue()
-        @windowController.removeLayer @
+    @on 'ReceivedClickElsewhere', =>
+      @unsetClass 'active'
+      @resetInputValue()
         
   resetInputValue:-> no
 
 
 class PersonalFormNameView extends AbstractPersonalFormView
+
   constructor:(options, data)->
-    @memberData = data
     
     options = $.extend
       cssClass    : 'profilename-form'
@@ -60,13 +56,14 @@ class PersonalFormNameView extends AbstractPersonalFormView
     , options
     super options, null
 
+    {@memberData} = options
     {profile} = @memberData
     @firstName = new KDInputView
       cssClass      : 'firstname editable'
-      defaultValue  : @utils.htmlDecode profile.firstName
+      defaultValue  : Encoder.htmlDecode profile.firstName
       name          : 'firstName'
       attributes    :
-        size        : @utils.htmlDecode(profile.firstName).length
+        size        : Encoder.htmlDecode(profile.firstName).length
       validate      : 
         rules       : 
           required  : yes
@@ -75,10 +72,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
     @lastName = new KDInputView
       cssClass      : 'lastname editable'
-      defaultValue  : @utils.htmlDecode profile.lastName
+      defaultValue  : Encoder.htmlDecode profile.lastName
       name          : 'lastName'
       attributes    :
-        size        : @utils.htmlDecode(profile.lastName).length
+        size        : Encoder.htmlDecode(profile.lastName).length
     
     @nameView = new ProfileTextView
       tagName       : "p"
@@ -99,8 +96,8 @@ class PersonalFormNameView extends AbstractPersonalFormView
     
   resetInputValue:->
     {profile} = @memberData
-    @firstName.setValue @utils.htmlDecode profile.firstName 
-    @lastName.setValue @utils.htmlDecode profile.lastName 
+    @firstName.setValue Encoder.htmlDecode profile.firstName 
+    @lastName.setValue Encoder.htmlDecode profile.lastName 
 
   attachListeners:->
     @listenTo
@@ -117,17 +114,18 @@ class PersonalFormNameView extends AbstractPersonalFormView
         newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
        
-  formCallback:(formElements)->
+  formCallback:(formData)->
     {profile} = @memberData
-    {firstName, lastName} = formElements
+    {firstName, lastName} = formData
     if profile.firstName is firstName and profile.lastName is lastName
       @unsetClass 'active'
       return no
     
-    changes = $set:
+    query = $set:
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
-    @memberData.update changes, (err)=>
+
+    @memberData.update query, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
@@ -138,6 +136,7 @@ class PersonalFormNameView extends AbstractPersonalFormView
         @unsetClass 'active' 
 
 class PersonalFormAboutWrapperView extends KDView
+
   constructor:(options, data)->
     options = $.extend
       cssClass    : 'personal-profile-about'
@@ -151,16 +150,14 @@ class PersonalFormAboutWrapperView extends KDView
     {profile} = @getData()
     profile.about or= "You haven't entered anything in your bio yet. Why not add something now?"
     
-    @formView = new PersonalFormAboutView {}, @getData()
+    memberData = data
+    @formView = new PersonalFormAboutView {memberData}
     
     @windowController = @getSingleton 'windowController'
-    @listenTo 
-      KDEventTypes        : "ReceivedClickElsewhere"
-      listenedToInstance  : @
-      callback:(pubInst, event)->
-        @unsetClass 'active'
-        @formView.resetInputValue()
-        @windowController.removeLayer @
+
+    @on 'ReceivedClickElsewhere', =>
+      @unsetClass 'active'
+      @formView.resetInputValue()
 
   viewAppended:->
     super
@@ -181,16 +178,17 @@ class PersonalFormAboutWrapperView extends KDView
 
 
 class PersonalFormAboutView extends AbstractPersonalFormView
+
   constructor:(options, data)->
-    @memberData = data
-    
+
     options = $.extend
       cssClass  : 'profileabout-form'
       callback  : @formCallback
     , options
 
     super options, null
-    
+
+    {@memberData} = options
     {profile} = @memberData
     
     @aboutInput = new KDInputView
@@ -218,9 +216,9 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     {profile} = @memberData
     @aboutInput.setValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
 
-  formCallback:(formElements)->
+  formCallback:(formData)->
     {profile} = @memberData
-    {about} = formElements
+    {about} = formData
     if profile.about is about
       @parent.unsetClass 'active'
       return no
@@ -232,6 +230,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
+        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
@@ -242,13 +241,13 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
 class PersonalFormLocationView extends AbstractPersonalFormView
   constructor:(options, data)->
-    @memberData = data
     options = $.extend
       cssClass      : 'profilelocation-form'
       callback      : @formCallback 
     , options
     super options, data
     
+    {@memberData} = options
     @memberData.locationTags or= []
     
     @location = new KDInputView
@@ -277,8 +276,8 @@ class PersonalFormLocationView extends AbstractPersonalFormView
     {profile} = @memberData
     @location.setValue @memberData.locationTags[0] or 'Earth' 
 
-  formCallback:(formElements)->
-    {locationTags} = formElements
+  formCallback:(formData)->
+    {locationTags} = formData
     if locationTags is @memberData.locationTags[0]
       @unsetClass 'active'
       return no
@@ -295,6 +294,7 @@ class PersonalFormLocationView extends AbstractPersonalFormView
         new KDNotificationView
           title : "There was an error updating your profile."
       else 
+        @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
@@ -318,18 +318,19 @@ class LocationView extends KDCustomHTMLView
 
 
 class PersonalFormSkillTagView extends KDFormView
+
   constructor:(options, data)->
-    @memberData = data # bc we have a conflict on KDFormView::getData()
+
     options = $.extend
       cssClass  : "kdautocomplete-form"
     , options
 
     super options, null
-
+    {@memberData} = options
     @memberData.skillTags or= []
     
-    @setCallback (formElements)=>
-      tagIds = formElements.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
+    @setCallback (formData)=>
+      tagIds = formData.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
       @memberData.addTags 'skillTags', tagIds, (err)-> debugger
 
   showForm:->
@@ -363,12 +364,12 @@ class PersonalFormSkillTagView extends KDFormView
       name                : "skillTags"
       cssClass            : 'skilltag-form'
       type                : "tags"
+      itemDataPath        : 'title'
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : SkillTagAutoCompletedItem
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)

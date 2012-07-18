@@ -21,6 +21,7 @@ class StatusActivityItemView extends ActivityItemChild
   
   pistachio:->
     """
+    {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
@@ -29,6 +30,7 @@ class StatusActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>

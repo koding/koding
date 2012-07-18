@@ -1,30 +1,31 @@
 class KDListView extends KDView
-  constructor:(options,data)->
-    options = $.extend
-      type    : "default"
-      # keyNav  : yes
-    ,options
+
+  constructor:(options = {}, data)->
+
+    options.type or= "default"
     options.cssClass = if options.cssClass? then "kdlistview kdlistview-#{options.type} #{options.cssClass}" else "kdlistview kdlistview-#{options.type}"
-    @listSorter = options.sorter ? null
-    @listSorter.setDelegate @ if @listSorter
+
     @items = [] unless @items
     super options,data
-    # @activateKeyNav() if options.keyNav
-  
+
   empty:->
+
     for item,i in @items
       item.destroy() if item?
     @items = []
   
   itemClass:(options,data)->
+
     new (@getOptions().subItemClass ? KDListItemView) options, data
   
   keyDown:(event)->
+
     event.stopPropagation()
     event.preventDefault()
-    @propagateEvent KDEventType : "KeyDownOnList", event
+    @emit "KeyDownOnList", event
   
   _addItemHelper:(itemData, options)->
+
     {index, animation, viewOptions} = options
     viewOptions or= {}
     viewOptions.delegate = @
@@ -49,37 +50,37 @@ class KDListView extends KDView
   removeItem:(itemInstance,itemData,index)->
     
     if index
-      @propagateEvent KDEventType: 'ItemIsBeingDestroyed', { view : @items[index], index : index }
+      @emit 'ItemIsBeingDestroyed', { view : @items[index], index : index }
       @items.splice index,1
       item.destroy()
       return
     else
       for item,i in @items
         if itemInstance and itemInstance is item or
-           itemData and itemdData is item.getData()
-          @propagateEvent KDEventType: 'ItemIsBeingDestroyed', { view : item, index : i }
+           itemData and itemData is item.getData()
+          @emit 'ItemIsBeingDestroyed', { view : item, index : i }
           @items.splice i,1
           item.destroy()
           return
 
   addItemView:(itemInstance,index,animation)->
-    @propagateEvent KDEventType: 'ItemWasAdded', { view: itemInstance, index }
+    @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
       @items.splice actualIndex, 0, itemInstance
       @appendItemAtIndex itemInstance, index, animation
     else
       @items[if @getOptions().lastToFirst then 'unshift' else 'push'] itemInstance
-      @appendItem itemInstance
+      @appendItem itemInstance, animation
     itemInstance
 
-  destroy:(animated = no,animationType = "slideUp",duration = 100)->
+  destroy:(animated = no, animationType = "slideUp", duration = 100)->
     for item in @items
       # log "destroying listitem", item
       item.destroy()
     super()
  
-  appendItem:(itemInstance,animation)->
+  appendItem:(itemInstance, animation)->
 
     itemInstance.setParent @
     scroll = @doIHaveToScroll()

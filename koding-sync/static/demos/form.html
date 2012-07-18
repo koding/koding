@@ -1,0 +1,97 @@
+<HTML>
+<HEAD>
+<TITLE>MobWrite as a Collaborative Form</TITLE>
+<STYLE type="text/css">
+BODY {
+  background-color: white;
+  font-family: sans-serif;
+}
+H1, H2, H3 {
+  font-weight: normal;
+}
+TEXTAREA {
+  font-family: sans-serif;
+}
+TH {
+  text-align: left;
+  vertical-align: top;
+}
+</STYLE>
+<SCRIPT SRC="../compressed_form.js"></SCRIPT>
+<!--
+<SCRIPT SRC="../diff_match_patch_uncompressed.js"></SCRIPT>
+<SCRIPT SRC="../mobwrite_core.js"></SCRIPT>
+<SCRIPT SRC="../mobwrite_form.js"></SCRIPT>
+-->
+</HEAD>
+<BODY ONLOAD="mobwrite.share('demo_form');">
+
+<H1>MobWrite as a Collaborative Form</H1>
+
+<FORM ID="demo_form">
+
+<TABLE>
+<TR>
+  <TH>What</TH>
+  <TD><INPUT TYPE="text" NAME="what" ID="demo_form_what" SIZE=30 VALUE="New event"></TD>
+</TR>
+<TR>
+  <TH>When</TH>
+  <TD>
+    <INPUT TYPE="text" NAME="date" ID="demo_form_date1" SIZE=6 VALUE="9:00">
+    <SPAN ID="all_day_span">to <INPUT TYPE="text" NAME="date" ID="demo_form_date2" SIZE=6 VALUE="10:00"></SPAN>
+    <INPUT TYPE="checkbox" NAME="all_day" ID="demo_form_all_day" ONCHANGE="document.getElementById('all_day_span').style.display = this.checked ? 'none' : 'inline'">
+    <LABEL FOR="demo_form_all_day">All day</LABEL>
+  </TD>
+</TR>
+<TR>
+  <TH>Where</TH>
+  <TD>
+    <INPUT NAME="where" ID="demo_form_where1" VALUE="SFO" type="radio" CHECKED>
+    <LABEL FOR="demo_form_where1">San Francisco</LABEL><br>
+    <INPUT NAME="where" ID="demo_form_where2" VALUE="NYC" type="radio">
+    <LABEL FOR="demo_form_where2">New York</LABEL><br>
+    <INPUT NAME="where" ID="demo_form_where3" VALUE="YYZ" type="radio">
+    <LABEL FOR="demo_form_where3">Toronto</LABEL><br>
+  </TD>
+</TR>
+<TR>
+  <TH>Who</TH>
+  <TD>
+    <SELECT NAME="who" ID="demo_form_who" MULTIPLE>
+      <OPTION VALUE="Alice">Alice</OPTION>
+      <OPTION VALUE="Bob">Bob</OPTION>
+      <OPTION VALUE="Eve">Eve</OPTION>
+    </SELECT>
+  </TD>
+</TR>
+<TR>
+  <TH>Hidden</TH>
+  <TD>
+    <INPUT TYPE="hidden" NAME="hidden" ID="demo_form_hidden">
+    [<a href="javascript:var el = document.getElementById('demo_form_hidden');
+    var v = prompt('Hidden value', el.value);
+    if (v !== null) {el.value = v};
+    undefined;">get/set</a>]
+  </TD>
+</TR>
+<TR>
+  <TH>Password</TH>
+  <TD><INPUT TYPE="password" NAME="password" ID="demo_form_password"></TD>
+</TR>
+<TR>
+  <TH>Description</TH>
+  <TD><TEXTAREA NAME="description" ID="demo_form_description" COLS=50 ROWS=5></TEXTAREA></TD>
+</TR>
+<TR>
+  <TH></TH>
+  <TD>
+    <INPUT TYPE="submit" VALUE="Save event">
+  </TD>
+</TR>
+</TABLE>
+
+</FORM>
+
+</BODY>
+</HTML>

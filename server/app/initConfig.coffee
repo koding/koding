@@ -18,8 +18,8 @@ if process.argv[5] is "true"
 
 
 process.on 'uncaughtException', (err)->
-  console.log err.stack
   exec './beep'
+  console.log err, err?.stack
 
 
 dbCallback= (err)->
@@ -31,13 +31,15 @@ dbCallback= (err)->
 
 dbUrl = switch process.argv[3] or 'local'
   when "local"
-    "mongodb://localhost:27017/kodingen3?auto_reconnect"
+    "mongodb://localhost:27017/koding?auto_reconnect"
   when "sinan"
     "mongodb://localhost:27017/kodingen?auto_reconnect"
   when "vpn"
-    "mongodb://kodingen_user:Cvy3_exwb6JI@sysmongo.ct.dev.srv.kodingen.com:27017/kodingen?auto_reconnect"
+    "mongodb://kodingen_user:Cvy3_exwb6JI@10.70.15.2:27017/kodingen?auto_reconnect"
   when "beta"
-    "mongodb://beta_koding_user:lkalkslakslaksla1230000@db0.beta.system.aws.koding.com/beta_koding?auto_reconnect"
+    "mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect"
+  when "beta-local"
+    "mongodb://beta_koding_user:lkalkslakslaksla1230000@web0.beta.system.aws.koding.com:27017/beta_koding?auto_reconnect"
   when "wan"
     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
   when "mongohq-dev"

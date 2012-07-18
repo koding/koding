@@ -1,5 +1,7 @@
 class Topics12345 extends AppController
   
+  listItemClass = TopicsListItemView
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -8,26 +10,26 @@ class Topics12345 extends AppController
     ,options
     super options,data
     @controllers = {}
-  
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
         name : 'Topics'
       data : @getView()
-    
+
   initAndBringToFront:(options,callback)->
     @bringToFront()
     callback()
-  
+
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : TopicsListItemView
+      subItemClass          : listItemClass
       limitPerPage          : 20
-      # feedMessage           : 
+      # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
       help                  :
-        subtitle            : "Learn About Topics" 
+        subtitle            : "Learn About Topics"
         tooltip             :
           title             : "<p class=\"bigtwipsy\">Topic Tags organize content that users share on Koding. Follow the topics you are interested in and we'll include the tagged items in your activity feed.</p>"
           placement         : "above"
@@ -55,26 +57,75 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
-      for name,listController of controller.resultsController.listControllers
-        listController.getListView().registerListener
-          KDEventTypes  : 'ItemWasAdded'
-          listener      : @
-          callback      : (pubInst, {view})=>
-            view.registerListener
-              KDEventTypes  : 'TopicWantsToExpand'
-              listener      : @
-              callback      : (pubInst, tag)=>
-                @createContentDisplay tag
-
       view.addSubView controller.getView()
 
   loadView:(mainView)->
     mainView.createCommons()
-    @createFeed mainView
-    # mainView.on "AddATopicFormSubmitted",(formElements)=> @addATopic formElements
+    KD.whoami().fetchRole (err, role) =>
+      if role is "super-admin"
+        listItemClass = TopicsListItemViewEditable
+      @createFeed mainView
+    # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
+
+    @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
+      @updateTopic topic
   
+  updateTopic:(topic)->
+    log "Update this: ", topic
+    controller = @
+    modal = new KDModalViewWithForms
+      title                       : "Update topic " + topic.title
+      height                      : "auto"
+      cssClass                    : "compose-message-modal"
+      width                       : 500
+      overlay                     : yes
+      tabs                        :
+        navigateable              : yes
+        goToNextFormOnSubmit      : no
+        forms                     : 
+          update                  :
+            title                 : "Update Topic Details"
+            callback              : (formData) =>
+              @emit "UpdateTopic"
+              log "Update:: ", formData
+              modal.modalTabs.forms.update.buttons.Update.hideLoader()
+              modal.destroy()
+            buttons               :
+              Update              :
+                style             : "modal-clean-gray"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Delete              :
+                style             : "modal-clean-red"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 16
+                callback          : =>
+                  topic.delete (err)=>
+                    modal.modalTabs.forms.update.buttons.Delete.hideLoader()
+                    modal.destroy()
+                    unless err then @emit 'TopicIsDeleted'
+                    else new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error editor"
+                        title     : err.message or "Error, please try again later!"
+            fields                :
+              Title               :
+                label             : "Title"
+                itemClass         : KDInputView
+                name              : "title"
+                defaultValue      : topic.title
+              Details             :
+                label             : "Details"
+                type              : "textarea"
+                itemClass         : KDInputView
+                name              : "details"
+                defaultValue      : topic.body or ""
+
   fetchFeedForHomePage:(callback)->
-    options = 
+    options =
       limit     : 6
       skip      : 0
       sort      :
@@ -83,9 +134,9 @@ class Topics12345 extends AppController
     selector = {}
     bongo.api.JTag.someWithRelationship selector, options, callback
 
-  # addATopic:(formElements)->
-  #   # log formElements,"controller"
-  #   bongo.api.JTag.create formElements, (err, tag)->
+  # addATopic:(formData)->
+  #   # log formData,"controller"
+  #   bongo.api.JTag.create formData, (err, tag)->
   #     if err
   #       warn err,"there was an error creating topic!"
   #     else
@@ -99,7 +150,6 @@ class Topics12345 extends AppController
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

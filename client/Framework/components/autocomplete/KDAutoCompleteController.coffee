@@ -15,28 +15,27 @@ class KDAutoCompleteController extends KDViewController
       itemDataPath          : ''
       separator             : ','
       wrapper               : 'parent'
-      valuesSavedAsString   : no
+      submitValuesAsText   : no
       defaultValue          : []
     ,options
-      
+
     super options, data
-    
+
     mainView.registerListener
       KDEventTypes: 'focus'
       listener: @
       callback:(event)=>
         @updateDropdownContents()
-    
+
     @selectedItemData    = []
     @hiddenInputs        = {}
     @selectedItemCounter = 0
-    
-  
+
   reset:->
     subViews = @itemWrapper.getSubViews().slice()
     for item in subViews
       @removeFromSubmitQueue item
-  
+
   loadView:(mainView)->
     @createDropDown()
     @getAutoCompletedItemParent()
@@ -54,7 +53,10 @@ class KDAutoCompleteController extends KDViewController
   keyDownOnInputView:(autoCompleteView,event)=>
     switch event.which
       when 13, 9 #enter, tab
-        @submitAutoComplete autoCompleteView.getValue()
+        unless autoCompleteView.getValue() is ""
+          @submitAutoComplete autoCompleteView.getValue()
+        else
+          return yes
       when 27 #escape
         @hideDropdown()
       when 38 #uparrow
@@ -84,34 +86,27 @@ class KDAutoCompleteController extends KDViewController
       callback      : =>
         view = @getView()
         view.$input().trigger('focus')
-    
-    dropdownListView.registerListener
-      KDEventTypes  : 'ItemWasAdded'
-      listener      : @
-      callback      : (pubInst, {view})=>
-        view.registerListener
-          KDEventTypes  : 'KDAutoCompleteSubmit'
-          listener      : @
-          callback      : @submitAutoComplete
+
+    dropdownListView.on 'ItemWasAdded', (view, index)=>
+      view.registerListener
+        KDEventTypes  : 'KDAutoCompleteSubmit'
+        listener      : @
+        callback      : @submitAutoComplete
 
     windowController = @getSingleton('windowController')
-    
+
     @dropdown = new KDListViewController
       view          : dropdownListView
 
     dropdownWrapper = @dropdown.getView()
 
-    @listenTo
-      KDEventTypes        : 'ReceivedClickElsewhere'
-      listenedToInstance  : dropdownWrapper
-      callback            : =>
-        windowController.removeLayer dropdownWrapper
-        @hideDropdown()
+    dropdownWrapper.on 'ReceivedClickElsewhere', =>
+      @hideDropdown()
 
     dropdownWrapper.setClass "kdautocomplete hidden #{@getOptions().listWrapperCssClass}"
     KDView.appendToDOMBody dropdownWrapper
-  
-  hideDropdown:-> 
+
+  hideDropdown:->
     dropdownWrapper = @dropdown.getView()
     dropdownWrapper.$().fadeOut 75
 
@@ -121,7 +116,7 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper.unsetClass "hidden"
     input  = @getView()
     offset = input.$().offset()
-    
+
     offset.top += input.getHeight()
     dropdownWrapper.$().css offset
 
@@ -135,7 +130,7 @@ class KDAutoCompleteController extends KDViewController
     #   top   : y
     #   left  : x
     # log @dropdown.getListView()
-    # @dropdown.getListView().$().css 
+    # @dropdown.getListView().$().css
     #   left  : mainView.getLeftOffset()
     #   top   : mainView.getHeight()-1
 
@@ -148,42 +143,42 @@ class KDAutoCompleteController extends KDViewController
     exactPattern = RegExp('^'+@dropdownPrefix.replace(/[^\s\w]/, '')+'$', 'i')
     exactMatches = []
     inexactMatches = []
-    
+
     {itemDataPath,allowNewSuggestions,minSuggestionLength} = @getOptions()
-  
+
     data.forEach (datum)=>
       unless @isItemAlreadySelected datum
         match = JsPath.getAt datum, itemDataPath
-        
+
         if exactPattern.test match
           exactMatches.push datum
         else
           inexactMatches.push datum
-    
+
     if (@dropdownPrefix.length >= minSuggestionLength) and allowNewSuggestions and not exactMatches.length
       @dropdown.getListView().addItemView @getNoItemFoundView()
 
     data = exactMatches.concat inexactMatches
     @dropdown.instantiateListItems data
     @dropdown.getListView().goDown()
-  #   
+  #
   # instantiateDropdownListItems:(items)->
   #   itemClass = @getOptions().itemClass
   #   dropdownListView = @dropdown.getListView()
-  #   
+  #
   #   if not itemClass
   #     log 'there is no item class for autocomplete item, will use default one'
   #     itemClass = KDAutoCompleteListItemView
-  #     
+  #
   #   for listItem in items
   #     itemInstance = new itemClass {delegate : dropdownListView},listItem
   #     dropdownListView.items.push itemInstance
   #     dropdownListView.appendItem itemInstance
-  #     
+  #
   #     itemInstance.registerListener KDEventTypes : 'KDAutoCompleteSubmit', listener : @, callback : @submitAutoComplete
-  #     
+  #
   #   dropdownListView.items[0]?.makeItemActive()
-  # 
+  #
   submitAutoComplete:(publishingInstance, data)->
     inputView = @getView()
     # log @getOptions().selectedItemsLimit, @selectedItemCounter
@@ -191,7 +186,6 @@ class KDAutoCompleteController extends KDViewController
       activeItem = @dropdown.getListView().getActiveItem()
       if activeItem.item
         @appendAutoCompletedItem()
-    
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
     else
@@ -201,9 +195,9 @@ class KDAutoCompleteController extends KDViewController
         type      : "mini"
         title   : "You can add up to #{@getOptions().selectedItemsLimit} items!"
         duration  : 4000
-    
+
     @hideDropdown()
-  
+
   getAutoCompletedItemParent:->
     {outputWrapper} = @getOptions()
     if outputWrapper instanceof KDView
@@ -226,16 +220,16 @@ class KDAutoCompleteController extends KDViewController
         if suggested is selected
           return yes
     no
-  
+
   addHiddenInputItem:(name, value)->
     @itemWrapper.addSubView @hiddenInputs[name] = new KDInputView
       type          : "hidden"
       name          : name
       defaultValue  : value
-  
+
   removeHiddenInputItem:(name)->
     @hiddenInputs[name].remove()
-    
+
   addSelectedItem:(name,data)->
     {selectedItemClass} = @getOptions()
     @itemWrapper.addSubView itemView = new selectedItemClass
@@ -244,7 +238,7 @@ class KDAutoCompleteController extends KDViewController
       name     : name
     ,data
     itemView.setPartial "<span class='close-icon'></span>"
-  
+
   getSelectedItemData:->
     @selectedItemData
 
@@ -252,11 +246,12 @@ class KDAutoCompleteController extends KDViewController
     @getSelectedItemData().push data
 
   removeSelectedItemData:(data)->
-    for selectedData,i in @getSelectedItemData()
+    selectedItemData = @getSelectedItemData()
+    for selectedData,i in selectedItemData
       if selectedData is data
-        @getSelectedItemData().splice i,1
+        selectedItemData.splice i,1
         return
-  
+
   getCollectionPath:->
     {name} = @getOptions()
     throw new Error 'No name!' unless name
@@ -264,17 +259,17 @@ class KDAutoCompleteController extends KDViewController
     collectionName = Inflector.pluralize(leaf)
     path.push collectionName
     path.join('.')
-  
+
   addSuggestion:(title)->
     @propagateEvent KDEventType: 'AutocompleteSuggestionWasAdded', title
-  
+
   addItemToSubmitQueue:(item,data)->
     data or= item.getData()
 
-    {itemDataPath,form} = @getOptions()
-    
+    {itemDataPath,form,submitValuesAsText} = @getOptions()
+
     if data
-      itemValue = if @options.valuesSavedAsString then JsPath.getAt data, itemDataPath else data
+      itemValue = if submitValuesAsText then JsPath.getAt data, itemDataPath else data
     else
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
@@ -283,70 +278,77 @@ class KDAutoCompleteController extends KDViewController
     return no if @isItemAlreadySelected data
 
     path = @getCollectionPath()
-    
+
+    itemName  = "#{name}-#{@selectedItemCounter++}"
     if form
       collection = form.getCustomData path
-      unless collection?
-        collection = []
+      collection = [] unless collection?
       form.addCustomData path, collection
-      collection.push itemValue
-      @selectedItemCounter++
+      id = itemValue.getId?()
+      collection.push(
+        if submitValuesAsText
+          itemValue
+        else if id?
+          constructorName   : itemValue.constructor.name
+          id                : id
+        else
+          $suggest          : itemValue
+      )
+      if item.getOptions().userInput is not ""
+        @selectedItemCounter++
     else
-      itemName  = "#{name}-#{@selectedItemCounter++}"
       @addHiddenInputItem path.join('.'),itemValue
 
     @addSelectedItemData data
-    @addSelectedItem itemName,data
+    @addSelectedItem itemName, data
     # debugger
     @getView().setValue @dropdownPrefix = ""
-
-
 
   removeFromSubmitQueue:(item, data)->
     {itemDataPath,form} = @getOptions()
     data      or= item.getData()
-    itemValue = if @options.savedValueIsString then JsPath.getAt data, itemDataPath else data
     path = @getCollectionPath()
-    
     if form
-      # we are changing form.removeCustomData for the time being, since it deletes the whole array and not just an item in the array
-      if typeof form.getCustomData(path) is 'string'
-        form.removeCustomData path
-      else
-        form.removeCustomData path, itemValue
+      collection = JsPath.getAt form.getCustomData(), path
+      collection = collection.filter (sibling)->
+        id = data.getId?()
+        unless id?
+          sibling.$suggest isnt data.title
+        else
+          sibling.id isnt id
+      JsPath.setAt form.getCustomData(), path, collection
     else
       @removeHiddenInputItem path.join('.')
-    
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
-  
+
   rearrangeInputWidth:()->
     # mainView = @getView()
     # mainView.$input().width mainView.$input().parent().width() - mainView.$input().prev().width()
-  
+
   appendAutoCompletedItem:()->
     @getView().setValue ""
     @getView().$input().trigger "focus"
-  
+
   updateDropdownContents:->
     inputView = @getView()
     if inputView.getValue() is ""
       @hideDropdown()
-    
+
     if inputView.getValue() isnt "" # and @dropdownPrefix isnt inputView.getValue()
       @dropdownPrefix = inputView.getValue()
       @fetch (data)=>
         @refreshDropDown data
         @showDropdown()
-      
+
   keyUpOnInputView:(inputView, event)=>
     return if event.keyCode in [9,38,40] #tab
     @updateDropdownContents()
     # else
     #   log "just wait for a selection"
     no
-  
+
   #this one I guess should be overriden
   fetch:(callback)->
     args = {}
@@ -367,19 +369,19 @@ class KDAutoCompleteController extends KDViewController
         @dropdown.getListView().addItemView view, 0
       else
         @dropdown.getListView().addItemView view
-  
-  getNoItemFoundView: ->
+
+  getNoItemFoundView:(suggestion) ->
     {nothingFoundItemClass} = @getOptions()
     view = new nothingFoundItemClass
       delegate: @dropdown.getListView()
-      userInput: @getView().getValue()
-  
+      userInput: suggestion or @getView().getValue()
+
   showNoDataFound: ->
     noItemFoundView = @getNoItemFoundView()
     @dropdown.removeAllItems()
     @dropdown.getListView().addItemView noItemFoundView
     @showDropdown()
-  
+
   destroy:->
     @dropdown.getView().destroy()
     super
@@ -403,7 +405,7 @@ class KDAutoComplete extends KDInputView
   $input:()->@$().find("input").eq(0)
   getValue:()-> @$input().val()
   setValue:(value)-> @$input().val(value)
-  
+
   bindEvents:()->
     super @$input()
 
@@ -420,7 +422,7 @@ class KDAutoComplete extends KDInputView
   focus:(pubInst,event)->
     @setClass "focus"
     (@getSingleton "windowController").setKeyView @
-    
+
   keyDown:(event)->
     (@getSingleton "windowController").setKeyView @
     switch event.which
@@ -445,9 +447,9 @@ class KDAutocompleteUnselecteableItem extends KDListItemView
 
   keyDown: ->
     no
-    
+
   makeItemActive: ->
-    
+
   destroy: ->
     super no
 
@@ -458,14 +460,12 @@ class KDAutoCompleteFetchingItem extends KDAutocompleteUnselecteableItem
   partial: (data) ->
     "Fetching in process..."
 
-    
 class KDAutoCompleteNothingFoundItem extends KDAutocompleteUnselecteableItem
   constructor:->
     super
     @setClass "kdautocompletelistitem no-result"
   partial: (data) ->
     "Nothing found"
-      
 
 class KDAutoCompletedItem extends KDView
   constructor:(options,data)->
@@ -480,7 +480,7 @@ class KDAutoCompletedItem extends KDView
 
   viewAppended:->
     @setPartial @partial()
-  
+
   partial:(data)->
     @getDelegate().getOptions().itemClass::partial @getData()
 
@@ -511,7 +511,7 @@ class KDAutoCompleteListView extends KDListView
         nextItem.makeItemActive()
     else
       @items[0]?.makeItemActive()
-    
+
   goUp:()->
     activeItem = @getActiveItem()
     if activeItem.index?
@@ -526,7 +526,7 @@ class KDAutoCompleteListView extends KDListView
     active =
       index : null
       item  : null
-    for item,i in @items 
+    for item,i in @items
       if item.active
         active.item  = item
         active.index = i
@@ -549,13 +549,13 @@ class KDAutoCompleteListItemView extends KDListItemView
 
   mouseEnter:()->
     @makeItemActive()
-    
+
   destroy: ->
     super no
 
   mouseLeave:()->
     @makeItemInactive()
-  
+
   makeItemActive:()->
     item.makeItemInactive() for item in @getDelegate().items
     @active = yes
@@ -564,45 +564,24 @@ class KDAutoCompleteListItemView extends KDListItemView
   makeItemInactive:()->
     @active = no
     @unsetClass "active"
-  
+
   click:()->
     @propagateEvent KDEventType: 'KDAutoCompleteSubmit', globalEvent : yes, @data
     no
-  
+
   partial:()->
     "<div class='autocomplete-item clearfix'>Default item</div>"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
 # SIMPLE AUTOCOMPLETE VIEW
 class KDSimpleAutocomplete extends KDAutoComplete
   addItemToSubmitQueue: (item) ->
     itemValue = JsPath.getAt item.getData(), @getOptions().itemDataPath
     @setValue itemValue
-    
+
   keyUp: (event) ->
     return if event.keyCode is 13
     super
-    
+
   showNoDataFound: ->
     @dropdown.removeAllItems()
     @hideDropdown()
@@ -615,83 +594,83 @@ class KDMultipleInputView extends KDSimpleAutocomplete
       title: ''
     }, options
     super options
-    
+
   focus:(pubInst,event)->
     (@getSingleton "windowController").setKeyView @
-    
+
   viewAppended: ->
     # log 'view appended'
     @list = new MultipleInputListView delegate: @
     @addSubView @list
-    
+
   $input:()-> @$().find("input.main").eq(0)
-  
+
   getValues: ->
     @_values
-    
+
   rearrangeInputWidth: ->
     no
-    
+
   addItemToSubmitQueue: ->
     super
     @inputAddCurrentValue()
-    
+
   keyUp: (event) ->
     if event.keyCode is 13
       @inputAddCurrentValue()
-      
+
     super
-    
+
   inputRemoveValue: (value) ->
     index = @_values.indexOf value
     if index > -1
       @_values.splice index, 1
-      
+
     @_inputChanged()
-    
+
   clear: ->
     @_values = []
     @removeAllItems()
     @_inputChanged()
-    
+
   inputAddCurrentValue: () ->
     value = @$input().val()
     value = $.trim value
 
     return if value in @_values or value is ''
-    
+
     @_values.push value
     @$input().val ''
     @list.addItems [value]
-    
+
     @_inputChanged()
-    
+
   _inputChanged: ->
     if not @_hiddenInputs
       @_hiddenInputs = []
-      
+
     #remove old inputs
     for input in @_hiddenInputs
       input.destroy()
-      
+
     inputName = @getOptions().name
     for value, index in @_values
       newInput = new KDInputView type: 'hidden', name: inputName + "[#{index}]", defaultValue: value
       @_hiddenInputs.push newInput
       @addSubView newInput
-      
+
     @handleEvent type: 'MultipleInputChanged', values: @getValue()
-  
+
   click: (event) ->
     if $(event.target).hasClass 'addNewItem'
       @inputAddCurrentValue()
-    
-  
+
+
   setDomId:()->
     @$input().attr "id", @getDomId()
     @$input().data "data-id", @getId()
     # @$input().attr "name", @getName()
-  
+
   setDomElement: ->
     # <p class='search-tags clearfix'><span>Ryan <cite>x</cite></span></p>
     @domElement = $ "<div class='filter kdview'>
@@ -701,22 +680,21 @@ class KDMultipleInputView extends KDSimpleAutocomplete
         <input type='text' class='main'>
         <a href='#' class='addNewItem'>+</a>
       </div>
-      
     </div>"
-    
+
 class NoAutocompleteInputView extends KDMultipleInputView
 
   keyUp: (event) ->
     if event.keyCode is 13
       @inputAddCurrentValue()
-      
+
   setDomElement:(cssClass)->
     {placeholder} = @getOptions()
     @domElement = $ "<div class='#{cssClass}'><input type='text' class='main' placeholder='#{placeholder or ''}' /></div>"
-      
+
   addItemToSubmitQueue: (item) ->
     no
-    
+
 class NoAutocompleteMultipleListView extends KDView
   constructor: (options, data) ->
     options ?= {}
@@ -724,27 +702,27 @@ class NoAutocompleteMultipleListView extends KDView
       cssClass: 'common-view input-with-extras'
     options = $.extend defaults, options
     super options, data
-    
+
   viewAppended: ->
     {icon,input,button} = @options
-    
+
     if icon
       @setClass "with-icon"
       options =
         tagName  : "span"
         cssClass : "icon #{icon}"
       @addSubView @icon   = new KDCustomHTMLView options
-      
+
     if input
       @addSubView @input  = new NoAutocompleteInputView input
-      
+
     if button
       defaults =
         callback:(event)=>
           event.preventDefault()
           event.stopPropagation()
           @input.inputAddCurrentValue()
-          
+
       button = $.extend defaults, button
       @addSubView @button = new KDButtonView button
 
@@ -752,12 +730,12 @@ class MultipleInputListView extends KDListView
   setDomElement: ->
     # <span>Ryan <cite>x</cite></span>
     @domElement = $ "<p class='search-tags clearfix'></p>"
-      
+
   addItems: (items) ->
     for item in items
       newItem = new MultipleListItemView {delegate: @}, item
       @addItemView newItem
-      
+
   removeListItem: (instance) ->
     super instance
     @getDelegate().inputRemoveValue instance.getData()
@@ -766,7 +744,7 @@ class MultipleListItemView extends KDListItemView
   click: (event) ->
     if $(event.target).hasClass 'removeIcon'
       @getDelegate().removeListItem @
-    
+
   setDomElement: ->
     @domElement = $ '<span />'
   partial: ->

@@ -15,11 +15,42 @@ __resReport = (error,result,callback)->
   else
     callback? null,result
 
-databasesKites = new Kite
+class AccessError extends Error
+  constructor:(@message)->
+
+class KodingError extends Error
+  constructor:(message)->
+    return new KodingError(message) unless @ instanceof KodingError
+    Error.call @
+    @message = message
+    @name = 'KodingError'
+
+this.Error = KodingError
+
+module.exports = new Kite "databases"
 
   #**********************************************#
   #***************** MySQL **********************#
   #**********************************************#
+
+  fetchMysqlDatabases : (options, callback)->
+
+    # this method will list mysql databases for the user
+    # object will be returned:
+
+    #
+    # options =
+    #   username : String # Kodingen username, db username will be generated wiht username+dbName (db username max 16 symbols, will be truncated)
+    #     ^^^^ wrong - this kite should not know anything about how kodingen works
+
+    mySQL.fetchDatabaseList options,(error,result)->
+      result.forEach (set)->
+        set.dbName = set.Db
+        delete set.Db
+        set.dbUser = set.User
+        delete set.User
+
+      __resReport(error,result,callback)
 
   createMysqlDatabase : (options,callback)->
 
@@ -37,7 +68,7 @@ databasesKites = new Kite
     #   dbName   : String # database name
     #
 
-
+    console.log options
     mySQL.createDatabase options,(error,result)->
       __resReport(error,result,callback)
 
@@ -127,4 +158,4 @@ databasesKites = new Kite
     mongoDB.removeDatabase options,(error,result)->
       __resReport(error,result,callback)
 
-module.exports = databasesKites
+

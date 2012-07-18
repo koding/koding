@@ -1,0 +1,8 @@
+Adding a program to shared hosting (to be used by all our users so be careful.):
+
+1- add your tool to hosting_packages/manifests/tools.pp
+2- make sure tools.pp is in hosting_packages/manifests/init.pp
+3- go add your tool to cloudlinux/files/etc/cagefs/conf.d/tools.cfg
+4- make sure tools.cfg is mentioned in cloudlinux/manifests/cagefs_configs.pp
+
+if you want to make a new file, then you have to make a new tools.pp tools.cfg and reference them at init.pp and cagefs_configs.pp

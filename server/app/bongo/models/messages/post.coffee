@@ -1,26 +1,46 @@
 class JPost extends jraphical.Message
-  
+
+  @mixin Followable
+  @::mixin Followable::
   @::mixin Taggable::
-  
-  {secure,dash} = bongo
+  @::mixin Notifying::
+  @mixin Flaggable
+  @::mixin Flaggable::
+
+  {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
   
+  {log} = console
+  
+  schema = _.extend {}, jraphical.Message.schema, {
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
+  }
+
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
-    tagRole           : 'post'
+    emitFollowingActivities: yes
+    taggedContentRole : 'post'
+    tagRole           : 'tag'
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete'
+        'delete','modify'
       ]
+    schema            : schema
     relationships     : 
       comment         : JComment
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
-      likedBy         : 
+      likedBy         :
         targetType    : JAccount
         as            : 'like'
       repliesActivity :
@@ -29,10 +49,21 @@ class JPost extends jraphical.Message
       tag             :
         targetType    : JTag
         as            : 'tag'
+      follower        :
+        as            : 'follower'
+        targetType    : JAccount
 
   @getAuthorType =-> JAccount
 
   @getActivityType =-> CActivity
+  
+  @getFlagRole =-> ['sender', 'recipient']
+  
+  createKodingError =(err)->
+    kodingErr = new KodingError(err.message)
+    for own prop of err
+      kodingErr[prop] = err[prop]
+    kodingErr
   
   @create = secure (client, data, callback)->
     constructor = @
@@ -44,77 +75,166 @@ class JPost extends jraphical.Message
         {tags} = data.meta
         delete data.meta.tags
       status = new constructor data
-      status
-        .sign(delegate)
-        .save (err)->
-          if err
-            callback err
-          else
-            # TODO: emit an event, and move this (maybe)
-            activity = new (constructor.getActivityType())
-            activity.originId = delegate.getId()
-            activity.originType = delegate.constructor.name
-            activity.save (err)->
+      # TODO: emit an event, and move this (maybe)
+      activity = new (constructor.getActivityType())
+      activity.originId = delegate.getId()
+      activity.originType = delegate.constructor.name
+      teaser = null
+      daisy queue = [
+        ->
+          status
+            .sign(delegate)
+            .save (err)->
               if err
                 callback err
-              else
-                activity.addSubject status, (err)->
-                  if err
-                    callback err
-                  else
-                    status.fetchTeaser (err, teaser)=>
-                      if err
-                        callback err
-                      else
-                        activity.update
-                          $set:
-                            snapshot: JSON.stringify(teaser)
-                          $addToSet:
-                            snapshotIds: status.getId()
-                        , -> callback null, status
-                        if tags then status.addTags client, tags, (err)->
-                        status.addParticipant delegate, 'author'
+              else queue.next()
+        ->
+          activity.save (err)->
+            if err
+              callback createKodingError err
+            else queue.next()
+        ->
+          activity.addSubject status, (err)->
+            if err
+              callback createKodingError err
+            else queue.next()
+        ->
+          tags or= []
+          status.addTags client, tags, (err)->
+            if err
+              callback createKodingError err
+            else
+              queue.next()
+        ->
+          status.fetchTeaser (err, teaser_)=>
+            if err
+              callback createKodingError err
+            else
+              teaser = teaser_
+              queue.next()
+        ->
+          activity.update
+            $set:
+              snapshot: JSON.stringify(teaser)
+            $addToSet:
+              snapshotIds: status.getId()
+          , ->
+            callback null, teaser
+            queue.next()
+        -> 
+          status.addParticipant delegate, 'author'
+      ]
+  
+  constructor:->
+    super
+    @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
+    @notifyFollowersWhen 'ReplyIsAdded'
+  
+  fetchOrigin: (callback)->
+    originType = @getAt 'originType'
+    originId   = @getAt 'originId'
+    if Base.constructors[originType]?
+      Base.constructors[originType].one {_id: originId}, callback
+    else
+      callback null
+  
+  modify: secure (client, formData, callback)->
+    {delegate} = client.connection
+    if delegate.getId().equals @originId
+      {tags} = formData.meta if formData.meta?
+      delete formData.meta
+      daisy queue = [
+        =>
+          tags or= []
+          @addTags client, tags, (err)=>
+            if err
+              callback err
+            else
+              queue.next()
+        =>
+          @update $set: formData, callback
+      ]
+    else
+      callback new KodingError "Access denied"
 
-  mark: secure ({connection:{delegate}}, flag, callback)->
-    @flag flag, yes, delegate.getId(), ['sender', 'recipient'], callback
-    
-  unmark: secure ({connection:{delegate}}, flag, callback)->
-    @unflag flag, delegate.getId(), ['sender', 'recipient'], callback
-
-  delete: secure do ->
-    getDeleteHelper =(selector, orientation, callback)->
-      ->
-        Relationship.all selector, (err, rels)->
-          if err
-            callback err
-          else
-            queue = []
-            rels.forEach (rel)->
-              queue.push ->
-                constructor = bongo.Base.constructors[rel.getAt orientation+'Name']
-                constructor.remove _id: rel.getAt(orientation+'Id'), -> queue.fin()
-            dash queue, callback
-
-    ({connection:{delegate}}, callback)->
-      originId = @getAt 'originId'
-      unless delegate.getId().equals originId
-        callback new KodingError 'Access denied!'
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        getDeleteHelper {
+          sourceId    : id
+          sourceName  : 'JComment'
+        }, 'target', -> queue.fin()
+        ->
+          Relationship.remove {
+            targetId  : id
+            as        : 'post'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        @emit 'PostIsDeleted', 1
+        callback null
+  
+  fetchActivityId:(callback)->
+    Relationship.one {
+      targetId    : @getId()
+      sourceName  : /Activity$/
+    }, (err, rel)->
+      if err
+        callback err
       else
-        queue = [
-          getDeleteHelper {
-            targetId    : @getId()
-            sourceName  : /Activity$/
-          }, 'source', -> queue.fin()
-          getDeleteHelper {
-            sourceId    : @getId()
-            sourceName  : 'JComment'
-          }, 'target', -> queue.fin()
-        ]
-        dash queue, =>
-          @emit 'PostIsDeleted', 1
-          callback null
-          
-
+        callback null, rel.getAt 'sourceId'
+  
+  fetchActivity:(callback)->
+    @fetchActivityId (err, id)->
+      if err
+        callback err
+      else
+        CActivity.one _id: id, callback 
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    repliesCount = @getAt 'repliesCount'
+    queue = [
+      =>
+        @fetchActivityId (err, activityId_)->
+          activityId = activityId_
+          queue.next()
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @fetchTeaser (err, teaser_)=>
+          if err
+            callback createKodingError err
+          else
+            teaser = teaser_
+            queue.next()
+      ->
+        CActivity.update _id: activityId, {
+          $set:
+            snapshot: JSON.stringify teaser
+            'sorts.repliesCount': repliesCount - 1
+          $pullAll:
+            snapshotIds: rel.getAt 'targetId'
+        }, -> queue.next()
+      
+      callback
+    ]
+    daisy queue
+  
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
@@ -130,16 +250,40 @@ class JPost extends jraphical.Message
           callback err
         else
           unless likedBy
-            @addLikedBy delegate, returnCount: yes, (err, count)=>
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchActivityId (err, id)->
+                  CActivity.update {_id: id}, {
+                    $set: 'sorts.likesCount': count
+                  }, log
+                @fetchOrigin (err, origin)=>
+                  if err then log "Couldn't fetch the origin"
+                  else @emit 'LikeIsAdded', {
+                    origin
+                    subject       : ObjectRef(@).data
+                    actorType     : 'liker'
+                    actionType    : 'like'
+                    liker    		  : ObjectRef(delegate).data
+                    likesCount	  : count
+                    relationship  : docs[0]
+                  }
           else
-            callback new Error 'You already liked this.'
-  
-  reply: secure ({connection}, replyType, comment, callback)->
-    {delegate} = connection
+            callback new KodingError 'You already like this.'
+            ###
+            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+                console.log err
+              else
+                count ?= 1
+                @update ($set: 'meta.likes': count), callback
+            ###
+
+  reply: secure (client, replyType, comment, callback)->
+    {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
@@ -150,16 +294,35 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            @addComment comment, returnCount: yes, (err, count)=>
+            @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
               else
-                @update $inc: repliesCount: 1, (err)=>
+                @update $set: repliesCount: count, (err)=>
                   if err
                     callback err
                   else
                     callback null, comment
-                    @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                    @fetchActivityId (err, id)->
+                      CActivity.update {_id: id}, {
+                        $set: 'sorts.repliesCount': count
+                      }, log
+                    @fetchOrigin (err, origin)=>
+                      if err
+                        console.log "Couldn't fetch the origin"
+                      else
+                        @emit 'ReplyIsAdded', {
+                          origin
+                          subject       : ObjectRef(@).data
+                          actorType     : 'replier'
+                          actionType    : 'reply'
+                          replier 		  : ObjectRef(delegate).data
+                          reply   		  : ObjectRef(comment).data
+                          repliesCount	: count
+                          relationship  : docs[0]
+                        }
+                        @follow client, emitActivity: no, (err)->
+                        @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
@@ -169,6 +332,8 @@ class JPost extends jraphical.Message
         query         :
           targetName  : 'JComment'
           as          : 'reply'
+          'data.deletedAt':
+            $exists   : no
         limit         : 3
         sort          :
           timestamp   : -1

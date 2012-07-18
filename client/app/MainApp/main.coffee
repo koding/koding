@@ -1,4 +1,4 @@
-Pusher.channel_auth_endpoint = '/channel/auth';
+Pusher.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
 
 mainController = new MainController
 
@@ -10,7 +10,11 @@ bongo.use (remote, connection)->
 
 # Cacheable = new Cacheable
 
-firstLoad = yes  
+# setTimeout ->
+#   appManager.openApplication("Chat")
+# ,5000
+
+firstLoad = yes
 connectionLostModalId = null
 connectionLostNotification = null
 
@@ -22,9 +26,9 @@ initConnectionEvents = _.once (conn)->
     setTimeout -> # to avoid modal to appear on page refresh
 
       if connectionLostNotification?
-        connectionLostNotification.destroy() 
+        connectionLostNotification.destroy()
         connectionLostNotification = null
-      
+
       # THE MODAL APPEARS WHEN CONNECTION IS LOST
       unless connectionLostModalId?
         connectionLostModalId = KDModalController.createAndShowNewModal
@@ -39,25 +43,25 @@ initConnectionEvents = _.once (conn)->
             """
           height  : "auto"
           overlay : yes
-          buttons : 
+          buttons :
             "Close and Refresh later" :
               style     : "modal-clean-red"
               callback  : ()->
                 @propagateEvent KDEventType:'KDModalShouldClose'
                 connectionLostModalId = null
                 if connectionLostNotification?
-                  connectionLostNotification.destroy() 
+                  connectionLostNotification.destroy()
                   connectionLostNotification = null
 
                 updateModalActive = no
-              
+
                 # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED BEFORE CONNECTION RE-ESTABLISHES
                 connectionLostNotification = new KDNotificationView
                   title    : "Server Connection Has Been Lost"
                   content  : "<span class='small-loader white fade in'></span> Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
                   duration : 999999999
     ,500
-    
+
 bongo.connect (api, conn)->
   initConnectionEvents conn
 
@@ -77,8 +81,8 @@ bongo.connect (api, conn)->
         """
       height  : "auto"
       overlay : yes
-      buttons : 
-        "Refresh Now" : 
+      buttons :
+        "Refresh Now" :
           style     : "modal-clean-red"
           callback  : ()->
             @propagateEvent KDEventType:'KDModalShouldClose'
@@ -90,9 +94,9 @@ bongo.connect (api, conn)->
             @propagateEvent KDEventType:'KDModalShouldClose'
             connectionLostModalId = null
             if connectionLostNotification?
-              connectionLostNotification.destroy() 
+              connectionLostNotification.destroy()
               connectionLostNotification = null
-            updateModalActive = no       
+            updateModalActive = no
             # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED AFTER CONNECTION RE-ESTABLISHES
             connectionLostNotification = new KDNotificationView
               title    : "Please back up your work and refresh!"
@@ -109,7 +113,7 @@ bongo.connect (api, conn)->
       content  : "If you backed up you can refresh now, changes will not be saved until you refresh."
       duration : 999999999
 
-  # 
+  #
   # CONNECTIVITY NOTIFICATIONS PART END
   #
 
@@ -121,7 +125,7 @@ bongo.connect (api, conn)->
         if options.startListening
           @start (err)->
             throw err if err
-    
+
     bongo.Model::fetchPrivateChannel = do ->
       {JChannel} = api
       channels = []
@@ -137,9 +141,9 @@ bongo.connect (api, conn)->
               channels[secretChannelId] = channel
               callback null, channel
           else callback new KodingError 'bad user!'
-    
+
     AccountMixin.init(api)
-    
+
     mainController.setVisitor new api.JVisitor startListening: yes
 
     cyclePrivateChannel =(delegate)->
@@ -154,12 +158,10 @@ bongo.connect (api, conn)->
     changeLoginState = (delegate)->
       cyclePrivateChannel(delegate)
       mainController.getVisitor().currentDelegate = delegate
-      bongo.api.JUser.fetchUser (err,user)=>
-        mainController.getVisitor().authenticatedUser = user
-    
+
     mainController.getVisitor().on 'change.login', changeLoginState
     mainController.getVisitor().on 'change.logout', changeLoginState
-    
+
     KD.socketConnected()
     firstLoad = no
 
@@ -167,7 +169,7 @@ bongo.connect (api, conn)->
   bongo.api.JVisitor.getVersion (err, version)->
     return if KD.version is version or updateModalActive
     updateModalActive = yes
-  
+
     modal = new KDBlockingModalView
       title   : "There is a new version available!"
       content : "<div class='modalformline'>Please save your work and refresh!
@@ -175,7 +177,7 @@ bongo.connect (api, conn)->
       height  : "auto"
       overlay : yes
       buttons :
-        "Refresh Now" : 
+        "Refresh Now" :
           style     : "modal-clean-red"
           callback  : ()->
             modal.destroy()
@@ -185,7 +187,7 @@ bongo.connect (api, conn)->
           callback  : ()->
             modal.destroy()
             updateModalActive = no
-        
+
 
 # if location.hostname is "localhost"
 #   a = setInterval ->
@@ -200,8 +202,8 @@ bongo.connect (api, conn)->
 #             type : "growl"
 #             title : "Oh no, I'm going down..."
 #             duration : 500
-#           location.reload yes     
-# 
+#           location.reload yes
+#
 #           #
 #           # BSOD SECTION :)
 #           #
@@ -209,5 +211,5 @@ bongo.connect (api, conn)->
 #           #   location.assign "http://localhost:3000:/bsod.html"
 #           # ,1000
 #           #
-#       
+#
 #   ,1000

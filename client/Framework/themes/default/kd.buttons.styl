@@ -41,6 +41,10 @@
     width             auto!important
   &.with-menu
     padding-right     25px!important
+  &.loading
+    color             transparent!important
+    text-shadow       none!important
+      
 
 .kdbuttonwithmenu-wrapper
   position          relative
@@ -421,7 +425,7 @@ button.transparent
   rounded             3px
   >button
     border            1px solid #ccc
-    border-width      1px 0
+    border-width      1px 1px 1px 0
     border-color      #ccc #ccc #bbb #ccc
     color             #333
     font-size         11px
@@ -457,7 +461,7 @@ button.transparent
     rounded         3px 0 0 3px
 
   >button:last-child
-    border-width    1px
+    // border-width    1px
     rounded         0 3px 3px 0
 
 

@@ -2,10 +2,10 @@ class KDButtonViewWithMenu extends KDButtonView
   constructor:->
     super
 
-  setDomElement:()->
+  setDomElement:(cssClass = '')->
     @domElement = $ """
-      <div class='kdbuttonwithmenu-wrapper'>
-        <button class='kdbutton clean-gray with-icon with-menu' id='#{@getId()}'>
+      <div class='kdbuttonwithmenu-wrapper #{cssClass}'>
+        <button class='kdbutton #{cssClass} with-icon with-menu' id='#{@getId()}'>
           <span class='icon hidden'></span>
         </button>
         <span class='chevron-arrow-separator'></span>
@@ -22,7 +22,7 @@ class KDButtonViewWithMenu extends KDButtonView
     if $(event.target).is(".chevron-arrow")
       @contextMenu event
       return no
-    @getCallback().call @,event
+    @getCallback().call @, event
 
   contextMenu:(event)->
     @createContextMenu event
@@ -46,13 +46,14 @@ class KDButtonViewWithMenu extends KDButtonView
       controller = new (contextControllerClass or KDContextMenuTreeViewController) {
         subItemClass
         view
-      }
-      , menuTreeData
+      }, menuTreeData
 
       # @listenTo 
       #   KDEventTypes : "itemsAdded"
       #   listenedToInstance : controller
       #   callback : ()=> @buttonMenu.positionContextMenu()
+      @utils.wait 100, =>
+        @buttonMenu.positionContextMenu()
 
     KDView.appendToDOMBody @buttonMenu
     

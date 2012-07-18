@@ -9,6 +9,10 @@ define  yumrepos ($repo) {
          'ius': {
             include yumrepos::ius
          }
+         'koding': {
+            include yumrepos::koding
+         }
+
 
     }
 }

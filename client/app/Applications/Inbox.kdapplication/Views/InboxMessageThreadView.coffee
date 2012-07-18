@@ -5,18 +5,22 @@ class InboxMessageThreadView extends CommentView
     @setClass "thread-container"
   
   createSubViews:(data)->
-    @commentList = new CommentListView
-      subItemClass: InboxMessageReplyView
-#      lastToFirst: yes
-      delegate: @
+
+    @commentList = new KDListView
+      type          : "comments"
+      subItemClass  : InboxMessageReplyView
+      delegate      : @
     , data
 
     @commentListViewController = new CommentListViewController 
       view: @commentList
     , data
     
-    
-    @addSubView showMore = new InboxShowMoreLink delegate: @commentList, data
+    @addSubView showMore = new CommentViewHeader
+      delegate: @commentList
+      itemTypeString: "replies"
+    , data
+
     showMore.unsetClass "show-more-comments"
     showMore.setClass "show-more"
     @addSubView @commentList

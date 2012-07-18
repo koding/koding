@@ -64,7 +64,7 @@ exports.removeListener = function(elem, type, callback) {
     }
 };
 
-/**
+/*
 * Prevents propagation and clobbers the default action of the passed event
 */
 exports.stopEvent = function(e) {
@@ -87,29 +87,13 @@ exports.preventDefault = function(e) {
         e.returnValue = false;
 };
 
-exports.getDocumentX = function(e) {
-    if (e.clientX) {
-        return e.clientX + dom.getPageScrollLeft();
-    } else {
-        return e.pageX;
-    }
-};
-
-exports.getDocumentY = function(e) {
-    if (e.clientY) {
-        return e.clientY + dom.getPageScrollTop();
-    } else {
-        return e.pageY;
-    }
-};
-
-/**
+/*
  * @return {Number} 0 for left button, 1 for middle button, 2 for right button
  */
 exports.getButton = function(e) {
     if (e.type == "dblclick")
         return 0;
-    else if (e.type == "contextmenu")
+    if (e.type == "contextmenu" || (e.ctrlKey && useragent.isMac))
         return 2;
 
     // DOM Event
@@ -174,20 +158,9 @@ else {
 }
 
 exports.addMouseWheelListener = function(el, callback) {
-    var max = 0;
+    var factor = 8;
     var listener = function(e) {
         if (e.wheelDelta !== undefined) {
-
-            // some versions of Safari (e.g. 5.0.5) report insanely high
-            // scroll values. These browsers require a higher factor
-            if (Math.abs(e.wheelDeltaY) > max)
-                max = Math.abs(e.wheelDeltaY);
-
-            if (max > 5000)
-                var factor = 400;
-            else
-                var factor = 8;
-
             if (e.wheelDeltaX !== undefined) {
                 e.wheelX = -e.wheelDeltaX / factor;
                 e.wheelY = -e.wheelDeltaY / factor;
@@ -211,32 +184,41 @@ exports.addMouseWheelListener = function(el, callback) {
     exports.addListener(el, "mousewheel", listener);
 };
 
-exports.addMultiMouseDownListener = function(el, button, count, timeout, callback) {
+exports.addMultiMouseDownListener = function(el, timeouts, eventHandler, callbackName) {
     var clicks = 0;
-    var startX, startY;
+    var startX, startY, timer;
+    var eventNames = {
+        2: "dblclick",
+        3: "tripleclick",
+        4: "quadclick"
+    };
 
     var listener = function(e) {
-        clicks += 1;
+        if (exports.getButton(e) != 0) {
+            clicks = 0;
+        } else {
+            var isNewClick = Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5;
+
+            if (!timer || isNewClick)
+                clicks = 0;
+
+            clicks += 1;
+
+            if (timer)
+                clearTimeout(timer)
+            timer = setTimeout(function() {timer = null}, timeouts[clicks - 1] || 600);
+        }
         if (clicks == 1) {
             startX = e.clientX;
             startY = e.clientY;
-
-            setTimeout(function() {
-                clicks = 0;
-            }, timeout || 600);
         }
 
-        var isButton = exports.getButton(e) == button;
-        if (!isButton || Math.abs(e.clientX - startX) > 5 || Math.abs(e.clientY - startY) > 5)
-            clicks = 0;
+        eventHandler[callbackName]("mousedown", e);
 
-        if (clicks == count) {
+        if (clicks > 4)
             clicks = 0;
-            callback(e);
-        }
-
-        if (isButton)
-            return exports.preventDefault(e);
+        else if (clicks > 1)
+            return eventHandler[callbackName](eventNames[clicks], e);
     };
 
     exports.addListener(el, "mousedown", listener);

@@ -3,9 +3,11 @@
 #
 class cloudlinux::cagefs_configs {
     File {
+        ensure => 'file',
         mode  => '0644',
         owner => 'root',
         group => 'root',
+        notify => Class["cloudlinux::cagefs_update"],
     }
         
     exec { "cagefs_init":
@@ -29,28 +31,32 @@ class cloudlinux::cagefs_configs {
     #}
 
     file { "/etc/cagefs/conf.d/vcs.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/vcs.cfg",
-        notify => Exec['/usr/sbin/cagefsctl'],
         require => [Class['hosting_packages::vcs'],Exec['cagefs_init']]
     }
 
 
     file { "/etc/cagefs/conf.d/nodejs.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/nodejs.cfg",
-        notify => Class["cloudlinux::cagefs_update"],
         require => [Class['nodejs_rpm::install'],Exec['cagefs_init']]
     }
     
 
     file { "/etc/cagefs/conf.d/python.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/python.cfg",
-        notify => Class["cloudlinux::cagefs_update"],
         require => [Class['hosting_packages::python'],Exec['cagefs_init']]
     }
-    
+    file { "/etc/cagefs/conf.d/php.cfg":
+        source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/php.cfg",
+        require => [Class['hosting_packages::php'],Exec['cagefs_init']]
+    }
+
+
+    file { "/etc/cagefs/conf.d/ruby.cfg":
+        source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/ruby.cfg",
+        require => [Class['hosting_packages::ruby'],Exec['cagefs_init']]
+    }
+     
     #file { "/etc/cagefs/conf.d/mail.cfg":
     #    ensure => file,
     #    source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/mail.cfg",
@@ -60,62 +66,71 @@ class cloudlinux::cagefs_configs {
     
     
     file { "/etc/cagefs/conf.d/fun.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/fun.cfg",
-        notify => Class["cloudlinux::cagefs_update"],
         require => [Class['hosting_packages::fun'],Exec['cagefs_init']]
     }
+
     file { "/etc/cagefs/conf.d/mysql-client.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/mysql-client.cfg",
-        notify => Class["cloudlinux::cagefs_update"],
         require => [Class['hosting_packages::mysql'],Exec['cagefs_init']]
     }
+
    file { "/etc/cagefs/conf.d/mongo-client.cfg":
-        ensure => file,
         source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/mongo-client.cfg",
-        notify => Class["cloudlinux::cagefs_update"],
         require => [Class['hosting_packages::mongo'],Exec['cagefs_init']]
     }
 
     file { "/etc/cagefs/conf.d/openssl.cfg":
-           ensure => file,
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/openssl.cfg",
-           notify => Class["cloudlinux::cagefs_update"],
            require => Exec['cagefs_init']
      }
     
     file { "/etc/cagefs/conf.d/coreutils.cfg":
-           ensure => file,
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/coreutils.cfg",
-           notify => Class["cloudlinux::cagefs_update"],
            require => Exec['cagefs_init']
     }
-     file { "/etc/cagefs/conf.d/java.cfg":
-           ensure => file,
+
+    file { "/etc/cagefs/conf.d/openssh-clients.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/openssh-clients.cfg",
+           require => Exec['cagefs_init']
+    }
+
+    file { "/etc/cagefs/conf.d/java.cfg":
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/java.cfg",
-           notify => Class["cloudlinux::cagefs_update"],
            require => [Class['hosting_packages::java'],Exec['cagefs_init']]
     }
-      file { "/etc/cagefs/conf.d/ftp.cfg":
-           ensure => file,
+
+    file { "/etc/cagefs/conf.d/ftp.cfg":
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/ftp.cfg",
-           notify => Class["cloudlinux::cagefs_update"],
            require => [Class['hosting_packages::ftp'],Exec['cagefs_init']]
     }
+
     file { "/etc/cagefs/conf.d/editors.cfg":
-           ensure => file,
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/editors.cfg",
-           notify => Class["cloudlinux::cagefs_update"],
            require => [Class['hosting_packages::editors'],Exec['cagefs_init']]
+    }
+
+
+   file { "/etc/cagefs/conf.d/devel.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/devel.cfg",
+           require => Exec['cagefs_init'],
+    }
+    
+    file { "/etc/cagefs/conf.d/tools.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/tools.cfg",
+           require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
+    }
+
+    file { "/etc/cagefs/conf.d/procps.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/procps.cfg",
+           require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
     }
    
    
-     file { "/etc/cagefs/cagefs.mp":
-           ensure => file,
+    file { "/etc/cagefs/cagefs.mp":
            source => "puppet:///modules/cloudlinux/etc/cagefs/cagefs.mp",
            notify => Class["cloudlinux::cagefs_remount_all"],
-           require => [Exec['cagefs_init'],Class[authconfig::service]] # remount cagefs only when sssd installed and running
+           require => [Exec['cagefs_init'],Class[authconfig::service],Class[cloudlinux::shared_dir]] # remount cagefs only when sssd installed and running
     }
 
 }

@@ -13,6 +13,8 @@ class hosting_packages::perl {
 		     "perl-YAML-LibYAML.x86_64",
 		     "perl-libwww-perl",
 		     "perl-CPAN.x86_64",
+		     "perl-FCGI.x86_64",
+             "perl-local-lib.noarch",
 		    ]
     
     package { "perl":

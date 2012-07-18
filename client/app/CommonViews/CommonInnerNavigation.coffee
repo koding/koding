@@ -32,18 +32,15 @@ class CommonInnerNavigationListController extends KDListViewController
     
     listView = @getListView()
     
-    @listenTo
-      KDEventTypes        : 'itemWasAdded'
-      listenedToInstance  : listView
-      callback            : (pubInst, {view})=>
-        view.registerListener
-          KDEventTypes    : 'click'
-          listener        : @
-          callback        : (pubInst, event)=>
-            unless view.getData().disabledForBeta
-              @selectItem view
-              @propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
-              listView.propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
+    listView.on 'ItemWasAdded', (view)=>
+      view.registerListener
+        KDEventTypes    : 'click'
+        listener        : @
+        callback        : (pubInst, event)=>
+          unless view.getData().disabledForBeta
+            @selectItem view
+            @propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
+            listView.propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
     
   loadView:(mainView)->
     list = @getListView()

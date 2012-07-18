@@ -3,25 +3,12 @@ require_once 'helpers.php';
 require_once 'kitecluster.php';
 require_once 'kite.php';
 
-$kites = array( 
-  'beta' => array(
-    'sharedHosting' => 'http://cl2.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl2.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl2.beta.service.aws.koding.com:4568/',
-  ),
-  'vpn' => array(
-    'sharedHosting' => 'http://cl3.beta.service.aws.koding.com:4566/',
-    'terminaljs'    => 'http://cl3.beta.service.aws.koding.com:4567/',
-    'databases'     => 'http://cl3.beta.service.aws.koding.com:4568/',
-  ),
-);
-
 class KiteController {
   private $kites;
   
   function __construct ($config_path, $db) {
     $this->config_path = $config_path;
-    $config_json = @file_get_contents($config_path);
+    $config_json = file_get_contents($config_path);
     if (empty($config_json)) {
       error_log("Invalid configuration: $config_path");
       return;
@@ -57,17 +44,33 @@ class KiteController {
     foreach ($clusters as $index=>$cluster) {
       if ($cluster->trustPolicy->test('byHostname', $parsed_uri['host'])
        && $cluster->add_kite($uri)) {
+        $pinger = $this->get_kite('pinger', 'kc');
+        if (!isset($pinger)) {
+          error_log('Pinger kite could not be reached!');
+          return FALSE;
+        }
         if ($kite_name != 'pinger') {
-          $pinger = $this->get_kite('pinger', 'kc');
-          if (isset($pinger)) {
-            $pinger->startPinging(array(
-              'kiteName'  => $kite_name,
-              'uri'       => $uri,
-              'interval'  => 5000,
-            ));
-          }
-          else {
-            error_log('Pinger kite could not be reached!');
+          $pinger->startPinging(array(
+            'kiteName'  => $kite_name,
+            'uri'       => $uri,
+            'interval'  => 5000,
+          ));
+        }
+        else {
+          foreach ($this->clusters as $cluster) {
+            foreach ($cluster as $node) {
+              if ($node->name == 'pinger') {
+                continue;
+              }
+              $kites = $node->get_kites();
+              foreach ($kites as $kite) {
+                $pinger->startPinging(array(
+                  'kiteName' => $node->kite_name,
+                  'uri' => $kite,
+                  'interval' => 5000,
+                ));
+              }
+            }
           }
         }
         array_push($result['addedTo'], $index);
@@ -101,7 +104,12 @@ class KiteController {
 
   private function get_next_kite_uri ($kite_name) {
     $clusters = $this->clusters[$kite_name];
+    $cluster = $clusters[0];
+    if (!isset($cluster)) {
+      trace('Cluster is not found: ', $kite_name);
+    }
     $kite = $clusters[0]->get_next_kite_uri();
+    error_log("hello kite why are you failing?".json_encode($clusters));
     // $kite = $clusters[0]->kites[0];
     if (!isset($kite)) {
       error_log('found no kites');
@@ -120,12 +128,18 @@ class KiteController {
       'username' => $username,
     ), array('kiteUri' => 1));
     if(!isset($connection)) {
-      $connection = array(
-        'kiteName' => $kite_name,
-        'username' => $username,
-        'kiteUri' => $this->get_next_kite_uri($kite_name),
-      );
-      $db->jKiteConnections->save($connection);
+      $kite_uri = $this->get_next_kite_uri($kite_name);
+      if ($kite_uri) {
+        $connection = array(
+          'kiteName' => $kite_name,
+          'username' => $username,
+          'kiteUri' => $kite_uri,
+        );
+        $db->jKiteConnections->save($connection);        
+      }
+      else {
+        return FALSE;
+      }
     }
     return $connection['kiteUri'];
   }

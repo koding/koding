@@ -2,25 +2,31 @@ class JTag extends Followable
   
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
+  
   # @mixin Followable       # brings only static methods
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
   
-  {Inflector,secure} = bongo
+  {ObjectRef,Inflector,secure,daisy} = bongo
   
   @share()
 
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow', 'fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers'
+        'update','follow', 'unfollow', 'fetchFollowersWithRelationship'
+        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
+        'delete'
         ]
-      static        : ["one","on","some","all","create",'someWithRelationship','byRelevance']
+      static        : [
+        "one","on","some","all","create",
+        'someWithRelationship','byRelevance'#,'markFollowing'
+        ]
     schema          :
-      title         : 
+      title         :
         type        : String
         set         : (value)-> value.trim()
         required    : yes
@@ -30,7 +36,7 @@ class JTag extends Followable
         validate    : [
           'invalid tag name'
           (value)->
-            0 < value.length <= 32 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
+            0 < value.length <= 256 and /^(?:\d|\w|\-|\+|\#|\.| [^ ])*$/.test(value)
         ]
       body          : String
       counts        :
@@ -54,7 +60,7 @@ class JTag extends Followable
         targetType  : JAccount
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp]
+        targetType  : [JCodeSnip, JApp, JStatusUpdate]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
@@ -77,29 +83,51 @@ class JTag extends Followable
         collectTeasers node for node in contents
       
       
-  @handleFreetags = bongo.secure (client, tags, callbackForEach=->)->
+  @handleFreetags = bongo.secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
-    tags.forEach (tag)->
-      if tag?.$suggest?
-        JTag.create client, {title: tag.$suggest}, (err, tag)->
-          callbackForEach err, tag
-      else
-        existingTagIds.push bongo.ObjectId tag
-    JTag.all (_id: $in: existingTagIds), (err, existingTags)->
-      if err
-        callbackForEach err
-      else
-        callbackForEach null, tag for tag in existingTags
+    daisy queue = [
+      ->
+        fin =(i)-> if i is tagRefs.length-1 then queue.next()
+        tagRefs.forEach (tagRef, i)->
+          if tagRef?.$suggest?
+            newTag = {title: tagRef.$suggest.trim()}
+            JTag.one newTag, (err, tag)->
+              if err
+                callbackForEach err
+              else if tag?
+                callbackForEach null, tag
+                fin i
+              else
+                JTag.create client, newTag, (err, tag)->
+                  if err
+                    callbackForEach err
+                  else
+                    tagRefs[i] = ObjectRef(tag).data
+                    callbackForEach null, tag
+                    fin i
+          else
+            existingTagIds.push bongo.ObjectId tagRef.id
+            fin i
+      ->
+        JTag.all (_id: $in: existingTagIds), (err, existingTags)->
+          if err
+            callbackForEach err
+          else
+            callbackForEach null, tag for tag in existingTags
+    ]
   
   @create = secure (client, data, callback)->
-    {connection:{delegate}} = client
+    {delegate} = client.connection
     tag = new @ data
     tag.save (err)->
       if err
         callback err
       else
         tag.addCreator delegate, (err)->
-          callback null, tag
+          if err
+            callback err
+          else
+            callback null, tag
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist}  = options
@@ -112,6 +140,36 @@ class JTag extends Followable
       limit
       sort    : 'title' : 1
     }, callback
+
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    callback new KodingError 'Not Implemented yet!'
+    ###
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        getDeleteHelper {
+          sourceId    : id
+          sourceName  : 'JComment'
+        }, 'target', -> queue.fin()
+        ->
+          Relationship.remove {
+            targetId  : id
+            as        : 'post'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        @emit 'PostIsDeleted', 1
+        callback null
+      ###
 
   emit:-> debugger
   # save: secure (client,callback)->

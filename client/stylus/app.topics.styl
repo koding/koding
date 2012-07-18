@@ -62,8 +62,27 @@ app.topics.styl
         .topictext
           article
             height    auto
-          
 
+    .edit-topic
+      position      absolute
+      width         46px
+      right         0
+      top           2px
+      color         linkColor1
+      visibility    hidden
+      fr()
+      noTextDeco()
+      span.icon
+        display       inline-block
+        margin        -2px 2px 0 0
+        sprite()
+        bg            position,-120px -400px
+        size(16px,14px)
+        fl()
+    &:hover
+      .edit-topic
+        visibility  visible
+    
   .topictext
     h3
       color           #fff

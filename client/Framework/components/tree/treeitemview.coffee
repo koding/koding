@@ -5,19 +5,21 @@ class JTreeItemView extends KDListItemView
     options.tagName   or= "li"
     options.type      or= "jtreeitem"
     options.bind      or= "mouseenter contextmenu dragstart dragenter dragleave dragend dragover drop"
+    
     super options, data
+
     @setClass "jtreeitem"
     @expanded = no
-  
+
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-    
+
     """
-    <span class='icon'></span>
+    <span class='arrow'></span>
     {{#(title)}}
     """
 
@@ -29,9 +31,9 @@ class JTreeItemView extends KDListItemView
 
     @expanded = yes
     @setClass "expanded"
-      
+
   collapse:(callback)->
-    
+
     @expanded = no
     @unsetClass "expanded"
 

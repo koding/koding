@@ -73,12 +73,12 @@ class KiteCluster {
     }
   }
   
-  public function get_kites() {
+  public function get_kites () {
     $record = $this->get_record();
     return $record['kites'];
   }
   
-  private function get_record() {
+  private function get_record () {
     $db = get_mongo_db();
     return $db->jKiteClusters->findOne(array(
       'kiteName' => $this->kite_name,
@@ -94,9 +94,15 @@ class KiteCluster {
   }
   
   public function add_kite ($uri) {
+    trace('trying to add a kite', $uri);
     if (in_array($uri, $this->get_kites())) {
-      error_log("Kite at $uri already registered.  Refusing to add again.");
-      return FALSE;
+      if ($this->kite_name == 'pinger') {
+        return TRUE;
+      }
+      else {
+        error_log("Kite at $uri already registered.  Refusing to add again.");
+        return FALSE;
+      }
     }
     else {
       $db = get_mongo_db();

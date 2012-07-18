@@ -12,14 +12,16 @@ class AceView extends JView
   constructor:(options, file)->
 
     super
+
     @listenWindowResize()
 
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
-      style         : "clean-gray editor-button save-menu"
+      style         : "editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
-      callback      : ()=> file.emit "ace.requests.save", @ace.getContents()
+      callback      : ()=> 
+        @ace.requestSave()
     
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
@@ -39,24 +41,24 @@ class AceView extends JView
       click         : (pubInst, event)-> @contextMenu event
       menu          : [@getAdvancedSettingsMenuItems()]
 
-      
-    publicUrlCheck = /.*\/(.*\.beta.koding.com)\/httpdocs\/(.*)/
+
+    publicUrlCheck = /.*\/(.*\.(beta\.)*koding\.com)\/website\/(.*)/
     @previewButton = new KDButtonView
-      style     : "clean-gray editor-button"
+      style     : "editor-button"
       icon      : yes
       iconOnly  : yes
       iconClass : "preview"
       callback  : =>
-        publicPath = file.path.replace publicUrlCheck, 'http://$1/$2'
-        return if publicPath is file.path
+        publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+        return if publicPath is @getData().path
         appManager.openFileWithApplication publicPath, "Viewer"
 
-    unless publicUrlCheck.test(file.path) then @previewButton.hide()
+    unless publicUrlCheck.test(@getData().path) then @previewButton.hide()
+
+    @setViewListeners()
     
-    ###
-    SET LISTENERS
-    ###
-    
+  setViewListeners:->
+
     @advancedSettings.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
     
@@ -68,18 +70,14 @@ class AceView extends JView
       $spans.eq(0).text ++cursor.row
       $spans.eq(1).text ++cursor.column
 
-    file.on "ace.requests.saveAs", (contents)=>
+    @ace.on "ace.requests.saveAs", (contents)=>
       @openSaveDialog()
 
-    file.on "ace.requests.save", (contents)=>
-      if /localfile:/.test file.path
+    @ace.on "ace.requests.save", (contents)=>
+      if /localfile:/.test @getData().path
         @openSaveDialog()
       else
-        file.emit "file.requests.save", contents
-    
-    file.on "fs.remotefile.created", =>
-      if publicUrlCheck.test(file.path) then @previewButton.show()
-      
+        @getData().emit "file.requests.save", contents
 
   viewAppended:->
 
@@ -146,7 +144,13 @@ class AceView extends JView
             
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
+              @ace.notify "Please type valid file name!", "error"
               return
+            
+            unless node
+              @ace.notify "Please select a folder to save!", "error"
+              return
+              
             parent = node.getData()
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
@@ -180,6 +184,7 @@ class AceView extends JView
       dragdrop          : yes
       foldersOnly       : yes
       contextMenu       : no
+
     finder = @finderController.getView()
 
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null

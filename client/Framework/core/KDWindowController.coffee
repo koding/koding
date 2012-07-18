@@ -7,37 +7,31 @@ todo:
 
 ###
 class KDWindowController extends KDController
-  
+
   constructor:(options,data)->
     @windowResizeListeners = {}
     @keyView
+    @dragView
     @scrollingEnabled = yes
     @bindEvents()
     @setWindowProperties()
-    
-    @layers = layers = []
-    document.body.addEventListener 'mousedown', (e)=>
-      $('.twipsy').remove() # temporary for beta
-      @setDragInAction no # for cases when dragleave doesn't fire
-      lastLayer = layers[layers.length-1]
-      if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
-        lastLayer.propagateEvent (KDEventType: 'ReceivedClickElsewhere'), e
-    , yes
-
-    document.body.addEventListener 'mouseup', (e)=>
-      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
-    , yes
-    
     super
-  
+
   addLayer: (layer)->
+
     unless layer in @layers
+      # log "layer added", layer
       @layers.push layer
-  
+      layer.on 'KDObjectWillBeDestroyed', =>
+        @removeLayer layer
+
   removeLayer: (layer)->
-    index = @layers.indexOf(layer)
-    @layers.splice index, 1
-  
+
+    if layer in @layers
+      # log "layer removed", layer
+      index = @layers.indexOf(layer)
+      @layers.splice index, 1
+
   bindEvents:()->
 
     $(window).bind "keydown keyup keypress",@key
@@ -63,14 +57,42 @@ class KDWindowController extends KDController
       @propagateEvent (KDEventType: 'DropOnWindow'), event
       @setDragInAction no
     , yes
-  
+
+    @layers = layers = []
+
+    document.body.addEventListener 'mousedown', (e)=>
+      $('.twipsy').remove() # temporary for beta
+      lastLayer = layers[layers.length-1]
+
+      if lastLayer and $(e.target).closest(lastLayer?.$()).length is 0
+        # log lastLayer, "ReceivedClickElsewhere"
+        lastLayer.emit 'ReceivedClickElsewhere', e
+        @removeLayer lastLayer
+    , yes
+
+    document.body.addEventListener 'mouseup', (e)=>
+      @unsetDragView e if @dragView
+      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
+    , yes
+
+    document.body.addEventListener 'mousemove', (e)=>
+      @redirectMouseMoveEvent e
+    , yes
+
+    unless window.location.hostname is 'localhost'
+      window.onbeforeunload = (event) =>
+        event or= window.event
+        msg = "Please make sure that you saved all your work."
+        event.returnValue = msg if event # For IE and Firefox prior to version 4
+        return msg
+
   setDragInAction:(action = no)->
     $('body')[if action then "addClass" else "removeClass"]("dragInAction")
     @dragInAction = action
-  
+
   setMainView:(view)->
     @mainView = view
-  
+
   getMainView:(view)->
     @mainView
 
@@ -80,20 +102,41 @@ class KDWindowController extends KDController
       @setKeyView @oldKeyView
 
   setKeyView:(newKeyView)->
-    
+
     return if newKeyView is @keyView
+    # log newKeyView, "newKeyView"
 
-    newKeyViewAcceptsKeyStatus = ()->
-      return not newKeyView? or newKeyView?.acceptsKeyStatus()
-    oldKeyViewResignsKeyStatus = ()->
-      return not @keyView? or @keyView.resignsKeyStatus()
+    @oldKeyView = @keyView
+    @keyView = newKeyView
+    newKeyView?.emit 'KDViewBecameKeyView'
+    @emit 'WindowChangeKeyView', newKeyView
 
-    if newKeyViewAcceptsKeyStatus() and oldKeyViewResignsKeyStatus()
-      @oldKeyView = @keyView
-      @keyView = newKeyView
-      newKeyView?.propagateEvent KDEventType : 'KDViewBecameKeyView'
-      @propagateEvent (KDEventType: 'WindowChangeKeyView', globalEvent : yes), view: newKeyView
-  
+  setDragView:(dragView)->
+
+    @setDragInAction yes
+    @dragView = dragView
+
+  unsetDragView:(e)->
+
+    @setDragInAction no
+    @dragView.emit "DragFinished", e, @dragState
+    @dragView = null
+
+
+  redirectMouseMoveEvent:(event)->
+
+    view = @dragView
+    return unless @dragView
+
+    {pageX, pageY}   = event
+    {startX, startY} = view.dragState
+
+    delta =
+      x : pageX - startX
+      y : pageY - startY
+
+    view.drag event, delta
+
   getKeyView:()->
     @keyView
 
@@ -103,20 +146,17 @@ class KDWindowController extends KDController
 
   allowScrolling:(shouldAllowScrolling)->
     @scrollingEnabled = shouldAllowScrolling
-    
+
   registerWindowResizeListener:(instance)->
     @windowResizeListeners[instance.id] = instance
-    instance.registerListener
-      KDEventTypes  : "KDObjectWillBeDestroyed"
-      listener      : @
-      callback      : =>
-        delete @windowResizeListeners[instance.id]
-  
+    instance.on "KDObjectWillBeDestroyed", =>
+      delete @windowResizeListeners[instance.id]
+
   setWindowProperties:(event)->
     @winWidth  = $(window).width()
     @winHeight = $(window).height()
-  
-  notifyWindowResizeListeners:(event,throttle = no, duration = 17)->
+
+  notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
     if throttle
       clearTimeout @resizeNotifiersTimer if @resizeNotifiersTimer

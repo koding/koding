@@ -1,8 +1,3 @@
-nodePath = require 'path'
-# configuration
+{argv} = require 'optimist'
 
-module.exports =
-  name              : "pinger"
-  pidPath           : "/var/run/node/pinger.pid"
-  logFile           : "/var/log/node/pinger.log"
-  port              : 4565
+module.exports = require './' + (argv.c ? 'config-prod')

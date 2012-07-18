@@ -18,7 +18,7 @@ class Apps12345 extends AppController
     
   loadView:(mainView)->
     mainView.createCommons()
-    @createFeed()
+    # @createFeed()
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -104,10 +104,10 @@ class Apps12345 extends AppController
       style     : "small-gray"
       callback  : => @showAppSubmissionView()
 
-  createApp:(formElements,callback)->
-    log formElements,"in createApp"
-    # log JSON.stringify formElements
-    bongo.api.JApp.create formElements, (err, app)->
+  createApp:(formData,callback)->
+    log formData,"in createApp"
+    # log JSON.stringify formData
+    bongo.api.JApp.create formData, (err, app)->
       callback? err,app
 
   showAppSubmissionView:->
@@ -118,8 +118,8 @@ class Apps12345 extends AppController
     modal.registerListener
       KDEventTypes  : "AppSubmissionFormSubmitted"
       listener      : @
-      callback      : (pubInst,formElements)=>
-        @createApp formElements, (err,res)=>
+      callback      : (pubInst,formData)=>
+        @createApp formData, (err,res)=>
           unless err
             new KDNotificationView
               title : "App created successfully!"
@@ -154,8 +154,7 @@ class Apps12345 extends AppController
       outputWrapper       : selectedItemWrapper
       listWrapperCssClass : "tags"
       form                : forms['Technical Stuff']
-      itemDataPath        : "title"
-      valuesSavedAsString : yes
+      itemDataPath        : 'title'
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)

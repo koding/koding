@@ -1,4 +1,4 @@
-AccountSettingLists.develop.reposController = class AccountRepoListController extends KDListViewController
+class AccountRepoListController extends KDListViewController
   constructor:->
     super
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate
@@ -21,7 +21,7 @@ AccountSettingLists.develop.reposController = class AccountRepoListController ex
 
   loadItems:(callback)->
     items = [
-      { title : "Repositories keys are coming soon" }
+      { title : "Repositories are coming soon" }
     ]
     @instantiateListItems items
 
@@ -30,7 +30,7 @@ AccountSettingLists.develop.reposController = class AccountRepoListController ex
     #   @instantiateListItems repos
     #   callback?()
 
-AccountSettingLists.develop.repos = class AccountRepoList extends KDListView
+class AccountRepoList extends KDListView
   constructor:(options,data)->
     @account = KD.getSingleton('mainController').getVisitor().currentDelegate    
     options = $.extend
@@ -79,11 +79,10 @@ AccountSettingLists.develop.repos = class AccountRepoList extends KDListView
       height    : "auto"
       buttons   : yes
     
-    form = new KDFormView 
+    modal.addSubView form = new KDFormView 
       cssClass : "clearfix"
-      callback : (formElements)=>
-        @updateRepo listItem, formElements
-    modal.addSubView form, ".kdmodal-content"
+      callback : (formData)=>
+        @updateRepo listItem, formData
 
     form.addSubView formline1 = new KDView cssClass : "modalformline"
     form.addSubView formline2 = new KDView cssClass : "modalformline"
@@ -162,9 +161,9 @@ AccountSettingLists.develop.repos = class AccountRepoList extends KDListView
   #   
   #   @destroyModal()
 
-  updateRepo:(listItem,formElements)=>
+  updateRepo:(listItem,formData)=>
     
-    f = formElements
+    f = formData
       
     switch f.operation
       

@@ -1,5 +1,5 @@
 class FSHelper
-
+  
   systemFilesRegExp = 
     ///
     \s\.cagefs
@@ -35,12 +35,8 @@ class FSHelper
     date.setTime date.getTime() + totalDiff
     return date
 
-  @getFileNameFromPath = getFileName = (path)->
-
-    path.split('/').pop()
-
   @parseLsOutput = (parentPaths, response) ->
-
+    # log "ls response",response
     data = []
     return data unless response
     strings = response.split '\n\n'
@@ -57,28 +53,62 @@ class FSHelper
           data.push FSHelper.createFile parseFile parentPath, line
     data
     
+  @registry = {}
   
+  @register = (file)->
+    
+    @setFileListeners file
+    @registry[file.path] = file
+  
+  @deregister = (file)->
+    
+    delete @registry[file.path]
+  
+  @updateInstance = (fileData)->
+    
+    for prop, value of fileData
+      @registry[fileData.path][prop] = value
+  
+  @setFileListeners = (file)->
+    
+    file.on "fs.rename.finished", =>
+      
+
+  @getFileNameFromPath = getFileName = (path)->
+
+    path.split('/').pop()
+
+  @trimExtension = (path)->
+
+    name = getFileName path
+    name.split('.').shift()
+
   @createFileFromPath = (path, type = "file")->
 
     return warn "pass a path to create a file instance" unless path
-    
-    return @createFile {
-      path
-      name : getFileName path
-      type
-    }
+    parentPath = __utils.getParentPath path
+    name       = @getFileNameFromPath path
+    return @createFile { path, parentPath, name, type }
   
   @createFile = (data)->
 
     unless data and data.type and data.path
       return warn "pass a path and type to create a file instance" 
 
-    constructor = switch data.type
-      when "folder" then FSFolder
-      when "mount"  then FSMount
-      else FSFile
+    if @registry[data.path]
+      instance = @registry[data.path]
+      @updateInstance data
+    else
+      constructor = switch data.type
+        when "folder" then FSFolder
+        when "mount"  then FSMount
+        when "symLink" then FSFolder
+        else FSFile
     
-    return new constructor data
+      instance = new constructor data
+      @register instance
+
+    return instance
 
   @isValidFileName = (name) ->
 

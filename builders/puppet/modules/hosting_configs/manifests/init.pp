@@ -39,6 +39,12 @@ class hosting_configs {
         notify => Class["cloudlinux::cagefs_update"]
     }
 
+   file { "/etc/yum.conf":
+        ensure => file,
+        source => "puppet:///modules/hosting_configs/etc/yum.conf",
+    }
+
+
 
     
     

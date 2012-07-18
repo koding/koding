@@ -7,12 +7,8 @@ class KDContextMenu extends KDView
     @windowController.setKeyView @ #keyboard navigation of context menu
     @windowController.addLayer @
 
-    @listenTo
-      KDEventTypes        : 'ReceivedClickElsewhere'
-      listenedToInstance  : @
-      callback            : (pubInst,event)=>
-        @windowController.removeLayer @
-        @destroy()
+    @on 'ReceivedClickElsewhere', =>
+      @destroy()
 
     @listenTo
       KDEventTypes : "click"

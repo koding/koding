@@ -21,7 +21,17 @@ class CodesnipActivityItemView extends ActivityItemChild
     #   itemsToShow   : 3
     #   subItemClass  : TagFollowBucketItemView
     # }
+  
+  render:->
+    super()
     
+    codeSnippetData = @getData().attachments[0]
+    codeSnippetData.title = @getData().title
+    
+    @codeSnippetView.setData codeSnippetData
+    @codeSnippetView.render()
+    
+  
   click:(event)->
     super
     if $(event.target).is(".activity-item-right-col h3")
@@ -35,7 +45,9 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
   pistachio:->
+
     """
+    {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {h3{#(title)}}
@@ -45,7 +57,7 @@ class CodesnipActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           {time{$.timeago #(meta.createdAt)}}
-          <span class='tag-group'>{{ @displayTags #(tags)}}</span>
+          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>
@@ -56,23 +68,8 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
 class CodeSnippetView extends KDCustomHTMLView
+
   openFileIteration = 0
-
-  syntaxMap = (syntax)->
-    syntaxes =
-      c_cpp       : "cpp"
-      html        : "xml"
-      latex       : 'tex'
-      markdown    : 'xml'
-      powershell  : 'bash'
-      coldfusion  : 'xml'
-      json        : 'javascript'
-    
-    return syntaxes[syntax] or syntax
-
-  syntaxHumanMap = ->
-    c_cpp   : "c++"
-    coffee  : "coffee-script"
 
   constructor:(options, data)->
     options.tagName  = "figure"
@@ -89,17 +86,20 @@ class CodeSnippetView extends KDCustomHTMLView
     # 
     # @codeView.on 'sizes.height.change', ({height}) =>
     #   @$('.wrapper').height height
+    
+    hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     @codeView = new KDCustomHTMLView
       tagName  : "code"
-      cssClass : syntaxMap(syntax?.toLowerCase())
-      partial  : content
-    
+      pistachio : '{{#(content)}}'
+    , data
+
+    @codeView.setClass hjsSyntax if hjsSyntax
     @codeView.unsetClass "kdcustomhtml"
     
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
-      partial  : syntaxHumanMap()[syntax] or syntax
+      partial  : __aceSettings.syntaxAssociations[syntax][0] or syntax
 
     @saveButton = new KDButtonView
       title     : ""
@@ -125,6 +125,7 @@ class CodeSnippetView extends KDCustomHTMLView
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(content)
+        file.syntax   = syntax
         appManager.openFileWithApplication file, 'Ace'
 
     @copyButton = new KDButtonView
@@ -136,31 +137,46 @@ class CodeSnippetView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
+  render:->
+
+    super()
+    @codeView.setData @getData()
+    @codeView.render()
+    @applySyntaxColoring()
+
+  applySyntaxColoring:( syntax = @getData().syntax)->
+
+    snipView  = @
+    hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
+
+    if hjsSyntax
+      requirejs (['js/highlightjs/highlight.js']), ->
+        requirejs (["highlightjs/languages/#{hjsSyntax}"]), ->
+          try
+            hljs.compileModes()
+            hljs.highlightBlock snipView.codeView.$()[0],'  '
+          catch err
+            console.warn "Error applying highlightjs syntax #{syntax}:", err
+  
   viewAppended: ->
-    snipView = @
-    {syntax} = @getData()
-    syntax   = syntaxMap syntax
 
     @setTemplate @pistachio()
     @template.update()
+    @applySyntaxColoring()
+
     twOptions = (title) ->
       title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
-    requirejs (['js/highlightjs/highlight.js']), ->
-      requirejs (["highlightjs/languages/#{syntax}"]), ->
-        try
-          hljs.compileModes()
-          hljs.highlightBlock snipView.codeView.$()[0],'  '
-        catch err
-          console.warn "Error applying highlightjs syntax #{syntax}:", err
-    
+
     @saveButton.$().twipsy twOptions("Save")
     @copyButton.$().twipsy twOptions("Select all")
     @openButton.$().twipsy twOptions("Open")
 
   pistachio:->
     """
-    {pre{> @codeView}}
-    <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+    <div class='kdview'>
+      {pre{> @codeView}}
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+    </div>
     {{> @syntaxMode}}
     """
   

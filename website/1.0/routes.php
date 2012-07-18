@@ -3,10 +3,41 @@
 require_once 'router.php';
 require_once 'helpers.php';
 require_once 'kitecontroller.php';
+require_once 'lib/pusher.php';
 
 $router = new Router;
 
-// error_log('ffff '.var_export($kite_controller, TRUE));
+$router->add_route('/collab',function($params){
+
+  header("Content-type: text/plain");
+
+  $out = $_REQUEST['q'];
+
+  $in = "";
+  ini_set("display_errors", 0);
+  $fp = fsockopen("localhost", 3017, $errno, $errstr, 5);
+  ini_set("display_errors", 1);
+  if (!$fp) {
+    # PHP can't connect to Python daemon.
+    $in = "\n";
+  } else {
+    if (get_magic_quotes_gpc()) {
+      # Some servers have magic quotes enabled, some disabled.
+      $out = stripslashes($out);
+    }
+    fwrite($fp, $out);
+    while (!feof($fp)) {
+      $in .= fread($fp, 1024);
+    }
+    fclose($fp);
+  }
+
+  #echo "-Sent-\n";
+  #echo $out;
+  #echo "-Received-\n";
+  echo $in;
+
+});
 
 $router->add_route('/kite/:kite_name', function ($params) {
   global $respond;
@@ -23,6 +54,7 @@ $router->add_route('/kite/:kite_name', function ($params) {
     $args = $_REQUEST;
     if (isset($session)) {
       $args['username'] = $session['username'];
+      error_log(var_export(array($args, $uri), TRUE));
       $res = @file_get_contents($uri.'?'.http_build_query($args));
       if ($res) {
         $respond($res);
@@ -40,13 +72,12 @@ $router->add_route('/kite/:kite_name', function ($params) {
 
 $router->add_route('/event', function () {
   @$message = json_decode(file_get_contents('php://input'));
-  // error_log(json_encode($message));
   if(isset($message)) {
     foreach ($message->events as $event) {
       switch($event->name) {
       case 'channel_vacated' :
         $matches = array();
-        if(preg_match('/^private-(\w+)-/', $event->channel, $matches)) {
+        if (preg_match('/^private-(\w+)-/', $event->channel, $matches)) {
           list(, $channel_type) = $matches;
           handle_vacated_channel($channel_type, $event, $message->time_ms);
         }
@@ -117,4 +148,13 @@ $router->add_route('/kite/disconnect', function () {
     $kite_controller->remove_kite($kite_name, $uri);
     okay();
   }
+});
+
+$router->add_route('/channel/auth', function () {
+  global $pusher_key, $pusher_secret, $pusher_app_id;
+  $pusher = new Pusher($pusher_key, $pusher_secret, $pusher_app_id);
+  print_cors_headers();
+  print_json_headers();
+  print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
+  die();
 });

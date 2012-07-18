@@ -63,7 +63,7 @@ var Text = function(parentEl) {
 
     this.EOF_CHAR = "\xB6"; //"&para;";
     this.EOL_CHAR = "\xAC"; //"&not;";
-    this.TAB_CHAR = "\u2192"; //"&rarr;";
+    this.TAB_CHAR = "\u2192"; //"&rarr;" "\u21E5";
     this.SPACE_CHAR = "\xB7"; //"&middot;";
     this.$padding = 0;
 
@@ -103,7 +103,7 @@ var Text = function(parentEl) {
         lineHeight : 1
     };
 
-    this.$measureSizes = function() {
+    this.$measureSizes = useragent.isIE || useragent.isOldGecko ? function() {
         var n = 1000;
         if (!this.$measureNode) {
             var measureNode = this.$measureNode = dom.createElement("div");
@@ -113,7 +113,7 @@ var Text = function(parentEl) {
             style.left = style.top = (-n * 40)  + "px";
 
             style.visibility = "hidden";
-            style.position = "absolute";
+            style.position = "fixed";
             style.overflow = "visible";
             style.whiteSpace = "nowrap";
 
@@ -130,8 +130,12 @@ var Text = function(parentEl) {
                     container = container.parentNode;
                 container.appendChild(measureNode);
             }
-
         }
+        
+        // Size and width can be null if the editor is not visible or
+        // detached from the document
+        if (!this.element.offsetWidth)
+            return null;
 
         var style = this.$measureNode.style;
         var computedStyle = dom.computedStyle(this.element);
@@ -145,7 +149,46 @@ var Text = function(parentEl) {
 
         // Size and width can be null if the editor is not visible or
         // detached from the document
-        if (size.width == 0 && size.height == 0)
+        if (size.width == 0 || size.height == 0)
+            return null;
+
+        return size;
+    } 
+    : function() {
+        if (!this.$measureNode) {
+            var measureNode = this.$measureNode = dom.createElement("div");
+            var style = measureNode.style;
+
+            style.width = style.height = "auto";
+            style.left = style.top = -100 + "px";
+
+            style.visibility = "hidden";
+            style.position = "fixed";
+            style.overflow = "visible";
+            style.whiteSpace = "nowrap";
+
+            measureNode.innerHTML = "X";
+
+            var container = this.element.parentNode;
+            while (container && !dom.hasCssClass(container, "ace_editor"))
+                container = container.parentNode;
+
+            if (!container)
+                return this.$measureNode = null;
+
+            container.appendChild(measureNode);
+        }
+        
+        var rect = this.$measureNode.getBoundingClientRect();
+
+        var size = {
+            height: rect.height,
+            width: rect.width
+        };
+
+        // Size and width can be null if the editor is not visible or
+        // detached from the document
+        if (size.width == 0 || size.height == 0)
             return null;
 
         return size;
@@ -216,8 +259,8 @@ var Text = function(parentEl) {
                 continue;
 
             var html = [];
-            var tokens = this.session.getTokens(i, i);
-            this.$renderLine(html, i, tokens[0].tokens, !this.$useLineGroups());
+            var tokens = this.session.getTokens(i);
+            this.$renderLine(html, i, tokens, !this.$useLineGroups());
             lineElement = dom.setInnerHtml(lineElement, html.join(""));
 
             i = this.session.getRowFoldEnd(i);
@@ -259,16 +302,16 @@ var Text = function(parentEl) {
     };
 
     this.$renderLinesFragment = function(config, firstRow, lastRow) {
-        var fragment = this.element.ownerDocument.createDocumentFragment(),
-            row = firstRow,
-            fold = this.session.getNextFoldLine(row),
-            foldStart = fold ?fold.start.row :Infinity;
+        var fragment = this.element.ownerDocument.createDocumentFragment();
+        var row = firstRow;
+        var foldLine = this.session.getNextFoldLine(row);
+        var foldStart = foldLine ? foldLine.start.row : Infinity;
 
         while (true) {
             if (row > foldStart) {
-                row = fold.end.row+1;
-                fold = this.session.getNextFoldLine(row, fold);
-                foldStart = fold ?fold.start.row :Infinity;
+                row = foldLine.end.row+1;
+                foldLine = this.session.getNextFoldLine(row, foldLine);
+                foldStart = foldLine ? foldLine.start.row : Infinity;
             }
             if (row > lastRow)
                 break;
@@ -278,11 +321,8 @@ var Text = function(parentEl) {
             var html = [];
             // Get the tokens per line as there might be some lines in between
             // beeing folded.
-            // OPTIMIZE: If there is a long block of unfolded lines, just make
-            // this call once for that big block of unfolded lines.
-            var tokens = this.session.getTokens(row, row);
-            if (tokens.length == 1)
-                this.$renderLine(html, row, tokens[0].tokens, false);
+            var tokens = this.session.getTokens(row);
+            this.$renderLine(html, row, tokens, false);
 
             // don't use setInnerHtml since we are working with an empty DIV
             container.innerHTML = html.join("");
@@ -307,15 +347,15 @@ var Text = function(parentEl) {
         var html = [];
         var firstRow = config.firstRow, lastRow = config.lastRow;
 
-        var row = firstRow,
-            fold = this.session.getNextFoldLine(row),
-            foldStart = fold ?fold.start.row :Infinity;
+        var row = firstRow;
+        var foldLine = this.session.getNextFoldLine(row);
+        var foldStart = foldLine ? foldLine.start.row : Infinity;
 
         while (true) {
             if (row > foldStart) {
-                row = fold.end.row+1;
-                fold = this.session.getNextFoldLine(row, fold);
-                foldStart = fold ?fold.start.row :Infinity;
+                row = foldLine.end.row+1;
+                foldLine = this.session.getNextFoldLine(row, foldLine);
+                foldStart = foldLine ? foldLine.start.row :Infinity;
             }
             if (row > lastRow)
                 break;
@@ -325,11 +365,8 @@ var Text = function(parentEl) {
 
             // Get the tokens per line as there might be some lines in between
             // beeing folded.
-            // OPTIMIZE: If there is a long block of unfolded lines, just make
-            // this call once for that big block of unfolded lines.
-            var tokens = this.session.getTokens(row, row);
-            if (tokens.length == 1)
-                this.$renderLine(html, row, tokens[0].tokens, false);
+            var tokens = this.session.getTokens(row);
+            this.$renderLine(html, row, tokens, false);
 
             if (this.$useLineGroups())
                 html.push("</div>"); // end the line group
@@ -347,21 +384,18 @@ var Text = function(parentEl) {
 
     this.$renderToken = function(stringBuilder, screenColumn, token, value) {        
         var self = this;
-        var replaceReg = /\t|&|<|( +)|([\v\f \u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000])|[\u1100-\u115F]|[\u11A3-\u11A7]|[\u11FA-\u11FF]|[\u2329-\u232A]|[\u2E80-\u2E99]|[\u2E9B-\u2EF3]|[\u2F00-\u2FD5]|[\u2FF0-\u2FFB]|[\u3000-\u303E]|[\u3041-\u3096]|[\u3099-\u30FF]|[\u3105-\u312D]|[\u3131-\u318E]|[\u3190-\u31BA]|[\u31C0-\u31E3]|[\u31F0-\u321E]|[\u3220-\u3247]|[\u3250-\u32FE]|[\u3300-\u4DBF]|[\u4E00-\uA48C]|[\uA490-\uA4C6]|[\uA960-\uA97C]|[\uAC00-\uD7A3]|[\uD7B0-\uD7C6]|[\uD7CB-\uD7FB]|[\uF900-\uFAFF]|[\uFE10-\uFE19]|[\uFE30-\uFE52]|[\uFE54-\uFE66]|[\uFE68-\uFE6B]|[\uFF01-\uFF60]|[\uFFE0-\uFFE6]/g;
+        var replaceReg = /\t|&|<|( +)|([\u0000-\u0019\u00a0\u1680\u180E\u2000-\u200b\u2028\u2029\u202F\u205F\u3000\uFEFF])|[\u1100-\u115F\u11A3-\u11A7\u11FA-\u11FF\u2329-\u232A\u2E80-\u2E99\u2E9B-\u2EF3\u2F00-\u2FD5\u2FF0-\u2FFB\u3000-\u303E\u3041-\u3096\u3099-\u30FF\u3105-\u312D\u3131-\u318E\u3190-\u31BA\u31C0-\u31E3\u31F0-\u321E\u3220-\u3247\u3250-\u32FE\u3300-\u4DBF\u4E00-\uA48C\uA490-\uA4C6\uA960-\uA97C\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFAFF\uFE10-\uFE19\uFE30-\uFE52\uFE54-\uFE66\uFE68-\uFE6B\uFF01-\uFF60\uFFE0-\uFFE6]/g;
         var replaceFunc = function(c, a, b, tabIdx, idx4) {
-            if (c.charCodeAt(0) == 32) {
+            if (a) {
                 return new Array(c.length+1).join("&#160;");
+            } else if (c == "&") {
+                return "&#38;";
+            } else if (c == "<") {
+                return "&#60;";
             } else if (c == "\t") {
                 var tabSize = self.session.getScreenTabSize(screenColumn + tabIdx);
                 screenColumn += tabSize - 1;
                 return self.$tabStrings[tabSize];
-            } else if (c == "&") {
-                if (useragent.isOldGecko)
-                    return "&";
-                else
-                    return "&amp;";
-            } else if (c == "<") {
-                return "&lt;";
             } else if (c == "\u3000") {
                 // U+3000 is both invisible AND full-width, so must be handled uniquely
                 var classToUse = self.showInvisibles ? "ace_cjk ace_invisible" : "ace_cjk";
@@ -370,13 +404,8 @@ var Text = function(parentEl) {
                 return "<span class='" + classToUse + "' style='width:" +
                     (self.config.characterWidth * 2) +
                     "px'>" + space + "</span>";
-            } else if (c.match(/[\v\f \u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000]/)) {
-                if (self.showInvisibles) {
-                    var space = new Array(c.length+1).join(self.SPACE_CHAR);
-                    return "<span class='ace_invisible'>" + space + "</span>";
-                } else {
-                    return "&#160;";
-                }
+            } else if (b) {
+                return "<span class='ace_invisible ace_invalid'>" + self.SPACE_CHAR + "</span>";
             } else {
                 screenColumn += 1;
                 return "<span class='ace_cjk' style='width:" +
@@ -532,12 +561,11 @@ var Text = function(parentEl) {
                     value: placeholder
                 });
             } else {
-                if (isNewRow) {
-                   tokens = this.session.getTokens(row, row)[0].tokens;
-                }
-                if (tokens.length != 0) {
+                if (isNewRow)
+                   tokens = this.session.getTokens(row);
+
+                if (tokens.length)
                     addTokens(tokens, lastColumn, column);
-                }
             }
         }.bind(this), foldLine.end.row, this.session.getLine(foldLine.end.row).length);
 

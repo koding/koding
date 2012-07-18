@@ -6,8 +6,6 @@ class MembersMainView extends KDView
     #   messageLocation : 'Members'
     # @listenWindowResize()
 
-
-
 class MembersInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
     filterController = @setListController subItemClass : MembersListGroupFilterItem,@filterMenuData
@@ -31,7 +29,7 @@ class MembersInnerNavigation extends CommonInnerNavigation
 class MembersListGroupFilterItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
-      
+
   click: (event) =>
     @getDelegate().propagateEvent (KDEventType : 'MembersFilter'), @getData()
 
@@ -43,7 +41,7 @@ class MembersListGroupFilterItem extends KDListItemView
 class MembersListGroupSortItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
-      
+
   click: (event) =>
     @getDelegate().propagateEvent (KDEventType : 'MembersSort'), @getData()
 
@@ -51,17 +49,17 @@ class MembersListGroupSortItem extends KDListItemView
     data = @getData()
     @setClass data.type
     data.title
-  
+
 # class MembersPaneController extends KDViewController
 #   loadView:(mainView)->
 #     super
-#     
+#
 #     searchArea = new MembersSearchView
 #       cssClass  : "search-area"
-#     
+#
 #     mainView.addSubView container = new KDView
 #     container.addSubView searchArea
-#     
+#
 #     container.addSubView membersList = new KDListView {cssClass : "kdlistview kdlistview-members"}
 #     new MembersListViewController view : membersList, query : {}, page : {}
 #     # membersList.setScroller scrollView : mainView.getDelegate(), fractionBelowTrigger : 1
@@ -86,71 +84,76 @@ class MembersListGroupSortItem extends KDListItemView
 
 class MembersListItemView extends KDListItemView
   constructor:(options,data)->
-    options = options ? {} 
+    options = options ? {}
     options.type = "members"
     super options,data
     memberData = @getData()
-    @avatar = new AvatarStaticView 
+    @avatar = new AvatarView
       size:
         width: 60
         height: 60
     , memberData
 
+    defaultState  = if memberData.followee then "Unfollow" else "Follow"
+
     @followButton = new MemberFollowToggleButton
       style           : "follow-btn"
       title           : "Follow"
       dataPath        : "followee"
+      defaultState    : defaultState
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        top           : 11
       states          : [
-        "Follow", (callback)-> 
+        "Follow", (callback)->
           memberData.follow (err, response)=>
-            # unless err
-            #   @setClass 'following-btn'
-            #   callback? null
-          @setClass 'following-btn'
-          callback? null
+            @hideLoader()
+            unless err
+              @setClass 'following-btn'
+              callback? null
         "Unfollow", (callback)->
           memberData.unfollow (err, response)=>
-            # unless err
-            #   @unsetClass 'following-btn'
-            #   callback? null
-          @unsetClass 'following-btn'
-          callback? null
+            @hideLoader()
+            unless err
+              @unsetClass 'following-btn'
+              callback? null
       ]
     , memberData
-    
+
     memberData.locationTags or= []
     if memberData.locationTags.length < 1
-      memberData.locationTags[0] = "Earth" 
-      
+      memberData.locationTags[0] = "Earth"
+
     @location = new LocationView {},memberData
+
+    @profileLink = new ProfileLinkView {}, memberData
 
   click:(event)->
     member = @getData()
     targetATag = $(event.target).closest('a')
-    if targetATag.is ".propagateProfile"
-      appManager.tell "Members", "createContentDisplay", member
-    else if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
+    if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
       appManager.tell "Members", "createFollowsContentDisplay", member, 'followers'
     else if targetATag.is(".following") and targetATag.find('.data').text() isnt '0'
       appManager.tell "Members", "createFollowsContentDisplay", @getData(), 'following'
-    
-  
+
+
   clickOnMyItem:(event)->
     if $(event.target).is ".propagateProfile"
       @handleEvent (type : "VisitorProfileWantsToBeShown", content : @getData(), contentType : "member")
-  
+
   isMyItem:()->
     @followButton.destroy() if @followButton?
-  
+
   viewAppended:->
     @setClass "member-item"
     @setTemplate @pistachio()
     @template.update()
     {profile} = @getData()
     {currentDelegate} = @getSingleton('mainController').getVisitor()
-    
+
     @isMyItem() if profile.nickname is currentDelegate.profile.nickname
-      
+
   pistachio:->
     """
       <span>
@@ -159,7 +162,7 @@ class MembersListItemView extends KDListItemView
 
       <div class='member-details'>
         <header class='personal'>
-          <h3><a href='#' class='propagateProfile'>{{#(profile.firstName)}} {{#(profile.lastName)}}</a></h3> <span>{{> @location}}</span>
+          <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
 
         <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
@@ -169,7 +172,7 @@ class MembersListItemView extends KDListItemView
           <a class='followers' href='#'> <cite></cite> {{#(counts.followers)}} Followers</a>
           <a class='following' href='#'> <cite></cite> {{#(counts.following)}} Following</a>
           <time class='timeago hidden'>
-            <span class='icon'></span> 
+            <span class='icon'></span>
             <span>
               Active <cite title='{{#(meta.modifiedAt)}}'></cite>
             </span>
@@ -177,18 +180,18 @@ class MembersListItemView extends KDListItemView
         </footer>
 
       </div>
-    """   
+    """
 
-    
+
 class MembersLocationView extends KDCustomHTMLView
   constructor: (options, data) ->
     options = $.extend {tagName: 'p', cssClass: 'place'}, options
     super options, data
-    
+
   viewAppended: ->
     locations = @getData()
     @setPartial locations?[0] or ''
-    
+
 
 
 
@@ -198,7 +201,7 @@ class MembersContentDisplayView extends KDView
       view : mainView = new KDView
       cssClass : 'member-followers content-page-members'
     ,options
-      
+
     super options, data
 
   createCommons:(account, filter)->
@@ -210,7 +213,7 @@ class MembersContentDisplayView extends KDView
     subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
 
     contentDisplayController = @getSingleton "contentDisplayController"
-    
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
@@ -219,14 +222,8 @@ class MembersContentDisplayView extends KDView
 
 
 class MemberFollowToggleButton extends KDToggleButton
-  attachListener:->
-    {dataPath} = @getOptions()
-    if dataPath
-      @setState 'Unfollow' if @getData()[dataPath] is yes
 
+  decorateState:(name)->
 
-  setState:(name)->
-    @setClass 'following-btn' if name is 'Unfollow' 
-    super(name)
-
-
+    @setClass 'following-btn' if name is 'Unfollow'
+    super

@@ -10,7 +10,7 @@ option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 
-ProgressBar     = require './builders/node_modules/progress'
+ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
@@ -68,17 +68,20 @@ targetPaths =
       tmpFileCompiled = tmpFile+".js"
       fs.writeFile tmpFile,js,(err)-> 
         execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+        console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
+            console.log "23",arguments
           else if stdout
+            console.log "12",arguments
           else throw err
           bar.tick() for ko in [ticks...totalTicks]
           fs.readFile tmpFileCompiled,'utf8',(err,data)->
             clearInterval a
             unless err
               callback null,data
-              fs.unlink tmpFileCompiled,->
-              fs.unlink tmpFile,->
+              # fs.unlink tmpFileCompiled,->
+              # fs.unlink tmpFile,->
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
@@ -125,6 +128,21 @@ targetPaths =
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
+
+task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
+  
+  options.port      = 3000
+  options.host      = "localhost"
+  options.database  = "beta" 
+  options.port      = "3000"
+  options.dontStart = yes
+  options.uglify    = yes
+  options.useStatic = yes
+    
+  invoke 'build'
+
+
+
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
   {our_modules, npm_modules} = require "./CakeNodeModules"
@@ -153,7 +171,13 @@ task 'checkModules', 'check node_modules dir',(options)->
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)    
   if untracked_mods.length > 0      
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
-    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
+    process.exit()
+
+  unignored_mods = (mod for mod in data when mod not in our_modules and "/node_modules/#{mod}" not in gitIgnore)
+  if unignored_mods.length > 0      
+    console.log "[ERROR] UN-IGNORED NPM MODULES FOUND:",unignored_mods
+    console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
 
   all_mods = npm_modules.concat our_modules
@@ -176,16 +200,15 @@ task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in .
 
 task 'build', 'optimized version for deployment', (options)->  
   invoke 'checkModules'
-  
-  options = options    
   require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
   options.port      or= 3000
   options.host      or= "localhost"
   options.watch     or= 1000
-  options.database  ?= "local" 
+  options.database  ?= "mongohq-dev" 
   options.port      ?= "3000"
   options.dontStart ?= no
   options.uglify    ?= no
+  
 
   targetPaths.server = options.target ? "/tmp/kd-server.js"
   
@@ -247,7 +270,7 @@ build = (options)->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
       
-    if changes.Server? 
+    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
       builder.buildServer "",()-> 
       builder.processMonitor.restartProcess() unless options.dontStart
     if changes.Client?.StylusFiles? 

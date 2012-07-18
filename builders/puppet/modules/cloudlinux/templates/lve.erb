@@ -1,0 +1,42 @@
+# To use lve-stats with MySQL database, you should install package 'MySQL-python'
+# Typical procedure to configure the lve-stats with MySQL database is
+# described in /usr/share/doc/lve-stats/lve-stats-mysql.txt
+#
+# To use lve-stats with PostGreSQL database, you should install package 'postgresql-python'
+# Typical procedure to configure the lve-stats with PostGreSQL database is
+# described in /usr/share/doc/lve-stats/lve-stats-postgresql.txt
+
+# Following option selects appropriate database type to use.
+db_type = mysql
+# db_type = postgresql
+#db_type = sqlite
+
+# Connection string for PostGreSQL database has the following form
+# connect_string = host:database:user:password:opt:tty
+# Refer to PostGreSQL server documentation for further explanation.
+#
+# Connection string for MySQL database has the following form
+# connect_string = host:database:user:password
+# Refer to MySQL server documentation for further explanation.
+#
+# Connection string is not used for sqlite database.
+#
+# Put appropriate connection string here:
+connect_string = lvestats.cfbuweg6pdxe.us-east-1.rds.amazonaws.com:lvestats:lvestats:35acb84L
+
+# Typical port is 3306 for MySQL and 5432 for PostGreSQL.
+# Use default port for specific database if db_port option is not specified.
+# db_port option is not used for sqlite database.
+# Typical setting for MySQL:
+# db_port = 3306
+# Typical setting for PostGreSQL:
+# db_port = 5432
+
+# The following option sets the name of the server in form:
+# server_id = any_name
+# Name of the server should be at most 10 characters.
+# This option is to use with centralized database (PostGreSQL or MySQL).
+# For use with sqlite database, value of this option should be "localhost" (without quotes).
+server_id = <%= hostname %>
+
+

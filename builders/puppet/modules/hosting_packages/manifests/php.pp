@@ -1,7 +1,6 @@
 
 class hosting_packages::php {
     $php = ["php",
-            "mod_suphp",
             "php-suhosin",
             "php-mysql",
             "php-gd",
@@ -15,11 +14,13 @@ class hosting_packages::php {
             "php-cli",
             "php-xml",
             "php-dba",
+            "php-pecl-apc",
+            "php-pear",
         ] 
     
     package { $php :
         ensure => installed,
-        require => Class["yumrepos::epel"],
+        require => [Class["yumrepos::epel"], Class["hosting_httpd"]],
         notify => Class["cloudlinux::cagefs_update"],
     }
 

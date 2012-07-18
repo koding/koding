@@ -1,13 +1,8 @@
 class NavigationController extends KDListViewController
-  constructor:->
-    super
-
-    # this is temporary privateBeta
-    @listenTo 
-      KDEventTypes        : "MakeAllItemsUnselected"
-      listenedToInstance  : @getView()
-      callback            : =>
-        @$('.navigation-item').removeClass 'selected'
+  
+  reset:->
+    @removeAllItems()
+    @instantiateListItems @getData().items
   
   selectItemByName:(name)->
     item = no
@@ -17,63 +12,78 @@ class NavigationController extends KDListViewController
         break
     item
 
-class NavigationList extends KDListView
+  instantiateListItems:(items)->
 
+    newItems = for itemData in items
+      if KD.isLoggedIn()
+        continue if itemData.loggedOut
+      else
+        continue if itemData.loggedIn
+      @getListView().addItem itemData
+
+
+class NavigationList extends KDListView
+  
   itemClass:(options,data)->
-    if data.title is "Beta Feedback"
-      new NavigationBetaFeedbackLink options, data
-    else if data.title is "Invite Friends"
+    if data.title is "Invite Friends"
       new NavigationInviteLink options, data
     else
       super
 
 class NavigationLink extends KDListItemView
+
   constructor:(options,data)->
+    
     super options,data
+
     @name = data.title
     @setClass 'navigation-item clearfix'
 
   mouseDown:(event)->
-    @getDelegate().handleEvent (type : "NavigationLinkTitleClick", orgEvent : event, pageName : @getData().title, appPath:@getData().path, navItem : @)
-    
-  partial:(data)->
-    $ "<a class='title' href='#'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>"
 
-class NavigationBetaFeedbackLink extends NavigationLink
-  viewAppended:()->
-    bongo.api.JUser.fetchUser (err,user)=>
-      @data.link = user.tenderAppLink
-      @getDomElement().append @partial @data
-      # @handleEvent { type : "viewAppended"}
-      @setViewReady()
-  
+    mc = @getSingleton('mainController')
+    mc.emit "NavigationLinkTitleClick"
+      orgEvent : event
+      pageName : @getData().title
+      appPath  : @getData().path or @getData().title
+      navItem  : @
+
   partial:(data)->
-      $ "<a class='title' href='#{data.link}' target='_blank'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>"
+
+    "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+
+class AdminNavigationLink extends NavigationLink
   
   mouseDown:(event)->
-    event.stopPropagation()
-    no
+
+    cb = @getData().callback
+    cb.call @ if cb
 
 class NavigationInviteLink extends NavigationLink
   
   constructor:->
+
     super
+
     @hide()
     @count = new KDCustomHTMLView
       pistachio: "{{#(quota)-#(usage)}}"
-    KD.whoami().fetchLimit 'invite', (err, limit)=>
-      if limit?
-        @show()
-        @count.setData limit
-        limit.on 'update', => @count.render()
-        @count.render()
+
+    @utils.wait 10000, =>
+      KD.whoami().fetchLimit? 'invite', (err, limit)=>
+        if limit?
+          @show()
+          @count.setData limit
+          limit.on 'update', => @count.render()
+          @count.render()
   
-  sendInvite:(formElements, modal)->
+  sendInvite:(formData, modal)->
+
     bongo.api.JInvitation.create
-      emails        : [formElements.recipient]
+      emails        : [formData.recipient]
       customMessage :
-        # subject     : formElements.subject
-        body        : formElements.body
+        # subject     : formData.subject
+        body        : formData.body
     , (err)=>
       modal.modalTabs.forms["Invite Friends"].buttons.Send.hideLoader()
       if err
@@ -85,12 +95,16 @@ class NavigationInviteLink extends NavigationLink
         modal.destroy()
   
   viewAppended:->
+
     @setTemplate @pistachio()
     @template.update()
   
   pistachio:->
     "<a class='title' href='#'><span class='main-nav-icon #{__utils.slugify @getData().title}'>{{> @count}}</span>#{@getData().title}</a>"
-      
+  
+  
+  # take this somewhere else
+  # was a beta quick solution
   mouseDown:(event)->
     limit = @count.getData()
     if !limit? or limit.getAt('quota') - limit.getAt('usage') <= 0
@@ -98,19 +112,16 @@ class NavigationInviteLink extends NavigationLink
         title   : 'You are temporarily out of invitations.'
         content : 'Please try again later.'
     else
-      log @modal
       return if @modal
       @modal = modal = new KDModalViewWithForms
         title                   : "<span class='invite-icon'></span>Invite Friends to Koding"
         content                 : ""
         width                   : 500
         height                  : "auto"
-        position                :
-          top                    : 150
         cssClass                : "invitation-modal"
         tabs                    :
-          callback              : (formElements)=> 
-            @sendInvite formElements, modal
+          callback              : (formData)=> 
+            @sendInvite formData, modal
           forms                 :
             "Invite Friends"    :
               fields            :

@@ -93,7 +93,7 @@ class JPasswordRecovery extends jraphical.Module
               # url         : "#{protocol}#{host}:#{port}/recover/#{encodeURIComponent token}"
               url         : "#{protocol}#{host}/recover/#{encodeURIComponent token}"
               requestedAt : certificate.getAt('requestedAt')
-            postmark.send
+            Emailer.send
               From      : @getPasswordRecoveryEmail()
               To        : email
               Subject   : @getPasswordRecoverySubject()
@@ -119,7 +119,6 @@ class JPasswordRecovery extends jraphical.Module
     @update query, {$set: status: 'invalidated'}, callback
   
   @resetPassword = bongo.secure (client, token, newPassword, callback)->
-    debugger
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in!'

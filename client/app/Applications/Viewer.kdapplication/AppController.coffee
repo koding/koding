@@ -22,8 +22,8 @@ class Viewer12345 extends KDViewController
       KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes
     ,
       options:
-        hiddenHandle    :no
-        type            :'application'
+        hiddenHandle    : no
+        type            : 'application'
         name            : path
         applicationType : 'Viewer.kdApplication'
       data : frontDocument
@@ -54,9 +54,6 @@ class Viewer12345 extends KDViewController
     @openDocuments.splice (@openDocuments.indexOf document), 1
 
   createNewDocument:()->
-    # document = new PreviewerView cssClass : 'previewer-wrapper'
-    # document.addSubView header  = new PreviewerHeader cssClass : 'previewer-header', delegate : document
-    # document.addSubView preview = new Previewer delegate : document
     document = new PreviewerView()
     document.registerListener KDEventTypes:"viewAppended", callback:@loadDocumentView, listener:@
     document.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeDocument
@@ -72,85 +69,69 @@ class Viewer12345 extends KDViewController
   loadDocumentView:(documentView)->
     if (file = documentView.file)?
       document.openPath file.path
-  
-  # applyStyleSheet:(callback)->
-  #   requirejs ['text!KDApplications/Viewer.kdapplication/app.css'], (css)->
-  #     $("<style type='text/css'>#{css}</style>").appendTo("head");
-  #     callback?()
-
-# define ()->
-#   application = new AppController()
-#   {initApplication, initAndBringToFront, bringToFront, openFile} = application
-#   {initApplication, initAndBringToFront, bringToFront, openFile}
-#   #the reason I'm returning the whole instance right now is because propagateEvent includes the whole thing anyway. switch to emit/on and we can change this...
-#   return application
-
 
 class PreviewerView extends KDView
+
   constructor:(options = {},data)->
     options.cssClass = 'previewer-body'
-    @clean = yes
     super options,data
     
   openPath:(path)->
-    @path = path
-    @clean = no
-    @iframe.$().attr 'src', path
-    @viewerHeader.setPath(path)
+    
+    # do not open main koding domains in the iframe
+    if /(^(http(s)?:\/\/)?beta\.|^(http(s)?:\/\/)?)koding\.com/.test path
+      @viewerHeader.pageLocation.setClass "validation-error"
+      return
+
+    realPath = unless /^http(s)?:\/\//.test path then "http://#{path}" else path
+    cacheBusterPath = "#{realPath}?#{Date.now()}"
+    
+    @path = realPath
+    @iframe.$().attr 'src', "#{cacheBusterPath}"
+    @viewerHeader.setPath realPath
   
   refreshIFrame:->
-    @iframe.$().attr 'src', @path
+    @iframe.$().attr 'src', "#{@path}"
     
   isDocumentClean:->
     @clean
   
   viewAppended:->
-    @addSubView @viewerHeader = new ViewerTopBar {}, null
+    @addSubView @viewerHeader = new ViewerTopBar {}, @path
     @addSubView @iframe = new KDView
       tagName : 'iframe'
 
 
-class ViewerTopBar extends KDView
+class ViewerTopBar extends JView
   constructor:(options,data)->
     options.cssClass = 'viewer-header top-bar clearfix'
     super options,data
 
-    @pageLocation = pageLocation = new KDView
-      tagName   : 'p'
-      cssClass  : 'viewer-title'
-      partial   : ''
-      
-    @refreshButton = refreshButton = new PreviewerButton {}, @getData()
-    
-  viewAppended:->
-    @addSubView @pageLocation = new KDView
-      tagName   : 'p'
-      cssClass  : 'viewer-title'
-      partial   : ''
-    @addSubView @refreshButton = new PreviewerButton {}, null
+    @addressBarIcon = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "address-bar-icon"
 
+    @pageLocation = new KDHitEnterInputView
+      type      : "text"
+      callback  : =>
+        @parent.openPath @pageLocation.getValue()
+        @pageLocation.focus()
+        
+    @refreshButton = new KDCustomHTMLView
+      tagName   : "a"
+      attributes:
+        href    : "#"
+      cssClass  : "refresh-link"
+      click     : => @parent.refreshIFrame()
+    
   setPath:(path)->
-    @pageLocation.$().text "#{path}"
-      
-      
-class PreviewerButton extends KDView
-  constructor:(options, data)->
-    options = $.extend
-      tagName   : 'button'
-      cssClass  : 'clean-gray'
-      partial   : '<span class="icon refresh-btn"></span>'
-    , options
-    super options, data
+    @pageLocation.unsetClass "validation-error"
+    @pageLocation.setValue "#{path}"
+  
+  pistachio:->
     
-  click:=>
-    @parent.parent.refreshIFrame()
-
-    
-
-    
-    
-    
-    
-    
-    
-    
+    """
+    {{> @addressBarIcon}}
+    {{> @pageLocation}}
+    {{> @refreshButton}}
+    """

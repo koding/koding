@@ -1,12 +1,10 @@
 mongo   = require 'mongodb'
 log4js  = require 'log4js'
-config  = require('config').mongo
-
-
+config  = require('./config').mongo
+{daisy} = require "sinkrow"
 logFile = '/var/log/node/MongoDBApi.log'
-log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
+#log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
-
 
 class MongoDB
 
@@ -25,9 +23,9 @@ class MongoDB
 
   constructor : (@config)->
 
-    @mongoHost = @config.databases.mongodb.host
-    @mongoUser = @config.databases.mongodb.user
-    @mongoPass = @config.databases.mongodb.password
+    @mongoHost = @config.databases.mongodb[0].host
+    @mongoUser = @config.databases.mongodb[0].user
+    @mongoPass = @config.databases.mongodb[0].password
     @server = new mongo.Server @mongoHost, 27017
 
   uniqueId = (length=8) ->
@@ -35,6 +33,69 @@ class MongoDB
     id = ""
     id += Math.random().toString(36).substr(2) while id.length < length
     id.substr 0, length
+
+  getDbUsers : (dbName,callback)->
+    log.debug 'does call'
+
+    db = new mongo.Db dbName, @server, native_parser: false
+    db.open (err,db)=>
+      if err?
+        log.error error = "[ERROR] can't open database #{dbName}: #{err}"
+      else
+        db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
+          log.error err if err
+          db.collection "system.users",(err,collection)=>
+            log.error err if err
+            collection.find({},{fields:user:1}).toArray (err,items)->
+              log.error err if err
+              usernames = []
+              for user in items
+                usernames.push user.user
+              console.log "miki",usernames
+              callback usernames
+
+  fetchDatabaseList :(options, callback)->
+    #
+    # options =
+    #   username : koding user
+
+    {username} = options
+    username = new RegExp '^'+username
+
+    db = new mongo.Db 'admin', @server, native_parser: false
+
+    db.open (err,db)=>
+      if err?
+        log.error error = "[ERROR] can't open database #{dbConf.dbName}: #{err}"
+        callback? error
+      else
+        db.admin (err,adm)=>
+          adm.authenticate @mongoUser, @mongoPass,(err)=>
+            if err?
+              console.log error = "[ERROR] " + err
+              callback? error
+            else
+              adm.command listDatabases:1, (err,result)=>
+                if err?
+                  log.error error = "[ERROR]: #{err}"
+                  callback? error
+                else
+                  users_dbs = []
+                  dbInfo = []
+                  for db in result.documents[0].databases
+                     users_dbs.push db.name if db.name.match username
+                  queue = []
+                  users_dbs.forEach (users_db, index)=>
+                    queue.push =>
+                      @getDbUsers users_db,(usersArray)=>
+                        log.debug "x",users_db,index,usersArray
+                        dbInfo.push { dbName: users_db, dbUser: usersArray }
+                        queue.next()
+                  queue.push ->
+                    log.debug 'info FINALLY', dbInfo
+                    callback null, dbInfo
+                  daisy queue
+          
 
   createDatabase : (options,callback)->
 
@@ -65,7 +126,14 @@ class MongoDB
     # -------------------------------    
     
     dbConf = {dbName,dbUser,dbPass}
-    dbConf.host = @config.databases.mongodb.host
+
+    dbConf.dbHost = @mongoHost
+    dbConf.dbType = "mongo"/
+
+    dbConf.dbPass = uniqueId()
+    dbConf.dbUser = dbConf.dbName
+
+    console.log dbConf
 
     db = new mongo.Db dbConf.dbName, @server
 
@@ -88,6 +156,7 @@ class MongoDB
                 else
                   log.debug res
                   log.info "[OK] user #{dbConf.dbUser} and database #{dbConf.dbName} has been created"
+                  log.info dbConf
                   callback? null,dbConf
 
   changePassword : (options,callback)->
@@ -106,7 +175,7 @@ class MongoDB
 
     {username,dbUser,dbName,dbPass,newPassword} = options
 
-    checkIfStarts
+    #checkIfStarts
 
     db = new mongo.Db dbName, @server
     db.open (err,db)=>
@@ -123,11 +192,6 @@ class MongoDB
               else
                 log.info "[OK] password for user #{dbUser} in database #{dbName} has been changed"
                 callback? null,"[OK] password for user #{dbUser} in database #{dbName} has been changed"
-
-
-
-
-
 
   removeDatabase : (options,callback)->
 
@@ -159,7 +223,17 @@ class MongoDB
               callback? null,"[OK] database #{dbName} has been removed"
 
 mongoDB = new MongoDB config
-
 module.exports = mongoDB
 
+# options =
+#    username : "gokment"   
+#    dbName    : "dlskdlskdlsk"
 
+
+# mongoDB.fetchDatabaseList options,(res)->
+#   console.log res
+#dbs =  ['gokment_c219e4c7','gokment_df539bb7']
+#for db in dbs
+#  do (db)->
+#    mongoDB.getDbUsers db, (res)->
+#      console.log res

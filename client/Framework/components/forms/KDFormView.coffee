@@ -62,19 +62,14 @@ class KDFormView extends KDView
       for own key, value of path
         JsPath.setAt @customData, key, value
 
-  removeCustomData:(path, item)->
-    if item?
-      if typeof path is "string"
-        JsPath.spliceAt @customData, path, (JsPath.getAt @customData, path).indexOf(item), 1 
-      else
-        newData = @customData
-        for place in path
-          newData = newData[place]
-          
-        JsPath.spliceAt @customData, path, newData.indexOf(item), 1 
+  removeCustomData:(path)->
+    path = path.split '.' if 'string' is typeof path
+    [pathUntil..., last] = path 
+    isArrayElement = not isNaN +last
+    if isArrayElement
+      JsPath.spliceAt @customData, pathUntil, last
     else
       JsPath.deleteAt @customData, path
-    
   
   getData: ->
     formData = $.extend {},@getCustomData()
@@ -109,9 +104,9 @@ class KDFormView extends KDView
     validatedCount = 0
     validInputs    = []
     toBeValidated  = []
-    formData       = {}
+    formData       = @getCustomData() or {}
     @valid         = yes
-
+    
     # put to be validated inputs in a queue
     inputs.forEach (input)=>
       if input.getOptions().validate
@@ -130,7 +125,7 @@ class KDFormView extends KDView
           # check if all inputs were valid
           if toBeValidated.length is validInputs.length
             # put valid inputs to formdata
-            formData = $.extend formData, @getCustomData()
+            # formData = $.extend formData, @getCustomData()
             for inputView in toBeValidated
               formData[inputView.getName()] = inputView.getValue()
           else
