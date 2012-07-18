@@ -167,7 +167,6 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setTheme()
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
-      @once @updateSyntaxTag 'javascript'
       @emit "codeSnip.aceLoaded"
 
   refreshEditorView:->
