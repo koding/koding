@@ -114,6 +114,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
   submit:=>
+    debugger
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
     super
