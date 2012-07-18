@@ -113,7 +113,7 @@ mobwrite.timeoutInterval = 30000;
  * Shortest interval (in milliseconds) between connections.
  * @type {number}
  */
-mobwrite.minSyncInterval = 1000;
+mobwrite.minSyncInterval = 100;
 
 
 /**

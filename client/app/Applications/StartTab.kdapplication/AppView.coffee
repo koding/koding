@@ -11,12 +11,12 @@ class StartTabMainView extends JView
 
     mainView = @getSingleton('mainView')
     
-    mainView.sidebar.finderResizeHandle.on "DragInAction", =>
-      log "DragInAction", mainView.contentPanel.getWidth()
+    # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
+    #   log "DragInAction", mainView.contentPanel.getWidth()
     
-    mainView.sidebar.finderResizeHandle.on "DragFinished", =>
-      @utils.wait 301, =>
-        log "DragFinished", mainView.contentPanel.getWidth()
+    # mainView.sidebar.finderResizeHandle.on "DragFinished", =>
+    #   @utils.wait 301, =>
+    #     log "DragFinished", mainView.contentPanel.getWidth()
     
     @loader = new KDLoaderView
       size          :

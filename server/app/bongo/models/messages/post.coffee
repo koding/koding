@@ -205,7 +205,7 @@ class JPost extends jraphical.Message
     id = @getId()
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'
+    repliesCount = @getAt 'repliesCount'    
     queue = [
       =>
         @fetchActivityId (err, activityId_)->
