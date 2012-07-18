@@ -15,6 +15,8 @@ class KDButtonMenu extends KDContextMenu
     menuHeight    = @$().outerHeight()
     menuWidth     = @$().outerWidth()
 
+    log buttonHeight, buttonWidth, button
+
     if top + menuHeight > mainHeight
       top = button.getY() - menuHeight
       @setClass "top-menu"
