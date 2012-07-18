@@ -20,7 +20,7 @@ class JVisitor extends bongo.Model
   
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences.one {}, (err, prefs)->
-      callback err? or prefs?.registrationIsEnabled or no
+      callback err? or prefs?.isRegistrationEnabled or no
 
   @getVersion=(callback)->
     fs.readFile "./.revision",'utf-8',(err,data)->

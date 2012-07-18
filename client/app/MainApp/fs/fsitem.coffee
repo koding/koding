@@ -6,6 +6,10 @@ class FSItem extends KDObject
   
   escapeFilePath = FSHelper.escapeFilePath
   
+  getExtension:->
+    [root, rest..., extension]  = @path.split '.'
+    extension or= ''
+
   @create:(path, type, callback)->
     
     FSItem.getSafePath path, (err, response)->
@@ -161,29 +165,3 @@ class FSItem extends KDObject
       else
         @mode = permissions
       callback? err,res
-
-
-  ###
-  MIGRATION IN PROGRESS BELOW
-  ###
-  
-  
-  isFile: ->
-    @type is 'file'
-    
-  isFolder: ->
-    @type is 'folder'
-    
-  isMount: ->
-    @type is 'mount'
-      
-  lock: (instance, message) -> @
-    
-  unLock: (instance) -> @
-      
-  # parents are taken based on file path
-  # file paths should be kept at actual state
-  getParent: ->
-    @parentPath
-    
-  setListeners: ->

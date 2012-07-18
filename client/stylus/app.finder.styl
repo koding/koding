@@ -13,26 +13,6 @@ app.finder.styl
 */
 }
 
-#finder-holder
-  height                auto
-  overflow              visible
-  .nfinder
-    overflow            visible
-    > div
-      padding           10px 0
-      borderBox()
-    ul
-      min-width         208px
-      margin-left       0
-      &.drop-target
-        background      rgba(136, 183, 214, 0.13)
-
-.nfinder
-  .no-context-menu
-    .kdlistitemview-finderitem
-      .chevron-arrow
-        hidden()
-
 selectedNeighbor()
   border-top-color  #E6981E
   background        finderSelectedColor1
@@ -47,10 +27,42 @@ dimmedNeighbor()
   border-top-color  finderDimmedColor1
   background        finderDimmedColor2
 
+#finder-holder
+  height                auto
+  overflow              visible
+  .nfinder
+    overflow            visible
+    > div
+      padding           10px 0
+      borderBox()
+    ul
+      min-width         180px
+      margin-left       0
+      &.drop-target
+        background      rgba(136, 183, 214, 0.13)
+
+.nfinder
+  .no-context-menu
+    .kdlistitemview-finderitem
+      .chevron-arrow
+        hidden()
+  .dim
+    .kdlistitemview-finderitem.selected
+      dimmed()
+      &+.selected
+        dimmedNeighbor()
+      &+.jtreeview
+        .kdlistitemview-finderitem
+          &:first-child
+            &.selected
+              dimmedNeighbor()
+      
+    .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
+      dimmedNeighbor()
+    
+
 .jtreeview.last-item-selected + .kdlistitemview-finderitem.selected
   selectedNeighbor()
-  &.dimmed
-    dimmedNeighbor()
 
 .kdlistitemview-finderitem
   height              auto
@@ -87,17 +99,11 @@ dimmedNeighbor()
       text-shadow none
     &+.selected
       selectedNeighbor()
-      &.dimmed
-        dimmedNeighbor()
     &+.jtreeview
       .kdlistitemview-finderitem
         &:first-child
           &.selected
             selectedNeighbor()
-            &.dimmed
-              dimmedNeighbor()
-    &.dimmed
-      dimmed()
 
   &.unsaved
     span.icon
@@ -241,15 +247,19 @@ dimmedNeighbor()
   .finder-resize-handle
     cursor            ew-resize           
     position          absolute
-    width             14px
-    min-width         14px
+    width             4px
     top               0!important
     right             0!important
     z-index           1
+    overflow          visible
     span
       display         block
+      position        absolute
       height          45px
+      width           14px
       bg              position, -55px -173px
+      top             0
+      right           0
       sprite()
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
@@ -392,12 +402,6 @@ dimmedNeighbor()
         color white
         text-shadow none
 
-    &.selected.dimmed
-      border-color      #ccc transparent #c2c2c2 transparent
-      color             #282828
-      text-shadow       none
-      background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
-  
     &.unsaved
       span.icon
         color           black!important
@@ -530,26 +534,31 @@ dimmedNeighbor()
   .folder
   .mount
     span.icon
-      bg            position,-40px -100px
+      bg            position, -40px -100px
     span.icon.application
-      bg            position,-40px -320px
+      bg            position, -40px -320px
+  .folder
+    span.icon
+      &.app
+        bg          position, -40px -60px
   .file
     span.icon
-      bg            position,-40px -140px
-      &.code
-        bg          position,-40px -180px
-      &.image
-        bg          position,-40px -200px
-      &.archive
-        bg          position,-40px -220px
-      &.new-file
-        bg          position,-40px -240px
-      &.video
-        bg          position,-40px -260px
-      &.sound
-        bg          position,-40px -280px
-      &.text
-        bg          position,-40px -300px
+      bg            position, -40px -140px
+      &.code                  
+        bg          position, -40px -180px
+      &.image                 
+        bg          position, -40px -200px
+      &.archive               
+        bg          position, -40px -220px
+      &.new-file              
+        bg          position, -40px -240px
+      &.video                 
+        bg          position, -40px -260px
+      &.sound                 
+        bg          position, -40px -280px
+      &.text                  
+        bg          position, -40px -300px
+      
 
   
 .finder-drag-container

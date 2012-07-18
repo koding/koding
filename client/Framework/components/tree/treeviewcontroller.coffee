@@ -136,8 +136,23 @@ class JTreeViewController extends KDViewController
     node2PId = @getNodePId node2.getData()
 
     return node1PId is node2PId
+  
+  ###
+  DECORATORS
+  ###
+  
+  setFocusState:->
+    
+    view = @getView()
+    @getSingleton("windowController").addLayer view
+    view.unsetClass "dim"
+  
+  setBlurState:->
 
-
+    view = @getView()
+    @getSingleton("windowController").removeLayer view
+    view.setClass "dim"
+  
   ###
   CRUD OPERATIONS FOR NODES
   ###
@@ -311,7 +326,10 @@ class JTreeViewController extends KDViewController
     @listenTo
       KDEventTypes       : "ReceivedMouseUpElsewhere"
       listenedToInstance : @getSingleton("windowController")
-      callback           : (windowController, event)-> @mouseUp windowController, event
+      callback           : (windowController, event)=>
+        @mouseUp windowController, event
+
+    @getView().on "ReceivedClickElsewhere", => @setBlurState()
 
   setListenersForList:(listId)->
 
@@ -385,6 +403,7 @@ class JTreeViewController extends KDViewController
   selectNode:(nodeView, event)->
 
     return unless nodeView
+    @setFocusState()
     @listControllers[@getNodePId nodeView.getData()].selectItem nodeView, event
 
   deselectNode:(nodeView, event)->
@@ -428,32 +447,45 @@ class JTreeViewController extends KDViewController
   DND UI FEEDBACKS
   ###
 
-  showDragOverFeedback:(nodeView, event)->
+  # THESE 3 METHODS BELOW SHOULD BE REFACTORRED MAKES THE UI HORRIBLY SLUGGISH ON DND - Sinan 07/2012
 
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.setClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.setClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
+  showDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
 
-    nodeView.setClass "items-hovering"
+      # log "show", nodeView.getData().name    
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.setClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.setClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().setClass "drop-target"
 
-  clearDragOverFeedback:(nodeView, event)->
+      nodeView.setClass "items-hovering"
 
-    nodeData = nodeView.getData()
-    if nodeData.type is ("folder" or "mount")
-      nodeView.unsetClass "drop-target"
-    else
-      @nodes[nodeData.parentPath]?.unsetClass "drop-target"
-      @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
+    , 100
 
-    nodeView.unsetClass "items-hovering"
+  clearDragOverFeedback: do ->
+    _.throttle (nodeView, event)->
+    
+      # log "clear", nodeView.getData().name
+      nodeData = nodeView.getData()
+      if nodeData.type isnt "file"
+        nodeView.unsetClass "drop-target"
+      else
+        @nodes[nodeData.parentPath]?.unsetClass "drop-target"
+        @listControllers[nodeData.parentPath]?.getListView().unsetClass "drop-target"
 
-  clearAllDragFeedback:->
+      nodeView.unsetClass "items-hovering"
 
-    listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
-    nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
+    , 100
+
+  clearAllDragFeedback: ->
+
+    @utils.wait 101, =>
+      @getView().$('.drop-target').removeClass "drop-target"
+      @getView().$('.items-hovering').removeClass "items-hovering"
+      listController.getListView().unsetClass "drop-target" for path, listController of @listControllers
+      nodeView.unsetClass "items-hovering drop-target" for path, nodeView of @nodes
 
   ###
   HANDLING MOUSE EVENTS
@@ -519,7 +551,7 @@ class JTreeViewController extends KDViewController
       @mouseDownTempItem = null
 
   mouseUp:(pubInst, event)->
-
+    
     clearTimeout @mouseDownTimer
     @mouseIsDown = no
     @cancelDrag = no

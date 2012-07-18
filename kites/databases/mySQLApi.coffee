@@ -109,7 +109,7 @@ class MySQL
     
     {username} = options
     #sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}\_%'"
-    sql = "SELECT Db,User FROM mysql.db WHERE User LIKE '#{username}\_%'"
+    sql = "SELECT Db,User FROM mysql.db WHERE User LIKE '#{username}\\\_%'"
     console.log "entering with #{sql}"
     @mysqlClient.query sql,callback
   

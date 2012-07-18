@@ -221,15 +221,15 @@ class MongoDB
 mongoDB = new MongoDB config
 module.exports = mongoDB
 
-options =
-   username : "gokment"   
-   dbName    : "dlskdldskdlskd1111skdlsk"
+# options =
+#    username : "gokment"   
+#    dbName    : "dlskdlskdlsk"
 
 #mongoDB.createDatabase options,(err,res)->
 #  console.log err,res
 
-mongoDB.fetchDatabaseList options,(err,res)->
-  console.log err,res
+# mongoDB.fetchDatabaseList options,(res)->
+#   console.log res
 #dbs =  ['gokment_c219e4c7','gokment_df539bb7']
 #for db in dbs
 #  do (db)->

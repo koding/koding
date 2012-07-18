@@ -35,6 +35,7 @@ class KDRySwitch extends KDInputView
     , 0
 
   _setOff:(wCallback = yes)->
+    return unless @getValue()
     @inputDefaultValue = off
     @getDomElement().find("input").eq(0).attr "checked",no
     @$('a.on').removeClass('active')
@@ -42,6 +43,7 @@ class KDRySwitch extends KDInputView
     @switchStateChanged() if wCallback
 
   _setOn:(wCallback = yes)->
+    return if @getValue()
     @inputDefaultValue = on
     @getDomElement().find("input").eq(0).attr "checked",yes
     @$('a.off').removeClass('active')

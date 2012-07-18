@@ -458,7 +458,7 @@ Includes =
 
         # COMMON VIEW
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
-        TagGroups                   : "./client/app/CommonViews/TagViews.coffee"
+        TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
         inputWithButton             : "./client/app/CommonViews/CommonInputWithButton.coffee"
@@ -648,7 +648,7 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
-        termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
+        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"
         # wmd           : "./client/css/wmd.css"

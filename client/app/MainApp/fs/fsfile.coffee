@@ -49,10 +49,4 @@ class FSFile extends FSItem
       @emit "fs.save.finished", err, res
       if err then warn err
       callback? err,res
-
-  getExtension:->
-    [root, rest..., extension]  = @path.split '.'
-    extension or= ''
-
-
     

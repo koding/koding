@@ -44,15 +44,16 @@ class KDView extends KDObject
     o.pistachio   or= null      # a String of Pistachio
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
-    o.draggable   or= null      # an Object holding draggable options and/or events
-    o.droppable   or= null      # an Object holding jQuery UI droppable options and/or events
-    o.resizable   or= null      # an Object holding jQuery UI resizable options and/or events
+    o.draggable   or= null      # an Object holding draggable options and/or events !!! NOT HTML5 !!!
+    o.droppable   or= null      # TBDL
     o.size        or= null      # an Object holding width and height properties
     o.position    or= null      # an Object holding top/right/bottom/left properties (would force view to be positioned absolutely)
     o.attributes  or= null      # an Object holding attribute key/value pairs e.g. {href:'#',title:'my picture'}
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of twipsy options
+    # TO BE IMPLEMENTED
+    o.resizable   or= null      # TBDL
     super o,data
 
     data?.on? 'update', => @render()
@@ -652,6 +653,7 @@ class KDView extends KDObject
 # #
 # EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults
 # #
+
   notifiesOthers:(event)->#notifies the rest of the code when event happens?
     yes
 
@@ -660,28 +662,6 @@ class KDView extends KDObject
 
   acceptsKeyStatus:()->#can become the key view
     yes
-
-# #
-# DEFAULT CONTEXT MENU OPTIONS, DEPRECATED 2012/5/14 Sinan
-# #
-
-  # classContextMenu:()->
-  #   items = @classContextMenuItems()
-  #   items.concat @contextMenuItems if @contextMenuItems?
-  #   items
-  #
-  # classContextMenuItems:()->
-  #   items = []
-  #
-  # setContextMenuItems:(menuItems)->
-  #   @contextMenuItems = menuItems
-
-# #
-# SETTING JQUERY UI RESIZABLE
-# #
-
-  makeResizable:(options)->
-    @getDomElement().resizable options
 
 # #
 # HELPER METHODS
@@ -740,9 +720,9 @@ class KDView extends KDObject
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
-    o.delayIn   or= 300
+    o.delayIn   or= 0
     o.html      or= yes
-    o.animate   or= yes
+    o.animate   or= no
     o.selector  or= null
 
     @listenTo

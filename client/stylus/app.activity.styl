@@ -113,7 +113,7 @@ app.activity.styl
   .kdlistitemview-activity
     border-bottom         1px solid rgba(0, 0, 0, 0.075)
     width                 auto
-    vendor                transition, left .3s ease-in-out\, background-color .3s ease-in-out
+    vendor                transition, left .6s ease-in-out\, background-color .6s ease-in-out .6s
     background-color      #ffffff
     left                  0
     borderBox()
@@ -212,15 +212,16 @@ app.activity.styl
         bg(position,-630px -376px)
 
     &:hover
-      .activity-settings-menu
+      div.activity-settings-menu
         opacity         1
 
-    .activity-settings-menu
+    div.activity-settings-menu
       vendor            transition, opacity .1s ease-out
-      opacity           .1
+      size              21px, 18px
+      opacity           .2
       position          absolute
       top               0
-      right             12px
+      right             20px
       z-index           10
       button.kdbutton.with-icon
         padding         1px 2px
@@ -774,29 +775,29 @@ button.activity-status-context
   .no-shadow
 
     .status-widget
-      width           100%
-      height          53px
-      bg              color, white
-      border-bottom   1px solid rgb(229,229,229)
-      shadow          inset 0 3px 1px 3px rgba(250,250,250,.5)
-      gradient        rgb(255,255,255),rgb(242,242,242)
+      width                 100%
+      height                53px
+      bg                    color, white
+      border-bottom         1px solid rgb(229,229,229)
+      shadow                inset 0 3px 1px 3px rgba(250,250,250,.5)
+      gradient              rgb(255,255,255),rgb(242,242,242)
 
 .activity-status-context.kdbuttonwithmenu-wrapper
-  position            absolute
-  top                 23px
-  left                16px
-  z-index             4
-  size                auto!important,35px
+  position                  absolute
+  top                       23px
+  left                      16px
+  z-index                   4
+  size                      auto!important,35px
 
 .activity-status-context
   .chevron-arrow-ghost-wrapper
-    width               30px
-    rounded        0 3px 0 0
+    width                   30px
+    rounded                 0 3px 0 0
     .chevron-arrow-ghost
-      margin            6px 0 0 6px
+      margin                6px 0 0 6px
   
   .icon
-    margin-right        7px
+    margin-right            7px
     sprite()
     size(20px,20px)
     blockMid()  

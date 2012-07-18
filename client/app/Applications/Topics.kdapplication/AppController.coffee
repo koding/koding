@@ -1,5 +1,5 @@
 class Topics12345 extends AppController
-
+  
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -7,6 +7,7 @@ class Topics12345 extends AppController
       view : new TopicsMainView(cssClass : "content-page topics")
     ,options
     super options,data
+    @listItemClass = TopicsListItemView
     @controllers = {}
 
   bringToFront:()->
@@ -21,7 +22,7 @@ class Topics12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : TopicsListItemView
+      subItemClass          : @listItemClass
       limitPerPage          : 20
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -59,8 +60,69 @@ class Topics12345 extends AppController
 
   loadView:(mainView)->
     mainView.createCommons()
-    @createFeed mainView
+    KD.whoami().fetchRole (err, role) =>
+      if role is "super-admin"
+        @listItemClass = TopicsListItemViewEditable
+
+      @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
+
+    @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
+      @updateTopic topic
+  
+  updateTopic:(topic)->
+    # log "Update this: ", topic
+    controller = @
+    modal = new KDModalViewWithForms
+      title                       : "Update topic " + topic.title
+      height                      : "auto"
+      cssClass                    : "compose-message-modal"
+      width                       : 500
+      overlay                     : yes
+      tabs                        :
+        navigateable              : yes
+        goToNextFormOnSubmit      : no
+        forms                     : 
+          update                  :
+            title                 : "Update Topic Details"
+            callback              : (formData) =>
+              @emit "UpdateTopic"
+              log "Update:: ", formData
+              modal.modalTabs.forms.update.buttons.Update.hideLoader()
+              modal.destroy()
+            buttons               :
+              Update              :
+                style             : "modal-clean-gray"
+                type              : "submit"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
+              Delete              :
+                style             : "modal-clean-red"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 16
+                callback          : =>
+                  topic.delete (err)=>
+                    modal.modalTabs.forms.update.buttons.Delete.hideLoader()
+                    modal.destroy()
+                    unless err then @emit 'TopicIsDeleted'
+                    else new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error editor"
+                        title     : err.message or "Error, please try again later!"
+            fields                :
+              Title               :
+                label             : "Title"
+                itemClass         : KDInputView
+                name              : "title"
+                defaultValue      : topic.title
+              Details             :
+                label             : "Details"
+                type              : "textarea"
+                itemClass         : KDInputView
+                name              : "details"
+                defaultValue      : topic.body or ""
 
   fetchFeedForHomePage:(callback)->
     options =
@@ -88,7 +150,6 @@ class Topics12345 extends AppController
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
