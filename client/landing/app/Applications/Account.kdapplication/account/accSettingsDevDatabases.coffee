@@ -64,7 +64,7 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
     
-    for dbtype in ['mysql', 'mongo']
+    for dbtype in ['mysql']#, 'mongo']
       @talkToKite
         toDo      : @commands[dbtype].fetch
         withArgs  :
@@ -138,7 +138,7 @@ class AccountDatabaseListController extends KDListViewController
   
   talkToKite:(options, callback)->
 
-    log "Run on kite:", options.toDo
+    # log "Run on kite:", options.toDo
     @getSingleton("kiteController").run
       kiteName  : "databases"
       toDo      : options.toDo
