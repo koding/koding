@@ -2,10 +2,10 @@ class Server
   json404     = '{"errno":404}'
   index_html  = ''
 
-  constructor : (port=3000, host="beta.koding.com") ->
+  constructor : (port=3000, host="koding.com") ->
     
     @port = port
-    @host = "beta.koding.com"
+    @host = "koding.com"
         
     app   = express.createServer()
     app.use express.bodyParser()
