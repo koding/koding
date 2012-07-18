@@ -17,7 +17,7 @@ module.exports =
   defaultVhostFiles : nodePath.join process.cwd(),"defaultVhostFiles"
   freeUsersGroup    : 'freeusers'
   liteSpeedUser     : 'lsws'
-  defaultDomain     : 'beta.koding.com'
+  defaultDomain     : 'koding.com' # We use this domain in createVHost method
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true
   processBaseDir    : process.cwd()

@@ -264,7 +264,7 @@ module.exports = new Kite 'sharedHosting'
     
     {username,uid,domainName} = options
     
-    domainName ?= "#{username}.beta.koding.com"
+    domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd
