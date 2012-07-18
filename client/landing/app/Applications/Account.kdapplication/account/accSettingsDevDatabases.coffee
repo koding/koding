@@ -217,7 +217,7 @@ class AccountDatabaseList extends KDListView
                 defaultValue  : "mysql"
                 selectOptions : [
                   { title : "MySql",    value : "mysql" }
-                  { title : "Mongo",    value : "mongo" }
+                  # { title : "Mongo",    value : "mongo" }
                   # { title : "PostGre",  value : "JDatabasePostGre" }
                   # { title : "CouchDB",  value : "JDatabaseCouchDb" }
                 ]
