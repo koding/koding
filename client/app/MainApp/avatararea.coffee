@@ -10,7 +10,7 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = 0
   
   updateCount:(newCount = 0)->
-    log "UPDATING COUNT:: ", newCount
+    # log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
     @count = newCount
 
