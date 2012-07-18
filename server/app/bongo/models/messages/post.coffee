@@ -141,8 +141,7 @@ class JPost extends jraphical.Message
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
-      
-      {tags} = formData.meta
+      {tags} = formData.meta if formData.meta?
       delete formData.meta
       daisy queue = [
         =>
@@ -206,7 +205,7 @@ class JPost extends jraphical.Message
     id = @getId()
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'
+    repliesCount = @getAt 'repliesCount'    
     queue = [
       =>
         @fetchActivityId (err, activityId_)->
