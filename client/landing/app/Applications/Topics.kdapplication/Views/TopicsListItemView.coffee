@@ -1,11 +1,7 @@
 class TopicsListItemView extends KDListItemView
 
-  allowedNicks = ['gokmen', 'devrim', 'sinan', 'alekseymykhailov', 'aydincan', 'chris']
-  
-  constructor:(options,data)->
-    options = options ? {} 
+  constructor:(options = {}, data)->
     options.type = "topics"
-    # options.bind = "mouseenter mouseleave"
     super options,data
     
     @titleLink = new KDCustomHTMLView
@@ -19,7 +15,7 @@ class TopicsListItemView extends KDListItemView
         no
     , data
 
-    if KD.whoami().profile.nickname in allowedNicks
+    if options.editable
       @settingsButton = new KDCustomHTMLView
         tagName     : 'a'
         cssClass    : 'edit-topic'
@@ -27,7 +23,7 @@ class TopicsListItemView extends KDListItemView
         click       : (pubInst, event) =>
           @getSingleton('mainController').emit 'TopicItemEditLinkClicked', data
       , null
-    else
+    else    
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @followButton = new KDToggleButton
@@ -61,7 +57,7 @@ class TopicsListItemView extends KDListItemView
 
   viewAppended:->
     @setClass "topic-item"
-    
+
     @setTemplate @pistachio()
     @template.update()
     
@@ -234,3 +230,9 @@ class ModalTopicsListItem extends TopicsListItemView
       </div>
     </div>
     """
+
+class TopicsListItemViewEditable extends TopicsListItemView
+
+  constructor:(options = {}, data)->
+    options.editable = yes
+    super options, data
