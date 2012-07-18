@@ -22,7 +22,7 @@ module.exports = new Kite 'terminaljs'
       
     
 
-    exec "killall -u #{username}",(err,stdout,stderr)->
+    exec "killall -9 -u #{username}",(err,stdout,stderr)->
       console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
 
   create  : (options,callback)  =>
