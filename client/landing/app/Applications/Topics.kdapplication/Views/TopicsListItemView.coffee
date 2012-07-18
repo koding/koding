@@ -61,56 +61,8 @@ class TopicsListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
     
-  ###
-  followTheButton:->
-    {profile} = topic = @getData()
-    
-    @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView 
-      style : 'follow-btn'
-      title : "Follow"
-      icon  : no
-      callback: =>
-        if KD.isLoggedIn()
-          topic.followee = yes
-          @unfollowTheButton()
-          topic.follow (err,res)=>
-            if err
-              topic.followee = no
-              @followTheButton()
-
-    @addSubView @followButton, '.button-container'
-  
-  unfollowTheButton:()->
-    {profile} = topic = @getData()
-    
-    @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView 
-      style : 'follow-btn following-btn following-topic'
-      title : "Following"
-      callback: =>
-        topic.followee = no
-        if KD.isLoggedIn()
-          @followTheButton()
-          topic.followee = no
-          topic.unfollow (err,res)=>
-            if err
-              topic.followee = yes
-              @unfollowTheButton()
-    @addSubView @followButton, '.button-container'
-  ###
-
   setFollowerCount:(count)->
     @$('.followers a').html count
-
-  mouseEnter:->
-    # @_mouseenterIntent = setTimeout ()=>
-    #   @expandItem()
-    # ,500
-
-  mouseLeave:->
-    # clearTimeout @_mouseenterIntent if @_mouseenterIntent
-    # @collapseItem()
   
   expandItem:->
     return unless @_trimmedBody
@@ -155,36 +107,8 @@ class TopicsListItemView extends KDListItemView
     </div>
     """
 
-  # 
-  # partial:(data)->
-  #   counts = posts : 223, followers : 4234
-  #   data.title or= "couldn't fetch..."
-  #   data.body or= "couldn't fetch..."
-  #   # @_trimmedBody = "#{data.body.slice 0,110}... <i><a href='#'>See more</a></i>" if data.body.length > 110
-  #   @_trimmedBody = "#{data.body.slice 0,110}..." if data.body.length > 110
-  #   """
-  #     <div class="topictext">
-  #       <h3><a href="#">#{data.title}</a></h3>
-  #       <article>#{@_trimmedBody ? data.body}</article>
-  # 
-  #       <div class="topicmeta clearfix">
-  # 
-  #         <div class="topicstats">
-  #           <p class="posts">
-  #             <span class="icon"></span>
-  #             <a href="#">#{counts.posts}</a> Posts
-  #           </p>
-  #           <p class="followers">
-  #             <span class="icon"></span>
-  #             <a href="#">#{counts.followers}</a> Followers
-  #           </p>
-  #         </div>
-  #         <div class="button-container"></div> 
-  #       </div>
-  #     </div>
-  #   """
-    
   refreshPartial: ->
+    
     @skillList?.destroy()
     @locationList?.destroy()
     super
@@ -192,10 +116,12 @@ class TopicsListItemView extends KDListItemView
     @_addLocationsList()
     
   _addSkillList: ->
+    
     @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
     @addSubView @skillList, '.profile-meta'
   
   _addLocationsList: ->
+    
     @locationList = new TopicsLocationView {}, @getData().locations
     @addSubView @locationList, '.personal'
 
@@ -214,6 +140,7 @@ class ModalTopicsListItem extends TopicsListItemView
         @getDelegate().emit "CloseTopicsModal"
 
   pistachio:->
+    
     """
     <div class="topictext">
       <div class="topicmeta">
@@ -234,5 +161,8 @@ class ModalTopicsListItem extends TopicsListItemView
 class TopicsListItemViewEditable extends TopicsListItemView
 
   constructor:(options = {}, data)->
+    
     options.editable = yes
+    options.type     = "topics"
+    
     super options, data
