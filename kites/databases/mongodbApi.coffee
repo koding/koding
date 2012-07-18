@@ -197,12 +197,25 @@ class MongoDB
 
     #
     # options =
-    #   dbName   : String # database name
+    #   username : Koding Username
     #   dbUser   : String # database username
+    #   dbName   : String # database name
     #
     
-    {dbUser,dbName} = options
-    log.debug options
+    {username,dbUser,dbName} = options
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #  
+    console.log dbUser.substr(0,username.length+1) 
+    console.log username+"_"
+    console.log dbName.substr(0,username.length+1)
+
+    unless dbUser.substr(0,username.length+1) is username+"_" and dbName.substr(0,username.length+1) is username+"_"
+      return callback new KodingError "You can only remove a database that you own."
+    # -------------------------------
+
+
     db = new mongo.Db dbName, @server
     db.open (err,db)=>
       db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
@@ -221,15 +234,17 @@ class MongoDB
 mongoDB = new MongoDB config
 module.exports = mongoDB
 
-# options =
-#    username : "gokment"   
-#    dbName    : "dlskdlskdlsk"
+#options =
+#   username : "gokment"   
+#   dbUser    : "gokment_dlskdlskdlskddkdkdkk1100"
+#   dbName    : "gokment_dlskdlskdlskddkdkdkk1100"
 
-#mongoDB.createDatabase options,(err,res)->
+#mongoDB.removeDatabase options,(err,res)->
 #  console.log err,res
 
-# mongoDB.fetchDatabaseList options,(res)->
-#   console.log res
+#mongoDB.fetchDatabaseList options,(res)->
+#  console.log res
+
 #dbs =  ['gokment_c219e4c7','gokment_df539bb7']
 #for db in dbs
 #  do (db)->
