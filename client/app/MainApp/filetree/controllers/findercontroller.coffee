@@ -35,15 +35,11 @@ class NFinderController extends KDViewController
 
     mainView.addSubView @treeController.getView()
     @reset()
-    if @treeController.getOptions().useStorage
-      @defaultStructureLoaded = no
 
+    if @treeController.getOptions().useStorage
       appManager.on "AppManagerOpensAnApplication", (appInst)=>
         if appInst instanceof StartTab12345 and not @defaultStructureLoaded
           @loadDefaultStructure()
-  
-      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
-        @loadDefaultStructure()
 
   reset:->
 
@@ -64,6 +60,10 @@ class NFinderController extends KDViewController
         type        : "mount"
     @defaultStructureLoaded = no
     @treeController.initTree [mount]
+    if @treeController.getOptions().useStorage
+      @defaultStructureLoaded = no
+      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+        @loadDefaultStructure()
 
   loadDefaultStructure:->
 
