@@ -71,8 +71,8 @@ class NFinderController extends KDViewController
     @utils.killWait @loadDefaultStructureTimer
 
     return unless KD.isLoggedIn()    
-    {nickname} = KD.whoami().profile
-    
+    {nickname}     = KD.whoami().profile
+    kiteController = KD.getSingleton('kiteController')
     @fetchStorage (storage)=>
       recentFolders = if storage.bucket?.recentFolders? and storage.bucket.recentFolders.length > 0
         storage.bucket.recentFolders
@@ -88,7 +88,7 @@ class NFinderController extends KDViewController
       mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       mount.emit "fs.fetchContents.started"
-      KD.getSingleton('kiteController').run
+      kiteController.run
         withArgs  :
           command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
       , (err, response)=>
@@ -96,6 +96,8 @@ class NFinderController extends KDViewController
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
         log "#{(Date.now()-timer)/1000}sec !"
+        # temp fix this doesn't fire in kitecontroller
+        kiteController.emit "UserEnvironmentIsCreated"
         mount.emit "fs.fetchContents.finished"
 
 

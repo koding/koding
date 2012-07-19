@@ -700,6 +700,8 @@ class KDView extends KDObject
 
   removeOverlay:()->
     
+    return unless @$overlay
+
     @emit "OverlayWillBeRemoved"
     kallback = =>
       @$overlay.off "click.overlay"
