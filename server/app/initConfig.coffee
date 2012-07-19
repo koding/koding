@@ -43,7 +43,7 @@ dbUrl = switch process.argv[3] or 'local'
   when "wan"
     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
   when "mongohq-dev"
-    "mongodb://dev:P8dnGV9NoyjZUB4kEY@staff.mongohq.com:10016/koding?auto_reconnect"
+    "mongodb://dev:633939V3R6967W93A@staff.mongohq.com:10016/koding?auto_reconnect"
 
 
 console.log 'connecting to '+dbUrl
