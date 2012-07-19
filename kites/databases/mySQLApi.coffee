@@ -58,6 +58,7 @@ class MySQL
 
   constructor : (@config)->
     @mysqlClient = mysql.createClient @config.databases.mysql[0]
+    @dbHost = @config.databases.mysql[0].host
 
   createUser : (options,callback)->
 
