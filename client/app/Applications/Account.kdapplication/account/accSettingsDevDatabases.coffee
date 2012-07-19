@@ -70,7 +70,7 @@ class AccountDatabaseListController extends KDListViewController
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
-        log "RESPONSE: ", response
+        # log "RESPONSE: ", response
         if err then warn err
         else
           @instantiateListItems response
@@ -413,7 +413,7 @@ class AccountDatabaseList extends KDListView
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
 
-    log "Create Item with Data", data
+    # log "Create Item with Data", data
 
     options.tagName = "li"
     
