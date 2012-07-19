@@ -149,15 +149,15 @@ class LinkGroup extends KDCustomHTMLView
       click       : =>
         new FollowedModalView {group}, @getData()
 
-    sep = ''
+    sep = ' '
     if participants[0] instanceof bongo.api.JAccount
       sep = ', '
     switch totalCount
       when 0 then ""
       when 1 then "{{> @participant0}}"
       when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}}"
-      when 4 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}}#{sep}{{> @participant3}"
+      when 3 then "{{> @participant0}}#{sep}{{> @participant1}} and {{> @participant2}}"
+      when 4 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @participant3}}"
       else "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @more}}"
 
   render:->
