@@ -245,7 +245,6 @@ class MongoDB
           callback? "[ERROR] can't authenticate user #{dbUser} in #{dbName} with current password: #{err}"
         else
           db.dropDatabase (err,result)->
-            log.info result
             if err?
               log.error "[ERROR] can't drop database #{dbName}"
               callback?  "[ERROR] can't drop database #{dbName}"
