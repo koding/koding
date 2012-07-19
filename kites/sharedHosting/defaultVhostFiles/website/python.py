@@ -7,7 +7,7 @@ print """\
 <!DOCTYPE html>
 <html lang="en">
 <head>  <meta charset="utf-8">
-  <title>Hellow World from Python</title>
+  <title>Hello World from Python</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="http://koding.com/hello/css/style.css">
   <!--[if IE]>
@@ -42,8 +42,8 @@ print "Content-type: text/html"
 print
 print "Hello, world from python!"
 </pre>
-        </footer>
-  </div> 
+</footer>
+</div> 
 </body>
 </html>
 """
