@@ -98,8 +98,7 @@ class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
-                          console.log 'this is an important code path'
-                          anchor.sendNotification 'ActivityIsAdded'
+                          anchor.sendNotification? 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err
