@@ -680,8 +680,8 @@ class KDView extends KDObject
     if color
       @$overlay.css "background-color" : color
 
-    if parent is "body"
-      @$overlay.appendTo "body"
+    if "string" is typeof parent
+      @$overlay.appendTo $(parent)
     else if parent instanceof KDView
       @__zIndex = parseInt(@$().css("z-index"), 10) or 0
       @$overlay.css "z-index", @__zIndex + 1

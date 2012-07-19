@@ -1,13 +1,15 @@
 class KiteController extends KDController
 
+  # window.sss = Inflector
+
   # notification = null
-  notify = (msg)->
+  notify = (msg = "Something went wrong")->
 
     # notification.destroy() if notification
     notification = new KDNotificationView
-      title     : msg or "Something went wrong"
-      type      : "growl"
-      cssClass  : "mini"
+      title     : "<span></span>#{msg}"
+      type      : "tray"
+      cssClass  : "mini realtime kite"
       duration  : 2500
 
   constructor:->
@@ -49,14 +51,21 @@ class KiteController extends KDController
 #  
   run:(options = {}, callback)->
 
+
     options.kiteName or= "sharedHosting"
     options.kiteId   or= @kiteIds.sharedHosting?[0]
     options.toDo     or= "executeCommand"
     options.withArgs or= {}
 
+    # notify "Talking to #{options.kiteName} asking #{options.toDo}"
+    # debugger
     @account.tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
   
+  _tempOptions  = null
+  _tempCallback = null
+  _attempt      = 1
+
   parseKiteResponse:({err, response}, options, callback)->
 
     if err and response
@@ -66,7 +75,17 @@ class KiteController extends KDController
       if err.kiteNotPresent
         @handleKiteNotPresent {err, response}, options, callback
       else if /No\ssuch\suser/.test err
-        @handleNoSuchUser {err, response}, options, callback
+        _tempOptions  or= options
+        _tempCallback or= callback
+          # mainView = @getSingleton('mainView')
+          # mainView.contentPanel.removeOverlay()
+          # mainView.removeOverlay()
+          # callback()
+        @createSystemUser callback
+      else if /Entry\sAlready\sExists/.test err
+        @utils.wait 5000, =>
+          _attempt++
+          @run _tempOptions, _tempCallback
       else
         callback? err
         warn "parsing kite response: we dont handle this yet", err
@@ -89,39 +108,59 @@ class KiteController extends KDController
   
   createSystemUser:(callback)->
 
+    if _attempt > 1
+      notify "still trying to create the environment..."
+    else 
+      notify "Creating the user environment."
+      mainView = @getSingleton('mainView')
+      
+      mainView.putOverlay
+        isRemovable : no
+        cssClass    : "dummy"
+        animated    : yes
+        parent      : "#finder-panel"
+      
+      mainView.contentPanel.putOverlay
+        isRemovable : no
+        cssClass    : "dummy"
+        animated    : yes
+        parent      : mainView.contentPanel
+
     @run
       toDo       : "createSystemUser"
       withArgs   :
         fullName : "#{@account.getAt 'profile.firstName'} #{@account.getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)
     , (err, res)=>
+      log "Creating the user environment. Attempt ##{_attempt}"
       callback? err, res
       unless err
         notify "User environment is created"
-        @propagateEvent KDEventType : "UserEnvironmentIsCreated"
+        @emit "UserEnvironmentIsCreated"
         # @run options, callback
       else
         error "createUserEnvironment", err
-        notify "Something went wrong creating user environment, trying to fix..."
+        # @wait 5000, @createSystemUser callback
+        # notify "Something went wrong creating user environment, trying to fix..."
     
   
-  handleNoSuchUser:({err, response}, options, callback)->
+  # handleNoSuchUser:({err, response}, options, callback)->
 
-    # log "handleNoSuchUser"
-    notify "Creating the user environment."
-    @run
-      toDo       : "createSystemUser"
-      withArgs   :
-        fullName : "#{@account.profile.firstName} #{@account.profile.lastName}"
-        password : __utils.getRandomHex().substr(1)
-    , (err, res)=>
-      unless err
-        notify "User environment is created"
-        @propagateEvent KDEventType : "UserEnvironmentIsCreated"
-        @run options, callback
-      else
-        error "createUserEnvironment", err
-        notify "Something went wrong creating user environment, trying to fix..."
+  #   # log "handleNoSuchUser"
+  #   notify "Creating the user environment."
+  #   @run
+  #     toDo       : "createSystemUser"
+  #     withArgs   :
+  #       fullName : "#{@account.profile.firstName} #{@account.profile.lastName}"
+  #       password : __utils.getRandomHex().substr(1)
+  #   , (err, res)=>
+  #     unless err
+  #       notify "User environment is created"
+  #       @propagateEvent KDEventType : "UserEnvironmentIsCreated"
+  #       @run options, callback
+  #     else
+  #       error "createUserEnvironment", err
+  #       notify "Something went wrong creating user environment, trying to fix..."
     
 
   ping:(kiteName, callback)->

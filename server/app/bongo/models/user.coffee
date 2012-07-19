@@ -223,11 +223,11 @@ class JUser extends jraphical.Module
         code: inviteCode
         status: 'active'
       }, (err, invite)->
-        # callback null, yes, invite
-        if err or !invite? 
-          callback new KodingError 'Invalid invitation ID!'
-        else 
-          callback null, yes, invite
+        callback null, yes, invite
+        # if err or !invite? 
+        #   callback new KodingError 'Invalid invitation ID!'
+        # else 
+        #   callback null, yes, invite
   
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
@@ -367,7 +367,7 @@ class JUser extends jraphical.Module
       kodingenUser : no
       forbidden    : yes
 
-    @count {username}, (err, count)->
+    @count {username}, (err, count)=>
       if err or username.length < 4 or username.length > 25
         callback err, r
       else
