@@ -6,6 +6,16 @@ logFile = '/var/log/node/MongoDBApi.log'
 #log     = log4js.addAppender log4js.fileAppender(logFile), "[MongoDBApi]"
 log     = log4js.getLogger('[MongoDBApi]')
 
+class AccessError extends Error
+  constructor:(@message)->
+
+class KodingError extends Error
+  constructor:(message)->
+    return new KodingError(message) unless @ instanceof KodingError
+    Error.call @
+    @message = message
+    @name = 'KodingError'
+
 class MongoDB
 
   appendKodingUsername = (username, str)->
@@ -26,7 +36,7 @@ class MongoDB
     @mongoHost = @config.databases.mongodb[0].host
     @mongoUser = @config.databases.mongodb[0].user
     @mongoPass = @config.databases.mongodb[0].password
-    @server = new mongo.Server @mongoHost, 27017
+    @server = new mongo.Server @mongoHost, 27017, socketOptions:keepAlive:5
 
   uniqueId = (length=8) ->
 
@@ -35,7 +45,6 @@ class MongoDB
     id.substr 0, length
 
   getDbUsers : (dbName,callback)->
-    log.debug 'does call'
 
     db = new mongo.Db dbName, @server, native_parser: false
     db.open (err,db)=>
@@ -48,10 +57,10 @@ class MongoDB
             log.error err if err
             collection.find({},{fields:user:1}).toArray (err,items)->
               log.error err if err
+              db.close() # temporary solotion - close connection after each query
               usernames = []
               for user in items
                 usernames.push user.user
-              console.log "miki",usernames
               callback usernames
 
   fetchDatabaseList :(options, callback)->
@@ -60,7 +69,7 @@ class MongoDB
     #   username : koding user
 
     {username} = options
-    username = new RegExp '^'+username
+    username = new RegExp '^'+username+'_'
 
     db = new mongo.Db 'admin', @server, native_parser: false
 
@@ -83,16 +92,15 @@ class MongoDB
                   users_dbs = []
                   dbInfo = []
                   for db in result.documents[0].databases
-                     users_dbs.push db.name if db.name.match username
+                    users_dbs.push db.name if db.name.match username
                   queue = []
                   users_dbs.forEach (users_db, index)=>
                     queue.push =>
-                      @getDbUsers users_db,(usersArray)=>
-                        log.debug "x",users_db,index,usersArray
-                        dbInfo.push { dbName: users_db, dbUser: usersArray }
+                      @getDbUsers users_db, (usersArray)=>
+                        if users_db in usersArray
+                          dbInfo.push { dbName: users_db, dbUser: users_db, dbType: 'mongo', dbHost:@mongoHost }
                         queue.next()
                   queue.push ->
-                    log.debug 'info FINALLY', dbInfo
                     callback null, dbInfo
                   daisy queue
           
@@ -128,7 +136,7 @@ class MongoDB
     dbConf = {dbName,dbUser,dbPass}
 
     dbConf.dbHost = @mongoHost
-    dbConf.dbType = "mongo"/
+    dbConf.dbType = "mongo"
 
     dbConf.dbPass = uniqueId()
     dbConf.dbUser = dbConf.dbName
@@ -137,27 +145,40 @@ class MongoDB
 
     db = new mongo.Db dbConf.dbName, @server
 
-    db.open (err,db)=>
-      if err?
-        log.error "[ERROR] can't open database #{dbConf.dbName}: #{err}"
-        callback? "[ERROR] can't open database #{dbConf.dbName}: #{err}"
-      else
-        db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
-          if err?
-            log.error "[ERROR] can't authenticate with admin credentials: #{err}"
-            callback?  "[ERROR] can't authenticate with admin credentials: #{err}"
-          else
-            db.addUser dbConf.dbUser,dbConf.dbPass,(err,res)->
-              log.debug err,res
-              db.authenticate dbConf.dbUser,dbConf.dbPass,(err,res)->
+    dbCount = (username,callback) =>
+      @fetchDatabaseList username:username,(err,dbsArray)->
+        if err
+          callback err
+        else
+          callback null,dbsArray.length
+  
+    dbCount username,(err,dbNr)=>
+      unless err
+        if dbNr > 4 # 0..4
+          log.error e = "You exceeded your quota, please delete one before adding a new one."
+          callback new KodingError e
+        else
+          db.open (err,db)=>
+            if err?
+              log.error "[ERROR] can't open database #{dbConf.dbName}: #{err}"
+              callback? "[ERROR] can't open database #{dbConf.dbName}: #{err}"
+            else
+              db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
                 if err?
-                  log.error "[ERROR] can't create user #{dbConf.dbUser} and database #{dbConf.dbName}: #{err}"
-                  callback? "[ERROR] can't create user #{dbConf.dbUser} and database #{dbConf.dbName}: #{err}"
+                  log.error "[ERROR] can't authenticate with admin credentials: #{err}"
+                  callback?  "[ERROR] can't authenticate with admin credentials: #{err}"
                 else
-                  log.debug res
-                  log.info "[OK] user #{dbConf.dbUser} and database #{dbConf.dbName} has been created"
-                  log.info dbConf
-                  callback? null,dbConf
+                  db.addUser dbConf.dbUser,dbConf.dbPass,(err,res)->
+                    log.debug err,res
+                    db.authenticate dbConf.dbUser,dbConf.dbPass,(err,res)->
+                      if err?
+                        log.error "[ERROR] can't create user #{dbConf.dbUser} and database #{dbConf.dbName}: #{err}"
+                        callback? "[ERROR] can't create user #{dbConf.dbUser} and database #{dbConf.dbName}: #{err}"
+                      else
+                        log.debug res
+                        log.info "[OK] user #{dbConf.dbUser} and database #{dbConf.dbName} has been created"
+                        log.info dbConf
+                        callback? null,dbConf
 
   changePassword : (options,callback)->
 
@@ -167,17 +188,13 @@ class MongoDB
 
     #
     # options =
-    #   dbUser          : String # database username
-    #   dbName          : String # database name
     #   dbPass          : String # current users's password
     #   newPassword     : String # new password
     #
 
-    {username,dbUser,dbName,dbPass,newPassword} = options
+    {username,dbUser,newPassword} = options
 
-    #checkIfStarts
-
-    db = new mongo.Db dbName, @server
+    db = new mongo.Db dbUser, @server
     db.open (err,db)=>
       db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
         if err?
@@ -187,11 +204,11 @@ class MongoDB
           db.addUser dbUser,newPassword,(err,result)->
             db.authenticate dbUser,newPassword,(err,result)->
               if err?
-                log.error "[ERROR] can't change password for user #{dbUser} in databse #{dbName}: #{err}"
-                callback? "[ERROR] can't change password for user #{dbUser} in databse #{dbName}: #{err}"
+                log.error "[ERROR] can't change password for user #{dbUser} in databse #{dbUser}: #{err}"
+                callback? "[ERROR] can't change password for user #{dbUser} in databse #{dbUser}: #{err}"
               else
-                log.info "[OK] password for user #{dbUser} in database #{dbName} has been changed"
-                callback? null,"[OK] password for user #{dbUser} in database #{dbName} has been changed"
+                log.info "[OK] password for user #{dbUser} in database #{dbUser} has been changed"
+                callback? null,"[OK] password for user #{dbUser} in database #{dbUser} has been changed"
 
   removeDatabase : (options,callback)->
 
@@ -201,12 +218,25 @@ class MongoDB
 
     #
     # options =
-    #   dbName   : String # database name
+    #   username : Koding Username
     #   dbUser   : String # database username
+    #   dbName   : String # database name
     #
     
-    {dbUser,dbName} = options
-    log.debug options
+    {username,dbUser,dbName} = options
+
+    # -------------------------------
+    # SECURITY/SANITY FEATURE - NEVER REMOVE
+    #  
+    console.log dbUser.substr(0,username.length+1) 
+    console.log username+"_"
+    console.log dbName.substr(0,username.length+1)
+
+    unless dbUser.substr(0,username.length+1) is username+"_" and dbName.substr(0,username.length+1) is username+"_"
+      return callback new KodingError "You can only remove a database that you own."
+    # -------------------------------
+
+
     db = new mongo.Db dbName, @server
     db.open (err,db)=>
       db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
@@ -225,15 +255,3 @@ class MongoDB
 mongoDB = new MongoDB config
 module.exports = mongoDB
 
-# options =
-#    username : "gokment"   
-#    dbName    : "dlskdlskdlsk"
-
-
-# mongoDB.fetchDatabaseList options,(res)->
-#   console.log res
-#dbs =  ['gokment_c219e4c7','gokment_df539bb7']
-#for db in dbs
-#  do (db)->
-#    mongoDB.getDbUsers db, (res)->
-#      console.log res

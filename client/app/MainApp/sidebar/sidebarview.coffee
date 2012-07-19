@@ -99,7 +99,7 @@ class Sidebar extends JView
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
       if KD.isLoggedIn()
-        KD.whoami().fetchRole (err, role)=>
+        KD.whoami().fetchRole? (err, role)=>
           if role is "super-admin"
             @adminNavController.instantiateListItems adminNavItems.items
 

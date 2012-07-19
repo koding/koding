@@ -33,9 +33,9 @@ class MySQL
         when "\x1a" then return "\\Z"
         else return "\\"+s
     return val
-  
-  escapeDbName = (str)->    
-    return str.replace /[^\w\d]/,""    
+
+  escapeDbName = (str)->
+    return str.replace /[^\w\d]/,""
 
   appendKodingUsername = (username, str)->
 
@@ -49,7 +49,7 @@ class MySQL
       return str
     else
       return username+"_"+str
-    
+
   uniqueId = (length=8) ->
 
     id = ""
@@ -58,6 +58,7 @@ class MySQL
 
   constructor : (@config)->
     @mysqlClient = mysql.createClient @config.databases.mysql[0]
+    @dbHost = @config.databases.mysql[0].host
 
   createUser : (options,callback)->
 
@@ -85,7 +86,7 @@ class MySQL
       dbUser : escape(dbUser.substring(0,16) ? dbName.substring(0,16))
       dbPass : escape(dbPass ? uniqueId())
 
-    log.debug sql = "GRANT ALL ON #{dbConf.dbName}.* TO #{dbConf.dbUser}@'%' IDENTIFIED BY '#{dbConf.dbPass}'"
+    log.debug sql = "GRANT ALL ON `#{dbConf.dbName}`.* TO `#{dbConf.dbUser}`@'%' IDENTIFIED BY '#{dbConf.dbPass}'"
     @mysqlClient.query sql,(err)=>
       if err?
         log.error e = "[ERROR] can't create user #{dbConf.dbUser} for #{dbConf.dbName} : #{err}"
@@ -99,20 +100,20 @@ class MySQL
     #
     # this will return the databases of a koding user (not mysql user)
     # it depends on correctly set database names since MySQL has no notion of 'owner'
-    # make sure we always create dbs with [username].myName (e.g. devrim.myDbName), 
+    # make sure we always create dbs with [username].myName (e.g. devrim.myDbName),
     # then we will count them using this function.
     #
 
     # options =
     #   username : koding user that makes the call
     #
-    
+
     {username} = options
     #sql = "SELECT * FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE '#{username}\_%'"
     sql = "SELECT Db,User FROM mysql.db WHERE User LIKE '#{username}\\\_%'"
     console.log "entering with #{sql}"
     @mysqlClient.query sql,callback
-  
+
   createDatabase : (options,callback)->
 
     #
@@ -128,10 +129,10 @@ class MySQL
     #
 
     {username,dbUser,dbName} = options
-    
+
     dbUser = escape dbUser
     dbName = escape dbName
-    
+
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
     #
@@ -142,24 +143,24 @@ class MySQL
     # so we can count how many databases this user already has.
     # if user is granted permission to another database
     # we know how many he owns, how many he can access separately.
-    # -------------------------------    
-    
+    # -------------------------------
+
     sendResult = (err,result)=>
       result.dbType = "mysql"
       result.dbHost = @config.databases.mysql[0].host
       console.log "RES: ", result
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
-  
+
     dbCount = (username,callback) =>
       @fetchDatabaseList {username},(err,rows)->
         if err then callback err
         else
           callback null,rows.length
-  
+
     dbCount username,(err,dbNr)=>
       unless err
         unless dbNr > 4 # 0..4
-          @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
+          @mysqlClient.query "CREATE DATABASE `#{dbName}`",(err)=>
             if err?.number is mysql.ERROR_DB_CREATE_EXISTS
               log.error e = "[ERROR] database #{dbName} exists"
               callback new KodingError e
@@ -176,7 +177,7 @@ class MySQL
                       log.error e = "two errors:1-#{error2} 2-#{err}"
                       callback new KodingError e
                     else
-                      res.completedWithErrors = error
+                      #res.completedWithErrors = error
                       sendResult null,res
                 else
                   sendResult null, result
@@ -204,11 +205,11 @@ class MySQL
 
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
-    #  
+    #
     unless dbUser.substr(0,username.length+1) is username+"_"
       return callback new KodingError "You can only change password of a database user that you own."
     # -------------------------------
-    
+
     # update user set password=PASSWORD("NEW-PASSWORD-HERE") where User='tom'
     sql = "USE mysql; update user set password=PASSWORD('#{newPassword}') where User='#{dbUser}'; flush privileges"
     @mysqlClient.query sql,(err)=>
@@ -235,12 +236,12 @@ class MySQL
 
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
-    #  
+    #
     unless dbUser.substr(0,username.length+1) is username+"_"
       return callback new KodingError "You can only remove a database user that you own."
     # -------------------------------
-    
-    @mysqlClient.query "DROP USER #{dbUser}",(err)=>
+
+    @mysqlClient.query "DROP USER `#{dbUser}`",(err)=>
       if err?
         log.error e = "[ERROR] can't remove user #{dbUser}: #{err}"
         callback new KodingError e
@@ -265,8 +266,8 @@ class MySQL
 
     # -------------------------------
     # SECURITY/SANITY FEATURE - NEVER REMOVE
-    #  
-    console.log dbUser.substr(0,username.length+1) 
+    #
+    console.log dbUser.substr(0,username.length+1)
     console.log username+"_"
     console.log dbName.substr(0,username.length+1)
 
@@ -274,11 +275,10 @@ class MySQL
       return callback new KodingError "You can only remove a database that you own."
     # -------------------------------
 
-    
+
     @removeUser options,(error,result)=>
       log.warn e = "can't remove the user:#{dbUser}, trying to drop the database anyway. #{error ? ''}" if error
-      
-      @mysqlClient.query "DROP DATABASE #{dbName}",(err)=>
+      @mysqlClient.query "DROP DATABASE `#{dbName}`",(err)=>
         if err?
           log.error e = "[ERROR] can't remove database #{dbName} : #{err}"
           callback new KodingError e
@@ -288,21 +288,21 @@ class MySQL
 
 
   # checkBackupDir : (options,callback)->
-  # 
+  #
   #   #
   #   # this method will check backupDir
   #   # if doesn't exists  - create it
   #   #
-  # 
+  #
   #   #
   #   # options =
   #   #   username : String # Kodingen username
   #   #   dbName   : String # database name
   #   #   dbUser   : String # database username
   #   #   dbPass   : String # database name
-  # 
+  #
   #   {username,dbName} = options
-  # 
+  #
   #   # first check /Users/<username>/Backups/mysql/<dbName>
   #   backupDir = path.join @config.usersPath,username,@config.backupDir,dbName
   #   fs.stat backupDir,(err,stats)->
@@ -321,20 +321,20 @@ class MySQL
 
 
   # backupDatabase : (options,callback)->
-  # 
+  #
   #   #
   #   # this method will create backup of mysql database to the /Users/<username>/Backups/
   #   #
-  # 
+  #
   #   #
   #   # options =
   #   #   username : String # Kodingen username
   #   #   dbName   : String # database name
   #   #   dbUser   : String # database username
   #   #   dbPass   : String # database name
-  # 
+  #
   #   {username,dbName,dbUser,dbPass} = options
-  # 
+  #
   #   d = new Date()
   #   timeStamp = "#{d.getFullYear()}-#{d.getMonth()+1}-#{d.getDay()}-#{d.getHours()}-#{d.getMinutes()}-#{d.getSeconds()}"
   #   @checkBackupDir options,(error,backupDir)=>
@@ -356,10 +356,10 @@ module.exports = mySQL
 # mySQL.test()
 
 #options =
-#  username : "aleksey007"
-#  dbName   : "aleksey007_dbtester_1325887572496"
-#  dbUser   : "aleksey007_dbtes"
-#  #dbPass   : "ls;kls;ka;ska;sk"
+#  username : "aleksey-m"
+#  dbName   : "aleksey-m_132"
+#  dbUser   : "aleksey-m_132"
+  #dbPass   : "ls;kls;ka;ska;sk"
 #
 #mySQL.removeDatabase options , (err,res)->
 #   console.log "removing"

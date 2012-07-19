@@ -42,7 +42,7 @@ class AceView extends JView
       menu          : [@getAdvancedSettingsMenuItems()]
 
 
-    publicUrlCheck = /.*\/(.*\.(beta\.)*koding\.com)\/website\/(.*)/
+    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
       style     : "editor-button"
       icon      : yes

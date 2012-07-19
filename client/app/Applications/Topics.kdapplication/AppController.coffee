@@ -60,7 +60,7 @@ class Topics12345 extends AppController
 
   loadView:(mainView)->
     mainView.createCommons()
-    KD.whoami().fetchRole (err, role) =>
+    KD.whoami().fetchRole? (err, role) =>
       if role is "super-admin"
         @listItemClass = TopicsListItemViewEditable
 
