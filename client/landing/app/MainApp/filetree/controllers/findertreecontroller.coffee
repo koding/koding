@@ -126,7 +126,7 @@ class NFinderTreeController extends JTreeViewController
   previewFile:(nodeView, event)->
 
     file = nodeView.getData()
-    publicPath = file.path.replace /.*\/(.*\.beta.koding.com)\/website\/(.*)/, 'http://$1/$2'
+    publicPath = file.path.replace /.*\/(.*\.koding.com)\/website\/(.*)/, 'http://$1/$2'
     if publicPath is file.path
       {nickname} = KD.whoami().profile
       appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
