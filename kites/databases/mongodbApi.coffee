@@ -69,7 +69,7 @@ class MongoDB
     #   username : koding user
 
     {username} = options
-    username = new RegExp '^'+username
+    username = new RegExp '^'+username+'_'
 
     db = new mongo.Db 'admin', @server, native_parser: false
 
@@ -92,12 +92,13 @@ class MongoDB
                   users_dbs = []
                   dbInfo = []
                   for db in result.documents[0].databases
-                     users_dbs.push db.name if db.name.match username
+                    users_dbs.push db.name if db.name.match username
                   queue = []
                   users_dbs.forEach (users_db, index)=>
                     queue.push =>
-                      @getDbUsers users_db,(usersArray)=>
-                        dbInfo.push { dbName: users_db, dbUser: usersArray }
+                      @getDbUsers users_db, (usersArray)=>
+                        if users_db in usersArray
+                          dbInfo.push { dbName: users_db, dbUser: users_db, dbType: 'mongo', dbHost:@mongoHost }
                         queue.next()
                   queue.push ->
                     callback null, dbInfo
@@ -146,7 +147,8 @@ class MongoDB
 
     dbCount = (username,callback) =>
       @fetchDatabaseList username:username,(err,dbsArray)->
-        if err then callback err
+        if err
+          callback err
         else
           callback null,dbsArray.length
   
@@ -186,17 +188,13 @@ class MongoDB
 
     #
     # options =
-    #   dbUser          : String # database username
-    #   dbName          : String # database name
     #   dbPass          : String # current users's password
     #   newPassword     : String # new password
     #
 
-    {username,dbUser,dbName,dbPass,newPassword} = options
+    {username,dbUser,newPassword} = options
 
-    #checkIfStarts
-
-    db = new mongo.Db dbName, @server
+    db = new mongo.Db dbUser, @server
     db.open (err,db)=>
       db.admin().authenticate @mongoUser, @mongoPass,(err,result)=>
         if err?
@@ -206,11 +204,11 @@ class MongoDB
           db.addUser dbUser,newPassword,(err,result)->
             db.authenticate dbUser,newPassword,(err,result)->
               if err?
-                log.error "[ERROR] can't change password for user #{dbUser} in databse #{dbName}: #{err}"
-                callback? "[ERROR] can't change password for user #{dbUser} in databse #{dbName}: #{err}"
+                log.error "[ERROR] can't change password for user #{dbUser} in databse #{dbUser}: #{err}"
+                callback? "[ERROR] can't change password for user #{dbUser} in databse #{dbUser}: #{err}"
               else
-                log.info "[OK] password for user #{dbUser} in database #{dbName} has been changed"
-                callback? null,"[OK] password for user #{dbUser} in database #{dbName} has been changed"
+                log.info "[OK] password for user #{dbUser} in database #{dbUser} has been changed"
+                callback? null,"[OK] password for user #{dbUser} in database #{dbUser} has been changed"
 
   removeDatabase : (options,callback)->
 
@@ -247,6 +245,7 @@ class MongoDB
           callback? "[ERROR] can't authenticate user #{dbUser} in #{dbName} with current password: #{err}"
         else
           db.dropDatabase (err,result)->
+            log.info result
             if err?
               log.error "[ERROR] can't drop database #{dbName}"
               callback?  "[ERROR] can't drop database #{dbName}"
