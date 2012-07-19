@@ -64,13 +64,13 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
     
-    for dbtype in ['mysql']#, 'mongo']
+    for dbtype in ['mysql', 'mongo']
       @talkToKite
         toDo      : @commands[dbtype].fetch
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
-        log "RESPONSE: ", response
+        # log "RESPONSE: ", response
         if err then warn err
         else
           @instantiateListItems response
@@ -217,7 +217,7 @@ class AccountDatabaseList extends KDListView
                 defaultValue  : "mysql"
                 selectOptions : [
                   { title : "MySql",    value : "mysql" }
-                  # { title : "Mongo",    value : "mongo" }
+                  { title : "Mongo",    value : "mongo" }
                   # { title : "PostGre",  value : "JDatabasePostGre" }
                   # { title : "CouchDB",  value : "JDatabaseCouchDb" }
                 ]
@@ -413,15 +413,13 @@ class AccountDatabaseList extends KDListView
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
 
-    log "Create Item with Data", data
+    # log "Create Item with Data", data
 
     options.tagName = "li"
     
-    data.dbType   or= "mysql"
-    data.color    or= if data.type == "mysql" then "yellow" else "green"
-    data.title    or= if data.type == "mysql" then "MySql DB" else "Mongo DB"
-    data.dbHost   or= "mysql0.db.koding.com"
-
+    data.color or= if data.dbType == "mysql" then "yellow" else "green"
+    data.title or= if data.dbType == "mysql" then "MySql DB" else "Mongo DB"
+    
     super options,data
     
   click:(event)=>
