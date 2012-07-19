@@ -85,7 +85,7 @@ class MySQL
       dbUser : escape(dbUser.substring(0,16) ? dbName.substring(0,16))
       dbPass : escape(dbPass ? uniqueId())
 
-    log.debug sql = "GRANT ALL ON #{dbConf.dbName}.* TO #{dbConf.dbUser}@'%' IDENTIFIED BY '#{dbConf.dbPass}'"
+    log.debug sql = "GRANT ALL ON `#{dbConf.dbName}`.* TO `#{dbConf.dbUser}`@'%' IDENTIFIED BY '#{dbConf.dbPass}'"
     @mysqlClient.query sql,(err)=>
       if err?
         log.error e = "[ERROR] can't create user #{dbConf.dbUser} for #{dbConf.dbName} : #{err}"
@@ -159,7 +159,7 @@ class MySQL
     dbCount username,(err,dbNr)=>
       unless err
         unless dbNr > 4 # 0..4
-          @mysqlClient.query "CREATE DATABASE #{dbName}",(err)=>
+          @mysqlClient.query "CREATE DATABASE `#{dbName}`",(err)=>
             if err?.number is mysql.ERROR_DB_CREATE_EXISTS
               log.error e = "[ERROR] database #{dbName} exists"
               callback new KodingError e
@@ -176,7 +176,7 @@ class MySQL
                       log.error e = "two errors:1-#{error2} 2-#{err}"
                       callback new KodingError e
                     else
-                      res.completedWithErrors = error
+                      #res.completedWithErrors = error
                       sendResult null,res
                 else
                   sendResult null, result
@@ -240,7 +240,7 @@ class MySQL
       return callback new KodingError "You can only remove a database user that you own."
     # -------------------------------
     
-    @mysqlClient.query "DROP USER #{dbUser}",(err)=>
+    @mysqlClient.query "DROP USER `#{dbUser}`",(err)=>
       if err?
         log.error e = "[ERROR] can't remove user #{dbUser}: #{err}"
         callback new KodingError e
@@ -278,7 +278,7 @@ class MySQL
     @removeUser options,(error,result)=>
       log.warn e = "can't remove the user:#{dbUser}, trying to drop the database anyway. #{error ? ''}" if error
       
-      @mysqlClient.query "DROP DATABASE #{dbName}",(err)=>
+      @mysqlClient.query "DROP DATABASE `#{dbName}`",(err)=>
         if err?
           log.error e = "[ERROR] can't remove database #{dbName} : #{err}"
           callback new KodingError e
@@ -356,10 +356,10 @@ module.exports = mySQL
 # mySQL.test()
 
 #options =
-#  username : "aleksey007"
-#  dbName   : "aleksey007_dbtester_1325887572496"
-#  dbUser   : "aleksey007_dbtes"
-#  #dbPass   : "ls;kls;ka;ska;sk"
+#  username : "aleksey-m"
+#  dbName   : "aleksey-m_132"
+#  dbUser   : "aleksey-m_132"
+  #dbPass   : "ls;kls;ka;ska;sk"
 #
 #mySQL.removeDatabase options , (err,res)->
 #   console.log "removing"
