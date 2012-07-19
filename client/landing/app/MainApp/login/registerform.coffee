@@ -11,6 +11,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
+        defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
         validate      :
@@ -24,6 +25,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
+        defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
           event       : "blur"
@@ -36,6 +38,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
+        defaultValue  : "sinanyasar+xx@gmail.com"
         validate      :
           event       : "blur"
           rules       :
@@ -78,6 +81,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
+        defaultValue     : "xx"
         validate         :
           rules          :
             required     : yes
@@ -111,6 +115,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
+        defaultValue  : "123123123"
         validate      :
           event       : "blur"
           rules       :
@@ -124,6 +129,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
       inputOptions    :
+        defaultValue  : "123123123"
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
@@ -163,6 +169,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @invitationCode = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
+        defaultValue  : "111"
         name          : "inviteCode"
         forceCase     : "lowercase"
         placeholder   : "your code..."
@@ -240,6 +247,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @kodingenUser = yes
     @parent.setClass "taller"
     @username.setClass "kodingen"
+    @password.input.$().attr "placeholder", "Type your kodingen password"
     @passwordConfirm.setHeight 0
     @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
     @$('p.kodingen-user-notification').height 54
@@ -250,6 +258,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @kodingenUser = no
     @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
+    @password.input.$().attr "placeholder", "Create a password"
     @$('p.kodingen-user-notification').height 0
     @passwordConfirm.setHeight 32
 
