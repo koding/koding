@@ -1,5 +1,25 @@
 class JUser extends jraphical.Module
-  
+
+  @bannedUserList = ['abrt','amykhailov','apache','about','visa',
+                     'cthorn','daemon','dbus','dyasar','ec2-user',
+                     'games','ggoksel','gopher','haldaemon','halt','mail',
+                     'nfsnobody','nginx','nobody','node','operator',
+                     'root','rpcuser','saslauth','shutdown','sinanlocal',
+                     'sshd','sync','tcpdump','uucp','vcsa','zabbix',
+                     'search','blog','activity','guest','credits','about',
+                     'kodingen','alias','backup','bin','bind','daemon',
+                     'Debian-exim','dhcp','drweb','games','gnats','klog',
+                     'kluser','libuuid','list','mhandlers-user','more',
+                     'mysql','nagios','news','nobody','popuser','postgres',
+                     'proxy','psaadm','psaftp','qmaild','qmaill','qmailp',
+                     'qmailq','qmailr','qmails','sshd','statd','sw-cp-server',
+                     'sync','syslog','tomcat','tomcat55','uucp','what',
+                     'www-data','fuck','porn','p0rn','porno','fucking',
+                     'fucker','admin','postfix','puppet','main','invite',
+                     'administrator','members','register','activate',
+                     'groups','blogs','forums','topics','develop','terminal',
+                     'term','twitter','facebook','google','framework']
+
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
       users.forEach (user)-> user.changePassword user.getAt('password')
@@ -229,7 +249,9 @@ class JUser extends jraphical.Module
     {connection} = client
     {username, email, password, passwordConfirm, 
      firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
-    @usernameAvailable username, (err, isAvailable)=>
+    @usernameAvailable username, (err, r)=>
+      isAvailable = yes
+      isAvailable = no for key, value of r when value is yes
       if err
         callback err
       else unless isAvailable
@@ -343,12 +365,14 @@ class JUser extends jraphical.Module
     r =
       kodingUser   : no
       kodingenUser : no
-    
-    @count {username}, (err, count)->
-      if err
-        callback err
+      forbidden    : yes
+
+    @count {username}, (err, count)=>
+      if err or username.length < 4 or username.length > 25
+        callback err, r
       else
         r.kodingUser = if count is 1 then yes else no
+        r.forbidden = if username in @bannedUserList then yes else no
         require('https').get
           hostname  : 'kodingen.com'
           path      : "/bridge.php?username=#{username}"
