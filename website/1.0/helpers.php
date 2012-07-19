@@ -1,17 +1,6 @@
 <?php
 
-if ($_SERVER['SERVER_NAME'] == 'api.koding.com') {
-  $env = 'beta';
-  $pusher_key = 'a19c8bf6d2cad6c7a006';
-  $pusher_secret = '51f7913fbb446767a9fb';
-  $pusher_app_id = 18240;
-}
-else {
-  $env = 'mongohq-dev';
-  $pusher_key = 'a6f121a130a44c7f5325';
-  $pusher_secret = '9a2f248630abaf977547';
-  $pusher_app_id = 22120;
-}
+require_once 'config.php';
 
 $respond = 'json_respond';
 
@@ -117,16 +106,6 @@ function access_denied ($msg=NULL) {
 function okay () {
   global $respond;
   $respond(array('result' => 200));
-}
-
-function get_mongo_host () {
-  global $env;
-  $hosts = array(
-    'vpn'         => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
-    'beta'        => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost',
-    'mongohq-dev' => 'mongodb://dev:YzaCHWGkdL2r4f@staff.mongohq.com:10016',
-  );
-  return $hosts[$env];
 }
 
 function get_mongo_db_name () {
