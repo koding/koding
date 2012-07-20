@@ -36,7 +36,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
 
-    return @getView().addSubView memberProfile = new LoggedOutProfile
+    return @getView().addSubView memberProfile = new ProfileView
       cssClass : "profilearea clearfix"
       bind     : "mouseenter"
       delegate : @getView()
