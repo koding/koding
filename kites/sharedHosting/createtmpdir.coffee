@@ -6,7 +6,7 @@ log       = log4js.getLogger('[SharedHostingApi]')
 config = require './config'
 
 module.exports = createTmpDir =(username, callback=->)->
-  tmpDir = "#{config.userPath}#{username}/.tmp"
+  tmpDir = "#{config.usersPath}#{username}/.tmp"
   fs.stat tmpDir, (err, stat)->
     if err
       fs.mkdir tmpDir, 0755, (err)->
