@@ -7,7 +7,7 @@ puts "
 <!DOCTYPE html>
 <html lang=""en"">
 <head>  <meta charset=""utf-8"">
-  <title>Hello World from Ruby</title>
+  <title>Hello World from Ruby by Koding</title>
   <meta name=""viewport"" content=""width=device-width,initial-scale=1"">
   <link rel='stylesheet' href='http://koding.com/hello/css/style.css'>
   <!--[if IE]>
@@ -35,20 +35,18 @@ puts "</h2>
 	</ul>    
 </nav>
 <footer>
-  <h4>This is an example page running Ruby on your Koding Server.</h4> <p>You can create your own simple Ruby ""Hello World"" with this:</p>
-  <pre>
-    #!/usr/bin/ruby
-    ## hello1.cgi
-    #
-    puts &quot;Content-Type: text/html&quot;
-    puts
-    puts &quot;&lt;html&gt;&quot;
-    puts &quot;&lt;body&gt;&quot;
-    puts &quot;Hello, World from ruby!&quot;
-    puts &quot;&lt;/body&gt;&quot;
-    puts &quot;&lt;/html&gt;&quot;
-    #
-  </pre>
+<h4>This is an example page running Ruby on your Koding Server.</h4> <p>You can create your own simple Ruby ""Hello World"" with this:</p>
+<pre>#!/usr/bin/ruby
+## hello1.cgi
+#
+puts &quot;Content-Type: text/html&quot;
+puts
+puts &quot;&lt;html&gt;&quot;
+puts &quot;&lt;body&gt;&quot;
+puts &quot;Hello, World from ruby!&quot;
+puts &quot;&lt;/body&gt;&quot;
+puts &quot;&lt;/html&gt;&quot;
+#</pre>
 </footer>
 </div>
 </body>

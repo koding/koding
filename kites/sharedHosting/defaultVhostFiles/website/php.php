@@ -33,9 +33,7 @@
 	<p>
 		You can create your own simple PHP "Hello World" with this:
 	</p>
-	<pre>
-		&lt;?php echo 'Hello World from PHP'; ?&gt;
-	</pre>
+	<pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre>
 	</footer>
 </div>
 </body>
