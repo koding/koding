@@ -68,11 +68,15 @@ class KDView extends KDObject
         callback            : (publishingInstance, event)=>
           if event.metaKey and event.altKey and event.ctrlKey
             log @getData()
-            event.stopPropagation?()
-            event.preventDefault?()
-            return false
+          else if event.metaKey and event.altKey and event.shiftKey
+            debugger
           else if event.metaKey and event.altKey
             log @
+          else
+            shouldPropagate = yes
+          unless shouldPropagate
+            event.stopPropagation?()
+            event.preventDefault?()
             return false
 
     @listenTo

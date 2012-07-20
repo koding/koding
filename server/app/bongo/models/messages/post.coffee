@@ -271,8 +271,6 @@ class JPost extends jraphical.Message
                     relationship  : docs[0]
                   }
           else
-            callback new KodingError 'You already like this.'
-            ###
             @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
@@ -280,7 +278,6 @@ class JPost extends jraphical.Message
               else
                 count ?= 1
                 @update ($set: 'meta.likes': count), callback
-            ###
 
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
@@ -344,6 +341,20 @@ class JPost extends jraphical.Message
           targetName  : 'JTag'
           as          : 'tag'
         limit         : 5
+      .and()
+      .edges
+        query         :
+          targetName  : 'JAccount'
+          targetId    : @getId()
+          as          : 'like'
+      .and()
+      .edges
+        query         :
+          targetName  : 'JAccount'
+          targetId    :
+            $ne       : @getId()
+          as          : 'like'
+        limit         : 3
       .nodes()
     .endGraphlet()
     .fetchRoot callback
