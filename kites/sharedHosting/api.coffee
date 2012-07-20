@@ -54,7 +54,7 @@ module.exports = new Kite 'sharedHosting'
     {usersPath,fileUrl} = config
     {username,path,contents} = options
     log.debug "uploadFile is called",options.path
-    createTmpDir username, (err, tmpDir)->
+    createTmpDir username, (err, tmpDir)=>
       filename = hat()
       tmpPath = "#{tmpDir}/#{filename}"
       fs.writeFile tmpPath,contents,'utf8', (err)=>
