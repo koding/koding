@@ -60,13 +60,14 @@ class NFinderController extends KDViewController
         type        : "mount"
     @defaultStructureLoaded = no
     @treeController.initTree [mount]
+    
     if @treeController.getOptions().useStorage
-      @defaultStructureLoaded = no
       @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
         @loadDefaultStructure()
 
   loadDefaultStructure:->
 
+    return if @defaultStructureLoaded
     @defaultStructureLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
