@@ -3,6 +3,8 @@ fs = require 'fs'
 log4js    = require 'log4js'
 log       = log4js.getLogger('[SharedHostingApi]')
 
+config = require './config'
+
 module.exports = createTmpDir =(username, callback=->)->
   tmpDir = "#{config.userPath}#{username}/.tmp"
   fs.stat tmpDir, (err, stat)->
