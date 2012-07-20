@@ -44,7 +44,7 @@ execute = (options,callback)->
   
   cmd = exec execStr,(err,stdout,stderr)->
     respond {err,stdout,stderr},callback
-    fs.unlink tmpFile if unlink is yes
+    fs.unlink filename if unlink is yes
     log.debug "executed",execStr
 
 
