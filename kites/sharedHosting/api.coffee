@@ -12,7 +12,11 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite'
 mkdirp    = require 'mkdirp'
 
+createTmpDir = require './createtmpdir'
+
 console.log "new sharedhosting api."
+
+
 
 module.exports = new Kite 'sharedHosting'
   
@@ -50,15 +54,19 @@ module.exports = new Kite 'sharedHosting'
     {usersPath,fileUrl} = config
     {username,path,contents} = options
     log.debug "uploadFile is called",options.path
-    filename = hat()
-    tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf8', (err)=>
-      unless err
-        @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
-          unless err
-            callback? null,path        
-          else
-            callback? "[ERROR] can't upload file : #{err}"
+    createTmpDir username, (err, tmpDir)->
+      filename = hat()
+      tmpPath = "#{tmpDir}/#{filename}"
+      fs.writeFile tmpPath,contents,'utf8', (err)=>
+        if err
+          callback err
+        else
+          @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
+            unless err
+              callback? null,path        
+            else
+              callback? "[ERROR] can't upload file : #{err}"
+        
   
   checkUid:(options,callback)->
     #
