@@ -234,7 +234,7 @@ module.exports = new Kite 'sharedHosting'
               if err
                 log.error error = "[ERROR] can't create ldap record for user #{username} in #{config.ldap.userDN} : #{err.message}"
                 ldapClient.unbind (err)->
-                  log.error if err?
+                  log.error err if err?
                 callback error
               else
                 log.info "[OK] User #{username} added to #{config.ldap.userDN}"
@@ -243,7 +243,7 @@ module.exports = new Kite 'sharedHosting'
                   if err
                     log.error error =  "[ERROR] can't create ldap record for group #{username} in #{config.ldap.groupDN} : #{err.message}"
                     ldapClient.unbind (err)->
-                      log.error if err?
+                      log.error err if err?
                     callback error
                   else
                     log.info "[OK] Group #{username} added to #{config.ldap.groupDN}" 
@@ -251,19 +251,19 @@ module.exports = new Kite 'sharedHosting'
                       if err?
                         log.error error = "[ERROR] can't increment uidNumber for special record #{config.ldap.freeUID}: #{err.message}"
                         ldapClient.unbind (err)->
-                          log.error if err?
+                          log.error err if err?
                         callback error
                       else
                         ldapClient.modify config.ldap.freeGroup,change_free_user_group,(err)=>
                           if err?
                             log.error error = "[ERROR] can't add user to group #{config.ldap.freeGroup}: #{err.message}"
                             ldapClient.unbind (err)->
-                              log.error if err?
+                              log.error err if err?
                             callback error
                           else
                             # now we can build home for user
                             ldapClient.unbind (err)->
-                              log.error if err?
+                              log.error err if err?
                             @buildHome username:username,uid:parseInt(id), (error,result)->
                               if error?
                                 callback error
