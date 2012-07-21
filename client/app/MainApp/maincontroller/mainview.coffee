@@ -26,7 +26,6 @@ class LoadingScreen extends KDView
 class MainView extends KDView
   
   viewAppended:->
-    # @utils.wait 1000, =>
     
     # @putLoader()
     @addHeader()
