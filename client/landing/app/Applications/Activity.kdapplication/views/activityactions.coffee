@@ -59,6 +59,10 @@ class ActivityActionsView extends KDView
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
 
+    activity.on 'update', log
+    window.www = activity
+    
+    
     @likeLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
