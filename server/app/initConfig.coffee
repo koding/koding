@@ -19,7 +19,8 @@ if process.argv[5] is "true"
 
 process.on 'uncaughtException', (err)->
   exec './beep'
-  console.log err, err?.stack
+  throw err
+  # console.log err, err?.stack
 
 
 dbCallback= (err)->

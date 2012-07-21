@@ -1,5 +1,7 @@
 class JTag extends Followable
   
+  {Relationship} = jraphical
+  
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
   
@@ -17,7 +19,7 @@ class JTag extends Followable
       slug          : 'unique'
     sharedMethods   :
       instance      : [
-        'update','follow', 'unfollow', 'fetchFollowersWithRelationship'
+        'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
         'delete'
         ]
@@ -65,8 +67,9 @@ class JTag extends Followable
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
       #   as          : 'content'
-  
-  
+  modify: secure (client, formData, callback)->
+    callback arguments
+    
   fetchContentTeasers:->
     [args..., callback] = arguments
     @fetchContents args..., (err, contents)->
@@ -83,7 +86,7 @@ class JTag extends Followable
         collectTeasers node for node in contents
       
       
-  @handleFreetags = bongo.secure (client, tagRefs, callbackForEach=->)->
+  @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
     daisy queue = [
       ->
@@ -141,37 +144,40 @@ class JTag extends Followable
       sort    : 'title' : 1
     }, callback
 
-  delete: secure ({connection:{delegate}}, callback)->
-    originId = @getAt 'originId'
-    callback new KodingError 'Not Implemented yet!'
-    ###
-    unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
-    else
-      id = @getId()
-      {getDeleteHelper} = Relationship
-      queue = [
-        getDeleteHelper {
-          targetId    : id
-          sourceName  : /Activity$/
-        }, 'source', -> queue.fin()
-        getDeleteHelper {
-          sourceId    : id
-          sourceName  : 'JComment'
-        }, 'target', -> queue.fin()
-        ->
-          Relationship.remove {
-            targetId  : id
-            as        : 'post'
-          }, -> queue.fin()
-        => @remove -> queue.fin()
-      ]
-      dash queue, =>
-        @emit 'PostIsDeleted', 1
-        callback null
-      ###
-
-  emit:-> debugger
+  delete: secure (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchRole client, (err, role)=>
+      if err
+        callback err
+      else unless role is 'super-admin'
+        callback new KodingError 'Access denied!'
+      else
+        tagId = @getId()
+        @fetchContents (err, contents)=>
+          if err
+            callback err
+          else
+            Relationship.remove {
+              $or: [{
+                targetId  : tagId
+                as        : 'tag'
+              },{
+                sourceId  : tagId
+                as        : 'post'
+              }]
+            }, (err)=>
+              if err
+                callback err
+              else
+                @remove (err)=>
+                  if err
+                    callback err
+                  else
+                    @emit 'TagIsDeleted', 1
+                    callback null
+                    contents.forEach (content)->
+                      content.flushSnapshot tagId, (err)->
+                        if err then console.log err
   # save: secure (client,callback)->
   #   tag = @
   #   account = client.connection.delegate
