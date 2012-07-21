@@ -12,6 +12,8 @@ slice         = Array::slice
 splice        = Array::splice
 noop          = Function()
 
+Error.stackTraceLimit = 100
+
 if process.argv[5] is "true"
   __runCronJobs   = yes
   log "--cron is active, cronjobs will be running with your server."

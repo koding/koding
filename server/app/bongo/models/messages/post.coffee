@@ -283,6 +283,7 @@ class JPost extends jraphical.Message
                     relationship  : docs[0]
                   }
           else
+            debugger
             @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
