@@ -116,7 +116,7 @@ class ActivityItemChild extends KDView
       bongo.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
-        debugger
+        # debugger
         @tags.render()
 
     data.on 'PostIsDeleted', =>

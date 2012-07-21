@@ -20,17 +20,33 @@ class ActivityActionsView extends KDView
         placement : "above"
         offset    : 3
 
-    @likeCount    = new ActivityLikeCount {}, activity
+    @likeCount    = new ActivityLikeCount {
+      tooltip:
+        title: ""
+      }, activity
     @likeLink     = new ActivityActionLink
-      partial     : "Like"
-      ###
-      tooltip     :
-        title     : if @likeCount.getData() in [0, null] then "Be first" else "Hope"
-        placement : "above"
-        offset    : 3
-      ###
+
+    @updateLikeState()
 
     @loader       = new KDLoaderView size : width : 14
+
+  updateLikeState:->
+    {_id}   = KD.whoami()
+    activity = @likeCount.getData()
+    activity.fetchLikedByes (err, likes) =>
+      likedBefore  = no
+      peopleWhoLiked = []
+
+      if KD.isLoggedIn() and likes
+        likes.forEach (item)=>
+          likedBefore = if item._id is _id then yes
+
+          {firstName, lastName} = item.profile
+          peopleWhoLiked.push firstName + " " + lastName
+
+      log "Tooltip:", peopleWhoLiked
+      @likeCount.setTooltip {title: peopleWhoLiked.join ", " }
+      @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
     
@@ -58,29 +74,16 @@ class ActivityActionsView extends KDView
 
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
-
-    activity.on 'update', log
-    window.www = activity
-    
-    
     @likeLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
       callback      : =>
         if KD.isLoggedIn()
-          # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
-            # log arguments, 'you like me!'
             if err
-              new KDNotificationView
-                title     : "You already liked this!"
-                duration  : 1300
-            # FIXME Implement Unlike behaviour
-            ###
-            newCount = @likeCount.data.meta.likes
-            if oldCount < newCount then @likeLink.updatePartial("Unlike")
-            else @likeLink.updatePartial("Like")
-            ###
+              log "Something went wrong while like:", err
+            else
+              @updateLikeState()
 
     @commentLink.registerListener
       KDEventTypes  : "Click"
@@ -120,11 +123,10 @@ class ActivityCountLink extends KDCustomHTMLView
 
   pistachio:-> ""
 
-
 class ActivityLikeCount extends ActivityCountLink
 
   setCount:(activity)->
-    # log "Like Count: " + activity.meta.likes
+    log "ACTIVITY: ", activity
     if activity.meta.likes == 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
