@@ -56,7 +56,10 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', =>
+      data
+      debugger if window.paws
+      @render()
 
     @setInstanceVariables options
     @defaultInit options,data
@@ -120,8 +123,8 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      error 'View already has a parent'
       console.log "view:", @, "parent:", @parent
+      error 'View already has a parent'
     else
       if defineProperty
         defineProperty @, 'parent', value : parent, configurable : yes
