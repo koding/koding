@@ -347,8 +347,8 @@ Includes =
         # MEMBERS VIEWS
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
         membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
-        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
-        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        ownprofileview                : "./client/app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee"
+        profileview                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee"
         contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
 
         # START TAB VIEWS
