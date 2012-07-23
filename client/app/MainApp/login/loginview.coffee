@@ -111,18 +111,28 @@ class LoginView extends KDScrollView
       KDEventTypes       : "viewAppended"
       listenedToInstance : @launchrock
       callback           : =>
-        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}/css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
     
     @slideShow = new KDView
       cssClass : "slide-show"
 
 
+    @on "LoginViewAnimated", (name)=>
+      log "LoginViewAnimated", name
+      if name is "home"
+        @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+      else
+        @utils.wait 400, =>
+          @slideShow.updatePartial ""
+
     @listenTo
       KDEventTypes       : "viewAppended"
       listenedToInstance : @slideShow
       callback           : =>
+        unless KD.isLoggedIn()
+          @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
 
-        @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+        
 
         # @slideShow.addSubView new KDButtonView
         #   title    : "."
@@ -323,4 +333,5 @@ class LoginView extends KDScrollView
           @registerForm.$('div').show()
 
     @unsetClass "register recover login reset home lr"
+    @emit "LoginViewAnimated", name
     @setClass name
