@@ -2,7 +2,10 @@
   font-family: 'Open Sans', 'Helvetica Neue','Helvetica Neue',Helvetica,Arial,Sans-Serif;
 }
 
-.lrdiscoverwidget .site-desc, .site-powered-by, .site-tagline, label {
+.lrdiscoverwidget .site-desc,
+.lrdiscoverwidget .site-powered-by,
+.lrdiscoverwidget .site-tagline,
+.lrdiscoverwidget label {
   display: none!important;
 }
 
