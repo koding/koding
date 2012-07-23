@@ -251,11 +251,18 @@ class JUser extends jraphical.Module
      firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
-      isAvailable = no for key, value of r when value is yes
+
+      # r =
+      #   forbidden    : yes/no
+      #   kodingenUser : yes/no
+      #   kodingUser   : yes/no
+
       if err
         callback err
-      else unless isAvailable
-        callback new KodingError 'That username is not available!'
+      else if r.forbidden
+        callback new KodingError 'That username is forbidden!'
+      else if r.kodingUser
+        callback new KodingError 'That username is taken!'
       else
         @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
           if err

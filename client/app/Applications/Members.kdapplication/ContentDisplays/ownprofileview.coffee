@@ -1,4 +1,4 @@
-class LoggedInProfile extends KDView
+class OwnProfileView extends KDView
   constructor:->
     super
     memberData = @getData()
@@ -47,6 +47,8 @@ class LoggedInProfile extends KDView
     super
     @setTemplate @pistachio()
     @template.update()
+
+  putNick:(nick)-> "@#{nick}"
       
   pistachio:->
     """
@@ -54,6 +56,7 @@ class LoggedInProfile extends KDView
       <span>
         {{> @avatar}}
       </span>
+      {cite{ @putNick #(profile.nickname)}}
     </div>
 
     <section>
