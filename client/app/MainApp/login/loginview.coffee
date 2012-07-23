@@ -111,7 +111,7 @@ class LoginView extends KDScrollView
       KDEventTypes       : "viewAppended"
       listenedToInstance : @launchrock
       callback           : =>
-        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}/css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
     
     @slideShow = new KDView
       cssClass : "slide-show"
