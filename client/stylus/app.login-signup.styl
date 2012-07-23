@@ -15,19 +15,54 @@ app.login-signup.styl
   .back-to-login
   .regLink
   .recLink
+  .reqLink
+  .vidLink
+  .logLink
+  .bigLink
+  .launchrock-wrapper
     hidden()
+
+  &.home
+    .bigLink
+    .home
+      visible()
+    .flex-wrapper
+      overflow            visible
+      size                920px, 596px
+      max-width           920px
+    .login-form-holder
+      margin              -15px 0 0 0
+      padding             0
+    iframe
+      opacity             1!important
+
+  &.lr
+    .logLink
+    .regLink
+    .vidLink
+      visible()
+    .flex-wrapper
+      overflow            visible
+      size                400px, 335px
+    .launchrock-wrapper
+      visible()
+      >.kdview
+        overflow          visible
 
   &.login
     .lf
     .regLink
     .recLink
+    .vidLink
+    .reqLink
     .login-options-holder.log
       visible()
     
   &.register
     .rf
-    .recLink
-    .back-to-login
+    .logLink
+    .vidLink
+    .reqLink
     .login-options-holder.reg
       visible()
     .flex-wrapper
@@ -37,8 +72,7 @@ app.login-signup.styl
 
   &.recover
     .rcf
-    .regLink
-    .back-to-login
+    .logLink
       visible()
     .flex-wrapper
       height              193px
@@ -47,8 +81,7 @@ app.login-signup.styl
 
   &.reset
     .rsf
-    .regLink
-    .back-to-login
+    .logLink
       visible()
     .reset-link
       hidden()
@@ -56,12 +89,13 @@ app.login-signup.styl
       height              254px
 
 .kdview.login-screen
-  margin-top              -100%
+  margin-top              0
   padding-top             50px
   text-align              center
   // min-height              600px
   // overflow                auto
-  background            transparent url("../images/bgflare.png") no-repeat center top
+  vendor                  transition, margin .6s ease-in-out
+  // background              transparent url("../images/bgflare.png") no-repeat center top
   borderBox()
 
   .up-arrow
@@ -138,7 +172,34 @@ app.login-signup.styl
         margin            0px 3px 0 0
         vertical-align    bottom
         size              12px, 11px
-    
+  
+  .slide-show
+    overflow              visible
+    iframe
+      background          rgb(40,37,32)
+      opacity             0.00001
+      vendor              transition, opacity .6s ease-in
+      border              10px solid rgb(40,37,32)
+      rounded             5px
+      shadow              0 -1px 0px rgba(0,0,0,0.6)\, 0 0px 1px 1px rgba(255,255,255,.1)
+      .as
+        display           none!important
+    a.login-register
+      display             inline-block
+      margin              10px auto 0
+    button
+      margin              2px 0 0 0
+      padding             6px 10px
+      font-weight         400
+      color               transparent
+      text-shadow         none
+      rounded             13px
+  a 
+    color                 #ff9200
+    noTextDeco()
+
+
+
 .login-box-header
   position                relative
   padding                 30px 0 0 0
@@ -176,6 +237,8 @@ app.login-signup.styl
   height                  76px
   overflow                visible
   margin-bottom           24px
+
+.kdview.login-screen
   h3
     color                 #b4b3b3
     text-shadow           0 -1px 0 rgba(0, 0, 0, 0.64)
@@ -252,9 +315,6 @@ app.login-signup.styl
         display           block
         line-height       28px
         text-shadow       0 1px 0 rgba(0,0,0,.5)
-      a 
-        color             #ff9200
-        noTextDeco()
   
   >div
     position              relative
@@ -409,17 +469,36 @@ p.login-tip
   line-height           16px
   color                 white
 
+.kdview.login-screen.home
+  .flex-wrapper
+    margin-bottom       30px
+  .login-footer
+    font-size           20px
+    text-shadow         0 -1px 0 rgba(0,0,0,.8)
+    p.bigLink
+      display           inline-block                     
+      line-height       40px
+      margin-right      40px
+      //text-transform    lowercase
+      &:last-child
+        margin-right    0
+
+
 .login-footer
   position              relative
   height                auto
   font-size             12px
   text-align            center
   z-index               10
+  //font-family           mono
   p                     
     color               #b4b3b3
-    margin-bottom       12px
+    //text-shadow         1px solid #444
+    //margin-bottom       7px
+    line-height         24px
   a
     color               #ffb500
+    //text-shadow         1px solid #444
     noTextDeco()
 
 .kdnotification.login
