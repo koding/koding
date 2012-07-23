@@ -8,8 +8,15 @@ app.login-signup.styl
 */
 }
 
+body.login
+  .kdview.login-screen
+    opacity         1
+    vendor          transition, margin .6s ease-in-out
+
+
 // swapping views for views
 .kdview.login-screen
+  opacity           0.00001
   .login-form-holder
   .login-options-holder
   .back-to-login
@@ -20,9 +27,11 @@ app.login-signup.styl
   .logLink
   .bigLink
   .launchrock-wrapper
+  .reviews
     hidden()
 
   &.home
+    .reviews
     .bigLink
     .home
       visible()
@@ -31,6 +40,7 @@ app.login-signup.styl
       size                90%, 596px
       max-width           920px
     .login-form-holder
+      height              100%
       margin              -15px 0 0 0
       padding             0
     iframe
@@ -94,7 +104,7 @@ app.login-signup.styl
   text-align              center
   // min-height              600px
   // overflow                auto
-  vendor                  transition, margin .6s ease-in-out
+  vendor                  transition, none
   // background              transparent url("../images/bgflare.png") no-repeat center top
   borderBox()
 
@@ -174,6 +184,7 @@ app.login-signup.styl
   .slide-show
     overflow              visible
     iframe
+      size                89.13%, 76.6%
       background          rgb(40,37,32)
       opacity             0.00001
       vendor              transition, opacity .6s ease-in
@@ -195,7 +206,30 @@ app.login-signup.styl
   a 
     color                 #ffb500
     noTextDeco()
+    &:hover
+      color               white
 
+  .reviews
+    hr
+      size                80%,1px
+      border-top          1px solid rgba(0,0,0,0.6)
+      background          rgba(255,255,255,.1)
+      margin              40px auto
+      vendor              transition, margin .3s ease-in
+
+    p
+      color               #aaa
+      font-size           32px
+      margin              20px 0 10px 0
+      line-height         40px
+      font-family         serif
+      font-style          italic
+      vendor              transition, all .3s ease-in
+    span
+      display             block
+      color               #555
+      font-size           14px
+      font-weight         300
 
 
 .login-box-header
@@ -469,6 +503,9 @@ p.login-tip
 .kdview.login-screen.home
   .flex-wrapper
     margin-bottom       30px
+  .tagline
+    font-size           16px
+    color               #ffb500
   .login-footer
     font-size           20px
     text-shadow         0 -1px 0 rgba(0,0,0,.8)
