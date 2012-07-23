@@ -20,9 +20,11 @@ app.login-signup.styl
   .logLink
   .bigLink
   .launchrock-wrapper
+  .reviews
     hidden()
 
   &.home
+    .reviews
     .bigLink
     .home
       visible()
@@ -195,7 +197,28 @@ app.login-signup.styl
   a 
     color                 #ffb500
     noTextDeco()
+    &:hover
+      color               white
 
+  .reviews
+    hr
+      size                80%,1px
+      border-top          1px solid rgba(0,0,0,0.6)
+      background          rgba(255,255,255,.1)
+      margin              40px auto
+
+    p
+      color               #aaa
+      font-size           32px
+      margin              20px 0 10px 0
+      line-height         40px
+      font-family         serif
+      font-style          italic
+    span
+      display             block
+      color               #555
+      font-size           14px
+      font-weight         300      
 
 
 .login-box-header
@@ -469,6 +492,9 @@ p.login-tip
 .kdview.login-screen.home
   .flex-wrapper
     margin-bottom       30px
+  .tagline
+    font-size           16px
+    color               #ffb500
   .login-footer
     font-size           20px
     text-shadow         0 -1px 0 rgba(0,0,0,.8)

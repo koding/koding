@@ -39,6 +39,10 @@ class LoginView extends KDScrollView
     #   partial     : "show reset form"
     #   click       : => @animateToForm "reset"
 
+    @tagLine = new KDCustomHTMLView
+      cssClass  : "tagline hidden"
+      partial   : "a new way for developers to work."
+
     @backToLoginLink = new KDCustomHTMLView 
       tagName   : "a"
       # cssClass  : "back-to-login"
@@ -181,6 +185,7 @@ class LoginView extends KDScrollView
       {{> @registerOptions}}
       <div class="login-form-holder home">
         {{> @slideShow}}
+        {{> @tagLine}}
       </div>
       <div class="login-form-holder lf">
         {{> @loginForm}}
@@ -208,6 +213,19 @@ class LoginView extends KDScrollView
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='vidLink'>Want to watch the {{> @backToVideoLink}}</p>
+    </div>
+    <div class="reviews">
+      <hr>
+      <p>A new way for developers to work</p>
+      <span>We said.</span>
+      <p>Wow! Cool - good luck!</p>
+      <span>Someone we talked to the other day...</span>
+      <p>I don't get it... What is it, again?</p>
+      <span>Same dude.</span>
+      <p>Real software development in the browser...</p>
+      <span>Us again.</span>
+      <p>with a real VM and a real Terminal?</p>
+      <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
     </div>
     {{> @backToHomeLink}}
     """    
