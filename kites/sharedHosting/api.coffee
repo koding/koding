@@ -10,12 +10,16 @@ hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite'
+mkdirp    = require 'mkdirp'
 
-# log4js.addAppender log4js.fileAppender(config.logFile), config.name if config.logFile?
+createTmpDir = require './createtmpdir'
 
 console.log "new sharedhosting api."
 
+
+
 module.exports = new Kite 'sharedHosting'
+  
   
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -40,24 +44,29 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-
+        
   uploadFile:(options,callback)->
     #
     # options =
     #    contents   : String # file text content
     #
-    console.log 'attempting to upload file', options
+    # console.log 'attempting to upload file', options
     {usersPath,fileUrl} = config
     {username,path,contents} = options
-    filename = hat()
-    tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf-8', (err)=>
-      unless err
-        @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
-          unless err
-            callback? null,path        
-          else
-            callback? "[ERROR] can't upload file : #{err}"
+    log.debug "uploadFile is called",options.path
+    createTmpDir username, (err, tmpDir)=>
+      filename = hat()
+      tmpPath = "#{tmpDir}/#{filename}"
+      fs.writeFile tmpPath,contents,'utf8', (err)=>
+        if err
+          callback err
+        else
+          @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
+            unless err
+              callback? null,path        
+            else
+              callback? "[ERROR] can't upload file : #{err}"
+        
   
   checkUid:(options,callback)->
     #
@@ -138,6 +147,37 @@ module.exports = new Kite 'sharedHosting'
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
 
+  publishApp:(options, callback)->
+
+    {username, version, appName, userAppPath} = options
+
+    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+
+    cb = (err)->
+      if err then console.error err
+      else callback? null
+
+    mkdirp versionedPath, (err)->
+      if err then cb err
+      else
+        fs.readFile userAppPath, (err, appScript)->
+          if err then cb err
+          else
+            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+              if err then cb err
+              else
+                fs.stat latestPath, (err, statObj)->
+                  if err
+                    exec "ln -s #{versionedPath} #{latestPath}", cb
+                  else
+                    if statObj.isSymbolicLink() or statObj.isFile()
+                      exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else if statObj.isDirectory() and appName.length?
+                      exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                    else
+                      cb new KodingError "Something went wrong"
+
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
@@ -174,7 +214,7 @@ module.exports = new Kite 'sharedHosting'
       cn: username
     
     # first of all we have to connect and bind to ldap
-    ldapClient = ldap.createClient url:config.ldap.ldapUrl
+    ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
       if err?
         log.error error = "[ERROR] Can't bind to LDAP server #{config.ldap.ldapUrl}: #{err.message}"
@@ -201,6 +241,8 @@ module.exports = new Kite 'sharedHosting'
             ldapClient.add "uid=#{username},#{config.ldap.userDN}",user, (err)=>
               if err
                 log.error error = "[ERROR] can't create ldap record for user #{username} in #{config.ldap.userDN} : #{err.message}"
+                ldapClient.unbind (err)->
+                  log.error err if err?
                 callback error
               else
                 log.info "[OK] User #{username} added to #{config.ldap.userDN}"
@@ -208,20 +250,28 @@ module.exports = new Kite 'sharedHosting'
                 ldapClient.add "cn=#{username},#{config.ldap.groupDN}",group,(err)=>
                   if err
                     log.error error =  "[ERROR] can't create ldap record for group #{username} in #{config.ldap.groupDN} : #{err.message}"
+                    ldapClient.unbind (err)->
+                      log.error err if err?
                     callback error
                   else
                     log.info "[OK] Group #{username} added to #{config.ldap.groupDN}" 
                     ldapClient.modify config.ldap.freeUID,change,(err)=>
                       if err?
                         log.error error = "[ERROR] can't increment uidNumber for special record #{config.ldap.freeUID}: #{err.message}"
+                        ldapClient.unbind (err)->
+                          log.error err if err?
                         callback error
                       else
                         ldapClient.modify config.ldap.freeGroup,change_free_user_group,(err)=>
                           if err?
                             log.error error = "[ERROR] can't add user to group #{config.ldap.freeGroup}: #{err.message}"
+                            ldapClient.unbind (err)->
+                              log.error err if err?
                             callback error
                           else
                             # now we can build home for user
+                            ldapClient.unbind (err)->
+                              log.error err if err?
                             @buildHome username:username,uid:parseInt(id), (error,result)->
                               if error?
                                 callback error
@@ -232,7 +282,7 @@ module.exports = new Kite 'sharedHosting'
     
     {username,uid,domainName} = options
     
-    domainName ?= "#{username}.beta.koding.com"
+    domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd

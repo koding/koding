@@ -42,7 +42,6 @@ class AbstractPersonalFormView extends KDFormView
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @resetInputValue()
-      @windowController.removeLayer @
         
   resetInputValue:-> no
 
@@ -159,7 +158,6 @@ class PersonalFormAboutWrapperView extends KDView
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @formView.resetInputValue()
-      @windowController.removeLayer @
 
   viewAppended:->
     super
@@ -366,12 +364,12 @@ class PersonalFormSkillTagView extends KDFormView
       name                : "skillTags"
       cssClass            : 'skilltag-form'
       type                : "tags"
+      itemDataPath        : 'title'
       itemClass           : TagAutoCompleteItemView
       selectedItemClass   : SkillTagAutoCompletedItem
       outputWrapper       : tagWrapper
       selectedItemsLimit  : 10
       form                : @
-      itemDataPath        : "title"
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)

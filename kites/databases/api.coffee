@@ -49,7 +49,8 @@ module.exports = new Kite "databases"
         delete set.Db
         set.dbUser = set.User
         delete set.User
-
+        set.dbType = 'mysql'
+        set.dbHost = mySQL.dbHost
       __resReport(error,result,callback)
 
   createMysqlDatabase : (options,callback)->
@@ -108,6 +109,19 @@ module.exports = new Kite "databases"
   #***************** MongoDB ********************#
   #**********************************************#
 
+  fetchMongoDatabases : (options, callback)->
+
+    # this method will list mysql databases for the user
+    # object will be returned:
+
+    #
+    # options =
+    #   username : String # Kodingen username, db username will be generated wiht username+dbName (db username max 16 symbols, will be truncated)
+    #     ^^^^ wrong - this kite should not know anything about how kodingen works
+
+    mongoDB.fetchDatabaseList options,(error,result)->
+      __resReport(error,result,callback)
+      
   createMongoDatabase : (options,callback)->
 
     # this method will create mongoDB database and user

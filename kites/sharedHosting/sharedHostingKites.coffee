@@ -2,9 +2,6 @@ hosting     = require './sharedHostingApi'
 fileops     = require './fileOperationApi'
 #mountRemote = require './remoteFilesystemsApi'
 
-
-
-
 __resReport = (error,result,callback)->
   if error
     callback? error

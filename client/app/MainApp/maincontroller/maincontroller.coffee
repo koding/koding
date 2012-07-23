@@ -3,13 +3,18 @@ class MainController extends KDController
   wasLoggedIn = no
 
   constructor:()->
+    
     super
+
     window.appManager = new ApplicationManager
     KD.registerSingleton "docManager", new DocumentManager
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kodingAppsController", new KodingAppsController
+    KD.registerSingleton "notificationController", new NotificationController
+    @appReady ->
+      KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
   
@@ -23,8 +28,9 @@ class MainController extends KDController
       else
         applicationIsReady = yes
         listener() for listener in queue
+        @getSingleton('mainView').removeLoader()
         queue = []
-  
+
   authorizeServices:(callback)->
     KD.whoami().fetchNonce (nonce)->
       $.ajax
@@ -42,17 +48,17 @@ class MainController extends KDController
         data      :
           n       : nonce
           env     : KD.env
-        success	  : callback
-        failure	  : callback
         xhrFields :
           withCredentials: yes
-  
+
   initiateApplication:->
     KD.registerSingleton "kiteController", new KiteController
     @getVisitor().on 'change.login', (account)=> @accountChanged account
     @getVisitor().on 'change.logout', (account)=> @accountChanged account
 
   accountChanged:(account)->
+
+    @emit "AccountChanged", account
 
     KDRouter.init()
     unless @mainViewController
@@ -80,7 +86,7 @@ class MainController extends KDController
                   console.log err
                 else
                   console.log "environment is created for #{account.getAt('profile.nickname')}"
-              
+
     else
       @createLoggedOutState account
       @deauthorizeServices()
@@ -92,14 +98,15 @@ class MainController extends KDController
       @loginScreen.slideDown =>
         appManager.quitAll =>
           @mainViewController.sidebarController.accountChanged account
-          appManager.openApplication "Home"
+          # appManager.openApplication "Home"
           @mainViewController.getView().decorateLoginState no
     else
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Home"
+      # appManager.openApplication "Home"
       @mainViewController.getView().decorateLoginState no
-      
-  
+      @loginScreen.slideDown()
+
+
   createLoggedInState:(account)->
     wasLoggedIn = yes
     mainView = @mainViewController.getView()
@@ -121,11 +128,10 @@ class MainController extends KDController
 
     @listenTo
       KDEventTypes : "KDBackendConnectedEvent"
-      callback     : ()=> 
+      callback     : ()=>
         @initiateApplication()
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-
       if pageInfo.pageName is 'Logout'
         bongo.api.JUser.logout ->
           new KDNotificationView
@@ -134,7 +140,7 @@ class MainController extends KDController
             duration  : 2000
       else
         @goToPage pageInfo
-    
+
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
       book.fillPage index

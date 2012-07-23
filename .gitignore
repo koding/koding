@@ -1,6 +1,4 @@
-
-client/KDApplications/Shell.kdapplication/terminal.log
-client/KDApplications/Shell.kdapplication/terminal.pid
+/.revision
 .DS_Store
 website/js/kd*.js
 website/css/kd*.css
@@ -14,6 +12,8 @@ v8.log
 /.settings
 *conflicted\ copy\ 201*
 node_modules/.bin
+*.swp
+*.swo
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -22,6 +22,7 @@ node_modules/.bin
 /node_modules/braintree
 /node_modules/browserify
 /node_modules/coffee-script
+/node_modules/cron
 /node_modules/dateformat
 /node_modules/dropbox
 /node_modules/eventemitter2
@@ -59,3 +60,5 @@ node_modules/.bin
 /node_modules/browserify
 /node_modules/cron
 /node_modules/.DS_Store
+
+node_modules/cron/

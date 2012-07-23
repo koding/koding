@@ -1,7 +1,7 @@
 @import "./client/Framework/themes/default/kdfn"
 
 @css {
-/*  
+/*
 KD FRAMEWORK stylesheet starts
 kd.styl
 */
@@ -13,7 +13,7 @@ body,html
 body.dragInAction
   noTextSelection()
 
-/* 
+/*
 **  KDView STYLES --
 */
 
@@ -40,7 +40,7 @@ span.hint
   fr()
 .lowercase
   text-transform    lowercase
-/* 
+/*
 **  KDHeaderView STYLES
 */
 h1.kdheaderview,h2.kdheaderview,h3.kdheaderview,h4.kdheaderview
@@ -78,7 +78,7 @@ h4.kdheaderview
   span
     margin 0 5px
 
-/* 
+/*
 **  KDSplitView STYLES
 */
 .kdsplitview
@@ -118,7 +118,7 @@ h4.kdheaderview
 .resize-in-action
   noTextSelection()
 
-/* 
+/*
 **  KDTabView STYLES
 */
 .kdview.kdhiddentab
@@ -156,7 +156,7 @@ h4.kdheaderview
       overflow      hidden
       width         auto
       display       inline-block
-        
+
   .kdtabhandle.hide-close-icon
     padding 0 15px 1px 15px
     span.close-tab
@@ -173,7 +173,7 @@ h4.kdheaderview
     background-color #fff
     size(auto,29px)
     z-index 1
-    
+
     span.close-tab
       bg          position,-80px -220px
       &:hover
@@ -220,7 +220,7 @@ h4.kdheaderview
       b
         font-weight bold
 
-/* 
+/*
 **  KDListView STYLES
 */
 .kdview.kdlistview
@@ -255,7 +255,7 @@ h4.kdheaderview
       text-decoration   underline
     &:last-child
       border-right      none
-      
+
   a.active
     color             normal-text
 
@@ -268,8 +268,8 @@ h4.kdheaderview
     b
       color k-orange
 
-      
-/* 
+
+/*
 **  KDAutoComplete STYLES
 */
 .kdautocomplete.listview-wrapper
@@ -283,7 +283,7 @@ h4.kdheaderview
   bg                color,white
   shadow            0,3px,6px,rgba(0,0,0,.1)
   rounded      0,0,5px,5px
-  .kdview.kdlistview.kdautocompletelist      
+  .kdview.kdlistview.kdautocompletelist
     padding           5px 0
     .kdautocompletelistitem
       padding         0 5px
@@ -313,7 +313,7 @@ h4.kdheaderview
 
     input.kdinput.text
       height          22px
-      padding         2px 40px 2px 2px 
+      padding         2px 40px 2px 2px
       // border          none
       shadow(none)
       fl()
@@ -343,11 +343,11 @@ h4.kdheaderview
     right           0
     top             0
     cursor          pointer
-    
-    
 
-    
-/* 
+
+
+
+/*
 **  KDNotification STYLES
 */
 .kdnotificationholder
@@ -400,9 +400,15 @@ h4.kdheaderview
     text-decoration       none
     color                 white
     size                  20px,24px
-    &:hover               
+    &:hover
       text-shadow         0 1px 0 #444
 
+  &.tray
+    vendor                transition, bottom .3s ease-in-out
+    bottom                -100px
+  &.growl
+    vendor                transition, top .3s ease-in-out
+    top                   -100px
   &.tray
   &.growl
     background-color      rgba(0,0,0,.4)
@@ -416,6 +422,7 @@ h4.kdheaderview
       font-size           11px
       line-height         20px
       float               none
+      padding             2px 0
 
     a.kdnotification-close
       top                 18px
@@ -423,11 +430,22 @@ h4.kdheaderview
       line-height         24px
       font-size           18px
       size                20px,18px
+      bg                  position, -80px -540px
+      sprite()
       &:hover
-        text-shadow       0 1px 0 #444
+        text-shadow       0 1px 0 #444        
     &.mini
-      padding             5px
+      padding             5px 25px 5px 5px
       rounded             5px
+      a.kdnotification-close
+        top               8px
+        right             7px
+        size              16px,16px
+        bg                position, -82px -542px
+        rounded           2px
+        &:hover
+          bg              position, -82px -522px
+          bg              color, white
       .kdnotification-title
         font-size         12px
         line-height       16px
@@ -439,7 +457,7 @@ h4.kdheaderview
         font-size         10px
         line-height       14px
         float             none
-      
+
   &.mini
     rounded               0 0 5px 5px
     padding               1px
@@ -463,16 +481,16 @@ h4.kdheaderview
     &.success
       background        rgba(70, 136, 71, .8)
       font-weight       600
-    
 
 
 
-/* 
+
+/*
 **  KDOverlay STYLES
 */
 .kdoverlay
   position              absolute
-  top                   0 
+  top                   0
   left                  0
   z-index               10000
   background            rgba(0,0,0,.2)
@@ -485,7 +503,7 @@ h4.kdheaderview
       opacity           1
   &.transparent
     background          transparent
-  &.half-white          
+  &.half-white
     background          rgba(255,255,255,.5)
 
 

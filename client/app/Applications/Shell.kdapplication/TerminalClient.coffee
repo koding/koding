@@ -4,7 +4,7 @@ class TerminalClient
     @view = options.view
     @handler = options.handler
     @view.getDomElement().css("overflow","hidden").css("border","1 solid red");
-    @diffScriptParser = new DiffScript
+    # @diffScriptParser = new DiffScript
     @kb_buf = ''
 
 
@@ -175,7 +175,6 @@ class TerminalClient
     @handler command
 
   esc_seq: (s) ->
-    console.log s
     String.fromCharCode(27) + "[" + s
     
 

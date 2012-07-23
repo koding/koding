@@ -12,7 +12,7 @@ module.exports =
     key             : 'a6f121a130a44c7f5325'
     secret          : '9a2f248630abaf977547'
   requestHandler    :
-    isEnabled       : yes
+    isEnabled       : no
   apiUri            : 'https://dev-api.koding.com/1.0'
   usersPath         : '/Users/'
   vhostDir          : 'Sites'
@@ -20,7 +20,7 @@ module.exports =
   defaultVhostFiles : nodePath.join cwd,"defaultVhostFiles"
   freeUsersGroup    : 'freeusers'
   liteSpeedUser     : 'lsws'
-  defaultDomain     : 'beta.koding.com'
+  defaultDomain     : 'koding.com'
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true
   processBaseDir    : cwd
@@ -32,9 +32,14 @@ module.exports =
     minRestartInterval : '10000' # 10 sec
   ldap              :
     ldapUrl  : 'ldap://ldap0.prod.system.aws.koding.com'
-    rootUser : "cn=Directory Manager"  
-    rootPass : '35acb84L##'
+    rootUser : "uid=KAdmin,ou=Special Users,dc=koding,dc=com"  
+    rootPass : 'sOg4:L]iM7!_UV-H'
     groupDN  : 'ou=Beta,ou=Groups,dc=koding,dc=com'
     userDN   : 'ou=Beta,ou=People,dc=koding,dc=com'
     freeUID  : 'uid=betaUsersIDs,dc=koding,dc=com' # special record for next free uid, increments each time when create new user
     freeGroup: 'cn=freeusers,ou=Groups,dc=koding,dc=com'
+  FileSharing:
+    baseSharedDir : '/Shared'
+    baseDir : '/Users'
+    setfacl : '/usr/bin/setfacl'
+  

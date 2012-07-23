@@ -37,7 +37,9 @@ class ShellView extends KDView
     @initiateClient type
   click: ->
     @input.setFocus()
+
   updateScreen:(data)->
+
     if @client
       @client.write data
     else

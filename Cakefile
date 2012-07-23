@@ -10,7 +10,7 @@ option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 
-ProgressBar     = require './builders/node_modules/progress'
+ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
@@ -68,17 +68,20 @@ targetPaths =
       tmpFileCompiled = tmpFile+".js"
       fs.writeFile tmpFile,js,(err)-> 
         execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+        console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
+            console.log "23",arguments
           else if stdout
+            console.log "12",arguments
           else throw err
           bar.tick() for ko in [ticks...totalTicks]
           fs.readFile tmpFileCompiled,'utf8',(err,data)->
             clearInterval a
             unless err
               callback null,data
-              fs.unlink tmpFileCompiled,->
-              fs.unlink tmpFile,->
+              # fs.unlink tmpFileCompiled,->
+              # fs.unlink tmpFile,->
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
@@ -135,8 +138,17 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.dontStart = yes
   options.uglify    = yes
   options.useStatic = yes
+
+  
+  rev = fs.readFileSync "./.revision"
+  prompt.start()
+  prompt.get [{message:"Did you update the .revision? - current:#{rev} (type yes to continue)",name:'p'}],  (err, result) ->
+    # fs.writeFileSync "./.revision",result.p
+    # version = targetPaths.version = result.p
     
-  invoke 'build'
+    if result.p is "yes"
+      invoke 'build'
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
 
 
 
@@ -267,7 +279,7 @@ build = (options)->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
       
-    if changes.Server? 
+    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
       builder.buildServer "",()-> 
       builder.processMonitor.restartProcess() unless options.dontStart
     if changes.Client?.StylusFiles? 

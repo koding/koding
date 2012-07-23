@@ -253,7 +253,7 @@ class KDObject extends KDEventEmitter
       #   delete ctor[key]
     ()->
       # log "destroying",@
-      @propagateEvent KDEventType:'KDObjectWillBeDestroyed'
+      @emit 'KDObjectWillBeDestroyed'
       KD.removeSubscriptions @
       for obj in @listeningTo
         obj.removeListener listener : @

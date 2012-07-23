@@ -16,7 +16,7 @@ class JCodeSnip extends JPost
   
   @set
     sharedMethods : JPost.sharedMethods
-    schema        : jraphical.Message.schema
+    schema        : JPost.schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
   
@@ -41,6 +41,7 @@ class JCodeSnip extends JPost
         content   : data.code
         syntax    : data.syntax
       }]
+      meta        : data.meta
     JPost::modify.call @, client, codeSnip, callback
   
   reply: secure (client, comment, callback)->
@@ -55,4 +56,7 @@ class CCodeSnipActivity extends CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema
     relationships   :
-      subject       : JCodeSnip
+      subject       :
+        targetType  : JCodeSnip
+        as          : 'content'
+      

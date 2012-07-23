@@ -25,9 +25,7 @@ class NavigationController extends KDListViewController
 class NavigationList extends KDListView
   
   itemClass:(options,data)->
-    if data.title is "Beta Feedback"
-      new NavigationBetaFeedbackLink options, data
-    else if data.title is "Invite Friends"
+    if data.title is "Invite Friends"
       new NavigationInviteLink options, data
     else
       super
@@ -54,25 +52,12 @@ class NavigationLink extends KDListItemView
 
     "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
-class NavigationBetaFeedbackLink extends NavigationLink
-
-  viewAppended:()->
-    
-    @utils.wait 5000, =>
-      bongo.api.JUser.fetchUser (err,user)=>
-        @data.link = user.tenderAppLink
-        @getDomElement().append @partial @data
-        # @handleEvent { type : "viewAppended"}
-        @setViewReady()
-  
-  partial:(data)->
-
-    "<a class='title' href='#{data.link}' target='_blank'><span class='main-nav-icon #{__utils.slugify data.title}'></span>#{data.title}</a>"
+class AdminNavigationLink extends NavigationLink
   
   mouseDown:(event)->
 
-    event.stopPropagation()
-    no
+    cb = @getData().callback
+    cb.call @ if cb
 
 class NavigationInviteLink extends NavigationLink
   
@@ -84,8 +69,8 @@ class NavigationInviteLink extends NavigationLink
     @count = new KDCustomHTMLView
       pistachio: "{{#(quota)-#(usage)}}"
 
-    @utils.wait 5000, =>
-      KD.whoami().fetchLimit 'invite', (err, limit)=>
+    @utils.wait 10000, =>
+      KD.whoami().fetchLimit? 'invite', (err, limit)=>
         if limit?
           @show()
           @count.setData limit
@@ -133,8 +118,6 @@ class NavigationInviteLink extends NavigationLink
         content                 : ""
         width                   : 500
         height                  : "auto"
-        position                :
-          top                    : 150
         cssClass                : "invitation-modal"
         tabs                    :
           callback              : (formData)=> 

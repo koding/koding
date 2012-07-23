@@ -2,6 +2,7 @@ class JTag extends Followable
   
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
+  
   # @mixin Followable       # brings only static methods
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
@@ -11,16 +12,21 @@ class JTag extends Followable
   @share()
 
   @set
+    emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow', 'fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers'
+        'update','follow', 'unfollow', 'fetchFollowersWithRelationship'
+        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
+        'delete'
         ]
-      static        : ["one","on","some","all","create",'someWithRelationship','byRelevance']
+      static        : [
+        "one","on","some","all","create",
+        'someWithRelationship','byRelevance'#,'markFollowing'
+        ]
     schema          :
-      title         : 
+      title         :
         type        : String
         set         : (value)-> value.trim()
         required    : yes
@@ -134,6 +140,36 @@ class JTag extends Followable
       limit
       sort    : 'title' : 1
     }, callback
+
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    callback new KodingError 'Not Implemented yet!'
+    ###
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        getDeleteHelper {
+          sourceId    : id
+          sourceName  : 'JComment'
+        }, 'target', -> queue.fin()
+        ->
+          Relationship.remove {
+            targetId  : id
+            as        : 'post'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        @emit 'PostIsDeleted', 1
+        callback null
+      ###
 
   emit:-> debugger
   # save: secure (client,callback)->
