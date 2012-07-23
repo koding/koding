@@ -3,7 +3,7 @@ class LoginView extends KDScrollView
   constructor:->
 
     super
-    @hidden = yes
+    @hidden = no
     
     @logo = new KDCustomHTMLView
       tagName     : "div"
@@ -308,8 +308,8 @@ class LoginView extends KDScrollView
   
   _windowDidResize:(event)->
 
-    # {winWidth,winHeight} = @windowController
-    # @$().css marginTop : -winHeight if @hidden
+    {winWidth,winHeight} = @windowController
+    @$().css marginTop : -winHeight if @hidden
       
   animateToForm: (name)->
     if name is "register"
