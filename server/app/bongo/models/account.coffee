@@ -128,10 +128,10 @@ class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : JTag
   
-  # oldFetchLimit = @::fetchLimit
-  fetchLimit:->
-    debugger
-    #oldFetchLimit.call @, arguments...
+  # # oldFetchLimit = @::fetchLimit
+  # fetchLimit:->
+  #   debugger
+  #   #oldFetchLimit.call @, arguments...
   
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options

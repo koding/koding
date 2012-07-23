@@ -48,11 +48,7 @@ class JInvitation extends jraphical.Module
     options or= {}
     {numInvitations} = options
     numInvitations ?= 3
-    @grant {'profile.nickname': $in:
-      ['chris','devrim','sinan','aydincan','gokmen']
-    }, numInvitations, callback
-    
-  
+    @grant {}, numInvitations, callback
   # @__attemptToFixChrisFuckup =(callback)->
   #   i = 0
   #   JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
@@ -141,6 +137,7 @@ class JInvitation extends jraphical.Module
       callback new KodingError "Quota must be positive."
     else
       batch = []
+      i = 0
       console.log arguments
       JAccount.all selector, (err, accounts)->
         accounts.forEach (account)->
@@ -155,7 +152,9 @@ class JInvitation extends jraphical.Module
                   if err
                     batch.fin(err)
                   else
-                    account.addLimit limit, 'invite', (err)-> batch.fin(err)
+                    account.addLimit limit, 'invite', (err)->
+                      console.log 'granted invites to one', ++i
+                      batch.fin(err)
         # console.log batch.length
         dash batch, callback
   
