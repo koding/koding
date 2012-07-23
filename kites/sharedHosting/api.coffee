@@ -12,7 +12,11 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite'
 mkdirp    = require 'mkdirp'
 
+createTmpDir = require './createtmpdir'
+
 console.log "new sharedhosting api."
+
+
 
 module.exports = new Kite 'sharedHosting'
   
@@ -50,15 +54,19 @@ module.exports = new Kite 'sharedHosting'
     {usersPath,fileUrl} = config
     {username,path,contents} = options
     log.debug "uploadFile is called",options.path
-    filename = hat()
-    tmpPath = "#{usersPath}#{username}/.tmp/#{filename}"
-    fs.writeFile tmpPath,contents,'utf8', (err)=>
-      unless err
-        @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
-          unless err
-            callback? null,path        
-          else
-            callback? "[ERROR] can't upload file : #{err}"
+    createTmpDir username, (err, tmpDir)=>
+      filename = hat()
+      tmpPath = "#{tmpDir}/#{filename}"
+      fs.writeFile tmpPath,contents,'utf8', (err)=>
+        if err
+          callback err
+        else
+          @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
+            unless err
+              callback? null,path        
+            else
+              callback? "[ERROR] can't upload file : #{err}"
+        
   
   checkUid:(options,callback)->
     #
@@ -233,6 +241,8 @@ module.exports = new Kite 'sharedHosting'
             ldapClient.add "uid=#{username},#{config.ldap.userDN}",user, (err)=>
               if err
                 log.error error = "[ERROR] can't create ldap record for user #{username} in #{config.ldap.userDN} : #{err.message}"
+                ldapClient.unbind (err)->
+                  log.error err if err?
                 callback error
               else
                 log.info "[OK] User #{username} added to #{config.ldap.userDN}"
@@ -240,20 +250,28 @@ module.exports = new Kite 'sharedHosting'
                 ldapClient.add "cn=#{username},#{config.ldap.groupDN}",group,(err)=>
                   if err
                     log.error error =  "[ERROR] can't create ldap record for group #{username} in #{config.ldap.groupDN} : #{err.message}"
+                    ldapClient.unbind (err)->
+                      log.error err if err?
                     callback error
                   else
                     log.info "[OK] Group #{username} added to #{config.ldap.groupDN}" 
                     ldapClient.modify config.ldap.freeUID,change,(err)=>
                       if err?
                         log.error error = "[ERROR] can't increment uidNumber for special record #{config.ldap.freeUID}: #{err.message}"
+                        ldapClient.unbind (err)->
+                          log.error err if err?
                         callback error
                       else
                         ldapClient.modify config.ldap.freeGroup,change_free_user_group,(err)=>
                           if err?
                             log.error error = "[ERROR] can't add user to group #{config.ldap.freeGroup}: #{err.message}"
+                            ldapClient.unbind (err)->
+                              log.error err if err?
                             callback error
                           else
                             # now we can build home for user
+                            ldapClient.unbind (err)->
+                              log.error err if err?
                             @buildHome username:username,uid:parseInt(id), (error,result)->
                               if error?
                                 callback error

@@ -10,6 +10,8 @@ function trace () {
   }, func_get_args())));
 }
 
+trace($headers);
+
 function handle_vacated_channel ($type, $event, $ms) {
   $kite_controller = get_kite_controller();
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
