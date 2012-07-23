@@ -118,7 +118,6 @@ class LoginView extends KDScrollView
 
 
     @on "LoginViewAnimated", (name)=>
-      log "LoginViewAnimated", name
       if name is "home"
         @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
       else
@@ -131,6 +130,8 @@ class LoginView extends KDScrollView
       callback           : =>
         unless KD.isLoggedIn()
           @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+        else
+          @animateToForm 'login'
 
         
 
