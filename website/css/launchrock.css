@@ -1,0 +1,190 @@
+.lrdiscoverwidget {
+  font-family: 'Open Sans', 'Helvetica Neue','Helvetica Neue',Helvetica,Arial,Sans-Serif;
+}
+
+.lrdiscoverwidget .site-desc, .site-powered-by, .site-tagline, label {
+  display: none!important;
+}
+
+.lrdiscoverwidget .inviteform {
+  margin: 0 auto;
+  width: 78%;
+}
+
+.lrdiscoverwidget .site {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+div.like {
+  margin-top: 15px;
+}
+
+.lrdiscoverwidget .share-link .field-holder {
+background: none repeat scroll 0 0 rgba(23, 23, 23, 0.6);
+border: 1px solid #000000;
+border-radius: 4px 4px 4px 4px;
+padding: 5px;
+width: auto;
+}
+
+p.invite-label {
+width: 78%;
+margin: 0 auto;
+color: #f2f2f2;
+font-size: 10px;
+line-height: 18px;
+background-color: rgba(0,0,0,0.2);
+-webkit-border-radius: 4px;
+-moz-border-radius: 4px;
+-khtml-border-radius: 4px;
+-o-border-radius: 4px;
+-icab-border-radius: 4px;
+border-radius: 4px;
+padding: 6px;
+text-shadow: 0 1px 0 #111;
+overflow: hidden;
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+-khtml-box-sizing: border-box;
+-o-box-sizing: border-box;
+-icab-box-sizing: border-box;
+box-sizing: border-box;
+}
+
+.lrdiscoverwidget .share-link .field-holder {
+    float: none;
+    width: 100%;
+}
+
+.lrdiscoverwidget .social-links ul{
+  margin-left: 0;
+}
+.lrdiscoverwidget .social-links li a{
+  color: #ff9200;
+  text-decoration: none;
+}
+.lrdiscoverwidget .inviteform input.field {
+  background-color: rgb(255, 255, 255);
+  background-image: none;
+  background-repeat: repeat;
+  border-bottom-color: rgba(0, 0, 0, 0.898438);
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-left-color: rgba(0, 0, 0, 0.898438);
+  border-left-style: solid;
+  border-left-width: 1px;
+  border-right-color: rgba(0, 0, 0, 0.898438);
+  border-right-style: solid;
+  border-right-width: 1px;
+  border-top-color: rgba(0, 0, 0, 0.898438);
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  box-shadow: rgba(0, 0, 0, 0.296875) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.199219) 0px 1px 0px 0px;
+  box-sizing: border-box;
+  color: rgb(68, 68, 68);
+  cursor: auto;
+  display: block;
+  font-family: 'Open Sans', 'Helvetica Neue','Helvetica Neue',Helvetica,Arial,Sans-Serif!important;
+  font-size: 11px;
+  font-style: normal;
+  font-variant: normal;
+  font-weight: 600;
+  height: 31px;
+  letter-spacing: normal;
+  line-height: 12px;
+  margin-bottom: 10px;
+  margin-left: 0px;
+  margin-right: 0px;
+  margin-top: 10px;
+  outline-color: rgb(68, 68, 68);
+  outline-style: none;
+  outline-width: 0px;
+  overflow-x: visible;
+  overflow-y: visible;
+  padding-bottom: 7px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-top: 7px;
+  position: static;
+  text-align: -webkit-auto;
+  text-indent: 0px;
+  text-shadow: none;
+  text-transform: none;
+  vertical-align: middle;
+  visibility: visible;
+  width: 100%;
+  word-spacing: 0px;
+}
+
+
+.lrdiscoverwidget .inviteform input.submit {
+background-attachment: scroll;
+background-clip: border-box;
+background-color: rgba(0, 0, 0, 0);
+background-image: -webkit-linear-gradient(top, rgb(255, 166, 21) 0%, rgb(197, 97, 33) 84.7%);
+background-origin: padding-box;
+background-repeat: repeat;
+border-bottom-color: rgba(0, 0, 0, 0.71875);
+border-bottom-left-radius: 4px;
+border-bottom-right-radius: 4px;
+border-bottom-style: solid;
+border-bottom-width: 1px;
+border-left-color: rgba(0, 0, 0, 0.71875);
+border-left-style: solid;
+border-left-width: 1px;
+border-right-color: rgba(0, 0, 0, 0.71875);
+border-right-style: solid;
+border-right-width: 1px;
+border-top-color: rgba(0, 0, 0, 0.71875);
+border-top-left-radius: 4px;
+border-top-right-radius: 4px;
+border-top-style: solid;
+border-top-width: 1px;
+box-shadow: rgba(255, 255, 255, 0.226563) 0px 1px 0px 0px;
+box-sizing: border-box;
+color: rgb(255, 255, 255);
+cursor: pointer;
+display: inline-block;
+font-family: 'Open Sans';
+font-size: 11px;
+font-style: normal;
+font-variant: normal;
+font-weight: 600;
+height: 31px;
+letter-spacing: normal;
+line-height: 11px;
+margin-bottom: 0px;
+margin-left: 0px;
+margin-right: 0px;
+margin-top: 10px;
+max-width: 170px;
+outline-color: rgb(255, 255, 255);
+outline-style: none;
+outline-width: 0px;
+overflow-x: visible;
+overflow-y: visible;
+padding-bottom: 9px;
+padding-left: 0px;
+padding-right: 0px;
+padding-top: 9px;
+position: relative;
+text-align: center;
+text-indent: 0px;
+text-shadow: rgba(0, 0, 0, 0.378906) 0px -1px 0px;
+text-transform: none;
+vertical-align: top;
+visibility: visible;
+width: 170px;
+word-spacing: 0px;
+}
+
+.lrdiscoverwidget .inviteform input.submit:hover {
+-webkit-box-shadow: 0 0 9px 1px rgba(255,169,0,0.5) , 0 1px 0 rgba(255,255,255,0.23);
+box-shadow: 0 0 9px 1px rgba(255,169,0,0.5) , 0 1px 0 rgba(255,255,255,0.23);
+}
