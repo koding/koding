@@ -137,12 +137,12 @@ class MainView extends KDView
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"
       # @logo.show()
-      @buttonHolder.hide()
+      # @buttonHolder.hide()
     else
       $('body').removeClass "loggedIn"
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      @buttonHolder.show()
+      # @buttonHolder.show()
       # @logo.hide()
 
     @changeHomeLayout isLoggedIn
