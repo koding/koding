@@ -118,7 +118,7 @@ class LoginView extends KDScrollView
       listenedToInstance : @slideShow
       callback           : =>
 
-        @slideShow.setPartial """<iframe src="http://player.vimeo.com/video/45156018?color=ff9200" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>"""
+        @slideShow.setPartial """<iframe src="http://player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>"""
 
         # @slideShow.addSubView new KDButtonView
         #   title    : "."

@@ -28,7 +28,7 @@ app.login-signup.styl
       visible()
     .flex-wrapper
       overflow            visible
-      size                920px, 596px
+      size                90%, 596px
       max-width           920px
     .login-form-holder
       margin              -15px 0 0 0
@@ -115,7 +115,6 @@ app.login-signup.styl
     display               block
     width                 200px
     margin                30px auto 10px auto
-    color                 #ffb500
     z-index               1
     opacity               .8
     noTextDeco()
@@ -144,8 +143,7 @@ app.login-signup.styl
     margin-bottom         30px
     overflow              visible
     bg                    color,rgba(255,255,255,0.05)
-    vendor                transition-property, height\,width
-    vendor                transition-duration, .4s
+    vendor                transition, height .4s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
     overflow              hidden
   
   .login-hint
@@ -195,7 +193,7 @@ app.login-signup.styl
       text-shadow         none
       rounded             13px
   a 
-    color                 #ff9200
+    color                 #ffb500
     noTextDeco()
 
 
@@ -229,7 +227,6 @@ app.login-signup.styl
     width                 100%
     bottom                10px
     left                  0
-    color                 #ffb500
     noTextDeco()
 
 .login-options-holder
@@ -479,8 +476,9 @@ p.login-tip
       display           inline-block                     
       line-height       40px
       margin-right      40px
+      vendor            transition, font-size .3s ease-in
       //text-transform    lowercase
-      &:last-child
+      &:nth-child(3)
         margin-right    0
 
 
@@ -496,10 +494,6 @@ p.login-tip
     //text-shadow         1px solid #444
     //margin-bottom       7px
     line-height         24px
-  a
-    color               #ffb500
-    //text-shadow         1px solid #444
-    noTextDeco()
 
 .kdnotification.login
   span
