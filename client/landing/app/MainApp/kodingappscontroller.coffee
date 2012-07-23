@@ -8,7 +8,7 @@ class KodingAppsController extends KDController
 
     super
 
-  fetchApps:(callback)->
+  fetchAppsFromFs:(callback)->
     
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
@@ -18,6 +18,7 @@ class KodingAppsController extends KDController
     , (err, response)=>
       if err 
         warn err
+        callback err
       else
         files = FSHelper.parseLsOutput [path], response
         apps  = []
@@ -33,12 +34,35 @@ class KodingAppsController extends KDController
             manifest.fetchContents cb
     
         async.parallel stack, (err, results)=>
-          if err then warn err else
+          if err
+            warn err
+            callback? err
+          else
             results.forEach (app)->
               app = JSON.parse app
               KodingAppsController.apps["#{app.name}"] = app
+            callback? err, KodingAppsController.apps
 
-            callback? KodingAppsController.apps
+  fetchAppsFromDb:(callback)->
+
+    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
+      if err 
+        warn err
+        callback err
+      else
+        apps = storage.getAt "bucket.apps"
+        if apps and Object.keys(apps).length > 0
+          KodingAppsController.apps = apps
+          callback null, apps
+        else
+          callback new Error "There are no apps in the app storage."
+
+  putAppsToAppStorage:(apps)->
+
+    appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
+      storage.update {
+        $set: { "bucket.apps" : apps }
+      }, => log arguments,"kodingAppsController storage updated"
 
   addScript:(app, scriptInput, callback)->
     
