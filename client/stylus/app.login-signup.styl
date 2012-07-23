@@ -8,8 +8,15 @@ app.login-signup.styl
 */
 }
 
+body.login
+  .kdview.login-screen
+    opacity         1
+    vendor          transition, margin .6s ease-in-out
+
+
 // swapping views for views
 .kdview.login-screen
+  opacity           0.00001
   .login-form-holder
   .login-options-holder
   .back-to-login
@@ -97,7 +104,7 @@ app.login-signup.styl
   text-align              center
   // min-height              600px
   // overflow                auto
-  vendor                  transition, margin .6s ease-in-out
+  vendor                  transition, none
   // background              transparent url("../images/bgflare.png") no-repeat center top
   borderBox()
 
