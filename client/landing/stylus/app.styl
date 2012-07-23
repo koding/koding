@@ -6,21 +6,6 @@
 
 active-color = rgb(246,162,32)
 
-@css {
-/*
- __  __      _____       ____        ______      __  __      ____ 
-/\ \/\ \    /\  __`\    /\  _`\     /\__  _\    /\ \/\ \    /\  _`\
-\ \ \/'/'   \ \ \/\ \   \ \ \/\ \   \/_/\ \/    \ \ `\\ \   \ \ \ \_\
- \ \ , <     \ \ \ \ \   \ \ \ \ \     \ \ \     \ \ , ` \   \ \ \___
-  \ \ \\`\    \ \ \_\ \   \ \ \_\ \     \_\ \__   \ \ \`\ \   \ \ \/, \
-   \ \_\ \_\   \ \_____\   \ \____/     /\_____\   \ \_\ \_\   \ \____/
-    \/_/\/_/    \/_____/    \/___/      \/_____/    \/_/\/_/    \/___/
-
-stylesheet
-app.styl 
-*/
-}
-
 body
   font-family         "Open Sans", Helvetica, sans-serif
   background-color    #393630
@@ -66,6 +51,37 @@ body
   
   input,textarea,button,select,option
     font-weight     400
+
+@keyframes pulse
+   0%
+     opacity .5
+   50%
+     opacity 1
+   100%
+     opacity .5
+
+.main-loading
+  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  ul
+    position        absolute
+    top             50%
+    left            50%
+    margin          -75px 0 0 -57px
+    size            115px, 149px
+    li
+      vendor        animation, pulse 1.5s ease-in-out infinite
+      margin-bottom 12px
+      size          100%, 12px
+      gradient      #f8f8f8, #d0d0d0
+      shadow        0 1px 1px rgba(0,0,0,.5)
+      &:first-child
+        size        100%, 35px
+        gradient    #ff9600, #ff7800
+      &:nth-child(3)
+        width       81px
+      &:last-child
+        width       69px
+      
 
 /* moz hack for font weights */
 @css {
@@ -443,14 +459,19 @@ span.main-nav-icon
       shadow        none
       span.close-tab
         bg          color,transparent
+      span.error
+        color         red
 
     &.plus
+      padding       0 0 0 16px
       span.icon
         margin      1px 5px 0 -5px
         size        20px,20px
         sprite()
         bg          position,-60px -260px
         fl()
+      b
+        margin-right  0
       &:hover
         bg          color,rgba(255,255,255,.3)
         color       rgba(255, 255, 255, 0.9)
@@ -464,6 +485,20 @@ span.main-nav-icon
         b
           width     auto
           visible()
+
+    .chevron-arrow-separator
+      display         none
+      
+    .chevron-arrow
+      position        absolute
+      left            2px
+      top             2px
+      size            20px,20px
+      bg              position,-120px -480px
+
+    span.error
+      color           lightCoral
+      font-style      normal
 
 .avatararea-popup
   height                auto
@@ -571,7 +606,28 @@ span.main-nav-icon
     font-size           11px
     line-height         15px
     color               #8e8e8e
-    borderBox() 
+    borderBox()
+    span.icon
+      position          absolute
+      top               33px
+      left              35px
+      size              20px, 20px
+      display           block
+
+      sprite()
+    &.comment
+      span.icon
+        bg              position, -80px -580px
+    &.like
+      span.icon
+        bg              position, -80px -560px
+    &.follow
+      span.icon
+        bg              position, -100px -580px
+    &.reply
+      span.icon
+        bg              position, -140px -540px
+
     span.avatar
       border            1px solid #e3e3e3
       padding           1px
@@ -610,8 +666,6 @@ span.main-nav-icon
         margin-top        6px
         font-size         10px
         blockMid()
-        span.profile
-          margin-top        -5px      
       span                
         color             #393939
 

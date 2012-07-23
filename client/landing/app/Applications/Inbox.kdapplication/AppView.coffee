@@ -47,7 +47,7 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      lastToFirst : yes
+      # lastToFirst : yes
       delegate    : @
       subItemClass  : InboxMessagesListItem
     inboxMessageBody = new KDView cssClass : "message-body-wrap"
@@ -59,15 +59,20 @@ class PageInbox extends KDView
     tab.addSubView @newMessageBar = new InboxNewMessageBar 
       cssClass  : "new-message-bar clearfix"
       delegate  : @inboxMessagesContainer
+
+    @newMessageBar.on "RefreshButtonClicked", =>
+      inboxMessageListController.loadMessages =>
+        @newMessageBar.refreshButton.hideLoader()
     
     inboxMessageListController.loadMessages()
-    
+      
+
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList,@inboxMessagesContainer]
       cssClass  : "messages-split" 
       resizable : yes
-      minimums  : [280, null]
+      minimums  : [150, null]
 
     tab.addSubView messagesSplit
     messagesSplit._windowDidResize()
@@ -109,12 +114,10 @@ class PageInbox extends KDView
   createNotificationsTab:->
     @inboxTabs.addPane tab = new KDTabPaneView cssClass : "notifications-tab"
 
-    inboxNotificationsList = new InboxMessagesList
-      cssClass      : "inbox-list notifications"
-      subItemClass  : NotificationListItem
-
     inboxNotificationsController = new MessagesListController
-      view           : inboxNotificationsList
+      view            : inboxNotificationsList = new InboxMessagesList
+        cssClass      : "inbox-list notifications"
+        subItemClass  : NotificationListItem
     
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
@@ -133,26 +136,6 @@ class PageInbox extends KDView
     else
       mainView.inboxTabs.showPane mainView["_tab_#{type}"]
     @commonInnerNavigation.selectNavTab type
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->

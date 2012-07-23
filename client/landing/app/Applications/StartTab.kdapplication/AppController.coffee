@@ -1,4 +1,5 @@
 class StartTab12345 extends AppController
+
   bringToFront:->
     frontTab = if !@openTabs.length then @createNewTab() else @openTabs[@openTabs.length - 1]
 

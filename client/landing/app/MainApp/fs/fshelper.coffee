@@ -36,7 +36,7 @@ class FSHelper
     return date
 
   @parseLsOutput = (parentPaths, response) ->
-
+    # log "ls response",response
     data = []
     return data unless response
     strings = response.split '\n\n'
@@ -78,6 +78,11 @@ class FSHelper
 
     path.split('/').pop()
 
+  @trimExtension = (path)->
+
+    name = getFileName path
+    name.split('.').shift()
+
   @createFileFromPath = (path, type = "file")->
 
     return warn "pass a path to create a file instance" unless path
@@ -97,6 +102,7 @@ class FSHelper
       constructor = switch data.type
         when "folder" then FSFolder
         when "mount"  then FSMount
+        when "symLink" then FSFolder
         else FSFile
     
       instance = new constructor data

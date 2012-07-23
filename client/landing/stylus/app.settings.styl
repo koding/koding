@@ -19,9 +19,9 @@ positiveGreen = rgba(58,200,2,1)
   bg(repeat,repeat-x)
   bg(position,-16px -52px)
   a
-    color               linkColor1
     text-decoration     none
     font-weight         300
+    color               linkColor1
     &:hover
       text-decoration   underline
 
@@ -77,6 +77,7 @@ positiveGreen = rgba(58,200,2,1)
     display none
   .title
     padding-left 0
+
 #account-content-wrapper
   border-left       1px solid rgba(7,6,6,.4)
   height            auto
@@ -101,7 +102,10 @@ positiveGreen = rgba(58,200,2,1)
 .login-email, .password-security
   input 
     top           -4px
+    
 .linked-accounts
+  a
+    color               linkColor1
   ul 
     margin                0
     padding               0
@@ -181,8 +185,24 @@ positiveGreen = rgba(58,200,2,1)
           margin-bottom   10px
       .actions-wrapper
         top             -7px
+    .kdinputswitch-ry
+      display           inline-block
+      size              auto, 23px
+      margin            14px 0 13px
+      border            1px solid rgba(0,0,0,.1)
+      noTextDeco()
+      .on
+      .off
+        noTextDeco()
+        font-weight      bold
+        color            #b6b6b6
+      .active.on
+        color            #FFFFFF
+      .active.off
+        color            rgb(140,140,140)
     &:hover
-      .action-link,.delete-icon
+      .action-link
+      .delete-icon
         display     block
 
   a.delete-icon

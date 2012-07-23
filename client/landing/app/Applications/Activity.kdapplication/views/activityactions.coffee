@@ -1,22 +1,39 @@
 class ActivityActionsView extends KDView
+
   constructor:->
+
     super
+
     activity = @getData()
-    @commentLink  = new ActivityActionLink    {partial : "Comment"}
-    @commentCount = new ActivityCommentCount  {}, activity
+    @commentLink  = new ActivityActionLink
+      partial : "Comment"
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Show all"
+      click       : =>
+        @getDelegate().emit "CommentCountClicked"
+    , activity
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
         offset    : 3
-      
-    @likeLink     = new ActivityActionLink    {partial : "Like" }
-    @likeCount    = new ActivityLikeCount     {}, activity
-    @loader       = new KDLoaderView          size : width : 14 
-          
+
+    @likeCount    = new ActivityLikeCount {}, activity
+    @likeLink     = new ActivityActionLink
+      partial     : "Like"
+      ###
+      tooltip     :
+        title     : if @likeCount.getData() in [0, null] then "Be first" else "Hope"
+        placement : "above"
+        offset    : 3
+      ###
+
+    @loader       = new KDLoaderView size : width : 14
 
   viewAppended:->
+    
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
@@ -24,35 +41,48 @@ class ActivityActionsView extends KDView
     @loader.hide()
 
   pistachio:->
-    tmpl = 
+
     """
     {{> @loader}}
-    {{> @commentLink}}{{> @commentCount}} · 
+    {{> @commentLink}}{{> @commentCount}} ·
     <span class='optional'>
-    {{> @shareLink}} · 
+    {{> @shareLink}} ·
     </span>
     {{> @likeLink}}{{> @likeCount}}
     """
 
   attachListeners:->
+
     activity    = @getData()
     commentList = @getDelegate()
 
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
-      
+
     @likeLink.registerListener
-      KDEventTypes  : "Click"      
+      KDEventTypes  : "Click"
       listener      : @
-      callback      : ->
+      callback      : =>
         if KD.isLoggedIn()
-          activity.like (err)-> log arguments, 'you like me!'
-    
+          # oldCount = @likeCount.data.meta.likes
+          activity.like (err)=>
+            # log arguments, 'you like me!'
+            if err
+              new KDNotificationView
+                title     : "You already liked this!"
+                duration  : 1300
+            # FIXME Implement Unlike behaviour
+            ###
+            newCount = @likeCount.data.meta.likes
+            if oldCount < newCount then @likeLink.updatePartial("Unlike")
+            else @likeLink.updatePartial("Like")
+            ###
+
     @commentLink.registerListener
-      KDEventTypes  : "Click"      
+      KDEventTypes  : "Click"
       listener      : @
-      callback      : ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick"
+      callback      : (pubInst, event) ->
+        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
 
 class ActivityActionLink extends KDCustomHTMLView
   constructor:(options,data)->
@@ -63,7 +93,6 @@ class ActivityActionLink extends KDCustomHTMLView
         href    : "#"
     , options
     super options,data
-
 
 class ActivityCountLink extends KDCustomHTMLView
   constructor:(options,data)->
@@ -91,11 +120,11 @@ class ActivityCountLink extends KDCustomHTMLView
 class ActivityLikeCount extends ActivityCountLink
 
   setCount:(activity)->
-    if activity.meta.likes is 0 then @hide() else @show()
+    # log "Like Count: " + activity.meta.likes
+    if activity.meta.likes == 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
 
-  
 class ActivityCommentCount extends ActivityCountLink
 
   setCount:(activity)->

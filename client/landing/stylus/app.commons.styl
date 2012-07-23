@@ -4,7 +4,7 @@
 @import "nib/vendor"
 
 @css {
-/*  
+/*
 COMMONS stylesheet
 app.commons.styl
 */
@@ -18,7 +18,7 @@ p.warning
     bg                  color,#D9EDF7
     border              1px solid #BCE8F1
     color               #3A87AD
-  
+
 .input-with-extras
   border                1px solid #c3c3c3
   position              relative
@@ -50,13 +50,13 @@ p.warning
     size                100%,100%
     bg                  color,transparent
     line-height         14px
-    borderBox()         
-    &:focus             
+    borderBox()
+    &:focus
       outline           none
       border            none
       shadow            none
-                        
-  button.kdbutton       
+
+  button.kdbutton
     position            absolute
     right               7px
     top                 6px
@@ -68,9 +68,9 @@ p.warning
     width               27px // added for firefox bug
     height              23px // added for firefox bug
     color               #666
-    &.with-icon         
+    &.with-icon
       padding           0 2px
-    span.icon           
+    span.icon
       position          relative
       display           block
       padding           0
@@ -85,15 +85,15 @@ p.warning
       // THESE ARE BUTTON ICON SPRITES - inside the buttons
       &.plus
         bg              position,-120px -440px
-      &.activity        
+      &.activity
         bg              position,-160px -440px
-      &.search          
+      &.search
         bg              position,-100px -440px
-                        
-  &.big                 
+
+  &.big
     size                auto,34px
-                        
-  &.focus               
+
+  &.focus
     border              1px solid rgba(125,190,241,1)
     shadow              0 0 3px rgba(125,190,241,.7)
 
@@ -157,7 +157,10 @@ button.kdbutton.icon-only
 /* editor-button
 *******************************************************************************/
 button.editor-button
-  // font-family       Droid
+  border            1px solid #ccc
+  border-color      #ccc #ccc #bbb #ccc
+  color             #333
+  font-size         11px
   font-weight       normal
   padding           6px 13px
   text-shadow       0 1px 0 white
@@ -165,6 +168,9 @@ button.editor-button
   shadow            0 1px 0 white
   height            24px
   line-height       12px
+  text-align        center
+  gradient          rgba(247,247,245,1),rgba(210,210,208,1)
+  rounded           3px
   &:hover
     border          1px solid #bbb
     border-color    #bbb #bbb #999 #bbb
@@ -202,7 +208,7 @@ button.editor-button
     .chevron-arrow-ghost-wrapper
       .chevron-arrow-ghost
         margin-top  0
-        
+
 
 /* editor-advanced-settings-menu-button
 *******************************************************************************/
@@ -237,7 +243,7 @@ button.editor-button
       position        absolute
       size            17px,17px
       top             0
-    
+
   .chevron-arrow,.chevron-arrow-separator
     hidden()
 
@@ -249,7 +255,7 @@ button.editor-button
         margin-top    0
         bg            position,-60px -300px
         bg            color,#f5f5f5
-        
+
 
 // CREDIT CARD INPUT VIEW
 
@@ -274,7 +280,6 @@ button.editor-button
 
 .ttag
   padding             0 6px
-  // bg                  color, #E80
   bg                  color, linkColor1
   color               white!important
   rounded             3px
@@ -283,13 +288,21 @@ button.editor-button
   line-height         16px
   font-weight         700
   text-transform      none
-  // vertical-align      top
   display             inline-block
-  max-width           120px
   vertical-align      top
-  
+  max-width           90px
+  text-overflow       ellipsis
+  white-space         nowrap
+  overflow            hidden
   noTextDeco()
-  
+
+  &.expandable
+    vendor            transition, max-width .4s linear
+    &:hover
+      max-width       300px
+      > span
+        overflow      visible
+
   > span
     text-overflow       ellipsis
     white-space         nowrap
@@ -298,18 +311,64 @@ button.editor-button
     width               100%
     margin              0
     display             block
-    // line-height         16px
 
 .link-group
   display             inline-block
   font-size           11px
+
+.modal-topic-wrapper
+  min-width     440px
+  .kdloader
+    display                 block
+    margin                  20px auto
+  .kdscrollview
+    max-height    240px
+
+.modal-topic-list
+  .topic-item
+    max-height      40px
+    border-bottom   1px solid #EEE
+    .topictext
+      padding   10px
+
+  .ttag
+    fl()
+
+  .stats
+    fr()
+    p
+      font-size       10px
+      margin-right    8px
+      color           #999
+      line-height     14px
+      min-width       70px
+      margin-right    15px
+      fl()
+      > a
+        color         #999
+        noTextDeco()
+      span.icon
+        margin        2px 4px 0 0px
+        sprite()
+        bg            position, -141px -444px
+        size          18px, 14px
+        fl()
+
+    p.posts
+      span.icon
+        bg            position, 0 -634px
+
+  .button-container
+    margin-top       -6px
+    margin-bottom     4px
+    fr()
 
 .small-text
   font-size       80%
 
 // .kdlistview-tags.kdautocompletelist
 // .form-actions-holder
-//   .kdview.kdlistview.kdautocompletelist 
+//   .kdview.kdlistview.kdautocompletelist
 //     .kdautocompletelistitem
 //       .ttag
 //         color         white
@@ -323,13 +382,13 @@ button.editor-button
 //           shadow      0 1px 1px rgba(0, 0, 0, .05)
 //           color       white
 //           text-shadow none
-// 
+//
 //   .kdautocompletewrapper
 //     button
 //       position        absolute
 //       right           2px
 //       top             2px
-//       
+//
 //     a.add-tag-link
 //       position        absolute
 //       right           5px
@@ -362,7 +421,7 @@ button.koding-orange
     cursor          not-allowed
     background      linear-gradient(top,  #ffa615 0%,#c56121 84.7%)
     shadow          0 1px 0 rgba(255, 255, 255, 0.23)
-    
+
 
 /* blue
 *******************************************************************************/
@@ -413,7 +472,7 @@ button.follow-btn
     -moz-box-shadow      0 1px 0 #fff
     -webkit-box-shadow   0 1px 0 #fff
     box-shadow           0 1px 0 #fff
-    
+
   &:active
     background           linear-gradient(top, #e9e8e8 0%,#d7d4d4 94%)
     border               1px solid #afafaf
@@ -421,10 +480,10 @@ button.follow-btn
     -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
     -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
     box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
-  
+
   &:before
     content              url(../images/follow.png)
-    margin               0 6px 0 0 
+    margin               0 6px 0 0
     vertical-align       middle
 
 
@@ -455,7 +514,7 @@ button.following-btn
     border-bottom-color    #e08302
     text-inder        -6000px
     shadow(0 1px 0 rgb(255, 255, 255))
-    
+
   &:active
     background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
     text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
@@ -495,7 +554,7 @@ button.following-topic
     border            1px solid #de7f08
     border-bottom-color    #e08302
     shadow(0 1px 0 rgb(255, 255, 255))
-    
+
   &:active
     background        linear-gradient(bottom,  #e08302 30%,#c56121 90%)
     text-shadow       0 -1px 0 rgba(0, 0, 0, 0.28)
@@ -518,7 +577,7 @@ button.following-topic
   display                 inline-block
   cursor                  pointer
   text-align              center
-  padding                 7px 12px 7px 12px 
+  padding                 7px 12px 7px 12px
   line-height             9px
   background              linear-gradient(top, white 0%,#e6e5e5 93.7%)
   border                  1px solid #ddd
@@ -735,7 +794,7 @@ button.cancel-edit-button
 //
 
 .kdmodal
-  padding                 7px 7px 7px 7px 
+  padding                 7px 7px 7px 7px
   border                  1px solid rgba(255,255,255,.3)
   shadow                  none !important
   bg(color,rgba(0,0,0,.2))
@@ -785,7 +844,7 @@ button.cancel-edit-button
     // borderBox()
     &:last-child
       border-bottom     none
-    label 
+    label
       min-width         90px
       blockMid()
     input,textarea
@@ -821,7 +880,7 @@ button.cancel-edit-button
     left              10px
     width             180px
 
- 
+
 .kddialog-buttons
   .modal-clean-gray
     margin              10px 10px 0 0
@@ -830,7 +889,7 @@ button.cancel-edit-button
   .kddialog-buttons
     .modal-clean-gray
       margin            10px 10px 10px 0
-      
+
     .modal-cancel
       margin            9px 5px 0 0
 
@@ -967,15 +1026,15 @@ button.cancel-edit-button
     font-weight   800
     rounded       5px
     color         white
-  span.color1   
+  span.color1
     bg(color,#a75375)
-  span.color2   
+  span.color2
     bg(color,#ab4113)
-  span.color3   
+  span.color3
     bg(color,#f38903)
-  span.color4   
+  span.color4
     bg(color,#419234)
-  span.color5   
+  span.color5
     bg(color,#b36643)
   .kdlistitemview-default
     width               auto
@@ -1031,7 +1090,7 @@ button.cancel-edit-button
       &:hover
         color         white
     .close-icon
-      bg              position, -60px -241px  
+      bg              position, -60px -241px
 
 
 figure.code-container
@@ -1041,18 +1100,17 @@ figure.code-container
     padding             10px
     margin              0
     overflow            visible
-    size                auto,auto
-    bg                  color,#2E2E2E
-    // rounded             4px 4px 0 0
-    rounded             4px
+    size                auto, auto
+    bg                  color, #2E2E2E
+    rounded             3px
     word-wrap           normal
     white-space         pre
-    min-height          56px
+    min-height          36px
     code
       max-height        250px
       overflow          auto
-      padding           6px 6px 15px 6px
-      bg                color,transparent
+      padding           6px
+      bg                color, transparent
   > strong
     position          absolute
     right             -1px
@@ -1068,28 +1126,31 @@ figure.code-container
   .button-bar
     position          absolute
     bg                color,transparent
-    // height            37px
-    top               27px
+    bottom            -30px
     right             6px
-    // border-top        1px solid rgba(255, 255, 255, 0.4)
-    // rounded           0 0 4px 4px
+    overflow          hidden
+    shadow            0 -1px 10px rgba(0,0,0,0.3)
+    vendor            transition, bottom .15s ease-in-out //.3s
     button
-      margin          5px 5px 0 0
-      vendor          transition, opacity .15s linear
-      opacity         0
-      fr()
-      &:hover
-        opacity       1
-  &:hover
-    .button-bar
-      button
-        opacity       .8
+      margin          0
+      rounded         0
+      border-width    1px 1px 0 1px
+      border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+      fl()
+      &:first-child
+        rounded       3px 0 0 0
+      &:last-child
+        rounded       0 3px 0 0
+        border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
+  &:hover .button-bar
+    bottom        0
 
 /* feed messages */
 .activity
   .pane-message
     margin              75px 0 -75px 0
-    
+
 .pane-message
   bg                  color,#FFF7DA
   box-shadow          inset 0 0 5px rgba(0, 0, 0, 0.17)
@@ -1100,7 +1161,7 @@ figure.code-container
   padding             15px 17px 10px 17px
   text-align          left
   text-shadow         0 1px 0 white
-  
+
   cite
     sprite()
     bg                  position, 0 -670px
@@ -1110,7 +1171,7 @@ figure.code-container
     vertical-align      middle
     width               20px
     fl()
-    
+
   .close-btn
     sprite()
     bg                  position, -80px -240px
@@ -1121,7 +1182,7 @@ figure.code-container
     position            absolute
     right               20px
     top                 10px
-    
+
   .message-internals
     overflow            hidden
     width               auto
@@ -1132,13 +1193,48 @@ figure.code-container
       line-height       140%
       strong
         color           #666
-    
+
+
+
+.kdnotification.mini.realtime
+  max-width           200px
+  rounded             2px
+  padding-left        8px
+  text-shadow         0 1px 0 rgba(0, 0, 0, .5)
+  shadow              0 1px 5px rgba(0, 0, 0, .5)
+  bg                  color, rgba(0, 0, 0, .55)
+  border              1px solid rgba(0, 0, 0, 0.3)
+  .kdnotification-title span
+    size              20px, 12px
+    display           inline-block
+    bg                position, -162px -443px
+    sprite()
+  &.like
+    .kdnotification-title span
+      bg              position, -82px -604px
+  &.reply
+    .kdnotification-title span
+      bg              position, -82px -624px
+  &.newMessage
+    .kdnotification-title span
+      bg              position, -102px -604px
+
+  .kdnotification-title
+    font-size         12px
+    line-height       20px
+
+  
+  .kdnotification-content
+    line-height       20px
+
+  a.kdnotification-close:hover
+    shadow            0 1px 0 rgba(0,0,0,.5)
 
 
 
 
 
-// /*   
+// /*
 //   Animation tests
 // */
 
@@ -1181,10 +1277,10 @@ figure.code-container
 //     -moz-box-shadow      0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
 //     -webkit-box-shadow   0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
 //     box-shadow           0 1px 0 #fff, inset 0 2px 1px rgba(0, 0, 0, 0.13)
-  
+
 //   &:before
 //     content              url(../images/follow.png)
-//     margin               0 6px 0 0 
+//     margin               0 6px 0 0
 //     vertical-align       middle
 
 

@@ -1,6 +1,8 @@
 class Home12345 extends AppController
   constructor:(options = {}, data)->
-    options.view = new HomeMainView {cssClass : "content-page home" }
+    options.view = new KDView
+    # options.view = new HomeMainView
+      cssClass : "content-page home"
     super options,data
 
   bringToFront:()->
