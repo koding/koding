@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode']#,'__sendBetaInvites',,'__createBetaInvites']
+      static        : ['create','byCode','__grantInvitations']#,'__sendBetaInvites',,'__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -42,6 +42,16 @@ class JInvitation extends jraphical.Module
       redeemer      :
         targetType  : JAccount
         as          : 'redeemer'
+  
+  @__grantInvitations =(options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= {}
+    {numInvitations} = options
+    numInvitations ?= 3
+    @grant {'profile.nickname': $in:
+      ['chris','devrim','sinan','aydincan','gokmen']
+    }, numInvitations, callback
+    
   
   # @__attemptToFixChrisFuckup =(callback)->
   #   i = 0
@@ -131,8 +141,9 @@ class JInvitation extends jraphical.Module
       callback new KodingError "Quota must be positive."
     else
       batch = []
+      console.log arguments
       JAccount.all selector, (err, accounts)->
-        for account in accounts
+        accounts.forEach (account)->
           batch.push ->
             account.fetchLimit 'invite', (err, limit)->
               if err then batch.fin(err)
@@ -145,6 +156,7 @@ class JInvitation extends jraphical.Module
                     batch.fin(err)
                   else
                     account.addLimit limit, 'invite', (err)-> batch.fin(err)
+        # console.log batch.length
         dash batch, callback
   
   @getInviteEmail =-> "hi@koding.com"
