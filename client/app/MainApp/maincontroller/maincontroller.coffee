@@ -6,10 +6,6 @@ class MainController extends KDController
     
     super
 
-    loadingScreen = new LoadingScreen
-    KD.registerSingleton "loadingScreen", loadingScreen
-    KDView.appendToDOMBody loadingScreen
-
     window.appManager = new ApplicationManager
     KD.registerSingleton "docManager", new DocumentManager
     KD.registerSingleton "windowController", new KDWindowController
@@ -102,12 +98,13 @@ class MainController extends KDController
       @loginScreen.slideDown =>
         appManager.quitAll =>
           @mainViewController.sidebarController.accountChanged account
-          appManager.openApplication "Home"
+          # appManager.openApplication "Home"
           @mainViewController.getView().decorateLoginState no
     else
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Home"
+      # appManager.openApplication "Home"
       @mainViewController.getView().decorateLoginState no
+      @loginScreen.slideDown()
 
 
   createLoggedInState:(account)->

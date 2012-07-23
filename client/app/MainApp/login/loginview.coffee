@@ -9,49 +9,73 @@ class LoginView extends KDScrollView
       tagName     : "div"
       cssClass    : "logo"
       partial     : "Koding"
-      click       : =>
-        @slideUp ->
-          appManager.openApplication "Home"
+      click       : => @animateToForm "home"
+      # click       : =>
+      #   @slideUp ->
+      #     appManager.openApplication "Home"
       
     
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "back-to-home"
-      partial     : "<span></span> Koding Homepage <span></span>"
-      attributes  :
-        href      : "#"
-      click       : =>
-        @slideUp ->
-          appManager.openApplication "Home"
+      # partial     : "<span></span> Koding Homepage <span></span>"
+      # click       : =>
+      #   @slideUp ->
+      #     appManager.openApplication "Home"
 
-    @resetFormLink = new KDCustomHTMLView
+    @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
-      cssClass    : "reset-link hidden"
-      partial     : "show reset form"
-      attributes  :
-        href      : "#"
-      click       : => @animateToForm "reset"
+      cssClass    : "video-link"
+      partial     : "video again."
+      click       : => @animateToForm "home"
+      # click       : =>
+      #   @slideUp ->
+      #     appManager.openApplication "Home"
+
+
+    # @resetFormLink = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   cssClass    : "reset-link"
+    #   partial     : "show reset form"
+    #   click       : => @animateToForm "reset"
 
     @backToLoginLink = new KDCustomHTMLView 
       tagName   : "a"
-      cssClass  : "back-to-login"
-      partial   : "« back to login"
-      attributes:
-        href    : "#"
+      # cssClass  : "back-to-login"
+      partial   : "Go ahead and login"
+      # partial   : "« back to login"
       click     : => @animateToForm "login"
+
+    @goToRequestLink = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Request an invite"
+      # partial     : "Want to get in? Request an invite"
+      click       : => @animateToForm "lr"
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Register a new account."
-      attributes  :
-        href      : "#"
+      partial     : "Register an account"
+      # partial     : "Have an invite? Register an account"
       click       : => @animateToForm "register"
+
+    @bigLinkReg = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Register"
+      click       : => @animateToForm "register"
+
+    @bigLinkReq = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Request an Invite"
+      click       : => @animateToForm "lr"
+
+    @bigLinkLog = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Login"
+      click       : => @animateToForm "login"
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Forgot password?"
-      attributes  :
-        href      : "#"
+      partial     : "Recover password."
       click       : => @animateToForm "recover"
 
     @loginOptions = new LoginOptions
@@ -76,14 +100,75 @@ class LoginView extends KDScrollView
       cssClass : "login-form"
       callback : (formData)=> @doReset formData
 
+    @launchrock = new KDView
+      domId    : "launchrock" 
+
+    @listenTo
+      KDEventTypes       : "viewAppended"
+      listenedToInstance : @launchrock
+      callback           : =>
+        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="http://sinan.koding.com/launchrock.css"></div><script type="text/javascript" src="http://launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+    
+    @slideShow = new KDView
+      cssClass : "slide-show"
+
+
+    @listenTo
+      KDEventTypes       : "viewAppended"
+      listenedToInstance : @slideShow
+      callback           : =>
+
+        @slideShow.setPartial """<iframe src="http://player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe><br>"""
+
+        # @slideShow.addSubView new KDButtonView
+        #   title    : "."
+        #   cssClass : "koding-orange"
+        #   click    : => @animateToForm 'lr'
+
+        
+        # this is a great video which can live in our codebase
+        # <iframe src="http://player.vimeo.com/video/45878034?color=ff9200" width="89.13%" height="75.50%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+  
+        # iframe = @slideShow.$('iframe')[0]
+        # @player = $f(iframe)
+
+        # if window.addEventListener
+        #   window.addEventListener 'message', =>
+        #     log 'message', arguments
+        #   , false
+        # else
+        #   window.attachEvent 'onmessage', =>
+        #     log "onmessage", arguments
+        #   , false
+
+        # @player.addEvent 'ready', =>
+        #   log "player ready"
+        #   @player.addEvent 'pause', => log "player paused"
+        #   @player.addEvent 'finish', => log "player finished"
+        #   @player.addEvent 'playProgress', => log "player playProgress"
+    
+        # @slideShow.addSubView new KDCustomHTMLView
+        #   tagName  : "a"
+        #   cssClass : 'login-register'
+        #   partial  : "login/register"
+        #   click    : =>
+        #     @animateToForm('login')
+        
+
+        # @slideShow.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="http://sinan.koding.com/launchrock.css"></div><script type="text/javascript" src="http://launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+        # @slideShow.addSubView new KDButtonView
+        #   title    : "Request an Invite"
+        #   cssClass : "koding-blue"
+        #   click    : => @animateToForm('login')
+
   viewAppended:->
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
-    @setClass "login-screen login"
+    @setClass "login-screen home"
     @setTemplate @pistachio()
     @template.update()
-    @hide()
-  
+    # @hide()
+
   
   pistachio:->
     """
@@ -91,10 +176,12 @@ class LoginView extends KDScrollView
       <div class="login-box-header">
         <a class="betatag">beta</a>
         {{> @logo}}
-        {{> @backToLoginLink}}
       </div>
       {{> @loginOptions}}
       {{> @registerOptions}}
+      <div class="login-form-holder home">
+        {{> @slideShow}}
+      </div>
       <div class="login-form-holder lf">
         {{> @loginForm}}
       </div>
@@ -107,13 +194,22 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
+      <div class="launchrock-wrapper">
+        <h3 class='kdview kdheaderview '>REQUEST AN INVITE:</h3>
+        {{> @launchrock}}
+      </div>
     </div>
     <div class="login-footer">
-      <p class='regLink'>Haven't signed up yet? {{> @goToRegisterLink}}</p>
+      <p class='bigLink'>{{> @bigLinkReq}}</p>
+      <p class='bigLink'>{{> @bigLinkReg}}</p>
+      <p class='bigLink'>{{> @bigLinkLog}}</p>
+      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
+      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
+      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
+      <p class='vidLink'>Want to watch the {{> @backToVideoLink}}</p>
     </div>
     {{> @backToHomeLink}}
-    {{> @resetFormLink}}
     """    
 
   doReset:({recoveryToken, password})->
@@ -174,26 +270,28 @@ class LoginView extends KDScrollView
 
   
   slideUp:(callback)->
-    # {winWidth,winHeight} = @windowController
-    @$().animate marginTop : -@getHeight(),600,()=>
+    {winWidth,winHeight} = @windowController
+    @$().css marginTop : -winHeight
+
+    @utils.wait 601,()=>
       @hidden = yes
       $('body').removeClass 'login'
-      @hide()
+      # @hide()
       callback?()
     
   slideDown:(callback)->
+
     $('body').addClass 'login'
-    @show()
-    @$().animate marginTop : 0,600,()=>
+    # @show()
+    @$().css marginTop : 0
+    @utils.wait 601,()=>
       @hidden = no
       callback?()
   
   _windowDidResize:(event)->
-    {winWidth,winHeight} = @windowController
-    options = {}
-    if @hidden
-      options.marginTop = -winHeight
-    @$().css options
+
+    # {winWidth,winHeight} = @windowController
+    # @$().css marginTop : -winHeight if @hidden
       
   animateToForm: (name)->
     if name is "register"
@@ -206,5 +304,5 @@ class LoginView extends KDScrollView
           @registerForm.$('section').hide()
           @registerForm.$('div').show()
 
-    @unsetClass "register recover login reset"
+    @unsetClass "register recover login reset home lr"
     @setClass name

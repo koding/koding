@@ -139,15 +139,16 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.uglify    = yes
   options.useStatic = yes
 
-  ###
+  
   rev = fs.readFileSync "./.revision"
   prompt.start()
-  prompt.get [{message:"Enter new revision number - current:#{rev}",name:'p'}],  (err, result) ->
-    fs.writeFileSync "./.revision",result.p
-    version = targetPaths.version = result.p
-    console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{result.p}"
-  ###
-  invoke 'build'
+  prompt.get [{message:"Did you update the .revision? - current:#{rev} (type yes to continue)",name:'p'}],  (err, result) ->
+    # fs.writeFileSync "./.revision",result.p
+    # version = targetPaths.version = result.p
+    
+    if result.p is "yes"
+      invoke 'build'
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
 
 
 

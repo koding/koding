@@ -553,6 +553,7 @@ Includes =
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
         md5               : "./client/libs/md5-min.js"
+        # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
         async             : "./client/libs/async.js"
