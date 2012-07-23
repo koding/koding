@@ -23,7 +23,7 @@ class Apps12345 extends AppController
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : AppsListItemView
-      limitPerPage          : 20
+      limitPerPage          : 10
       filter                :
         webApps             :
           title             : "Web Apps"
