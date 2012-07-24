@@ -3,6 +3,8 @@ class JInvitationRequest extends bongo.Model
   @share()
   
   @set
+    sharedMethods :
+      static      : ['create']
     schema          :
       email         :
         type        : String
