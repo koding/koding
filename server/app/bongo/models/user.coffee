@@ -340,6 +340,8 @@ class JUser extends jraphical.Module
                                               console.log err
                                             else
                                               user.sendEmailConfirmation()
+                                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                                console.log 'An error granting invitations', err if err
                                               createNewMemberActivity account
                                               # added by sinan 30 apr 2012, is that ok??? success state wasnt firing callback
                                               callback?()
