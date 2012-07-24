@@ -120,12 +120,12 @@ class LoginView extends KDScrollView
     @video = new KDView
       cssClass : "video-wrapper"
 
-    @on "LoginViewAnimated", (name)=>
-      if name is "home"
+    @on "LoginViewHidden", (name)=>
+      @video.updatePartial ""
+    
+    @on "LoginViewShown", (name)=>
+      if @video.$('iframe').length is 0
         @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-      else
-        @utils.wait 400, =>
-          @video.updatePartial ""
 
     @listenTo
       KDEventTypes       : "viewAppended"
@@ -284,12 +284,11 @@ class LoginView extends KDScrollView
       @requestForm.reset()
       @animateToForm 'home'
 
-  
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
     @$().css marginTop : -winHeight
-
     @utils.wait 601,()=>
+      @emit "LoginViewHidden"
       @hidden = yes
       $('body').removeClass 'login'
       # @hide()
@@ -299,6 +298,7 @@ class LoginView extends KDScrollView
 
     $('body').addClass 'login'
     # @show()
+    @emit "LoginViewShown"
     @$().css marginTop : 0
     @utils.wait 601,()=>
       @hidden = no
