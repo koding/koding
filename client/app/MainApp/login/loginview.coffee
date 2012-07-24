@@ -227,16 +227,16 @@ class LoginView extends KDScrollView
     </div>
     <div class="reviews">
       <hr>
-      <p>A new way for developers to work</p>
-      <span>We said.</span>
-      <p>Wow! Cool - good luck!</p>
-      <span>Someone we talked to the other day...</span>
-      <p>I don't get it... What is it, again?</p>
-      <span>Same dude.</span>
-      <p>Real software development in the browser...</p>
-      <span>Us again.</span>
-      <p>with a real VM and a real Terminal?</p>
-      <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+      <p>"A new way for developers to work."</p>
+      <span>A friend.</span>
+      <p>"Holy Wow! This is Cool!"</p>
+      <span>Some dude we liked after he said that.</span>
+      <p>"Cloud, revitalized, reinvented and revolutionized."</p>
+      <span>Clueless writer</span>
+      <p>"Making software development easy, all in the browser..."</p>
+      <span>A Developer</span>
+      <p>"Real VM and a real Terminal, for free?"</p>
+      <span>"You got to be kidding me..." he added. We gave him a beta invite.</span>
     </div>
     {{> @backToHomeLink}}
     """    
