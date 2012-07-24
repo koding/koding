@@ -32,17 +32,6 @@ class LoginView extends KDScrollView
       #   @slideUp ->
       #     appManager.openApplication "Home"
 
-
-    # @resetFormLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   cssClass    : "reset-link"
-    #   partial     : "show reset form"
-    #   click       : => @animateToForm "reset"
-
-    @tagLine = new KDCustomHTMLView
-      cssClass  : "tagline hidden"
-      partial   : "a new way for developers to work."
-
     @backToLoginLink = new KDCustomHTMLView 
       tagName   : "a"
       # cssClass  : "back-to-login"
@@ -67,7 +56,17 @@ class LoginView extends KDScrollView
       partial     : "Register"
       click       : => @animateToForm "register"
 
+    @bigLinkReg1 = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Register"
+      click       : => @animateToForm "register"
+
     @bigLinkReq = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Request an Invite"
+      click       : => @animateToForm "lr"
+
+    @bigLinkReq1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
       click       : => @animateToForm "lr"
@@ -76,6 +75,16 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Login"
       click       : => @animateToForm "login"
+
+    @bigLinkLog1 = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Login"
+      click       : => @animateToForm "login"
+
+    @bigLinkLearn = new KDCustomHTMLView
+      tagName     : "a"
+      partial     : "Learn more"
+      click       : => @$().animate scrollTop : 1200
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
@@ -113,68 +122,27 @@ class LoginView extends KDScrollView
       callback           : =>
         @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}/css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
     
-    @slideShow = new KDView
-      cssClass : "slide-show"
+    @video = new KDView
+      cssClass : "video-wrapper"
 
 
     @on "LoginViewAnimated", (name)=>
       if name is "home"
-        @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
       else
         @utils.wait 400, =>
-          @slideShow.updatePartial ""
+          @video.updatePartial ""
 
     @listenTo
       KDEventTypes       : "viewAppended"
-      listenedToInstance : @slideShow
+      listenedToInstance : @video
       callback           : =>
         unless KD.isLoggedIn()
-          @slideShow.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+          @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
         else
           @animateToForm 'login'
 
-        
-
-        # @slideShow.addSubView new KDButtonView
-        #   title    : "."
-        #   cssClass : "koding-orange"
-        #   click    : => @animateToForm 'lr'
-
-        
-        # this is a great video which can live in our codebase
-        # <iframe src="http://player.vimeo.com/video/45878034?color=ff9200" width="89.13%" height="75.50%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-  
-        # iframe = @slideShow.$('iframe')[0]
-        # @player = $f(iframe)
-
-        # if window.addEventListener
-        #   window.addEventListener 'message', =>
-        #     log 'message', arguments
-        #   , false
-        # else
-        #   window.attachEvent 'onmessage', =>
-        #     log "onmessage", arguments
-        #   , false
-
-        # @player.addEvent 'ready', =>
-        #   log "player ready"
-        #   @player.addEvent 'pause', => log "player paused"
-        #   @player.addEvent 'finish', => log "player finished"
-        #   @player.addEvent 'playProgress', => log "player playProgress"
-    
-        # @slideShow.addSubView new KDCustomHTMLView
-        #   tagName  : "a"
-        #   cssClass : 'login-register'
-        #   partial  : "login/register"
-        #   click    : =>
-        #     @animateToForm('login')
-        
-
-        # @slideShow.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="http://sinan.koding.com/launchrock.css"></div><script type="text/javascript" src="http://launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
-        # @slideShow.addSubView new KDButtonView
-        #   title    : "Request an Invite"
-        #   cssClass : "koding-blue"
-        #   click    : => @animateToForm('login')
+    @slideShow = new HomeSlideShowHolder
 
   viewAppended:->
     @windowController = @getSingleton("windowController")
@@ -195,8 +163,7 @@ class LoginView extends KDScrollView
       {{> @loginOptions}}
       {{> @registerOptions}}
       <div class="login-form-holder home">
-        {{> @slideShow}}
-        {{> @tagLine}}
+        {{> @video}}
       </div>
       <div class="login-form-holder lf">
         {{> @loginForm}}
@@ -219,25 +186,40 @@ class LoginView extends KDScrollView
       <p class='bigLink'>{{> @bigLinkReq}}</p>
       <p class='bigLink'>{{> @bigLinkReg}}</p>
       <p class='bigLink'>{{> @bigLinkLog}}</p>
+      <p class='bigLink'>{{> @bigLinkLearn}}</p>
       <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
       <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='vidLink'>Want to watch the {{> @backToVideoLink}}</p>
     </div>
-    <div class="reviews">
+    <section>
+      <hr id='home-reviews'>
+      <div class="reviews">
+        <p>A new way for developers to work</p>
+        <span>We said.</span>
+        <p>Wow! Cool - good luck!</p>
+        <span>Someone we talked to the other day...</span>
+        <p>I don't get it... What is it, again?</p>
+        <span>Same dude.</span>
+        <p>Real software development in the browser...</p>
+        <span>Us again.</span>
+        <p>with a real VM and a real Terminal?</p>
+        <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
+      </div>
+      <hr id='home-screenshots'>
+      <div class="screenshots">
+        {{> @slideShow}}
+      </div>
       <hr>
-      <p>"A new way for developers to work."</p>
-      <span>A friend.</span>
-      <p>"Holy Wow! This is Cool!"</p>
-      <span>Some dude we liked after he said that.</span>
-      <p>"Cloud, revitalized, reinvented and revolutionized."</p>
-      <span>Clueless writer</span>
-      <p>"Making software development easy, all in the browser..."</p>
-      <span>A Developer</span>
-      <p>"Real VM and a real Terminal, for free?"</p>
-      <span>"You got to be kidding me..." he added. We gave him a beta invite.</span>
-    </div>
+      <div class="footer-links">
+        <p class='bigLink'>{{> @bigLinkReq1}}</p>
+        <p class='bigLink'>{{> @bigLinkReg1}}</p>
+        <p class='bigLink'>{{> @bigLinkLog1}}</p>
+      </div>
+      <hr/>
+      <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
+    </section>
     {{> @backToHomeLink}}
     """    
 

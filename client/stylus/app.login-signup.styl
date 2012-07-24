@@ -27,11 +27,11 @@ body.login
   .logLink
   .bigLink
   .launchrock-wrapper
-  .reviews
+  >section
     hidden()
 
   &.home
-    .reviews
+    >section
     .bigLink
     .home
       visible()
@@ -143,14 +143,12 @@ body.login
                               
   .flex-wrapper
     position              relative
-    size                  220px,342px
+    size                  220px, 342px
     border                1px solid rgba(255,255,255,0.16)
     rounded               8px
-    margin                -1px auto 0 auto
+    margin                -1px auto 30px auto
     shadow                0 0 150px rgba(0, 0, 0, 0.32)
-    margin-bottom         30px
-    overflow              visible
-    bg                    color,rgba(255,255,255,0.05)
+    bg                    color, rgba(255,255,255,0.05)
     vendor                transition, height .4s ease-in-out\,width .4s ease-in-out\, margin .4s ease-in-out
     overflow              hidden
   
@@ -179,7 +177,7 @@ body.login
         vertical-align    bottom
         size              12px, 11px
   
-  .slide-show
+  .video-wrapper
     overflow              visible
     iframe
       size                89.13%, 76.6%
@@ -207,14 +205,14 @@ body.login
     &:hover
       color               white
 
-  .reviews
-    hr
-      size                80%,1px
-      border-top          1px solid rgba(0,0,0,0.6)
-      background          rgba(255,255,255,.1)
-      margin              40px auto
-      vendor              transition, margin .3s ease-in
+  hr
+    size                80%,1px
+    border-top          1px solid rgba(0,0,0,0.6)
+    background          rgba(255,255,255,.1)
+    margin              40px auto
+    vendor              transition, margin .3s ease-in
 
+  .reviews
     p
       color               #aaa
       font-size           32px
@@ -229,6 +227,16 @@ body.login
       font-size           14px
       font-weight         300
 
+  .footer-links
+    a
+      color               #aaa
+      &:hover 
+        color             white
+  
+  footer.copy
+    font-size             11px
+    color                 #444
+    padding-bottom        30px
 
 .login-box-header
   position                relative
@@ -501,20 +509,15 @@ p.login-tip
 .kdview.login-screen.home
   .flex-wrapper
     margin-bottom       30px
-  .tagline
-    font-size           16px
-    color               #ffb500
-  .login-footer
-    font-size           20px
+  p.bigLink
     text-shadow         0 -1px 0 rgba(0,0,0,.8)
-    p.bigLink
-      display           inline-block                     
-      line-height       40px
-      margin-right      40px
-      vendor            transition, font-size .3s ease-in
-      //text-transform    lowercase
-      &:nth-child(3)
-        margin-right    0
+    display             inline-block                     
+    font-size           20px
+    line-height         40px
+    margin-right        40px
+    vendor              transition, font-size .3s ease-in
+    &:nth-child(4)
+      margin-right    0
 
 
 .login-footer
