@@ -273,10 +273,9 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-  doRequest:({email})->
+  doRequest:(formData)->
 
-    log email, "request is made"
-    @utils.wait 500, =>
+    bongo.api.JInvitationRequest.save formData, (err, result)=>
       new KDNotificationView
         cssClass  : "login"
         title     : "<span></span>Thank you, we'll send you an email shortly!"
