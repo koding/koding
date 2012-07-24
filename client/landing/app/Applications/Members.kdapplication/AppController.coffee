@@ -64,7 +64,7 @@ class Members12345 extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
-      limitPerPage          : 20
+      limitPerPage          : 10
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
