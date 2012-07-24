@@ -50,14 +50,35 @@ class MainController extends KDController
           env     : KD.env
         xhrFields :
           withCredentials: yes
+  
+  initiateApplication:do->
+    fail =->
+      modal = new KDBlockingModalView
+        title   : "Couldn't connect to the backend!"
+        content : "<div class='modalformline'>
+                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.</div>"
+        height  : "auto"
+        overlay : yes
+        buttons :
+          "Refresh Now" :
+            style     : "modal-clean-red"
+            callback  : ()->
+              modal.destroy()
+              location.reload yes
+    
+    connectionFails =(connectedState)->
+      fail() unless connectedState.connected
+    ->
+      KD.registerSingleton "kiteController", new KiteController
+      connectedState = connected: no
+      setTimeout connectionFails.bind(null, connectedState), 5000
+      @getVisitor().on 'change.login', (account)=> @accountChanged account, connectedState
+      @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
 
-  initiateApplication:->
-    KD.registerSingleton "kiteController", new KiteController
-    @getVisitor().on 'change.login', (account)=> @accountChanged account
-    @getVisitor().on 'change.logout', (account)=> @accountChanged account
-
-  accountChanged:(account)->
-
+  accountChanged:(account, connectedState)->
+    
+    connectedState.connected = yes
+    
     @emit "AccountChanged", account
 
     KDRouter.init()
