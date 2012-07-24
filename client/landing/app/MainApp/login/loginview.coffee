@@ -113,18 +113,12 @@ class LoginView extends KDScrollView
       cssClass : "login-form"
       callback : (formData)=> @doReset formData
 
-    @launchrock = new KDView
-      domId    : "launchrock" 
-
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @launchrock
-      callback           : =>
-        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}/css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+    @requestForm = new RequestInlineForm
+      cssClass : "login-form"
+      callback : (formData)=> @doRequest formData
     
     @video = new KDView
       cssClass : "video-wrapper"
-
 
     @on "LoginViewAnimated", (name)=>
       if name is "home"
@@ -177,9 +171,9 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="launchrock-wrapper">
-        <h3 class='kdview kdheaderview '>REQUEST AN INVITE:</h3>
-        {{> @launchrock}}
+      <div class="login-form-holder rqf">
+        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
+        {{> @requestForm}}
       </div>
     </div>
     <div class="login-footer">
@@ -278,6 +272,18 @@ class LoginView extends KDScrollView
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
+
+  doRequest:({email})->
+
+    log email, "request is made"
+    @utils.wait 500, =>
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Thank you, we'll send you an email shortly!"
+        duration  : 2000
+      @requestForm.button.hideLoader()
+      @requestForm.reset()
+      @animateToForm 'home'
 
   
   slideUp:(callback)->
