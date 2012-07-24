@@ -275,7 +275,7 @@ class LoginView extends KDScrollView
 
   doRequest:(formData)->
 
-    bongo.api.JInvitationRequest.save formData, (err, result)=>
+    bongo.api.JInvitationRequest.create formData, (err, result)=>
       new KDNotificationView
         cssClass  : "login"
         title     : "<span></span>Thank you, we'll send you an email shortly!"
