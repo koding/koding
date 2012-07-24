@@ -26,7 +26,7 @@ class LoginView extends KDScrollView
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "video-link"
-      partial     : "video again."
+      partial     : "video again?"
       click       : => @animateToForm "home"
       # click       : =>
       #   @slideUp ->
