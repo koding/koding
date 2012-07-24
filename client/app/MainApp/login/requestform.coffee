@@ -1,20 +1,22 @@
-class RecoverInlineForm extends LoginViewInlineForm
+class RequestInlineForm extends LoginViewInlineForm
 
   constructor:->
 
     super
-    @usernameOrEmail = new LoginInputView
+    @email = new LoginInputView
       inputOptions    :
-        name          : "username-or-email"
-        placeholder   : "Enter username or email"
+        name          : "email"
+        placeholder   : "Enter an email address"
         validate      :
           rules       :
             required  : yes
+            email     : yes
           messages    :
             required  : "Please enter your username or email."
+            email     : "That doesn't seem like a valid email."
 
     @button = new KDButtonView
-      title       : "RECOVER PASSWORD"
+      title       : "REQUEST"
       style       : "koding-orange"
       type        : 'submit'
       loader      :
@@ -24,6 +26,6 @@ class RecoverInlineForm extends LoginViewInlineForm
   pistachio:->
 
     """
-    <div>{{> @usernameOrEmail}}</div>
+    <div>{{> @email}}</div>
     <div>{{> @button}}</div>
     """
