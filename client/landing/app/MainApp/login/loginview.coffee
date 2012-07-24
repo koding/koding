@@ -276,13 +276,23 @@ class LoginView extends KDScrollView
   doRequest:(formData)->
 
     bongo.api.JInvitationRequest.create formData, (err, result)=>
-      new KDNotificationView
-        cssClass  : "login"
-        title     : "<span></span>Thank you, we'll send you an email shortly!"
-        duration  : 2000
+
+      if err
+        msg = if err.code is 11000 then "This email was used for a request before!"
+        else "Something went wrong, please try again!"
+        new KDNotificationView
+          title     : msg
+          duration  : 2000
+      else
+        @requestForm.reset()
+        @requestForm.email.hide()
+        @requestForm.button.hide()
+        @requestForm.thanks.setClass 'expanded'
+        # new KDNotificationView
+        #   cssClass  : "login"
+        #   title     : "<span></span>Thank you, we'll send you an email shortly!"
+        #   duration  : 2000
       @requestForm.button.hideLoader()
-      @requestForm.reset()
-      @animateToForm 'home'
 
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
