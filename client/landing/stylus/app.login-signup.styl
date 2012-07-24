@@ -53,6 +53,12 @@ body.login
     .flex-wrapper
       overflow            visible
       //size                400px, 335px
+      &.expanded
+        width             400px
+        p.request-thanks
+          height          140px
+
+
     .rqf
       visible()
       >.kdview
@@ -397,8 +403,12 @@ body.login
     borderBox()
     &.request-thanks
       font-size       11px
-      &.expanded
-        height        177px
+      iframe
+        margin-top    12px
+      a:hover
+        color         #ffb500
+        text-decoration underline
+
     h5
       font-size       12px
       font-weight     400

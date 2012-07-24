@@ -287,11 +287,7 @@ class LoginView extends KDScrollView
         @requestForm.reset()
         @requestForm.email.hide()
         @requestForm.button.hide()
-        @requestForm.thanks.setClass 'expanded'
-        # new KDNotificationView
-        #   cssClass  : "login"
-        #   title     : "<span></span>Thank you, we'll send you an email shortly!"
-        #   duration  : 2000
+        @$('.flex-wrapper').addClass 'expanded'
       @requestForm.button.hideLoader()
 
   slideUp:(callback)->
