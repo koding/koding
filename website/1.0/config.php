@@ -28,7 +28,9 @@ else {
   $dbPass = "lkalkslakslaksla1230000";
 }
 
-if ($_SERVER['SERVER_NAME'] == 'api.koding.com') {
+$headers = getallheaders();
+
+if ($headers['X-Forwarded-Host'] == 'api.koding.com') {
   $env = 'beta';
   $pusher_key = 'a19c8bf6d2cad6c7a006';
   $pusher_secret = '51f7913fbb446767a9fb';

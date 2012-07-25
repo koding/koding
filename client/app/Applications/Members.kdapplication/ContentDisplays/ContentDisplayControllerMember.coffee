@@ -74,7 +74,7 @@ class ContentDisplayControllerMember extends KDViewController
       subItemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
-      limitPerPage          : 20
+      limitPerPage          : 8
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :

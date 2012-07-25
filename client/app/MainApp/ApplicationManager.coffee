@@ -1,3 +1,4 @@
+# uncomplicate this - Sinan 7/2012
 class ApplicationManager extends KDObject
   constructor: ->
     @controllers            = {}

@@ -2,7 +2,7 @@
 class hosting_packages::vcs {
     
     
-    $vcs = ["git", "subversion"]
+    $vcs = ["git", "subversion","mercurial"]
     
     package { $vcs:
         ensure  => installed,

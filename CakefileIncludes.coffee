@@ -119,6 +119,7 @@ Includes =
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
 
 
@@ -532,6 +533,7 @@ Includes =
         registerform              : "./client/app/MainApp/login/registerform.coffee"
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
+        requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
@@ -553,6 +555,7 @@ Includes =
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
         md5               : "./client/libs/md5-min.js"
+        # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
         async             : "./client/libs/async.js"
