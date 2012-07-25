@@ -46,7 +46,7 @@ class NFinderController extends KDViewController
     delete @_storage
     {initialPath} = @treeController.getOptions() # not used, fix this
 
-    mount = if KD.isLoggedIn()
+    @mount = if KD.isLoggedIn()
       {nickname}    = KD.whoami().profile
       FSHelper.createFile
         name        : nickname
@@ -59,7 +59,7 @@ class NFinderController extends KDViewController
         path        : "/Users/guest"
         type        : "mount"
     @defaultStructureLoaded = no
-    @treeController.initTree [mount]
+    @treeController.initTree [@mount]
     
     if @treeController.getOptions().useStorage
       @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
@@ -86,9 +86,10 @@ class NFinderController extends KDViewController
         ]
 
       timer = Date.now()
-      mount = @treeController.nodes["/Users/#{nickname}"].getData()
+      # @utils.wait =>
+      # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
-      mount.emit "fs.fetchContents.started"
+      @mount.emit "fs.fetchContents.started"
       kiteController.run
         withArgs  :
           command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
@@ -99,7 +100,7 @@ class NFinderController extends KDViewController
         log "#{(Date.now()-timer)/1000}sec !"
         # temp fix this doesn't fire in kitecontroller
         kiteController.emit "UserEnvironmentIsCreated"
-        mount.emit "fs.fetchContents.finished"
+        @mount.emit "fs.fetchContents.finished"
 
 
   fetchStorage:(callback)->

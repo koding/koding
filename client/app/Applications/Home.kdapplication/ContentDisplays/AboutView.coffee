@@ -132,48 +132,52 @@ class AboutView extends KDScrollView
           <p><strong>#{name}</strong>#{job}</p>
         """
         
-    
   theTeam:
     [
       {
-        name      : 'Aleksey Mykhailov' 
-        job       : 'Sys Admin &amp; node.js Developer'
-        image     : '../images/people/aleksey.jpg'
-      },
-      # {
-      #   name      : 'Bob Budd' 
-      #   job       : 'Senior Frontend Engineer'
-      #   image     : '../images/people/bob.jpg'
-      # },
-      {
-        name      : 'Chris Thorn (w/ Milo)' 
-        job       : 'Director of Engineering'
-        image     : '../images/people/chris.jpg'
-      },
-      {
-        name      : 'Devrim Yasar' 
+        name      : 'Devrim Yasar'
         job       : 'Co-Founder &amp; CEO'
         image     : '../images/people/devrim.jpg'
       },
       {
-        name      : 'Ryan Goodman' 
-        job       : 'Director of User Experience'
-        image     : '../images/people/ryan.jpg'
+        name      : 'Sinan Yasar'
+        job       : 'Co-Founder'# &amp; Chief UI Engineer'
+        image     : '../images/people/sinan.jpg'
       },
+      {
+        name      : 'Chris Thorn (w/ Milo)'
+        job       : 'Director of Engineering'
+        image     : '../images/people/chris.jpg'
+      },
+      {
+        name      : 'Aleksey Mykhailov'
+        job       : 'Sys Admin &amp; node.js Developer'
+        image     : '../images/people/aleksey.jpg'
+      },
+      {
+        name      : 'Gökmen Göksel'
+        job       : 'Software Engineer'
+        image     : '../images/people/gokmen.jpg'
+      },
+      # {
+      #   name      : 'Bob Budd'
+      #   job       : 'Senior Frontend Engineer'
+      #   image     : '../images/people/bob.jpg'
+      # },
+      # {
+      #   name      : 'Ryan Goodman'
+      #   job       : 'Director of User Experience'
+      #   image     : '../images/people/ryan.jpg'
+      # },
       # {
       #   name      : 'Saleem Abdul Hamid'
       #   job       : 'Senior node.js Engineer'
       #   image     : '../images/people/saleem.jpg'
       # },
-      {
-        name      : 'Sinan Yasar' 
-        job       : 'Co-Founder &amp; Chief UI Engineer'
-        image     : '../images/people/sinan.jpg'
-      },
-      {
-        name      : 'Victor Bucataru' 
-        job       : 'C++ Developer'
-        image     : '../images/people/victor.jpg'
-      },
+      # {
+      #   name      : 'Victor Bucataru'
+      #   job       : 'C++ Developer'
+      #   image     : '../images/people/victor.jpg'
+      # },
     ]
     

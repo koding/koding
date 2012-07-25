@@ -1,3 +1,7 @@
+# ios error handling
+# if location.hostname is "localhost"
+# window.onerror = (desc,page,line,chr)=> alert "Line: #{line}, desc: #{desc}, chr:#{chr}, page:#{page}"
+
 Function::bind or= do ->  
   {slice} = []
   (context)->

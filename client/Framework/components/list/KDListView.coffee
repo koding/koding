@@ -33,7 +33,7 @@ class KDListView extends KDView
     itemInstance = @itemClass viewOptions, itemData
     @addItemView itemInstance, index, animation
     
-    itemInstance
+    return itemInstance
   
   addHiddenItem:(item, index, animation)->
     @_addItemHelper item, {

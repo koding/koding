@@ -119,6 +119,7 @@ Includes =
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
 
 
@@ -347,8 +348,8 @@ Includes =
         # MEMBERS VIEWS
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
         membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
-        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
-        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        ownprofileview                : "./client/app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee"
+        profileview                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee"
         contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
 
         # START TAB VIEWS
@@ -532,6 +533,7 @@ Includes =
         registerform              : "./client/app/MainApp/login/registerform.coffee"
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
+        requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
@@ -553,6 +555,7 @@ Includes =
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
         md5               : "./client/libs/md5-min.js"
+        # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
         async             : "./client/libs/async.js"
