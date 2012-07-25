@@ -33,7 +33,7 @@ class JInvitation extends jraphical.Module
       status        : 
         type        : String 
         enum        : ['invalid status type', ['active','blocked','redeemed']]
-        default     : 'active' # 'unconfirmed'
+        default     : 'active'
       origin        : ObjectRef
     relationships   :
       invitedBy     :
@@ -106,7 +106,7 @@ class JInvitation extends jraphical.Module
         
   
   @__createBetaInvites =do ->
-    betaTestersEmails = 'chris123412341234@jraphical.com'
+    # betaTestersEmails = 'chris123412341234@jraphical.com'
     # betaTestersEmails = fs.readFileSync('./invitee-emails.txt', 'utf-8')
     #betaTestersEmails = 'chris123123@jraphical.com'
     (callback)->
@@ -118,7 +118,6 @@ class JInvitation extends jraphical.Module
             .createHmac('sha1', 'kodingsecret')
             .update(email)
             .digest('hex')
-          # console.log email, code
           recipients.push ->
             invite = new JInvitation {
               code
@@ -132,14 +131,15 @@ class JInvitation extends jraphical.Module
         recipients.push -> callback(recipients)
         daisy recipients
   
-  @grant =(selector, quota, callback)->
+  @grant =(selector, quota, options, callback)->
+    [callback, options] = [options, callback] unless callback
     unless quota > 0
       callback new KodingError "Quota must be positive."
     else
       batch = []
       i = 0
       console.log arguments
-      JAccount.all selector, (err, accounts)->
+      JAccount.all selector, options, (err, accounts)->
         accounts.forEach (account)->
           batch.push ->
             account.fetchLimit 'invite', (err, limit)->
