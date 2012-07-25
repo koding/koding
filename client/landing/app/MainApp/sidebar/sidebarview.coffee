@@ -78,10 +78,11 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners : yes
-      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
-      initDelay   : 5000
-      useStorage  : yes
+      fsListeners       : yes
+      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
+      initDelay         : 5000
+      useStorage        : yes
+      addOrphansToRoot  : no
     
     @finder = @finderController.getView()
 
