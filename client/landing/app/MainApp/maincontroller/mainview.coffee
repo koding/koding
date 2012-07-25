@@ -1,32 +1,6 @@
-class LoadingScreen extends KDView
-  
-  constructor:(options = {}, data)->
-
-    options.cssClass = "main-loading"
-
-    super options, data
-    
-    @setPartial @partial()
-
-  partial:->
-    
-    """
-    <figure>
-      <ul>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-        <li></li>
-      </ul>
-    </figure>
-    """
-
 class MainView extends KDView
   
   viewAppended:->
-    # @utils.wait 1000, =>
     
     # @putLoader()
     @addHeader()
@@ -63,10 +37,17 @@ class MainView extends KDView
   putLoader:->
 
   removeLoader:->
-    # @utils.wait 10000, =>
-    @getSingleton("loadingScreen").destroy()
-    delete KD.singletons.loadingScreen
-    $('body').removeClass 'loading'
+    # @utils.wait 2000, =>
+    $loadingScreen = $(".main-loading").eq(0)
+    {winWidth,winHeight} = @windowController
+    $loadingScreen.css
+      marginTop : -winHeight
+      opacity   : 0
+    @utils.wait 601, =>
+      # @getSingleton("loadingScreen").destroy()
+      # delete KD.singletons.loadingScreen
+      $loadingScreen.remove()
+      $('body').removeClass 'loading'
   
   createMainPanels:->
     @addSubView @panelWrapper = new KDView
@@ -89,7 +70,7 @@ class MainView extends KDView
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : "hidden"
+      # cssClass  : "hidden"
       attributes: 
         href    : "#"
       click     : (pubInst,event)=>
@@ -155,14 +136,14 @@ class MainView extends KDView
       $('body').addClass "loggedIn"
       @mainTabView.showHandleContainer()
       @contentPanel.setClass "social"
-      @logo.show()
-      @buttonHolder.hide()
+      # @logo.show()
+      # @buttonHolder.hide()
     else
       $('body').removeClass "loggedIn"
       @contentPanel.unsetClass "social"
       @mainTabView.hideHandleContainer()
-      @buttonHolder.show()
-      @logo.hide()
+      # @buttonHolder.show()
+      # @logo.hide()
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()

@@ -1,4 +1,4 @@
-class LoggedOutProfile extends KDView
+class ProfileView extends KDView
   constructor:->
     super
     memberData = @getData()
@@ -71,6 +71,8 @@ class LoggedOutProfile extends KDView
     super
     @setTemplate @pistachio()
     @template.update()
+
+  putNick:(nick)-> "@#{nick}"
       
   pistachio:->
     """
@@ -79,13 +81,13 @@ class LoggedOutProfile extends KDView
         {{> @avatar}}
       </span>
       {{> @followButton}}
+      {cite{ @putNick #(profile.nickname)}}
     </div>
 
     <section>
       <div class="profileinfo">
         <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3> 
         <h4 class="profilelocation">{{> @location}}</h4>
-
         <div class="profilestats">
           <div class="fers">
             {{> @followers}}
@@ -169,5 +171,5 @@ class LoggedOutProfile extends KDView
 # get rid of this Sinan - 06/2012
 class ContentDisplayControllerVisitor extends ContentDisplayControllerMember
   addProfileView:(member)->
-    @getView().addSubView memberProfile = new LoggedInProfile {cssClass : "profilearea clearfix",delegate : @getView()}, member
+    @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
     memberProfile

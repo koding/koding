@@ -23,7 +23,7 @@ class FeedController extends KDViewController
     options.autoPopulate  or= yes
     options.filter        or= {}
     options.sort          or= {}
-    options.limitPerPage  or= 20
+    options.limitPerPage  or= 10
 
     options.dataType      or= null
 
