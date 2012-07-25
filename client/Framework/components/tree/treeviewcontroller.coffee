@@ -159,6 +159,7 @@ class JTreeViewController extends KDViewController
 
   addNode:(nodeData, index)->
 
+    return if @nodes[@getNodeId nodeData]
     nodeData = @repairIds nodeData
     return unless nodeData
     @getData().push nodeData
