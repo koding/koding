@@ -111,5 +111,5 @@ class AccountEditUsername extends KDView
         account.setEmailPreferences global: state, ->
           new KDNotificationView
             duration : 2000
-            title    : if state then 'You will get notifications by email.' \
-                                else 'You will no longer get email notifications by email.'
+            title    : if state then 'You will get email notifications.' \
+                                else 'You will no longer get email notifications.'
