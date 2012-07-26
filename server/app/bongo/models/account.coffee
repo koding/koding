@@ -234,10 +234,12 @@ class JAccount extends jraphical.Module
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   addTags: secure (client, tagPath, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)=>
-      tagSet = {}
-      tagSet[tagPath] = tags
-      @update client, $set: tagSet, callback
+    if tags.length is 0
+      callback null
+
+    Taggable::addTags.call @, client, tags, (err)->
+      # console.log err
+      callback null
   
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
