@@ -146,7 +146,12 @@ class NotificationListItem extends KDListItemView
       appManager.openApplication "Inbox"
     else
       bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
-        appManager.tell "Activity", "createContentDisplay", post
+        if post
+          appManager.tell "Activity", "createContentDisplay", post
+        else
+          new KDNotificationView
+            title : "Oww this post deleted!"
+            duration : 1000
 
     # {sourceName,sourceId} = @getData()[0]
     # contentDisplayController = @getSingleton('contentDisplayController')
