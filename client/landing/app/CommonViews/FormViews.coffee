@@ -330,8 +330,32 @@ class PersonalFormSkillTagView extends KDFormView
     @memberData.skillTags or= []
     
     @setCallback (formData)=>
-      tagIds = formData.skillTags.map((tag)-> tag.getId?() or $suggest: tag)
-      @memberData.addTags 'skillTags', tagIds, (err)-> debugger
+      if formData.skillTags?
+        newTags      = formData.skillTags?.filter((tag)-> tag.$suggest?)
+        oldTags      = formData.skillTags?.filter((tag)-> tag.id?)
+        plainNewTags = newTags.map((tag)-> tag.$suggest)
+        plainOldTags = oldTags.map((tag)-> tag.title)
+
+        joinedTags   = plainNewTags.concat plainOldTags
+
+        # log newTags, oldTags, joinedTags
+        @memberData.addTags 'skillTags', newTags, (err)=> 
+          if err
+            log "An error occured:", err
+          else
+            changes = $set:
+              'skillTags' : joinedTags
+            @memberData.update changes, (err)=>
+              if err
+                log err
+                new KDNotificationView
+                  title : "There was an error updating your profile."
+              else 
+                @memberData.emit "update"
+                new KDNotificationView
+                  title     : "Success!"
+                  duration  : 500
+                @unsetClass 'active'
 
   showForm:->
     unless @$().hasClass "active"
@@ -404,6 +428,7 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super
   
   putDefaultValues:(stringTags)->
+    # log "Try to put them in list", stringTags
     bongo.api.JTag.some
       title     :
         $in     : stringTags
@@ -416,8 +441,6 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
         else
           warn "there was a problem fetching default tags!", err, tags
     
-
-  
 class SkillTagAutoCompletedItem extends KDAutoCompletedItem
   constructor:(options, data)->
     options.cssClass = "clearfix"
