@@ -86,9 +86,7 @@ class ProcessMonitor extends EventEmitter
   startProcess : _.throttle ()->
     cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
     log.info "Starting the process $>#{cmd}"
-    [cmd, flags...] = cmd.split ' '
-    flags = flags.filter (flag)-> !!flag
-    @nodeServer = spawn cmd, flags
+    @nodeServer = exec cmd
     @nodeServer.stdout.on 'data', (data)=>
       if ~(''+data).indexOf "Error"
         data = @pickUpTheErrorLine(data)

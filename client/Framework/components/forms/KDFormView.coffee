@@ -71,11 +71,15 @@ class KDFormView extends KDView
     else
       JsPath.deleteAt @customData, path
   
+  serializeFormData:(data={})->
+    for inputData in @getDomElement().serializeArray()
+      data[inputData.name] = inputData.value
+    data
+  
   getData: ->
     formData = $.extend {},@getCustomData()
 
-    for inputData in @getDomElement().serializeArray()
-      formData[inputData.name] = inputData.value
+    @serializeFormData formData
         
     formData
 

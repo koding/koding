@@ -45,7 +45,7 @@ class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites'
+        'fetchAllKiteClusters','setKiteConnection'
       ]
     schema                  :
       skillTags             : [String]
@@ -127,6 +127,10 @@ class JAccount extends jraphical.Module
       tag:
         as          : 'skill'
         targetType  : JTag
+      
+      kiteSubscription  :
+        as              : 'owner'
+        targetType      : JKiteSubscription
   
   # # oldFetchLimit = @::fetchLimit
   # fetchLimit:->
@@ -217,17 +221,34 @@ class JAccount extends jraphical.Module
       callback null, "super-admin"
     else
       callback null, "regular"
-
-  fetchAllKites: secure ({connection}, callback)->
-
-    if isDummyAdmin connection.delegate.profile.nickname
-      callback null,
-        sharedHosting :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-        Databases     :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-        terminal      :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
+  
+  setKiteConnection: secure ({connection}, kiteName, kiteUri, callback=->)->
+    username = connection.delegate.getAt 'profile.nickname'
+    if isDummyAdmin username
+      JKiteConnection.update {username, kiteName}, $set: {kiteUri}, callback
+    else
+      callback new KodingError "Permission denied!"
+  
+  fetchAllKiteClusters: secure ({connection}, callback)->
+    username = connection.delegate.getAt 'profile.nickname'
+    if isDummyAdmin username
+      JKiteCluster.all {kiteName:$ne:'pinger'}, (err, clusters)->
+        if err
+          callback err
+        else
+          clusterData = []
+          queue = clusters.map (cluster)->->
+            {kiteName} = cluster
+            JKiteConnection.one {username, kiteName}, (err, connection)->
+              if err
+                queue.fin err
+              else
+                {data} = cluster
+                delete data.connectionCount
+                data.currentKiteUri = connection?.getAt('kiteUri')
+                clusterData.push data
+                queue.fin()
+          dash queue, -> callback null, clusterData
     else
       callback new KodingError "Permission denied!"
 

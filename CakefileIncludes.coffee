@@ -121,6 +121,8 @@ Includes =
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
         jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
+        jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
+        jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
 
       OtherStuff :
