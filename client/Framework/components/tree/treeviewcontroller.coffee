@@ -107,7 +107,7 @@ class JTreeViewController extends KDViewController
     @nodes[@getNodeId nodeData] = {}
 
     if options.putDepthInfo
-      if @nodes[@getNodePId nodeData]?.getData?
+      if @nodes[@getNodePId nodeData]
         nodeData.depth = @nodes[@getNodePId(nodeData)].getData().depth + 1
       else
         nodeData.depth = 0
@@ -160,8 +160,6 @@ class JTreeViewController extends KDViewController
   addNode:(nodeData, index)->
 
     nodeData = @repairIds nodeData
-
-
     return unless nodeData
     @getData().push nodeData
     @addIndexedNode nodeData
@@ -226,12 +224,11 @@ class JTreeViewController extends KDViewController
     nodeData = nodeView.getData()
     nodeView.$().attr "draggable","true" if @getOptions().dragdrop
     {id, parentId} = nodeData
-
     @nodes[@getNodeId nodeData] = nodeView
     if @nodes[@getNodePId nodeData]
       @expand @nodes[@getNodePId nodeData] unless @getOptions().addListsCollapsed
       # todo: make decoration with events
-      @nodes[@getNodePId nodeData]?.decorateSubItemsState?()
+      @nodes[@getNodePId nodeData].decorateSubItemsState()
     return unless @listControllers[id]
     @addSubList nodeView, id
 
@@ -257,7 +254,7 @@ class JTreeViewController extends KDViewController
 
     # if node parent is present
     parentNodeView = @nodes[@getNodePId nodeData]
-    if parentNodeView?.getData?
+    if parentNodeView
       prevNeighbor  = getPreviousNeighbor parentNodeView.getData()
       neighborIndex = @indexedNodes.indexOf prevNeighbor
       @indexedNodes.splice neighborIndex + 1, 0, nodeData
@@ -306,7 +303,7 @@ class JTreeViewController extends KDViewController
 
     o = @getOptions()
     listToBeAdded = @listControllers[id].getView()
-    if nodeView?.$?
+    if nodeView
       nodeView.$().after listToBeAdded.$()
       listToBeAdded.parentIsInDom = yes
       listToBeAdded.propagateEvent KDEventType: 'viewAppended'
@@ -435,10 +432,9 @@ class JTreeViewController extends KDViewController
 
   expand:(nodeView)->
 
-    if nodeView?.getData?
-      nodeData = nodeView.getData()
-      nodeView.expand()
-      @listControllers[@getNodeId nodeData]?.getView().expand()
+    nodeData = nodeView.getData()
+    nodeView.expand()
+    @listControllers[@getNodeId nodeData]?.getView().expand()
 
   collapse:(nodeView)->
 
