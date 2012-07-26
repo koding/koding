@@ -9,71 +9,69 @@ class Demos12345 extends AppController
     super name : 'Demos'#, type : 'background'
 
   loadView:(mainView)->
-    data = [
-      { title : "title 1",  id : 1,  parentId: 0}
-      { title : "title 2",  id : 2,  parentId: 0}
-      { title : "title 3",  id : 3,  parentId: 0}
-      { title : "title 4",  id : 4,  parentId: 0}
-      { title : "title 5",  id : 5,  parentId: 1}
-      { title : "title 6",  id : 6,  parentId: 1}
-      { title : "title 7",  id : 7,  parentId: 1}
-      { title : "title 8",  id : 8,  parentId: 5}
-      { title : "title 9",  id : 9,  parentId: 5}
-      { title : "title 10", id : 10, parentId: 5}
-      { title : "title 11", id : 11, parentId: 5}
-      { title : "title 12", id : 12, parentId: 5}
-      { title : "title 13", id : 13, parentId: 5}
-      { title : "title 14", id : 14, parentId: 5}
-      { title : "title 15", id : 15, parentId: 1}
-      { title : "title 16", id : 16, parentId: 1}
-      { title : "title 17", id : 17, parentId: 11}
-      { title : "title 18", id : 18, parentId: 11}
-      { title : "title 19", id : 19, parentId: 11}
-      { title : "title 20", id : 20, parentId: 1}
-    ]
+    # data = [
+    #   { title : "title 1",  id : 1,  parentId: 0}
+    #   { title : "title 2",  id : 2,  parentId: 0}
+    #   { title : "title 3",  id : 3,  parentId: 0}
+    #   { title : "title 4",  id : 4,  parentId: 0}
+    #   { title : "title 5",  id : 5,  parentId: 1}
+    #   { title : "title 6",  id : 6,  parentId: 1}
+    #   { title : "title 7",  id : 7,  parentId: 1}
+    #   { title : "title 8",  id : 8,  parentId: 5}
+    #   { title : "title 9",  id : 9,  parentId: 5}
+    #   { title : "title 10", id : 10, parentId: 5}
+    #   { title : "title 11", id : 11, parentId: 5}
+    #   { title : "title 12", id : 12, parentId: 5}
+    #   { title : "title 13", id : 13, parentId: 5}
+    #   { title : "title 14", id : 14, parentId: 5}
+    #   { title : "title 15", id : 15, parentId: 1}
+    #   { title : "title 16", id : 16, parentId: 1}
+    #   { title : "title 17", id : 17, parentId: 11}
+    #   { title : "title 18", id : 18, parentId: 11}
+    #   { title : "title 19", id : 19, parentId: 11}
+    #   { title : "title 20", id : 20, parentId: 1}
+    # ]
 
-    ###
-    window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
-      style           : "kdwhitebtn profilefollowbtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : "Unfollow"
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        left          : 3
-      states          : [
-        "Follow", (callback)->
-          # memberData.follow (err, response)=>
-          #   unless err
-          #     @setClass 'following-btn'
-          log "follow callback"
-          @hideLoader()
-          callback? null
-        "Unfollow", (callback)->
-          # memberData.unfollow (err, response)=>
-          #   unless err
-          #     @unsetClass 'following-btn'
-          log "unfollow callback"
-          @hideLoader()
-          callback? null
-      ]
+    # window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
+    #   style           : "kdwhitebtn profilefollowbtn"
+    #   title           : "Follow"
+    #   dataPath        : "followee"
+    #   defaultState    : "Unfollow"
+    #   loader          :
+    #     color         : "#333333"
+    #     diameter      : 18
+    #     left          : 3
+    #   states          : [
+    #     "Follow", (callback)->
+    #       # memberData.follow (err, response)=>
+    #       #   unless err
+    #       #     @setClass 'following-btn'
+    #       log "follow callback"
+    #       @hideLoader()
+    #       callback? null
+    #     "Unfollow", (callback)->
+    #       # memberData.unfollow (err, response)=>
+    #       #   unless err
+    #       #     @unsetClass 'following-btn'
+    #       log "unfollow callback"
+    #       @hideLoader()
+    #       callback? null
+    #   ]
 
-    mainView.addSubView a = new KDView
-      click : ->
-        log "click"
-      dblclick : ->
-        log "dblClick"
-    ###
+    # mainView.addSubView a = new KDView
+    #   click : ->
+    #     log "click"
+    #   dblclick : ->
+    #     log "dblClick"
 
 
-    t = new JTreeViewController
-      addListsCollapsed : yes
-      multipleSelection : yes
-      dragdrop          : yes
-    , data
-    mainView.addSubView t.getView()
-    t.getView().$().height "auto"
+    # t = new JTreeViewController
+    #   addListsCollapsed : yes
+    #   multipleSelection : yes
+    #   dragdrop          : yes
+    # , data
+    # mainView.addSubView t.getView()
+    # t.getView().$().height "auto"
 
     # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
     # mainView.addSubView b = new KDButtonView

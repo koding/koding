@@ -93,8 +93,9 @@ class KDFormView extends KDView
       event.stopPropagation()
       event.preventDefault()
     
-    @once "FormValidationFinished", =>
-      if @valid
+    @once "FormValidationFinished", (isValid)=>
+      if isValid
+        @valid = yes
         @getCallback()?.call @, formData, event
         @emit "FormValidationPassed"
       else
@@ -105,7 +106,6 @@ class KDFormView extends KDView
     validInputs    = []
     toBeValidated  = []
     formData       = @getCustomData() or {}
-    @valid         = yes
     
     # put to be validated inputs in a queue
     inputs.forEach (input)=>
@@ -115,24 +115,31 @@ class KDFormView extends KDView
         # put regular input values to formdata
         formData[input.getName()] = input.getValue() if input.getName()
 
+    valid = yes
     toBeValidated.forEach (input)=>
       # wait for the validation result of each input
-      input.once "ValidationResult", (result)=>
-        validatedCount++
-        validInputs.push input if result
-        # check if all inputs were validated
-        if toBeValidated.length is validatedCount
-          # check if all inputs were valid
-          if toBeValidated.length is validInputs.length
-            # put valid inputs to formdata
-            # formData = $.extend formData, @getCustomData()
-            for inputView in toBeValidated
-              formData[inputView.getName()] = inputView.getValue()
-          else
-            @valid = no
-          # tell validation was finished
-          @emit "FormValidationFinished"
+      do =>
+        input.once "ValidationResult", (result)=>
+          log result, "||||||"
+          validatedCount++
+          validInputs.push input if result
+          # check if all inputs were validated
+          if toBeValidated.length is validatedCount
+            log validInputs, ">>>>"
+            # check if all inputs were valid
+            if toBeValidated.length is validInputs.length
+              # put valid inputs to formdata
+              # formData = $.extend formData, @getCustomData()
+              for inputView in toBeValidated
+                formData[inputView.getName()] = inputView.getValue()
+            else
+              valid = no
+            # tell validation was finished
+            @emit "FormValidationFinished", valid
       input.validate null, event
 
     # if no validation is required mimic as all were validated
     @emit "FormValidationFinished" if toBeValidated.length is 0
+
+
+

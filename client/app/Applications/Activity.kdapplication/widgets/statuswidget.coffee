@@ -22,8 +22,10 @@ class ActivityStatusUpdateWidget extends KDFormView
       validate      :
         rules       : 
           required  : yes
+          maxLength : 280
         messages    :
           required  : "Please type a message..."
+          maxLength : "Maximum length is 280"
       # keydown       : (input, event)=>
       #   # this is bad find a way to semantically would fix this - Sinan
       #   if event.which is 9

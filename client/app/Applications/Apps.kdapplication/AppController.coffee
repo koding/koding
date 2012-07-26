@@ -9,8 +9,8 @@ class Apps12345 extends AppController
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
-        name : 'Apps'
-      data : @getView()
+        name  : 'Apps'
+      data    : @getView()
     
   initAndBringToFront:(options,callback)->
     @bringToFront()
@@ -18,7 +18,7 @@ class Apps12345 extends AppController
     
   loadView:(mainView)->
     mainView.createCommons()
-    # @createFeed()
+    @createFeed()
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {

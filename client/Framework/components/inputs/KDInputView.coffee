@@ -217,6 +217,7 @@ class KDInputView extends KDView
   setValidationResult:(rule, err)->
     
     @validationResults or= {}
+    log rule, err, "<?<?<?<?"
     if err
       @validationResults[rule] = err
       @showValidationError err if @getOptions().validationNotifications
