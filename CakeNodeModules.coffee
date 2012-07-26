@@ -44,3 +44,4 @@ module.exports =
     jsonify         : '0.0.0'
     browserify      : '1.10.12'
     cron            : '0.3.4'
+    csv             : '0.0.17'
