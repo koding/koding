@@ -80,7 +80,7 @@ class Topics12345 extends AppController
       width                       : 500
       overlay                     : yes
       tabs                        :
-        navigateable              : yes
+        navigable              : yes
         goToNextFormOnSubmit      : no
         forms                     : 
           update                  :
