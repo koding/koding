@@ -150,7 +150,7 @@ class NotificationListItem extends KDListItemView
           appManager.tell "Activity", "createContentDisplay", post
         else
           new KDNotificationView
-            title : "Oww this post deleted!"
+            title : "This post has been deleted!"
             duration : 1000
 
     # {sourceName,sourceId} = @getData()[0]
