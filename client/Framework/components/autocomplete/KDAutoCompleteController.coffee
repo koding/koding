@@ -291,6 +291,7 @@ class KDAutoCompleteController extends KDViewController
         else if id?
           constructorName   : itemValue.constructor.name
           id                : id
+          title             : itemValue.title
         else
           $suggest          : itemValue
       )
