@@ -338,8 +338,8 @@ class PersonalFormSkillTagView extends KDFormView
 
         joinedTags   = plainNewTags.concat plainOldTags
 
-        # log newTags, oldTags, joinedTags
-        @memberData.addTags 'skillTags', newTags, (err)=> 
+        # log formData.skillTags, newTags, oldTags, joinedTags
+        @memberData.addTags formData.skillTags, (err)=> 
           if err
             log "An error occured:", err
           else
