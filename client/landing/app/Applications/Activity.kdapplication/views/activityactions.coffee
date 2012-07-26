@@ -20,10 +20,7 @@ class ActivityActionsView extends KDView
         placement : "above"
         offset    : 3
 
-    @likeCount    = new ActivityLikeCount {
-      tooltip:
-        title: ""
-      }, activity
+    @likeCount    = new ActivityLikeCount {}, activity
     @likeLink     = new ActivityActionLink
 
     @updateLikeState()
@@ -44,9 +41,9 @@ class ActivityActionsView extends KDView
           {firstName, lastName} = item.profile
           peopleWhoLiked.push firstName + " " + lastName
 
-      log "Tooltip:", peopleWhoLiked
+      # log "Tooltip:", peopleWhoLiked, likedBefore, @getData()
       @likeCount.setTooltip {title: peopleWhoLiked.join ", " }
-      @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+      # @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
     
@@ -82,6 +79,9 @@ class ActivityActionsView extends KDView
           activity.like (err)=>
             if err
               log "Something went wrong while like:", err
+              new KDNotificationView
+                title     : "You already liked this!"
+                duration  : 1300 
             else
               @updateLikeState()
 
@@ -98,6 +98,7 @@ class ActivityActionLink extends KDCustomHTMLView
       cssClass  : "action-link"
       attributes:
         href    : "#"
+      partial   : "Like"
     , options
     super options,data
 
@@ -126,7 +127,7 @@ class ActivityCountLink extends KDCustomHTMLView
 class ActivityLikeCount extends ActivityCountLink
 
   setCount:(activity)->
-    log "ACTIVITY: ", activity
+    # log "ACTIVITY: ", activity
     if activity.meta.likes == 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
