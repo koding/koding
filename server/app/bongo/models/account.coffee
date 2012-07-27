@@ -245,8 +245,8 @@ class JAccount extends jraphical.Module
 
   addTags: secure (client, tags, callback)->
     Taggable::addTags.call @, client, tags, (err)->
-      # console.log err
-      callback null
+      if err then callback err
+      else callback null
   
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
