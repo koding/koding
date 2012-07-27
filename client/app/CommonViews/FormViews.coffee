@@ -342,20 +342,23 @@ class PersonalFormSkillTagView extends KDFormView
         @memberData.addTags formData.skillTags, (err)=> 
           if err
             log "An error occured:", err
+            new KDNotificationView
+              title : "There was an error while adding new skills."
           else
             changes = $set:
               'skillTags' : joinedTags
             @memberData.update changes, (err)=>
               if err
-                log err
+                log "An error occured:", err
                 new KDNotificationView
-                  title : "There was an error updating your profile."
+                  title : "There was an error while updating your profile."
               else 
                 @memberData.emit "update"
                 new KDNotificationView
                   title     : "Success!"
                   duration  : 500
-                @unsetClass 'active'
+                # @tagController.putDefaultValues joinedTags
+                @hideForm()
 
   showForm:->
     unless @$().hasClass "active"
@@ -428,7 +431,6 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super
   
   putDefaultValues:(stringTags)->
-    # log "Try to put them in list", stringTags
     bongo.api.JTag.some
       title     :
         $in     : stringTags
@@ -439,7 +441,7 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
         unless err and not tags
           @setDefaultValue tags
         else
-          warn "there was a problem fetching default tags!", err, tags
+          warn "There was a problem fetching default tags!", err, tags
     
 class SkillTagAutoCompletedItem extends KDAutoCompletedItem
   constructor:(options, data)->
