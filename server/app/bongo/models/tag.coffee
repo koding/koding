@@ -62,7 +62,7 @@ class JTag extends Followable
         targetType  : JAccount
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp, JStatusUpdate]
+        targetType  : [JCodeSnip, JApp, JStatusUpdate, JAccount]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
