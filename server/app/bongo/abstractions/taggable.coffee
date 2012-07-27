@@ -28,7 +28,6 @@ class Taggable
                   as: taggedContentRole
                   respondWithCount: yes
                 }, (err, count)=>
-                  console.log "Here the error:", err, count
                   if err then callback err
                   else queue.next()
               =>
