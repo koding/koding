@@ -26,7 +26,16 @@ class ActivityActionsView extends KDView
     @likeCount    = new ActivityLikeCount
       tooltip     :
         title     : ""
-    , activity
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : =>
+        if activity.meta.likes > 0 # 3
+          activity.fetchLikedByes {},
+            sort  : timestamp : -1
+            , (err, likes) =>
+              new FollowedModalView {title:"Members who liked " + activity.body}, likes
+      , activity
 
     @likeCount.on "countChanged", (count) =>
       @updateLikeState(yes)
