@@ -558,6 +558,7 @@ Includes =
         # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
+        jTipsy            : "./client/libs/jquery.tipsy.js"
         async             : "./client/libs/async.js"
         jMouseWheel       : "./client/libs/jquery.mousewheel.js"
         jMouseWheelIntent : "./client/libs/mwheelIntent.js"
@@ -651,6 +652,7 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
+        tipsy               : "./client/css/tipsy.css"
         # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"

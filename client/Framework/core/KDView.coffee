@@ -722,13 +722,23 @@ class KDView extends KDObject
 
   setTooltip:(o = {})->
 
+    placementMap =
+           above : "s"
+           below : "n"
+           left  : "e"
+           right : "w"
+
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
     o.delayIn   or= 0
     o.html      or= yes
     o.animate   or= no
+    o.opacity   or= 0.9
     o.selector  or= null
+    o.engine    or= "tipsy" # we still can use twipsy
+    o.gravity   or= placementMap[o.placement]
+    o.fade      or= o.animate
 
     @listenTo
       KDEventTypes        : "viewAppended"
@@ -736,7 +746,17 @@ class KDView extends KDObject
       callback            : =>
         # log "get rid of this timeout there should be an event after template update"
         @utils.wait =>
-          @$(o.selector).twipsy o
+          @$(o.selector)[o.engine] o
+
+  getTooltip:(o = {})->
+    o.selector or= null
+    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+
+  updateTooltip:(o = {})->
+    o.selector or= null
+    o.title    or= ""
+    if o.title
+      @$(o.selector)[0].setAttribute "original-title", o.title
 
   listenWindowResize:->
 
