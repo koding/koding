@@ -232,7 +232,12 @@ class JAccount extends jraphical.Module
   fetchAllKiteClusters: secure ({connection}, callback)->
     username = connection.delegate.getAt 'profile.nickname'
     if isDummyAdmin username
-      JKiteCluster.all {kiteName:$ne:'pinger'}, (err, clusters)->
+      JKiteCluster.all {
+        kiteName:
+          $ne: 'pinger'
+        kites:
+          $exists: yes
+      }, (err, clusters)->
         if err
           callback err
         else

@@ -363,6 +363,18 @@ class KiteSelectorModal extends KDModalView
     KD.whoami().setKiteConnection kiteName, value
   
   createNewKiteModal:->
+    # TODO: write real descriptions for these:
+    descriptions =
+      'Load Balancing Strategy':
+        none              : 'Single node'
+        roundrobin        : 'Describe round robin'
+        leastconnections  : 'Describe least connections'
+        fanout            : 'Describe fanout'
+        globalip          : 'Describe global ip'
+        random            : 'Describe random'
+    loadBalancerDescription = new KDCustomHTMLView
+      tagName     : 'span'
+      partial     : descriptions['Load Balancing Strategy'].none
     modal = new KDModalViewWithForms
       title : 'Create a kite service'
       tabs  :
@@ -371,9 +383,15 @@ class KiteSelectorModal extends KDModalView
         forms                 :
           "Create a service"  :
             callback          : =>
-              @createNewPlanModal
-                kiteData: modal.modalTabs.forms['Create a service'].getData()
-              modal.destroy()
+              kiteName = form.getData().kiteName
+              bongo.api.JKiteCluster.count {kiteName}, (err, count)=>
+                unless count is 0
+                  new KDNotificationView
+                    title: 'That kite name is not available; please choose another.'
+                else
+                  @createNewPlanModal
+                    kiteData: form.getData()
+                  modal.destroy()
             buttons           :
               "Create a plan" :
                 title         : 'Create a plan'
@@ -393,14 +411,24 @@ class KiteSelectorModal extends KDModalView
                       input.setValidationResult /^\w+$/.test input.getValue()
                   messages    :
                     bareword  : 'Kite name cannot have spaces or punctuation.'
-              'Kite URI'      :
-                label         : "Kite URI"
-                name          : 'kiteUri'
-                itemClass     : KDInputView
-                validate      :
-                  rules       :
-                    uri       : yes
-
+              'Load Balancing Strategy' :
+                label         : "Load balancing strategy"
+                itemClass     : KDSelectBox
+                type          : "select"
+                name          : "loadBalancing"
+                defaultValue  : "none"
+                selectOptions : [
+                  { title : "None",               value : "none" }
+                  { title : "Round-robin",        value : "roundrobin" }
+                  { title : "Least connections",  value : "leastconnections" }
+                  { title : "Fanout",             value : "fanout" }
+                  { title : "Global IP",          value : "globalip" }
+                  { title : "Random",             value : "random" }
+                ]
+                callback: (value)-> loadBalancerDescription.updatePartial descriptions['Load Balancing Strategy'][value]
+    form = modal.modalTabs.forms["Create a service"]      
+    form.fields["Load Balancing Strategy"].addSubView loadBalancerDescription
+  
   createNewPlanModal:(accumulator)->
     collectData =->
       accumulator.planData ?= []
@@ -419,9 +447,16 @@ class KiteSelectorModal extends KDModalView
     planTypeDescription = new KDCustomHTMLView
       tagName     : 'span'
       partial     : descriptions.Type.free
+    planIdDescription = new KDCustomHTMLView
+      tagName     : 'span'
+      partial     : "This can be any value.  You will use it for your own business logic."
     intervalUnitDescription = new KDCustomHTMLView
       tagName     : 'span'
       partial     : descriptions['Interval Unit'].day
+    unitAmountDescription = new KDCustomHTMLView
+      tagName     : 'span'
+      partial     : 'USD'
+    paidOnlyFields = ['Interval Unit','Interval Length','Unit Amount']
     modal = new KDModalViewWithForms
       title : 'Create a kite plan'
       tabs                    :
@@ -432,8 +467,13 @@ class KiteSelectorModal extends KDModalView
           "Create a plan"     :
             callback          : =>
               collectData()
-              bongo.api.JKiteCluster.create accumulator, (err, cluster)->
-                console.log arguments...
+              bongo.api.JKiteCluster.create accumulator, (err, cluster)=>
+                if err
+                  new KDNotificationView
+                    title : err.message
+                else
+                  @createClusterIsCreatedModal cluster
+                modal.destroy()
             buttons           :
               "Create another plan":
                 title         : "Create another plan"
@@ -453,12 +493,6 @@ class KiteSelectorModal extends KDModalView
                 loader        :
                   color       : "#444444"
                   diameter    : 12
-              # "Link External" :
-              #   title       :  "Link External"
-              #   style       : "modal-clean-gray"
-              #   callback : =>
-              #     @modal.destroy()
-              #     @showAddExternalOrUpdateModal null,null,"external"
             fields            :
               Title           :
                 label         : "Plan Name"
@@ -480,7 +514,14 @@ class KiteSelectorModal extends KDModalView
                   { title : "Protected",  value : "protected" }
                   { title : "Custom",     value : "custom" }
                 ]
-                callback: (value)-> planTypeDescription.updatePartial descriptions.Type[value]
+                callback: (value)->
+                  paidOnlyFields.forEach(
+                    if value is 'paid'
+                      (name)-> form.fields[name].show()
+                    else
+                      (name)-> form.fields[name].hide()
+                  )
+                  planTypeDescription.updatePartial descriptions.Type[value]
               'Interval Unit' :
                 label         : "Interval unit"
                 itemClass     : KDSelectBox
@@ -511,7 +552,21 @@ class KiteSelectorModal extends KDModalView
                   size          : 3
     form = modal.modalTabs.forms["Create a plan"]            
     form.fields.Type.addSubView planTypeDescription
+    form.fields['Plan ID'].addSubView planIdDescription
     form.fields['Interval Length'].addSubView intervalUnitDescription
+    form.fields['Unit Amount'].addSubView unitAmountDescription
+    paidOnlyFields.forEach (name)-> form.fields[name].hide()
+
+  createClusterIsCreatedModal:(cluster)->
+    modal = new KDModalView
+      title   : "Kite service is created"
+      content :
+        """
+        <p>The service was created!</p>
+        <p>Kite name: <strong>#{cluster.getAt('kiteName')}</strong></p>
+        <p>Service key: <strong>#{cluster.getAt('serviceKey')}</strong></p>
+        <p>Keep it safe, and change it often!</p>
+        """
 
   putTable:->
 
@@ -524,7 +579,7 @@ class KiteSelectorModal extends KDModalView
         clusters.forEach (cluster)=>
           {kiteName, kites, currentKiteUri} = cluster
           
-          selectOptions = sanitizeHosts kites
+          selectOptions = sanitizeHosts kites if kites
 
           @addSubView field = new KDView
             cssClass : "modalformline"
@@ -541,4 +596,6 @@ class KiteSelectorModal extends KDModalView
         @addSubView new KDButtonView
           style     : "clean-gray savebtn"
           title     : "Create a kite service"
-          callback  : => @createNewKiteModal()
+          callback  : => 
+            @createNewKiteModal()
+            @destroy()

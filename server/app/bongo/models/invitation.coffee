@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','__grantInvitations']#,'__sendBetaInvites',,'__createBetaInvites']
+      static        : ['create','byCode','__sendInvitationsAreGrantedEmail']#,,'__createBetaInvites','__grantInvitations']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -66,10 +66,11 @@ class JInvitation extends jraphical.Module
   #             #   console.log 'finished', i++
   #             #   callback 'ok'
   # 
-  @__sendBetaInvites =do->
+  @__sendInvitationsAreGrantedEmail =do->
     betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.html', 'utf-8'
+    # betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+    invitationsAreGrantedEmail = fs.readFileSync 'email/invitations-are-granted.txt', 'utf-8'
     protocol = 'https://'
     (callback)->
       i = 0
@@ -77,7 +78,7 @@ class JInvitation extends jraphical.Module
       {host, port} = server
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(7000, 8000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(2703, 6000).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -88,13 +89,52 @@ class JInvitation extends jraphical.Module
               #   shortenedUrl = response.data.url
               #   if shortenedUrl?
                   # shortenedUrl = url
-              console.log 'hello there ---<<<'
+              personalizedMail = invitationsAreGrantedEmail.replace '#{url}', url#shortenedUrl
+              Emailer.send
+                From      : @getInviteEmail()
+                To        : email
+                Subject   : '[Koding] Koding has launched!'
+                TextBody  : personalizedMail
+              , (err)-> 
+                # console.log 'finished', i++, err
+                recipients.fin(err)
+                # else console.log email
+            else
+              console.log "no invitation was found for #{email}"
+              recipients.fin null
+      dash recipients, ->
+        console.log 'all done'
+        callback arguments...
+
+
+  @__sendBetaInvites =do->
+    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+    # betaTestersEmails = 'chris123412341234@jraphical.com'
+    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+    protocol = 'https://'
+    (callback)->
+      i = 0
+      recipients = []
+      {host, port} = server
+      # host = 'localhost:3000'
+      # protocol = 'http://'
+      uniq(betaTestersEmails.split '\n').slice(8000, 9000).forEach (email)=>
+        recipients.push =>
+          @one {inviteeEmail: email}, (err, invite)=>
+            if err
+              console.log err
+            else if invite?
+              url = "#{protocol}#{host}/invitation/#{invite.code}"
+              # bitly.shorten url, (err, response)=>
+              #   shortenedUrl = response.data.url
+              #   if shortenedUrl?
+                  # shortenedUrl = url
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               Emailer.send
                 From      : @getInviteEmail()
                 To        : email
                 Subject   : '[Koding] Here is your beta invite!'
-                HtmlBody  : personalizedMail
+                TextBody  : personalizedMail
               , (err)-> 
                 console.log 'finished', i++, err
                 recipients.fin(err)
