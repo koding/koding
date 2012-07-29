@@ -739,6 +739,7 @@ class KDView extends KDObject
     o.engine    or= "tipsy" # we still can use twipsy
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
+    o.fallback  or= o.title
 
     @listenTo
       KDEventTypes        : "viewAppended"
