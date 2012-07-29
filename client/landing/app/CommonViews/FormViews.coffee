@@ -142,12 +142,14 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
     {@memberData} = options
     {profile} = @memberData
-    
+
+    defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
+
     @aboutInput = new KDInputView
       cssClass      : 'about editable'
       type          : 'textarea'
-      defaultValue  : if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
-      placeholder   : if profile.about isnt "You haven't entered anything in your bio yet. Why not add something now?" then null else Encoder.htmlDecode profile.about
+      defaultValue  : if profile.about is defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
+      placeholder   : if profile.about isnt defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
 
     @aboutInfo = new PersonalAboutView
@@ -155,7 +157,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         title     : "Click to edit"
         placement : "left"
         offset    : 5
-    , @memberData
+    , @memberData, defaultPlaceHolder
 
     @windowController = @getSingleton 'windowController'
 
@@ -172,7 +174,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
   formCallback:(formData)->
     {profile} = @memberData
     {about} = formData
-    if profile.about is about
+    if profile.about is about or about is ''
       @unsetClass 'active'
       return no
     
@@ -190,6 +192,22 @@ class PersonalFormAboutView extends AbstractPersonalFormView
           duration  : 500
         @unsetClass 'active'
         
+class PersonalAboutView extends KDCustomHTMLView
+  constructor:(options, data, defaultPlaceHolder)->
+    super
+    {profile} = @getData()
+    profile.about or= defaultPlaceHolder
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+    
+  pistachio:->
+    """
+      <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
+    """
+
 class PersonalFormLocationView extends AbstractPersonalFormView
   constructor:(options, data)->
     options = $.extend
@@ -266,23 +284,6 @@ class LocationView extends KDCustomHTMLView
 
   getFirstLocation:(locationTags)->
     locationTags[0]
-
-class PersonalAboutView extends KDCustomHTMLView
-  constructor:(options, data)->
-    super
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-    
-  pistachio:->
-    """
-      <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
-    """
-
-  getFirstLocation:(locationTags)->
-    locationTags[0]
-
 
 class PersonalFormSkillTagView extends KDFormView
 
