@@ -2,25 +2,20 @@ class AbstractPersonalFormView extends KDFormView
   constructor:(options, data)->
     memberData = data
     super options, null
-    @cancelButton = new KDButtonView
-      style : "clean-red"
-      title : "Cancel"
-      size:
-        width : 'auto'
-      callback:=>
-        @resetInputValue()
-        @unsetClass 'active'
-        
-    @saveButton = new KDButtonView
-      style : "cupid-green"
-      title : "Save"
-      type  : 'submit'
-      size:
-        width : 'auto'
         
     @windowController = @getSingleton 'windowController'
     @setListeners()
-    
+
+    $(window).on "keydown.input",(e)=>
+      @checkInput e
+
+  checkInput:(e, classToCheck = 'active')->
+    if @$().hasClass(classToCheck) and e.which is 27
+      @resetInputValue?()
+      @unsetClass 'active'
+    else if @$().hasClass(classToCheck) and e.which is 13
+      @submit event
+      
   mouseDown:(event)->
     @showForm()
     no
@@ -44,7 +39,6 @@ class AbstractPersonalFormView extends KDFormView
       @resetInputValue()
         
   resetInputValue:-> no
-
 
 class PersonalFormNameView extends AbstractPersonalFormView
 
@@ -86,14 +80,14 @@ class PersonalFormNameView extends AbstractPersonalFormView
     ,@memberData
     
     @attachListeners()
-    
-    
+
   pistachio:->
     """
       {{> @nameView}}
-      {{> @firstName}}{{> @lastName}}{{> @cancelButton}}{{> @saveButton}}
+      {{> @firstName}}{{> @lastName}}
     """
-    
+    # {{> @cancelButton}}{{> @saveButton}}
+
   resetInputValue:->
     {profile} = @memberData
     @firstName.setValue Encoder.htmlDecode profile.firstName 
@@ -135,54 +129,12 @@ class PersonalFormNameView extends AbstractPersonalFormView
           duration  : 500
         @unsetClass 'active' 
 
-class PersonalFormAboutWrapperView extends KDView
-
-  constructor:(options, data)->
-    options = $.extend
-      cssClass    : 'personal-profile-about'
-      tooltip     :
-        title     : "Click to edit"
-        selector  : "p"
-        placement : "left"
-        offset    : 5
-    , options
-    super options, data
-    {profile} = @getData()
-    profile.about or= "You haven't entered anything in your bio yet. Why not add something now?"
-    
-    memberData = data
-    @formView = new PersonalFormAboutView {memberData}
-    
-    @windowController = @getSingleton 'windowController'
-
-    @on 'ReceivedClickElsewhere', =>
-      @unsetClass 'active'
-      @formView.resetInputValue()
-
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-      <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
-      {{> @formView}}
-    """
-    
-  mouseDown:(event)->
-    @windowController.addLayer @
-    if not @$().hasClass 'active'
-      @setClass 'active'
-      @formView.focusFirstElement()
-
-
 class PersonalFormAboutView extends AbstractPersonalFormView
 
   constructor:(options, data)->
 
     options = $.extend
-      cssClass  : 'profileabout-form'
+      cssClass  : 'personal-profile-about'
       callback  : @formCallback
     , options
 
@@ -198,18 +150,19 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       placeholder   : if profile.about isnt "You haven't entered anything in your bio yet. Why not add something now?" then null else Encoder.htmlDecode profile.about
       name          : 'about'
 
-    @cancelButton = new KDButtonView
-      style : "clean-red"
-      title : "Cancel"
-      size:
-        width : 'auto'
-      callback:=>
-        @resetInputValue()
-        @parent.unsetClass 'active'
-    
+    @aboutInfo = new PersonalAboutView
+      tooltip     :
+        title     : "Click to edit"
+        placement : "left"
+        offset    : 5
+    , @memberData
+
+    @windowController = @getSingleton 'windowController'
+
   pistachio:->
     """
-      {{> @aboutInput}}{{> @cancelButton}}{{> @saveButton}}
+      {{> @aboutInfo}}
+      {{> @aboutInput}}
     """
 
   resetInputValue:->
@@ -220,11 +173,12 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     {profile} = @memberData
     {about} = formData
     if profile.about is about
-      @parent.unsetClass 'active'
+      @unsetClass 'active'
       return no
     
     changes = $set:
       'profile.about'  : about
+
     @memberData.update changes, (err)=>
       if err
         new KDNotificationView
@@ -234,11 +188,8 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         new KDNotificationView
           title     : "Success!"
           duration  : 500
-        @parent.unsetClass 'active'
+        @unsetClass 'active'
         
-  mouseDown:-> no
-
-
 class PersonalFormLocationView extends AbstractPersonalFormView
   constructor:(options, data)->
     options = $.extend
@@ -269,9 +220,9 @@ class PersonalFormLocationView extends AbstractPersonalFormView
   pistachio:->
     """
       <p>{{> @locationTags}}</p>
-      {{> @location}}{{> @cancelButton}}{{> @saveButton}}
+      {{> @location}}
     """
-    
+
   resetInputValue:->
     {profile} = @memberData
     @location.setValue @memberData.locationTags[0] or 'Earth' 
@@ -311,6 +262,22 @@ class LocationView extends KDCustomHTMLView
   pistachio:->
     """
       {{ @getFirstLocation #(locationTags)}}
+    """
+
+  getFirstLocation:(locationTags)->
+    locationTags[0]
+
+class PersonalAboutView extends KDCustomHTMLView
+  constructor:(options, data)->
+    super
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+    
+  pistachio:->
+    """
+      <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
     """
 
   getFirstLocation:(locationTags)->
@@ -358,6 +325,7 @@ class PersonalFormSkillTagView extends KDFormView
                   title     : "Success!"
                   duration  : 500
                 # @tagController.putDefaultValues joinedTags
+                @saveButton?.enable()
                 @hideForm()
 
   showForm:->
@@ -406,23 +374,26 @@ class PersonalFormSkillTagView extends KDFormView
     tagController.putDefaultValues @memberData.skillTags
 
     @addSubView buttonWrapper = new KDCustomHTMLView
-      tagName     : 'div'
-      cssClass    : 'button-container'
-      partial     : ''
+      tagName   : 'div'
+      cssClass  : 'button-container'
+      partial   : ''
 
-    buttonWrapper.addSubView cancelButton = new KDButtonView
+    buttonWrapper.addSubView @cancelButton = new KDButtonView
       style     : "clean-red"
       title     : "Cancel"
       size      :
         width   : 'auto'
       callback  : => @hideForm()
 
-    buttonWrapper.addSubView saveButton = new KDButtonView
+    buttonWrapper.addSubView @saveButton = new KDButtonView
       style     : "cupid-green"
       title     : "Save"
       type      : 'submit'
       size      :
         width   : 'auto'
+      callback  : =>
+        @saveButton.disable()
+        @submit()
         
 class SkillTagAutoCompleteController extends KDAutoCompleteController
   constructor:(options, data)->
@@ -459,4 +430,3 @@ class SkillTagAutoCompletedItem extends KDAutoCompletedItem
   click:(event)->
     @getDelegate().removeFromSubmitQueue @ if $(event.target).is('span.close-icon')
     @getDelegate().getView().$input().trigger
-

@@ -37,8 +37,7 @@ class OwnProfileView extends KDView
         appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followings'
     , memberData
     
-    @aboutYou    = new PersonalFormAboutWrapperView null, memberData
-      
+    @aboutYou     = new PersonalFormAboutView {memberData}      
     @skillTagView = new PersonalFormSkillTagView {memberData}
     
     @setListeners()
