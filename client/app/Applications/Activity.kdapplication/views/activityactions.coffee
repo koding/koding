@@ -21,11 +21,12 @@ class ActivityActionsView extends KDView
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
-        offset    : 3
 
     @likeCount    = new ActivityLikeCount
       tooltip     :
         title     : ""
+        engine    : "tipsy" # We should force to use tipsy because
+                            # for now only tipsy supports tooltip updates
       attributes  :
         href      : "#"
         title     : "Click to view..."
