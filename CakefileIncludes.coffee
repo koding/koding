@@ -361,7 +361,6 @@ Includes =
 
         # INBOX VIEWS
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
-        inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
         inboxInnerNavigation          : "./client/app/Applications/Inbox.kdapplication/Views/InboxInnerNavigation.coffee"
         inboxMessagesList             : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessagesList.coffee"
         inboxMessageThreadView        : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageThreadView.coffee"
