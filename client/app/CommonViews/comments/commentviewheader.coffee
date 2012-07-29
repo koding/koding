@@ -18,6 +18,8 @@ class CommentViewHeader extends JView
       @onListCount = data.repliesCount
       @hide()
 
+    @hide() if data.repliesCount is 0
+
     list = @getDelegate()
 
     list.on "AllCommentsWereAdded", =>
@@ -63,7 +65,6 @@ class CommentViewHeader extends JView
     # I'm not sure maybe its not a good idea
     if @parent?.commentController?.getItemCount?()
       @onListCount = @parent.commentController.getItemCount()
-    
     _newCount = @getData().repliesCount
 
     # Show View all bla bla link if there are more comments
@@ -103,6 +104,9 @@ class CommentViewHeader extends JView
     if @onListCount > @oldCount
       @onListCount = @oldCount
 
+    if @onListCount is @getData().repliesCount
+      @newCount = 0
+
     if @onListCount is @oldCount and @newCount is 0
       @hide()
     else
@@ -110,11 +114,11 @@ class CommentViewHeader extends JView
       
   hide:->
     @unsetClass "in"
-    # super
+    super
 
   show:->
     @setClass "in"
-    # super
+    super
 
   pistachio:->
     """
