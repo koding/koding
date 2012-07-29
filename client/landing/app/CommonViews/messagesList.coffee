@@ -24,7 +24,7 @@ class MessagesListController extends KDListViewController
   fetchMessages:(callback)->
     appManager.tell 'Inbox', 'fetchMessages',
       as          : 'recipient'
-      limit       : 10
+      limit       : 3
       sort        :
         timestamp : -1
     , (err, messages)=>
@@ -159,6 +159,3 @@ class NotificationListItem extends KDListItemView
     # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
     # bongo.cacheable sourceName, sourceId, (err, source)=>
     #   appManager.tell "Activity", "createContentDisplay", source
-    
-
-

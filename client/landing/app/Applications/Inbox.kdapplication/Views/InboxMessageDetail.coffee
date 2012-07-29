@@ -42,7 +42,7 @@ class InboxMessageDetail extends KDView
 
     @fetchComments (err, comments)=>
       if comments.length
-        @commentBox.commentListViewController.replaceAllComments comments 
+        @commentBox.commentController.replaceAllComments comments 
 
   fetchComments:(callback)->
     pm = @getData()
