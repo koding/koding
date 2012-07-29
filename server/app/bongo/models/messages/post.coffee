@@ -191,6 +191,8 @@ class JPost extends jraphical.Message
     }, (err, rel)->
       if err
         callback err
+      else unless rel
+        callback new KodingError 'No activity found'
       else
         callback null, rel.getAt 'sourceId'
   
@@ -201,20 +203,15 @@ class JPost extends jraphical.Message
       else
         CActivity.one _id: id, callback 
   
-  removeReply:(rel, callback)->
-    id = @getId()
+  flushSnapshot:(removedSnapshotIds, callback)->
+    removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'    
     queue = [
       =>
         @fetchActivityId (err, activityId_)->
           activityId = activityId_
           queue.next()
-      ->
-        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
-      =>
-        @update $inc: repliesCount: -1, -> queue.next()
       =>
         @fetchTeaser (err, teaser_)=>
           if err
@@ -225,12 +222,27 @@ class JPost extends jraphical.Message
       ->
         CActivity.update _id: activityId, {
           $set:
-            snapshot: JSON.stringify teaser
-            'sorts.repliesCount': repliesCount - 1
+            snapshot              : JSON.stringify teaser
+            'sorts.repliesCount'  : teaser.repliesCount
           $pullAll:
-            snapshotIds: rel.getAt 'targetId'
+            snapshotIds: removedSnapshotIds
         }, -> queue.next()
-      
+      callback
+    ]
+    daisy queue
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    repliesCount = @getAt 'repliesCount'    
+    queue = [
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @flushSnapshot rel.getAt('targetId'), -> queue.next()
       callback
     ]
     daisy queue

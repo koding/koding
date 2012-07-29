@@ -106,7 +106,7 @@ module.exports =(options, callback)->
     if error?
       callback? error
     else
-      chars = ";&|><*?`$(){}[]!#"      
+      chars = ";&|><*?`$(){}[]!#"
       if containsAnyChar command,chars
         log.debug "exec in a file",command
         prepareForBashExecute options, (err, filename)->          

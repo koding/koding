@@ -55,7 +55,17 @@ class JAccount extends jraphical.Module
         defaultToLastUsedEnvironment :
           type              : Boolean
           default           : yes
-      counts                : Followable.schema.counts
+      # counts                : Followable.schema.counts
+      counts                :
+        followers           :
+          type              : Number
+          default           : 0
+        following           :
+          type              : Number
+          default           : 0
+        topics              :
+          type              : Number
+          default           : 0
       environmentIsCreated  : Boolean
       profile               :
         about               : String
@@ -233,11 +243,10 @@ class JAccount extends jraphical.Module
   
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
-  addTags: secure (client, tagPath, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)=>
-      tagSet = {}
-      tagSet[tagPath] = tags
-      @update client, $set: tagSet, callback
+  addTags: secure (client, tags, callback)->
+    Taggable::addTags.call @, client, tags, (err)->
+      if err then callback err
+      else callback null
   
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
