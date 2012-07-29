@@ -85,8 +85,8 @@ class ActivityActionsView extends KDView
 
           @likeCount.updateTooltip {title: tooltip }
 
-          if checkIfILiked
-            @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+          # if checkIfILiked
+          #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
     
