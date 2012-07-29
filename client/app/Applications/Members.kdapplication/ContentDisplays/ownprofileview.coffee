@@ -34,7 +34,7 @@ class OwnProfileView extends KDView
       pistachio   : "{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followings'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
     
     @aboutYou     = new PersonalFormAboutView {memberData}      
