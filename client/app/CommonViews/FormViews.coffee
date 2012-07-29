@@ -146,18 +146,19 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
 
     @aboutInput = new KDInputView
-      cssClass      : 'about editable'
+      cssClass      : 'about editable hitenterview active'
       type          : 'textarea'
       defaultValue  : if profile.about is defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
       placeholder   : if profile.about isnt defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
 
     @aboutInfo = new PersonalAboutView
-      tooltip     :
-        title     : "Click to edit"
-        placement : "left"
-        offset    : 5
-    , @memberData, defaultPlaceHolder
+      tooltip            :
+        title            : "Click to edit"
+        placement        : "left"
+        offset           : 5
+      defaultPlaceHolder : defaultPlaceHolder
+    , @memberData
 
     @windowController = @getSingleton 'windowController'
 
@@ -193,10 +194,10 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         @unsetClass 'active'
         
 class PersonalAboutView extends KDCustomHTMLView
-  constructor:(options, data, defaultPlaceHolder)->
+  constructor:(options, data)->
     super
     {profile} = @getData()
-    profile.about or= defaultPlaceHolder
+    profile.about or= options.defaultPlaceHolder
 
   viewAppended:->
     super
