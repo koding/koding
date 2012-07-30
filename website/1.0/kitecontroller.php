@@ -44,6 +44,8 @@ class KiteController {
       ));
       if (!isset($clusters)) {
         return FALSE;
+      } else {
+        trace('klusters', $clusters);
       }
     }
     foreach ($clusters as $index=>$cluster) {
