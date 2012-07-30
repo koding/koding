@@ -49,10 +49,10 @@ class CommentListViewController extends KDListViewController
         listView.emit "BackgroundActivityStarted"
         callback()
 
-      for xto in [0..repliesCount] by 10
+      for xto in [repliesCount..0]
         do (xto) =>
           stack.push (callback) =>
-            @fetchCommentsByRange xto, xto+10, (err, comments) =>
+            @fetchCommentsByRange xto, xto+1, (err, comments) =>
               if not removedAlready
                 @removeAllItems()
                 removedAlready = yes
