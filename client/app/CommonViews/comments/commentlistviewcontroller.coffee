@@ -3,26 +3,28 @@ class CommentListViewController extends KDListViewController
     super
     @startListeners()
 
-  instantiateListItems:(items)->
+  instantiateListItems:(items, keepDeletedComments = no)->
 
     newItems = []
 
     for comment, i in items
-      
+
       nextComment = items[i+1]
 
       skipComment = no
       if nextComment? and comment.deletedAt
         if Date.parse(nextComment.meta.createdAt) > Date.parse(comment.deletedAt)
           skipComment = yes
-      
+
       if not nextComment and comment.deletedAt
         skipComment = yes
+
+      skipComment = no if keepDeletedComments
 
       unless skipComment
         commentView = @getListView().addItem comment
         newItems.push commentView
-    
+
     return newItems
 
   startListeners:->
@@ -31,15 +33,38 @@ class CommentListViewController extends KDListViewController
     listView.on 'ItemWasAdded', (view, index)=>
       view.on 'CommentIsDeleted', ->
         listView.emit "CommentIsDeleted"
-    
+
     listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
 
       # some problems when logged out server doesnt responds
       @utils.wait 5000, -> listView.emit "BackgroundActivityFinished"
-      
-      @fetchAllComments 0, (err, comments)=>
-        @removeAllItems()
-        @instantiateListItems comments
+
+      {repliesCount} = listView.getData()
+
+      log "Total comment: ", repliesCount
+      stack = []
+      removedAlready = no
+
+      stack.push (callback) =>
+        listView.emit "BackgroundActivityStarted"
+        callback()
+
+      for xto in [0..repliesCount] by 10
+        do (xto) =>
+          stack.push (callback) =>
+            @fetchCommentsByRange xto, xto+10, (err, comments) =>
+              if not removedAlready
+                @removeAllItems()
+                removedAlready = yes
+              @instantiateListItems comments, yes
+              callback err, comments
+
+      async.parallel stack, (error, result) =>
+        listView.emit "BackgroundActivityFinished"
+        if not error
+          listView.emit "AllCommentsWereAdded"
+        else
+          log "Failed to get comments..."
 
     listView.registerListener
       KDEventTypes  : "CommentSubmitted"
@@ -60,9 +85,9 @@ class CommentListViewController extends KDListViewController
     message.commentsByRange query,(err,comments)=>
       @getListView().emit "BackgroundActivityFinished"
       callback err,comments
-  
+
   fetchAllComments:(skipCount=3, callback = noop)=>
-    
+
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
@@ -70,7 +95,7 @@ class CommentListViewController extends KDListViewController
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllCommentsWereAdded"
       callback err, comments
-  
+
   replaceAllComments:(comments)->
     @removeAllItems()
     @instantiateListItems comments
