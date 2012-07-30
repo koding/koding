@@ -38,10 +38,12 @@ class KiteController {
     $result = array('addedTo' => array());
     $clusters = $this->clusters[$kite_name];
     if (!isset($clusters)) {
-      $db = get_mongo_db();
-      $clusters = $db->findOne(array(
-        'kiteName' => $kite_name,
-      ));
+      if (isset($service_key)) {
+        $db = get_mongo_db();
+        $clusters = $db->jKiteClusters->findOne(array(
+          'kiteName' => $kite_name,
+        ));
+      }
       if (!isset($clusters)) {
         return FALSE;
       } else {
