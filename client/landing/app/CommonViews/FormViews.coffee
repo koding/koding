@@ -1,3 +1,5 @@
+# FIXME (gokmen) Needs to be rw
+
 class AbstractPersonalFormView extends KDFormView
   constructor:(options, data)->
     memberData = data
@@ -86,8 +88,7 @@ class PersonalFormNameView extends AbstractPersonalFormView
       {{> @nameView}}
       {{> @firstName}}{{> @lastName}}
     """
-    # {{> @cancelButton}}{{> @saveButton}}
-
+    
   resetInputValue:->
     {profile} = @memberData
     @firstName.setValue Encoder.htmlDecode profile.firstName 
@@ -143,13 +144,13 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     {@memberData} = options
     {profile} = @memberData
 
-    defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
+    @defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
 
     @aboutInput = new KDInputView
       cssClass      : 'about editable hitenterview active'
       type          : 'textarea'
-      defaultValue  : if profile.about is defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
-      placeholder   : if profile.about isnt defaultPlaceHolder then null else Encoder.htmlDecode profile.about
+      defaultValue  : if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
+      placeholder   : if profile.about isnt @defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
 
     @aboutInfo = new PersonalAboutView
@@ -157,7 +158,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
         title            : "Click to edit"
         placement        : "left"
         offset           : 5
-      defaultPlaceHolder : defaultPlaceHolder
+      defaultPlaceHolder : @defaultPlaceHolder
     , @memberData
 
     @windowController = @getSingleton 'windowController'
@@ -170,7 +171,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
   resetInputValue:->
     {profile} = @memberData
-    @aboutInput.setValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
+    @aboutInput.setValue if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
 
   formCallback:(formData)->
     {profile} = @memberData
@@ -193,17 +194,12 @@ class PersonalFormAboutView extends AbstractPersonalFormView
           duration  : 500
         @unsetClass 'active'
         
-class PersonalAboutView extends KDCustomHTMLView
+class PersonalAboutView extends JView
   constructor:(options, data)->
     super
     {profile} = @getData()
     profile.about or= options.defaultPlaceHolder
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
-    
   pistachio:->
     """
       <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
@@ -270,14 +266,7 @@ class PersonalFormLocationView extends AbstractPersonalFormView
           duration  : 500
         @unsetClass 'active'
 
-class LocationView extends KDCustomHTMLView
-  constructor:(options, data)->
-    super
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
+class LocationView extends JView
   pistachio:->
     """
       {{ @getFirstLocation #(locationTags)}}
@@ -307,7 +296,6 @@ class PersonalFormSkillTagView extends KDFormView
 
         joinedTags   = plainNewTags.concat plainOldTags
 
-        # log formData.skillTags, newTags, oldTags, joinedTags
         @memberData.addTags formData.skillTags, (err)=> 
           if err
             log "An error occured:", err
