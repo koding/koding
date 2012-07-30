@@ -7,7 +7,7 @@ print """\
 <!DOCTYPE html>
 <html lang="en">
 <head>  <meta charset="utf-8">
-  <title>Hellow World from Python</title>
+  <title>Hello World from Python by Koding</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="http://koding.com/hello/css/style.css">
   <!--[if IE]>
@@ -34,16 +34,15 @@ print """\
 		<li><a href="ruby.rb">ruby</a></li>
 	</ul>    
 </nav>
-    <footer>
-    <h4>This is an example page running Python on your Koding Server.</h4> <p>You can create your own simple Python "Hello World" with this:</p>
+<footer>
+<h4>This is an example page running Python on your Koding Server.</h4> <p>You can create your own simple Python "Hello World" with this:</p>
 <pre>#!/usr/bin/python
 import os
 print "Content-type: text/html"
 print
-print "Hello, world from python!"
-</pre>
-        </footer>
-  </div> 
+print "Hello, world from python!"</pre>
+</footer>
+</div> 
 </body>
 </html>
 """

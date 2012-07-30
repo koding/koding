@@ -36,7 +36,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
 
-    return @getView().addSubView memberProfile = new LoggedOutProfile
+    return @getView().addSubView memberProfile = new ProfileView
       cssClass : "profilearea clearfix"
       bind     : "mouseenter"
       delegate : @getView()
@@ -74,7 +74,7 @@ class ContentDisplayControllerMember extends KDViewController
       subItemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
-      limitPerPage          : 20
+      limitPerPage          : 8
       help                  :
         subtitle            : "Learn Personal feed"
         tooltip             :

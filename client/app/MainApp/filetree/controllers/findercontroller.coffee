@@ -35,22 +35,18 @@ class NFinderController extends KDViewController
 
     mainView.addSubView @treeController.getView()
     @reset()
-    if @treeController.getOptions().useStorage
-      @defaultStructureLoaded = no
 
+    if @treeController.getOptions().useStorage
       appManager.on "AppManagerOpensAnApplication", (appInst)=>
         if appInst instanceof StartTab12345 and not @defaultStructureLoaded
           @loadDefaultStructure()
-  
-      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
-        @loadDefaultStructure()
 
   reset:->
 
     delete @_storage
     {initialPath} = @treeController.getOptions() # not used, fix this
 
-    mount = if KD.isLoggedIn()
+    @mount = if KD.isLoggedIn()
       {nickname}    = KD.whoami().profile
       FSHelper.createFile
         name        : nickname
@@ -63,16 +59,21 @@ class NFinderController extends KDViewController
         path        : "/Users/guest"
         type        : "mount"
     @defaultStructureLoaded = no
-    @treeController.initTree [mount]
+    @treeController.initTree [@mount]
+    
+    if @treeController.getOptions().useStorage
+      @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
+        @loadDefaultStructure()
 
   loadDefaultStructure:->
 
+    return if @defaultStructureLoaded
     @defaultStructureLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
     return unless KD.isLoggedIn()    
-    {nickname} = KD.whoami().profile
-    
+    {nickname}     = KD.whoami().profile
+    kiteController = KD.getSingleton('kiteController')
     @fetchStorage (storage)=>
       recentFolders = if storage.bucket?.recentFolders? and storage.bucket.recentFolders.length > 0
         storage.bucket.recentFolders
@@ -85,10 +86,11 @@ class NFinderController extends KDViewController
         ]
 
       timer = Date.now()
-      mount = @treeController.nodes["/Users/#{nickname}"].getData()
+      # @utils.wait =>
+      # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
-      mount.emit "fs.fetchContents.started"
-      KD.getSingleton('kiteController').run
+      @mount.emit "fs.fetchContents.started"
+      kiteController.run
         withArgs  :
           command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
       , (err, response)=>
@@ -96,7 +98,9 @@ class NFinderController extends KDViewController
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
         log "#{(Date.now()-timer)/1000}sec !"
-        mount.emit "fs.fetchContents.finished"
+        # temp fix this doesn't fire in kitecontroller
+        kiteController.emit "UserEnvironmentIsCreated"
+        @mount.emit "fs.fetchContents.finished"
 
 
   fetchStorage:(callback)->

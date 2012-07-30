@@ -159,6 +159,7 @@ $router->add_route('/chris', function () {
 $router->add_route('/channel/auth', function () {
   global $pusher_key, $pusher_secret, $pusher_app_id;
   $pusher = new Pusher($pusher_key, $pusher_secret, $pusher_app_id);
+  trace($pusher_app_id);
   print_cors_headers();
   print_json_headers();
   print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
