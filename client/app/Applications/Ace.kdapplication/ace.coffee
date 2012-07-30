@@ -1,6 +1,6 @@
 ###
   todo:
-    
+
     - put search replace
     - fix setSoftWrap it goes back to off when you reopen the settings
 
@@ -8,38 +8,49 @@
 
 
 class Ace extends KDView
-  
+
   constructor:(options, file)->
-    
+
     super options, file
     @lastSavedContents = ""
+    @appStorage = new AppStorage 'Ace', '1.0'
 
   setDomElement:(cssClass)->
 
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
   viewAppended:->
-    
-    require ['ace/ace'], (ace)=>
-      @editor = ace.edit "editor#{@getId()}"
-      @prepareEditor()
-      @utils.wait => @emit "ace.ready"
-      @fetchContents (err, contents)=>
-        @setContents contents if contents
-        @editor.gotoLine 0
 
+    @appStorage.fetchStorage (storage)=>
+      log storage
+      require ['ace/ace'], (ace)=>
+        @editor = ace.edit "editor#{@getId()}"
+        @prepareEditor()
+        @utils.wait => @emit "ace.ready"
+        @fetchContents (err, contents)=>
+          @setContents contents if contents
+          @editor.gotoLine 0
 
   prepareEditor:->
-    
+
     @setTheme()
     @setSyntax()
-    @setShowPrintMargin no
+    @setUseSoftTabs         @appStorage.getValue 'useSoftTabs',         yes
+    @setShowGutter          @appStorage.getValue 'showGutter',          yes
+    @setShowPrintMargin     @appStorage.getValue 'showPrintMargin',     no
+    @setHighlightActiveLine @appStorage.getValue 'highlightActiveLine', yes
+    @setShowInvisibles      @appStorage.getValue 'showInvisibles',      yes
+    @setFontSize            @appStorage.getValue 'fontSize',            10
+    @setTabSize             @appStorage.getValue 'tabSize',             4
+    @setUseWordWrap         @appStorage.getValue 'useWordWrap',         yes
+    @setSoftWrap            @appStorage.getValue 'softWrap',            'free'
     @setEditorListeners()
-  
+
   setEditorListeners:->
+
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
-    
+
     @editor.commands.addCommand
         name    : 'save'
         bindKey :
@@ -63,11 +74,11 @@ class Ace extends KDView
 
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
-  
+
   ###
   FS REQUESTS
   ###
-        
+
   requestSave:->
 
     contents = @getContents()
@@ -79,48 +90,56 @@ class Ace extends KDView
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 
-    
+
   fetchContents:(callback)->
-    
+
     file = @getData()
     unless /localfile:/.test file.path
       file.fetchContents callback
     else
       callback null, file.contents or ""
-    
+
   ###
   GETTERS
   ###
-  
+
   getContents:-> @editor.getSession().getValue()
-  
+
   getTheme:-> @editor.getTheme().replace "ace/theme/", ""
 
   getSyntax:-> @syntaxMode
 
-  getUseSoftTabs:-> @editor.getSession().getUseSoftTabs()
+  getUseSoftTabs:->
+    @appStorage.getValue 'useSoftTabs', @editor.getSession().getUseSoftTabs()
 
-  getShowGutter:-> @editor.renderer.getShowGutter()
+  getShowGutter:->
+    @appStorage.getValue 'showGutter', @editor.renderer.getShowGutter()
 
-  getShowPrintMargin:-> @editor.getShowPrintMargin()
+  getShowPrintMargin:->
+    @appStorage.getValue 'showPrintMargin', @editor.getShowPrintMargin()
 
-  getHighlightActiveLine:-> @editor.getHighlightActiveLine()
+  getHighlightActiveLine:->
+    @appStorage.getValue 'highlightActiveLine', @editor.getHighlightActiveLine()
 
-  getShowInvisibles:-> @editor.getShowInvisibles()
+  getShowInvisibles:->
+    @appStorage.getValue 'showInvisibles', @editor.getShowInvisibles()
 
-  getFontSize:-> parseInt @$("#editor#{@getId()}").css("font-size"), 10
+  getFontSize:->
+    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 10)
 
-  getTabSize:-> @editor.getSession().getTabSize()
+  getTabSize:->
+    @appStorage.getValue 'tabSize', @editor.getSession().getTabSize()
 
-  getUseWordWrap:-> @editor.getSession().getUseWrapMode()
+  getUseWordWrap:->
+    @appStorage.getValue 'useWordWrap', @editor.getSession().getUseWrapMode()
 
-  getSoftWrap:-> 
+  getSoftWrap:->
 
-    limit = @editor.getSession().getWrapLimitRange().max
+    limit = @appStorage.getValue 'softWrap', @editor.getSession().getWrapLimitRange().max
     if limit then limit
     else
       if @getUseWordWrap() then "free" else "off"
-    
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -133,66 +152,92 @@ class Ace extends KDView
     fontSize            : @getFontSize()
     tabSize             : @getTabSize()
     softWrap            : @getSoftWrap()
-    
+
   ###
   SETTERS
   ###
 
   setContents:(contents)-> @editor.getSession().setValue contents
 
-  setTheme:(themeName = "merbivore_soft")->
-
+  setTheme:(themeName)->
+    themeName or= @appStorage.getValue 'theme', 'merbivore_soft'
     require ["ace/theme/#{themeName}"], (callback) =>
       @editor.setTheme "ace/theme/#{themeName}"
-  
+      @appStorage.setValue 'theme', themeName, =>
+        callback
+
   setSyntax:(mode)->
-    
+
     file = @getData()
     mode or= file.syntax
-    
+
     unless mode
       ext  = @utils.getFileExtension file.path
       for name, [language, extensions] of __aceSettings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
       mode or= "text"
-    
+
     require ["ace/mode/#{mode}"], ({Mode})=>
       @editor.getSession().setMode new Mode
       @syntaxMode = mode
 
-  setUseSoftTabs:(value)-> @editor.getSession().setUseSoftTabs value
-    
-  setShowGutter:(value)-> @editor.renderer.setShowGutter value
+  setUseSoftTabs:(value)->
 
-  setShowPrintMargin:(value)-> @editor.setShowPrintMargin value
-    
-  setHighlightActiveLine:(value)-> @editor.setHighlightActiveLine value
+    @editor.getSession().setUseSoftTabs value
+    @appStorage.setValue 'useSoftTabs', value, =>
+
+  setShowGutter:(value)->
+
+    @editor.renderer.setShowGutter value
+    @appStorage.setValue 'showGutter', value, =>
+
+  setShowPrintMargin:(value)->
+
+    @editor.setShowPrintMargin value
+    @appStorage.setValue 'showPrintMargin', value, =>
+
+  setHighlightActiveLine:(value)->
+
+    @editor.setHighlightActiveLine value
+    @appStorage.setValue 'highlightActiveLine', value, =>
 
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
 
-  setShowInvisibles:(value)-> @editor.setShowInvisibles value
+  setShowInvisibles:(value)->
 
-  setFontSize:(value)-> @$("editor#{@getId()}").css fontSize : "#{value}px"
+    @editor.setShowInvisibles value
+    @appStorage.setValue 'showInvisibles', value, =>
 
-  setTabSize:(value)-> @editor.getSession().setTabSize value
+  setFontSize:(value)->
 
-  setUseWordWrap:(value)-> @editor.getSession().setUseWrapMode value
-  
-  softWrapValueMap = ->
+    @$("editor#{@getId()}").css fontSize : "#{value}px"
+    @appStorage.setValue 'fontSize', value, =>
 
-    'off'  : [ null, 80 ]
-    '40'   : [ 40,   40 ]
-    '80'   : [ 80,   80 ]
-    'free' : [ null, 80 ]
-  
+  setTabSize:(value)->
+
+    @editor.getSession().setTabSize value
+    @appStorage.setValue 'tabSize', value, =>
+
+  setUseWordWrap:(value)->
+
+    @editor.getSession().setUseWrapMode value
+    @appStorage.setValue 'useWordWrap', value, =>
+
   setSoftWrap:(value)->
-    
-    [limit, margin] = softWrapValueMap()[value]
+    softWrapValueMap =
+      'off'  : [ null, 80 ]
+      '40'   : [ 40,   40 ]
+      '80'   : [ 80,   80 ]
+      'free' : [ null, 80 ]
+
+    [limit, margin] = softWrapValueMap[value]
 
     @editor.getSession().setWrapLimitRange limit, limit
     @editor.renderer.setPrintMarginColumn margin
     @setUseWordWrap no if value is "off"
+
+    @appStorage.setValue 'softWrap', value, =>
 
   ###
   HELPERS
@@ -202,9 +247,9 @@ class Ace extends KDView
   notify:(msg, style, details)->
 
     notification.destroy() if notification
-    
+
     style or= 'error' if details
-    
+
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
       type      : "mini"
