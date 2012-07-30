@@ -93,9 +93,8 @@ class KDFormView extends KDView
       event.stopPropagation()
       event.preventDefault()
     
-    @once "FormValidationFinished", (isValid)=>
-      if isValid
-        @valid = yes
+    @once "FormValidationFinished", =>
+      if @valid
         @getCallback()?.call @, formData, event
         @emit "FormValidationPassed"
       else
@@ -106,6 +105,7 @@ class KDFormView extends KDView
     validInputs    = []
     toBeValidated  = []
     formData       = @getCustomData() or {}
+    @valid         = yes
     
     # put to be validated inputs in a queue
     inputs.forEach (input)=>
@@ -115,17 +115,14 @@ class KDFormView extends KDView
         # put regular input values to formdata
         formData[input.getName()] = input.getValue() if input.getName()
 
-    valid = yes
     toBeValidated.forEach (input)=>
       # wait for the validation result of each input
       do =>
         input.once "ValidationResult", (result)=>
-          log result, "||||||"
           validatedCount++
           validInputs.push input if result
           # check if all inputs were validated
           if toBeValidated.length is validatedCount
-            log validInputs, ">>>>"
             # check if all inputs were valid
             if toBeValidated.length is validInputs.length
               # put valid inputs to formdata
@@ -140,6 +137,3 @@ class KDFormView extends KDView
 
     # if no validation is required mimic as all were validated
     @emit "FormValidationFinished" if toBeValidated.length is 0
-
-
-

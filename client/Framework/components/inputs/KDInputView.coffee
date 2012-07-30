@@ -192,6 +192,7 @@ class KDInputView extends KDView
   validate:(rule, event = {})->
     
     @ruleChain or= []
+    @validationResults or= {}
     rulesToBeValidated = if rule then [rule] else @ruleChain
     ruleSet = @getOptions().validate
     
@@ -203,8 +204,19 @@ class KDInputView extends KDView
         else if "function" is typeof ruleSet.rules[rule]
           ruleSet.rules[rule] @, event
     else
-      @emit "ValidationPassed"
       @valid = yes
+
+    allClear = yes
+    for result, errMsg of @validationResults
+      if errMsg then allClear = no
+
+    if allClear
+      @emit "ValidationPassed"
+      @emit "ValidationResult", yes
+      @valid = yes
+    else
+      @emit "ValidationResult", no
+
 
   createRuleChain:(ruleSet)-> 
     
@@ -216,25 +228,13 @@ class KDInputView extends KDView
 
   setValidationResult:(rule, err)->
     
-    @validationResults or= {}
-    log rule, err, "<?<?<?<?"
     if err
       @validationResults[rule] = err
       @showValidationError err if @getOptions().validationNotifications
       @emit "ValidationError", err
-      @emit "ValidationResult", no
       @valid = no
     else
-      @emit "ValidationResult", yes
       @validationResults[rule] = null
-    
-    allClear = yes
-    for result, errMsg of @validationResults
-      if errMsg then allClear = no
-
-    if allClear
-      @emit "ValidationPassed"
-      @valid = yes
 
 
   showValidationError:(message)->
