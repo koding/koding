@@ -22,7 +22,6 @@ class Ace extends KDView
   viewAppended:->
 
     @appStorage.fetchStorage (storage)=>
-      log storage
       require ['ace/ace'], (ace)=>
         @editor = ace.edit "editor#{@getId()}"
         @prepareEditor()
