@@ -44,7 +44,7 @@ class ProfileView extends KDView
       pistachio   : "{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFollowsContentDisplay", memberData, 'followers'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -54,7 +54,7 @@ class ProfileView extends KDView
       pistachio   : "{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFollowingContentDisplay", memberData, 'followings'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
