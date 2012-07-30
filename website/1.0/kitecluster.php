@@ -37,6 +37,8 @@ class KiteTrustPolicy {
           return preg_match($hostname_preg, strtolower($hostname));
         };
         break;
+      case 'untrustedKite':
+        break;
       }
     }
   }
@@ -53,6 +55,9 @@ class KiteCluster {
     $this->name = $cluster->name;
     $this->interface = $cluster->interface;
     $this->loadBalancer = KiteLoadBalancer::create($cluster->loadBalancing);
+    if (!isset($cluster->trustPolicy)) {
+      $cluster->trustPolicy = array('untrustedKite' => array());
+    }
     $this->trustPolicy = new KiteTrustPolicy($cluster->trustPolicy);
     $this->initialize();
   }
