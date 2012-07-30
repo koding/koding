@@ -1,6 +1,7 @@
 class CommentListViewController extends KDListViewController
   constructor:->
     super
+    @_hasBackgrounActivity = no
     @startListeners()
 
   instantiateListItems:(items, keepDeletedComments = no)->
@@ -36,6 +37,8 @@ class CommentListViewController extends KDListViewController
 
     listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
 
+      return if @_hasBackgrounActivity
+
       # some problems when logged out server doesnt responds
       @utils.wait 5000, -> listView.emit "BackgroundActivityFinished"
 
@@ -47,6 +50,7 @@ class CommentListViewController extends KDListViewController
 
       stack.push (callback) =>
         listView.emit "BackgroundActivityStarted"
+        @_hasBackgrounActivity = yes
         callback()
 
       for xto in [repliesCount..0]
@@ -65,6 +69,7 @@ class CommentListViewController extends KDListViewController
           listView.emit "AllCommentsWereAdded"
         else
           log "Failed to get comments..."
+        @_hasBackgrounActivity = no
 
     listView.registerListener
       KDEventTypes  : "CommentSubmitted"
