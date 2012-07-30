@@ -51,7 +51,7 @@ class KiteController {
           'serviceKey' => $service_key,
         ));
         if (isset($custom_cluster)) {
-          $this->add_cluster($kite_name, $custom_cluster);
+          $this->add_cluster($kite_name, (stdClass) $custom_cluster);
         }
       }
       if (!isset($clusters)) {
