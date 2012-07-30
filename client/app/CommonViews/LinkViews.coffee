@@ -213,7 +213,7 @@ class FollowedModalView extends KDModalView
     else if participants[0] instanceof bongo.api.JTag
       @type = "tag"
 
-    options.title    = titleMap()[@type]
+    options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
     options.cssClass = "modal-topic-wrapper"
