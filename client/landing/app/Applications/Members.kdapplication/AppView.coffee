@@ -164,6 +164,9 @@ class MembersListItemView extends KDListItemView
         <header class='personal'>
           <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
+
+        <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+
         <footer>
           <span class='button-container'>{{> @followButton}}</span>
           <a class='followers' href='#'> <cite></cite> {{#(counts.followers)}} Followers</a>
