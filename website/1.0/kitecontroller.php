@@ -38,8 +38,13 @@ class KiteController {
     $result = array('addedTo' => array());
     $clusters = $this->clusters[$kite_name];
     if (!isset($clusters)) {
-      error_log("No cluster found for kites named $kite_name");
-      return FALSE;
+      $db = get_mongo_db();
+      $clusters = $db->findOne(array(
+        'kiteName' => $kite_name,
+      ));
+      if (!isset($clusters)) {
+        return FALSE;
+      }
     }
     foreach ($clusters as $index=>$cluster) {
       if ($cluster->trustPolicy->test('byHostname', $parsed_uri['host'])
