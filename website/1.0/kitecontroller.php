@@ -51,12 +51,12 @@ class KiteController {
           'serviceKey' => $service_key,
         ));
         if (isset($custom_cluster)) {
-          $custom_cluster = (stdClass) $custom_cluster;
+          $custom_cluster = (object) $custom_cluster;
           $this->add_cluster($kite_name, $custom_cluster);
         }
       }
       if (!isset($clusters)) {
-        error_log("Couldn't find a kite named: $kiteName.  ($service_key)");
+        error_log("Couldn't find a kite named: $kite_name.  ($service_key)");
         return FALSE;
       } else {
         trace('klusters', $clusters);
