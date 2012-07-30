@@ -32,7 +32,7 @@ class AppStorage # extends KDObject
 
     return if @getValue(key) is value
     
-    pack = zip key, group, value
+    pack = @zip key, group, value
     
     @fetchStorage (storage)=>
       storage.update {
@@ -41,7 +41,7 @@ class AppStorage # extends KDObject
 
   unsetKey: (key, callback, group = 'bucket')->
 
-    pack = zip key, group, 1
+    pack = @zip key, group, 1
 
     @fetchStorage (storage)=>
       storage.update {
