@@ -20,13 +20,19 @@ class KiteController {
   }
   
   public function add_cluster ($kite_name, $cluster) {
-    if (!isset($this->clusters[$kite_name])) {
-      $this->clusters[$kite_name] = array();
-    }
+    $cluster =& $this->get_cluster($kite_name);
     array_push(
       $this->clusters[$kite_name],
       new KiteCluster($kite_name, $cluster)
     );
+    return count($this->clusters[$kite_name]);
+  }
+  
+  public function get_cluster ($kite_name) {
+    if (!isset($this->clusters[$kite_name])) {
+      $this->clusters[$kite_name] = array();
+    }
+    return $this->clusters[$kite_name];
   }
   
   public function initialize_config ($config_json) {
@@ -42,7 +48,7 @@ class KiteController {
     trace('service key', $service_key);
     $parsed_uri = parse_url($uri);
     $result = array('addedTo' => array());
-    $clusters = $this->clusters[$kite_name];
+    $clusters =& $this->get_cluster($kite_name);
     if (!isset($clusters)) {
       if (isset($service_key)) {
         $db = get_mongo_db();
