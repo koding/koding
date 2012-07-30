@@ -359,7 +359,17 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-
+  
+  fetchRelativeComments:({limit, before, after}, callback)->
+    limit ?= 10
+    if before? and after?
+      callback new KodingError "Don't use before and after together."
+    selector = timestamp:
+      if before? then  $lt: before
+      else if after? then $gt: after
+    options = {limit, sort: timestamp: 1}
+    @fetchComments selector, options, callback
+  
   commentsByRange:(options, callback)->
     [callback, options] = [options, callback] unless callback
     {from, to} = options
@@ -375,7 +385,8 @@ class JPost extends jraphical.Message
       queryOptions = skip: from
       if to
         queryOptions.limit = to - from
-    queryOptions.sort = timestamp: -1
+    queryOptions.sort = timestamp: 1
+    console.log selector, queryOptions
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->

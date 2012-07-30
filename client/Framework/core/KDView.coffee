@@ -58,7 +58,6 @@ class KDView extends KDObject
 
     data?.on? 'update', =>
       data
-      debugger if window.paws
       @render()
 
     @setInstanceVariables options
@@ -73,6 +72,10 @@ class KDView extends KDObject
             log @getData()
             event.stopPropagation?()
             event.preventDefault?()
+            return false
+          else if event.metaKey and event.altKey and event.shiftKey
+            data = @getData()
+            debugger
             return false
           else if event.metaKey and event.altKey
             log @
