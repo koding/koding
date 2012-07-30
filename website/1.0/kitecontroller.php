@@ -19,15 +19,18 @@ class KiteController {
     }
   }
   
+  public function add_cluster($kite_name, $cluster) {
+    array_push(
+      $this->clusters[$kite_name],
+      new KiteCluster($kite_name, $cluster)
+    );
+  }
+  
   public function initialize_config ($config_json) {
     $config = json_decode($config_json);
     foreach ($config->kites as $kite_name => $kite) {
-      $this->clusters[$kite_name] = array();
       foreach ($kite->clusters as $cluster) {
-        array_push(
-          $this->clusters[$kite_name],
-          new KiteCluster($kite_name, $cluster)
-        );
+        $this->add_cluster($kite_name, $cluster);
       }
     }
   }
@@ -40,11 +43,16 @@ class KiteController {
     if (!isset($clusters)) {
       if (isset($service_key)) {
         $db = get_mongo_db();
-        $clusters = $db->jKiteClusters->findOne(array(
+        $custom_cluster = $db->jKiteClusters->findOne(array(
           'kiteName' => $kite_name,
+          'serviceKey' => $service_key,
         ));
+        if (isset($custom_cluster)) {
+          $this->add_cluster($kite_name, $custom_cluster);
+        }
       }
       if (!isset($clusters)) {
+        error_log("Couldn't find a kite named: $kiteName.  ($service_key)");
         return FALSE;
       } else {
         trace('klusters', $clusters);
