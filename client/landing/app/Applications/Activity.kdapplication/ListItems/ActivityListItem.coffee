@@ -90,21 +90,16 @@ class ActivityItemChild extends KDView
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
-    if data.originId is KD.whoami().getId()
+    superAdmin = yes
+
+    if data.originId is KD.whoami().getId() or superAdmin
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu'
         title       : ''
         icon        : yes
         delegate    : @
         iconClass   : "arrow"
-        menu        : [
-          type      : "contextmenu"
-          items     : [
-            # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
-            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
-          ]
-        ]
+        menu        : @settingsMenu data
         callback    : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
@@ -132,6 +127,32 @@ class ActivityItemChild extends KDView
       @commentBox.decorateCommentedState() if count >= 0
 
     @contentDisplayController = @getSingleton "contentDisplayController"
+
+  settingsMenu:(data)->
+    
+    menu = [
+      type      : "contextmenu"
+      items     : []
+    ]
+
+    if data.originId is KD.whoami().getId()
+      menu[0].items = [
+        { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+        { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
+      ]
+
+      return menu
+    
+    superAdmin = yes
+    
+    if superAdmin
+      menu[0].items = [
+        { title : 'Report troll', id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'TrollReported', data  }
+        { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
+      ]
+
+      return menu
+
 
   confirmDeletePost:(data)->
 

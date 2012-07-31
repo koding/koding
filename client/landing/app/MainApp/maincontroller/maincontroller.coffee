@@ -52,6 +52,7 @@ class MainController extends KDController
           withCredentials: yes
   
   initiateApplication:do->
+    modal = null
     fail =->
       modal = new KDBlockingModalView
         title   : "Couldn't connect to the backend!"
@@ -72,12 +73,18 @@ class MainController extends KDController
       KD.registerSingleton "kiteController", new KiteController
       connectedState = connected: no
       setTimeout connectionFails.bind(null, connectedState), 5000
+      @on "RemoveModal", =>
+        if modal instanceof KDBlockingModalView
+          modal.setTitle "Connection Established"
+          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+          @utils.wait 2500, -> modal?.destroy()
       @getVisitor().on 'change.login', (account)=> @accountChanged account, connectedState
       @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
 
   accountChanged:(account, connectedState)->
     
     connectedState.connected = yes
+    @emit "RemoveModal"
     
     @emit "AccountChanged", account
 
