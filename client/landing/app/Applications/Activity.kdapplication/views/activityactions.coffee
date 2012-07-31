@@ -24,6 +24,7 @@ class ActivityActionsView extends KDView
 
     @likeCount    = new ActivityLikeCount
       tooltip     :
+        gravity   : "se"
         title     : ""
         engine    : "tipsy" # We should force to use tipsy because
                             # for now only tipsy supports tooltip updates
