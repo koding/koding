@@ -122,9 +122,10 @@ $router->add_route('/logout', function () {
 });
 
 $router->add_route('/kite/connect', function () {
+  error_log('hello');
   $kite_controller = get_kite_controller();
   $req = json_decode($_REQUEST['data']);
-  $response = $kite_controller->add_kite($req->kiteName, $req->uri);
+  $response = $kite_controller->add_kite($req->kiteName, $req->uri, $req->serviceKey);
   if (!$response) {
     access_denied();
   }
@@ -148,6 +149,11 @@ $router->add_route('/kite/disconnect', function () {
     $kite_controller->remove_kite($kite_name, $uri);
     okay();
   }
+});
+
+$router->add_route('/chris', function () {
+  error_log('dfghjkl');
+  print 'qwerftgyui';
 });
 
 $router->add_route('/channel/auth', function () {

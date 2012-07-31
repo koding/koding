@@ -119,6 +119,7 @@ Includes =
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
 
 
@@ -532,6 +533,7 @@ Includes =
         registerform              : "./client/app/MainApp/login/registerform.coffee"
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
+        requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
