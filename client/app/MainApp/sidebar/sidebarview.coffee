@@ -389,9 +389,3 @@ class KiteSelectorModal extends KDModalView
               kiteName = name
               (value)-> log value, kiteName, "selected kite"
           i++
-
-
-
-
-
-
