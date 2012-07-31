@@ -43,10 +43,10 @@ class CommentListViewController extends KDListViewController
       @utils.wait 5000, -> listView.emit "BackgroundActivityFinished"
 
       {meta} = listView.getData()
-      @commentStack = []
 
       listView.emit "BackgroundActivityStarted"
       @_hasBackgrounActivity = yes
+      @_removedBefore = no
       @fetchRelativeComments 10, meta.createdAt
 
     listView.registerListener
@@ -84,15 +84,17 @@ class CommentListViewController extends KDListViewController
     message = @getListView().getData()
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
 
-      Array::push.apply @commentStack, comments[_limit-10...]
+      if not @_removedBefore
+        @removeAllItems()
+        @_removedBefore = yes
+
+      @instantiateListItems comments[_limit-10...], yes
 
       if comments.length is _limit
-        startTime = @commentStack[@commentStack.length-1].meta.createdAt
+        startTime = comments[comments.length-1].meta.createdAt
         @fetchRelativeComments 11, startTime
       else
         listView = @getListView()
-        @removeAllItems()
-        @instantiateListItems @commentStack, yes
         listView.emit "BackgroundActivityFinished"
         listView.emit "AllCommentsWereAdded"
         @_hasBackgrounActivity = no
