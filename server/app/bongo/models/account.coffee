@@ -7,7 +7,9 @@ class JAccount extends jraphical.Module
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
   @::mixin Notifiable::
+  @::mixin Flaggable::
   
+  @getFlagRole = 'content'
 
   {ObjectId,secure,race,dash} = bongo
   {Relationship} = jraphical
@@ -38,14 +40,14 @@ class JAccount extends jraphical.Module
         'byRelevance'
       ]
       instance    : [
-        'on','update','follow','unfollow','fetchFollowersWithRelationship'
+        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship','getDefaultEnvironment'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites'
+        'fetchAllKites','flagAccount'
       ]
     schema                  :
       skillTags             : [String]
@@ -92,6 +94,7 @@ class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+        globalFlags         : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
       environment   :
@@ -209,13 +212,25 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
-  
-  # temp dummy stuff
 
   dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
   
+  flagAccount: secure (client, flag, callback)->
+    {delegate} = client.connection
+    if delegate.can 'flag', this
+      @update {$addToSet: globalFlags: flag}, callback
+    else
+      callback new KodingError 'Access denied'
+  
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
-
+  
+  @getFlagRole =-> 'owner'
+  
+  can:(action, target)->
+    switch action
+      when 'delete','flag'
+        @profile.nickname in dummyAdmins or target.originId?.equals @getId()
+  
   fetchRole: secure ({connection}, callback)->
     
     if isDummyAdmin connection.delegate.profile.nickname
@@ -301,11 +316,11 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, callback
-
-  update: secure (client, changes, callback) ->
-    if client.connection.delegate.equals @
-      jraphical.Module::update.call @, changes, callback
-
+  
+  modify: secure (client, fields, callback) ->
+    if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
+      @update $set: fields, callback
+  
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate

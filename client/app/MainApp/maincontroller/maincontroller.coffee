@@ -109,7 +109,7 @@ class MainController extends KDController
                 title   : 'Fail!'
                 duration: 1000
             else
-              account.update $set: isEnvironmentCreated: yes, (err)->
+              account.modify isEnvironmentCreated: yes, (err)->
                 if err
                   console.log err
                 else
