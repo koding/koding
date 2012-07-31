@@ -26,7 +26,7 @@ class LoginView extends KDScrollView
     @backToVideoLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "video-link"
-      partial     : "video again."
+      partial     : "video again?"
       click       : => @animateToForm "home"
       # click       : =>
       #   @slideUp ->
@@ -113,25 +113,19 @@ class LoginView extends KDScrollView
       cssClass : "login-form"
       callback : (formData)=> @doReset formData
 
-    @launchrock = new KDView
-      domId    : "launchrock" 
-
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @launchrock
-      callback           : =>
-        @launchrock.setPartial """<div rel="OMJTOEKT" class="lrdiscoverwidget" data-logo="off" data-background="off" data-share-url="koding.com" data-css="#{KD.staticFilesBaseUrl}/css/launchrock.css"></div><script type="text/javascript" src="//launchrock-ignition.s3.amazonaws.com/ignition.1.1.js"></script>"""
+    @requestForm = new RequestInlineForm
+      cssClass : "login-form"
+      callback : (formData)=> @doRequest formData
     
     @video = new KDView
       cssClass : "video-wrapper"
 
-
-    @on "LoginViewAnimated", (name)=>
-      if name is "home"
+    @on "LoginViewHidden", (name)=>
+      @video.updatePartial ""
+    
+    @on "LoginViewShown", (name)=>
+      if @video.$('iframe').length is 0
         @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-      else
-        @utils.wait 400, =>
-          @video.updatePartial ""
 
     @listenTo
       KDEventTypes       : "viewAppended"
@@ -177,9 +171,9 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="launchrock-wrapper">
-        <h3 class='kdview kdheaderview '>REQUEST AN INVITE:</h3>
-        {{> @launchrock}}
+      <div class="login-form-holder rqf">
+        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
+        {{> @requestForm}}
       </div>
     </div>
     <div class="login-footer">
@@ -279,12 +273,28 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-  
+  doRequest:(formData)->
+
+    bongo.api.JInvitationRequest.create formData, (err, result)=>
+
+      if err
+        msg = if err.code is 11000 then "This email was used for a request before!"
+        else "Something went wrong, please try again!"
+        new KDNotificationView
+          title     : msg
+          duration  : 2000
+      else
+        @requestForm.reset()
+        @requestForm.email.hide()
+        @requestForm.button.hide()
+        @$('.flex-wrapper').addClass 'expanded'
+      @requestForm.button.hideLoader()
+
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
     @$().css marginTop : -winHeight
-
     @utils.wait 601,()=>
+      @emit "LoginViewHidden"
       @hidden = yes
       $('body').removeClass 'login'
       # @hide()
@@ -294,6 +304,7 @@ class LoginView extends KDScrollView
 
     $('body').addClass 'login'
     # @show()
+    @emit "LoginViewShown"
     @$().css marginTop : 0
     @utils.wait 601,()=>
       @hidden = no
