@@ -7,6 +7,7 @@ class JAccount extends jraphical.Module
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
   @::mixin Notifiable::
+  # @::mixin Permissable::
   
 
   {ObjectId,secure,race,dash} = bongo
@@ -214,6 +215,12 @@ class JAccount extends jraphical.Module
   dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
   
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+
+  can:(action, target)->
+    switch action
+      when 'delete'
+        isDummyAdmin(delegate.profile.nickname) or \
+        delegate.getId().equals(message.originId)
 
   fetchRole: secure ({connection}, callback)->
     
