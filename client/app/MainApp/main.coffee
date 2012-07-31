@@ -58,7 +58,7 @@ initConnectionEvents = _.once (conn)->
                 # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED BEFORE CONNECTION RE-ESTABLISHES
                 connectionLostNotification = new KDNotificationView
                   title    : "Server Connection Has Been Lost"
-                  content  : "<span class='small-loader white fade in'></span> Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
+                  content  : "Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
                   duration : 999999999
     ,500
 
@@ -66,7 +66,7 @@ bongo.connect (api, conn)->
   initConnectionEvents conn
 
   if connectionLostModalId?
-    (KDModalController.getModalById connectionLostModalId).destroy()
+    (KDModalController.getModalById connectionLostModalId)?.destroy()
     connectionLostModalId = null
 
     # THE MODAL APPEARS WHEN CONNECTION IS RE-ESTABLISHED

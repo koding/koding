@@ -6,12 +6,12 @@ class cloudlinux::lvestats {
         ensure => installed,
     }
 
-    file { "/etc/sysconfig/lve":
+    file { "/etc/sysconfig/lvestats":
         ensure  => file,
         owner => 'root',
         group => 'root',
         mode => '0644',
-        content => template("cloudlinux/lve.erb"),
+        content => template("cloudlinux/lvestats.erb"),
         require => Package["lve-stats"],
         notify => Service['lvestats'],
     }
@@ -21,7 +21,7 @@ class cloudlinux::lvestats {
         hasstatus => true,
         hasrestart => true,
         enable => true,
-        require => [Package['lve-stats'],File['/etc/sysconfig/lve']]
+        require => [Package['lve-stats'],File['/etc/sysconfig/lvestats']]
     }
  
 }

@@ -12,6 +12,8 @@ slice         = Array::slice
 splice        = Array::splice
 noop          = Function()
 
+Error.stackTraceLimit = 100
+
 if process.argv[5] is "true"
   __runCronJobs   = yes
   log "--cron is active, cronjobs will be running with your server."
@@ -19,7 +21,8 @@ if process.argv[5] is "true"
 
 process.on 'uncaughtException', (err)->
   exec './beep'
-  console.log err, err?.stack
+  throw err
+  # console.log err, err?.stack
 
 
 dbCallback= (err)->

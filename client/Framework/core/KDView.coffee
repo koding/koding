@@ -56,7 +56,10 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', =>
+      data
+      debugger if window.paws
+      @render()
 
     @setInstanceVariables options
     @defaultInit options,data
@@ -116,8 +119,8 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      error 'View already has a parent'
       console.log "view:", @, "parent:", @parent
+      error 'View already has a parent'
     else
       if defineProperty
         defineProperty @, 'parent', value : parent, configurable : yes
@@ -719,13 +722,24 @@ class KDView extends KDObject
 
   setTooltip:(o = {})->
 
+    placementMap =
+           above : "s"
+           below : "n"
+           left  : "e"
+           right : "w"
+
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
     o.delayIn   or= 0
     o.html      or= yes
     o.animate   or= no
+    o.opacity   or= 0.9
     o.selector  or= null
+    o.engine    or= "tipsy" # we still can use twipsy
+    o.gravity   or= placementMap[o.placement]
+    o.fade      or= o.animate
+    o.fallback  or= o.title
 
     @listenTo
       KDEventTypes        : "viewAppended"
@@ -733,7 +747,17 @@ class KDView extends KDObject
       callback            : =>
         # log "get rid of this timeout there should be an event after template update"
         @utils.wait =>
-          @$(o.selector).twipsy o
+          @$(o.selector)[o.engine] o
+
+  getTooltip:(o = {})->
+    o.selector or= null
+    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+
+  updateTooltip:(o = {})->
+    o.selector or= null
+    o.title    or= ""
+    if o.title
+      @$(o.selector)[0].setAttribute "original-title", o.title
 
   listenWindowResize:->
 

@@ -32,7 +32,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify'
+        'delete','modify','fetchRelativeComments'
       ]
     schema            : schema
     relationships     : 
@@ -191,6 +191,8 @@ class JPost extends jraphical.Message
     }, (err, rel)->
       if err
         callback err
+      else unless rel
+        callback new KodingError 'No activity found'
       else
         callback null, rel.getAt 'sourceId'
   
@@ -201,20 +203,15 @@ class JPost extends jraphical.Message
       else
         CActivity.one _id: id, callback 
   
-  removeReply:(rel, callback)->
-    id = @getId()
+  flushSnapshot:(removedSnapshotIds, callback)->
+    removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'    
     queue = [
       =>
         @fetchActivityId (err, activityId_)->
           activityId = activityId_
           queue.next()
-      ->
-        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
-      =>
-        @update $inc: repliesCount: -1, -> queue.next()
       =>
         @fetchTeaser (err, teaser_)=>
           if err
@@ -225,12 +222,27 @@ class JPost extends jraphical.Message
       ->
         CActivity.update _id: activityId, {
           $set:
-            snapshot: JSON.stringify teaser
-            'sorts.repliesCount': repliesCount - 1
+            snapshot              : JSON.stringify teaser
+            'sorts.repliesCount'  : teaser.repliesCount
           $pullAll:
-            snapshotIds: rel.getAt 'targetId'
+            snapshotIds: removedSnapshotIds
         }, -> queue.next()
-      
+      callback
+    ]
+    daisy queue
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    repliesCount = @getAt 'repliesCount'    
+    queue = [
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @flushSnapshot rel.getAt('targetId'), -> queue.next()
       callback
     ]
     daisy queue
@@ -348,6 +360,16 @@ class JPost extends jraphical.Message
     .endGraphlet()
     .fetchRoot callback
 
+  fetchRelativeComments:({limit, before, after}, callback)->
+    limit ?= 10
+    if before? and after?
+      callback new KodingError "Don't use before and after together."
+    selector = timestamp:
+      if before? then  $lt: before
+      else if after? then $gt: after
+    options = {limit, sort: timestamp: 1}
+    @fetchComments selector, options, callback
+
   commentsByRange:(options, callback)->
     [callback, options] = [options, callback] unless callback
     {from, to} = options
@@ -363,7 +385,7 @@ class JPost extends jraphical.Message
       queryOptions = skip: from
       if to
         queryOptions.limit = to - from
-    queryOptions.sort = timestamp: -1
+    queryOptions.sort = timestamp: 1
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->
@@ -390,7 +412,7 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-  
+
   save:->
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
