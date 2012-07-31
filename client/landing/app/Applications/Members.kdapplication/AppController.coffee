@@ -96,8 +96,8 @@ class Members12345 extends AppController
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view
 
-
-  createFollowsContentDisplay:(account, filter)->
+  createFolloweeContentDisplay:(account, filter)->
+    # log "I need to create followee for", account, filter
     newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
