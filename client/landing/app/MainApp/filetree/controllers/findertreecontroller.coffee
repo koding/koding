@@ -387,35 +387,13 @@ class NFinderTreeController extends JTreeViewController
 
   publishApp:(nodeView)->
 
-    folder               = nodeView.getData()
-    name                 = FSHelper.trimExtension folder.path
-    kodingAppsController = @getSingleton('kodingAppsController')
-    kiteController       = @getSingleton('kiteController')
+    folder = nodeView.getData()
+    name   = FSHelper.trimExtension folder.path
 
     folder.emit "fs.publish.started"
-
-    kodingAppsController.getApp name, (appScript)=>
-
-      log "got the app", name
-      manifest    = KodingAppsController.apps[name]
-      {nickname}  = KD.whoami().profile
-      publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
-
-      log "trying to publish"
-      log options =
-        toDo          : "publishApp"
-        withArgs      :
-          version     : manifest.version
-          appName     : manifest.name
-          userAppPath : "#{folder.path}/index.js"
-
-      kiteController.run options, (err, res)=>
-        log "publish finished", err, res
-        if err then warn err
-        else
-          log res
-          folder.emit "fs.publish.finished"
-          @notify "App published!", "success"
+    @getSingleton('kodingAppsController').publishApp name, =>
+      folder.emit "fs.publish.finished"      
+      @notify "App published!", "success"
 
 
 
