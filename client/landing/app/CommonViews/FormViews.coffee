@@ -121,11 +121,11 @@ class PersonalFormNameView extends AbstractPersonalFormView
       @unsetClass 'active'
       return no
     
-    query = $set:
+    query =
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
 
-    @memberData.update query, (err)=>
+    @memberData.modify query, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
@@ -223,9 +223,8 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       @parent.unsetClass 'active'
       return no
     
-    changes = $set:
-      'profile.about'  : about
-    @memberData.update changes, (err)=>
+    changes = 'profile.about'  : about
+    @memberData.modify changes, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
@@ -287,9 +286,8 @@ class PersonalFormLocationView extends AbstractPersonalFormView
     else
       locationArray = []
     
-    changes = $set:
-      'locationTags' : locationArray
-    @memberData.update changes, (err)=>
+    changes = locationTags : locationArray
+    @memberData.modify changes, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
