@@ -42,34 +42,12 @@ class CommentListViewController extends KDListViewController
       # some problems when logged out server doesnt responds
       @utils.wait 5000, -> listView.emit "BackgroundActivityFinished"
 
-      {repliesCount} = listView.getData()
+      {meta} = listView.getData()
+      @commentStack = []
 
-      log "Total comment: ", repliesCount
-      stack = []
-      removedAlready = no
-
-      stack.push (callback) =>
-        listView.emit "BackgroundActivityStarted"
-        @_hasBackgrounActivity = yes
-        callback()
-
-      for xto in [repliesCount..0]
-        do (xto) =>
-          stack.push (callback) =>
-            @fetchCommentsByRange xto, xto+1, (err, comments) =>
-              if not removedAlready
-                @removeAllItems()
-                removedAlready = yes
-              @instantiateListItems comments, yes
-              callback err, comments
-
-      async.parallel stack, (error, result) =>
-        listView.emit "BackgroundActivityFinished"
-        if not error
-          listView.emit "AllCommentsWereAdded"
-        else
-          log "Failed to get comments..."
-        @_hasBackgrounActivity = no
+      listView.emit "BackgroundActivityStarted"
+      @_hasBackgrounActivity = yes
+      @fetchRelativeComments 10, meta.createdAt
 
     listView.registerListener
       KDEventTypes  : "CommentSubmitted"
@@ -100,6 +78,24 @@ class CommentListViewController extends KDListViewController
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllCommentsWereAdded"
       callback err, comments
+
+  fetchRelativeComments:(_limit = 10, _after)=>
+    listView = @getListView()
+    message = @getListView().getData()
+    message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
+
+      Array::push.apply @commentStack, comments[_limit-10...]
+
+      if comments.length is _limit
+        startTime = @commentStack[@commentStack.length-1].meta.createdAt
+        @fetchRelativeComments 11, startTime
+      else
+        listView = @getListView()
+        @removeAllItems()
+        @instantiateListItems @commentStack, yes
+        listView.emit "BackgroundActivityFinished"
+        listView.emit "AllCommentsWereAdded"
+        @_hasBackgrounActivity = no
 
   replaceAllComments:(comments)->
     @removeAllItems()
