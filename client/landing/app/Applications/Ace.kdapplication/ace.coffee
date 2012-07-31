@@ -89,7 +89,6 @@ class Ace extends KDView
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 
-
   fetchContents:(callback)->
 
     file = @getData()
@@ -210,7 +209,7 @@ class Ace extends KDView
 
   setFontSize:(value)->
 
-    @$("editor#{@getId()}").css fontSize : "#{value}px"
+    @$("#editor#{@getId()}").css 'font-size', "#{value}px"
     @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
