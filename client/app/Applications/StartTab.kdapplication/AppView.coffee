@@ -35,7 +35,7 @@ class StartTabMainView extends JView
       callback : =>
         @removeAppIcons()
         @loader.show()
-        @fetchApps (apps)=>
+        @getSingleton("kodingAppsController").fetchApps (err, apps)=>
           @loader.hide()
           @button.hideLoader()
           @decorateApps apps
@@ -105,7 +105,7 @@ class StartTabMainView extends JView
     @removeAppIcons()
     @loader.show()
 
-    @fetchApps (apps)=>
+    @getSingleton("kodingAppsController").fetchApps (err, apps)=>
       @loader.hide()
       @decorateApps apps
 
@@ -116,18 +116,6 @@ class StartTabMainView extends JView
       @putAppIcons apps
     else
       @noAppsWarning.show()
-
-  fetchApps:(kallback)->
-    
-    appsController = @getSingleton("kodingAppsController")
-    appsController.fetchAppsFromDb (err, apps)=>
-      if err
-        appsController.fetchAppsFromFs (err, apps)=>
-          if err then kallback()
-          else
-            kallback apps
-      else
-        kallback? err, apps
 
   removeAppIcons:->
     

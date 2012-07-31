@@ -7,7 +7,7 @@ class AppsListItemView extends KDListItemView
     
     # log data
     
-    thumbOptions = if data.thumbnails[0]?
+    thumbOptions = if data.thumbnails?[0]?
       tagName     : 'img'
       attributes  :
         src       : '/images/uploads/' + data.thumbnails[0].listThumb
@@ -17,6 +17,13 @@ class AppsListItemView extends KDListItemView
         src       : '/images/default.app.listthumb.png'
 
     @thumbnail = new KDCustomHTMLView thumbOptions
+    @removeButton = new KDButtonView
+      title : "Delete app"
+      callback : =>
+        @getData().remove (err)=>
+          if err then warn err
+          else
+            @emit "AppDeleted", @
 
   click:(event)->
     if $(event.target).is ".appdetails h3 a span"
@@ -77,7 +84,9 @@ class AppsListItemView extends KDListItemView
     <div class="appdetails">
       <h3><a href="#">{{#(title)}}</a></h3>
       <article>{{@utils.shortenText #(body)}}</article>
-      <div class="button-container"></div>
+      <div class="button-container">
+        {{> @removeButton}}
+      </div>
     </div>
     """
   

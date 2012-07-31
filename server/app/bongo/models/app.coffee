@@ -11,7 +11,7 @@ class JApp extends jraphical.Module
   @mixin Followable       # brings only static methods
   @::mixin Followable::   # brings only prototype methods
   @::mixin Taggable::
-  # 
+
   {Inflector,JsPath,secure,daisy} = bongo
   
   @share()
@@ -22,7 +22,7 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow'
+        "update",'follow', 'unfollow', 'remove'
         'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship'
       ]
       static        : [
@@ -47,6 +47,7 @@ class JApp extends jraphical.Module
       thumbnails    : [Object]
       screenshots   : [Object]
       meta          : require "bongo/bundles/meta"
+      manifest      : Object
 
     relationships   :
       creator       : JAccount
@@ -69,43 +70,73 @@ class JApp extends jraphical.Module
     # TODO: this should be a race not a daisy
   
   @create = secure (client, data, callback)->
+
+    console.log "creating the JApp"
+
     {connection:{delegate}} = client
-    {thumbnails, screenshots, meta:{tags}} = data
-    Resource.storeImages client, thumbnails, (err, thumbnailsFilenames)->
+
+    app = new JApp {
+      title       : data.title
+      body        : data.body
+      manifest    : data.manifest
+    }
+
+    app.save (err)->
       if err
+        console.log "error 3"
         callback err
       else
-        Resource.storeImages client, screenshots, (err, screenshotsFilenames)->
-          if err
-            callback err
-          else
-            app = new JApp {
-              title       : data.title
-              body        : data.body
-              thumbnails  : thumbnailsFilenames
-              screenshots : screenshotsFilenames
-              attachments : [
-                {
-                  as          : 'script'
-                  content     : data.scriptCode
-                  description : data.scriptDescription
-                  syntax      : data.scriptSyntax
-                },{           
-                  as          : 'requirements'
-                  content     : data.requirementsCode
-                  syntax      : data.requirementsSyntax
-                }
-              ]
-            }
-            app.save (err)->
-              if err
-                callback err
-              else
-                if tags then app.addTags client, tags, (err)->
-                  if err
-                    callback err
-                  else
-                    callback null, app
+        callback null, app
+
+  # @create = secure (client, data, callback)->
+
+  #   console.log "creating the JApp"
+
+  #   {connection:{delegate}} = client
+  #   {thumbnails, screenshots, meta:{tags}} = data
+
+  #   console.log thumbnails, screenshots, meta, ":::::"
+
+  #   Resource.storeImages client, thumbnails, (err, thumbnailsFilenames)->
+  #     if err
+  #       callback err
+  #       console.log "error 1"
+  #     else
+  #       Resource.storeImages client, screenshots, (err, screenshotsFilenames)->
+  #         if err
+  #           callback err
+  #           console.log "error 2"
+  #         else
+  #           app = new JApp {
+  #             title       : data.title
+  #             body        : data.body
+  #             manifest    : data.manifest
+  #             thumbnails  : thumbnailsFilenames
+  #             screenshots : screenshotsFilenames
+  #             attachments : [
+  #               {
+  #                 as          : 'script'
+  #                 content     : data.scriptCode
+  #                 description : data.scriptDescription
+  #                 syntax      : data.scriptSyntax
+  #               },{           
+  #                 as          : 'requirements'
+  #                 content     : data.requirementsCode
+  #                 syntax      : data.requirementsSyntax
+  #               }
+  #             ]
+  #           }
+  #           app.save (err)->
+  #             if err
+  #               console.log "error 3"
+  #               callback err
+  #             else
+  #               if tags then app.addTags client, tags, (err)->
+  #                 if err
+  #                   callback err
+  #                   console.log "error 4"
+  #                 else
+  #                   callback null, app
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
