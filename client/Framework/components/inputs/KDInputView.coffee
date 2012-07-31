@@ -14,7 +14,7 @@ class KDInputView extends KDView
       defaultValue            : ""            # a String or a Boolean value depending on type
       placeholder             : ""            # a String
       disabled                : no            # a Boolean value
-      # readonly                : no            # a Boolean value                                                    
+      # readonly                : no            # a Boolean value
       selectOptions           : null          # an Array of Strings
       validate                : null          # an Object of Validation options see KDInputValidator for details
       validationNotifications : yes
@@ -99,7 +99,7 @@ class KDInputView extends KDView
     return no unless @options.label?
     @inputLabel = label
     @inputLabel.getDomElement().attr "for",@getName()
-    @inputLabel.getDomElement().bind "click",()=> 
+    @inputLabel.getDomElement().bind "click",()=>
       @getDomElement().trigger "focus"
       @getDomElement().trigger "click"
 
@@ -114,11 +114,11 @@ class KDInputView extends KDView
   getType:()-> @inputType
 
   getName:()-> @inputName
-  
+
   setFocus:()->
     (@getSingleton "windowController").setKeyView @
     @$().trigger "focus"
-  
+
   setSelectOptions:(options)->
     for option in options
       @$().append "<option value='#{option.value}'>#{option.title}</option>"
@@ -130,7 +130,7 @@ class KDInputView extends KDView
 
   getDefaultValue:()->
     @inputDefaultValue
-  
+
   setPlaceHolder:(value)->
     if @$().is("input") or @$().is("textarea")
       @$().attr "placeholder",value
@@ -142,7 +142,7 @@ class KDInputView extends KDView
   makeEnabled:()->
     @getDomElement().removeAttr "disabled"
 
-  getValue:()-> 
+  getValue:()->
     value = @getDomElement().val()
     {forceCase} = @getOptions()
     if forceCase
@@ -152,7 +152,7 @@ class KDInputView extends KDView
         value.toLowerCase()
 
     return value
-    
+
   setValue:(value)->
     @getDomElement().val(value) if value?
 
@@ -168,8 +168,8 @@ class KDInputView extends KDView
         return if val is _prevVal
         @setValue val
         _prevVal = val
-    
-  
+
+
   setValidation:(ruleSet)->
 
     @valid = no
@@ -190,12 +190,12 @@ class KDInputView extends KDView
           callback           : (input, event)=> @validate rule, event
 
   validate:(rule, event = {})->
-    
+
     @ruleChain or= []
     @validationResults or= {}
     rulesToBeValidated = if rule then [rule] else @ruleChain
     ruleSet = @getOptions().validate
-    
+
     if @ruleChain.length > 0
       rulesToBeValidated.forEach (rule)=>
         if KDInputValidator["rule#{rule.capitalize()}"]?
@@ -218,8 +218,8 @@ class KDInputView extends KDView
       @emit "ValidationResult", no
 
 
-  createRuleChain:(ruleSet)-> 
-    
+  createRuleChain:(ruleSet)->
+
     {rules} = ruleSet
     @validationResults or= {}
     @ruleChain = if typeof rules is "object" then (rule for rule,value of rules) else [rules]
@@ -227,7 +227,6 @@ class KDInputView extends KDView
       @validationResults[rule] = null
 
   setValidationResult:(rule, err)->
-    
     if err
       @validationResults[rule] = err
       @showValidationError err if @getOptions().validationNotifications
@@ -235,7 +234,6 @@ class KDInputView extends KDView
       @valid = no
     else
       @validationResults[rule] = null
-
 
   showValidationError:(message)->
 
@@ -251,12 +249,12 @@ class KDInputView extends KDView
     notice.on "KDObjectWillBeDestroyed", =>
       message = notice.getOptions().title
       delete @inputValidationNotifications[message]
-  
+
   clearValidationFeedback:->
 
     @unsetClass "validation-error validation-passed"
     @emit "ValidationFeedbackCleared"
-  
+
   giveValidationFeedback:(err)->
 
     if err
@@ -268,11 +266,11 @@ class KDInputView extends KDView
   inputSelectAll:-> @getDomElement().select()
 
   setAutoGrow:-> @$().autogrow()
-  
+
   enableTabKey:-> @inputTabKeyEnabled = yes
 
   disableTabKey:-> @inputTabKeyEnabled = no
-  
+
   change:->
 
   keyUp:->
@@ -280,15 +278,15 @@ class KDInputView extends KDView
   keyDown:(event)->
 
     @checkTabKey event if @inputTabKeyEnabled
-    
+
   focus:->
-    
+
     @getSingleton("windowController").setKeyView @
 
   blur:->
 
     @getSingleton("windowController").revertKeyView()
-  
+
   mouseDown:=>
     # log "input mouse down"
     @setFocus()
