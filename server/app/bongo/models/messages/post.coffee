@@ -412,7 +412,7 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-  
+
   save:->
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune
