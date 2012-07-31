@@ -147,7 +147,7 @@ class ActivityItemChild extends KDView
     
     if superAdmin
       menu[0].items = [
-        { title : 'Report troll', id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'TrollReported', data  }
+        { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'TrollReported', data  }
         { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
       ]
 
