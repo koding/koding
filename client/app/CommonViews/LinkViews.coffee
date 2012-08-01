@@ -37,7 +37,7 @@ class LinkView extends KDCustomHTMLView
       @render()
 
     if origin.constructorName
-      bongo.cacheable origin.constructorName, origin.id, (err, origin)=> 
+      bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
         callback origin
     else
       callback origin
@@ -47,7 +47,7 @@ class LinkView extends KDCustomHTMLView
     @template.update()
 
 class ProfileLinkView extends LinkView
-  
+
   constructor:(options, data)->
 
     super options, data
@@ -61,7 +61,7 @@ class ProfileLinkView extends LinkView
     super
 
   pistachio:->
-    
+
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
@@ -213,7 +213,7 @@ class FollowedModalView extends KDModalView
     else if participants[0] instanceof bongo.api.JTag
       @type = "tag"
 
-    options.title    = titleMap()[@type]
+    options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
     options.cssClass = "modal-topic-wrapper"
@@ -386,4 +386,3 @@ class AutoCompleteProfileTextView extends ProfileTextView
         </span>
         """
       else ''
-

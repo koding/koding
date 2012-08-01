@@ -247,6 +247,7 @@ Includes =
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
+        AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
         Members12345          : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         Account12345          : "./client/app/Applications/Account.kdapplication/AppController.coffee"
@@ -361,7 +362,6 @@ Includes =
 
         # INBOX VIEWS
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
-        inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
         inboxInnerNavigation          : "./client/app/Applications/Inbox.kdapplication/Views/InboxInnerNavigation.coffee"
         inboxMessagesList             : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessagesList.coffee"
         inboxMessageThreadView        : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageThreadView.coffee"
@@ -558,6 +558,7 @@ Includes =
         # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
+        jTipsy            : "./client/libs/jquery.tipsy.js"
         async             : "./client/libs/async.js"
         jMouseWheel       : "./client/libs/jquery.mousewheel.js"
         jMouseWheelIntent : "./client/libs/mwheelIntent.js"
@@ -651,6 +652,7 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
+        tipsy               : "./client/css/tipsy.css"
         # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"

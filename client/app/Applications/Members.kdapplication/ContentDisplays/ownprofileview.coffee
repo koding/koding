@@ -2,10 +2,10 @@ class OwnProfileView extends KDView
   constructor:->
     super
     memberData = @getData()
-    
+
     memberData.skillTags or= []
-    
-    @avatar = new AvatarStaticView 
+
+    @avatar = new AvatarStaticView
       size        :
         width     : 90
         height    : 90
@@ -16,7 +16,7 @@ class OwnProfileView extends KDView
 
     @profileName = new PersonalFormNameView {memberData}
     @location    = new PersonalFormLocationView {memberData}
-    
+
     @followers = new KDView
       tagName     : 'a'
       attributes  :
@@ -24,7 +24,7 @@ class OwnProfileView extends KDView
       pistachio   : "{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFollowsContentDisplay", memberData, 'followers'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -34,22 +34,21 @@ class OwnProfileView extends KDView
       pistachio   : "{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFollowingContentDisplay", memberData, 'followings'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
-    
-    @aboutYou    = new PersonalFormAboutWrapperView null, memberData
-      
+
+    @aboutYou     = new PersonalFormAboutView {memberData}
     @skillTagView = new PersonalFormSkillTagView {memberData}
-    
+
     @setListeners()
-                
+
   viewAppended:->
     super
     @setTemplate @pistachio()
     @template.update()
 
   putNick:(nick)-> "@#{nick}"
-      
+
   pistachio:->
     """
     <div class="profileleft">
@@ -83,12 +82,12 @@ class OwnProfileView extends KDView
       </div>
     </section>
     """
-    
+
   setListeners:->
     @listenTo
       KDEventTypes        : "AutoCompleteNeedsTagData"
       listenedToInstance  : @skillTagView
-      callback      : (pubInst,event)=> 
+      callback      : (pubInst,event)=>
         {callback,inputValue,blacklist} = event
         @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 

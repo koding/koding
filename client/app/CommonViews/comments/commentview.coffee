@@ -8,10 +8,10 @@ class CommentView extends KDView
     @createSubViews data
     @resetDecoration()
     @attachListeners()
-  
+
   render:->
     @resetDecoration()
-  
+
   createSubViews:(data)->
 
     @commentList = new KDListView
@@ -24,10 +24,10 @@ class CommentView extends KDView
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
     @addSubView @commentList
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
-    
+
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
-    
+
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
@@ -46,8 +46,8 @@ class CommentView extends KDView
       listenedToInstance : @commentList
       callback : (pubInst, event) =>
         @commentForm.commentInput.setFocus()
-        
-    @commentList.on "CommentCountClicked", => 
+
+    @commentList.on "CommentCountClicked", =>
       @commentList.emit "AllCommentsLinkWasClicked"
 
     @listenTo
@@ -66,15 +66,15 @@ class CommentView extends KDView
     @unsetClass "active-comment"
     @unsetClass "commented"
     @setClass "no-comment"
-  
+
   decorateCommentedState:->
     @unsetClass "active-comment"
-    @unsetClass "no-comment" 
+    @unsetClass "no-comment"
     @setClass "commented"
-  
+
   decorateActiveCommentState:->
     @unsetClass "commented"
-    @unsetClass "no-comment" 
+    @unsetClass "no-comment"
     @setClass "active-comment"
 
   decorateItemAsLiked:(likeObj)->

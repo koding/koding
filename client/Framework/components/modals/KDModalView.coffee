@@ -91,7 +91,7 @@ class KDModalView extends KDView
     @destroy() if e.which is 27
   
   setTitle:(title)-> 
-    @getDomElement().find(".kdmodal-title").append("<span class='title'>#{title}</span>")
+    @getDomElement().find(".kdmodal-title").html("<span class='title'>#{title}</span>")
     @modalTitle = title
 
   setModalHeight:(value)->
