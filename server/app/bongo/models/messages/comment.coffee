@@ -9,6 +9,7 @@ class JComment extends jraphical.Reply
     sharedMethods :
       instance    : ['delete']
     schema        :
+      isLowQuality: Boolean
       body        :
         type      : String
         required  : yes
