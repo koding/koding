@@ -190,13 +190,13 @@ class MainController extends KDController
         if err then warn err
         else
           new KDNotificationView
-            title : "@#{account.profile.nickname} won't be treated as a troll anymore!"
-    
-      if data.originId
-        bongo.cacheable "JAccount", data.originId, (err, account)->
-          kallback account if account
-      else if data._bongo.constructorName is 'JAccount'
-        kallback data
+            title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
+  
+    if data.originId
+      bongo.cacheable "JAccount", data.originId, (err, account)->
+        kallback account if account
+    else if data._bongo.constructorName is 'JAccount'
+      kallback data
 
   markUserAsTroll:(data)->
 
@@ -226,7 +226,7 @@ class MainController extends KDController
                 else
                   modal.destroy()
                   new KDNotificationView
-                    title : "@#{account.profile.nickname} marked as a troll!"
+                    title : "@#{acc.profile.nickname} marked as a troll!"
 
             if data.originId
               bongo.cacheable "JAccount", data.originId, (err, account)->

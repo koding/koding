@@ -23,8 +23,11 @@ class ActivityListHeader extends JView
       @lowQualitySwitch = new KDRySwitch
         defaultValue : off
         callback     : (state) => 
-          log "show lowQuality content", state
-          @emit "lowQualitySetTo", state
+          appManager.fetchStorage 'Activity', '1.0', (err, storage)->
+            storage.setOption 'showLowQualityContent', state, (err)->
+              console.log err if err
+      appManager.fetchStorage 'Activity', '1.0', (err, storage)=>
+        @lowQualitySwitch.setValue storage.getAt('bucket.showLowQualityContent') ? off
     else
       @lowQualitySwitch = new KDCustomHTMLView
     
