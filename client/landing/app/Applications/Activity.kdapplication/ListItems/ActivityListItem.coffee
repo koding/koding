@@ -90,9 +90,8 @@ class ActivityItemChild extends KDView
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
-    superAdmin = yes
-
-    if data.originId is KD.whoami().getId() or superAdmin
+    account = KD.whoami()
+    if (data.originId is KD.whoami().getId()) or (account.globalFlags and 'superAdmin' in account.globalFlags)
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu'
         title       : ''
@@ -128,7 +127,13 @@ class ActivityItemChild extends KDView
 
     @contentDisplayController = @getSingleton "contentDisplayController"
 
+    bongo.cacheable origin.id, origin.constructorName, (err, account)->
+      if account?.globalFlags and 'exempt' in account.globalFlags
+        @setClass "exempt"
+
   settingsMenu:(data)->
+    
+    account = KD.whoami()
     
     menu = [
       type      : "contextmenu"
@@ -143,13 +148,11 @@ class ActivityItemChild extends KDView
 
       return menu
     
-    superAdmin = yes
-    
-    if superAdmin
+    if account.globalFlags and 'superAdmin' in account.globalFlags
       menu[0].items = [
         { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @markUserAsTroll data  }
         { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @unmarkUserAsTroll data  }
-        { title : 'Delete', id : 3,  parentId : null, callback : => @confirmDeletePost data  }
+        { title : 'Delete Post', id : 3,  parentId : null, callback : => @confirmDeletePost data  }
       ]
 
       return menu
