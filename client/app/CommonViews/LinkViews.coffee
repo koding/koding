@@ -307,7 +307,7 @@ class AvatarView extends LinkView
     {profile} = @getData()
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
-    @$().attr "title", options.title or "#{profile.firstName}'s avatar"
+    @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
 
