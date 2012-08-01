@@ -72,11 +72,14 @@ class JPrivateMessage extends JPost
               callback err
             else
               dispatchMessages delegate, recipients, pm, (err)->
-                delegate.addPrivateMessage pm, 'sender', (err)->
-                  if err
-                    callback err
-                  else
-                    callback null, pm
-                    unless delegate.profile.nickname in to
-                      jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
-                        channel.publish delegate, pm
+                if err
+                  callback err
+                else
+                  delegate.addPrivateMessage pm, 'sender', (err)->
+                    if err
+                      callback err
+                    else
+                      callback null, pm
+                      unless delegate.profile.nickname in to
+                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
+                          channel.publish delegate, pm
