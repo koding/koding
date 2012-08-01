@@ -305,6 +305,9 @@ class JPost extends jraphical.Message
       callback new Error 'Log in required!'
     else
       comment = new JComment body: comment
+      flags = delegate.getAt('globalFlags')
+      if flags? and 'exempt' in flags
+        comment.isLowQuality = yes
       comment
         .sign(delegate)
         .save (err)=>
@@ -328,16 +331,17 @@ class JPost extends jraphical.Message
                       if err
                         console.log "Couldn't fetch the origin"
                       else
-                        @emit 'ReplyIsAdded', {
-                          origin
-                          subject       : ObjectRef(@).data
-                          actorType     : 'replier'
-                          actionType    : 'reply'
-                          replier 		  : ObjectRef(delegate).data
-                          reply   		  : ObjectRef(comment).data
-                          repliesCount	: count
-                          relationship  : docs[0]
-                        }
+                        unless comment.isLowQuality
+                          @emit 'ReplyIsAdded', {
+                            origin
+                            subject       : ObjectRef(@).data
+                            actorType     : 'replier'
+                            actionType    : 'reply'
+                            replier 		  : ObjectRef(delegate).data
+                            reply   		  : ObjectRef(comment).data
+                            repliesCount	: count
+                            relationship  : docs[0]
+                          }
                         @follow client, emitActivity: no, (err)->
                         @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
