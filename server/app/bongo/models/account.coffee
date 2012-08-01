@@ -94,7 +94,7 @@ class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
-        globalFlags         : [String]
+      globalFlags         : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
       environment   :
@@ -226,7 +226,7 @@ class JAccount extends jraphical.Module
     {delegate} = client.connection
     debugger
     if delegate.can 'flag', this
-      @update {$pullAll: globalFlags: flag}, callback
+      @update {$pullAll: globalFlags: [flag]}, callback
     else
       callback new KodingError 'Access denied'
 
