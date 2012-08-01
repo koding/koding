@@ -115,7 +115,7 @@ function get_mongo_db_name () {
   $db_names = array(
     'vpn'         => 'kodingen',
     'beta'        => 'beta_koding',
-    'mongohq-dev' => 'koding',
+    'mongohq-dev' => 'koding_copy',
   );
   return $db_names[$env];
 }

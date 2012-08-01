@@ -419,14 +419,14 @@ class JAccount extends jraphical.Module
       contents.forEach (item)->
         console.log 'ITEM', item
         item.update $set: isLowQuality: yes
-        item.emit 'ContentMarkedAsLowQuality'
+        item.emit 'ContentMarkedAsLowQuality', null
   
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
         console.log 'ITEM', item
         item.update $set: isLowQuality: no
-        item.emit 'ContentUnmarkedAsLowQuality'
+        item.emit 'ContentUnmarkedAsLowQuality', null
   
   @taintedAccounts = {}
   @taint =(id)->
