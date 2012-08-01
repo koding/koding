@@ -55,7 +55,7 @@ function getFeed($collection,$limit,$sort,$skip){
       "type"      => $type,
       "originId"  => $originId,
     );
-    trace('hooooooo');
+    trace('RUSSIAN SPAMMERS --- ', $query);
     if (!isset($query['t'])) {
       $activityQuery['isLowQuality'] = array( '$ne' => true );
     }
