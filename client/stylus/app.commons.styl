@@ -764,11 +764,21 @@ button.cancel-edit-button
   overflow        hidden
 
 .avatarview
+  position        relative
   display         block
   min-width       10px
   min-height      10px
   bg              position,center center
   bg              repeat,no-repeat
+  cite
+    position      absolute
+    bottom        -2px
+    right         -2px
+    size          20px,20px
+    bg            position, 20px 20px
+    sprite()
+    &.staff
+      bg          position, -480px -60px
 
 .avatar
   min-width       10px

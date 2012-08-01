@@ -50,10 +50,10 @@ class ProfileLinkView extends LinkView
 
   constructor:(options = {}, data)->
 
-    options.tooltip =
-      gravity   : "s"
-      delayIn   : 120
-      offset    : 1
+    # options.tooltip =
+    #   gravity   : "s"
+    #   delayIn   : 120
+    #   offset    : 1
 
     super options, data
 
@@ -66,7 +66,7 @@ class ProfileLinkView extends LinkView
     nickname = @getData().profile?.nickname
     if nickname
       @$().attr "href","/#!/member/#{nickname}"
-      @updateTooltip title : "@#{nickname}"
+      # @updateTooltip title : "@#{nickname}"
     super
 
   pistachio:->
@@ -74,7 +74,7 @@ class ProfileLinkView extends LinkView
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
-    
+
     appManager.tell "Members", "createContentDisplay", @getData()
     event.preventDefault()
     event.stopPropagation()
@@ -310,9 +310,15 @@ class AvatarView extends LinkView
     @$().attr "title", options.title or "#{profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
+    flags = @getData().globalFlags?.join(" ")
+    @$('cite').addClass flags
+    @$('cite').attr "title", flags
 
   viewAppended:->
+    super
     @render() if @getData()
+
+  pistachio:-> '<cite></cite>'
 
 class AvatarStaticView extends AvatarView
   constructor:(options, data)->
