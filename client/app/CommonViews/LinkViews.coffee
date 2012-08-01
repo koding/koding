@@ -48,16 +48,25 @@ class LinkView extends KDCustomHTMLView
 
 class ProfileLinkView extends LinkView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
+
+    options.tooltip =
+      gravity   : "s"
+      delayIn   : 120
+      offset    : 1
 
     super options, data
 
-    @$().attr "href","/#!/#{data?.profile?.nickname}"
+    nickname = data?.profile?.nickname
+    @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
   render:->
-    data = @getData()
-    @$().attr "href","/#!/#{data.profile?.nickname}"
+
+    nickname = @getData().profile?.nickname
+    if nickname
+      @$().attr "href","/#!/member/#{nickname}"
+      @updateTooltip title : "@#{nickname}"
     super
 
   pistachio:->
@@ -65,8 +74,9 @@ class ProfileLinkView extends LinkView
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
-    account = @getData()
-    appManager.tell "Members", "createContentDisplay", account
+    
+    appManager.tell "Members", "createContentDisplay", @getData()
+    event.preventDefault()
     event.stopPropagation()
     no
 
