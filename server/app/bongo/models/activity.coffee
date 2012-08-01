@@ -32,6 +32,7 @@ class CActivity extends jraphical.Capsule
         followerCount :
           type        : Number
           default     : 0
+      isLowQuality    : Boolean
       snapshot        : String
       snapshotIds     : [ObjectId]
       createdAt       :

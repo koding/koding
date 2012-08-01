@@ -94,7 +94,7 @@ class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
-        globalFlags         : [String]
+      globalFlags         : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
       environment   :
@@ -214,23 +214,22 @@ class JAccount extends jraphical.Module
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
 
   dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
-  
-  unflagAccount: secure (client, flag, callback)->
-    {delegate} = client.connection
-    if delegate.can 'flag', this
-      console.log flag,">>>>>>>"
-      # @update {$addToSet: globalFlags: flag}, callback
-      callback new KodingError 'Access denied'
-    else
-      callback new KodingError 'Access denied'
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
     if delegate.can 'flag', this
-      console.log flag,">>>>>>>"
       @update {$addToSet: globalFlags: flag}, callback
     else
       callback new KodingError 'Access denied'
+  
+  unflagAccount: secure (client, flag, callback)->
+    {delegate} = client.connection
+    debugger
+    if delegate.can 'flag', this
+      @update {$pullAll: globalFlags: [flag]}, callback
+    else
+      callback new KodingError 'Access denied'
+
   
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
   
