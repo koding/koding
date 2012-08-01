@@ -47,7 +47,7 @@ class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount'
+        'fetchAllKites','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]
@@ -215,9 +215,19 @@ class JAccount extends jraphical.Module
 
   dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
   
+  unflagAccount: secure (client, flag, callback)->
+    {delegate} = client.connection
+    if delegate.can 'flag', this
+      console.log flag,">>>>>>>"
+      # @update {$addToSet: globalFlags: flag}, callback
+      callback new KodingError 'Access denied'
+    else
+      callback new KodingError 'Access denied'
+
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
     if delegate.can 'flag', this
+      console.log flag,">>>>>>>"
       @update {$addToSet: globalFlags: flag}, callback
     else
       callback new KodingError 'Access denied'
