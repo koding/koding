@@ -50,14 +50,14 @@ function getFeed($collection,$limit,$sort,$skip){
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
     
-    $activityCode = array(
+    $activityQuery = array(
       "snapshot"  => array( '$exists'  => true ),
       "type"      => $type,
       "originId"  => $originId,
     );
     
     if (!isset($query['t'])) {
-      $activityCode['isLowQuality'] = array( '$ne' => true );
+      $activityQuery['isLowQuality'] = array( '$ne' => true );
     }
     
     switch ($collection){
