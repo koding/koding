@@ -94,6 +94,8 @@ class JPost extends jraphical.Message
                 callback err
               else queue.next()
         ->
+          delegate.addContent status, (err)-> queue.next(err)
+        ->
           activity.save (err)->
             if err
               callback createKodingError err
@@ -103,6 +105,8 @@ class JPost extends jraphical.Message
             if err
               callback createKodingError err
             else queue.next()
+        ->
+          delegate.addContent activity, (err)-> queue.next(err)
         ->
           tags or= []
           status.addTags client, tags, (err)->
@@ -305,12 +309,17 @@ class JPost extends jraphical.Message
       callback new Error 'Log in required!'
     else
       comment = new JComment body: comment
+      flags = delegate.getAt('globalFlags')
+      if flags? and 'exempt' in flags
+        comment.isLowQuality = yes
       comment
         .sign(delegate)
         .save (err)=>
           if err
             callback err
           else
+            delegate.addContent comment, (err)->
+              console.log 'error adding content', err
             @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
@@ -328,16 +337,17 @@ class JPost extends jraphical.Message
                       if err
                         console.log "Couldn't fetch the origin"
                       else
-                        @emit 'ReplyIsAdded', {
-                          origin
-                          subject       : ObjectRef(@).data
-                          actorType     : 'replier'
-                          actionType    : 'reply'
-                          replier 		  : ObjectRef(delegate).data
-                          reply   		  : ObjectRef(comment).data
-                          repliesCount	: count
-                          relationship  : docs[0]
-                        }
+                        unless comment.isLowQuality
+                          @emit 'ReplyIsAdded', {
+                            origin
+                            subject       : ObjectRef(@).data
+                            actorType     : 'replier'
+                            actionType    : 'reply'
+                            replier 		  : ObjectRef(delegate).data
+                            reply   		  : ObjectRef(comment).data
+                            repliesCount	: count
+                            relationship  : docs[0]
+                          }
                         @follow client, emitActivity: no, (err)->
                         @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 

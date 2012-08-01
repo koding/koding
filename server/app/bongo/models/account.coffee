@@ -140,6 +140,10 @@ class JAccount extends jraphical.Module
       tag:
         as          : 'skill'
         targetType  : JTag
+      
+      content       :
+        as          : 'creator'
+        targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment]
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
@@ -217,16 +221,27 @@ class JAccount extends jraphical.Module
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
+    JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$addToSet: globalFlags: flag}, callback
+      if flag is 'exempt'
+        console.log 'is exempt'
+        @markAllContentAsLowQuality()
+      else
+        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
   
   unflagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
-    debugger
+    JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
+      if flag is 'exempt'
+        console.log 'is exempt'
+        @unmarkAllContentAsLowQuality()
+      else
+        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
 
@@ -398,4 +413,45 @@ class JAccount extends jraphical.Module
                 callback err, newStorage
         else
           callback error, storage
-    
+  
+  markAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        console.log 'ITEM', item
+        item.update $set: isLowQuality: yes
+        item.emit 'ContentMarkedAsLowQuality'
+  
+  unmarkAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        console.log 'ITEM', item
+        item.update $set: isLowQuality: no
+        item.emit 'ContentUnmarkedAsLowQuality'
+  
+  @taintedAccounts = {}
+  @taint =(id)->
+    @taintedAccounts[id] = yes
+  
+  @untaint =(id)->
+    delete @taintedAccounts[id]
+  
+  @isTainted =(id)->
+    isTainted = @taintedAccounts[id]
+    isTainted
+
+  bongo.pre 'methodIsInvoked', (client, callback)=>
+    delegate = client?.connection?.delegate
+    id = delegate?.getId()
+    unless id
+      callback client
+    else if @isTainted id
+      JAccount.one _id: id, (err, account)=>
+        if err
+          console.log 'there was an error'
+        else
+          @untaint id
+          client.connection.delegate = account
+          console.log 'delegate is force-loaded from db'
+          callback client
+    else
+      callback client

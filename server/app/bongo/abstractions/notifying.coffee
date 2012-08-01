@@ -43,7 +43,7 @@ class Notifying
             )
             notification.save (err)->
               if err
-                console.log "There was an error saving the notification.", err, err.errors
+                console.dir err
 
   notifyOriginWhen:(events...)->
     @setNotifiers events, (event, contents)=>
