@@ -91,7 +91,7 @@ class ActivityItemChild extends KDView
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
     account = KD.whoami()
-    if (data.originId is KD.whoami().getId()) or (account.globalFlags and 'superAdmin' in account.globalFlags)
+    if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu'
         title       : ''
@@ -148,7 +148,7 @@ class ActivityItemChild extends KDView
 
       return menu
     
-    if account.globalFlags and 'superAdmin' in account.globalFlags
+    if KD.checkFlag 'super-admin'
       menu[0].items = [
         { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @markUserAsTroll data  }
         { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @unmarkUserAsTroll data  }
