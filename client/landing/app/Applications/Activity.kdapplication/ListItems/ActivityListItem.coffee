@@ -147,11 +147,53 @@ class ActivityItemChild extends KDView
     
     if superAdmin
       menu[0].items = [
-        { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'TrollReported', data  }
-        { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
+        { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @markUserAsTroll data  }
+        { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @unmarkUserAsTroll data  }
+        { title : 'Delete', id : 3,  parentId : null, callback : => @confirmDeletePost data  }
       ]
 
       return menu
+
+  unmarkUserAsTroll:(data)->
+
+    if data.originId
+      bongo.cacheable "JAccount", data.originId, (err, account)->
+        account.unflagAccount "exempt", (err, res)->
+          if err then warn err
+          else
+            new KDNotificationView
+              title : "@#{account.profile.nickname} won't be treated as a troll anymore!"
+
+  markUserAsTroll:(data)->
+
+    modal = new KDModalView
+      title          : "MARK USER AS TROLL"
+      content        : """
+                        <div class='modalformline'>
+                          This is what we call "Trolling the troll" mode.<br><br>
+                          All of the troll's activity will disappear from the feeds, but the troll 
+                          himself will think that people still gets his posts/comments.<br><br>
+                          Are you sure you want to mark him as a troll? 
+                        </div>
+                       """
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        "YES, THIS USER IS DEFINITELY A TROLL" :
+          style      : "modal-clean-red"
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          callback   : =>
+            # debugger
+            if data.originId
+              bongo.cacheable "JAccount", data.originId, (err, account)->
+                account.flagAccount "exempt", (err, res)->
+                  if err then warn err
+                  else
+                    modal.destroy()
+                    new KDNotificationView
+                      title : "@#{account.profile.nickname} marked as a troll!"
 
 
   confirmDeletePost:(data)->
