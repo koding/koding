@@ -13,6 +13,7 @@ class JPost extends jraphical.Message
   {log} = console
   
   schema = _.extend {}, jraphical.Message.schema, {
+    isLowQuality  : Boolean
     counts        :
       followers   :
         type      : Number
@@ -77,6 +78,10 @@ class JPost extends jraphical.Message
       status = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
+      flags = delegate.getAt('globalFlags')
+      if flags and ('exempt' in flags)
+        status.isLowQuality = yes
+        activity.isLowQuality = yes
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
       teaser = null

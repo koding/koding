@@ -49,16 +49,20 @@ function getFeed($collection,$limit,$sort,$skip){
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
-  
+    
+    $activityQuery = array(
+      "snapshot"  => array( '$exists'  => true ),
+      "type"      => $type,
+      "originId"  => $originId,
+    );
+    trace('RUSSIAN SPAMMERS --- ', $query);
+    if (!isset($query['t'])) {
+      $activityQuery['isLowQuality'] = array( '$ne' => true );
+    }
+    
     switch ($collection){
         case 'cActivities':
-            $cursor = $mongo->$dbName->$collection->find(
-              array(
-                "snapshot"  => array( '$exists'  => true ),
-                "type"      => $type,
-                "originId"  => $originId,
-              ),
-              array('snapshot' => true));
+            $cursor = $mongo->$dbName->$collection->find($activityQuery,array('snapshot' => true));
 
             break;
         case 'jTags':
