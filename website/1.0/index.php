@@ -57,7 +57,7 @@ function getFeed($collection,$limit,$sort,$skip){
     );
     
     if (!isset($query['t'])) {
-      $activityQuery['isLowQuality'] = array( '$ne' => true ),
+      $activityQuery['isLowQuality'] = array( '$ne' => true );
     }
     
     switch ($collection){
