@@ -148,10 +148,14 @@ class Activity12345 extends AppController
 
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
-    
+    flags = KD.whoami().data.globalFlags
+    exempt = flags?.indexOf 'exempt'
+    console.log exempt
+    exempt = exempt? and ~exempt
+    console.log exempt
     $.ajax KD.apiUri+'/1.0'
       data      :
-        t       : 1 if ~KD.whoami().getAt('globalFlags')?.indexOf('exempt')
+        t       : 1 if exempt
         data    : JSON.stringify(_.extend options, selector)
         env     : KD.env
       dataType  : 'jsonp'

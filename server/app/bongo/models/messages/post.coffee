@@ -78,7 +78,8 @@ class JPost extends jraphical.Message
       status = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
-      if 'exempt' in delegate.getAt('globalFlags')
+      flags = delegate.getAt('globalFlags')
+      if flags and ('exempt' in flags)
         status.isLowQuality = yes
         activity.isLowQuality = yes
       activity.originId = delegate.getId()
