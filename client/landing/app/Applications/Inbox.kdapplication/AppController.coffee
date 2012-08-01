@@ -25,7 +25,7 @@ class Inbox12345 extends AppController
   fetchMessages:(options, callback)->
     # log "FETCH MESSAGES INTERNAL"
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    currentDelegate.fetchMail? options, callback
+    #currentDelegate.fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
