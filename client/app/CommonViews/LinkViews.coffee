@@ -37,7 +37,7 @@ class LinkView extends KDCustomHTMLView
       @render()
 
     if origin.constructorName
-      bongo.cacheable origin.constructorName, origin.id, (err, origin)=> 
+      bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
         callback origin
     else
       callback origin
@@ -47,26 +47,36 @@ class LinkView extends KDCustomHTMLView
     @template.update()
 
 class ProfileLinkView extends LinkView
-  
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
+
+    options.tooltip =
+      gravity   : "s"
+      delayIn   : 120
+      offset    : 1
 
     super options, data
 
-    @$().attr "href","/#!/#{data?.profile?.nickname}"
+    nickname = data?.profile?.nickname
+    @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
   render:->
-    data = @getData()
-    @$().attr "href","/#!/#{data.profile?.nickname}"
+
+    nickname = @getData().profile?.nickname
+    if nickname
+      @$().attr "href","/#!/member/#{nickname}"
+      @updateTooltip title : "@#{nickname}"
     super
 
   pistachio:->
-    
+
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
-    account = @getData()
-    appManager.tell "Members", "createContentDisplay", account
+    
+    appManager.tell "Members", "createContentDisplay", @getData()
+    event.preventDefault()
     event.stopPropagation()
     no
 
@@ -386,4 +396,3 @@ class AutoCompleteProfileTextView extends ProfileTextView
         </span>
         """
       else ''
-

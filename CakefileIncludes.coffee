@@ -247,6 +247,7 @@ Includes =
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
+        AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
         Members12345          : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         Account12345          : "./client/app/Applications/Account.kdapplication/AppController.coffee"

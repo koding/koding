@@ -1,8 +1,10 @@
+# FIXME (gokmen) Needs to be rw
+
 class AbstractPersonalFormView extends KDFormView
   constructor:(options, data)->
     memberData = data
     super options, null
-        
+
     @windowController = @getSingleton 'windowController'
     @setListeners()
 
@@ -15,7 +17,7 @@ class AbstractPersonalFormView extends KDFormView
       @unsetClass 'active'
     else if @$().hasClass(classToCheck) and e.which is 13
       @submit event
-      
+
   mouseDown:(event)->
     @showForm()
     no
@@ -30,20 +32,20 @@ class AbstractPersonalFormView extends KDFormView
     super
     @setTemplate @pistachio()
     @template.update()
-    
+
   pistachio:-> ''
 
   setListeners:->
     @on 'ReceivedClickElsewhere', =>
       @unsetClass 'active'
       @resetInputValue()
-        
+
   resetInputValue:-> no
 
 class PersonalFormNameView extends AbstractPersonalFormView
 
   constructor:(options, data)->
-    
+
     options = $.extend
       cssClass    : 'profilename-form'
       callback    : @formCallback
@@ -58,19 +60,19 @@ class PersonalFormNameView extends AbstractPersonalFormView
       name          : 'firstName'
       attributes    :
         size        : Encoder.htmlDecode(profile.firstName).length
-      validate      : 
-        rules       : 
+      validate      :
+        rules       :
           required  : yes
         messages    :
           required  : "First name is required!"
-    
+
     @lastName = new KDInputView
       cssClass      : 'lastname editable'
       defaultValue  : Encoder.htmlDecode profile.lastName
       name          : 'lastName'
       attributes    :
         size        : Encoder.htmlDecode(profile.lastName).length
-    
+
     @nameView = new ProfileTextView
       tagName       : "p"
       tooltip       :
@@ -78,7 +80,7 @@ class PersonalFormNameView extends AbstractPersonalFormView
         placement   : "left"
         offset      : 5
     ,@memberData
-    
+
     @attachListeners()
 
   pistachio:->
@@ -86,12 +88,11 @@ class PersonalFormNameView extends AbstractPersonalFormView
       {{> @nameView}}
       {{> @firstName}}{{> @lastName}}
     """
-    # {{> @cancelButton}}{{> @saveButton}}
 
   resetInputValue:->
     {profile} = @memberData
-    @firstName.setValue Encoder.htmlDecode profile.firstName 
-    @lastName.setValue Encoder.htmlDecode profile.lastName 
+    @firstName.setValue Encoder.htmlDecode profile.firstName
+    @lastName.setValue Encoder.htmlDecode profile.lastName
 
   attachListeners:->
     @listenTo
@@ -100,34 +101,34 @@ class PersonalFormNameView extends AbstractPersonalFormView
       callback:(pubInst, events)->
         newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
-    
+
     @listenTo
       KDEventTypes        : 'keyup'
       listenedToInstance  : @lastName
       callback:(pubInst, events)->
         newWidth = if pubInst.getValue().length < 3 then 3 else if pubInst.getValue().length > 12 then 12 else pubInst.getValue().length
         pubInst.setDomAttributes {size: newWidth}
-       
+
   formCallback:(formData)->
     {profile} = @memberData
     {firstName, lastName} = formData
     if profile.firstName is firstName and profile.lastName is lastName
       @unsetClass 'active'
       return no
-    
-    query = $set:
+
+    query =
       'profile.firstName' : firstName
       'profile.lastName'  : lastName
 
-    @memberData.update query, (err)=>
+    @memberData.modify query, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
-      else 
+      else
         new KDNotificationView
           title     : "Success!"
           duration  : 500
-        @unsetClass 'active' 
+        @unsetClass 'active'
 
 class PersonalFormAboutView extends AbstractPersonalFormView
 
@@ -143,21 +144,24 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     {@memberData} = options
     {profile} = @memberData
 
-    defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
+    @defaultPlaceHolder = "You haven't entered anything in your bio yet. Why not add something now?"
 
     @aboutInput = new KDInputView
       cssClass      : 'about editable hitenterview active'
       type          : 'textarea'
-      defaultValue  : if profile.about is defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
-      placeholder   : if profile.about isnt defaultPlaceHolder then null else Encoder.htmlDecode profile.about
+      defaultValue  : if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
+      placeholder   : if profile.about isnt @defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
+      validate      :
+        rules       :
+          required  : yes
 
     @aboutInfo = new PersonalAboutView
       tooltip            :
         title            : "Click to edit"
         placement        : "left"
         offset           : 5
-      defaultPlaceHolder : defaultPlaceHolder
+      defaultPlaceHolder : @defaultPlaceHolder
     , @memberData
 
     @windowController = @getSingleton 'windowController'
@@ -170,7 +174,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
   resetInputValue:->
     {profile} = @memberData
-    @aboutInput.setValue if profile.about is "You haven't entered anything in your bio yet. Why not add something now?" then '' else Encoder.htmlDecode profile.about
+    @aboutInput.setValue if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
 
   formCallback:(formData)->
     {profile} = @memberData
@@ -178,32 +182,25 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     if profile.about is about or about is ''
       @unsetClass 'active'
       return no
-    
-    changes = $set:
-      'profile.about'  : about
 
-    @memberData.update changes, (err)=>
+    changes = 'profile.about'  : about
+    @memberData.modify changes, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
-      else 
+      else
         @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
         @unsetClass 'active'
-        
-class PersonalAboutView extends KDCustomHTMLView
+
+class PersonalAboutView extends JView
   constructor:(options, data)->
     super
     {profile} = @getData()
     profile.about or= options.defaultPlaceHolder
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
-    
   pistachio:->
     """
       <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
@@ -213,29 +210,29 @@ class PersonalFormLocationView extends AbstractPersonalFormView
   constructor:(options, data)->
     options = $.extend
       cssClass      : 'profilelocation-form'
-      callback      : @formCallback 
+      callback      : @formCallback
     , options
     super options, data
-    
+
     {@memberData} = options
     @memberData.locationTags or= []
-    
+
     @location = new KDInputView
       cssClass      : 'locationtags editable'
       type          : 'text'
       defaultValue  : @memberData.locationTags[0] or 'Earth'
       name          : 'locationTags'
-    
+
     if @memberData.locationTags.length < 1
-      @memberData.locationTags[0] = "Earth"  
-    
+      @memberData.locationTags[0] = "Earth"
+
     @locationTags = new LocationView
       tooltip       :
         title       : "Click to edit"
         placement   : "right"
         offset      : 5
     ,@memberData
-      
+
   pistachio:->
     """
       <p>{{> @locationTags}}</p>
@@ -244,40 +241,32 @@ class PersonalFormLocationView extends AbstractPersonalFormView
 
   resetInputValue:->
     {profile} = @memberData
-    @location.setValue @memberData.locationTags[0] or 'Earth' 
+    @location.setValue @memberData.locationTags[0] or 'Earth'
 
   formCallback:(formData)->
     {locationTags} = formData
     if locationTags is @memberData.locationTags[0]
       @unsetClass 'active'
       return no
-    
+
     if locationTags[0]?
       locationArray = [locationTags]
     else
       locationArray = []
-    
-    changes = $set:
-      'locationTags' : locationArray
-    @memberData.update changes, (err)=>
+
+    changes = locationTags : locationArray
+    @memberData.modify changes, (err)=>
       if err
         new KDNotificationView
           title : "There was an error updating your profile."
-      else 
+      else
         @memberData.emit "update"
         new KDNotificationView
           title     : "Success!"
           duration  : 500
         @unsetClass 'active'
 
-class LocationView extends KDCustomHTMLView
-  constructor:(options, data)->
-    super
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
+class LocationView extends JView
   pistachio:->
     """
       {{ @getFirstLocation #(locationTags)}}
@@ -297,7 +286,7 @@ class PersonalFormSkillTagView extends KDFormView
     super options, null
     {@memberData} = options
     @memberData.skillTags or= []
-    
+
     @setCallback (formData)=>
       if formData.skillTags?
         newTags      = formData.skillTags?.filter((tag)-> tag.$suggest?)
@@ -307,8 +296,7 @@ class PersonalFormSkillTagView extends KDFormView
 
         joinedTags   = plainNewTags.concat plainOldTags
 
-        # log formData.skillTags, newTags, oldTags, joinedTags
-        @memberData.addTags formData.skillTags, (err)=> 
+        @memberData.addTags formData.skillTags, (err)=>
           if err
             log "An error occured:", err
             new KDNotificationView
@@ -321,7 +309,7 @@ class PersonalFormSkillTagView extends KDFormView
                 log "An error occured:", err
                 new KDNotificationView
                   title : "There was an error while updating your profile."
-              else 
+              else
                 @memberData.emit "update"
                 new KDNotificationView
                   title     : "Success!"
@@ -335,7 +323,7 @@ class PersonalFormSkillTagView extends KDFormView
       @label.updatePartial "SKILLS"
       @setClass 'active'
       @focusFirstElement()
-    
+
   hideForm:->
     @unsetClass 'active'
 
@@ -396,26 +384,26 @@ class PersonalFormSkillTagView extends KDFormView
       callback  : =>
         @saveButton.disable()
         @submit()
-        
+
 class SkillTagAutoCompleteController extends KDAutoCompleteController
   constructor:(options, data)->
     options.nothingFoundItemClass or= SuggestNewTagItem
     options.allowNewSuggestions or= yes
     super
-  
+
   putDefaultValues:(stringTags)->
     bongo.api.JTag.some
       title     :
         $in     : stringTags
     ,
-      sort      : 
+      sort      :
         'title' : 1
     , (err,tags)=>
         unless err and not tags
           @setDefaultValue tags
         else
           warn "There was a problem fetching default tags!", err, tags
-    
+
 class SkillTagAutoCompletedItem extends KDAutoCompletedItem
   constructor:(options, data)->
     options.cssClass = "clearfix"
@@ -428,7 +416,7 @@ class SkillTagAutoCompletedItem extends KDAutoCompletedItem
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   click:(event)->
     @getDelegate().removeFromSubmitQueue @ if $(event.target).is('span.close-icon')
     @getDelegate().getView().$input().trigger

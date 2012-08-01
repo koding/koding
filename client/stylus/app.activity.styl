@@ -250,7 +250,7 @@ app.activity.styl
       bg                position, -80px -261px
   .kdcontextmenutreeview
     margin              3px 0
-    .kdview.kdtreeitemview.default
+    .kdview.kdtreeitemview.default      
       padding           2px
       font-size         11px
 
@@ -277,10 +277,29 @@ app.activity.styl
     font-weight           300
     line-height           125%
     a
-      font-size             14px
-      line-height           125%
-      font-weight           300
+      font-size           14px
+      line-height         125%
+      font-weight         300
       noTextDeco()
+    span.more
+      font-size           0
+      vendor              transition, font-size .2s linear
+      a.more-link
+      a.less-link
+        margin-left       5px
+        vendor            transition, font-size .2s linear
+      a.more-link
+        font-size         14px
+      a
+        font-size         0
+      &.show
+        font-size         14px
+        a.more-link
+          font-size       0
+          margin-left     0
+        a
+          font-size       14px
+
   p.context               
     margin                0 0 18px 0
     font-size             12px

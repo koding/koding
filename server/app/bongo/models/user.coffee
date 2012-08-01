@@ -31,6 +31,10 @@ class JUser extends jraphical.Module
   
   @share()
   
+  @::mixin Flaggable::
+  
+  @getFlagRole =-> 'owner'
+  
   @set
     indexes         :
       username      : 'unique'

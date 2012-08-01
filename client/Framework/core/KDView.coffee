@@ -723,15 +723,15 @@ class KDView extends KDObject
   setTooltip:(o = {})->
 
     placementMap =
-           above : "s"
-           below : "n"
-           left  : "e"
-           right : "w"
+      above      : "s"
+      below      : "n"
+      left       : "e"
+      right      : "w"
 
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
-    o.delayIn   or= 0
+    o.delayIn   or= 300
     o.html      or= yes
     o.animate   or= no
     o.opacity   or= 0.9

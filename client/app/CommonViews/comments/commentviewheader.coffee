@@ -41,15 +41,15 @@ class CommentViewHeader extends JView
       click     : => list.emit "AllCommentsLinkWasClicked", @
 
   ownCommentArrived:->
-    
+
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
     @onListCount = @parent.commentController?.getItemCount?()
 
-    # If there are same number of comments in list with total 
+    # If there are same number of comments in list with total
     # comment size means we don't need to show new item count
     @newItemsLink.unsetClass('in')
-    
+
     # If its our comments so it's not a new comment
     if @newCount > 0 then @newCount--
 
@@ -58,7 +58,7 @@ class CommentViewHeader extends JView
   ownCommentDeleted:->
     if @newCount > 0
       @newCount++
-    
+
   render:->
 
     # Get correct number of items in list from controller
@@ -80,7 +80,7 @@ class CommentViewHeader extends JView
       @newCount++
     else if _newCount < @oldCount
       if @newCount > 0 then @newCount--
-    
+
     # If the count is changed then we need to update UI
     if _newCount isnt @oldCount
       @oldCount = _newCount
@@ -111,7 +111,7 @@ class CommentViewHeader extends JView
       @hide()
     else
       @show()
-      
+
   hide:->
     @unsetClass "in"
     super

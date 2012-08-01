@@ -24,6 +24,7 @@ class ActivityActionsView extends KDView
 
     @likeCount    = new ActivityLikeCount
       tooltip     :
+        gravity   : "se"
         title     : ""
         engine    : "tipsy" # We should force to use tipsy because
                             # for now only tipsy supports tooltip updates
@@ -82,7 +83,7 @@ class ActivityActionsView extends KDView
           else if activity.meta.likes is 3
             tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and " + peopleWhoLiked[2]
           else
-            tooltip = peopleWhoLiked.join(", ") + " and <strong>" + (activity.meta.likes - 3) + " more.</strong>"
+            tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and <strong>" + (activity.meta.likes - 2) + " more.</strong>"
 
           @likeCount.updateTooltip {title: tooltip }
 

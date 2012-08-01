@@ -1,12 +1,16 @@
 class JPrivateMessage extends JPost
   {ObjectRef, secure, race} = bongo
-  
+
   @share()
-  
+
   @set
     sharedMethods     :
       static          : ['create','on']
-      instance        : ['on','reply','restComments','commentsByRange','like','fetchLikedByes','disown','collectParticipants','mark','unmark']
+      instance        : [
+        'on','reply','restComments','commentsByRange','like',
+        'fetchLikedByes','disown','collectParticipants','mark',
+        'unmark','fetchRelativeComments'
+      ]
     schema        : jraphical.Message.schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
@@ -17,7 +21,7 @@ class JPrivateMessage extends JPost
   disown: secure ({connection}, callback)->
     {delegate} = connection
     delegate.removePrivateMessage @, {as: $in: ['sender', 'recipient']}, callback
-  
+
   collectParticipants: secure ({connection}, callback)->
     {delegate} = connection
     register = new Register # a register per message...
@@ -76,4 +80,3 @@ class JPrivateMessage extends JPost
                     unless delegate.profile.nickname in to
                       jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
                         channel.publish delegate, pm
-                      

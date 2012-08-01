@@ -326,10 +326,10 @@ button.editor-button
 
 .modal-topic-list
   .topic-item
-    max-height        20px
+    max-height        40px
     border-bottom     1px solid #EEE
     .topictext
-      padding         6px
+      padding         10px
 
   .ttag
     fl()
@@ -1204,11 +1204,18 @@ figure.code-container
   shadow              0 1px 5px rgba(0, 0, 0, .5)
   bg                  color, rgba(0, 0, 0, .55)
   border              1px solid rgba(0, 0, 0, 0.3)
+  .kdnotification-timer
+    hidden()
   .kdnotification-title span
     size              20px, 12px
     display           inline-block
     bg                position, -162px -443px
     sprite()
+  .kdnotification-title a
+    color             white
+    text-decoration   underline
+    &:hover
+      color           #ADADAD
   &.like
     .kdnotification-title span
       bg              position, -82px -604px
