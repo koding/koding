@@ -148,8 +148,10 @@ class Activity12345 extends AppController
 
   fetchTeasers:(selector,options,callback)->
     options.collection = 'activities'
+    
     $.ajax KD.apiUri+'/1.0'
       data      :
+        t       : 1 if ~KD.whoami().getAt('globalFlags')?.indexOf('exempt')
         data    : JSON.stringify(_.extend options, selector)
         env     : KD.env
       dataType  : 'jsonp'
