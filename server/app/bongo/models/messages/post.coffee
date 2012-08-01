@@ -78,11 +78,9 @@ class JPost extends jraphical.Message
       status = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
-      console.log 'global flags', delegate.getAt 'globalFlags'
       if 'exempt' in delegate.getAt('globalFlags')
-        status.setAt 'isLowQuality', yes
-        activity.setAt 'isLowQuality', yes
-        console.log status.getAt 'isLowQuality', status.setAt
+        status.isLowQuality = yes
+        activity.isLowQuality = yes
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
       teaser = null

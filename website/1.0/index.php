@@ -55,6 +55,7 @@ function getFeed($collection,$limit,$sort,$skip){
             $cursor = $mongo->$dbName->$collection->find(
               array(
                 "snapshot"  => array( '$exists'  => true ),
+                "isLowQuality" => array( '$ne' => true ),
                 "type"      => $type,
                 "originId"  => $originId,
               ),
