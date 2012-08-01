@@ -63,7 +63,7 @@ function get_mongo_host () {
   $hosts = array(
     'vpn'         => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
     'beta'        => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost',
-    'mongohq-dev' => 'mongodb://dev:633939V3R6967W93A@staff.mongohq.com:10016',
+    'mongohq-dev' => 'mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy',
   );
   return $hosts[$env];
 }
