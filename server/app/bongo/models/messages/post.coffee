@@ -94,6 +94,8 @@ class JPost extends jraphical.Message
                 callback err
               else queue.next()
         ->
+          delegate.addContent status, (err)-> queue.next(err)
+        ->
           activity.save (err)->
             if err
               callback createKodingError err
@@ -103,6 +105,8 @@ class JPost extends jraphical.Message
             if err
               callback createKodingError err
             else queue.next()
+        ->
+          delegate.addContent activity, (err)-> queue.next(err)
         ->
           tags or= []
           status.addTags client, tags, (err)->
@@ -311,6 +315,8 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
+            delegate.addContent comment, (err)->
+              console.log 'error adding content', err
             @addComment comment, respondWithCount: yes, (err, docs, count)=>
               if err
                 callback err
