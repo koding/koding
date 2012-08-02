@@ -28,6 +28,8 @@ class ActivityListItemView extends KDListItemView
     
     super options, data
     
+    data = @getData()
+    
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
@@ -37,6 +39,10 @@ class ActivityListItemView extends KDListItemView
           @addChildView teaser
       else
         @addChildView data
+    
+    data.on 'ContentMarkedAsLowQuality', =>
+      @hide() unless KD.checkFlag 'exempt'
+    data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
     
