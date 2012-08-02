@@ -52,7 +52,9 @@ KD = @KD or {}
   isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
   
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
-  
+
+  checkFlag:(flag, account = KD.whoami())-> account.globalFlags and flag in account.globalFlags
+
   setAuthKey:->
 
   requireLogin:(errMsg, callback)->

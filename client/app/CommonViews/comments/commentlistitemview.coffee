@@ -48,12 +48,16 @@ class CommentListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'delete-link hidden'
 
-    if data.originId is KD.whoami().getId()
-      @deleteLink.unsetClass "hidden"
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @deleteLink
-        callback           : => @confirmDeleteComment data
+    activity = @getDelegate().getData()
+    bongo.cacheable data.originId, "JAccount", (err, account)=>
+      if data.originId is KD.whoami().getId() or # if comment owner
+         data.originId is activity.originId or   # if activity owner
+         KD.checkFlag "super-admin", account     # if super-admin
+        @deleteLink.unsetClass "hidden"
+        @listenTo
+          KDEventTypes       : "click"
+          listenedToInstance : @deleteLink
+          callback           : => @confirmDeleteComment data
 
   render:->
     if @getData().getAt 'deletedAt'

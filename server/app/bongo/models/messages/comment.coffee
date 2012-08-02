@@ -9,6 +9,7 @@ class JComment extends jraphical.Reply
     sharedMethods :
       instance    : ['delete']
     schema        :
+      isLowQuality: Boolean
       body        :
         type      : String
         required  : yes
@@ -38,8 +39,10 @@ class JComment extends jraphical.Reply
             rel.fetchSource (err, message)->
               if err
                 queue.fin err
-              else
+              else if delegate.can 'delete', message
                 message.removeReply rel, -> queue.fin()
+              else
+                callback new KodingError 'Access denied!'
       =>
         deleter = ObjectRef(delegate)
         @update
@@ -51,7 +54,7 @@ class JComment extends jraphical.Reply
         , -> queue.fin()
     ]
     dash queue, callback
-  
+
 class CCommentActivity extends CActivity
   
   {Relationship} = jraphical
