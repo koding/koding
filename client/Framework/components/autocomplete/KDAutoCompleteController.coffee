@@ -57,6 +57,7 @@ class KDAutoCompleteController extends KDViewController
       when 13, 9 #enter, tab
         unless autoCompleteView.getValue() is ""
           @submitAutoComplete autoCompleteView.getValue()
+          @emit 'ItemListChanged'
         else
           return yes
       when 27 #escape
@@ -195,7 +196,7 @@ class KDAutoCompleteController extends KDViewController
       @getSingleton("windowController").setKeyView null
       new KDNotificationView
         type      : "mini"
-        title   : "You can add up to #{@getOptions().selectedItemsLimit} items!"
+        title     : "You can add up to #{@getOptions().selectedItemsLimit} items!"
         duration  : 4000
 
     @hideDropdown()
@@ -263,7 +264,7 @@ class KDAutoCompleteController extends KDViewController
     path.join('.')
 
   addSuggestion:(title)->
-    @propagateEvent KDEventType: 'AutocompleteSuggestionWasAdded', title
+    @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
     data or= item.getData()
@@ -275,8 +276,7 @@ class KDAutoCompleteController extends KDViewController
     else
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
-      @addSuggestion itemValue
-    
+
     return no if @isItemAlreadySelected data
 
     path = @getCollectionPath()
@@ -325,6 +325,7 @@ class KDAutoCompleteController extends KDViewController
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
+    @emit 'ItemListChanged'
 
   rearrangeInputWidth:()->
     # mainView = @getView()
