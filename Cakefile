@@ -193,7 +193,7 @@ task 'checkModules', 'check node_modules dir',(options)->
   uninstalled_mods = (mod for mod in all_mods when mod not in data)
   if uninstalled_mods.length > 0      
     console.log "[ERROR] UNINSTALLED MODULES FOUND:",uninstalled_mods
-    console.log "Please run: cake install"
+    console.log "Please run: npm install #{uninstalled_mods.join(" ")} (or cake install)"
     console.log "Exiting."
     process.exit()
   else

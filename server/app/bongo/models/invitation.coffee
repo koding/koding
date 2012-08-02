@@ -147,7 +147,7 @@ class JInvitation extends jraphical.Module
                     account.addLimit limit, 'invite', (err)-> batch.fin(err)
         dash batch, callback
   
-  @getInviteEmail =-> "hi@koding.com"
+  @getInviteEmail =-> "hello@koding.com"
   
   @getInviteSubject =({inviter})-> "#{inviter} has invited you to Koding!"
   

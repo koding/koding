@@ -28,10 +28,10 @@ module.exports =
     mysql				    : '0.9.1'
     'node-oauth'		: '0.1.0'
     'node-pusher'		: '0.0.2'
-    nodemailer			: '0.1.22'
+    nodemailer			: '0.3.21'
     nodeunit				: '0.5.3'
     optimist				: '0.3.1'
-
+    
     postmark				: '0.1.6'
     profiler				: '1.1.0'
     request				  : '2.9.202'
