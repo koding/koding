@@ -117,21 +117,22 @@ class KDFormView extends KDView
 
     toBeValidated.forEach (input)=>
       # wait for the validation result of each input
-      input.once "ValidationResult", (result)=>
-        validatedCount++
-        validInputs.push input if result
-        # check if all inputs were validated
-        if toBeValidated.length is validatedCount
-          # check if all inputs were valid
-          if toBeValidated.length is validInputs.length
-            # put valid inputs to formdata
-            # formData = $.extend formData, @getCustomData()
-            for inputView in toBeValidated
-              formData[inputView.getName()] = inputView.getValue()
-          else
-            @valid = no
-          # tell validation was finished
-          @emit "FormValidationFinished"
+      do =>
+        input.once "ValidationResult", (result)=>
+          validatedCount++
+          validInputs.push input if result
+          # check if all inputs were validated
+          if toBeValidated.length is validatedCount
+            # check if all inputs were valid
+            if toBeValidated.length is validInputs.length
+              # put valid inputs to formdata
+              # formData = $.extend formData, @getCustomData()
+              for inputView in toBeValidated
+                formData[inputView.getName()] = inputView.getValue()
+            else
+              valid = no
+            # tell validation was finished
+            @emit "FormValidationFinished", valid
       input.validate null, event
 
     # if no validation is required mimic as all were validated

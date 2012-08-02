@@ -100,7 +100,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-
+        
+        jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
+        
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -117,6 +119,7 @@ Includes =
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
 
 
@@ -244,6 +247,7 @@ Includes =
         AppController         : "./client/app/MainApp/AppController.coffee"
         DocumentManager       : "./client/app/MainApp/DocumentManager.coffee"
         KodingAppsController  : "./client/app/MainApp/kodingappscontroller.coffee"
+        AppStorage            : "./client/app/MainApp/AppStorage.coffee"
 
         Members12345          : "./client/app/Applications/Members.kdapplication/AppController.coffee"
         Account12345          : "./client/app/Applications/Account.kdapplication/AppController.coffee"
@@ -345,8 +349,8 @@ Includes =
         # MEMBERS VIEWS
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
         membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
-        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
-        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        ownprofileview                : "./client/app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee"
+        profileview                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee"
         contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
 
         # START TAB VIEWS
@@ -358,7 +362,6 @@ Includes =
 
         # INBOX VIEWS
         inboxAppView                  : "./client/app/Applications/Inbox.kdapplication/AppView.coffee"
-        inboxShowMore                 : "./client/app/Applications/Inbox.kdapplication/Views/InboxShowMoreLink.coffee"
         inboxInnerNavigation          : "./client/app/Applications/Inbox.kdapplication/Views/InboxInnerNavigation.coffee"
         inboxMessagesList             : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessagesList.coffee"
         inboxMessageThreadView        : "./client/app/Applications/Inbox.kdapplication/Views/InboxMessageThreadView.coffee"
@@ -456,7 +459,7 @@ Includes =
 
         # COMMON VIEW
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
-        TagGroups                   : "./client/app/CommonViews/TagViews.coffee"
+        TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
         inputWithButton             : "./client/app/CommonViews/CommonInputWithButton.coffee"
@@ -530,6 +533,7 @@ Includes =
         registerform              : "./client/app/MainApp/login/registerform.coffee"
         recoverform               : "./client/app/MainApp/login/recoverform.coffee"
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
+        requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
@@ -551,8 +555,10 @@ Includes =
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
         md5               : "./client/libs/md5-min.js"
+        # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
+        jTipsy            : "./client/libs/jquery.tipsy.js"
         async             : "./client/libs/async.js"
         jMouseWheel       : "./client/libs/jquery.mousewheel.js"
         jMouseWheelIntent : "./client/libs/mwheelIntent.js"
@@ -646,7 +652,8 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
-        termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
+        tipsy               : "./client/css/tipsy.css"
+        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"
         # wmd           : "./client/css/wmd.css"

@@ -1,3 +1,4 @@
+# uncomplicate this - Sinan 7/2012
 class ApplicationManager extends KDObject
   constructor: ->
     @controllers            = {}
@@ -58,7 +59,7 @@ class ApplicationManager extends KDObject
     appManager = @
 
     beforeCallback = (appInstance)->
-      appManager.propagateEvent KDEventType : "AppManagerOpensAnApplication", appInstance
+      appManager.emit "AppManagerOpensAnApplication", appInstance
       if doBringToFront
         appManager.setFrontApp path
       callback? appInstance
@@ -101,6 +102,7 @@ class ApplicationManager extends KDObject
 
   openFileWithApplication:(file, applicationPath)->
     @openApplication applicationPath, no, (appInstance)->
+      # log appInstance, file
       appInstance.openFile file
 
   tell:(path, command, rest...)->

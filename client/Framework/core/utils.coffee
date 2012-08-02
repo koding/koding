@@ -86,7 +86,8 @@ __utils =
   
   applyTextExpansions: (text)->
     return null unless text
-    @expandWwwDotDomains @expandUrls text
+    # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
+    @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
     return null unless text
@@ -97,7 +98,13 @@ __utils =
     return null unless text
     text.replace /[@]+[A-Za-z0-9-_]+/g, (u) ->
       username = u.replace "@", ""
-      "@".concat username.link '#!/'+username
+      u.link "#!/member/#{username}"
+
+  expandTags: (text) ->
+    return null unless text
+    text.replace /[#]+[A-Za-z0-9-_]+/g, (t) ->
+      tag = t.replace "#", ""
+      "<a href='#!/topic/#{tag}' class='ttag'><span>#{tag}</span></a>"
 
   expandUrls: (text) ->
     return null unless text
@@ -166,6 +173,8 @@ __utils =
         "3gp","wmv","flv","swf","wma","rm","rpm","rv"
       ]
       sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
+      app     : ["kdapp"]
+      
 
     for own type,set of _extension_sets
       for ext in set

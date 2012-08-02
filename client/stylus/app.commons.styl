@@ -157,7 +157,10 @@ button.kdbutton.icon-only
 /* editor-button
 *******************************************************************************/
 button.editor-button
-  // font-family       Droid
+  border            1px solid #ccc
+  border-color      #ccc #ccc #bbb #ccc
+  color             #333
+  font-size         11px
   font-weight       normal
   padding           6px 13px
   text-shadow       0 1px 0 white
@@ -165,6 +168,9 @@ button.editor-button
   shadow            0 1px 0 white
   height            24px
   line-height       12px
+  text-align        center
+  gradient          rgba(247,247,245,1),rgba(210,210,208,1)
+  rounded           3px
   &:hover
     border          1px solid #bbb
     border-color    #bbb #bbb #999 #bbb
@@ -285,6 +291,9 @@ button.editor-button
   display             inline-block
   vertical-align      top
   max-width           90px
+  text-overflow       ellipsis
+  white-space         nowrap
+  overflow            hidden
   noTextDeco()
 
   &.expandable
@@ -308,19 +317,19 @@ button.editor-button
   font-size           11px
 
 .modal-topic-wrapper
-  min-width     440px
+  min-width           500px
   .kdloader
-    display                 block
-    margin                  20px auto
+    display           block
+    margin            20px auto
   .kdscrollview
-    max-height    240px
+    max-height        240px
 
 .modal-topic-list
   .topic-item
-    max-height      40px
-    border-bottom   1px solid #EEE
+    max-height        40px
+    border-bottom     1px solid #EEE
     .topictext
-      padding   10px
+      padding         10px
 
   .ttag
     fl()
@@ -755,11 +764,28 @@ button.cancel-edit-button
   overflow        hidden
 
 .avatarview
+  position        relative
   display         block
   min-width       10px
   min-height      10px
   bg              position,center center
   bg              repeat,no-repeat
+  cite
+    position      absolute
+    bottom        -2px
+    right         -2px
+    size          20px,20px
+    bg            position, 20px 20px
+    sprite()
+    &.staff
+      bg          position, -480px -60px
+
+.super .avatarview cite.exempt
+  size          40px, 40px
+  top           50%
+  left          50%
+  margin        -20px 0 0 -20px
+  bg            position, -500px -40px
 
 .avatar
   min-width       10px
@@ -1195,10 +1221,18 @@ figure.code-container
   shadow              0 1px 5px rgba(0, 0, 0, .5)
   bg                  color, rgba(0, 0, 0, .55)
   border              1px solid rgba(0, 0, 0, 0.3)
+  .kdnotification-timer
+    hidden()
   .kdnotification-title span
     size              20px, 12px
     display           inline-block
+    bg                position, -162px -443px
     sprite()
+  .kdnotification-title a
+    color             white
+    text-decoration   underline
+    &:hover
+      color           #ADADAD
   &.like
     .kdnotification-title span
       bg              position, -82px -604px

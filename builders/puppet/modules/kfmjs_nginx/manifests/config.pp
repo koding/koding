@@ -36,6 +36,15 @@ class kfmjs_nginx::config {
         require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["kfmjs_nginx::service"],
     }
+    file { "/etc/nginx/conf.d/default.conf":
+        ensure  => file,
+        source  => "puppet:///modules/kfmjs_nginx/etc/conf.d/default.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["kfmjs_nginx::service"],
+    }
+
 
     file { "/etc/nginx/ssl":
         ensure => directory,

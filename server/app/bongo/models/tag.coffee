@@ -1,7 +1,10 @@
 class JTag extends Followable
   
+  {Relationship} = jraphical
+  
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
+  
   # @mixin Followable       # brings only static methods
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
@@ -16,8 +19,9 @@ class JTag extends Followable
       slug          : 'unique'
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow', 'fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers'
+        'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
+        'fetchFollowingWithRelationship','fetchContents','fetchContentTeasers',
+        'delete'
         ]
       static        : [
         "one","on","some","all","create",
@@ -58,13 +62,14 @@ class JTag extends Followable
         targetType  : JAccount
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp, JStatusUpdate]
+        targetType  : [JCodeSnip, JApp, JStatusUpdate, JAccount]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
       #   as          : 'content'
-  
-  
+  modify: secure (client, formData, callback)->
+    callback arguments
+    
   fetchContentTeasers:->
     [args..., callback] = arguments
     @fetchContents args..., (err, contents)->
@@ -81,7 +86,7 @@ class JTag extends Followable
         collectTeasers node for node in contents
       
       
-  @handleFreetags = bongo.secure (client, tagRefs, callbackForEach=->)->
+  @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
     daisy queue = [
       ->
@@ -139,7 +144,40 @@ class JTag extends Followable
       sort    : 'title' : 1
     }, callback
 
-  emit:-> debugger
+  delete: secure (client, callback)->
+    {delegate} = client.connection
+    delegate.fetchRole client, (err, role)=>
+      if err
+        callback err
+      else unless role is 'super-admin'
+        callback new KodingError 'Access denied!'
+      else
+        tagId = @getId()
+        @fetchContents (err, contents)=>
+          if err
+            callback err
+          else
+            Relationship.remove {
+              $or: [{
+                targetId  : tagId
+                as        : 'tag'
+              },{
+                sourceId  : tagId
+                as        : 'post'
+              }]
+            }, (err)=>
+              if err
+                callback err
+              else
+                @remove (err)=>
+                  if err
+                    callback err
+                  else
+                    @emit 'TagIsDeleted', 1
+                    callback null
+                    contents.forEach (content)->
+                      content.flushSnapshot tagId, (err)->
+                        if err then console.log err
   # save: secure (client,callback)->
   #   tag = @
   #   account = client.connection.delegate

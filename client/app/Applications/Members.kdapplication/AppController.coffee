@@ -64,7 +64,7 @@ class Members12345 extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
-      limitPerPage          : 20
+      limitPerPage          : 10
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
@@ -96,8 +96,8 @@ class Members12345 extends AppController
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view
 
-
-  createFollowsContentDisplay:(account, filter)->
+  createFolloweeContentDisplay:(account, filter)->
+    # log "I need to create followee for", account, filter
     newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter

@@ -36,7 +36,7 @@ class KDViewController extends KDController
     if aViewInstance.isViewReady() then @loadView @getView()
     else
       aViewInstance.registerListener KDEventTypes : ['ViewAppended'], callback : @loadView, listener : @
-      aViewInstance.registerListener KDEventTypes : 'KDObjectWillBeDestroyed', listener : @, callback : ->@destroy()
+      aViewInstance.on 'KDObjectWillBeDestroyed', => @destroy()
     
   # DELEGATE METHOD
   hashDidChange:(params,query)->

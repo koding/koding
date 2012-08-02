@@ -103,13 +103,13 @@ class AccountEditUsername extends KDView
       cssClass     : "main-label"
     
     emailFrequency = user.getAt('emailFrequency.global')
-    log "EMFREQ:", emailFrequency, user, user.data
 
     @emailOptOutView.addSubView new KDRySwitch
+      cssClass      : 'dark'
       defaultValue  : if emailFrequency is 'never' then off else on
       callback      : (state)-> 
         account.setEmailPreferences global: state, ->
           new KDNotificationView
             duration : 2000
-            title    : if state then 'You will get notifications by email.' \
-                                else 'You will no longer get email notifications by email.'
+            title    : if state then 'You will get email notifications.' \
+                                else 'You will no longer get email notifications.'

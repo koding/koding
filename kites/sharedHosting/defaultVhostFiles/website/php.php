@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Hellow World From php by Koding</title>
+<title>Hello World From php by Koding</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="http://koding.com/hello/css/style.css">
 <!--[if IE]>
@@ -33,9 +33,7 @@
 	<p>
 		You can create your own simple PHP "Hello World" with this:
 	</p>
-	<pre>
-		&lt;?php echo 'Hello World from PHP'; ?&gt;
-	</pre>
+	<pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre>
 	</footer>
 </div>
 </body>

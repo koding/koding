@@ -62,5 +62,18 @@ do ->
     '/verify/:confirmationToken': ({confirmationToken})->
       confirmationToken = decodeURIComponent confirmationToken
       bongo.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
-        throw err if err
         location.replace '#'
+        if err
+          throw err
+          new KDNotificationView
+            title     : "Something went wrong, please try again later!"
+        else
+          new KDNotificationView
+            title     : "Thanks for confirming your email address!"
+
+    '/member/:username': ({username})->
+
+        bongo.api.JAccount.one "profile.nickname" : username, (err, account)->
+          if err then warn err
+          else if account
+            appManager.tell "Members", "createContentDisplay", account

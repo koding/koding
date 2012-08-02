@@ -2,7 +2,7 @@ class CommentViewHeader extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass       = "show-more-comments"
+    options.cssClass       = "show-more-comments in"
     options.itemTypeString = options.itemTypeString or "comments"
 
     super options, data
@@ -17,6 +17,8 @@ class CommentViewHeader extends JView
     unless data.repliesCount? and data.repliesCount > @maxCommentToShow
       @onListCount = data.repliesCount
       @hide()
+
+    @hide() if data.repliesCount is 0
 
     list = @getDelegate()
 
@@ -39,15 +41,15 @@ class CommentViewHeader extends JView
       click     : => list.emit "AllCommentsLinkWasClicked", @
 
   ownCommentArrived:->
-    
+
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
     @onListCount = @parent.commentController?.getItemCount?()
 
-    # If there are same number of comments in list with total 
+    # If there are same number of comments in list with total
     # comment size means we don't need to show new item count
     @newItemsLink.unsetClass('in')
-    
+
     # If its our comments so it's not a new comment
     if @newCount > 0 then @newCount--
 
@@ -56,14 +58,13 @@ class CommentViewHeader extends JView
   ownCommentDeleted:->
     if @newCount > 0
       @newCount++
-    
+
   render:->
 
     # Get correct number of items in list from controller
     # I'm not sure maybe its not a good idea
-    if @parent.commentController?.getItemCount?()
+    if @parent?.commentController?.getItemCount?()
       @onListCount = @parent.commentController.getItemCount()
-    
     _newCount = @getData().repliesCount
 
     # Show View all bla bla link if there are more comments
@@ -79,7 +80,7 @@ class CommentViewHeader extends JView
       @newCount++
     else if _newCount < @oldCount
       if @newCount > 0 then @newCount--
-    
+
     # If the count is changed then we need to update UI
     if _newCount isnt @oldCount
       @oldCount = _newCount
@@ -103,18 +104,21 @@ class CommentViewHeader extends JView
     if @onListCount > @oldCount
       @onListCount = @oldCount
 
+    if @onListCount is @getData().repliesCount
+      @newCount = 0
+
     if @onListCount is @oldCount and @newCount is 0
       @hide()
     else
       @show()
-      
+
   hide:->
     @unsetClass "in"
-    # super
+    super
 
   show:->
     @setClass "in"
-    # super
+    super
 
   pistachio:->
     """

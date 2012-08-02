@@ -7,6 +7,38 @@ require_once 'lib/pusher.php';
 
 $router = new Router;
 
+$router->add_route('/collab',function($params){
+
+  header("Content-type: text/plain");
+
+  $out = $_REQUEST['q'];
+
+  $in = "";
+  ini_set("display_errors", 0);
+  $fp = fsockopen("localhost", 3017, $errno, $errstr, 5);
+  ini_set("display_errors", 1);
+  if (!$fp) {
+    # PHP can't connect to Python daemon.
+    $in = "\n";
+  } else {
+    if (get_magic_quotes_gpc()) {
+      # Some servers have magic quotes enabled, some disabled.
+      $out = stripslashes($out);
+    }
+    fwrite($fp, $out);
+    while (!feof($fp)) {
+      $in .= fread($fp, 1024);
+    }
+    fclose($fp);
+  }
+
+  #echo "-Sent-\n";
+  #echo $out;
+  #echo "-Received-\n";
+  echo $in;
+
+});
+
 $router->add_route('/kite/:kite_name', function ($params) {
   global $respond;
   $kite_controller = get_kite_controller();
@@ -90,9 +122,10 @@ $router->add_route('/logout', function () {
 });
 
 $router->add_route('/kite/connect', function () {
+  error_log('hello');
   $kite_controller = get_kite_controller();
   $req = json_decode($_REQUEST['data']);
-  $response = $kite_controller->add_kite($req->kiteName, $req->uri);
+  $response = $kite_controller->add_kite($req->kiteName, $req->uri, $req->serviceKey);
   if (!$response) {
     access_denied();
   }
@@ -118,9 +151,17 @@ $router->add_route('/kite/disconnect', function () {
   }
 });
 
+$router->add_route('/chris', function () {
+  error_log('dfghjkl');
+  print 'qwerftgyui';
+});
+
 $router->add_route('/channel/auth', function () {
-  $pusher = new Pusher('a6f121a130a44c7f5325', '9a2f248630abaf977547', 22120);
-  header('Content-type: text/javascript');
+  global $pusher_key, $pusher_secret, $pusher_app_id;
+  $pusher = new Pusher($pusher_key, $pusher_secret, $pusher_app_id);
+  trace($pusher_app_id);
+  print_cors_headers();
+  print_json_headers();
   print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
   die();
 });

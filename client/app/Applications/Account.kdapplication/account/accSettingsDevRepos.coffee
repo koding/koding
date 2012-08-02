@@ -79,11 +79,10 @@ class AccountRepoList extends KDListView
       height    : "auto"
       buttons   : yes
     
-    form = new KDFormView 
+    modal.addSubView form = new KDFormView 
       cssClass : "clearfix"
       callback : (formData)=>
         @updateRepo listItem, formData
-    modal.addSubView form, ".kdmodal-content"
 
     form.addSubView formline1 = new KDView cssClass : "modalformline"
     form.addSubView formline2 = new KDView cssClass : "modalformline"

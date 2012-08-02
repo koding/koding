@@ -1,6 +1,4 @@
-
-client/KDApplications/Shell.kdapplication/terminal.log
-client/KDApplications/Shell.kdapplication/terminal.pid
+/.revision
 .DS_Store
 website/js/kd*.js
 website/css/kd*.css
@@ -24,6 +22,7 @@ node_modules/.bin
 /node_modules/braintree
 /node_modules/browserify
 /node_modules/coffee-script
+/node_modules/cron
 /node_modules/dateformat
 /node_modules/dropbox
 /node_modules/eventemitter2
@@ -61,3 +60,5 @@ node_modules/.bin
 /node_modules/browserify
 /node_modules/cron
 /node_modules/.DS_Store
+/node_modules/csv
+node_modules/cron/

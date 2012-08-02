@@ -68,17 +68,20 @@ targetPaths =
       tmpFileCompiled = tmpFile+".js"
       fs.writeFile tmpFile,js,(err)-> 
         execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+        console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
+            console.log "23",arguments
           else if stdout
+            console.log "12",arguments
           else throw err
           bar.tick() for ko in [ticks...totalTicks]
           fs.readFile tmpFileCompiled,'utf8',(err,data)->
             clearInterval a
             unless err
               callback null,data
-              fs.unlink tmpFileCompiled,->
-              fs.unlink tmpFile,->
+              # fs.unlink tmpFileCompiled,->
+              # fs.unlink tmpFile,->
             else
               log.error "something wrong with compressing #{tmpFile}",execStr
               callback err
@@ -135,8 +138,17 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.dontStart = yes
   options.uglify    = yes
   options.useStatic = yes
+
+  
+  rev = fs.readFileSync "./.revision"
+  prompt.start()
+  prompt.get [{message:"Did you update the .revision? - current:#{rev} (type yes to continue)",name:'p'}],  (err, result) ->
+    # fs.writeFileSync "./.revision",result.p
+    # version = targetPaths.version = result.p
     
-  invoke 'build'
+    if result.p is "yes"
+      invoke 'build'
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
 
 
 

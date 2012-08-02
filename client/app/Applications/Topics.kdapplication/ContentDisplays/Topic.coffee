@@ -29,7 +29,7 @@ class ContentDisplayControllerTopic extends KDViewController
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass        : ActivityListItemView
       listCssClass        : "activity-related"
-      limitPerPage        : 30
+      limitPerPage        : 5
       filter              :
         content           :
           title           : 'All content'

@@ -32,9 +32,11 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemCounter = 0
 
   reset:->
-    subViews = @itemWrapper.getSubViews().slice()
+    {itemClass} = @getOptions()
+    subViews    = @itemWrapper.getSubViews().slice()
     for item in subViews
-      @removeFromSubmitQueue item
+      if item instanceof itemClass
+        @removeFromSubmitQueue item
 
   loadView:(mainView)->
     @createDropDown()
@@ -101,7 +103,6 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper = @dropdown.getView()
 
     dropdownWrapper.on 'ReceivedClickElsewhere', =>
-      windowController.removeLayer dropdownWrapper
       @hideDropdown()
 
     dropdownWrapper.setClass "kdautocomplete hidden #{@getOptions().listWrapperCssClass}"
@@ -292,6 +293,7 @@ class KDAutoCompleteController extends KDViewController
         else if id?
           constructorName   : itemValue.constructor.name
           id                : id
+          title             : itemValue.title
         else
           $suggest          : itemValue
       )

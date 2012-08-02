@@ -39,6 +39,10 @@ class Ace12345 extends KDController
 
     unless @isFileOpen file
       @bringToFront new AceView {}, file
+    else
+      # check if this is possible with appManager
+      @getSingleton("mainView").mainTabView.showPane @aceViews[file.path].parent
+
 
   removeOpenDocument:(doc)->
 

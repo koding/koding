@@ -34,6 +34,7 @@ class KDView extends KDObject
 # #
 
   constructor:(options = {},data)->
+    
     o = options
     o.tagName     or= "div"     # a String of a HTML tag
     o.domId       or= null      # a String
@@ -43,18 +44,22 @@ class KDView extends KDObject
     o.pistachio   or= null      # a String of Pistachio
     o.delegate    or= null      # a KDView Instance
     o.bind        or= ""        # a String of space seperated javascript dom events to be listened on instantiated view
-    o.draggable   or= null      # an Object holding draggable options and/or events
-    o.droppable   or= null      # an Object holding jQuery UI droppable options and/or events
-    o.resizable   or= null      # an Object holding jQuery UI resizable options and/or events
+    o.draggable   or= null      # an Object holding draggable options and/or events !!! NOT HTML5 !!!
+    o.droppable   or= null      # TBDL
     o.size        or= null      # an Object holding width and height properties
     o.position    or= null      # an Object holding top/right/bottom/left properties (would force view to be positioned absolutely)
     o.attributes  or= null      # an Object holding attribute key/value pairs e.g. {href:'#',title:'my picture'}
     o.prefix      or= ""        # a String
     o.suffix      or= ""        # a String
     o.tooltip     or= null      # an Object of twipsy options
+    # TO BE IMPLEMENTED
+    o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', =>
+      data
+      debugger if window.paws
+      @render()
 
     @setInstanceVariables options
     @defaultInit options,data
@@ -114,8 +119,8 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      error 'View already has a parent'
       console.log "view:", @, "parent:", @parent
+      error 'View already has a parent'
     else
       if defineProperty
         defineProperty @, 'parent', value : parent, configurable : yes
@@ -651,6 +656,7 @@ class KDView extends KDObject
 # #
 # EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults
 # #
+
   notifiesOthers:(event)->#notifies the rest of the code when event happens?
     yes
 
@@ -661,43 +667,24 @@ class KDView extends KDObject
     yes
 
 # #
-# DEFAULT CONTEXT MENU OPTIONS, DEPRECATED 2012/5/14 Sinan
-# #
-
-  # classContextMenu:()->
-  #   items = @classContextMenuItems()
-  #   items.concat @contextMenuItems if @contextMenuItems?
-  #   items
-  #
-  # classContextMenuItems:()->
-  #   items = []
-  #
-  # setContextMenuItems:(menuItems)->
-  #   @contextMenuItems = menuItems
-
-# #
-# SETTING JQUERY UI RESIZABLE
-# #
-
-  makeResizable:(options)->
-    @getDomElement().resizable options
-
-# #
 # HELPER METHODS
 # #
 
   putOverlay:(options = {})->
 
-    {isRemovable, cssClass, parent, animated} = options
+    {isRemovable, cssClass, parent, animated, color} = options
 
     isRemovable ?= yes
     cssClass    ?= "transparent"
     parent      ?= "body"           #body or a KDView instance
 
     @$overlay = $ "<div />", class : "kdoverlay #{cssClass} #{if animated then "animated"}"
+    
+    if color
+      @$overlay.css "background-color" : color
 
-    if parent is "body"
-      @$overlay.appendTo "body"
+    if "string" is typeof parent
+      @$overlay.appendTo $(parent)
     else if parent instanceof KDView
       @__zIndex = parseInt(@$().css("z-index"), 10) or 0
       @$overlay.css "z-index", @__zIndex + 1
@@ -715,6 +702,9 @@ class KDView extends KDObject
       @$overlay.on "click.overlay", @removeOverlay.bind @
 
   removeOverlay:()->
+    
+    return unless @$overlay
+
     @emit "OverlayWillBeRemoved"
     kallback = =>
       @$overlay.off "click.overlay"
@@ -732,13 +722,24 @@ class KDView extends KDObject
 
   setTooltip:(o = {})->
 
+    placementMap =
+      above      : "s"
+      below      : "n"
+      left       : "e"
+      right      : "w"
+
     o.title     or= "Default tooltip title!"
     o.placement or= "above"
     o.offset    or= 0
     o.delayIn   or= 300
     o.html      or= yes
-    o.animate   or= yes
+    o.animate   or= no
+    o.opacity   or= 0.9
     o.selector  or= null
+    o.engine    or= "tipsy" # we still can use twipsy
+    o.gravity   or= placementMap[o.placement]
+    o.fade      or= o.animate
+    o.fallback  or= o.title
 
     @listenTo
       KDEventTypes        : "viewAppended"
@@ -746,7 +747,17 @@ class KDView extends KDObject
       callback            : =>
         # log "get rid of this timeout there should be an event after template update"
         @utils.wait =>
-          @$(o.selector).twipsy o
+          @$(o.selector)[o.engine] o
+
+  getTooltip:(o = {})->
+    o.selector or= null
+    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+
+  updateTooltip:(o = {})->
+    o.selector or= null
+    o.title    or= ""
+    if o.title
+      @$(o.selector)[0].setAttribute "original-title", o.title
 
   listenWindowResize:->
 

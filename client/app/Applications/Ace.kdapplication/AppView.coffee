@@ -17,7 +17,7 @@ class AceView extends JView
 
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
-      style         : "clean-gray editor-button save-menu"
+      style         : "editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
       callback      : ()=> 
@@ -41,9 +41,10 @@ class AceView extends JView
       click         : (pubInst, event)-> @contextMenu event
       menu          : [@getAdvancedSettingsMenuItems()]
 
-    publicUrlCheck = /.*\/(.*\.beta.koding.com)\/website\/(.*)/
+
+    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
-      style     : "clean-gray editor-button"
+      style     : "editor-button"
       icon      : yes
       iconOnly  : yes
       iconClass : "preview"
@@ -183,6 +184,7 @@ class AceView extends JView
       dragdrop          : yes
       foldersOnly       : yes
       contextMenu       : no
+
     finder = @finderController.getView()
 
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null

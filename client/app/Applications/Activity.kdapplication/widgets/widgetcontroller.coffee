@@ -56,9 +56,11 @@ class ActivityUpdateWidgetController extends KDViewController
           mainView.showPane "codesnip"
           codeWidget.switchToEditView activity
 
-
   updateWidgetSubmit:(data, callback)->
     
+    # if troll clear the tag input
+    data.meta?.tags = [] if KD.checkFlag 'exempt'
+
     if data.activity
       {activity} = data
       delete data.activity
@@ -77,7 +79,7 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
-    
+
     if data.activity
       {activity} = data
       delete data.activity

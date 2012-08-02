@@ -28,6 +28,8 @@ class ActivityListItemView extends KDListItemView
     
     super options, data
     
+    data = @getData()
+    
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
@@ -37,6 +39,10 @@ class ActivityListItemView extends KDListItemView
           @addChildView teaser
       else
         @addChildView data
+    
+    data.on 'ContentMarkedAsLowQuality', =>
+      @hide() unless KD.checkFlag 'exempt'
+    data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
     
@@ -90,22 +96,15 @@ class ActivityItemChild extends KDView
     @commentBox = new CommentView null, data
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
-    if data.originId is KD.whoami().getId()
+    account = KD.whoami()
+    if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
-        style       : 'transparent activity-settings-context'
-        cssClass    : 'activity-settings-menu'
+        cssClass    : 'transparent activity-settings-context activity-settings-menu'
         title       : ''
         icon        : yes
         delegate    : @
         iconClass   : "arrow"
-        menu        : [
-          type      : "contextmenu"
-          items     : [
-            # { title : 'Edit',   id : 1,  parentId : null, callback : => new KDNotificationView type : "mini", title : "<p>Currently disabled.</p>" }
-            { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-            { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
-          ]
-        ]
+        menu        : @settingsMenu data
         callback    : (event)=> @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
@@ -114,10 +113,10 @@ class ActivityItemChild extends KDView
     
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
-      # log tagRefs, ">>>>>"
       bongo.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
+        # debugger
         @tags.render()
 
     data.on 'PostIsDeleted', =>
@@ -133,6 +132,36 @@ class ActivityItemChild extends KDView
       @commentBox.decorateCommentedState() if count >= 0
 
     @contentDisplayController = @getSingleton "contentDisplayController"
+
+    bongo.cacheable data.originType, data.originId, (err, account)=>
+      @setClass "exempt" if account and KD.checkFlag 'exempt', account
+
+  settingsMenu:(data)->
+    
+    account = KD.whoami()
+    
+    menu = [
+      type      : "contextmenu"
+      items     : []
+    ]
+
+    if data.originId is KD.whoami().getId()
+      menu[0].items = [
+        { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
+        { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
+      ]
+
+      return menu
+    
+    if KD.checkFlag 'super-admin'
+      menu[0].items = [
+        { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll data  }
+        { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll data  }
+        { title : 'Delete Post', id : 3,  parentId : null, callback : => @confirmDeletePost data  }
+      ]
+
+      return menu
+
 
   confirmDeletePost:(data)->
 

@@ -5,32 +5,10 @@ fs = require 'fs'
 hat = require 'hat'
 {exec} = require 'child_process'
 
-
+config = require './config'
 
 # HELPERS
-createTmpDir =(username, callback)->
-  tmpDir = "/Users/#{username}/.tmp"
-  fs.stat tmpDir, (err, stat)->
-    if err
-      fs.mkdir tmpDir, 0755, (err)->
-        if err
-          callback? err
-          log.error err
-        else
-          # log.debug ".tmp dir is there"
-          callback? null
-    else
-      if stat.isDirectory()
-        # log.debug ".tmp dir is there"
-        callback? null
-      else
-        log.error ".tmp file is found where we need .tmp directory. deleting.."
-        fs.unlink tmpDir, (err)->
-          unless err
-            createTmpDir username, callback
-          else
-            log.debug ".tmp file is found where we need .tmp directory. file deleted, .tmp dir is created."
-            callback? null
+createTmpDir = require './createtmpdir'
 
 createTmpFile =(username, command, callback)->
   tmpFile = "/Users/#{username}/.tmp/tmp_#{hat()}.sh"
@@ -66,7 +44,7 @@ execute = (options,callback)->
   
   cmd = exec execStr,(err,stdout,stderr)->
     respond {err,stdout,stderr},callback
-    fs.unlink tmpFile if unlink is yes
+    fs.unlink filename if unlink is yes
     log.debug "executed",execStr
 
 
@@ -78,8 +56,8 @@ respond = (options,callback)->
     {err,stdout,stderr} = options
 
   if err?
-    log.error "[ERROR] stderr for command \"#{command}\" for user #{username}: #{stderr}"
-    callback? stderr,stdout
+    callback stderr,stdout
+    log.error "[ERROR]",{err,stdout,stderr}
   else
     # log.info "[OK] command \"#{command}\" executed for user #{username}"
     callback? null,stdout
@@ -128,7 +106,7 @@ module.exports =(options, callback)->
     if error?
       callback? error
     else
-      chars = ";&|><*?`$(){}[]!#"      
+      chars = ";&|><*?`$(){}[]!#"
       if containsAnyChar command,chars
         log.debug "exec in a file",command
         prepareForBashExecute options, (err, filename)->          
