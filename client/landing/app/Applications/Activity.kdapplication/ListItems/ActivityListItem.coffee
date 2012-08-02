@@ -133,9 +133,8 @@ class ActivityItemChild extends KDView
 
     @contentDisplayController = @getSingleton "contentDisplayController"
 
-    bongo.cacheable origin.id, origin.constructorName, (err, account)->
-      if account?.globalFlags and 'exempt' in account.globalFlags
-        @setClass "exempt"
+    bongo.cacheable data.originType, data.originId, (err, account)=>
+      @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   settingsMenu:(data)->
     
