@@ -28,6 +28,8 @@ class ActivityListItemView extends KDListItemView
     
     super options, data
     
+    data = @getData()
+    
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
@@ -37,6 +39,10 @@ class ActivityListItemView extends KDListItemView
           @addChildView teaser
       else
         @addChildView data
+    
+    data.on 'ContentMarkedAsLowQuality', =>
+      @hide() unless KD.checkFlag 'exempt'
+    data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
     
@@ -127,9 +133,8 @@ class ActivityItemChild extends KDView
 
     @contentDisplayController = @getSingleton "contentDisplayController"
 
-    bongo.cacheable origin.id, origin.constructorName, (err, account)->
-      if account?.globalFlags and 'exempt' in account.globalFlags
-        @setClass "exempt"
+    bongo.cacheable data.originType, data.originId, (err, account)=>
+      @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   settingsMenu:(data)->
     
