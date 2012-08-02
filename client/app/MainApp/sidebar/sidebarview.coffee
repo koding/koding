@@ -341,7 +341,18 @@ class Sidebar extends JView
     title : "admin-navigation"
     items : [
         title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
+      ,
+        title : "Admin"        , loggedIn : yes, callback : -> new AdminModal
     ]
+
+class AdminModal extends KDModalView
+
+  constructor : (options = {}, data) ->
+
+    options.title = "Admin stuff"
+    super options, data
+
+
 
 
 class KiteSelectorModal extends KDModalView
