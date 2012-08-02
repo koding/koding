@@ -63,7 +63,7 @@ class JInvitation extends jraphical.Module
   @__sendBetaInvites = bongo.secure do->
     betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.html', 'utf-8'
+    betaTestersHTML   = fs.readFileSync 'email/invitations-are-sent.html', 'utf-8'
     protocol = 'https://'
     (client,callback)->
       i = 0
@@ -86,7 +86,6 @@ class JInvitation extends jraphical.Module
               #   shortenedUrl = response.data.url
               #   if shortenedUrl?
                   # shortenedUrl = url
-              console.log 'hello there ---<<<'
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               Emailer.send
                 From      : @getInviteEmail()
