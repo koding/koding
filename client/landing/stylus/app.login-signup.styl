@@ -26,7 +26,6 @@ body.login
   .vidLink
   .logLink
   .bigLink
-  .launchrock-wrapper
   >section
     hidden()
 
@@ -53,11 +52,19 @@ body.login
       visible()
     .flex-wrapper
       overflow            visible
-      size                400px, 335px
-    .launchrock-wrapper
+      //size                400px, 335px
+      &.expanded
+        width             400px
+        p.request-thanks
+          height          140px
+
+
+    .rqf
       visible()
       >.kdview
         overflow          visible
+      .kdnotification.mini.register
+        top               76px!important
 
   &.login
     .lf
@@ -394,6 +401,18 @@ body.login
     overflow          hidden
     vendor            transition, height .15s ease-out
     borderBox()
+    &.request-thanks
+      font-size       11px
+      iframe
+        margin-top    12px
+      a:hover
+        color         #ffb500
+        text-decoration underline
+
+    h5
+      font-size       12px
+      font-weight     400
+      margin          10px 0
 
   .password-confirm
     margin-bottom       0!important
