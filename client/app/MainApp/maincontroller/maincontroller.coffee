@@ -97,6 +97,12 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
+    if KD.checkFlag 'super-admin'
+      $('body').addClass 'super'
+    else
+      $('body').removeClass 'super'
+
+
     if @isUserLoggedIn()
       appManager.quitAll =>
         @createLoggedInState account
