@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode']#,'__sendBetaInvites',,'__createBetaInvites']
+      static        : ['create','byCode','__sendBetaInvites']#,,'__createBetaInvites']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -32,7 +32,7 @@ class JInvitation extends jraphical.Module
         default     : 'personal'
       status        : 
         type        : String 
-        enum        : ['invalid status type', ['active','blocked','redeemed','couldnt send email']]
+        enum        : ['invalid status type', ['sent','active','blocked','redeemed','couldnt send email']]
         default     : 'active' # 'unconfirmed'
       origin        : ObjectRef
     relationships   :
@@ -75,7 +75,7 @@ class JInvitation extends jraphical.Module
 
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(7000, 8000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(9000, 10000).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -86,9 +86,10 @@ class JInvitation extends jraphical.Module
               #   shortenedUrl = response.data.url
               #   if shortenedUrl?
                   # shortenedUrl = url
-              console.log 'hello there ---<<<'
+              
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
-              Emailer.send
+              
+              Emailer.simulate
                 From      : @getInviteEmail()
                 To        : email
                 Subject   : '[Koding] Here is your beta invite!'
@@ -232,10 +233,11 @@ class JInvitation extends jraphical.Module
                     , (err)->
                       unless err
                         callback null                      
-                        limit.update {$inc: usage: 1}, callback
+                        limit.update {$inc: usage: 1}, (err)-> console.log err if err
+                        invite.update {$set: status: "sent"}, (err)-> console.log err if err
                       else
-                        limit.update  {$inc: usage: 1}, callback
-                        invite.update {$set: status: "couldnt send email"}, callback
+                        limit.update  {$inc: usage: 1}, (err)-> console.log err if err
+                        invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
                         callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
   
   redeem:bongo.secure ({connection:{delegate}}, callback=->)->

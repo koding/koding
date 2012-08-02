@@ -25,4 +25,9 @@ class Emailer
         callback error
       else
         callback null, "Message sent: " + response.message
+  
+  @simulate : (options,callback)->
 
+    setTimeout ->
+      console.log "[SIMULATION] EMAIL SENT TO #{options.To}"
+    ,250
