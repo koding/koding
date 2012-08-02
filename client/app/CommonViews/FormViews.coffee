@@ -275,7 +275,7 @@ class LocationView extends JView
   getFirstLocation:(locationTags)->
     locationTags[0]
 
-class PersonalFormSkillTagView extends KDFormView
+class PersonalFormSkillTagView extends AbstractPersonalFormView
 
   constructor:(options, data)->
 
@@ -286,45 +286,6 @@ class PersonalFormSkillTagView extends KDFormView
     super options, null
     {@memberData} = options
     @memberData.skillTags or= []
-
-    @setCallback (formData)=>
-      if formData.skillTags?
-        newTags      = formData.skillTags?.filter((tag)-> tag.$suggest?)
-        oldTags      = formData.skillTags?.filter((tag)-> tag.id?)
-        plainNewTags = newTags.map((tag)-> tag.$suggest)
-        plainOldTags = oldTags.map((tag)-> tag.title)
-
-        joinedTags   = plainNewTags.concat plainOldTags
-
-        @memberData.addTags formData.skillTags, (err)=>
-          if err
-            log "An error occured:", err
-            new KDNotificationView
-              title : "There was an error while adding new skills."
-          else
-            changes = 'skillTags' : joinedTags
-            @memberData.modify changes, (err)=>
-              if err
-                log "An error occured:", err
-                new KDNotificationView
-                  title : "There was an error while updating your profile."
-              else
-                @memberData.emit "update"
-                new KDNotificationView
-                  title     : "Success!"
-                  duration  : 500
-                # @tagController.putDefaultValues joinedTags
-                @saveButton?.enable()
-                @hideForm()
-
-  showForm:->
-    unless @$().hasClass "active"
-      @label.updatePartial "SKILLS"
-      @setClass 'active'
-      @focusFirstElement()
-
-  hideForm:->
-    @unsetClass 'active'
 
   viewAppended:->
     super
@@ -344,7 +305,11 @@ class PersonalFormSkillTagView extends KDFormView
       title       : "SKILLS"
       click       : (pubInst, event)=> @showForm()
 
-    tagController = new SkillTagAutoCompleteController
+    tagWrapper.addSubView @loader = new KDLoaderView
+      size        :
+        width     : 14
+
+    @tagController = new SkillTagAutoCompleteController
       name                : "skillTags"
       cssClass            : 'skilltag-form'
       type                : "tags"
@@ -356,33 +321,42 @@ class PersonalFormSkillTagView extends KDFormView
       form                : @
       dataSource          : (args, callback)=>
         {inputValue} = args
-        blacklist = (data.getId() for data in tagController.getSelectedItemData() when 'function' is typeof data.getId)
+        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         @propagateEvent KDEventType : "AutoCompleteNeedsTagData", {inputValue,blacklist,callback}
 
-    @addSubView tagController.getView()
-    tagController.putDefaultValues @memberData.skillTags
+    @tagController.on 'ItemListChanged', =>
+      {skillTags}  = @getData()
+      @loader.show()
+      newTags      = skillTags?.filter((tag)-> tag.$suggest?)
+      oldTags      = skillTags?.filter((tag)-> tag.id?)
+      plainNewTags = newTags.map((tag)-> tag.$suggest)
+      plainOldTags = oldTags.map((tag)-> tag.title)
 
-    @addSubView buttonWrapper = new KDCustomHTMLView
-      tagName   : 'div'
-      cssClass  : 'button-container'
-      partial   : ''
+      joinedTags   = plainNewTags.concat plainOldTags
 
-    buttonWrapper.addSubView @cancelButton = new KDButtonView
-      style     : "clean-red"
-      title     : "Cancel"
-      size      :
-        width   : 'auto'
-      callback  : => @hideForm()
+      @memberData.addTags skillTags, (err)=>
+        if err
+          log "An error occured:", err
+          new KDNotificationView
+            title : "There was an error while adding new skills."
+        else
+          changes = 'skillTags' : joinedTags
+          @memberData.modify changes, (err)=>
+            if err
+              log "An error occured:", err
+              new KDNotificationView
+                title : "There was an error while updating your profile."
+            # else
+            #   new KDNotificationView
+            #     title     : "Success!"
+            #     duration  : 500
+            @loader.hide()
 
-    buttonWrapper.addSubView @saveButton = new KDButtonView
-      style     : "cupid-green"
-      title     : "Save"
-      type      : 'submit'
-      size      :
-        width   : 'auto'
-      callback  : =>
-        @saveButton.disable()
-        @submit()
+    @addSubView @tagController.getView()
+    @tagController.putDefaultValues @memberData.skillTags
+
+  mouseDown:(event)->
+    no
 
 class SkillTagAutoCompleteController extends KDAutoCompleteController
   constructor:(options, data)->
