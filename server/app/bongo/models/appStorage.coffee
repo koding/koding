@@ -20,7 +20,7 @@ class JAppStorage extends jraphical.Module
         default   : '1.0'
       bucket      :
         type      : Object
-        default   : {}
+        default   : -> {}
   
   dropOption: (optionName, callback) ->
     delete @bucket[optionName]
