@@ -303,16 +303,19 @@ class AvatarView extends LinkView
     return no
 
   render:->
-    return unless @getData()
-    {profile} = @getData()
+    account = @getData()
+    return unless account
+    {profile} = account
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
     @$().attr "title", options.title or "#{profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
-    flags = @getData().globalFlags?.join(" ")
+    flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
-    @$('cite').attr "title", flags
+    # @$('cite').attr "title", flags
+
+
 
   viewAppended:->
     super
