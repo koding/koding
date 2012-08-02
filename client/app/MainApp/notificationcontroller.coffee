@@ -2,12 +2,12 @@ class NotificationController extends KDObject
 
   subjectMap = ->
 
-    JStatusUpdate       : "status"
-    JCodeSnip           : "code snippet"
-    JQuestionActivity   : "question"
-    JDiscussionActivity : "discussion"
-    JLinkActivity       : "link"
-    JPrivateMessage     : "private message"
+    JStatusUpdate       : "<a href='#'>status</a>"
+    JCodeSnip           : "<a href='#'>code snippet</a>"
+    JQuestionActivity   : "<a href='#'>question</a>"
+    JDiscussionActivity : "<a href='#'>discussion</a>"
+    JLinkActivity       : "<a href='#'>link</a>"
+    JPrivateMessage     : "<a href='#'>private message</a>"
 
   constructor:->
 
@@ -94,7 +94,8 @@ class NotificationController extends KDObject
     new KDNotificationView
       type     : 'tray'
       cssClass : "mini realtime #{options.type}"
-      duration : 5000
+      duration : 10000
+      showTimer: yes
       title    : "<span></span>#{options.title}"
       content  : options.content  or null
       click    : options.click    or noop

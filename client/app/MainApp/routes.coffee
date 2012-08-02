@@ -70,3 +70,10 @@ do ->
         else
           new KDNotificationView
             title     : "Thanks for confirming your email address!"
+
+    '/member/:username': ({username})->
+
+        bongo.api.JAccount.one "profile.nickname" : username, (err, account)->
+          if err then warn err
+          else if account
+            appManager.tell "Members", "createContentDisplay", account

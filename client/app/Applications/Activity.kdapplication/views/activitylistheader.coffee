@@ -1,11 +1,11 @@
-class ActivityListHeader extends KDView
+class ActivityListHeader extends JView
+  
   constructor:->
+    
     super
+    
     @_newItemsCount = 0
     
-  viewAppended:->
-    @setPartial @partial 0
-
     @showNewItemsLink = new KDCustomHTMLView
       tagName     : "div"
       partial     : "<span>0</span> new items. <a href='#'>Update</a>"
@@ -18,10 +18,21 @@ class ActivityListHeader extends KDView
         @updateShowNewItemsLink()
 
     @showNewItemsLink.hide()
-    @addSubView @showNewItemsLink
+
+    if KD.checkFlag "super-admin"
+      @lowQualitySwitch = new KDRySwitch
+        defaultValue : off
+        callback     : (state) => 
+          appManager.fetchStorage 'Activity', '1.0', (err, storage)->
+            storage.setOption 'showLowQualityContent', state, (err)->
+              console.log err if err
+      appManager.fetchStorage 'Activity', '1.0', (err, storage)=>
+        @lowQualitySwitch.setValue storage.getAt('bucket.showLowQualityContent') ? off
+    else
+      @lowQualitySwitch = new KDCustomHTMLView
     
-  partial:(newCount)->
-    "<p>Latest Activity</p>"
+  pistachio:(newCount)->
+    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @showNewItemsLink}}"
     
   newActivityArrived:->
     @_newItemsCount++
