@@ -94,7 +94,7 @@ class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
-      globalFlags         : [String]
+      globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
       environment   :
@@ -244,7 +244,10 @@ class JAccount extends jraphical.Module
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
-
+  
+  checkFlag:(flag)->
+    flags = @getAt('globalFlags')
+    flags and (flag in flags)
   
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
   
@@ -417,15 +420,13 @@ class JAccount extends jraphical.Module
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        console.log 'ITEM', item
-        item.update $set: isLowQuality: yes
+        item.update {$set: isLowQuality: yes}, console.log
         item.emit 'ContentMarkedAsLowQuality', null
   
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        console.log 'ITEM', item
-        item.update $set: isLowQuality: no
+        item.update {$set: isLowQuality: no}, console.log
         item.emit 'ContentUnmarkedAsLowQuality', null
   
   @taintedAccounts = {}
