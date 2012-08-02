@@ -32,7 +32,7 @@ class JInvitation extends jraphical.Module
         default     : 'personal'
       status        : 
         type        : String 
-        enum        : ['invalid status type', ['active','blocked','redeemed']]
+        enum        : ['invalid status type', ['active','blocked','redeemed','couldnt send email']]
         default     : 'active' # 'unconfirmed'
       origin        : ObjectRef
     relationships   :
@@ -60,15 +60,19 @@ class JInvitation extends jraphical.Module
   #             #   console.log 'finished', i++
   #             #   callback 'ok'
   # 
-  @__sendBetaInvites =do->
+  @__sendBetaInvites = bongo.secure do->
     betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
     betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.html', 'utf-8'
     protocol = 'https://'
-    (callback)->
+    (client,callback)->
       i = 0
       recipients = []
       {host, port} = server
+      account = client.connection.delegate
+      unless 'super-admin' in account.globalFlags 
+        return callback new KodingError "not authorized"
+
       # host = 'localhost:3000'
       # protocol = 'http://'
       uniq(betaTestersEmails.split '\n').slice(7000, 8000).forEach (email)=>
@@ -185,7 +189,7 @@ class JInvitation extends jraphical.Module
     delegate.fetchLimit 'invite', (err, limit)=>
       if err
         callback err
-      else if limit? and emails.length > limit.getValue()
+      else if !limit? or limit? and emails.length > limit.getValue()
         callback new KodingError "You don't have enough invitation quota"
       else
         emails.forEach (email)=>
@@ -215,16 +219,24 @@ class JInvitation extends jraphical.Module
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
                     url       : "#{protocol}#{host}/invitation/#{encodeURIComponent code}"
-                  Emailer.send
-                    From      : @getInviteEmail()
-                    To        : email
-                    Subject   : @getInviteSubject(messageOptions)
-                    TextBody  : @getInviteMessage(messageOptions)
-                  , (res)-> 
-                    unless limit
-                      callback null
-                    else
-                      limit.update {$inc: usage: 1}, callback
+
+                  JUser.fetchUser client,(err,user)=>
+                    inviterEmail = user.email
+
+                    Emailer.send
+                      From      : @getInviteEmail()
+                      To        : email
+                      Subject   : @getInviteSubject(messageOptions)
+                      TextBody  : @getInviteMessage(messageOptions)
+                      ReplyTo   : inviterEmail
+                    , (err)->
+                      unless err
+                        callback null                      
+                        limit.update {$inc: usage: 1}, callback
+                      else
+                        limit.update  {$inc: usage: 1}, callback
+                        invite.update {$set: status: "couldnt send email"}, callback
+                        callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
   
   redeem:bongo.secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}

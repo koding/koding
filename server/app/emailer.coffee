@@ -6,15 +6,21 @@ class Emailer
       pass: "AuuZXaIiI1XacyWULnNbFQcUjZNkGq46OWMVK9o+2BEy"
 
   @send : (options,callback) ->
-    {From,To,Subject,HtmlBody,TextBody} = options
+    {From,To,Subject,HtmlBody,TextBody,ReplyTo} = options
     mailOptions =
-      From    : From
+      from    : From
       to      : To
       subject : Subject
-      text    : TextBody
-      html    : HtmlBody
+
+    
+    mailOptions.text      = TextBody  if TextBody
+    mailOptions.html      = HtmlBody  if HtmlBody
+    mailOptions.replyTo   = ReplyTo   if ReplyTo
+    
+    console.log mailOptions
 
     Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
+      console.log error,response
       if error
         callback error
       else
