@@ -183,7 +183,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       @unsetClass 'active'
       return no
 
-    changes = 'profile.about'  : about
+    changes = 'profile.about' : about
     @memberData.modify changes, (err)=>
       if err
         new KDNotificationView
@@ -302,9 +302,8 @@ class PersonalFormSkillTagView extends KDFormView
             new KDNotificationView
               title : "There was an error while adding new skills."
           else
-            changes = $set:
-              'skillTags' : joinedTags
-            @memberData.update changes, (err)=>
+            changes = 'skillTags' : joinedTags
+            @memberData.modify changes, (err)=>
               if err
                 log "An error occured:", err
                 new KDNotificationView
