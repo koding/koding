@@ -34,7 +34,7 @@ do ->
         new KDNotificationView
           title: 'Could not redeem invitation because you are already logged in.'
       else bongo.api.JInvitation.byCode inviteToken, (err, invite)->
-        if err or !invite? or invite.status isnt 'active'
+        if err or !invite? or invite.status isnt 'active' or invite.status isnt 'sent'
           new KDNotificationView
             title: 'Invalid invitation code!'
         else
