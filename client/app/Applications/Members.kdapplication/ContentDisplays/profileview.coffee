@@ -67,6 +67,24 @@ class ProfileView extends KDView
     @setListeners()
     @skillTags = new SkillTagGroup {}, memberData
 
+    if KD.checkFlag 'super-admin'
+      @trollSettings = new KDButtonViewWithMenu
+        cssClass    : 'transparent activity-settings-context activity-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "arrow"
+        menu        : [
+          type      : "contextmenu"
+          items     : [
+            { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll @getData() }
+            { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll @getData() }
+          ]
+        ]
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @trollSettings = new KDCustomHTMLView
+
   viewAppended:->
     super
     @setTemplate @pistachio()
@@ -108,6 +126,8 @@ class ProfileView extends KDView
 
       </div>
     </section>
+
+    {{> @trollSettings}}
     """
 
   

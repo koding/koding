@@ -9,28 +9,73 @@ class Demos12345 extends AppController
     super name : 'Demos'#, type : 'background'
 
   loadView:(mainView)->
-    data = [
-      { title : "title 1",  id : 1,  parentId: 0}
-      { title : "title 2",  id : 2,  parentId: 0}
-      { title : "title 3",  id : 3,  parentId: 0}
-      { title : "title 4",  id : 4,  parentId: 0}
-      { title : "title 5",  id : 5,  parentId: 1}
-      { title : "title 6",  id : 6,  parentId: 1}
-      { title : "title 7",  id : 7,  parentId: 1}
-      { title : "title 8",  id : 8,  parentId: 5}
-      { title : "title 9",  id : 9,  parentId: 5}
-      { title : "title 10", id : 10, parentId: 5}
-      { title : "title 11", id : 11, parentId: 5}
-      { title : "title 12", id : 12, parentId: 5}
-      { title : "title 13", id : 13, parentId: 5}
-      { title : "title 14", id : 14, parentId: 5}
-      { title : "title 15", id : 15, parentId: 1}
-      { title : "title 16", id : 16, parentId: 1}
-      { title : "title 17", id : 17, parentId: 11}
-      { title : "title 18", id : 18, parentId: 11}
-      { title : "title 19", id : 19, parentId: 11}
-      { title : "title 20", id : 20, parentId: 1}
-    ]
+    
+    mainView.addSubView form = new KDFormViewWithFields
+      fields          :
+        title         :
+          name        : "title"
+          placeholder : "title"
+          validate    :
+            rules     :
+              required: yes
+              minLength : 3
+        parent        :
+          name        : "parentId"
+          placeholder : "parentId"
+          validate    :
+            rules     :
+              required: yes
+        remove        :
+          name        : "id"
+          placeholder : "to be removed id"
+          validate    :
+            rules     :
+              required: yes
+      buttons         :
+        add           :
+          title       : "submit"
+          type        : "submit"
+      callback        : (formData)->
+        log formData
+    
+
+
+    form.addCustomData "sinan","kicks"
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # data = [
+    #   { title : "title 1",  id : 1,  parentId: 0}
+    #   { title : "title 2",  id : 2,  parentId: 0}
+    #   { title : "title 3",  id : 3,  parentId: 0}
+    #   { title : "title 4",  id : 4,  parentId: 0}
+    #   { title : "title 5",  id : 5,  parentId: 1}
+    #   { title : "title 6",  id : 6,  parentId: 1}
+    #   { title : "title 7",  id : 7,  parentId: 1}
+    #   { title : "title 8",  id : 8,  parentId: 5}
+    #   { title : "title 9",  id : 9,  parentId: 5}
+    #   { title : "title 10", id : 10, parentId: 5}
+    #   { title : "title 11", id : 11, parentId: 5}
+    #   { title : "title 12", id : 12, parentId: 5}
+    #   { title : "title 13", id : 13, parentId: 5}
+    #   { title : "title 14", id : 14, parentId: 5}
+    #   { title : "title 15", id : 15, parentId: 1}
+    #   { title : "title 16", id : 16, parentId: 1}
+    #   { title : "title 17", id : 17, parentId: 11}
+    #   { title : "title 18", id : 18, parentId: 11}
+    #   { title : "title 19", id : 19, parentId: 11}
+    #   { title : "title 20", id : 20, parentId: 1}
+    # ]
 
     ###
     window.sss = mainView.addSubView followButton = new KDToggleButton # MemberFollowToggleButton
@@ -67,13 +112,13 @@ class Demos12345 extends AppController
     ###
 
 
-    t = new JTreeViewController
-      addListsCollapsed : yes
-      multipleSelection : yes
-      dragdrop          : yes
-    , data
-    mainView.addSubView t.getView()
-    t.getView().$().height "auto"
+    # t = new JTreeViewController
+    #   addListsCollapsed : yes
+    #   multipleSelection : yes
+    #   dragdrop          : yes
+    # , data
+    # mainView.addSubView t.getView()
+    # t.getView().$().height "auto"
 
     # mainView.addSubView a = new ProfileLinkView {},KD.whoami()
     # mainView.addSubView b = new KDButtonView
@@ -143,58 +188,3 @@ class Demos12345 extends AppController
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dragee
     # mainView.addSubView new Dropee
-
-
-# class Dragee extends KDCustomHTMLView
-#
-#   constructor:(options, data)->
-#     super
-#       tagName       : "section"
-#       cssClass      : "drag"
-#       attributes    :
-#         draggable   : "true"
-#       bind          : "dragstart dragenter dragleave dragend dragover drop"
-#       dragstart     : (pubInst, event)->
-#         log event, event.type
-#         e = event.originalEvent
-#         e.dataTransfer.effectAllowed = 'copy' # only dropEffect='copy' will be dropable
-#         e.dataTransfer.setData('Text', this.id) # required otherwise doesn't work
-#         pubInst.setClass "drag-started"
-#
-#       dragenter     : (pubInst, event)->
-#         log event.type
-#
-#       dragover      : (pubInst, event)->
-#         event.preventDefault()
-#         # event.originalEvent.dataTransfer.dropEffect = 'move'
-#         log event.type
-#         no
-#
-#       dragleave     : (pubInst, event)->
-#         log event.type
-#
-#       drop          : (pubInst, event)->
-#         log event.type
-#         event.preventDefault()
-#         event.stopPropagation()
-#         no
-#
-#       dragend       : (pubInst, event)->
-#         pubInst.unsetClass "drag-started"
-#         log event.type
-#
-#     , data
-#
-# class Dropee extends KDCustomHTMLView
-#
-#   constructor:(options, data)->
-#     super
-#       tagName       : "section"
-#       cssClass      : "drop"
-#       bind          : "dragenter dragleave dragover drop"
-#       drop          : (pubInst, event)->
-#         log event.type, "burdaki"
-#         event.preventDefault()
-#         event.stopPropagation()
-#         no
-#     , data

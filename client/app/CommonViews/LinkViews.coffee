@@ -50,23 +50,23 @@ class ProfileLinkView extends LinkView
 
   constructor:(options = {}, data)->
 
-    options.tooltip =
-      gravity   : "s"
-      delayIn   : 120
-      offset    : 1
+    # options.tooltip =
+    #   gravity   : "s"
+    #   delayIn   : 120
+    #   offset    : 1
 
     super options, data
 
-    nickname = data?.profile?.nickname
-    @$().attr "href","/#!/member/#{nickname}" if nickname
+    # nickname = data?.profile?.nickname
+    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
-  render:->
+  # render:->
 
     nickname = @getData().profile?.nickname
     if nickname
       @$().attr "href","/#!/member/#{nickname}"
-      @updateTooltip title : "@#{nickname}"
+      # @updateTooltip title : "@#{nickname}"
     super
 
   pistachio:->
@@ -74,7 +74,7 @@ class ProfileLinkView extends LinkView
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
-    
+
     appManager.tell "Members", "createContentDisplay", @getData()
     event.preventDefault()
     event.stopPropagation()
@@ -303,16 +303,25 @@ class AvatarView extends LinkView
     return no
 
   render:->
-    return unless @getData()
-    {profile} = @getData()
+    account = @getData()
+    return unless account
+    {profile} = account
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
-    @$().attr "title", options.title or "#{profile.firstName}'s avatar"
+    @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
+    flags = account.globalFlags?.join(" ") ? ""
+    @$('cite').addClass flags
+    # @$('cite').attr "title", flags
+
+
 
   viewAppended:->
+    super
     @render() if @getData()
+
+  pistachio:-> '<cite></cite>'
 
 class AvatarStaticView extends AvatarView
   constructor:(options, data)->
