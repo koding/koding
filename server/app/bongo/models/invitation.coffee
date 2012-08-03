@@ -63,7 +63,7 @@ class JInvitation extends jraphical.Module
   @__sendBetaInvites = bongo.secure do->
     betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.html', 'utf-8'
+    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
     protocol = 'https://'
     (client,callback)->
       i = 0
