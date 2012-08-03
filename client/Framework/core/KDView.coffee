@@ -728,7 +728,7 @@ class KDView extends KDObject
       left       : "e"
       right      : "w"
 
-    o.title     or= "Default tooltip title!"
+    o.title     or= ""
     o.placement or= "above"
     o.offset    or= 0
     o.delayIn   or= 300
@@ -756,8 +756,7 @@ class KDView extends KDObject
   updateTooltip:(o = {})->
     o.selector or= null
     o.title    or= ""
-    if o.title
-      @$(o.selector)[0].setAttribute "original-title", o.title
+    @$(o.selector)[0].setAttribute "original-title", o.title
 
   listenWindowResize:->
 
