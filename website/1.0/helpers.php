@@ -120,12 +120,22 @@ function get_mongo_db_name () {
   return $db_names[$env];
 }
 
+function get_mongo_db () {
+  global $connStr;
+  // $db = get_mongo_db_name();
+  //$connection_string = get_mongo_host().'/'.$db;
+  @$mongo = new Mongo($connStr, array('persist' => 'api'));
+  if(!isset($mongo)) {
+    access_denied(2);
+  }
+  return $mongo->$db;
+}
 
 function get_kite_controller () {
-  global $kite_controller,$mongo;
+  global $kite_controller;
   if (isset($kite_controller)) {
     return $kite_controller;
   }
-  $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', $mongo);
+  $kite_controller = new KiteController(dirname(dirname(dirname(__FILE__))).'/config/kite_config.json', get_mongo_db());
   return $kite_controller;
 }

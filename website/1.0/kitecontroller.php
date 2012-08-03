@@ -1,5 +1,4 @@
 <?php
-require_once 'config.php';
 require_once 'helpers.php';
 require_once 'kitecluster.php';
 require_once 'kite.php';
@@ -21,9 +20,8 @@ class KiteController {
   }
   
   public function initialize_config ($config_json) {
-    global $mongo;
     $config = json_decode($config_json);
-    $db = $mongo;
+    $db = get_mongo_db();
     foreach ($config->kites as $kite_name => $kite) {
       $this->clusters[$kite_name] = array();
       foreach ($kite->clusters as $cluster) {
