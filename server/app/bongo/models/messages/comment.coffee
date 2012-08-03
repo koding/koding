@@ -27,6 +27,7 @@ class JComment extends jraphical.Reply
     {delegate} = client.connection
     {getDeleteHelper} = Relationship
     id = @getId()
+    comment = @
     queue = [
       ->
         Relationship.one {
@@ -39,7 +40,7 @@ class JComment extends jraphical.Reply
             rel.fetchSource (err, message)->
               if err
                 queue.fin err
-              else if delegate.can 'delete', message
+              else if delegate.can 'delete', comment
                 message.removeReply rel, -> queue.fin()
               else
                 callback new KodingError 'Access denied!'

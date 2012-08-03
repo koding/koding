@@ -57,7 +57,6 @@ class KDAutoCompleteController extends KDViewController
       when 13, 9 #enter, tab
         unless autoCompleteView.getValue() is ""
           @submitAutoComplete autoCompleteView.getValue()
-          @emit 'ItemListChanged'
         else
           return yes
       when 27 #escape
@@ -191,6 +190,7 @@ class KDAutoCompleteController extends KDViewController
         @appendAutoCompletedItem()
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
+      @emit 'ItemListChanged'
     else
       inputView.setValue ''
       @getSingleton("windowController").setKeyView null
