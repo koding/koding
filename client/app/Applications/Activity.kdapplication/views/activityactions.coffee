@@ -36,7 +36,7 @@ class ActivityActionsView extends KDView
           activity.fetchLikedByes {},
             sort  : timestamp : -1
             , (err, likes) =>
-              new FollowedModalView {title:"Members who liked <strong>#{activity.body}</strong>"}, likes
+              new FollowedModalView {title:"Members who liked <cite>#{activity.body}</cite>"}, likes
       , activity
 
     @likeCount.on "countChanged", (count) =>
