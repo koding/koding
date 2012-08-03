@@ -22,9 +22,9 @@ module.exports =
     log				      : '1.2.0'
     log4js				  : '0.4.1'
 
-    mongodb				  : '1.0.0'
+    mongodb				  : '1.1.2'
 
-    mongoskin				: '0.3.5'
+    mongoskin				: '0.3.7'
     mysql				    : '0.9.1'
     'node-oauth'		: '0.1.0'
     'node-pusher'		: '0.0.2'
@@ -36,7 +36,7 @@ module.exports =
     profiler				: '1.1.0'
     request				  : '2.9.202'
     stylus				  : '0.21.2'
-    traverse				: '0.5.2'
+    traverse				: '0.6.3'
     underscore			: '1.2.3'
     url				      : '0.4.9'
     validator				: '0.2.0'
