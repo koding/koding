@@ -50,9 +50,10 @@ class CommentListItemView extends KDListItemView
 
     activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
-      if data.originId is KD.whoami().getId() or # if comment owner
-         data.originId is activity.originId or   # if activity owner
-         KD.checkFlag "super-admin", account     # if super-admin
+      loggedInId = KD.whoami().getId()
+      if loggedInId is data.originId or       # if comment owner
+         loggedInId is activity.originId or   # if activity owner
+         KD.checkFlag "super-admin", account  # if super-admin
         @deleteLink.unsetClass "hidden"
         @listenTo
           KDEventTypes       : "click"
