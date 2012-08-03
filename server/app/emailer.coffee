@@ -1,1 +1,33 @@
-Emailer = postmark
+class Emailer
+  @smtpTransport = nodemailer.createTransport "SMTP",
+    service: "SES"
+    auth:
+      user: "AKIAJAC35KADH6ZUKSJA"
+      pass: "AuuZXaIiI1XacyWULnNbFQcUjZNkGq46OWMVK9o+2BEy"
+
+  @send : (options,callback) ->
+    {From,To,Subject,HtmlBody,TextBody,ReplyTo} = options
+    mailOptions =
+      from    : From
+      to      : To
+      subject : Subject
+
+    
+    mailOptions.text      = TextBody  if TextBody
+    mailOptions.html      = HtmlBody  if HtmlBody
+    mailOptions.replyTo   = ReplyTo   if ReplyTo
+    
+    console.log mailOptions
+
+    Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
+      console.log error,response
+      if error
+        callback error
+      else
+        callback null, "Message sent: " + response.message
+  
+  @simulate : (options,callback)->
+
+    setTimeout ->
+      console.log "[SIMULATION] EMAIL SENT TO #{options.To}"
+    ,250

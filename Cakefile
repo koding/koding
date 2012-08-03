@@ -172,6 +172,7 @@ task 'uninstall', 'uninstall all modules listed in CakeNodeModules.coffee',(opti
 
 task 'checkModules', 'check node_modules dir',(options)->  
   {our_modules, npm_modules} = require "./CakeNodeModules"
+  required_versions = npm_modules
   npm_modules = (name for name,ver of npm_modules)  
   gitIgnore = ((fs.readFileSync "./.gitignore").toString().split "\n")
 
@@ -189,16 +190,23 @@ task 'checkModules', 'check node_modules dir',(options)->
     console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
 
+  # check if versions match
+  for mod,ver of required_versions when (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version isnt required_versions[mod]
+    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect. it has to be #{ver}."
+    log.info  "If you want to keep this version edit CakeNodeModules.coffee or run: npm install #{mod}@#{ver}"
+    process.exit()
+
   all_mods = npm_modules.concat our_modules
   uninstalled_mods = (mod for mod in all_mods when mod not in data)
   if uninstalled_mods.length > 0      
     console.log "[ERROR] UNINSTALLED MODULES FOUND:",uninstalled_mods
-    console.log "Please run: cake install"
+    console.log "Please run: npm install #{uninstalled_mods.join(" ")} (or cake install)"
     console.log "Exiting."
     process.exit()
   else
     console.log "./node_modules check complete."
-    
+
+
 
 task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in ./node_modules',(options)->
   
