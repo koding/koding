@@ -1,5 +1,5 @@
 <?php
-
+require_once 'config.php';
 require_once 'helpers.php';
 
 class KiteLoadBalancer {
@@ -58,7 +58,8 @@ class KiteCluster {
   }
   
   private function initialize() {
-    $db = get_mongo_db();
+    global $mongo;
+    $db = $mongo;
     $active_cluster = $db->jKiteClusters->findOne(array(
       'kiteName' => $this->kite_name,
     ));
