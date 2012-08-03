@@ -36,6 +36,7 @@ do ->
       else bongo.api.JInvitation.byCode inviteToken, (err, invite)->
         if err or !invite? or invite.status not in ['active','sent']
           if err then error err
+          console.log invite
           new KDNotificationView
             title: 'Invalid invitation code!'
         else
