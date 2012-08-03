@@ -323,6 +323,12 @@ button.editor-button
     margin            20px auto
   .kdscrollview
     max-height        240px
+  .kdmodal-title
+    cite
+      font-style      normal
+      font-size       12px
+      font-weight     300
+      color           #666
 
 .modal-topic-list
   .topic-item
@@ -830,9 +836,14 @@ button.cancel-edit-button
       padding             0
       span.title
         height            100%
-        blockMid()
         line-height       50px
         padding-left      20px
+        max-width         440px
+        text-overflow     ellipsis
+        white-space       nowrap
+        overflow          hidden
+        blockMid()
+
     .close-icon
       right               23px
       top                 23px

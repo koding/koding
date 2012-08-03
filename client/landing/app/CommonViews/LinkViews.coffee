@@ -57,11 +57,11 @@ class ProfileLinkView extends LinkView
 
     super options, data
 
-    nickname = data?.profile?.nickname
-    @$().attr "href","/#!/member/#{nickname}" if nickname
+    # nickname = data?.profile?.nickname
+    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
-  render:->
+  # render:->
 
     nickname = @getData().profile?.nickname
     if nickname
@@ -308,7 +308,7 @@ class AvatarView extends LinkView
     {profile} = account
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
-    @$().attr "title", options.title or "#{profile.firstName}'s avatar"
+    @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
     flags = account.globalFlags?.join(" ") ? ""
