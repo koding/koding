@@ -17,15 +17,16 @@ class Emailer
     mailOptions.html      = HtmlBody  if HtmlBody
     mailOptions.replyTo   = ReplyTo   if ReplyTo
     
-    console.log mailOptions
-
-    Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
-      console.log error,response
-      if error
-        callback error
-      else
-        callback null, "Message sent: " + response.message
-  
+    # console.log mailOptions
+    setTimeout ->
+      Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
+        if error
+          console.log error
+          callback error
+        else
+          console.log "sent:",mailOptions.to
+          callback null, "Message sent: " + response.message
+    ,1000/20
   @simulate : (options,callback)->
 
     setTimeout ->
