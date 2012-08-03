@@ -6,7 +6,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     {profile} = KD.whoami()
 
-    @smallInput = new KDInputView 
+    @smallInput = new KDInputView
       cssClass      : "status-update-input"
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
@@ -20,7 +20,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       name          : 'body'
       style         : 'input-with-extras'
       validate      :
-        rules       : 
+        rules       :
           required  : yes
         messages    :
           required  : "Please type a message..."
@@ -70,29 +70,29 @@ class ActivityStatusUpdateWidget extends KDFormView
         updateWidget = @getDelegate()
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-    
+
     @tagAutoComplete = @tagController.getView()
-    
+
   switchToSmallView:->
-    
+
     @parent.setClass "no-shadow" if @parent # monkeypatch when loggedout this was giving an error
     @largeInput.setHeight 33
     @$('>div.large-input, >div.formline').hide()
     @smallInput.show()
-    
+
   switchToLargeView:->
 
     @parent.unsetClass "no-shadow"
     @smallInput.hide()
     @$('>div.large-input, >div.formline').show()
 
-    @utils.wait => 
+    @utils.wait =>
       @largeInput.$().trigger "focus"
       @largeInput.setHeight 72
 
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
-  
+
   switchToEditView:(activity)->
     {tags, body} = activity
     @tagController.reset()
@@ -102,11 +102,11 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput.setValue Encoder.htmlDecode body
     @switchToLargeView()
     @utils.selectText @largeInput.$()[0]
-  
+
   submit:->
     @once 'FormValidationPassed', => @reset()
     super
-  
+
   reset:->
     @tagController.reset()
     @submitBtn.setTitle "Submit"
@@ -121,7 +121,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   #     return no
 
   viewAppended:->
-    
+
     @setTemplate @pistachio()
     @template.update()
     @switchToSmallView()
@@ -142,7 +142,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     #   </div>
     # </div>
     # """
-    
+
     """
     <div class="small-input">{{> @smallInput}}</div>
     <div class="large-input">{{> @largeInput}}</div>
@@ -163,5 +163,3 @@ class ActivityStatusUpdateWidget extends KDFormView
       </div>
     </div>
     """
-    
-  

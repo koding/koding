@@ -23,29 +23,29 @@ class ActivityListItemView extends KDListItemView
     JTag      : TagFollowBucketItemView
 
   constructor:(options = {},data)->
-    
+
     options.type = "activity"
-    
+
     super options, data
-    
+
     data = @getData()
-    
+
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
     unless options.isHidden
       if 'function' is typeof data.fetchTeaser
-        data.fetchTeaser? (err, teaser)=> 
+        data.fetchTeaser? (err, teaser)=>
           @addChildView teaser
       else
         @addChildView data
-    
+
     data.on 'ContentMarkedAsLowQuality', =>
       @hide() unless KD.checkFlag 'exempt'
     data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
-    
+
     {constructorName} = data.bongo_
 
     childConstructor =
@@ -70,9 +70,6 @@ class ActivityListItemView extends KDListItemView
 
   slideIn:()-> @$().removeClass 'hidden-item'
 
-    
-
-
 class ActivityItemChild extends KDView
 
   constructor:(options, data)->
@@ -85,7 +82,7 @@ class ActivityItemChild extends KDView
       size    : {width: 40, height: 40}
       origin
     }
-    
+
     @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
@@ -110,7 +107,7 @@ class ActivityItemChild extends KDView
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     super
-    
+
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
       bongo.cacheable tagRefs, (err, tags)=>
@@ -137,9 +134,9 @@ class ActivityItemChild extends KDView
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   settingsMenu:(data)->
-    
+
     account = KD.whoami()
-    
+
     menu = [
       type      : "contextmenu"
       items     : []
@@ -152,7 +149,7 @@ class ActivityItemChild extends KDView
       ]
 
       return menu
-    
+
     if KD.checkFlag 'super-admin'
       menu[0].items = [
         { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll data  }
