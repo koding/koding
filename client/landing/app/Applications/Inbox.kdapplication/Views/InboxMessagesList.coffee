@@ -5,7 +5,7 @@ class InboxMessagesList extends KDListView
     options.cssClass  = "inbox-list message-list"
     options.tagName   = "ul"
 
-    super options,data
+    super options, data
 
 class InboxMessagesListItem extends KDListItemView
 

@@ -182,11 +182,3 @@ class MemberAutoCompletedItemView extends KDAutoCompletedItem
     @template.update()
 
   partial:()-> ''
-
-
-
-
-
-
-
-
