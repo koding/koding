@@ -23,7 +23,7 @@ class ContentDisplayStatusUpdate extends KDView
     @author = new ProfileLinkView {origin}
 
     @commentBox = new CommentView null, data
-    
+
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
       cssClass : "comment-header"
@@ -34,24 +34,24 @@ class ContentDisplayStatusUpdate extends KDView
       subItemClass  : TagLinkView
     , data.tags
 
-  
+
   viewAppended:()->
-    
+
     # return if @getData().constructor is bongo.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
-  
+
     # temp for beta
     # take this bit to comment view
     if @getData().repliesCount? and @getData().repliesCount > 0
       commentController = @commentBox.commentController
       commentController.fetchAllComments 0, (err, comments)->
         commentController.removeAllItems()
-        commentController.instantiateListItems comments      
+        commentController.instantiateListItems comments
 
   pistachio:->
-    
+
     """
     <span>
       {{> @avatar}}
