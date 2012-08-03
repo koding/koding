@@ -15,7 +15,7 @@ class KDAutoCompleteController extends KDViewController
       itemDataPath          : ''
       separator             : ','
       wrapper               : 'parent'
-      submitValuesAsText   : no
+      submitValuesAsText    : no
       defaultValue          : []
     ,options
 
