@@ -8,9 +8,9 @@ class InboxMessagesList extends KDListView
     super options,data
 
 class InboxMessagesListItem extends KDListItemView
-  
+
   constructor:(options = {},data)->
-    
+
     options.tagName  = "li"
     options.cssClass = "unread"
     options.bind     = "mouseenter mouseleave"
@@ -26,7 +26,7 @@ class InboxMessagesListItem extends KDListItemView
       if arr.length > 1 and @getSingleton('mainController').getVisitor().currentDelegate.getId() is participant.id
         return no
       else return yes
-    
+
     @participants = new ProfileTextGroup {group}
     @avatar       = new AvatarView {
       size    : {width: 40, height: 40}
@@ -37,12 +37,12 @@ class InboxMessagesListItem extends KDListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
     @unsetClass('unread') if @getData().getFlagValue('read')
-  
+
   teaser:(text)->
     @utils.shortenText(text, minLength: 40, maxLength: 70) or ''
-  
+
   pistachio:->
     """
       <div class='avatar-wrapper fl'>
@@ -59,7 +59,7 @@ class InboxMessagesListItem extends KDListItemView
 
   mouseEnter:(event)->
     @setClass "shadowed"
-  
+
   mouseLeave:(event)->
     @unsetClass "shadowed"
 

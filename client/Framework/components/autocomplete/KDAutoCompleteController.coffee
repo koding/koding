@@ -53,6 +53,7 @@ class KDAutoCompleteController extends KDViewController
       @addItemToSubmitQueue @getView(), item
 
   keyDownOnInputView:(autoCompleteView,event)=>
+
     switch event.which
       when 13, 9 #enter, tab
         unless autoCompleteView.getValue() is ""
