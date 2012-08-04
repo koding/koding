@@ -19,7 +19,7 @@ class KDListView extends KDView
     new (@getOptions().subItemClass ? KDListItemView) options, data
   
   keyDown:(event)->
-
+    log "herer", @
     event.stopPropagation()
     event.preventDefault()
     @emit "KeyDownOnList", event

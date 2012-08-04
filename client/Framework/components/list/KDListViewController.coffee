@@ -31,7 +31,10 @@ class KDListViewController extends KDViewController
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
-      listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
+      log "hev hev", @
+      listView.on 'KeyDownOnList', (event)=> 
+        log "alo"
+        @keyDownPerformed listView, event
 
   loadView:(mainView)->
 
@@ -104,7 +107,7 @@ class KDListViewController extends KDViewController
         listenedToInstance  : view
         callback            : (view, event)=> @selectItem view, event
 
-    if options.multipleSelection
+    if options.keyNav or options.multipleSelection
       @listenTo
         KDEventTypes       : ["mousedown","mouseenter"]
         listenedToInstance : view
@@ -144,7 +147,7 @@ class KDListViewController extends KDViewController
   ###
 
   mouseDownHappenedOnItem:(item, event)->
-
+    log "asdasd"
     @getSingleton("windowController").setKeyView @getListView() if @getOptions().keyNav
 
     @lastEvent = event
