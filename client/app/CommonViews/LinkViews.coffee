@@ -174,7 +174,6 @@ class LinkGroup extends KDCustomHTMLView
     # log "rendering",">>>>>>>>>>>>>>"
     @createParticipantSubviews()
 
-
 class ActivityChildViewTagGroup extends LinkGroup
 
   pistachio:->
@@ -314,8 +313,6 @@ class AvatarView extends LinkView
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
     # @$('cite').attr "title", flags
-
-
 
   viewAppended:->
     super

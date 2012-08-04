@@ -280,10 +280,10 @@ class ActivityListController extends KDListViewController
       cssClass : 'activityhead clearfix'
 
     @activityHeader.on "UnhideHiddenNewItems", => @unhideNewHiddenItems()
-    
+
     super
 
-  isMine:(activity)->    
+  isMine:(activity)->
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
@@ -295,7 +295,7 @@ class ActivityListController extends KDListViewController
         view.slideIn()
 
   newActivityArrived:(activity)->
-    
+
     unless @isMine activity
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
@@ -321,4 +321,3 @@ class ActivityListController extends KDListViewController
         # log "and here???",item,@hiddenItems
         item.show()
       @hiddenItems = []
-
