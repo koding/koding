@@ -4,6 +4,7 @@ class ActivityListHeader extends JView
 
     super
 
+    @appStorage = new AppStorage 'Activity', '1.0'
     @_newItemsCount = 0
 
     @showNewItemsLink = new KDCustomHTMLView
@@ -13,34 +14,47 @@ class ActivityListHeader extends JView
         href      : "#"
         title     : "Show new activities"
       click       : =>
-        @emit "UnhideHiddenNewItems"
-        @_newItemsCount = 0
-        @updateShowNewItemsLink()
+        @updateShowNewItemsLink yes
 
     @showNewItemsLink.hide()
+
+    @liveUpdateButton = new KDRySwitch
+      defaultValue : off
+      title        : "Live Updates: "
+      size         : "tiny"
+      callback     : (state) =>
+        @appStorage.setValue 'liveUpdates', state, =>
+        @updateShowNewItemsLink()
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDRySwitch
         defaultValue : off
+        title        : "Show trolls: "
+        size         : "tiny"
         callback     : (state) =>
-          appManager.fetchStorage 'Activity', '1.0', (err, storage)->
-            storage.setOption 'showLowQualityContent', state, (err)->
-              console.log err if err
-      appManager.fetchStorage 'Activity', '1.0', (err, storage)=>
-        @lowQualitySwitch.setValue storage.getAt('bucket.showLowQualityContent') ? off
+          @appStorage.setValue 'showLowQualityContent', state, =>
     else
       @lowQualitySwitch = new KDCustomHTMLView
 
+    @appStorage.fetchStorage (storage)=>
+      @liveUpdateButton.setValue @appStorage.getValue 'liveUpdates', off
+      @lowQualitySwitch.setValue? @appStorage.getValue 'showLowQualityContent', off
+
   pistachio:(newCount)->
-    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @showNewItemsLink}}"
+    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}}{{> @showNewItemsLink}}"
 
   newActivityArrived:->
     @_newItemsCount++
     @updateShowNewItemsLink()
 
-  updateShowNewItemsLink:->
+  updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
-      @showNewItemsLink.$('span').text @_newItemsCount
-      @showNewItemsLink.show()
+      if @liveUpdateButton.getValue() is yes or showNewItems is yes
+        @emit "UnhideHiddenNewItems"
+        @_newItemsCount = 0
+        @showNewItemsLink.hide()
+      else
+        @showNewItemsLink.$('span').text @_newItemsCount
+        @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
