@@ -270,6 +270,7 @@ class ActivityListController extends KDListViewController
     viewOptions.cssClass      or= 'activity-related'
     viewOptions.comments      or= yes
     viewOptions.subItemClass  or= options.subItemClass
+    options.keyNav              = yes
     options.view              or= new KDListView viewOptions, data
     super
     @hiddenItems = []
