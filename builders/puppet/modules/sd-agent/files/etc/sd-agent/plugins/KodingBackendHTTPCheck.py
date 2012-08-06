@@ -17,11 +17,11 @@ ports = [ 3000+x for x in xrange(0,16) ]
 #        return data
 
 class KodingBackendHTTPCheck (object):
-#    def __init__(self, agentConfig, checksLogger, rawConfig):
-#        self.agentConfig = agentConfig
-#        self.checksLogger = checksLogger
-#        self.rawConfig = rawConfig
-#
+    def __init__(self, agentConfig, checksLogger, rawConfig):
+        self.agentConfig = agentConfig
+        self.checksLogger = checksLogger
+        self.rawConfig = rawConfig
+
     def run(self):
         data = {}
         for port in ports:
@@ -38,5 +38,5 @@ class KodingBackendHTTPCheck (object):
 
         return data
 
-k = KodingBackendHTTPCheck()
-print k.run()
+#k = KodingBackendHTTPCheck()
+#print k.run()

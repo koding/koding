@@ -4,12 +4,12 @@ import os.path
 
 pids_dir = '/var/run/node/'
 
-class NodeJSmem (object):
-#    def __init__(self, agentConfig, checksLogger, rawConfig):
-#        self.agentConfig = agentConfig
-#        self.checksLogger = checksLogger
-#        self.rawConfig = rawConfig
-#
+class NodeJSMem (object):
+    def __init__(self, agentConfig, checksLogger, rawConfig):
+        self.agentConfig = agentConfig
+        self.checksLogger = checksLogger
+        self.rawConfig = rawConfig
+
 
     def getMemUsage (self,pid):
         proc_file = open('/proc/'+pid+'/status','r')
@@ -32,5 +32,3 @@ class NodeJSmem (object):
             data[name] = self.getMemUsage(pid)
         return data
 
-k = NodeJSmem()
-print k.run()
