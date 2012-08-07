@@ -319,35 +319,15 @@ class ActivityListController extends KDListViewController
   addItem:(activity, index, animation = null) ->
     @getListView().addItem activity, index, animation
 
-  unhideRecursively = (item)->
-    
-    item.show ->
-      hiddenItemCount++
-      if hiddenItems[hiddenItemCount]
-        unhideRecursively hiddenItems[hiddenItemCount]
-      else
-        resetHiddenItems()
-
-  resetHiddenItems = ->
-
-    hiddenItems     = []
-    hiddenItemCount = 0
-  
-  # unhide = (item)->
-    
-  #   item.show()
+  unhide = (item)-> item.show()
 
   unhideNewHiddenItems = (hiddenItems)->
-    # interval = setInterval ->
-    #   item = hiddenItems.shift()
-    #   if item
-    #     unhide item
-    #   else
-    #     clearInterval interval
-    # , 50
-
-
-    if hiddenItems[0]
-      unhideRecursively hiddenItems[0]
+    interval = setInterval ->
+      item = hiddenItems.shift()
+      if item
+        unhide item
+      else
+        clearInterval interval
+    , 177
 
 
