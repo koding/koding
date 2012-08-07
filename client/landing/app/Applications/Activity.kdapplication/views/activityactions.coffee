@@ -5,32 +5,90 @@ class ActivityActionsView extends KDView
     super
 
     activity = @getData()
+
     @commentLink  = new ActivityActionLink
       partial : "Comment"
+
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
       click       : =>
         @getDelegate().emit "CommentCountClicked"
     , activity
+
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
-        offset    : 3
 
-    @likeCount    = new ActivityLikeCount {}, activity
-    @likeLink     = new ActivityActionLink
-      partial     : "Like"
-      ###
+    @likeCount    = new ActivityLikeCount
       tooltip     :
-        title     : if @likeCount.getData() in [0, null] then "Be first" else "Hope"
-        placement : "above"
-        offset    : 3
-      ###
+        gravity   : "se"
+        title     : ""
+        engine    : "tipsy" # We should force to use tipsy because
+                            # for now only tipsy supports tooltip updates
+      attributes  :
+        href      : "#"
+        title     : "Click to view..."
+      click       : =>
+        if activity.meta.likes > 0 # 3
+          activity.fetchLikedByes {},
+            sort  : timestamp : -1
+            , (err, likes) =>
+              new FollowedModalView {title:"Members who liked <cite>#{activity.body}</cite>"}, likes
+      , activity
 
+    @likeCount.on "countChanged", (count) =>
+      @updateLikeState(yes)
+
+    @likeLink     = new ActivityActionLink
     @loader       = new KDLoaderView size : width : 14
+
+  updateLikeState:(checkIfILiked = no)->
+
+    activity = @likeCount.getData()
+    return if activity.meta.likes is 0
+
+    activity.fetchLikedByes {},
+      limit : if checkIfILiked then activity.meta.likes else 3
+      sort  : timestamp : -1
+
+      , (err, likes) =>
+
+        peopleWhoLiked   = []
+
+        if likes
+          if checkIfILiked
+            {_id}       = KD.whoami()
+            likedBefore = likes.filter((item)-> item._id is _id).length > 0
+
+          likes.forEach (item)=>
+            if peopleWhoLiked.length < 3
+              {firstName, lastName} = item.profile
+              peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
+            else return
+
+          # switch activity.meta.likes
+          #   when 0 then tooltip = ""
+          #   when 1 then tooltip = "{{> @peopleWhoLiked0}}"
+          #   when 2 then tooltip = "{{> @peopleWhoLiked0}} and {{> @peopleWhoLiked1}}"
+          #   when 3 then tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}} and {{> @peopleWhoLiked2}}"
+          #   else        tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}}, {{> @peopleWhoLiked2}} and {{activity.meta.likes - 3}} more."
+
+          if activity.meta.likes is 1
+            tooltip = peopleWhoLiked[0]
+          else if activity.meta.likes is 2
+            tooltip = peopleWhoLiked[0] + " and " + peopleWhoLiked[1]
+          else if activity.meta.likes is 3
+            tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and " + peopleWhoLiked[2]
+          else
+            tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and <strong>" + (activity.meta.likes - 2) + " more.</strong>"
+
+          @likeCount.updateTooltip {title: tooltip }
+
+          # if checkIfILiked
+          #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
     
@@ -58,29 +116,17 @@ class ActivityActionsView extends KDView
 
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
-
-    activity.on 'update', log
-    window.www = activity
-    
-    
     @likeLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
       callback      : =>
         if KD.isLoggedIn()
-          # oldCount = @likeCount.data.meta.likes
           activity.like (err)=>
-            # log arguments, 'you like me!'
             if err
+              log "Something went wrong while like:", err
               new KDNotificationView
                 title     : "You already liked this!"
                 duration  : 1300
-            # FIXME Implement Unlike behaviour
-            ###
-            newCount = @likeCount.data.meta.likes
-            if oldCount < newCount then @likeLink.updatePartial("Unlike")
-            else @likeLink.updatePartial("Like")
-            ###
 
     @commentLink.registerListener
       KDEventTypes  : "Click"
@@ -95,6 +141,7 @@ class ActivityActionLink extends KDCustomHTMLView
       cssClass  : "action-link"
       attributes:
         href    : "#"
+      partial   : "Like"
     , options
     super options,data
 
@@ -120,11 +167,14 @@ class ActivityCountLink extends KDCustomHTMLView
 
   pistachio:-> ""
 
-
 class ActivityLikeCount extends ActivityCountLink
 
+  @oldCount = 0
+
   setCount:(activity)->
-    # log "Like Count: " + activity.meta.likes
+    if activity.meta.likes isnt @oldCount
+      @emit "countChanged", activity.meta.likes
+    @oldCount = activity.meta.likes
     if activity.meta.likes == 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"

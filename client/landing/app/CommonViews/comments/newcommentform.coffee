@@ -14,7 +14,7 @@ class NewCommentForm extends KDView
     host = "http://#{location.host}/"
     fallbackUrl = "url(http://www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
 
-    @addSubView commenterAvatar = new KDCustomHTMLView 
+    @addSubView commenterAvatar = new KDCustomHTMLView
       tagName : "span"
       partial : "<a href='#' style='background-image:#{fallbackUrl};'></a>"
 
@@ -28,14 +28,14 @@ class NewCommentForm extends KDView
       # autogrow    : yes
       validate    :
         # event       : "keyup"
-        rules       : 
-          required    : yes 
+        rules       :
+          required    : yes
         messages    :
           required    : "Please type a comment..."
       callback    : @commentInputReceivedEnter
 
     @attachListeners()
-    
+
   attachListeners:->
     @listenTo
       KDEventTypes:       "Focus"
@@ -56,7 +56,7 @@ class NewCommentForm extends KDView
 
   resetCommentField:()->
     @getDelegate().handleEvent type : "CommentViewShouldReset"
-    
+
   otherCommentInputReceivedFocus:(instance)->
     if instance isnt @commentInput
       commentForm = @commentInput.getDelegate()
@@ -73,16 +73,16 @@ class NewCommentForm extends KDView
       fromUnixTime = Date.parse firstCommentTimestamp
     else
       fromUnixTime = Date.parse 1e7
-    
+
     callback = (err,comments)=>
       @makeCommentFieldActive()
-    
+
     list.propagateEvent KDEventType : "CommentInputReceivedFocus",{fromUnixTime,callback}
     no
 
   commentInputReceivedBlur:()->
     if @commentInput.getValue() is ""
-      @resetCommentField() 
+      @resetCommentField()
     no
 
   commentInputReceivedEnter:(instance,event)=>
