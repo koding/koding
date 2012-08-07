@@ -296,6 +296,7 @@ Includes =
         activitylistheader          : "./client/app/Applications/Activity.kdapplication/views/activitylistheader.coffee"
         activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
+        ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -474,7 +475,7 @@ Includes =
         autoCompleteAvatarView      : "./client/app/CommonViews/avatarviews/autocompleteavatarview.coffee"
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
-        
+
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
