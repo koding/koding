@@ -50,11 +50,15 @@ AccountMixin = do ->
         delete transports[channelId]
       
       getCommandFailover =(secretChannelId, options, callback)->
+        count = 0
         kallback = __utils.getCancellableCallback callback
         kanceller = __utils.getCancellableCallback =>
           kallback.cancel()
           resetTransport(secretChannelId)
-          @tellKite options, callback
+          if count++ < 10
+            @tellKite options, callback
+          else
+            callback new Error "Couldn't connect to backend"
         setTimeout kanceller, 5000
         ->
           kanceller.cancel()

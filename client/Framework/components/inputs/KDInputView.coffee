@@ -247,12 +247,9 @@ class KDInputView extends KDView
       cssClass  : 'mini'
       duration  : 2500
 
-    @listenTo
-      KDEventTypes       : "KDObjectWillBeDestroyed"
-      listenedToInstance : notice
-      callback           : =>
-        message = notice.getOptions().title
-        delete @inputValidationNotifications[message]
+    notice.on "KDObjectWillBeDestroyed", =>
+      message = notice.getOptions().title
+      delete @inputValidationNotifications[message]
   
   clearValidationFeedback:->
 

@@ -73,8 +73,8 @@ class ProfileLinkView extends LinkView
 class TagLinkView extends LinkView
 
   constructor:(options = {}, data)->
-    options.expandable ?= yes
-    if not options.expandable and data.title.length > 16
+    options.expandable ?= no
+    if not options.expandable and data?.title.length > 16
       options.tooltip =
         title     : data.title
         placement : "above"
@@ -118,20 +118,17 @@ class LinkGroup extends KDCustomHTMLView
       @render()
 
     if group[0].constructorName
-      three = group.slice(-3)
-      bongo.cacheable three, (err, bucketContents)=>
+      lastFour = group.slice -4
+      bongo.cacheable lastFour, (err, bucketContents)=>
         callback bucketContents
     else
       callback group
-
-    # -3 means last three pieces?
 
   itemClass:(options, data)->
     new (@getOptions().subItemClass) options, data
 
   createParticipantSubviews:->
     participants = @getData()
-    # log "createParticipantSubviews",participants
     for participant, index in participants
       @["participant#{index}"] = @itemClass {}, participant
     @setTemplate @pistachio()
@@ -153,13 +150,14 @@ class LinkGroup extends KDCustomHTMLView
         new FollowedModalView {group}, @getData()
 
     sep = ' '
-    if @participant0 instanceof bongo.api.JAccount
+    if participants[0] instanceof bongo.api.JAccount
       sep = ', '
     switch totalCount
       when 0 then ""
       when 1 then "{{> @participant0}}"
       when 2 then "{{> @participant0}} and {{> @participant1}}"
-      when 3 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}}"
+      when 3 then "{{> @participant0}}#{sep}{{> @participant1}} and {{> @participant2}}"
+      when 4 then "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @participant3}}"
       else "{{> @participant0}}#{sep}{{> @participant1}}#{sep}{{> @participant2}} and {{> @more}}"
 
   render:->
@@ -228,7 +226,7 @@ class FollowedModalView extends KDModalView
     super
 
   viewAppended:->
-    @loader = new KDLoaderView
+    @addSubView @loader = new KDLoaderView
       size          :
         width       : 30
       loaderOptions :
@@ -240,7 +238,6 @@ class FollowedModalView extends KDModalView
         speed       : 1
         FPS         : 24
 
-    @addSubView @loader, ".kdmodal-content"
     @loader.show()
 
     @prepareList()
@@ -259,7 +256,7 @@ class FollowedModalView extends KDModalView
     controller.on "AllItemsAddedToList", =>
       @loader.destroy()
 
-    @addSubView controller.getView(), ".kdmodal-content"
+    @addSubView controller.getView()
 
   prepareList:->
 
@@ -289,9 +286,11 @@ class AvatarView extends LinkView
     options.cssClass = "avatarview #{options.cssClass}"
     super options,data
 
-  click:->
+  click:(event)->
+    event.stopPropagation()
     account = @getData()
     appManager.tell "Members", "createContentDisplay", account
+    return no
 
   render:->
     return unless @getData()
@@ -313,7 +312,8 @@ class AvatarStaticView extends AvatarView
     ,options
     super options, data
 
-  click: noop
+  click:->
+    yes
 
 class AvatarSwapView extends AvatarView
   constructor:(options,data)->

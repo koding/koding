@@ -349,8 +349,8 @@ Includes =
         # MEMBERS VIEWS
         membersAppView                : "./client/app/Applications/Members.kdapplication/AppView.coffee"
         membersCDisplayController     : "./client/app/Applications/Members.kdapplication/ContentDisplays/ContentDisplayControllerMember.coffee"
-        loggedinprofile               : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedinprofile.coffee"
-        loggedoutprofile              : "./client/app/Applications/Members.kdapplication/ContentDisplays/loggedoutprofile.coffee"
+        ownprofileview                : "./client/app/Applications/Members.kdapplication/ContentDisplays/ownprofileview.coffee"
+        profileview                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/profileview.coffee"
         contactlink                   : "./client/app/Applications/Members.kdapplication/ContentDisplays/contactlink.coffee"
 
         # START TAB VIEWS
@@ -460,7 +460,7 @@ Includes =
 
         # COMMON VIEW
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
-        TagGroups                   : "./client/app/CommonViews/TagViews.coffee"
+        TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
         inputWithButton             : "./client/app/CommonViews/CommonInputWithButton.coffee"
@@ -555,6 +555,7 @@ Includes =
         # log4js            : "./client/libs/log4js.js"
         # jsonh             : "./client/libs/jsonh.js"
         md5               : "./client/libs/md5-min.js"
+        # froogaloop        : "./client/libs/frogaloop.min.js"
 
         bootstrapTwipsy   : "./client/libs/bootstrap-twipsy.js"
         async             : "./client/libs/async.js"
@@ -650,7 +651,7 @@ Includes =
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
-        termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
+        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"
         # wmd           : "./client/css/wmd.css"

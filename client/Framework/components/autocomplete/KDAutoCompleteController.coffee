@@ -101,7 +101,6 @@ class KDAutoCompleteController extends KDViewController
     dropdownWrapper = @dropdown.getView()
 
     dropdownWrapper.on 'ReceivedClickElsewhere', =>
-      windowController.removeLayer dropdownWrapper
       @hideDropdown()
 
     dropdownWrapper.setClass "kdautocomplete hidden #{@getOptions().listWrapperCssClass}"

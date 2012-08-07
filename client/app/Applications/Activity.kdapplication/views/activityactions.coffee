@@ -1,9 +1,15 @@
 class ActivityActionsView extends KDView
+
   constructor:->
+
     super
+
     activity = @getData()
-    @commentLink  = new ActivityActionLink    {partial : "Comment"}
-    @commentCount = new ActivityCommentCount   
+    @commentLink  = new ActivityActionLink
+      partial : "Comment"
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Show all"
       click       : =>
         @getDelegate().emit "CommentCountClicked"
     , activity
@@ -14,7 +20,7 @@ class ActivityActionsView extends KDView
         placement : "above"
         offset    : 3
 
-    @likeCount    = new ActivityLikeCount     {}, activity
+    @likeCount    = new ActivityLikeCount {}, activity
     @likeLink     = new ActivityActionLink
       partial     : "Like"
       ###
@@ -24,9 +30,10 @@ class ActivityActionsView extends KDView
         offset    : 3
       ###
 
-    @loader       = new KDLoaderView          size : width : 14
+    @loader       = new KDLoaderView size : width : 14
 
   viewAppended:->
+    
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
@@ -34,7 +41,7 @@ class ActivityActionsView extends KDView
     @loader.hide()
 
   pistachio:->
-    tmpl =
+
     """
     {{> @loader}}
     {{> @commentLink}}{{> @commentCount}} ·
@@ -45,6 +52,7 @@ class ActivityActionsView extends KDView
     """
 
   attachListeners:->
+
     activity    = @getData()
     commentList = @getDelegate()
 

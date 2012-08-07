@@ -23,7 +23,6 @@ class AccountDatabaseListController extends KDListViewController
       callback      : (pubInst,item)=>
         data = item.getData()
         @getListView().showAddExternalOrUpdateModal item
-        
 
   loadView:->
 
@@ -71,7 +70,7 @@ class AccountDatabaseListController extends KDListViewController
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
-        log "RESPONSE: ", response
+        # log "RESPONSE: ", response
         if err then warn err
         else
           @instantiateListItems response
@@ -130,9 +129,8 @@ class AccountDatabaseListController extends KDListViewController
     , (err, response)=>
       {modal} = @getListView()
       modal.modalTabs.forms["On Koding"].buttons.Create.hideLoader()
-      log "ADDED: ", response
       if err
-        @notify "An error occured, try again later!", "error"
+        @notify err.message or "An error occured, try again later!", "error"
       else
         @notify "Database created!", "succes"
         @emit "DatabaseAdded", response
@@ -140,7 +138,7 @@ class AccountDatabaseListController extends KDListViewController
   
   talkToKite:(options, callback)->
 
-    log "Run on kite:", options.toDo
+    # log "Run on kite:", options.toDo
     @getSingleton("kiteController").run
       kiteName  : "databases"
       toDo      : options.toDo
@@ -157,6 +155,7 @@ class AccountDatabaseListController extends KDListViewController
       cssClass  : "#{type}"
       title     : "<p>#{title}</p>"
       container : modal if type is "error"
+      duration  : 3000
 
 class AccountDatabaseList extends KDListView
 
@@ -238,7 +237,6 @@ class AccountDatabaseList extends KDListView
               #   name        : "name"
               #   placeholder : "e.g. myDevDB..."
               #   defaultValue: "myDB#{(Date.now()+"").substr(-5)}"
-
 
   showAddExternalOrUpdateModal:(listItem)=>
 
@@ -415,15 +413,13 @@ class AccountDatabaseList extends KDListView
 class AccountDatabaseListItem extends KDListItemView
   constructor:(options = {},data)->
 
-    log "Create Item with Data", data
+    # log "Create Item with Data", data
 
     options.tagName = "li"
     
-    data.dbType   or= "mysql"
-    data.color    or= if data.type == "mysql" then "yellow" else "green"
-    data.title    or= if data.type == "mysql" then "MySql DB" else "Mongo DB"
-    data.dbHost   or= "mysql0.db.koding.com"
-
+    data.color or= if data.dbType == "mysql" then "yellow" else "green"
+    data.title or= if data.dbType == "mysql" then "MySql DB" else "Mongo DB"
+    
     super options,data
     
   click:(event)=>
@@ -440,10 +436,7 @@ class AccountDatabaseListItem extends KDListItemView
         <span class='blacktag'>#{data.dbType}</span>
       </div>
       <div class='labelish'>
-        <a href='#'>dbname: </a><span class='lightText'>#{data.dbName}</span>
-      </div>
-      <div class='labelish'>
-        <a href='#'>user: </a><span class='lightText'>#{data.dbUser}</span>
+        <a href='#'>dbname / user: </a><span class='lightText'>#{data.dbName}</span>
       </div>
       <div class='labelish'>
         <a href='#'>host: </a><span class='lightText'>#{data.dbHost}</span>

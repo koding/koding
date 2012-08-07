@@ -4,7 +4,7 @@ print <<HTML;
 <!DOCTYPE html>
 <html lang=\"en\">
 <head>  <meta charset=\"utf-8\">
-  <title>Hellow World from Perl</title>
+  <title>Hello World from Perl by Koding</title>
   <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
   <link rel=\"stylesheet\" href=\"http://koding.com/hello/css/style.css\">
   <!--[if IE]>
@@ -28,14 +28,13 @@ print <<HTML;
 		<li><a href=\"ruby.rb\">ruby</a></li>
 	</ul>    
 </nav>
-     <footer>
-        <h4>This is an example page running Perl on your Koding Server.</h4> <p>You can create your own simple Perl \"Hello World\" with this:</p>
-    <pre>#!/usr/bin/perl -w
-    print \"Content-type: text/html&#92;n&#92;n&#92;n\";
-    print \"Hello, world from perl!&#92;n\";
-    </pre>
-            </footer>
-  </div> 
+<footer>
+<h4>This is an example page running Perl on your Koding Server.</h4> <p>You can create your own simple Perl \"Hello World\" with this:</p>
+<pre>#!/usr/bin/perl -w
+print \"Content-type: text/html&#92;n&#92;n&#92;n\";
+print \"Hello, world from perl!&#92;n\";</pre>
+</footer>
+</div> 
 </body>
 </html>
 HTML
