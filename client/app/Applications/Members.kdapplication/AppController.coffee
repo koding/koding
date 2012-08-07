@@ -28,6 +28,7 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
+          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all members" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               bongo.api.JAccount.byRelevance @_searchValue, options, callback
