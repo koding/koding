@@ -31,7 +31,13 @@ mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
  
 # get current version
-version = (fs.readFileSync ".revision").toString().replace("\n","")
+
+if process.argv[2] is 'buildForProduction'
+  rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
+  rev[2]++
+  version = rev.join(".")
+else
+  version = (fs.readFileSync ".revision").toString().replace("\n","")
 
  
 targetPaths =
@@ -139,16 +145,15 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.uglify    = yes
   options.useStatic = yes
 
-  
-  rev = fs.readFileSync "./.revision"
   prompt.start()
-  prompt.get [{message:"Did you update the .revision? - current:#{rev} (type yes to continue)",name:'p'}],  (err, result) ->
-    # fs.writeFileSync "./.revision",result.p
-    # version = targetPaths.version = result.p
+  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
     
     if result.p is "yes"
+      fs.writeFileSync "./revision",version
       invoke 'build'
       console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
+    else
+      process.exit()
 
 
 
