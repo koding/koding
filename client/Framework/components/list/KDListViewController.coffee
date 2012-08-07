@@ -31,9 +31,9 @@ class KDListViewController extends KDViewController
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
-      log "hev hev", @
+      # log "hev hev", @
       listView.on 'KeyDownOnList', (event)=> 
-        log "alo"
+        # log "alo"
         @keyDownPerformed listView, event
 
   loadView:(mainView)->
@@ -302,7 +302,6 @@ class KDListViewController extends KDViewController
   showLazyLoader:->
 
     unless @lazyLoader
-      @propagateEvent KDEventType : 'LazyLoadThresholdReached'
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
       @lazyLoader.addSubView @lazyLoader.canvas = new KDLoaderView
         size          :
@@ -316,9 +315,9 @@ class KDListViewController extends KDViewController
           FPS         : 24
 
       @lazyLoader.canvas.show()
+      @propagateEvent KDEventType : 'LazyLoadThresholdReached'
 
   hideLazyLoader:->
-
     if @lazyLoader
       @lazyLoader.canvas.hide()
       @lazyLoader.destroy()
