@@ -13,6 +13,7 @@ class JPost extends jraphical.Message
   {log} = console
   
   schema = _.extend {}, jraphical.Message.schema, {
+    isLowQuality  : Boolean
     counts        :
       followers   :
         type      : Number
@@ -32,7 +33,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify'
+        'delete','modify','fetchRelativeComments'
       ]
     schema            : schema
     relationships     : 
@@ -77,6 +78,9 @@ class JPost extends jraphical.Message
       status = new constructor data
       # TODO: emit an event, and move this (maybe)
       activity = new (constructor.getActivityType())
+      if delegate.checkFlag 'exempt'
+        status.isLowQuality = yes
+        activity.isLowQuality = yes
       activity.originId = delegate.getId()
       activity.originType = delegate.constructor.name
       teaser = null
@@ -89,6 +93,8 @@ class JPost extends jraphical.Message
                 callback err
               else queue.next()
         ->
+          delegate.addContent status, (err)-> queue.next(err)
+        ->
           activity.save (err)->
             if err
               callback createKodingError err
@@ -98,6 +104,8 @@ class JPost extends jraphical.Message
             if err
               callback createKodingError err
             else queue.next()
+        ->
+          delegate.addContent activity, (err)-> queue.next(err)
         ->
           tags or= []
           status.addTags client, tags, (err)->
@@ -191,6 +199,8 @@ class JPost extends jraphical.Message
     }, (err, rel)->
       if err
         callback err
+      else unless rel
+        callback new KodingError 'No activity found'
       else
         callback null, rel.getAt 'sourceId'
   
@@ -201,20 +211,15 @@ class JPost extends jraphical.Message
       else
         CActivity.one _id: id, callback 
   
-  removeReply:(rel, callback)->
-    id = @getId()
+  flushSnapshot:(removedSnapshotIds, callback)->
+    removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'    
     queue = [
       =>
         @fetchActivityId (err, activityId_)->
           activityId = activityId_
           queue.next()
-      ->
-        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
-      =>
-        @update $inc: repliesCount: -1, -> queue.next()
       =>
         @fetchTeaser (err, teaser_)=>
           if err
@@ -225,12 +230,27 @@ class JPost extends jraphical.Message
       ->
         CActivity.update _id: activityId, {
           $set:
-            snapshot: JSON.stringify teaser
-            'sorts.repliesCount': repliesCount - 1
+            snapshot              : JSON.stringify teaser
+            'sorts.repliesCount'  : teaser.repliesCount
           $pullAll:
-            snapshotIds: rel.getAt 'targetId'
+            snapshotIds: removedSnapshotIds
         }, -> queue.next()
-      
+      callback
+    ]
+    daisy queue
+  
+  removeReply:(rel, callback)->
+    id = @getId()
+    teaser = null
+    activityId = null
+    repliesCount = @getAt 'repliesCount'    
+    queue = [
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @flushSnapshot rel.getAt('targetId'), -> queue.next()
       callback
     ]
     daisy queue
@@ -288,41 +308,60 @@ class JPost extends jraphical.Message
       callback new Error 'Log in required!'
     else
       comment = new JComment body: comment
+      exempt = delegate.checkFlag('exempt')
+      if exempt
+        comment.isLowQuality = yes
       comment
         .sign(delegate)
         .save (err)=>
           if err
             callback err
           else
-            @addComment comment, respondWithCount: yes, (err, docs, count)=>
+            delegate.addContent comment, (err)-> console.log 'error adding content', err
+            @addComment comment,
+              flags:
+                isLowQuality    : exempt
+            , (err, docs)=>
               if err
                 callback err
               else
-                @update $set: repliesCount: count, (err)=>
-                  if err
-                    callback err
-                  else
-                    callback null, comment
-                    @fetchActivityId (err, id)->
-                      CActivity.update {_id: id}, {
-                        $set: 'sorts.repliesCount': count
-                      }, log
-                    @fetchOrigin (err, origin)=>
-                      if err
-                        console.log "Couldn't fetch the origin"
-                      else
-                        @emit 'ReplyIsAdded', {
-                          origin
-                          subject       : ObjectRef(@).data
-                          actorType     : 'replier'
-                          actionType    : 'reply'
-                          replier 		  : ObjectRef(delegate).data
-                          reply   		  : ObjectRef(comment).data
-                          repliesCount	: count
-                          relationship  : docs[0]
-                        }
-                        @follow client, emitActivity: no, (err)->
-                        @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                if exempt
+                  callback null, comment
+                else
+                  Relationship.count {
+                    sourceId                    : @getId()
+                    as                          : 'reply'
+                    'data.flags.isLowQuality'   : $ne: yes
+                  }, (err, count)=>
+                    if err
+                      callback err
+                    else
+                      @update $set: repliesCount: count, (err)=>
+                        if err
+                          callback err
+                        else
+                          callback null, comment
+                          @fetchActivityId (err, id)->
+                            CActivity.update {_id: id}, {
+                              $set: 'sorts.repliesCount': count
+                            }, log
+                          @fetchOrigin (err, origin)=>
+                            if err
+                              console.log "Couldn't fetch the origin"
+                            else
+                              unless exempt
+                                @emit 'ReplyIsAdded', {
+                                  origin
+                                  subject       : ObjectRef(@).data
+                                  actorType     : 'replier'
+                                  actionType    : 'reply'
+                                  replier 		  : ObjectRef(delegate).data
+                                  reply   		  : ObjectRef(comment).data
+                                  repliesCount	: count
+                                  relationship  : docs[0]
+                                }
+                              @follow client, emitActivity: no, (err)->
+                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
@@ -334,6 +373,8 @@ class JPost extends jraphical.Message
           as          : 'reply'
           'data.deletedAt':
             $exists   : no
+          'data.flags.isLowQuality':
+            $ne       : yes
         limit         : 3
         sort          :
           timestamp   : -1
@@ -347,6 +388,17 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
+
+  fetchRelativeComments:({limit, before, after}, callback)->
+    limit ?= 10
+    if before? and after?
+      callback new KodingError "Don't use before and after together."
+    selector = timestamp:
+      if before? then  $lt: before
+      else if after? then $gt: after
+    selector['data.flags.isLowQuality'] = $ne: yes
+    options = {limit, sort: timestamp: 1}
+    @fetchComments selector, options, callback
 
   commentsByRange:(options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -363,13 +415,16 @@ class JPost extends jraphical.Message
       queryOptions = skip: from
       if to
         queryOptions.limit = to - from
-    queryOptions.sort = timestamp: -1
+    selector['data.flags.isLowQuality'] = $ne: yes
+    queryOptions.sort = timestamp: 1
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->
     [callback, skipCount] = [skipCount, callback] unless callback
     skipCount ?= 3
-    @fetchComments {},
+    @fetchComments {
+      'data.flags.isLowQuality': $ne: yes
+    },
       skip: skipCount
       sort:
         timestamp: 1
@@ -390,7 +445,7 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-  
+
   save:->
     delete @data.replies #TODO: this hack should not be necessary...  but it is for some reason.
     # in any case, it should be resolved permanently once we implement Model#prune

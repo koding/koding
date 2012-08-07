@@ -44,7 +44,7 @@ class ProfileView extends KDView
       pistachio   : "{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
-        appManager.tell "Members", "createFollowsContentDisplay", memberData, 'followers'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
     , memberData
 
     @following = new KDView
@@ -54,7 +54,7 @@ class ProfileView extends KDView
       pistachio   : "{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
-        appManager.tell "Members", "createFollowingContentDisplay", memberData, 'followings'
+        appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
@@ -66,6 +66,24 @@ class ProfileView extends KDView
     @location = new LocationView {},memberData
     @setListeners()
     @skillTags = new SkillTagGroup {}, memberData
+
+    if KD.checkFlag 'super-admin'
+      @trollSettings = new KDButtonViewWithMenu
+        cssClass    : 'transparent activity-settings-context activity-settings-menu'
+        title       : ''
+        icon        : yes
+        delegate    : @
+        iconClass   : "arrow"
+        menu        : [
+          type      : "contextmenu"
+          items     : [
+            { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll @getData() }
+            { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll @getData() }
+          ]
+        ]
+        callback    : (event)=> @settingsButton.contextMenu event
+    else
+      @trollSettings = new KDCustomHTMLView
 
   viewAppended:->
     super
@@ -108,6 +126,8 @@ class ProfileView extends KDView
 
       </div>
     </section>
+
+    {{> @trollSettings}}
     """
 
   

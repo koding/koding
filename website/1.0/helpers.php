@@ -115,15 +115,15 @@ function get_mongo_db_name () {
   $db_names = array(
     'vpn'         => 'kodingen',
     'beta'        => 'beta_koding',
-    'mongohq-dev' => 'koding',
+    'mongohq-dev' => 'koding_copy',
   );
   return $db_names[$env];
 }
 
 function get_mongo_db () {
+  global $connStr;
   $db = get_mongo_db_name();
-  $connection_string = get_mongo_host().'/'.$db;
-  @$mongo = new Mongo($connection_string, array('persist' => 'api'));
+  @$mongo = new Mongo($connStr, array('persist' => 'api'));
   if(!isset($mongo)) {
     access_denied(2);
   }

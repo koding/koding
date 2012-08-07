@@ -32,9 +32,11 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemCounter = 0
 
   reset:->
-    subViews = @itemWrapper.getSubViews().slice()
+    {itemClass} = @getOptions()
+    subViews    = @itemWrapper.getSubViews().slice()
     for item in subViews
-      @removeFromSubmitQueue item
+      if item instanceof itemClass
+        @removeFromSubmitQueue item
 
   loadView:(mainView)->
     @createDropDown()
@@ -188,12 +190,13 @@ class KDAutoCompleteController extends KDViewController
         @appendAutoCompletedItem()
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
+      @emit 'ItemListChanged'
     else
       inputView.setValue ''
       @getSingleton("windowController").setKeyView null
       new KDNotificationView
         type      : "mini"
-        title   : "You can add up to #{@getOptions().selectedItemsLimit} items!"
+        title     : "You can add up to #{@getOptions().selectedItemsLimit} items!"
         duration  : 4000
 
     @hideDropdown()
@@ -261,7 +264,7 @@ class KDAutoCompleteController extends KDViewController
     path.join('.')
 
   addSuggestion:(title)->
-    @propagateEvent KDEventType: 'AutocompleteSuggestionWasAdded', title
+    @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
     data or= item.getData()
@@ -273,8 +276,7 @@ class KDAutoCompleteController extends KDViewController
     else
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
-      @addSuggestion itemValue
-    
+
     return no if @isItemAlreadySelected data
 
     path = @getCollectionPath()
@@ -291,6 +293,7 @@ class KDAutoCompleteController extends KDViewController
         else if id?
           constructorName   : itemValue.constructor.name
           id                : id
+          title             : itemValue.title
         else
           $suggest          : itemValue
       )
@@ -322,6 +325,7 @@ class KDAutoCompleteController extends KDViewController
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
+    @emit 'ItemListChanged'
 
   rearrangeInputWidth:()->
     # mainView = @getView()

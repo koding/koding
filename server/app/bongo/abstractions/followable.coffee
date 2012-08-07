@@ -1,7 +1,7 @@
 class Followable extends jraphical.Module
 
   {dash} = bongo
-  {Relationship} = jraphical
+  {Relationship,Module} = jraphical
 
   @schema =
     counts        :
@@ -69,12 +69,12 @@ class Followable extends jraphical.Module
         callback new KodingError('already following...'), count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
-
+          console.log 'Kount', count
           if err
             callback err
           else
-            @setAt 'counts.followers',  count
-            @save()
+            Module::update.call @, $set: 'counts.followers': count, (err)->
+              if err then log err
             # callback err, count
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')

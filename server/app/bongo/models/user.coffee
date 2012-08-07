@@ -31,6 +31,10 @@ class JUser extends jraphical.Module
   
   @share()
   
+  @::mixin Flaggable::
+  
+  @getFlagRole =-> 'owner'
+  
   @set
     indexes         :
       username      : 'unique'
@@ -218,6 +222,7 @@ class JUser extends jraphical.Module
         else callback new KodingError 'Could not restore your session!'
   
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
+<<<<<<< HEAD
     if inviteCode
       JInvitation.one {
         code: inviteCode
@@ -228,6 +233,25 @@ class JUser extends jraphical.Module
           callback new KodingError 'Invalid invitation ID!'
         else 
           callback null, yes, invite
+=======
+    JRegistrationPreferences.one {}, (err, prefs)->
+      if err
+        callback err
+      else unless prefs.isRegistrationEnabled
+        callback new Error 'Registration is currently disabled!'
+      else if inviteCode
+        JInvitation.one {
+          code: inviteCode
+          status: $in : ['active','sent']
+        }, (err, invite)->
+          # callback null, yes, invite
+          if err or !invite? 
+            callback new KodingError 'Invalid invitation ID!'
+          else 
+            callback null, yes, invite
+      else
+        callback new KodingError 'Invitation code is required!'
+>>>>>>> 06e2457ff87902c39eed6521079b9ad883c7cc5b
   
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'

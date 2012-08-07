@@ -4,7 +4,7 @@ class TagAutoCompleteController extends KDAutoCompleteController
     options.allowNewSuggestions or= yes
     super
 
-  
+
 class TagAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
     options.cssClass = "clearfix"
@@ -16,7 +16,7 @@ class TagAutoCompleteItemView extends KDAutoCompleteListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   partial:()-> ''
 
 class TagAutoCompletedItemView extends KDAutoCompletedItem
@@ -32,7 +32,7 @@ class TagAutoCompletedItemView extends KDAutoCompletedItem
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   partial:()-> ''
 
 class SuggestNewTagItem extends KDAutoCompleteListItemView

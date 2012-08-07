@@ -1,14 +1,14 @@
 class PageInbox extends KDView
-  
+
   KD.registerPage "Inbox", PageInbox
 
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Inbox"
 
-    # Common left pane 
+    # Common left pane
     @commonInnerNavigation = new InboxInnerNavigation
 
-    @commonInnerNavigation.registerListener 
+    @commonInnerNavigation.registerListener
       KDEventTypes : "CommonInnerNavigationListItemReceivedClick"
       listener     : @
       callback     : (pubInst, data)=>
@@ -21,7 +21,7 @@ class PageInbox extends KDView
           @sort data.type
 
     @inboxTabs = new KDTabView
-      cssClass  : "inbox-tabview" 
+      cssClass  : "inbox-tabview"
     @inboxTabs.hideHandleContainer()
 
     inboxSplitView = @inboxSplitView = new ContentPageSplitBelowHeader
@@ -29,20 +29,19 @@ class PageInbox extends KDView
       sizes     : [138,null]
       cssClass  : "inbox-main-split"
       resizable : no
-    
+
     @addSubView inboxSplitView
 
     inboxSplitView._windowDidResize()
-    
 
   createTabs:->
     @_tab_messages      = @createMessagesTab()
     @_tab_notifications = @createNotificationsTab()
     @inboxTabs.showPane @_tab_messages
-    
+
   createMessagesTab:->
     @inboxTabs.addPane tab = new KDTabPaneView cssClass : "messages-tab"
-    
+
     @inboxMessagesContainer = new KDTabView cssClass : "message-thread-tabs"
     @inboxMessagesContainer.hideHandleContainer()
 
@@ -56,21 +55,22 @@ class PageInbox extends KDView
     inboxMessageListController = new InboxMessageListController
       view          : inboxMessagesList
 
-    tab.addSubView @newMessageBar = new InboxNewMessageBar 
+    tab.addSubView @newMessageBar = new InboxNewMessageBar
       cssClass  : "new-message-bar clearfix"
       delegate  : @inboxMessagesContainer
 
     @newMessageBar.on "RefreshButtonClicked", =>
       inboxMessageListController.loadMessages =>
         @newMessageBar.refreshButton.hideLoader()
-    
+
+    @newMessageBar.disableMessageActionButtons()
+
     inboxMessageListController.loadMessages()
-      
 
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList,@inboxMessagesContainer]
-      cssClass  : "messages-split" 
+      cssClass  : "messages-split"
       resizable : yes
       minimums  : [150, null]
 
@@ -86,16 +86,17 @@ class PageInbox extends KDView
         messagesSplit._windowDidResize()
         unless messagesSplit.didResizeBefore
           messagesSplit.resizePanel "100%",0
-    
+
     messagesSplit.listenTo
       KDEventTypes : "MessageIsSelected"
       listenedToInstance : @
-      callback :->
-        @resizePanel "33%",0 unless messagesSplit.didResizeBefore
+      callback :=>
+        messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
         messagesSplit.didResizeBefore = yes
-    
+        @newMessageBar.enableMessageActionButtons()
+
     inboxMessageInputWrapper.addSubView @messageInputElement = new KDHitEnterInputView
-      type         : "textarea" 
+      type         : "textarea"
       name         : "sendMessage"
       cssClass     : "sendMessageInput"
       placeholder  : "Just type and press enter.."
@@ -104,11 +105,11 @@ class PageInbox extends KDView
         @messageInputElement.setValue ''
         @propagateEvent KDEventType: 'ReplyShouldBeSent', {message: @messageInputElement.getData(), reply}
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : "viewAppended"
       listenedToInstance : @messageInputElement
       callback           : messagesSplit._windowDidResize
-    
+
     return tab
 
   createNotificationsTab:->
@@ -118,17 +119,17 @@ class PageInbox extends KDView
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
         subItemClass  : NotificationListItem
-    
+
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
       inboxNotificationsController.instantiateListItems items
-    
+
     return tab
 
   createFriendsTab:->
-  
+
   createChatTab:->
-    
+
   showTab:(type)->
     mainView = @
     unless mainView["_tab_#{type}"]?
@@ -141,13 +142,13 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
     options.cssClass = "clearfix member-suggestion-item"
     super
-    
+
     {userInput} = @getDelegate()
-    
+
     @avatar = new AutoCompleteAvatarView {},data
     @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data
     # @nickLink = new AutoCompleteNickView {userInput},data
-    
+
   pistachio:->
     """
       <span class='avatar'>{{> @avatar}}</span>
@@ -158,8 +159,8 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-    
-    
+
+
   partial:()-> ''
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
@@ -179,13 +180,13 @@ class MemberAutoCompletedItemView extends KDAutoCompletedItem
     super()
     @setTemplate @pistachio()
     @template.update()
-    
+
   partial:()-> ''
-    
-  
 
-    
 
-  
-  
-  
+
+
+
+
+
+

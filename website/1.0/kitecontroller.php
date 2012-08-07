@@ -33,7 +33,8 @@ class KiteController {
     }
   }
   
-  public function add_kite ($kite_name, $uri) {
+  public function add_kite ($kite_name, $uri, $service_key=NULL) {
+    trace('service key', $service_key);
     $parsed_uri = parse_url($uri);
     $result = array('addedTo' => array());
     $clusters = $this->clusters[$kite_name];

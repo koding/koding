@@ -1,3 +1,7 @@
+# ios error handling
+# if location.hostname is "localhost"
+# window.onerror = (desc,page,line,chr)=> alert "Line: #{line}, desc: #{desc}, chr:#{chr}, page:#{page}"
+
 Function::bind or= do ->  
   {slice} = []
   (context)->
@@ -48,7 +52,9 @@ KD = @KD or {}
   isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
   
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
-  
+
+  checkFlag:(flag, account = KD.whoami())-> account.globalFlags and flag in account.globalFlags
+
   setAuthKey:->
 
   requireLogin:(errMsg, callback)->
@@ -90,7 +96,7 @@ KD = @KD or {}
     @subscriptions
 
   registerInstance : (anInstance)->
-    warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
+    # warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
     @classes[anInstance.constructor.name] ?= anInstance.constructor
   

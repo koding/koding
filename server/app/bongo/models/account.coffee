@@ -7,7 +7,9 @@ class JAccount extends jraphical.Module
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
   @::mixin Notifiable::
+  @::mixin Flaggable::
   
+  @getFlagRole = 'content'
 
   {ObjectId,secure,race,dash} = bongo
   {Relationship} = jraphical
@@ -38,14 +40,14 @@ class JAccount extends jraphical.Module
         'byRelevance'
       ]
       instance    : [
-        'on','update','follow','unfollow','fetchFollowersWithRelationship'
+        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship','getDefaultEnvironment'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites'
+        'fetchAllKites','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]
@@ -55,7 +57,17 @@ class JAccount extends jraphical.Module
         defaultToLastUsedEnvironment :
           type              : Boolean
           default           : yes
-      counts                : Followable.schema.counts
+      # counts                : Followable.schema.counts
+      counts                :
+        followers           :
+          type              : Number
+          default           : 0
+        following           :
+          type              : Number
+          default           : 0
+        topics              :
+          type              : Number
+          default           : 0
       environmentIsCreated  : Boolean
       profile               :
         about               : String
@@ -82,6 +94,7 @@ class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
       environment   :
@@ -127,6 +140,10 @@ class JAccount extends jraphical.Module
       tag:
         as          : 'skill'
         targetType  : JTag
+      
+      content       :
+        as          : 'creator'
+        targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment]
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
@@ -199,13 +216,48 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
-  
-  # temp dummy stuff
 
   dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
+
+  flagAccount: secure (client, flag, callback)->
+    {delegate} = client.connection
+    JAccount.taint @getId()
+    if delegate.can 'flag', this
+      @update {$addToSet: globalFlags: flag}, callback
+      if flag is 'exempt'
+        console.log 'is exempt'
+        @markAllContentAsLowQuality()
+      else
+        console.log 'aint exempt'
+    else
+      callback new KodingError 'Access denied'
+  
+  unflagAccount: secure (client, flag, callback)->
+    {delegate} = client.connection
+    JAccount.taint @getId()
+    if delegate.can 'flag', this
+      @update {$pullAll: globalFlags: [flag]}, callback
+      if flag is 'exempt'
+        console.log 'is exempt'
+        @unmarkAllContentAsLowQuality()
+      else
+        console.log 'aint exempt'
+    else
+      callback new KodingError 'Access denied'
+  
+  checkFlag:(flag)->
+    flags = @getAt('globalFlags')
+    flags and (flag in flags)
   
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
-
+  
+  @getFlagRole =-> 'owner'
+  
+  can:(action, target)->
+    switch action
+      when 'delete','flag'
+        @profile.nickname in dummyAdmins or target.originId?.equals @getId()
+  
   fetchRole: secure ({connection}, callback)->
     
     if isDummyAdmin connection.delegate.profile.nickname
@@ -233,11 +285,10 @@ class JAccount extends jraphical.Module
   
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
-  addTags: secure (client, tagPath, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)=>
-      tagSet = {}
-      tagSet[tagPath] = tags
-      @update client, $set: tagSet, callback
+  addTags: secure (client, tags, callback)->
+    Taggable::addTags.call @, client, tags, (err)->
+      if err then callback err
+      else callback null
   
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
@@ -292,11 +343,11 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, callback
-
-  update: secure (client, changes, callback) ->
-    if client.connection.delegate.equals @
-      jraphical.Module::update.call @, changes, callback
-
+  
+  modify: secure (client, fields, callback) ->
+    if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
+      @update $set: fields, callback
+  
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
@@ -365,4 +416,43 @@ class JAccount extends jraphical.Module
                 callback err, newStorage
         else
           callback error, storage
-    
+  
+  markAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        item.update {$set: isLowQuality: yes}, console.log
+        item.emit 'ContentMarkedAsLowQuality', null
+  
+  unmarkAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        item.update {$set: isLowQuality: no}, console.log
+        item.emit 'ContentUnmarkedAsLowQuality', null
+  
+  @taintedAccounts = {}
+  @taint =(id)->
+    @taintedAccounts[id] = yes
+  
+  @untaint =(id)->
+    delete @taintedAccounts[id]
+  
+  @isTainted =(id)->
+    isTainted = @taintedAccounts[id]
+    isTainted
+
+  bongo.pre 'methodIsInvoked', (client, callback)=>
+    delegate = client?.connection?.delegate
+    id = delegate?.getId()
+    unless id
+      callback client
+    else if @isTainted id
+      JAccount.one _id: id, (err, account)=>
+        if err
+          console.log 'there was an error'
+        else
+          @untaint id
+          client.connection.delegate = account
+          console.log 'delegate is force-loaded from db'
+          callback client
+    else
+      callback client

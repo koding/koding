@@ -10,13 +10,13 @@ define monit::nodeapp ($appname,$isenabled,$nodeuser,$require_deploy) {
     # for node sysdirs
     if $nodeuser {
         File {
-            mode => "0700",
+            mode => "0750",
             owner => "node",
             group => "node",
         }
     } else {
         File {
-            mode => "0700",
+            mode => "0750",
             owner => "root",
             group => "root",
         }

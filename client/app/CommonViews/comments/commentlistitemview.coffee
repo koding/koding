@@ -5,13 +5,13 @@ class CommentListItemView extends KDListItemView
       cssClass  : "kdlistitemview kdlistitemview-comment"
     ,options
     super options,data
-    
+
     data = @getData()
-    
+
     originId    = data.getAt('originId')
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
-    
+
     origin = {
       constructorName  : originType
       id               : originId
@@ -23,7 +23,7 @@ class CommentListItemView extends KDListItemView
     @author = new ProfileLinkView {
       origin
     }
-    
+
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
     # if data.originId is KD.whoami().getId()
@@ -48,13 +48,18 @@ class CommentListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'delete-link hidden'
 
-    if data.originId is KD.whoami().getId()
-      @deleteLink.unsetClass "hidden"
-      @listenTo
-        KDEventTypes       : "click"
-        listenedToInstance : @deleteLink
-        callback           : => @confirmDeleteComment data
-  
+    activity = @getDelegate().getData()
+    bongo.cacheable data.originId, "JAccount", (err, account)=>
+      loggedInId = KD.whoami().getId()
+      if loggedInId is data.originId or       # if comment owner
+         loggedInId is activity.originId or   # if activity owner
+         KD.checkFlag "super-admin", account  # if super-admin
+        @deleteLink.unsetClass "hidden"
+        @listenTo
+          KDEventTypes       : "click"
+          listenedToInstance : @deleteLink
+          callback           : => @confirmDeleteComment data
+
   render:->
     if @getData().getAt 'deletedAt'
       @emit 'CommentIsDeleted'
@@ -72,7 +77,7 @@ class CommentListItemView extends KDListItemView
       bongo.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
-  
+
   confirmDeleteComment:(data)->
     modal = new KDModalView
       title          : "Delete comment"
@@ -91,14 +96,14 @@ class CommentListItemView extends KDListItemView
               modal.destroy()
               # unless err then @emit 'CommentIsDeleted'
               # else
-              if err then new KDNotificationView 
+              if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
         # cancel       :
         #   style      : "modal-cancel"
         #   callback   : => modal.destroy()
-  
+
   pistachio:->
     if @getData().getAt 'deletedAt'
       @setClass "deleted"
