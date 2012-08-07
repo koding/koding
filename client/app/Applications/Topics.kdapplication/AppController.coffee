@@ -8,7 +8,6 @@ class Topics12345 extends AppController
     ,options
     super options,data
     @listItemClass = TopicsListItemView
-    @_searchValue = ""
     @controllers = {}
 
   bringToFront:()->
