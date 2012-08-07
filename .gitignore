@@ -60,9 +60,4 @@ node_modules/.bin
 /node_modules/browserify
 /node_modules/cron
 /node_modules/.DS_Store
-<<<<<<< HEAD
-/node_modules/koding-dnode-responder
-=======
-
 node_modules/cron/
->>>>>>> 7312ab963b66365e3d3e70be28670dc7e3088f2a
