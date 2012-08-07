@@ -13,8 +13,8 @@ class Emailer
       subject : Subject
 
     
-    mailOptions.text      = TextBody  if TextBody? isnt ''
-    mailOptions.html      = HtmlBody  if HtmlBody? isnt ''
+    mailOptions.text      = TextBody  if TextBody
+    mailOptions.html      = HtmlBody  if HtmlBody
     mailOptions.replyTo   = ReplyTo   if ReplyTo
     
     # console.log mailOptions
