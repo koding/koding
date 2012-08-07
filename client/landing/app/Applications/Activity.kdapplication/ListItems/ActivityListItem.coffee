@@ -92,8 +92,7 @@ class ActivityItemChild extends KDView
 
     if data.originId is KD.whoami().getId()
       @settingsButton = new KDButtonViewWithMenu
-        style       : 'transparent activity-settings-context'
-        cssClass    : 'activity-settings-menu'
+        cssClass    : 'transparent activity-settings-context activity-settings-menu'
         title       : ''
         icon        : yes
         delegate    : @

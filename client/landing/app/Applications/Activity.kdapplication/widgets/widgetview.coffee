@@ -31,7 +31,6 @@ class ActivityUpdateWidget extends KDView
   resetWidgets:->
 
     @unsetClass "edit-mode"
-    @windowController.removeLayer @mainInputTabs
     @changeTab "update", "Status Update"
     @mainInputTabs.emit "MainInputTabsReset"
     @_windowDidResize()

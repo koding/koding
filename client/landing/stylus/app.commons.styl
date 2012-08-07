@@ -157,7 +157,10 @@ button.kdbutton.icon-only
 /* editor-button
 *******************************************************************************/
 button.editor-button
-  // font-family       Droid
+  border            1px solid #ccc
+  border-color      #ccc #ccc #bbb #ccc
+  color             #333
+  font-size         11px
   font-weight       normal
   padding           6px 13px
   text-shadow       0 1px 0 white
@@ -165,6 +168,9 @@ button.editor-button
   shadow            0 1px 0 white
   height            24px
   line-height       12px
+  text-align        center
+  gradient          rgba(247,247,245,1),rgba(210,210,208,1)
+  rounded           3px
   &:hover
     border          1px solid #bbb
     border-color    #bbb #bbb #999 #bbb
@@ -1201,6 +1207,7 @@ figure.code-container
   .kdnotification-title span
     size              20px, 12px
     display           inline-block
+    bg                position, -162px -443px
     sprite()
   &.like
     .kdnotification-title span

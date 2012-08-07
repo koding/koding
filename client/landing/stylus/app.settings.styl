@@ -21,6 +21,7 @@ positiveGreen = rgba(58,200,2,1)
   a
     text-decoration     none
     font-weight         300
+    color               linkColor1
     &:hover
       text-decoration   underline
 
@@ -185,15 +186,23 @@ positiveGreen = rgba(58,200,2,1)
       .actions-wrapper
         top             -7px
     .kdinputswitch-ry
-      size               auto,100%
-      padding-top        14px
-      min-height         40px
+      display           inline-block
+      size              auto, 23px
+      margin            14px 0 13px
+      border            1px solid rgba(0,0,0,.1)
       noTextDeco()
-      // .active
-      //   bg              
-      //   color            #FFFFFF
+      .on
+      .off
+        noTextDeco()
+        font-weight      bold
+        color            #b6b6b6
+      .active.on
+        color            #FFFFFF
+      .active.off
+        color            rgb(140,140,140)
     &:hover
-      .action-link,.delete-icon
+      .action-link
+      .delete-icon
         display     block
 
   a.delete-icon

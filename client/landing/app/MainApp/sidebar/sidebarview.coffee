@@ -54,6 +54,21 @@ class Sidebar extends JView
     
     @accNav = @accNavController.getView()
 
+    @adminNavController = new NavigationController
+      view           : new NavigationList
+        type         : "navigation"
+        cssClass     : "account admin"
+        subItemClass : AdminNavigationLink
+        bind         : "mouseenter mouseleave"
+        mouseenter   : => @animateLeftNavIn()
+        mouseleave   : => @animateLeftNavOut()
+      wrapper        : no
+      scrollView     : no
+
+    @adminNav = @adminNavController.getView()
+
+    @resetAdminNavController()
+
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
@@ -64,7 +79,9 @@ class Sidebar extends JView
 
     @finderController = new NFinderController
       fsListeners : yes
-      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.beta.koding.com/website"
+      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
+      initDelay   : 5000
+      useStorage  : yes
     
     @finder = @finderController.getView()
 
@@ -78,6 +95,14 @@ class Sidebar extends JView
 
     @listenWindowResize()
   
+  resetAdminNavController:->
+    @utils.wait 1000, =>
+      @adminNavController.removeAllItems()
+      if KD.isLoggedIn()
+        KD.whoami().fetchRole? (err, role)=>
+          if role is "super-admin"
+            @adminNavController.instantiateListItems adminNavItems.items
+
   setListeners:->
 
     mainView = @getDelegate()
@@ -91,8 +116,8 @@ class Sidebar extends JView
 
     $fp = @$('#finder-panel')
     cp  = @contentPanel
-    @wc  = @getSingleton "windowController"
-    fpLastWidth    = null
+    @wc = @getSingleton "windowController"
+    fpLastWidth = null
 
     @finderResizeHandle.on "ClickedButNotDragged", =>
       unless fpLastWidth
@@ -147,6 +172,7 @@ class Sidebar extends JView
     
     @navController.reset()
     @accNavController.reset()
+    @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
     
@@ -167,6 +193,7 @@ class Sidebar extends JView
       {{> @nav}}
       <hr>
       {{> @accNav}}
+      {{> @adminNav}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
@@ -308,3 +335,63 @@ class Sidebar extends JView
       ,  
         title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts"
     ]
+
+  adminNavItems = 
+    id    : "admin-navigation"
+    title : "admin-navigation"
+    items : [
+        title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
+    ]
+
+
+class KiteSelectorModal extends KDModalView
+  
+  constructor: (options = {}, data) ->
+
+    options.title = "Select kites"
+
+    super options, data
+
+    @putTable()
+
+
+  putTable:->
+
+    KD.whoami().fetchAllKites (err, kites)=>
+      if err
+        new KDNotificationView
+          title : err.message
+        @destroy()
+      else
+        i = 1
+        for own name, kite of kites
+          sanitizeHosts = (hosts)->
+            selectOptions = []
+            hosts.forEach (host)->
+              selectOptions.push 
+                value : host
+                title : host
+            return selectOptions
+
+          selectOptions = sanitizeHosts kite.hosts
+
+          @addSubView field = new KDView
+            cssClass : "modalformline"
+          
+          field.addSubView new KDLabelView
+            title    : name
+          
+          field.addSubView new KDSelectBox
+            selectOptions : selectOptions
+            cssClass      : "fr"
+            defaultValue  : "cl#{i}"
+            callback      : do ->
+              kiteName = name
+              (value)-> log value, kiteName, "selected kite"
+          i++
+
+
+
+
+
+
