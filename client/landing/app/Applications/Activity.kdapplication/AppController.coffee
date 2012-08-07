@@ -265,6 +265,9 @@ class Activity12345 extends AppController
 
 class ActivityListController extends KDListViewController
 
+  hiddenItems     = []
+  hiddenItemCount = 0
+
   constructor:(options,data)->
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
@@ -273,18 +276,20 @@ class ActivityListController extends KDListViewController
     options.keyNav              = yes
     options.view              or= new KDListView viewOptions, data
     super
-    @hiddenItems = []
 
   loadView:(mainView)->
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
 
-    @activityHeader.on "UnhideHiddenNewItems", => @unhideNewHiddenItems()
-
+    @activityHeader.on "UnhideHiddenNewItems", =>
+      top = @getListView().$('.hidden-item').eq(0).position().top
+      @scrollView.scrollTo {top, duration : 200}, =>
+        unhideNewHiddenItems hiddenItems
+    
     super
 
-  isMine:(activity)->
+  isMine:(activity)->    
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
@@ -296,7 +301,7 @@ class ActivityListController extends KDListViewController
         view.slideIn()
 
   newActivityArrived:(activity)->
-
+    
     unless @isMine activity
       view = @addHiddenItem activity, 0
       @activityHeader.newActivityArrived()
@@ -308,17 +313,21 @@ class ActivityListController extends KDListViewController
 
   addHiddenItem:(activity, index, animation = null)->
     instance = @getListView().addHiddenItem activity, index, animation
-    @hiddenItems.push instance
-    instance
+    hiddenItems.push instance
+    return instance
 
   addItem:(activity, index, animation = null) ->
     @getListView().addItem activity, index, animation
 
-  unhideNewHiddenItems:->
-    $firstHidden = @getListView().$('.hidden-item').eq(0)
-    top = $firstHidden.position().top
-    @scrollView.scrollTo {top, duration : 200}, =>
-      @hiddenItems.forEach (item)=>
-        # log "and here???",item,@hiddenItems
-        item.show()
-      @hiddenItems = []
+  unhide = (item)-> item.show()
+
+  unhideNewHiddenItems = (hiddenItems)->
+    interval = setInterval ->
+      item = hiddenItems.shift()
+      if item
+        unhide item
+      else
+        clearInterval interval
+    , 177
+
+
