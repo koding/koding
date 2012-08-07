@@ -30,7 +30,7 @@ class JPasswordRecovery extends jraphical.Module
         type      : Date
         default   : -> new Date
 
-  @getPasswordRecoveryEmail =-> 'hi@koding.com'
+  @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
   @getPasswordRecoverySubject = -> '[Koding] Instructions to reset your password'
   
