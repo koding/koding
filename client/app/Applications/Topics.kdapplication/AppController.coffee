@@ -1,5 +1,5 @@
 class Topics12345 extends AppController
-  
+
   constructor:(options, data)->
     options = $.extend
       # view : if /localhost/.test(location.host) then new TopicsMainView cssClass : "content-page topics" else new TopicsComingSoon
@@ -69,7 +69,7 @@ class Topics12345 extends AppController
 
     @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
       @updateTopic topic
-  
+
   updateTopic:(topic)->
     # log "Update this: ", topic
     controller = @
@@ -82,7 +82,7 @@ class Topics12345 extends AppController
       tabs                        :
         navigateable              : yes
         goToNextFormOnSubmit      : no
-        forms                     : 
+        forms                     :
           update                  :
             title                 : "Update Topic Details"
             callback              : (formData) =>
