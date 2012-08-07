@@ -88,6 +88,7 @@ class Topics12345 extends AppController
             callback              : (formData) =>
               @emit "UpdateTopic"
               log "Update:: ", formData
+              topic.modify {}, log
               modal.modalTabs.forms.update.buttons.Update.hideLoader()
               modal.destroy()
             buttons               :
@@ -108,9 +109,9 @@ class Topics12345 extends AppController
                     modal.destroy()
                     unless err then @emit 'TopicIsDeleted'
                     else new KDNotificationView
-                        type      : "mini"
-                        cssClass  : "error editor"
-                        title     : err.message or "Error, please try again later!"
+                      type      : "mini"
+                      cssClass  : "error editor"
+                      title     : err.message or "Error, please try again later!"
             fields                :
               Title               :
                 label             : "Title"

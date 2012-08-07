@@ -147,15 +147,23 @@ class Activity12345 extends AppController
 
 
   fetchTeasers:(selector,options,callback)->
-    options.collection = 'activities'
-    $.ajax KD.apiUri+'/1.0'
-      data      :
-        data    : JSON.stringify(_.extend options, selector)
-        env     : KD.env
-      dataType  : 'jsonp'
-      success   : (data)->
-        bongo.reviveFromJSONP data, (err, instances)->
-          callback instances
+    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+      if err
+        log '>> error fetching app storage', err
+      else
+        options.collection = 'activities'
+        flags = KD.whoami().data.globalFlags
+        exempt = flags?.indexOf 'exempt'
+        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+        $.ajax KD.apiUri+'/1.0'
+          data      :
+            t       : 1 if exempt
+            data    : JSON.stringify(_.extend options, selector)
+            env     : KD.env
+          dataType  : 'jsonp'
+          success   : (data)->
+            bongo.reviveFromJSONP data, (err, instances)->
+              callback instances
     #
     # bongo.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
