@@ -8,6 +8,7 @@ class Topics12345 extends AppController
     ,options
     super options,data
     @listItemClass = TopicsListItemView
+    @_searchValue = ""
     @controllers = {}
 
   bringToFront:()->
@@ -35,8 +36,12 @@ class Topics12345 extends AppController
       filter                :
         everything          :
           title             : "All topics"
+          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all topics" else null
           dataSource        : (selector, options, callback)=>
-            bongo.api.JTag.someWithRelationship selector, options, callback
+            if @_searchValue
+              bongo.api.JTag.byRelevance @_searchValue, options, callback
+            else
+              bongo.api.JTag.someWithRelationship selector, options, callback
         followed            :
           title             : "Followed"
           dataSource        : (selector, options, callback)=>
@@ -56,19 +61,27 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
-      view.addSubView controller.getView()
+      view.addSubView @_lastSubview = controller.getView()
 
-  loadView:(mainView)->
-    mainView.createCommons()
+  loadView:(mainView, firstRun = yes)->
+
+    if firstRun
+      mainView.on "searchFilterChanged", (value) =>
+        @_searchValue = value
+        @_lastSubview.destroy?()
+        @loadView mainView, no
+
+      mainView.createCommons()
+
     KD.whoami().fetchRole? (err, role) =>
       if role is "super-admin"
         @listItemClass = TopicsListItemViewEditable
+        if firstRun
+          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
+            @updateTopic topic
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
-
-    @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
-      @updateTopic topic
 
   updateTopic:(topic)->
     # log "Update this: ", topic

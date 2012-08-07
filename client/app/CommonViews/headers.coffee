@@ -18,17 +18,38 @@ class HeaderViewSection extends KDHeaderView
   setSearchInput:(options = {})->
     @searchInput?.destroy() # If already exist, destroy the old one
 
-    @addSubView @searchInput = new KDInputView
+    # @searchInput = new TagAutoCompleteController
+    #   name                : "meta.tags"
+    #   type                : "tags"
+    #   itemClass           : TagAutoCompleteItemView
+    #   selectedItemClass   : TagAutoCompletedItemView
+    #   itemDataPath        : 'title'
+    #   outputWrapper       : @selectedItemWrapper
+    #   selectedItemsLimit  : 5
+    #   listWrapperCssClass : "tags"
+    #   form                : @
+    #   dataSource          : (args, callback)=>
+    #     {inputValue} = args
+    #     updateWidget = @getDelegate()
+    #     blacklist = (data.getId() for data in @searchInput.getSelectedItemData() when 'function' is typeof data.getId)
+    #     appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
+    # @addSubView @searchInput.getView()
+
+    @addSubView @searchInput = new KDHitEnterInputView
       placeholder  : options.placeholder or "click to search"
       name         : options.name or "searchInput"
       cssClass     : options.cssClass or "header-search-input"
+      type         : "text"
+      callback     : =>
+        @parent.emit "searchFilterChanged", @searchInput.getValue()
+        @searchInput.focus()
 
 class WelcomeHeader extends KDHeaderView
   constructor:->
     super
     @setClass "notification-header"
 
-  click :(event)->
+  click:(event)->
     if $(event.target).is "a"
       localStorage.welcomeMessageClosed = yes
       @remove()
