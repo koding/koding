@@ -233,10 +233,10 @@ module.exports = new Kite 'sharedHosting'
               modification :
                 uidNumber  : incrementedValue
                # now we can use free UID for our new user/group record
-            change_free_user_group = new ldap.Change
-              operation     :'add'
-              modification  :
-                memberUid     : username
+            #change_free_user_group = new ldap.Change
+            #  operation     :'add'
+            #  modification  :
+            #    memberUid     : username
     
             ldapClient.add "uid=#{username},#{config.ldap.userDN}",user, (err)=>
               if err
@@ -262,21 +262,21 @@ module.exports = new Kite 'sharedHosting'
                           log.error err if err?
                         callback error
                       else
-                        ldapClient.modify config.ldap.freeGroup,change_free_user_group,(err)=>
-                          if err?
-                            log.error error = "[ERROR] can't add user to group #{config.ldap.freeGroup}: #{err.message}"
-                            ldapClient.unbind (err)->
-                              log.error err if err?
+                        #ldapClient.modify config.ldap.freeGroup,change_free_user_group,(err)=>
+                        #  if err?
+                        #    log.error error = "[ERROR] can't add user to group #{config.ldap.freeGroup}: #{err.message}"
+                        #    ldapClient.unbind (err)->
+                        #      log.error err if err?
+                        #    callback error
+                        #  else
+                        # now we can build home for user
+                        ldapClient.unbind (err)->
+                          log.error err if err?
+                        @buildHome username:username,uid:parseInt(id), (error,result)->
+                          if error?
                             callback error
                           else
-                            # now we can build home for user
-                            ldapClient.unbind (err)->
-                              log.error err if err?
-                            @buildHome username:username,uid:parseInt(id), (error,result)->
-                              if error?
-                                callback error
-                              else
-                                callback null,"[OK] user and group #{username} has been added to LDAP"
+                            callback null,"[OK] user and group #{username} has been added to LDAP"
 
   createVhost : (options,callback)->
     

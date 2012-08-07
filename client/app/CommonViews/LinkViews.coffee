@@ -37,7 +37,7 @@ class LinkView extends KDCustomHTMLView
       @render()
 
     if origin.constructorName
-      bongo.cacheable origin.constructorName, origin.id, (err, origin)=> 
+      bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
         callback origin
     else
       callback origin
@@ -47,26 +47,36 @@ class LinkView extends KDCustomHTMLView
     @template.update()
 
 class ProfileLinkView extends LinkView
-  
-  constructor:(options, data)->
+
+  constructor:(options = {}, data)->
+
+    # options.tooltip =
+    #   gravity   : "s"
+    #   delayIn   : 120
+    #   offset    : 1
 
     super options, data
 
-    @$().attr "href","/#!/#{data?.profile?.nickname}"
+    # nickname = data?.profile?.nickname
+    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
-  render:->
-    data = @getData()
-    @$().attr "href","/#!/#{data.profile?.nickname}"
+  # render:->
+
+    nickname = @getData().profile?.nickname
+    if nickname
+      @$().attr "href","/#!/member/#{nickname}"
+      # @updateTooltip title : "@#{nickname}"
     super
 
   pistachio:->
-    
+
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
   click:(event)->
-    account = @getData()
-    appManager.tell "Members", "createContentDisplay", account
+
+    appManager.tell "Members", "createContentDisplay", @getData()
+    event.preventDefault()
     event.stopPropagation()
     no
 
@@ -213,7 +223,7 @@ class FollowedModalView extends KDModalView
     else if participants[0] instanceof bongo.api.JTag
       @type = "tag"
 
-    options.title    = titleMap()[@type]
+    options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
     options.cssClass = "modal-topic-wrapper"
@@ -293,16 +303,25 @@ class AvatarView extends LinkView
     return no
 
   render:->
-    return unless @getData()
-    {profile} = @getData()
+    account = @getData()
+    return unless account
+    {profile} = account
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
-    @$().attr "title", options.title or "#{profile.firstName}'s avatar"
+    @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
     fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
     @$().css "background-image", fallbackUrl
+    flags = account.globalFlags?.join(" ") ? ""
+    @$('cite').addClass flags
+    # @$('cite').attr "title", flags
+
+
 
   viewAppended:->
+    super
     @render() if @getData()
+
+  pistachio:-> '<cite></cite>'
 
 class AvatarStaticView extends AvatarView
   constructor:(options, data)->
@@ -386,4 +405,3 @@ class AutoCompleteProfileTextView extends ProfileTextView
         </span>
         """
       else ''
-

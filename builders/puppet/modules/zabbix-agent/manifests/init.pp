@@ -1,7 +1,7 @@
 #$zabbix_user_parameters = []
 
 class zabbix-agent {
-    $zabbix_server = "50.22.136.20"
+    $zabbix_server = "10.190.86.118"
     $zabbix_config_dir = "/etc/zabbix"
     $zabbix_agent_conf = "$zabbix_config_dir/zabbix_agent.conf"
     $zabbix_agentd_conf = "$zabbix_config_dir/zabbix_agentd.conf"
