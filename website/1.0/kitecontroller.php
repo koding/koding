@@ -37,6 +37,8 @@ class KiteController {
   
   public function initialize_config ($config_json) {
     $config = json_decode($config_json);
+    trace('CONFIG', $config);
+    $db = get_mongo_db();
     foreach ($config->kites as $kite_name => $kite) {
       foreach ($kite->clusters as $cluster) {
         $this->add_cluster($kite_name, $cluster);
