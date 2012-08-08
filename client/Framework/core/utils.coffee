@@ -96,7 +96,7 @@ __utils =
 
   expandUsernames: (text) ->
     return null unless text
-    text.replace /\ [@]+[A-Za-z0-9-_]+/g, (u) ->
+    text.replace /\B\@([\w\-]+)/gim, (u) ->
       username = u.replace "@", ""
       u.link "#!/member/#{username}"
 
