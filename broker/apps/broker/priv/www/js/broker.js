@@ -25,7 +25,9 @@ Broker.prototype.connect = function () {
     this.ws.addEventListener('message', function (e) {
         var data = JSON.parse(e.data);
         if (!data.event) return;
-        self.ws.dispatchEvent(new Event(data.event), data.payload);
+        var evt = new Event(data.event);
+        evt.data = data.payload;
+        self.ws.dispatchEvent(evt);
     });
 
     return this; // chainable
@@ -59,8 +61,7 @@ Broker.prototype.subscribe = function (channel_name) {
 Broker.prototype.unsubscribe = function (channel_name) {
     if (!this.channels[escape(channel_name)]) return;
     delete this.channels[escape(channel_name)];
-    var subJSON = {event:"client-unsubscribe",channel:name};
-    this.ws.send(JSON.stringify(subJSON));
+    sendWsMessage(this.ws, "client-unsubscribe", name);
 };
 
 var Channel = function(ws, name, publicName) {
@@ -70,15 +71,16 @@ var Channel = function(ws, name, publicName) {
     this.ws = ws;
     var self = this;
     var onopen = function() {
-        var subJSON = {event:"client-subscribe",channel:name};
-        ws.send(JSON.stringify(subJSON));
+        sendWsMessage(ws, "client-subscribe", name);
 
         ws.addEventListener('message', function (e) {
             var data = JSON.parse(e.data);
             if (!data.event || !data.channel) return;
             var channel = self.privateName || self.name;
             if (data.channel !== channel) return;
-            ws.dispatchEvent(new Event(channel+'.'+data.event), data.payload);
+            var evt = new Event(channel+'.'+data.event);
+            evt.data = data.payload;
+            ws.dispatchEvent(evt);
         })
     };
 
@@ -91,25 +93,25 @@ var Channel = function(ws, name, publicName) {
 
 Channel.prototype.on = function(eventType, listener) {
     var channel = this.privateName || this.name;
-    this.ws.addEventListener(channel+'.'+eventType, eventWrapper.bind(this, listener));
+    sendWsMessage(this.ws, "client-bind-event", channel, eventType);
+
+    this.ws.addEventListener(channel+'.'+eventType, listener);
 };
 
 Channel.prototype.off = function(eventType, listener) {
     var channel = this.privateName || this.name;
-    this.ws.removeEventListener(channel+'.'+eventType, eventWrapper.bind(this, listener));
+    sendWsMessage(this.ws, "client-unbind-event", channel, eventType);
+    this.ws.removeEventListener(channel+'.'+eventType, listener);
 };
 
 Channel.prototype.trigger = function (event_name, payload) {
     // TODO: make sure event_name has client- prefix
-    var subJSON = {
-        event: event_name,
-        channel: this.privateName || this.name,
-        payload: payload
-    };
-    this.ws.send(JSON.stringify(subJSON));
+    var channel = this.privateName || this.name;
+    sendWsMessage(this.ws, event_name, channel, payload);
     return true;
 };
 
-var eventWrapper = function (listener, eventName, args) {
-    listener(args);
+var sendWsMessage = function (ws, event_name, channel, payload) {
+    var subJSON = {event:event_name,channel:channel,payload:payload};
+    ws.send(JSON.stringify(subJSON));
 }

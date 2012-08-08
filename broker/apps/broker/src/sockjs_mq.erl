@@ -71,9 +71,21 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             Subs1 = orddict:erase(Exchange, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
+        {<<"client-bind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Sub1 = emit({bind, Payload, SocketId}, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
+        {<<"client-unbind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Sub1 = emit({unbind, Payload, SocketId}, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
         {<<"client-",_EventName/binary>>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
-            Sub1 = emit({recv, Payload, SocketId}, Callback, Subscription),
+            Sub1 = emit({trigger, Event, Payload, SocketId}, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -82,7 +94,7 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             {ok, State}
     end.
 
-sockjs_terminate(_Conn, State = #state{callback=Callback, 
+sockjs_terminate(_Conn, #state{ callback=Callback, 
                                 subscriptions=Subscriptions}) ->
     _ = [ {emit(closed, Callback, Subscription)} ||
             {_Exchange, Subscription} <- orddict:to_list(Subscriptions) ],
@@ -101,7 +113,6 @@ sockjs_terminate(_Conn, State = #state{callback=Callback,
 %%--------------------------------------------------------------------
 emit(What, Callback, Subscription = #subscription{state = State, 
                                                 vconn = VConn}) ->
-    %State1 = State#subscription{exchange = Exchange},
     case Callback(VConn, What, State) of
         {ok, State1} -> Subscription#subscription{state = State1};
         ok           -> Subscription
@@ -113,18 +124,3 @@ decode(Data) ->
         {<<"payload">>, Payload} ->  [Event, Exchange, Payload];
         false -> [Event, Exchange, <<>>]
     end.
-
-%%--------------------------------------------------------------------
-%% Function: split(Char, Str, Limit) -> [Event, Exchange, Payload]
-%% Description: Split the binary-to-string-list Data into a list.
-%%--------------------------------------------------------------------
-split(Char, Str, Limit) ->
-    Acc = split(Char, Str, Limit, []),
-    lists:reverse(Acc).
-split(_Char, _Str, 0, Acc) -> Acc;
-split(Char, Str, Limit, Acc) ->
-    {L, R} = case string:chr(Str, Char) of
-                 0 -> {Str, ""};
-                 I -> {string:substr(Str, 1, I-1), string:substr(Str, I+1)}
-             end,
-    split(Char, R, Limit-1, [L | Acc]).
