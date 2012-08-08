@@ -31,13 +31,14 @@ class StartTabMainView extends JView
     @button = new KDButtonView
       cssClass : "editor-button"
       title    : "refresh apps"
+      loader   : yes
       callback : =>
-        @button.hide()
-        @loader.show()
         @removeAppIcons()
-        @fetchApps (apps)=> @putAppIcons apps
-
-    @button.hide()
+        @loader.show()
+        @getSingleton("kodingAppsController").fetchApps (err, apps)=>
+          @loader.hide()
+          @button.hideLoader()
+          @decorateApps apps
 
     @clear = new KDButtonView
       cssClass : "editor-button"
@@ -53,15 +54,19 @@ class StartTabMainView extends JView
     @appItemContainer = new AppItemContainer
       cssClass : 'app-item-container'
       delegate : @
-    
+
+    @noAppsWarning = new KDView
+      cssClass : 'no-apps hidden'
+      partial  : 'you have no apps!'
+
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
   
   viewAppended:->
 
     super
-    @addApps()
-    # @addRealApps()
+    # @addApps()
+    @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
 
@@ -79,12 +84,13 @@ class StartTabMainView extends JView
   pistachio:->
     """
     <h1 class="kdview start-tab-header">To start from a new file, select an editor <span>or open an existing file from your file tree</span></h1>
-    <div class='hidden'>{{> @loader}}</div>
-    <div class='app-button-holder hidden'>
+    <div class='hidden1'>{{> @loader}}</div>
+    <div class='app-button-holder hidden1'>
       {{> @button}}
       {{> @clear}}
     </div>
     {{> @appItemContainer}}
+    {{> @noAppsWarning}}
     <div class='start-tab-split-options expanded'>
       <h3>Start with a workspace</h3>
     </div>
@@ -94,33 +100,23 @@ class StartTabMainView extends JView
     </div>
     """
   
-  fetchApps:(callback)->
-
-    @getSingleton("kodingAppsController").fetchApps (apps)=>
-      callback apps
-      appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
-        storage.update {
-          $set: { "bucket.apps" : apps }
-        }, => log arguments,"kodingAppsController storage updated"
-
   addRealApps:->
     
+    @removeAppIcons()
     @loader.show()
-    
-    kallback = (apps)=>
+
+    @getSingleton("kodingAppsController").fetchApps (err, apps)=>
       @loader.hide()
+      @decorateApps apps
+
+  decorateApps:(apps)->
+
+    if apps
+      @noAppsWarning.hide()
       @putAppIcons apps
-    
-    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-      if err then warn err
-      else
-        apps = storage.getAt "bucket.apps"
-        if Object.keys(apps).length > 0
-          KodingAppsController.apps = apps
-          kallback apps
-        else
-          @fetchApps (apps)=> kallback apps
-  
+    else
+      @noAppsWarning.show()
+
   removeAppIcons:->
     
     @appItemContainer.destroySubViews()

@@ -17,18 +17,22 @@ appstore.styl
     size          100%,100%
     z-index       100
     
-.kdlistitemview-appstore
-  border-bottom   1px solid #e6e6e6 !important
-  border-right    1px solid #e6e6e6 !important
-  display         inline-block
+.kdview.kdlistitemview-appstore
+  border-bottom   1px solid #e6e6e6
+  border-right    1px solid #e6e6e6 !important  
   height          180px
   overflow        hidden
   padding         10px
   width           160px
+  clear           none
+  fl()
 
   &:hover
     .appdetails
       top           0
+
+  &:last-child
+    border-bottom 1px solid #E6E6E6
 
   img
     width           160px
