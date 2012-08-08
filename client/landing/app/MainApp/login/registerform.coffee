@@ -119,9 +119,11 @@ class RegisterInlineForm extends LoginViewInlineForm
         validate      :
           event       : "blur"
           rules       :
+            required  : yes
             minLength : 8
           messages    :
-            minLength : "Password is required and should at least be 8 characters."
+            required  : "Password is required."
+            minLength : "Password should at least be 8 characters."
         change        : (input, event)=>
           if @kodingenUser
             @passwordConfirm.input.setValue input.getValue()
@@ -139,8 +141,8 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
             match     : @password.input
           messages    :
+            required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
-            match     : "Password confirmation is required!"
         focus         : (input, event)=>
           if @kodingenUser
             input.setValue @password.input.getValue()
@@ -248,6 +250,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @password.input.$().attr "placeholder", "Type your kodingen password"
+    @password.input.ruleChain = ["required"] # this is a hack, needs a better implementation
     @passwordConfirm.setHeight 0
     @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
     @$('p.kodingen-user-notification').height 54
@@ -259,6 +262,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
     @password.input.$().attr "placeholder", "Create a password"
+    @password.input.ruleChain = ["required","minLength"] # this is a hack, needs a better implementation
     @$('p.kodingen-user-notification').height 0
     @passwordConfirm.setHeight 32
 
