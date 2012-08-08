@@ -28,7 +28,7 @@ class KiteRoundRobinLoadBalancer extends KiteLoadBalancer {
 class KiteTrustPolicy {
   function __construct ($trustPolicy) {
     $this->rules = array();
-    trace($trustPolicy);
+    trace("aaa",$trustPolicy);
     foreach ($trustPolicy as $strategy => $rule) {
       switch ($strategy) {
       case 'byHostname':
@@ -61,6 +61,7 @@ class KiteCluster {
     $this->loadBalancer = KiteLoadBalancer::create($cluster->loadBalancing);
     if (!isset($cluster->trustPolicy)) {
       $cluster->trustPolicy = (object) array('untrustedKite' => array());
+      trace("bbb",$cluster);
     }
     $this->trustPolicy = new KiteTrustPolicy($cluster->trustPolicy);
     $this->initialize();

@@ -61,6 +61,7 @@ class KiteController {
         if (isset($custom_cluster)) {
           $custom_cluster = (object) $custom_cluster;
           $this->add_cluster($kite_name, $custom_cluster);
+          $clusters =& $this->get_cluster($kite_name);
         }
       }
       if (!isset($clusters)) {
