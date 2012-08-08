@@ -16,7 +16,7 @@ class Sidebar extends JView
       bind       : "mouseenter mouseleave"
       mouseenter : => @animateLeftNavIn()
       mouseleave : => @animateLeftNavOut()
-      size       :
+      size       : 
         width    : 160
         height   : 76
     , account
@@ -37,7 +37,7 @@ class Sidebar extends JView
       wrapper        : no
       scrollView     : no
     , navItems
-
+    
     @nav = @navController.getView()
 
     @accNavController = new NavigationController
@@ -51,7 +51,7 @@ class Sidebar extends JView
       wrapper        : no
       scrollView     : no
     , accNavItems
-
+    
     @accNav = @accNavController.getView()
 
     @adminNavController = new NavigationController
@@ -78,14 +78,15 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners : yes
-      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
-      initDelay   : 5000
-      useStorage  : yes
-
+      fsListeners       : yes
+      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
+      initDelay         : 5000
+      useStorage        : yes
+      addOrphansToRoot  : no
+    
     @finder = @finderController.getView()
 
-    @finderBottomControlsController = new KDListViewController
+    @finderBottomControlsController = new KDListViewController 
       view        : new FinderBottomControls
       wrapper     : no
       scrollView  : no
@@ -94,7 +95,7 @@ class Sidebar extends JView
     @finderBottomControls = @finderBottomControlsController.getView()
 
     @listenWindowResize()
-
+  
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
@@ -125,7 +126,7 @@ class Sidebar extends JView
         cp.$().css left : 65, width : @wc.winWidth - 65
         @utils.wait 300, -> $fp.css "width", 13
       else
-        fpLastWidth = 208 if fpLastWidth < 100
+        fpLastWidth = 208 if fpLastWidth < 100 
         $fp.css "width", fpLastWidth
         cp.$().css left : 52 + fpLastWidth, width : @wc.winWidth - 52 - fpLastWidth
         fpLastWidth = null
@@ -137,7 +138,7 @@ class Sidebar extends JView
       cp._width = parseInt @wc.winWidth - 52 - @_fpWidth
       cp.unsetClass "transition"
 
-    @finderResizeHandle.on "DragFinished", (e, dragState)=>
+    @finderResizeHandle.on "DragFinished", (e, dragState)=> 
       delete cp._left
       delete cp._width
       delete @_fpWidth
@@ -147,7 +148,7 @@ class Sidebar extends JView
         fpLastWidth = null
       delete @finderResizeHandle._dragged
       cp.setClass "transition"
-
+    
     @finderResizeHandle.on "DragInAction", (x, y)=>
       @finderResizeHandle._dragged = yes
       newFpWidth = @_fpWidth - x
@@ -162,26 +163,26 @@ class Sidebar extends JView
     @setListeners()
 
   render:(account)->
-
+    
     account or= KD.whoami()
-
+    
     @avatar.setData account
     @avatar.render()
     @finderHeader.setData account
     @finderHeader.render()
-
+    
     @navController.reset()
     @accNavController.reset()
     @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
-
+    
     @finderController.reset()
-
+    
     super
 
   pistachio:->
-
+    
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -243,7 +244,7 @@ class Sidebar extends JView
     @utils.wait 300, =>
       callback?()
       @emit "NavigationPanelWillCollapse"
-
+    
   expandEnvironmentSplit:(newSize, callback)->
 
     newSize          = 260
@@ -268,22 +269,22 @@ class Sidebar extends JView
   showEnvironmentPanel:->
 
     @showFinderPanel()
-
+    
   showFinderPanel:->
 
     unless @_finderExpanded
       @collapseNavigationPanel()
       @expandEnvironmentSplit null, ()=> @_onDevelop = yes
-
+  
   hideFinderPanel:->
 
     if @_finderExpanded
       @expandNavigationPanel 160, ()=> @_onDevelop = no
       @collapseEnvironmentSplit =>
         @utils.wait 300, => @notifyResizeListeners()
-
+  
   _windowDidResize:->
-
+    
     {winWidth} = @getSingleton('windowController')
     if KD.isLoggedIn()
       if @contentPanel.$().hasClass "with-finder"
@@ -309,7 +310,7 @@ class Sidebar extends JView
         title : "Develop",        loggedIn : yes,  path : "StartTab"
       ,
         title : "Apps"
-    ]
+    ]                                               
 
   accNavItems =
     id    : "acc-navigation"
@@ -319,7 +320,7 @@ class Sidebar extends JView
       ,
         title : "Account",        loggedIn : yes
       ,
-        title : "Logout",         loggedIn : yes,  action : "logout",
+        title : "Logout",         loggedIn : yes,  action : "logout",  
       ,
         title : "Login",          loggedOut : yes, action : "login"
     ]
@@ -330,33 +331,22 @@ class Sidebar extends JView
         title : "Launch Terminal",    icon : "terminal",    path : "Shell"
       ,
         title : "Add Resources",      icon : "resources"
-      ,
+      ,  
         title : "Settings",           icon : "cog"
-      ,
+      ,  
         title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts"
     ]
 
-  adminNavItems =
+  adminNavItems = 
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
         title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
-      ,
-        title : "Admin"        , loggedIn : yes, callback : -> new AdminModal
     ]
-
-class AdminModal extends KDModalView
-
-  constructor : (options = {}, data) ->
-
-    options.title = "Admin stuff"
-    super options, data
-
-
 
 
 class KiteSelectorModal extends KDModalView
-
+  
   constructor: (options = {}, data) ->
 
     options.title = "Select kites"
@@ -379,7 +369,7 @@ class KiteSelectorModal extends KDModalView
           sanitizeHosts = (hosts)->
             selectOptions = []
             hosts.forEach (host)->
-              selectOptions.push
+              selectOptions.push 
                 value : host
                 title : host
             return selectOptions
@@ -388,10 +378,10 @@ class KiteSelectorModal extends KDModalView
 
           @addSubView field = new KDView
             cssClass : "modalformline"
-
+          
           field.addSubView new KDLabelView
             title    : name
-
+          
           field.addSubView new KDSelectBox
             selectOptions : selectOptions
             cssClass      : "fr"
@@ -400,3 +390,9 @@ class KiteSelectorModal extends KDModalView
               kiteName = name
               (value)-> log value, kiteName, "selected kite"
           i++
+
+
+
+
+
+

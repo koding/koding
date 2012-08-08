@@ -22,7 +22,7 @@ class CommentView extends KDView
 
     @commentController        = new CommentListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
-    @addSubView @commentList
+    @addSubView @commentController.getView()
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
 
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()

@@ -9,8 +9,8 @@ class Apps12345 extends AppController
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
-        name : 'Apps'
-      data : @getView()
+        name  : 'Apps'
+      data    : @getView()
     
   initAndBringToFront:(options,callback)->
     @bringToFront()
@@ -18,7 +18,7 @@ class Apps12345 extends AppController
     
   loadView:(mainView)->
     mainView.createCommons()
-    # @createFeed()
+    @createFeed()
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -76,6 +76,9 @@ class Apps12345 extends AppController
           callback      : (pubInst, app)=>
             @createContentDisplay app
 
+        listController.getListView().on "AppDeleted", =>
+          log arguments, ">>>>>"
+
       @getView().addSubView controller.getView()
       @feedController = controller
       @putAddAnAppButton()
@@ -104,10 +107,11 @@ class Apps12345 extends AppController
       style     : "small-gray"
       callback  : => @showAppSubmissionView()
 
-  createApp:(formData,callback)->
+  createApp:(formData, callback)->
     log formData,"in createApp"
     # log JSON.stringify formData
     bongo.api.JApp.create formData, (err, app)->
+      log "back from create", app
       callback? err,app
 
   showAppSubmissionView:->

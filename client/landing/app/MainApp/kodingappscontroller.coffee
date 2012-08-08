@@ -10,6 +10,17 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
     
+    @fetchAppsFromDb (err, apps)=>
+      if err
+        @fetchAppsFromFs (err, apps)=>
+          if err then callback()
+          else
+            callback null, apps
+      else
+        callback? err, apps
+
+  fetchAppsFromFs:(callback)->
+    
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
     @getSingleton("kiteController").run
@@ -18,6 +29,7 @@ class KodingAppsController extends KDController
     , (err, response)=>
       if err 
         warn err
+        callback err
       else
         files = FSHelper.parseLsOutput [path], response
         apps  = []
@@ -33,12 +45,35 @@ class KodingAppsController extends KDController
             manifest.fetchContents cb
     
         async.parallel stack, (err, results)=>
-          if err then warn err else
+          if err
+            warn err
+            callback? err
+          else
             results.forEach (app)->
               app = JSON.parse app
               KodingAppsController.apps["#{app.name}"] = app
+            callback? err, KodingAppsController.apps
 
-            callback? KodingAppsController.apps
+  fetchAppsFromDb:(callback)->
+
+    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
+      if err 
+        warn err
+        callback err
+      else
+        apps = storage.getAt "bucket.apps"
+        if apps and Object.keys(apps).length > 0
+          KodingAppsController.apps = apps
+          callback null, apps
+        else
+          callback new Error "There are no apps in the app storage."
+
+  putAppsToAppStorage:(apps)->
+
+    appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
+      storage.update {
+        $set: { "bucket.apps" : apps }
+      }, => log arguments,"kodingAppsController storage updated"
 
   addScript:(app, scriptInput, callback)->
     
@@ -81,9 +116,43 @@ class KodingAppsController extends KDController
       }
     , (err, response)=>
       if err then warn err
-      log err, response, "<<<<<<"
+      log response, "App saved!"
       callback?()
   
+  publishApp:(appName, callback)->
+
+    kiteController = @getSingleton('kiteController')
+    @getApp appName, (appScript)=>
+
+      manifest    = KodingAppsController.apps[appName]
+      {nickname}  = KD.whoami().profile
+      publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
+      userAppPath = if /~\//.test manifest.path
+        manifest.path.replace("~/", "/Users/#{nickname}/") + "index.js"
+      else 
+        "#{manifest.path}/index.js"
+      options     =
+        toDo          : "publishApp"
+        withArgs      :
+          version     : manifest.version
+          appName     : manifest.name
+          userAppPath : userAppPath
+
+      kiteController.run options, (err, res)=>
+        log "app is being published"
+        if err then warn err
+        else
+          jAppData =
+            title       : manifest.name or "Application Title"
+            body        : manifest.description or "Application description"
+            manifest    : manifest
+          appManager.tell "Apps", "createApp", jAppData, (err, app)=>
+            log app, "app published"
+            appManager.openApplication "Apps", yes, (instance)=>
+              # instance.feedController.changeActiveSort "meta.modifiedAt"
+              callback?()
+
+
   defineApp:(app, script)->
     
     KDApps[app.name] = script
@@ -98,12 +167,12 @@ class KodingAppsController extends KDController
   
   compileSource:(name, callback)->
 
-    log "ever compileSource"
+    # log "ever compileSource"
     
     
     kallback = (app)=>
       
-      log "ever kallback"
+      # log "ever kallback"
       
       return warn "#{name}: No such app!" unless app
 
@@ -151,7 +220,7 @@ class KodingAppsController extends KDController
 
       async.parallel asyncStack, (error, result)=>
         
-        log "ever async"
+        log "concatenating the app"
         
         _final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
@@ -166,6 +235,6 @@ class KodingAppsController extends KDController
           callback?()
 
     unless KodingAppsController.apps[name]
-      @fetchApps (apps)=> kallback apps[name]
+      @fetchApps (err, apps)=> kallback apps[name]
     else
       kallback KodingAppsController.apps[name]
