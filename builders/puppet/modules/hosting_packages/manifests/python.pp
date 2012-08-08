@@ -24,7 +24,7 @@ class hosting_packages::python {
     
     package { $python_modules:
         ensure => installed,
-        require => [ Class["yumrepos::epel"], Package["python"], Class["yumrepos::koding"] ],
+        require => [ Class["yumrepos::epel"], Package["python"], Class["yumrepos::koding"] , Exec['pip']],
         notify => Class["cloudlinux::cagefs_update"],
     }
 }
