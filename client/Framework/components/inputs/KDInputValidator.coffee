@@ -66,7 +66,7 @@ class KDInputValidator
     if doesValidate
       return null
     else
-      return ruleSet.messages?.rangeLength or "Please enter a value that includes more than #{rangeLength[0]} and less than #{rangeLength[0]} characters!"
+      return ruleSet.messages?.rangeLength or "Please enter a value that includes more than #{rangeLength[0]} and less than #{rangeLength[1]} characters!"
 
   @ruleMatch = (input, event)->
 

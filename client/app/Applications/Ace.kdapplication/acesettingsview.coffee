@@ -6,19 +6,19 @@ class AceSettingsView extends KDTreeItemView
 
     button = @getDelegate().getDelegate()
 
-    @useSoftTabs    = new KDRySwitch
+    @useSoftTabs    = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "useSoftTabs", state
-    @showGutter     = new KDRySwitch
+    @showGutter     = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showGutter", state
-    @useWordWrap    = new KDRySwitch
+    @useWordWrap    = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "useWordWrap", state
-    @showPrintMargin= new KDRySwitch
+    @showPrintMargin= new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showPrintMargin", state
-    @highlightActiveLine = new KDRySwitch
+    @highlightActiveLine = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "highlightActiveLine", state
-    @highlightWord  = new KDRySwitch
+    @highlightWord  = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "highlightSelectedWord", state
-    @showInvisibles = new KDRySwitch
+    @showInvisibles = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
     
     @softWrap       = new KDSelectBox 
