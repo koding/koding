@@ -70,13 +70,13 @@ class NSetPermissionsView extends JView
         #   setPermissionsView.removeSubView button
         #   setPermissionsView.applyExistingPermissions()
 
-    @recursive = new KDRySwitch
+    @recursive = new KDOnOffSwitch
     
   createSwitches: (name, permission = 6) ->
     @switches[name] = []
     permissions = octalToBinary permission
     for bit in permissions
-      @switches[name].push new KDRySwitch
+      @switches[name].push new KDOnOffSwitch
         defaultValue  : !!parseInt(bit)
         callback      : =>
           @displayOctalPermissions()
