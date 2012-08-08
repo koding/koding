@@ -1,14 +1,14 @@
 # utils singleton
 # -------------------------
-# 
+#
 # -------------------------
 __utils =
 
   idCounter : 0
-  
+
   formatPlural:(count, noun)->
     "#{count or 0} #{if count is 1 then noun else Inflector.pluralize noun}"
-  
+
   selectText:(element)->
     doc   = document
     if doc.body.createTextRange
@@ -21,27 +21,27 @@ __utils =
       range.selectNodeContents element
       selection.removeAllRanges()
       selection.addRange range
-  
+
   getCallerChain:(args, depth)->
     {callee:{caller}} = args
     chain = [caller]
     while depth-- and caller = caller?.caller
       chain.push caller
     chain
-  
+
   getUniqueId:->
     "#{__utils.getRandomNumber(100000)}_#{Date.now()}"
 
   getRandomNumber :(range)->
-    range = range or 1000000 
+    range = range or 1000000
     Math.floor Math.random()*range+1
-  
+
   uniqueId : (prefix)->
     id = __utils.idCounter++
     if prefix? then "#{prefix}#{id}" else id
 
-  getRandomRGB :()-> 
-    "rgb(#{@getRandomNumber(255)},#{@getRandomNumber(255)},#{@getRandomNumber(255)})" 
+  getRandomRGB :()->
+    "rgb(#{@getRandomNumber(255)},#{@getRandomNumber(255)},#{@getRandomNumber(255)})"
 
   getRandomHex : ->
     # hex = (Math.random()*0xFFFFFF<<0).toString(16)
@@ -58,7 +58,7 @@ __utils =
 
     a = /\+/g  # Regex for replacing addition symbol with a space
     r = /([^&;=]+)=?([^&;]*)/g
-    d = (s)-> 
+    d = (s)->
       decodeURIComponent s.replace a, " "
     q = tag.substring 1
 
@@ -66,24 +66,24 @@ __utils =
       hashParams[d e[1] ] = d e[2]
 
     hashParams
-  
+
   capAndRemovePeriods:(path)->
     newPath = for arg in path.split "."
       arg.capitalize()
     newPath.join ""
-  
+
   slugify:(title = "")->
     url = title
       .toLowerCase()                # change everything to lowercase
-      .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces    
+      .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
       .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen
       .replace(/[^a-z0-9-]+/g, "")  # remove all non-alphanumeric characters except the hyphen
       .replace(/[-]+/g, "-")        # replace multiple instances of the hyphen with a single instance
-      .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens       
+      .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
 
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
-  
+
   applyTextExpansions: (text)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
@@ -96,7 +96,7 @@ __utils =
 
   expandUsernames: (text) ->
     return null unless text
-    text.replace /[@]+[A-Za-z0-9-_]+/g, (u) ->
+    text.replace /\ [@]+[A-Za-z0-9-_]+/g, (u) ->
       username = u.replace "@", ""
       u.link "#!/member/#{username}"
 
@@ -128,7 +128,7 @@ __utils =
       # prefer to end the teaser at the end of a sentence (a period).
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '.') or tryToShorten longText, ' ', '...'
-      
+
       if candidate?.length > minLength
         candidate
       else
@@ -139,12 +139,12 @@ __utils =
 
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
-  
+
   getFileExtension: (path) ->
     fileName = path or ''
     [name, extension...]  = fileName.split '.'
     extension = if extension.length is 0 then '' else extension[extension.length-1]
-    
+
   getFileType: (extension)->
 
     fileType = "unknown"
@@ -174,7 +174,7 @@ __utils =
       ]
       sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
       app     : ["kdapp"]
-      
+
 
     for own type,set of _extension_sets
       for ext in set
@@ -193,20 +193,20 @@ __utils =
       'r-x': 5
       'rw-': 6
       'rwx': 7
-    
+
   symbolsPermissionToOctal: (permissions) ->
     permissions = permissions.substr(1)
-    
+
     user    = permissions.substr 0, 3
     group   = permissions.substr 3, 3
     other   = permissions.substr 6, 3
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
-  
+
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
   getParentPath :(path)->
-    
+
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
     parentPath = path.split('/')
     parentPath.pop()
@@ -217,7 +217,7 @@ __utils =
       fn = duration
       duration = 0
     setTimeout fn, duration
-  
+
   killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
