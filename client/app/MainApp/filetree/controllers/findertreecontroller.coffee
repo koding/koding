@@ -388,10 +388,9 @@ class NFinderTreeController extends JTreeViewController
   publishApp:(nodeView)->
 
     folder = nodeView.getData()
-    name   = FSHelper.trimExtension folder.path
 
     folder.emit "fs.publish.started"
-    @getSingleton('kodingAppsController').publishApp name, =>
+    @getSingleton('kodingAppsController').publishApp folder.path, =>
       folder.emit "fs.publish.finished"      
       @notify "App published!", "success"
 
