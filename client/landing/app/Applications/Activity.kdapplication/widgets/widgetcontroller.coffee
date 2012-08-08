@@ -13,12 +13,12 @@ class ActivityUpdateWidgetController extends KDViewController
 
     mainView.addWidgetPane
       paneName    : "question"
-      mainContent : questionWidget = new ActivityQuestionWidget 
+      mainContent : questionWidget = new ActivityQuestionWidget
         callback  : @questionWidgetSubmit
 
     codeSnippetPane = mainView.addWidgetPane
       paneName    : "codesnip"
-      mainContent : codeWidget = new ActivityCodeSnippetWidget 
+      mainContent : codeWidget = new ActivityCodeSnippetWidget
         delegate  : mainView
         callback  : (data)=>
           @codeSnippetWidgetSubmit data
@@ -26,17 +26,17 @@ class ActivityUpdateWidgetController extends KDViewController
 
     mainView.addWidgetPane
       paneName    : "link"
-      mainContent : linkWidget = new ActivityLinkWidget 
+      mainContent : linkWidget = new ActivityLinkWidget
         callback  : @linkWidgetSubmit
 
     mainView.addWidgetPane
       paneName    : "tutorial"
-      mainContent : tutorialWidget = new ActivityTutorialWidget 
+      mainContent : tutorialWidget = new ActivityTutorialWidget
         callback  : @tutorialWidgetSubmit
 
     mainView.addWidgetPane
       paneName    : "discussion"
-      mainContent : discussionWidget = new ActivityDiscussionWidget 
+      mainContent : discussionWidget = new ActivityDiscussionWidget
         callback  : @discussionWidgetSubmit
 
     mainView.showPane "update"
@@ -45,7 +45,7 @@ class ActivityUpdateWidgetController extends KDViewController
       KDEventTypes : 'PaneDidShow'
       listener     : @
       callback     : -> codeWidget.widgetShown()
-    
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
       switch activity.bongo_.constructorName
@@ -57,7 +57,7 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
-    
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -101,7 +101,7 @@ class ActivityUpdateWidgetController extends KDViewController
     log 'creating question', data
     bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
-  
+
   linkWidgetSubmit:(data)->
     log 'sharing link', data
     bongo.api.JActivity.create {type: 'link', activity: data}, (error) ->
