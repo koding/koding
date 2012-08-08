@@ -16,6 +16,11 @@ class hosting_packages::python {
     package { ["python","python27"]:
         ensure => installed,
     }
+
+    exec { "pip":
+        command => '/usr/bin/easy_install pip'
+        unless => "/usr/bin/which pip",
+    }
     
     package { $python_modules:
         ensure => installed,
