@@ -22,16 +22,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       validate      :
         rules       :
           required  : yes
-          maxLength : 280
         messages    :
           required  : "Please type a message..."
-          maxLength : "Maximum length is 280"
-      # keydown       : (input, event)=>
-      #   # this is bad find a way to semantically would fix this - Sinan
-      #   if event.which is 9
-      #     event.stopPropagation()
-      #     event.preventDefault()
-      #     @submitBtn.$().trigger "focus"
 
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -115,13 +107,6 @@ class ActivityStatusUpdateWidget extends KDFormView
     @removeCustomData "activity"
     super
 
-  # inputKeyDown:(event)->
-  #   if event.which is 13 and (event.altKey or event.shiftKey) isnt true
-  #     @submitStatusUpdate()
-  #     event.preventDefault()
-  #     event.stopPropagation()
-  #     return no
-
   viewAppended:->
 
     @setTemplate @pistachio()
@@ -133,18 +118,6 @@ class ActivityStatusUpdateWidget extends KDFormView
       @switchToSmallView()
 
   pistachio:->
-
-    # """
-    # <div class="small-input">{{> @smallInput}}</div>
-    # <div class="large-input">{{> @largeInput}}</div>
-    # <div class="formline submit">
-    #   {{> @heartBox}}
-    #   <div class="submit-box">
-    #     {{> @cancelBtn}}{{> @submitBtn}}
-    #   </div>
-    # </div>
-    # """
-
     """
     <div class="small-input">{{> @smallInput}}</div>
     <div class="large-input">{{> @largeInput}}</div>
