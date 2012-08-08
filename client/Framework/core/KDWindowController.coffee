@@ -107,7 +107,7 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
-    log newKeyView, "newKeyView"
+    # log newKeyView, "newKeyView"
 
     @oldKeyView = @keyView
     @keyView = newKeyView
