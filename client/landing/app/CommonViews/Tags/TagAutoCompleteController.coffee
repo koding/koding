@@ -22,7 +22,7 @@ class TagAutoCompletedItemView extends KDAutoCompletedItem
   constructor:(options, data)->
     options.cssClass = "clearfix"
     super
-    @tag = new TagLinkView {},data
+    @tag = new TagLinkView { clickable:no },data
 
   pistachio:->
     "{{> @tag}}"
