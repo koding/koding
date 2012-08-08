@@ -1,4 +1,3 @@
-
 class hosting_packages::python {
     
     # modules installed from RPM
@@ -10,7 +9,7 @@ class hosting_packages::python {
                         "ipython",
          		        "python-flup.noarch",
                         "python-virtualenv",
-                        "python-setuptool",
+                        "python-setuptools",
                         "python-docutils",
                       ]
     
@@ -23,14 +22,19 @@ class hosting_packages::python {
         unless => "/usr/bin/which pip",
     }
     
-    $non_rpm_modules = ["django"]
-
-    package { $non_rpm_modules:
-        ensure => installed,
-        provider => pip,
+    exec {"django":
+    	command=> "/usr/bin/pip install django",
+	    unless => '/usr/bin/test -d /usr/lib/python2.6/site-packages/django',
         require => [Package["python"],Exec['pip']],
         notify => Class["cloudlinux::cagefs_update"],
     }
+
+    #package { $django:
+    #    ensure => installed,
+    #    provider => pip,
+    #    require => [Package["python"],Exec['pip'],Exec["test_django"]],
+    #    notify => Class["cloudlinux::cagefs_update"],
+    #}
 
     package { $python_modules:
         ensure => installed,
