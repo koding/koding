@@ -2,20 +2,25 @@
 # Ryan Switch Class
 #####
 
-class KDRySwitch extends KDInputView
-  constructor:(options)->
-    options = $.extend
-      type : "switch"                 # mandatory
-      size : options.size or "small"  # a String "small" or "big"
-    ,options
-    super options
+class KDOnOffSwitch extends KDInputView
+  constructor:(options = {}, data)->
+    
+    options.type or= "switch"       # mandatory
+    options.size or= "small"        # a String tiny/small/big
+
+    super options, data
+    
     @setClass options.size
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
   setDomElement:(cssClass)->
     title = @getOptions().title or ""
-    @domElement = $ "<div class='kdinput kdinputswitch-ry off #{cssClass}'>#{title}"+
-                    "<a href='#' class='on' title='turn on'>ON</a><a href='#' class='off' title='turn off'>OFF</a></div>"
+    
+    @domElement = $ """
+      <div class='kdinput on-off off #{cssClass}'>
+        #{title}
+        <a href='#' class='on' title='turn on'>ON</a><a href='#' class='off' title='turn off'>OFF</a>
+      </div> """
 
   setDefaultValue:(value) ->
     switch value
