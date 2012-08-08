@@ -2,7 +2,15 @@
 
 class KodingAppsController extends KDController
 
-  @apps = {}
+  @manifests = {}
+
+  makeFullPath = (path)->
+    {profile} = KD.whoami()
+    path = if /^~/.test app.path
+      "/Users/#{profile.nickname}#{app.path.substr(1)}"
+    else
+      app.path
+    return path += "/" unless path[path.length-1] is "/"
 
   constructor:->
 
@@ -43,16 +51,17 @@ class KodingAppsController extends KDController
           manifest = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
           stack.push (cb)->
             manifest.fetchContents cb
-    
-        async.parallel stack, (err, results)=>
+        
+        manifests = @constructor.manifests
+        async.parallel stack, (err, results)->
           if err
             warn err
             callback? err
           else
             results.forEach (app)->
               app = JSON.parse app
-              KodingAppsController.apps["#{app.name}"] = app
-            callback? err, KodingAppsController.apps
+              manifests["#{app.name}"] = app
+            callback? err, manifests
 
   fetchAppsFromDb:(callback)->
 
@@ -63,7 +72,7 @@ class KodingAppsController extends KDController
       else
         apps = storage.getAt "bucket.apps"
         if apps and Object.keys(apps).length > 0
-          KodingAppsController.apps = apps
+          @constructor.manifests = apps
           callback null, apps
         else
           callback new Error "There are no apps in the app storage."
@@ -95,15 +104,7 @@ class KodingAppsController extends KDController
   
   getAppPath:(app)->
 
-    {profile} = KD.whoami()
-    if /^~/.test app.path
-      path = "/Users/#{profile.nickname}#{app.path.substr(1)}"
-    else
-      path = app.path
-
-    path += "/" unless path[path.length-1] is "/"
-    
-    return path
+    return makeFullPath app.path
   
   saveCompiledApp:(app, script, callback)->
     
@@ -119,12 +120,15 @@ class KodingAppsController extends KDController
       log response, "App saved!"
       callback?()
   
-  publishApp:(appName, callback)->
+  publishApp:(path, callback)->
 
     kiteController = @getSingleton('kiteController')
+    @getAppFromPath path
+
+    return
     @getApp appName, (appScript)=>
 
-      manifest    = KodingAppsController.apps[appName]
+      manifest    = @constructor.manifests[appName]
       {nickname}  = KD.whoami().profile
       publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
       userAppPath = if /~\//.test manifest.path
@@ -157,6 +161,13 @@ class KodingAppsController extends KDController
     
     KDApps[app.name] = script
   
+  getAppFromPath:(path, callback = noop)->
+
+    for own name, manifest of @constructor.manifests
+      log makeFullPath manifest.path, path
+
+
+
   getApp:(name, callback = noop)->
 
     if KDApps[name]
@@ -234,7 +245,8 @@ class KodingAppsController extends KDController
         @saveCompiledApp app, _final, =>
           callback?()
 
-    unless KodingAppsController.apps[name]
+    unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      kallback KodingAppsController.apps[name]
+      kallback @constructor.manifests[name]
+
