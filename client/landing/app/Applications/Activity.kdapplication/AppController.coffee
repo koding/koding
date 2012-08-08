@@ -6,6 +6,13 @@ class Activity12345 extends AppController
     CodeSnippetView.on 'CodeSnippetWantsSave', (data)=>
       @saveCodeSnippet data.title, Encoder.htmlDecode data.content
 
+    @currentFilter = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+    ]
+
   saveCodeSnippet:(title, content)->
     # This custom method is used because FS,
     # command, environment are all a mess and
@@ -42,7 +49,6 @@ class Activity12345 extends AppController
 
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
-
 
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
@@ -84,7 +90,6 @@ class Activity12345 extends AppController
     # ADD SPLITVIEW
     mainView.addSubView activitySplitView
 
-
     @createFollowedAndPublicTabs()
 
     # INITIAL HEIGHT SET FOR SPLIT
@@ -96,7 +101,7 @@ class Activity12345 extends AppController
       if @activityListController.scrollView.getScrollHeight() <= @activityListController.scrollView.getHeight()
         @continueLoadingTeasers()
 
-    @filter null, loadIfMoreItemsIsNecessary
+    @filter 'public', loadIfMoreItemsIsNecessary
 
     @getSingleton('activityController').on 'ActivitiesArrived', (activities)=>
       for activity in activities when activity.constructor.name in @currentFilter
@@ -144,7 +149,6 @@ class Activity12345 extends AppController
       @loadSomeTeasers =>
         @activityListController.isLoading = no
         @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
-
 
   fetchTeasers:(selector,options,callback)->
     appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
@@ -223,13 +227,25 @@ class Activity12345 extends AppController
 
   filter: (show, callback) ->
     controller = @activityListController
+
+    if show is 'private'
+      controller._state = 'private'
+      controller.itemsOrdered.forEach (item)=>
+        item.hide() if not controller.isInFollowing(item.data)
+      return
+
+    else if show is 'public'
+      controller._state = 'public'
+
+    else
+      @currentFilter = if show? then [show] else [
+        'CStatusActivity'
+        'CCodeSnipActivity'
+        'CFollowerBucketActivity'
+        'CNewMemberBucketActivity'
+      ]
+
     controller.removeAllItems()
-    @currentFilter = if show? then [show] else [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-    ]
     @loadSomeTeasers ->
       controller.isLoading = no
       callback?()
@@ -273,9 +289,10 @@ class ActivityListController extends KDListViewController
     viewOptions.cssClass      or= 'activity-related'
     viewOptions.comments      or= yes
     viewOptions.subItemClass  or= options.subItemClass
-    options.keyNav              = yes
     options.view              or= new KDListView viewOptions, data
     super
+
+    @_state = 'public'
 
   loadView:(mainView)->
     data = @getData()
@@ -286,25 +303,38 @@ class ActivityListController extends KDListViewController
       top = @getListView().$('.hidden-item').eq(0).position().top
       @scrollView.scrollTo {top, duration : 200}, =>
         unhideNewHiddenItems hiddenItems
-    
+
     super
 
-  isMine:(activity)->    
+    @fetchFollowings()
+
+  fetchFollowings:->
+    # To filter followings activites we need to fetch followings data
+    KD.whoami()?.fetchFollowingWithRelationship? {}, {}, (err, following)=>
+      if err
+        log "An error occured while getting followings:", err
+        @_following = []
+      else
+        @_following = following.map((item)-> item._id)
+
+  isMine:(activity)->
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
+  isInFollowing:(activity)->
+    activity.originId in @_following or activity.anchor?.id in @_following
+
   ownActivityArrived:(activity)->
-    # log activity
     view = @getListView().addHiddenItem activity, 0
     view.addChildView activity, ()=>
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()
 
   newActivityArrived:(activity)->
-    
     unless @isMine activity
-      view = @addHiddenItem activity, 0
-      @activityHeader.newActivityArrived()
+      if (@_state is 'private' and @isInFollowing activity) or @_state isnt 'public'
+        view = @addHiddenItem activity, 0
+        @activityHeader.newActivityArrived()
     else
       switch activity.constructor
         when bongo.api.CFolloweeBucket
@@ -317,7 +347,9 @@ class ActivityListController extends KDListViewController
     return instance
 
   addItem:(activity, index, animation = null) ->
-    @getListView().addItem activity, index, animation
+    # log "ADD:", activity
+    if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+      @getListView().addItem activity, index, animation
 
   unhide = (item)-> item.show()
 
@@ -329,5 +361,3 @@ class ActivityListController extends KDListViewController
       else
         clearInterval interval
     , 177
-
-
