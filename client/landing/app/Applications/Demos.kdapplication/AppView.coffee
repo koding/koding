@@ -7,13 +7,14 @@ class DemosMainView extends KDScrollView
         log arguments, "form submitted"
 
     form.addSubView new KDInputView
-      name          : "kk"
-      validate      :
-        rules       :
-          maxLength : 20
-          minLength : 10
-        messages    :
-          maxLength : 'sidir it'
-          minLength : 'itooluit'
+      name              : "kk"
+      validate          :
+        rules           :
+          required      : yes
+          maxLength     : 20
+          minLength     : 10
+          rangeLength   : [10,20]
+          email         : yes
+          creditCard    : yes
 
 

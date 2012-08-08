@@ -78,7 +78,7 @@ class StartTabMainView extends JView
     
     for app in apps
       @appItemContainer.addSubView new StartTabOldAppView 
-        tab       : @
+        tab : @
       , app
   
   pistachio:->
