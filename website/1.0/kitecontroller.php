@@ -21,6 +21,7 @@ class KiteController {
   
   public function initialize_config ($config_json) {
     $config = json_decode($config_json);
+    trace('CONFIG', $config);
     $db = get_mongo_db();
     foreach ($config->kites as $kite_name => $kite) {
       $this->clusters[$kite_name] = array();
@@ -39,8 +40,19 @@ class KiteController {
     $result = array('addedTo' => array());
     $clusters = $this->clusters[$kite_name];
     if (!isset($clusters)) {
-      error_log("No cluster found for kites named $kite_name");
-      return FALSE;
+      $db = get_mongo_db();
+      $cluster = $db->jKiteClusters->findOne(array(
+        'kiteName' => $kite_name,
+      ));
+      $clusters = $this->clusters[$kite_name] = array();
+      array_push(
+        $this->clusters[$kite_name],
+        new KiteCluster($kite_name, $cluster)
+      );
+      if (!isset($clusters)) {
+        error_log("No cluster found for kites named $kite_name");
+        return FALSE;
+      }
     }
     foreach ($clusters as $index=>$cluster) {
       if ($cluster->trustPolicy->test('byHostname', $parsed_uri['host'])
