@@ -34,7 +34,7 @@ Broker.prototype.connect = function () {
 };
 
 Broker.prototype.on = function (eventType, listener) {
-    this.ws.addEventListener(eventType, eventWrapper.bind(this, listener));
+    this.ws.addEventListener(eventType, listener);
 };
 
 Broker.prototype.off = function (eventType, listener) {
@@ -47,8 +47,7 @@ Broker.prototype.disconnect = function () {
 
 Broker.prototype.subscribe = function (channel_name) {
     var self = this;
-    var matches = channel_name.match(/^(private.[a-z]*)/);
-    if (!matches)
+    if (!channel_name.match(/^(private.[a-z]*)/))
         return this.channels[escape(channel_name)] =
             new Channel(this.ws, escape(channel_name));
 
@@ -94,7 +93,6 @@ var Channel = function(ws, name, publicName) {
 Channel.prototype.on = function(eventType, listener) {
     var channel = this.privateName || this.name;
     sendWsMessage(this.ws, "client-bind-event", channel, eventType);
-
     this.ws.addEventListener(channel+'.'+eventType, listener);
 };
 
@@ -105,7 +103,7 @@ Channel.prototype.off = function(eventType, listener) {
 };
 
 Channel.prototype.trigger = function (event_name, payload) {
-    // TODO: make sure event_name has client- prefix
+    if (!event_name.match(/^(client-[a-z0-9]*)/)) return false;
     var channel = this.privateName || this.name;
     sendWsMessage(this.ws, event_name, channel, payload);
     return true;
