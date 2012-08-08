@@ -31,10 +31,10 @@
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
--record (user_info, {   broker, 
+-record (subscription, {   broker, 
                         channel, 
                         exchange, 
-                        receiver,
+                        consumer,
                         routing_keys = orddict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 -define (RABBITMQ, "10.13.11.96").
@@ -147,10 +147,10 @@ handle_subscription(Conn, {init, From}, _State) ->
     {ok, Channel} = amqp_connection:open_channel(Broker),
 
     Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
-    {ok, #user_info{broker=Broker, 
-                    channel=Channel, 
-                    exchange=Exchange,
-                    receiver = Pid}};
+    {ok, #subscription{ broker=Broker, 
+                        channel=Channel, 
+                        exchange=Exchange,
+                        consumer = Pid}};
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
@@ -161,13 +161,14 @@ handle_subscription(Conn, {init, From}, _State) ->
 %% that event.
 %%--------------------------------------------------------------------
 handle_subscription(_Conn, {bind, Event, _From},
-                State = #user_info{ channel = Channel,
-                                    exchange = Exchange,
-                                    receiver = Receiver,
-                                    routing_keys = Keys}) ->
+                State = #subscription{  channel = Channel,
+                                        exchange = Exchange,
+                                        consumer = Consumer,
+                                        routing_keys = Keys}) ->
 
-    Queue = bind_queue(Channel, Exchange, Event, Receiver),
-    {ok, State#user_info{routing_keys = orddict:store(Event, Queue, Keys)}};
+    Queue = bind_queue(Channel, Exchange, Event, Consumer),
+    NewKeys = orddict:store(Event, Queue, Keys),
+    {ok, State#subscription{routing_keys = NewKeys}};
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {unbind, Event, _From}, State)
@@ -176,9 +177,9 @@ handle_subscription(_Conn, {bind, Event, _From},
 %% unbinds the associated queue.
 %%--------------------------------------------------------------------
 handle_subscription(_Conn, {unbind, Event, _From}, 
-                    State = #user_info{ channel = Channel,
-                                        exchange = Exchange,
-                                        routing_keys = Keys}) ->
+                    State = #subscription{  channel = Channel,
+                                            exchange = Exchange,
+                                            routing_keys = Keys}) ->
     
     case orddict:find(Event, Keys) of 
         {ok, Queue} ->
@@ -186,7 +187,8 @@ handle_subscription(_Conn, {unbind, Event, _From},
                                     routing_key = Event,
                                     queue = Queue},
             #'queue.unbind_ok'{} = amqp_channel:call(Channel, Binding),
-            {ok, State#user_info{routing_keys = orddict:erase(Event, Keys)}};
+            NewKeys = orddict:erase(Event, Keys),
+            {ok, State#subscription{routing_keys = NewKeys}};
         error ->
             {ok, State}
     end;
@@ -199,7 +201,7 @@ handle_subscription(_Conn, {unbind, Event, _From},
 %% the routing key the same as the event name.
 %%--------------------------------------------------------------------
 handle_subscription(_Conn, {trigger, Event, Payload, From}, State) ->
-    #user_info{channel=Channel, exchange=Exchange} = State,
+    #subscription{channel=Channel, exchange=Exchange} = State,
 
     broadcast(From, Channel, Exchange, Event, Payload),
     {ok, State};
@@ -209,11 +211,11 @@ handle_subscription(_Conn, {trigger, Event, Payload, From}, State) ->
 %% Description: When the client unsubscribes from the exchange, closes
 %% the channel and the connection.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, #user_info{  broker=Broker, 
+handle_subscription(_Conn, closed, #subscription{  broker=Broker, 
                                                 channel = Channel}) ->
     amqp_channel:close(Channel),
     amqp_connection:close(Broker),
-    {ok, #user_info{}}.
+    {ok, #subscription{}}.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
@@ -226,9 +228,10 @@ handle_subscription(_Conn, closed, #user_info{  broker=Broker,
 %%--------------------------------------------------------------------
 broadcast(From, Channel, Exchange, Event, Data) ->
     Props = #'P_basic'{correlation_id = From},
-    amqp_channel:cast(Channel,
-                      #'basic.publish'{exchange = Exchange, routing_key = Event},
-                      #amqp_msg{props = Props, payload = Data}).
+    Publish = #'basic.publish'{ exchange = Exchange, 
+                                routing_key = Event},
+    Msg = #amqp_msg{props = Props, payload = Data},
+    amqp_channel:cast(Channel, Publish, Msg).
 
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
@@ -236,26 +239,27 @@ broadcast(From, Channel, Exchange, Event, Data) ->
 %% process. This process is used to subscribe to queue later on.
 %%--------------------------------------------------------------------
 subscribe(Conn, Channel, Exchange, Subscriber) -> 
-    Declare = #'exchange.declare'{exchange = Exchange, type = <<"topic">>},
+    Declare = #'exchange.declare'{  exchange = Exchange, 
+                                    type = <<"topic">>},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 
     loop(Conn, Subscriber).
 
 %%--------------------------------------------------------------------
-%% Function: bind_queue(Channel, Exchange, RoutingKey, Receiver) -> pid()
+%% Function: bind_queue(Channel, Exchange, Routing, Consumer) -> pid()
 %% Description: Declares a queue and bind to the routing key. Also
 %% starts the subscription on that queue.
 %%--------------------------------------------------------------------
-bind_queue(Channel, Exchange, RoutingKey, Receiver) ->
+bind_queue(Channel, Exchange, Routing, Consumer) ->
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
 
     Binding = #'queue.bind'{exchange = Exchange,
-                            routing_key = RoutingKey,
+                            routing_key = Routing,
                             queue = Queue},
     #'queue.bind_ok'{} = amqp_channel:call(Channel, Binding),
-    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Queue,
-                                                     no_ack = true}, Receiver),
+    Sub = #'basic.consume'{queue = Queue, no_ack = true},
+    amqp_channel:subscribe(Channel, Sub, Consumer),
     Queue.
 
 rpc_call(Broker, RoutingKey, Payload) ->
@@ -277,7 +281,8 @@ loop(Conn, Subscriber) ->
         #'basic.consume_ok'{} ->
             loop(Conn, Subscriber);
         % Own message is ignored
-        {#'basic.deliver'{}, #amqp_msg{props = #'P_basic'{correlation_id = Subscriber}}} ->
+        {#'basic.deliver'{}, 
+        #amqp_msg{props = #'P_basic'{correlation_id = Subscriber}}} ->
             loop(Conn, Subscriber);
         % Only send message from the bound event
         {#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
