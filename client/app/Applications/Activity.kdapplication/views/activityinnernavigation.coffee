@@ -1,6 +1,6 @@
 class ActivityInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
-    
+
     feedController = @setListController
       type : "feed"
       subItemClass : ListGroupShowMeItem
@@ -14,9 +14,9 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     , @showMenuData
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
-    
+
     @addSubView helpBox = new HelpBox
-      subtitle    : "About Your Activity Feed" 
+      subtitle    : "About Your Activity Feed"
       tooltip     :
         title     : "<p class=\"bigtwipsy\">The Activity feed displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community. </p>"
         placement : "above"
@@ -28,8 +28,8 @@ class ActivityInnerNavigation extends CommonInnerNavigation
   feedMenuData :
     title : "FEED"
     items : [
-        # { title : "Followed", type : "follow" }
-        { title : "Public" }
+        { title : "Public"  , type : "public" }
+        { title : "Followed", type : "private" }
       ]
 
   showMenuData :

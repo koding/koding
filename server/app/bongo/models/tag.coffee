@@ -1,16 +1,16 @@
 class JTag extends Followable
-  
+
   {Relationship} = jraphical
-  
+
   @mixin Filterable         # brings only static methods
   @::mixin Taggable::
-  
+
   # @mixin Followable       # brings only static methods
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
-  
+
   {ObjectRef,Inflector,secure,daisy} = bongo
-  
+
   @share()
 
   @set
@@ -69,7 +69,7 @@ class JTag extends Followable
       #   as          : 'content'
   modify: secure (client, formData, callback)->
     callback arguments
-    
+
   fetchContentTeasers:->
     [args..., callback] = arguments
     @fetchContents args..., (err, contents)->
@@ -84,8 +84,8 @@ class JTag extends Followable
               fin()
         , -> callback null, teasers
         collectTeasers node for node in contents
-      
-      
+
+
   @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
     daisy queue = [
@@ -118,7 +118,7 @@ class JTag extends Followable
           else
             callbackForEach null, tag for tag in existingTags
     ]
-  
+
   @create = secure (client, data, callback)->
     {delegate} = client.connection
     tag = new @ data
@@ -134,7 +134,7 @@ class JTag extends Followable
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist}  = options
-    
+
     @some {
       title   : seed
       _id     :
@@ -189,26 +189,26 @@ class JTag extends Followable
   #         callback err
   #       else
   #         callback null,tag
-  # 
+  #
   # update: bongo.secure (client,callback)->
   # remove: bongo.secure (client,callback)->
 
-    
-#     
+
+#
 # class JLicense extends JTag
-# 
+#
 #   @share()
-# 
+#
 #   @set
 #     encapsulatedBy  : JTag
 #     schema          : JTag.schema
-# 
+#
 # class JSkill extends JTag
-# 
+#
 #   @share()
-# 
+#
 #   @set
 #     encapsulatedBy  : JTag
 #     schema          : JTag.schema
-# 
-# 
+#
+#

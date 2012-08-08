@@ -75,7 +75,7 @@ class JInvitation extends jraphical.Module
 
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(9000, 10000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(11762, 12367).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -88,19 +88,20 @@ class JInvitation extends jraphical.Module
                   # shortenedUrl = url
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               
-              Emailer.simulate
+              Emailer.send
                 From      : @getInviteEmail()
                 To        : email
                 Subject   : '[Koding] Here is your beta invite!'
-                HtmlBody  : personalizedMail
+                TextBody  : personalizedMail
               , (err)-> 
                 console.log 'finished', i++, err
-                recipients.fin(err)
+                recipients.next(err)
                 # else console.log email
             else
-              console.log "no invitation was found for #{email}"
-              recipients.fin null
-      dash recipients, callback
+              console.log "no invitation was found for #{email}"              
+              recipients.next null
+      recipients.push callback
+      daisy recipients
         
   
   @__createBetaInvites =do ->

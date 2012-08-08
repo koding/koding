@@ -34,9 +34,11 @@ class KDWindowController extends KDController
 
   bindEvents:()->
 
-    document.body.addEventListener "keydown",  (event)=> @key event , yes 
-    document.body.addEventListener "keyup",    (event)=> @key event , yes
-    document.body.addEventListener "keypress", (event)=> @key event , yes
+    $(window).bind "keydown keyup keypress",@key
+
+    # document.body.addEventListener "keydown",  (event)=> @key event , yes
+    # document.body.addEventListener "keyup",    (event)=> @key event , yes
+    # document.body.addEventListener "keypress", (event)=> @key event , yes
 
     $(window).bind "resize",(event)=>
       @setWindowProperties event

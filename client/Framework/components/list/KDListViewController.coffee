@@ -302,7 +302,6 @@ class KDListViewController extends KDViewController
   showLazyLoader:->
 
     unless @lazyLoader
-      @propagateEvent KDEventType : 'LazyLoadThresholdReached'
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
       @lazyLoader.addSubView @lazyLoader.canvas = new KDLoaderView
         size          :
@@ -316,9 +315,9 @@ class KDListViewController extends KDViewController
           FPS         : 24
 
       @lazyLoader.canvas.show()
+      @propagateEvent KDEventType : 'LazyLoadThresholdReached'
 
   hideLazyLoader:->
-
     if @lazyLoader
       @lazyLoader.canvas.hide()
       @lazyLoader.destroy()
