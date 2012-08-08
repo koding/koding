@@ -1,6 +1,6 @@
 
 class AppStorage # extends KDObject
-  
+
   constructor: (appId, version)->
     @_applicationID = appId
     @_applicationVersion = version
@@ -27,13 +27,13 @@ class AppStorage # extends KDObject
 
     return defaultValue unless @_storage
     return if @_storage[group]?[key]? then @_storage[group][key] else defaultValue
-    
+
   setValue: (key, value, callback, group = 'bucket')->
 
     return if @getValue(key) is value
-    
+
     pack = @zip key, group, value
-    
+
     @fetchStorage (storage)=>
       storage.update {
         $set: pack

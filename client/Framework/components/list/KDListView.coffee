@@ -13,28 +13,28 @@ class KDListView extends KDView
     for item,i in @items
       item.destroy() if item?
     @items = []
-  
+
   itemClass:(options,data)->
 
     new (@getOptions().subItemClass ? KDListItemView) options, data
-  
+
   keyDown:(event)->
     log "herer", @
     event.stopPropagation()
     event.preventDefault()
     @emit "KeyDownOnList", event
-  
+
   _addItemHelper:(itemData, options)->
 
     {index, animation, viewOptions} = options
     viewOptions or= {}
     viewOptions.delegate = @
-    
+
     itemInstance = @itemClass viewOptions, itemData
     @addItemView itemInstance, index, animation
-    
+
     return itemInstance
-  
+
   addHiddenItem:(item, index, animation)->
     @_addItemHelper item, {
       viewOptions :
@@ -48,7 +48,7 @@ class KDListView extends KDView
     @_addItemHelper itemData, {index, animation}
 
   removeItem:(itemInstance,itemData,index)->
-    
+
     if index
       @emit 'ItemIsBeingDestroyed', { view : @items[index], index : index }
       @items.splice index,1
@@ -79,7 +79,7 @@ class KDListView extends KDView
       # log "destroying listitem", item
       item.destroy()
     super()
- 
+
   appendItem:(itemInstance, animation)->
 
     itemInstance.setParent @
@@ -97,21 +97,21 @@ class KDListView extends KDView
     if @parentIsInDom
       itemInstance.propagateEvent KDEventType: 'viewAppended'
     null
-    
+
   scrollDown: ->
 
     clearTimeout @_scrollDownTimeout
     @_scrollDownTimeout = setTimeout =>
       scrollView    = @$().closest(".kdscrollview")
       slidingView   = scrollView.find '> .kdview'
-    
+
       # scrollTop         = scrollView.scrollTop()
       slidingHeight     = slidingView.height()
       # scrollViewheight  = scrollView.height()
       # scrollDown        = slidingHeight - scrollViewheight - scrollTop
       scrollView.animate (scrollTop : slidingHeight), (duration: 200, queue: no)
     , 50
-    
+
   doIHaveToScroll: ->
 
     scrollView = @$().closest(".kdscrollview")
@@ -122,21 +122,21 @@ class KDListView extends KDView
         @isScrollAtBottom()
     else
       no
-        
+
   isScrollAtBottom: ->
 
     scrollView        = @$().closest(".kdscrollview")
     slidingView       = scrollView.find '> .kdview'
-    
+
     scrollTop         = scrollView.scrollTop()
     slidingHeight     = slidingView.height()
     scrollViewheight  = scrollView.height()
-    
+
     if slidingHeight - scrollViewheight is scrollTop
       return yes
     else
       return no
-    
+
   appendItemAtIndex:(itemInstance,index,animation)->
 
     itemInstance.setParent @
@@ -146,7 +146,7 @@ class KDListView extends KDView
       @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0
       @items[actualIndex-1].getDomElement()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.getDomElement() if index > 0
       itemInstance.getDomElement()[animation.type] animation.duration,()=>
-        itemInstance.propagateEvent KDEventType: 'introEffectCompleted' 
+        itemInstance.propagateEvent KDEventType: 'introEffectCompleted'
         # itemInstance.handleEvent { type : "viewAppended"}
     else
       @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0

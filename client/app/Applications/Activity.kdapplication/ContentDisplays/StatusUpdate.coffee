@@ -34,7 +34,6 @@ class ContentDisplayStatusUpdate extends KDView
       subItemClass  : TagLinkView
     , data.tags
 
-
   viewAppended:()->
 
     # return if @getData().constructor is bongo.api.CStatusActivity
