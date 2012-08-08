@@ -250,7 +250,11 @@ class RegisterInlineForm extends LoginViewInlineForm
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @password.input.$().attr "placeholder", "Type your kodingen password"
-    @password.input.ruleChain = ["required"] # this is a hack, needs a better implementation
+    
+    {validate} = @password.input.getOptions()
+    delete validate.rules.minLength
+    @password.input.setValidation validate
+
     @passwordConfirm.setHeight 0
     @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
     @$('p.kodingen-user-notification').height 54
@@ -262,7 +266,11 @@ class RegisterInlineForm extends LoginViewInlineForm
     @parent.unsetClass "taller"
     @username.unsetClass "kodingen"
     @password.input.$().attr "placeholder", "Create a password"
-    @password.input.ruleChain = ["required","minLength"] # this is a hack, needs a better implementation
+
+    {validate} = @password.input.getOptions()
+    validate.rules.minLength = 8
+    @password.input.setValidation validate
+
     @$('p.kodingen-user-notification').height 0
     @passwordConfirm.setHeight 32
 
