@@ -19,8 +19,8 @@ class KiteController {
     }
   }
   
-  public function add_cluster ($kite_name, $cluster) {
-    $cluster =& $this->get_cluster($kite_name);
+  public function add_cluster ($kite_name, &$cluster) {
+    // $cluster =& $this->get_cluster($kite_name);
     array_push(
       $this->clusters[$kite_name],
       new KiteCluster($kite_name, $cluster)
