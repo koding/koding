@@ -1,3 +1,5 @@
+# This file is divided to many files, the classes left below should probably replaced too.
+
 #FIXME: check if we ever used this, and if we still use this - Sinan 08/2012
 class KDAccount extends bongo.EventEmitter
   @fromId = (_id)->
