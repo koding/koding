@@ -10,7 +10,8 @@ class hosting_packages::python {
                         "ipython",
          		        "python-flup.noarch",
                         "python-virtualenv",
-                        "python-setuptools"
+                        "python-setuptool",
+                        "python-docutils",
                       ]
     
     package { ["python","python27"]:
