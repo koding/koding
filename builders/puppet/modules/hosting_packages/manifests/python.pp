@@ -18,7 +18,7 @@ class hosting_packages::python {
     }
 
     exec { "pip":
-        command => '/usr/bin/easy_install pip'
+        command => '/usr/bin/easy_install pip',
         unless => "/usr/bin/which pip",
     }
     
