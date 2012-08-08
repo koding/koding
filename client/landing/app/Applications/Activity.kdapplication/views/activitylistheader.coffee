@@ -18,7 +18,7 @@ class ActivityListHeader extends JView
 
     @showNewItemsLink.hide()
 
-    @liveUpdateButton = new KDRySwitch
+    @liveUpdateButton = new KDOnOffSwitch
       defaultValue : off
       title        : "Live Updates: "
       size         : "tiny"
@@ -27,7 +27,7 @@ class ActivityListHeader extends JView
         @updateShowNewItemsLink()
 
     if KD.checkFlag "super-admin"
-      @lowQualitySwitch = new KDRySwitch
+      @lowQualitySwitch = new KDOnOffSwitch
         defaultValue : off
         title        : "Show trolls: "
         size         : "tiny"
