@@ -151,7 +151,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     if result.p is "yes"
       fs.writeFileSync "./revision",version
       invoke 'build'
-      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
     else
       process.exit()
 
