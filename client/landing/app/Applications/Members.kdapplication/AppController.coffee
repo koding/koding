@@ -183,8 +183,8 @@ class MembersListViewController extends KDListViewController
       data.counts.following = followingCount
       item.setFollowerCount followerCount
       switch @getSingleton('mainController').getVisitor().currentDelegate
-       when newFollower, oldFollower
-        if newFollower then item.unfollowTheButton() else item.followTheButton()
+        when newFollower, oldFollower
+          if newFollower then item.unfollowTheButton() else item.followTheButton()
 
     item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
     item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount
