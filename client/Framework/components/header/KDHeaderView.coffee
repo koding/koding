@@ -4,13 +4,13 @@ class KDHeaderView extends KDView
     options.type = options.type ? "default"
     super options,data
     @setTitle options.title if options.title?
-  
+
   setTitle:(title)->
     @getDomElement().append "<span>#{title}</span>"
-    
+
   updateTitle: (title) ->
     @$().find('span').html title
-  
+
   setDomElement:(cssClass = "")->
     type = @getOptions().type
     switch type
@@ -20,20 +20,3 @@ class KDHeaderView extends KDView
       else tag = "h4"
 
     @domElement = $ "<#{tag} class='kdview kdheaderview #{cssClass}'></#{tag}>"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

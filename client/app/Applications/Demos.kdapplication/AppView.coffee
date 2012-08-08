@@ -20,12 +20,16 @@ class DemosMainView extends KDScrollView
     form.addSubView new KDButtonView
       title: "disable range validation"
       callback : ->
-        delete input.getOptions().validate.rules.rangeLength
+        validation = input.getOptions().validate
+        delete validation.rules.rangeLength
+        input.setValidation validation
 
     form.addSubView new KDButtonView
       title: "enable range validation"
       callback : ->
-        input.getOptions().validate.rules.rangeLength = [8,25]
+        validation = input.getOptions().validate
+        validation.rules.rangeLength = [8,25]
+        input.setValidation validation
 
 
 

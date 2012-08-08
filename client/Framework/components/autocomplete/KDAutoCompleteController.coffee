@@ -32,11 +32,9 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemCounter = 0
 
   reset:->
-    {itemClass} = @getOptions()
     subViews    = @itemWrapper.getSubViews().slice()
     for item in subViews
-      if item instanceof itemClass
-        @removeFromSubmitQueue item
+      @removeFromSubmitQueue item
 
   loadView:(mainView)->
     @createDropDown()

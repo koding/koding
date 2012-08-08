@@ -7,6 +7,6 @@ class Feeder12345 extends KDController
   createContentFeedController:(options, callback, feedController)->
     controller = if feedController then new feedController options else new FeedController options
     callback? controller
-  
+
   bringToFront:()->
     super name : 'Feeder'
