@@ -332,7 +332,7 @@ class ActivityListController extends KDListViewController
 
   newActivityArrived:(activity)->
     unless @isMine activity
-      if (@_state is 'private' and @isInFollowing activity) or @_state isnt 'public'
+      if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
         view = @addHiddenItem activity, 0
         @activityHeader.newActivityArrived()
     else
