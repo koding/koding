@@ -49,7 +49,6 @@ ebin
 /node_modules/nodeunit
 /node_modules/optimist
 /node_modules/postmark
-/node_modules/profiler
 /node_modules/request
 /node_modules/stylus
 /node_modules/traverse

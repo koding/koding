@@ -581,6 +581,7 @@ Includes =
 
       Libraries :
         #pusher            : "./client/libs/pusher.min.js"
+        broker            : "./broker/apps/broker/priv/www/js/broker.js"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
