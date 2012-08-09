@@ -14,24 +14,29 @@ class Followable extends jraphical.Module
 
   count: bongo.secure (client, filter, callback)->
     unless @equals client.connection.delegate
-      callback new Error 'Access denied'
-    else
-      switch filter
-        when 'followers'
-          jraphical.Relationship.count sourceId : @getId(), as : 'follower', callback
-        when 'following'
-          jraphical.Relationship.count targetId : @getId(), as : 'follower', callback
-        else
-          @constructor.count {}, callback
+      callback new KodingError 'Access denied'
+    else switch filter
+      when 'followers'
+        Relationship.count
+          sourceId  : @getId()
+          as        : 'follower'
+        , callback
+      when 'following'
+        Relationship.count
+          targetId  : @getId()
+          as        : 'follower'
+        , callback
+      else
+        @constructor.count {}, callback
 
   @someWithRelationship = bongo.secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
 
   @markFollowing = bongo.secure (client, followables, callback)->
-    jraphical.Relationship.all
-      targetId : client.connection.delegate.getId()
-      as : 'follower'
+    Relationship.all
+      targetId  : client.connection.delegate.getId()
+      as        : 'follower'
     , (err, relationships)->
       for followable in followables
         followable.followee = no
@@ -111,7 +116,7 @@ class Followable extends jraphical.Module
       targetId  : @getId()
       as        : 'follower'
     # log query, page
-    jraphical.Relationship.some query, page, (err, docs)->
+    Relationship.some query, page, (err, docs)->
       if err then callback err
       else
         ids = (rel.sourceId for rel in docs)
@@ -122,7 +127,7 @@ class Followable extends jraphical.Module
     _.extend query,
       targetId  : @getId()
       as        : 'follower'
-    jraphical.Relationship.some query, page, (err, docs)->
+    Relationship.some query, page, (err, docs)->
       if err then callback err
       else
         ids = (rel.sourceId for rel in docs)
@@ -141,7 +146,7 @@ class Followable extends jraphical.Module
     _.extend query,
       targetId  : @getId()
       as        : 'follower'
-    jraphical.Relationship.some query, page, (err, docs)->
+    Relationship.some query, page, (err, docs)->
       if err then callback err
       else
         ids = (rel.sourceId for rel in docs)
@@ -149,7 +154,7 @@ class Followable extends jraphical.Module
           callback err, accounts
 
   updateFollowingCount: ()->
-    jraphical.Relationship.count targetId:@_id, as:'follower', (error, count)=>
+    Relationship.count targetId:@_id, as:'follower', (error, count)=>
       bongo.Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
