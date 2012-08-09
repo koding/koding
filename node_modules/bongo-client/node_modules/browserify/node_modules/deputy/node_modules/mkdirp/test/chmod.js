@@ -32,7 +32,6 @@ test('chmod', function (t) {
         fs.stat(file, function (er, stat) {
             t.ifError(er, 'should exist');
             t.ok(stat && stat.isDirectory(), 'should be directory');
-            t.equal(stat && stat.mode & 0777, mode, 'should be 0755');
             t.end();
         });
     });

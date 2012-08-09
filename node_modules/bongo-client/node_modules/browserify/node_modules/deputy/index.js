@@ -19,7 +19,7 @@ module.exports = function (cacheFile) {
     
     function save (h, res) {
         cache[h] = res;
-        fs.writeFile(cacheFile, JSON.stringify(cache));
+        fs.writeFileSync(cacheFile, JSON.stringify(cache));
     }
     
     function hash (src) {
