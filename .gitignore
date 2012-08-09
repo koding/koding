@@ -62,3 +62,4 @@ node_modules/.bin
 /node_modules/.DS_Store
 /node_modules/csv
 node_modules/cron/
+sftp-config.json
