@@ -255,10 +255,13 @@ broadcast(From, Channel, Exchange, Event, Data) ->
 %% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
 %% Description: Declares the exchange and starts the receive loop
 %% process. This process is used to subscribe to queue later on.
+%% The exchange is marked durable so that it can survive server reset.
+%% This broker has to have a way to delete the exchange when done.
 %%--------------------------------------------------------------------
 subscribe(Conn, Channel, Exchange, Subscriber) -> 
     Declare = #'exchange.declare'{  exchange = Exchange, 
-                                    type = <<"topic">>},
+                                    type = <<"topic">>,
+                                    durable = true},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 
     loop(Conn, Subscriber).

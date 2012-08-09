@@ -30,6 +30,14 @@ Broker.prototype.connect = function () {
         self.ws.dispatchEvent(evt);
     });
 
+    this.ws.addEventListener('open', function() {
+        self.on("channel-change", function (e) {
+            var channel = e.data;
+            self.unsubscribe(channel);
+            self.subscribe(channel);
+        })
+    })
+
     return this; // chainable
 };
 
@@ -55,12 +63,16 @@ Broker.prototype.subscribe = function (channel_name) {
         return this;
     }
 
-    $.get(self.auth_endpoint, {channel: channel_name}, function (privChannel) {
+    this.authorize(channel_name, function (privChannel) {
         self.channels[escape(channel_name)] =
             new Channel(self.ws, escape(privChannel), escape(channel_name));
     });
 
     return this; // chainable
+};
+
+Broker.prototype.authorize = function (channel_name, callback) {
+    $.get(this.auth_endpoint, {channel: channel_name}, callback);
 };
 
 Broker.prototype.unsubscribe = function (channel_name) {
@@ -87,7 +99,12 @@ var Channel = function(ws, name, publicName) {
             var evt = new Event(channel+'.'+data.event);
             evt.data = data.payload;
             ws.dispatchEvent(evt);
-        })
+        });
+
+        if (!self.isPrivate) return;
+        self.on("channel-change", function () {
+
+        });
     };
 
     if (ws.readyState > 0) {
