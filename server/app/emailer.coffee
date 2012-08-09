@@ -21,10 +21,10 @@ class Emailer
     setTimeout ->
       Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
         if error
-          console.log error
+          # console.log error
           callback error
         else
-          console.log "sent:",mailOptions.to
+          # console.log "sent:",mailOptions.to,response
           callback null, "Message sent: " + response.message
     ,1000/20
   @simulate : (options,callback)->
