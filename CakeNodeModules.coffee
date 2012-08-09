@@ -33,7 +33,7 @@ module.exports =
     optimist				: '0.3.1'
     
     postmark				: '0.1.6'
-    profiler				: '1.1.0'
+    #profiler				: '1.1.0'
     request				  : '2.9.202'
     stylus				  : '0.21.2'
     traverse				: '0.6.3'

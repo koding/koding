@@ -1,13 +1,14 @@
 var Broker = function (app_key, options) {
     this.options = options || {};
+    this.sockURL = this.options.sockURL || 'http://localhost:8008/subscribe';
     this.key = app_key;
-    this.auth_endpoint = "auth";
+    this.channel_auth_endpoint = "auth";
     this.channels = {};
+    this.connect();
 }
 
 Broker.prototype.connect = function () {
-    var sockjs_url = '/subscribe';
-    this.ws = new SockJS(sockjs_url);
+    this.ws = new SockJS(this.sockURL);
     var self = this;
 
     // Initial set up to acquire socket_id
@@ -76,7 +77,7 @@ Broker.prototype.subscribe = function (channel_name) {
 };
 
 Broker.prototype.authorize = function (channel_name, callback) {
-    $.get(this.auth_endpoint, {channel: channel_name}, callback);
+    $.get(this.channel_auth_endpoint, {channel: channel_name}, callback);
 };
 
 Broker.prototype.unsubscribe = function (channel) {
