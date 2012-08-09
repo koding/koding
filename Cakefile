@@ -77,7 +77,12 @@ targetPaths =
         console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
-            console.log "23",arguments
+            unless arguments[2].indexOf "\n0 error(s)"
+              log.error arguments
+              log.error "CLOSURE FAILED TO COMPILE KD.JS CHECK THE ERROR MSG ABOVE. EXITING."
+              process.exit()
+            else
+              # log.debug "closure compile finished successfully."
           else if stdout
             console.log "12",arguments
           else throw err
@@ -104,7 +109,7 @@ targetPaths =
     else
       compressJs (libraries+kdjs),(err,data)->
         unless err
-          callback null,data            
+          callback null,data         
         else
           throw err
         
@@ -149,7 +154,8 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
     
     if result.p is "yes"
-      fs.writeFileSync "./revision",version
+      log.debug 'version',version
+      fs.writeFileSync "./.revision",version
       invoke 'build'
       console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
     else
