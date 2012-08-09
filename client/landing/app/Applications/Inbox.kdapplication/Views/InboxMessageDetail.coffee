@@ -47,7 +47,6 @@ class InboxMessageDetail extends KDView
   fetchComments:(callback)->
     pm = @getData()
     pm.commentsByRange to: 3, (err, comments)->
-      comments.reverse() # temporary solution until we refactor InboxMessageThreadView - 07/2012 Sinan
       callback err, comments
 
   enhanceBody:(body)->
