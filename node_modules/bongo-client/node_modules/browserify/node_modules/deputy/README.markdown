@@ -4,6 +4,8 @@ deputy
 This module is a caching layer around
 [node-detective](http://github.com/substack/node-detective).
 
+[![build status](https://secure.travis-ci.org/substack/node-deputy.png)](http://travis-ci.org/substack/node-deputy)
+
 example
 =======
 
