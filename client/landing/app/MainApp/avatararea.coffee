@@ -260,12 +260,9 @@ class AvatarPopupMessages extends AvatarPopup
     @listController.registerListener
       KDEventTypes  : "AvatarPopupShouldBeHidden"
       listener      : @
-      callback      : => @hide()
-
-    @listController.registerListener
-      KDEventTypes  : "AvatarPopupShouldBeHidden"
-      listener      : @
-      callback      : => @hide()
+      callback      : =>
+        @listController.fetchMessages()
+        @hide()
 
     @avatarPopupContent.addSubView @listController.getView()
 
