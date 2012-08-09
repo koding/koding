@@ -102,7 +102,7 @@ class Inbox12345 extends AppController
           paneView.addSubView detail
           paneView.detail = detail
           item.paneView = paneView
-
+        newMessageBar.enableMessageActionButtons()
         @selectMessage data, item, paneView
 
     newMessageBar.registerListener
