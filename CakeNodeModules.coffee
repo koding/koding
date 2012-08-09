@@ -42,6 +42,5 @@ module.exports =
     validator				: '0.2.0'
     'http-proxy'    : '0.8.1'
     jsonify         : '0.0.0'
-    browserify      : '1.10.12'
     cron            : '0.3.4'
     csv             : '0.0.17'
