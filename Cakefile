@@ -18,6 +18,7 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+processes   = require "processes"
 # log = 
 #   info  : console.log
 #   debug : console.log
@@ -138,6 +139,28 @@ targetPaths =
     #     else
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
+
+task 'buildAll',"build chris's modules", ->
+
+  buildables = ["processes","pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
+  # log.info "building..."
+  b = (next) ->
+    cmd = "cd ./node_modules/#{buildables[next]} && cake build"
+    log.info "building... cmd: #{cmd}"
+    processes.run 
+      cmd     : cmd
+      log     : yes       # or provide a path for log file
+      restart : no        # or provide a function
+      onExit  : (id)->
+        # log.debug "pid.#{id} said: 'im done.'[#{cmd}]"
+        if next is buildables.length-1
+          log.info "build complete. now running cake build."
+          # process.exit()
+          invoke "build"
+        else
+          b next+1
+  b 0
+
 
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
