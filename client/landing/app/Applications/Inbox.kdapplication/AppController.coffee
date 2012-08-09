@@ -69,7 +69,7 @@ class Inbox12345 extends AppController
       callback          :(pubInst, {notification, event, location})=>
         # nothing yet, coming soon
 
-    {newMessageBar, inboxMessagesList} = mainView
+    {newMessageBar} = mainView
 
     mainView.registerListener
       KDEventTypes: 'MessageIsSelected'
