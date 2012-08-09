@@ -42,7 +42,6 @@ $router->add_route('/collab',function($params){
 $router->add_route('/kite/:kite_name', function ($params) {
   global $respond;
   $kite_controller = get_kite_controller();
-  //header('Access-Control-Allow-Origin: *');
   header('Content-type: text/javascript');
   $session = require_valid_session();
   $uri = $kite_controller->get_kite_uri($params->kite_name, $session['username']);
@@ -54,7 +53,6 @@ $router->add_route('/kite/:kite_name', function ($params) {
     $args = $_REQUEST;
     if (isset($session)) {
       $args['username'] = $session['username'];
-      error_log(var_export(array($args, $uri), TRUE));
       $res = @file_get_contents($uri.'?'.http_build_query($args));
       if ($res) {
         $respond($res);
@@ -159,7 +157,6 @@ $router->add_route('/chris', function () {
 $router->add_route('/channel/auth', function () {
   global $pusher_key, $pusher_secret, $pusher_app_id;
   $pusher = new Pusher($pusher_key, $pusher_secret, $pusher_app_id);
-  trace($pusher_app_id);
   print_cors_headers();
   print_json_headers();
   print $pusher->socket_auth($_POST['channel_name'], $_POST['socket_id']);
