@@ -77,7 +77,6 @@ class PageInbox extends KDView
     tab.addSubView messagesSplit
     messagesSplit._windowDidResize()
 
-
     messagesSplit.didResizeBefore = no
     messagesSplit.listenTo
       KDEventTypes       : "PanelDidResize"
@@ -159,7 +158,6 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-
 
   partial:()-> ''
 
