@@ -65,8 +65,6 @@ class PageInbox extends KDView
 
     @newMessageBar.disableMessageActionButtons()
 
-    inboxMessageListController.loadMessages()
-
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList,@inboxMessagesContainer]
@@ -87,12 +85,30 @@ class PageInbox extends KDView
           messagesSplit.resizePanel "100%",0
 
     messagesSplit.listenTo
-      KDEventTypes : "MessageIsSelected"
+      KDEventTypes : "MessageSelectedFromOutside"
       listenedToInstance : @
-      callback :=>
+      callback :(pubInst, {item, event})=>
+
         messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
         messagesSplit.didResizeBefore = yes
         @newMessageBar.enableMessageActionButtons()
+
+        selectMessage = =>
+          return if not item
+          {items} = inboxMessagesList
+          wasMessageInList = no
+          items.forEach (message) =>
+            if message.getData()?.getId() is item.getData().getId()
+              message.click()
+              wasMessageInList = yes
+          if not wasMessageInList
+            @propagateEvent KDEventType : "MessageIsSelected", {item, event}
+
+        if inboxMessagesList.items.length > 0
+          selectMessage()
+        else
+          inboxMessageListController.loadMessages =>
+            selectMessage()
 
     inboxMessageInputWrapper.addSubView @messageInputElement = new KDHitEnterInputView
       type         : "textarea"
