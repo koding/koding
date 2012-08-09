@@ -69,13 +69,14 @@ class Inbox12345 extends AppController
       callback          :(pubInst, {notification, event, location})=>
         # nothing yet, coming soon
 
+    {newMessageBar, inboxMessagesList} = mainView
+
     mainView.registerListener
       KDEventTypes: 'MessageIsSelected'
       listener    : @
       callback    :(pubInst,{item, event})=>
         # log arguments,"::::"
         data = item.getData()
-
         data.mark 'read', (err)->
           item.unsetClass 'unread' unless err
         # unless event.shiftKey
@@ -103,8 +104,6 @@ class Inbox12345 extends AppController
           item.paneView = paneView
 
         @selectMessage data, item, paneView
-
-    {newMessageBar} = mainView
 
     newMessageBar.registerListener
       KDEventTypes  : "AutoCompleteNeedsMemberData"
@@ -165,7 +164,7 @@ class Inbox12345 extends AppController
 
   goToMessages:(message)->
     @getView().showTab "messages"
-    @mainView.propagateEvent KDEventType : "MessageIsSelected", {item: message, event} if message?
+    @mainView.propagateEvent KDEventType : 'MessageSelectedFromOutside', {item: message, event}
 
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
