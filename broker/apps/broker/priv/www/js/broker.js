@@ -41,6 +41,10 @@ Broker.prototype.connect = function () {
     return this; // chainable
 };
 
+Broker.prototype.channel = function (name) {
+    return this.channels[name];
+};
+
 Broker.prototype.on = function (eventType, listener) {
     this.ws.addEventListener(eventType, listener);
 };
@@ -126,7 +130,7 @@ Channel.prototype.off = function(eventType, listener) {
     this.ws.removeEventListener(channel+'.'+eventType, listener);
 };
 
-Channel.prototype.trigger = function (event_name, payload) {
+Channel.prototype.emit = function (event_name, payload) {
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
