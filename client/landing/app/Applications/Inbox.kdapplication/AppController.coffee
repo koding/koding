@@ -69,13 +69,13 @@ class Inbox12345 extends AppController
       callback          :(pubInst, {notification, event, location})=>
         # nothing yet, coming soon
 
-
     mainView.registerListener
       KDEventTypes: 'MessageIsSelected'
       listener    : @
       callback    :(pubInst,{item, event})=>
         # log arguments,"::::"
         data = item.getData()
+
         data.mark 'read', (err)->
           item.unsetClass 'unread' unless err
         # unless event.shiftKey
@@ -156,6 +156,7 @@ class Inbox12345 extends AppController
           data.unmark 'read', (err)=>
             log err if err
             item.setClass 'unread' unless err
+            item.paneView?.hide()
             newMessageBar.disableMessageActionButtons()
 
   goToNotifications:(notification)->
