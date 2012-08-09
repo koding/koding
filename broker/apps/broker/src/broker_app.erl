@@ -159,6 +159,9 @@ handle_subscription(Conn, {init, From}, _State) ->
     {ok, Channel} = amqp_connection:open_channel(Broker),
 
     Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
+
+    Conn:send(<<"broker:subscription_succeeded">>, <<>>),
+    
     {ok, #subscription{ broker      = Broker, 
                         channel     = Channel, 
                         exchange    = Exchange,
