@@ -79,10 +79,12 @@ Broker.prototype.authorize = function (channel_name, callback) {
     $.get(this.auth_endpoint, {channel: channel_name}, callback);
 };
 
-Broker.prototype.unsubscribe = function (channel_name) {
-    if (!this.channels[escape(channel_name)]) return;
-    delete this.channels[escape(channel_name)];
-    sendWsMessage(this.ws, "client-unsubscribe", name);
+Broker.prototype.unsubscribe = function (channel) {
+    if (typeof channel === "string")
+        channel = this.channels[escape(channel)];
+    if (!channel) return;
+    delete channel;
+    sendWsMessage(this.ws, "client-unsubscribe", channel);
 };
 
 var Channel = function(ws, name, publicName) {
