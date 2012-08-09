@@ -4,14 +4,6 @@ class KodingAppsController extends KDController
 
   @manifests = {}
 
-  makeFullPath = (path)->
-    {profile} = KD.whoami()
-    path = if /^~/.test app.path
-      "/Users/#{profile.nickname}#{app.path.substr(1)}"
-    else
-      app.path
-    return path += "/" unless path[path.length-1] is "/"
-
   constructor:->
 
     super
@@ -104,7 +96,13 @@ class KodingAppsController extends KDController
   
   getAppPath:(app)->
 
-    return makeFullPath app.path
+    {profile} = KD.whoami()
+    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}"
+    else app.path
+ 
+    path += "/" unless path[path.length-1] is "/"
+    
+    return path
   
   saveCompiledApp:(app, script, callback)->
     
@@ -123,9 +121,8 @@ class KodingAppsController extends KDController
   publishApp:(path, callback)->
 
     kiteController = @getSingleton('kiteController')
-    @getAppFromPath path
-
-    return
+    appName        = @getAppFromPath(path).name
+    
     @getApp appName, (appScript)=>
 
       manifest    = @constructor.manifests[appName]
@@ -163,10 +160,14 @@ class KodingAppsController extends KDController
   
   getAppFromPath:(path, callback = noop)->
 
+    folderName = (arr = path.split("/"))[arr.length-1]
+    app        = null
+    
     for own name, manifest of @constructor.manifests
-      log makeFullPath manifest.path, path
-
-
+      do ->
+        app = manifest if manifest.path.search(folderName) > -1
+          
+    return app
 
   getApp:(name, callback = noop)->
 

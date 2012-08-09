@@ -341,10 +341,16 @@ Includes =
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
         appsController                : "./client/app/Applications/Apps.kdapplication/AppController.coffee"
+
         appsInnerNavigation           : "./client/app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee"
         appslistItemView              : "./client/app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee"
         appSubmissionModal            : "./client/app/Applications/Apps.kdapplication/Views/AppSubmission.coffee"
-        appsDisplay                   : "./client/app/Applications/Apps.kdapplication/ContentDisplays/Apps.coffee"
+        appInfoView                   : "./client/app/Applications/Apps.kdapplication/Views/appinfoview.coffee"
+        appView                       : "./client/app/Applications/Apps.kdapplication/Views/appview.coffee"
+        appScreenshotListItem         : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee"
+        appScreenshotsView            : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee"
+
+        appsDisplay                   : "./client/app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee"
         singleAppNavigation           : "./client/app/Applications/Apps.kdapplication/ContentDisplays/SingleAppNavigation.coffee"
 
         # MEMBERS VIEWS
