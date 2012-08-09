@@ -47,14 +47,20 @@ Broker.prototype.disconnect = function () {
 
 Broker.prototype.subscribe = function (channel_name) {
     var self = this;
-    if (!channel_name.match(/^(private.[a-z]*)/))
-        return this.channels[escape(channel_name)] =
+    if (this.channels[channel_name]) return this;
+
+    if (!channel_name.match(/^(private.[a-z]*)/)) {
+        this.channels[escape(channel_name)] =
             new Channel(this.ws, escape(channel_name));
+        return this;
+    }
 
     $.get(self.auth_endpoint, {channel: channel_name}, function (privChannel) {
-        return self.channels[escape(channel_name)] =
+        self.channels[escape(channel_name)] =
             new Channel(self.ws, escape(privChannel), escape(channel_name));
     });
+
+    return this; // chainable
 };
 
 Broker.prototype.unsubscribe = function (channel_name) {
@@ -65,7 +71,8 @@ Broker.prototype.unsubscribe = function (channel_name) {
 
 var Channel = function(ws, name, publicName) {
     this.name = publicName || name;
-    this.privateName = publicName !== undefined? name : "";
+    this.isPrivate = (publicName !== undefined);
+    this.privateName = this.isPrivate? name : "";
 
     this.ws = ws;
     var self = this;
@@ -103,6 +110,9 @@ Channel.prototype.off = function(eventType, listener) {
 };
 
 Channel.prototype.trigger = function (event_name, payload) {
+    // Requirement: Client cannot publish to public channel
+    if (!this.isPrivate) return false;
+    // Requirement: Event has to have client- prefix.
     if (!event_name.match(/^(client-[a-z0-9]*)/)) return false;
     var channel = this.privateName || this.name;
     sendWsMessage(this.ws, event_name, channel, payload);

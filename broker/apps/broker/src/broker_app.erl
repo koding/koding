@@ -33,11 +33,13 @@
 -export([init/3, handle/2, terminate/2]).
 -record (subscription, {   broker, 
                         channel, 
-                        exchange, 
+                        exchange,
+                        private,
                         consumer,
                         routing_keys = orddict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
--define (RABBITMQ, "10.13.11.96").
+%-define (RABBITMQ, "localhost").
+-define (RABBITMQ, "web0.beta.system.aws.koding.com").
 
 %% ===================================================================
 %% Application callbacks
@@ -110,8 +112,9 @@ handle(Req, State) ->
                                Data, Req1);
 
         [<<"auth">>] ->
-            {_Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
-            PrivateChannel = uuid:to_string(uuid:uuid4()),
+            {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
+            %PrivateChannel = uuid:to_string(uuid:uuid4()),
+            PrivateChannel = <<Channel/binary, ".private">>,
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
@@ -144,13 +147,23 @@ handle_subscription(Conn, {init, From}, _State) ->
 
     {topic, Exchange} = lists:last(Conn:info()),
 
+    %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
+    RegExp = ".private$",
+    %Options = [{capture, [1], list}],
+
+    case re:run(Exchange, RegExp) of
+        {match, _}  -> Private = true;
+        nomatch     -> Private = false
+    end,
+
     {ok, Channel} = amqp_connection:open_channel(Broker),
 
     Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
-    {ok, #subscription{ broker=Broker, 
-                        channel=Channel, 
-                        exchange=Exchange,
-                        consumer = Pid}};
+    {ok, #subscription{ broker      = Broker, 
+                        channel     = Channel, 
+                        exchange    = Exchange,
+                        private     = Private,
+                        consumer    = Pid}};
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
@@ -183,10 +196,8 @@ handle_subscription(_Conn, {unbind, Event, _From},
     
     case orddict:find(Event, Keys) of 
         {ok, Queue} ->
-            Binding = #'queue.unbind'{exchange = Exchange,
-                                    routing_key = Event,
-                                    queue = Queue},
-            #'queue.unbind_ok'{} = amqp_channel:call(Channel, Binding),
+            unbind_queue(Channel, Exchange, Event, Queue),
+            % Remove from the dictionary
             NewKeys = orddict:erase(Event, Keys),
             {ok, State#subscription{routing_keys = NewKeys}};
         error ->
@@ -200,19 +211,26 @@ handle_subscription(_Conn, {unbind, Event, _From},
 %% The payload of the event will be broadcasted to the exchange under
 %% the routing key the same as the event name.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, {trigger, Event, Payload, From}, State) ->
-    #subscription{channel=Channel, exchange=Exchange} = State,
-
-    broadcast(From, Channel, Exchange, Event, Payload),
-    {ok, State};
+handle_subscription(_Conn, {trigger, Event, Payload, From},
+                    State = #subscription{channel = Channel,
+                                            exchange = Exchange,
+                                            private = Private}) ->
+    case Private of 
+        true -> 
+            broadcast(From, Channel, Exchange, Event, Payload),
+            {ok, State};
+        false -> {ok, State}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(_Conn, closed, State) -> {ok, State}.
-%% Description: When the client unsubscribes from the exchange, closes
-%% the channel and the connection.
+%% Description: When the client unsubscribes from the exchange, delete
+%% the exchange, close the channel and the connection.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, #subscription{  broker=Broker, 
-                                                channel = Channel}) ->
+handle_subscription(_Conn, closed, #subscription{channel = Channel,
+                                                broker=Broker}) ->
+    % Delete = #'exchange.delete'{exchange = Exchange},
+    % #'exchange.delete_ok'{} = amqp_channel:call(Channel, Delete)
     amqp_channel:close(Channel),
     amqp_connection:close(Broker),
     {ok, #subscription{}}.
@@ -261,6 +279,21 @@ bind_queue(Channel, Exchange, Routing, Consumer) ->
     Sub = #'basic.consume'{queue = Queue, no_ack = true},
     amqp_channel:subscribe(Channel, Sub, Consumer),
     Queue.
+
+%%--------------------------------------------------------------------
+%% Function: unbind_queue(Channel, Exchange, Routing, Queue) -> pid()
+%% Description: Unbinds the queue from the routing key in the exchange
+%% and deletes it.
+%%--------------------------------------------------------------------
+unbind_queue(Channel, Exchange, Routing, Queue) ->
+    % Unbind the queue from the routing key
+    Binding = #'queue.unbind'{  exchange    = Exchange,
+                                routing_key = Routing,
+                                queue       = Queue},
+    #'queue.unbind_ok'{} = amqp_channel:call(Channel, Binding),
+    % Delete the queue
+    Delete = #'queue.delete'{queue = Queue},
+    #'queue.delete_ok'{} = amqp_channel:call(Channel, Delete).
 
 rpc_call(Broker, RoutingKey, Payload) ->
     %Fun = fun(X) -> X + 1 end,
