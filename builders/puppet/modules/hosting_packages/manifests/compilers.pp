@@ -1,11 +1,11 @@
 #
 #
-class hosting_packages::compilers {
+class hosting_packages::editors {
     
-    $compilers  = ["gcc", "gcc-c++", "make" ]
+    $editors  = ["vim-minimal", "emacs", "emacs-git" ]
     
     
-    package { $compilers:
+    package { $editors:
         ensure => installed,
         require => Class["yumrepos::epel"],
         notify => Class["cloudlinux::cagefs_update"]
