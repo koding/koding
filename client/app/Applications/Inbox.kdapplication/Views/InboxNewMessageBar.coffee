@@ -119,7 +119,9 @@ class InboxNewMessageBar extends KDView
     @propagateEvent KDEventType: "NewMessageModalShouldOpen"
 
   disableMessageActionButtons:->
+    @deleteMessageButton.hideTooltip()
     @deleteMessageButton.disable()
+    @markMessageAsReadButton.hideTooltip()
     @markMessageAsReadButton.disable()
 
   enableMessageActionButtons:->
