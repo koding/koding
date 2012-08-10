@@ -232,6 +232,7 @@ handle_subscription(_Conn, {trigger, Event, Payload, From},
 %%--------------------------------------------------------------------
 handle_subscription(_Conn, closed, #subscription{channel = Channel,
                                                 broker=Broker}) ->
+    % TODO: Check if exchane has no bound queue (passive), then delete
     % Delete = #'exchange.delete'{exchange = Exchange},
     % #'exchange.delete_ok'{} = amqp_channel:call(Channel, Delete)
     amqp_channel:close(Channel),
