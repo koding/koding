@@ -136,9 +136,7 @@ class Inbox12345 extends AppController
           , callback
           disownItem item for own id, item of items
         (pubInst, modal) =>
-          # log modal
           disownAll @selection, =>
-            # log "2", modal
             for own id, {item, paneView} of @selection
               item.destroy()
               paneView.destroy()
