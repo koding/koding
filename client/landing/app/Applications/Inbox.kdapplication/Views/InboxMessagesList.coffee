@@ -33,6 +33,12 @@ class InboxMessagesListItem extends KDListItemView
       origin  : group[0]
     }
 
+    @deleteLink = new KDCustomHTMLView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      cssClass    : 'delete-link'
+
   viewAppended:->
     super()
     @setTemplate @pistachio()
@@ -49,6 +55,7 @@ class InboxMessagesListItem extends KDListItemView
         {{> @avatar}}
       </div>
       <div class='right-overflow'>
+        {{> @deleteLink}}
         <h3>{{#(subject) or '(No title)'}}</h3>
         <p>{{@teaser #(body)}}</p>
         <footer>
@@ -76,3 +83,7 @@ class InboxMessagesListItem extends KDListItemView
     mainView.propagateEvent KDEventType : "MessageIsSelected", {item: @, event}
     @makeAllItemsUnselected()
     @makeItemSelected()
+
+    if event
+      if event.target?.className is "delete-link"
+        mainView.newMessageBar.createDeleteMessageModal()
