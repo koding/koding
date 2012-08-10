@@ -116,7 +116,7 @@ class Inbox12345 extends AppController
       KDEventTypes  : 'MessageShouldBeSent'
       listener      : @
       callback      : (pubInst,{formOutput,callback})->
-        @prepareMessage formOutput,callback
+        @prepareMessage formOutput, callback, newMessageBar
 
     newMessageBar.registerListener
       KDEventTypes: 'MessageShouldBeDisowned'
@@ -180,14 +180,15 @@ class Inbox12345 extends AppController
     # log "I just send a new message: ", messageDetails
     bongo.api.JPrivateMessage.create messageDetails, callback
 
-  prepareMessage:(formOutput, callback)=>
+  prepareMessage:(formOutput, callback, newMessageBar)=>
     {body, subject, recipients} = formOutput
 
     to = recipients.join ' '
 
-    @sendMessage {to, body, subject}, (err, message)->
+    @sendMessage {to, body, subject}, (err, message)=>
       new KDNotificationView
         title     : if err then "There was an error sending your message - try again" else "Message Sent!"
         duration  : 1000
       message.mark 'read'
+      newMessageBar.emit 'RefreshButtonClicked'
       callback? err, message
