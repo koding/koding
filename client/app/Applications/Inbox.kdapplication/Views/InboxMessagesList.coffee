@@ -87,3 +87,19 @@ class InboxMessagesListItem extends KDListItemView
     if event
       if event.target?.className is "delete-link"
         mainView.newMessageBar.createDeleteMessageModal()
+
+class LoadMoreMessagesItem extends KDListItemView
+
+  constructor:(options = {},data)->
+
+    options.tagName  = "li"
+    options.cssClass = "unread"
+
+    super options, data
+
+  partial:(data)->
+    "Load more messages..."
+
+  click:(event)->
+    controller = @getDelegate()
+    controller.continueLoadingMessages @

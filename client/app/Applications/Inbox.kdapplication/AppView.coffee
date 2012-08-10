@@ -46,12 +46,18 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      # lastToFirst : yes
-      delegate    : @
-      subItemClass  : InboxMessagesListItem
+      delegate          : @
+      subItemClass      : InboxMessagesListItem
 
     inboxMessageListController = new InboxMessageListController
-      view          : inboxMessagesList
+      delegate          : @
+      view              : inboxMessagesList
+
+    # lazyLoadThreshold : .75
+    # inboxMessageListController.registerListener
+    #   KDEventTypes  : 'LazyLoadThresholdReached'
+    #   listener      : @
+    #   callback      : => log "asdfasdfasdfasdf"
 
     tab.addSubView @newMessageBar = new InboxNewMessageBar
       cssClass  : "new-message-bar clearfix"
