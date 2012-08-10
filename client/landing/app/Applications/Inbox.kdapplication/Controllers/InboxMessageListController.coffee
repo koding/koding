@@ -5,7 +5,6 @@ class InboxMessageListController extends KDListViewController
     @selectedMessages = {}
 
   continueLoadingMessages:(requester)->
-    log "continueLoadingMessages"
     requester?.updatePartial "Loading..."
     KD.whoami().fetchMail
       limit       : 10
