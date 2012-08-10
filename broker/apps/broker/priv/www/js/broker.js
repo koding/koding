@@ -46,11 +46,11 @@ Broker.prototype.channel = function (name) {
     return this.channels[name];
 };
 
-Broker.prototype.on = function (eventType, listener) {
+Broker.prototype.on = Broker.prototype.bind = function (eventType, listener) {
     this.ws.addEventListener(eventType, listener);
 };
 
-Broker.prototype.off = function (eventType, listener) {
+Broker.prototype.off = Broker.prototype.unbind = function (eventType, listener) {
     this.ws.removeEventListener(eventType, listener);
 };
 
@@ -121,19 +121,19 @@ var Channel = function(ws, name, publicName) {
     }
 };
 
-Channel.prototype.on = function(eventType, listener) {
+Channel.prototype.on = Channel.prototype.bind = function(eventType, listener) {
     var channel = this.privateName || this.name;
     sendWsMessage(this.ws, "client-bind-event", channel, eventType);
     this.ws.addEventListener(channel+'.'+eventType, listener);
 };
 
-Channel.prototype.off = function(eventType, listener) {
+Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
     var channel = this.privateName || this.name;
     sendWsMessage(this.ws, "client-unbind-event", channel, eventType);
     this.ws.removeEventListener(channel+'.'+eventType, listener);
 };
 
-Channel.prototype.emit = function (event_name, payload) {
+Channel.prototype.emit = Channel.prototype.trigger = function (event_name, payload) {
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
