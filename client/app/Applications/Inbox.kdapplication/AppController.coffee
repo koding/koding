@@ -23,7 +23,6 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    # log "FETCH MESSAGES INTERNAL"
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
     currentDelegate.fetchMail? options, callback
 
@@ -37,12 +36,6 @@ class Inbox12345 extends AppController
 
     {currentDelegate} = KD.getSingleton('mainController').getVisitor()
 
-    # currentDelegate.fetchPrivateChannel (err, channel)->
-    #   console.log channel
-
-    # mainView.inboxMessagesList.on 'ReceivedClickElsewhere', =>
-    #   @deselectMessages()
-
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
       listener     : @
@@ -54,14 +47,6 @@ class Inbox12345 extends AppController
           mainView.showTab data.type
         else
           mainView.sort data.type
-
-    # @listenTo
-    #   KDEventTypes: 'ReplyShouldBeSent'
-    #   listenedToInstance: view
-    #   callback: (pubInst, options)->
-    #     {reply, message} = options
-    #     message.reply reply, (err)->
-    #       console.log err
 
     mainView.registerListener
       KDEventTypes      : 'NotificationIsSelected'
@@ -75,14 +60,12 @@ class Inbox12345 extends AppController
       KDEventTypes: 'MessageIsSelected'
       listener    : @
       callback    :(pubInst,{item, event})=>
-        # log arguments,"::::"
         data = item.getData()
         data.mark 'read', (err)->
           item.unsetClass 'unread' unless err
         # unless event.shiftKey
         #   @deselectMessages()
         @deselectMessages()
-        mainView.messageInputElement.setData data
         if item.paneView?
           {paneView} = item
           mainView.inboxMessagesContainer.showPane item.paneView
@@ -149,7 +132,6 @@ class Inbox12345 extends AppController
       listener    : @
       callback    : =>
         for own id, {item, data} of @selection
-          # log 'marking unread'
           data.unmark 'read', (err)=>
             log err if err
             item.setClass 'unread' unless err

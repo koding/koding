@@ -49,8 +49,6 @@ class PageInbox extends KDView
       # lastToFirst : yes
       delegate    : @
       subItemClass  : InboxMessagesListItem
-    inboxMessageBody = new KDView cssClass : "message-body-wrap"
-    inboxMessageInputWrapper = new KDView cssClass : "input-wrapper"
 
     inboxMessageListController = new InboxMessageListController
       view          : inboxMessagesList
@@ -67,7 +65,7 @@ class PageInbox extends KDView
 
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
-      views     : [inboxMessagesList,@inboxMessagesContainer]
+      views     : [inboxMessagesList, @inboxMessagesContainer]
       cssClass  : "messages-split"
       resizable : yes
       minimums  : [150, null]
@@ -109,21 +107,6 @@ class PageInbox extends KDView
         else
           inboxMessageListController.loadMessages =>
             selectMessage()
-
-    inboxMessageInputWrapper.addSubView @messageInputElement = new KDHitEnterInputView
-      type         : "textarea"
-      name         : "sendMessage"
-      cssClass     : "sendMessageInput"
-      placeholder  : "Just type and press enter.."
-      callback     : ()=>
-        reply = @messageInputElement.getValue()
-        @messageInputElement.setValue ''
-        @propagateEvent KDEventType: 'ReplyShouldBeSent', {message: @messageInputElement.getData(), reply}
-
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @messageInputElement
-      callback           : messagesSplit._windowDidResize
 
     return tab
 
