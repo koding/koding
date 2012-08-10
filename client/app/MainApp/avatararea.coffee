@@ -212,13 +212,13 @@ class AvatarPopupNotifications extends AvatarPopup
       listener      : @
       callback      : => @hide()
 
-    @avatarPopupContent.addSubView @listController.getView()
-
     @avatarPopupContent.addSubView @noNotification = new KDView
       height   : "auto"
       cssClass : "sublink"
       partial  : "You have no new notifications..."
     @noNotification.hide()
+
+    @avatarPopupContent.addSubView @listController.getView()
 
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"
@@ -262,13 +262,13 @@ class AvatarPopupMessages extends AvatarPopup
       listener      : @
       callback      : => @hide()
 
-    @avatarPopupContent.addSubView @listController.getView()
-
     @avatarPopupContent.addSubView @noMessage = new KDView
       height   : "auto"
       cssClass : "sublink"
       partial  : "You have no new messages..."
     @noMessage.hide()
+
+    @avatarPopupContent.addSubView @listController.getView()
 
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"
