@@ -91,22 +91,24 @@ class PageInbox extends KDView
         messagesSplit.didResizeBefore = yes
         @newMessageBar.enableMessageActionButtons()
 
-        selectMessage = =>
-          return if not item
+        messageIsSelectable = =>
           {items} = inboxMessagesList
+          return no if items.length is 0
+          {_id} = item.getData()
           wasMessageInList = no
           items.forEach (message) =>
-            if message.getData()?.getId() is item.getData().getId()
+            if message.getData()?.getId() is _id
               message.click()
               wasMessageInList = yes
-          if not wasMessageInList
-            @propagateEvent KDEventType : "MessageIsSelected", {item, event}
+          wasMessageInList
 
-        if inboxMessagesList.items.length > 0
-          selectMessage()
+        if item
+          if not messageIsSelectable()
+            inboxMessageListController.loadMessages =>
+              if not messageIsSelectable()
+                @propagateEvent KDEventType : "MessageIsSelected", {item, event}
         else
-          inboxMessageListController.loadMessages =>
-            selectMessage()
+          inboxMessageListController.loadMessages()
 
     return tab
 
