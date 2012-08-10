@@ -7,7 +7,7 @@ class InboxMessageListController extends KDListViewController
   loadMessages:(callback)->
     @removeAllItems()
     KD.whoami().fetchMail
-      # limit       : 20
+      limit       : 10
       sort        :
         timestamp : -1
     , (err, messages)=>
