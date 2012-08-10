@@ -40,20 +40,22 @@ class InboxNewMessageBar extends KDView
       tooltip     :
         title     : "Delete message"
         placement : "left"
-      callback    : =>
-        modal = new KDModalView
-          title          : "Delete thread"
-          content        : "<div class='modalformline'>Are you sure you want to delete this thread?</div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Delete       :
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              style      : "modal-clean-red"
-              callback   : =>
-                @propagateEvent KDEventType: 'MessageShouldBeDisowned', modal
+      callback    : => @createDeleteMessageModal()
+
+  createDeleteMessageModal:->
+    modal = new KDModalView
+      title          : "Delete thread"
+      content        : "<div class='modalformline'>Are you sure you want to delete this thread?</div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Delete       :
+          loader     :
+            color    : "#ffffff"
+            diameter : 16
+          style      : "modal-clean-red"
+          callback   : =>
+            @propagateEvent KDEventType: 'MessageShouldBeDisowned', modal
 
   createNewMessageModal:->
     modal = new KDModalViewWithForms
