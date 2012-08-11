@@ -52,7 +52,6 @@ ebin
 /node_modules/profiler
 /node_modules/request
 /node_modules/stylus
-/node_modules/traverse
 /node_modules/underscore
 /node_modules/url
 /node_modules/validator
@@ -64,3 +63,4 @@ ebin
 /node_modules/.DS_Store
 /node_modules/csv
 node_modules/cron/
+sftp-config.json

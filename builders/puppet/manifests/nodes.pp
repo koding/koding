@@ -51,7 +51,7 @@ node base {
                 "perl-Digest-HMAC.noarch",
                 "python-boto.noarch",
                 "python-argparse.noarch",
-                "make"]:
+                ]:
             ensure => present
             }
             
