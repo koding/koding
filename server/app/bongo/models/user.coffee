@@ -230,7 +230,7 @@ class JUser extends jraphical.Module
       else if inviteCode
         JInvitation.one {
           code: inviteCode
-          status: 'active'
+          status: $in : ['active','sent']
         }, (err, invite)->
           # callback null, yes, invite
           if err or !invite? 

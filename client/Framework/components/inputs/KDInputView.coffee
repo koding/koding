@@ -169,7 +169,6 @@ class KDInputView extends KDView
         @setValue val
         _prevVal = val
 
-
   setValidation:(ruleSet)->
 
     @valid = no
@@ -187,7 +186,9 @@ class KDInputView extends KDView
         @listenTo
           KDEventTypes       : eventName
           listenedToInstance : @
-          callback           : (input, event)=> @validate rule, event
+          callback           : (input, event)=> 
+            if rule in @ruleChain
+              @validate rule, event
 
   validate:(rule, event = {})->
 

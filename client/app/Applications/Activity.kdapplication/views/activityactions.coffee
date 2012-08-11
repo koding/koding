@@ -36,7 +36,7 @@ class ActivityActionsView extends KDView
           activity.fetchLikedByes {},
             sort  : timestamp : -1
             , (err, likes) =>
-              new FollowedModalView {title:"Members who liked " + activity.body}, likes
+              new FollowedModalView {title:"Members who liked <cite>#{activity.body}</cite>"}, likes
       , activity
 
     @likeCount.on "countChanged", (count) =>
@@ -91,7 +91,7 @@ class ActivityActionsView extends KDView
           #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
-    
+
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()

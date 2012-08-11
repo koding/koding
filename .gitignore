@@ -14,6 +14,8 @@ v8.log
 node_modules/.bin
 *.swp
 *.swo
+/broker/deps
+ebin
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -50,7 +52,6 @@ node_modules/.bin
 /node_modules/profiler
 /node_modules/request
 /node_modules/stylus
-/node_modules/traverse
 /node_modules/underscore
 /node_modules/url
 /node_modules/validator
@@ -62,3 +63,4 @@ node_modules/.bin
 /node_modules/.DS_Store
 /node_modules/csv
 node_modules/cron/
+sftp-config.json

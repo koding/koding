@@ -14,7 +14,6 @@ class hosting_packages::php {
             "php-cli",
             "php-xml",
             "php-dba",
-            "php-pecl-apc",
             "php-pear",
         ] 
     

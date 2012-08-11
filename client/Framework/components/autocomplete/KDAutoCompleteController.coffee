@@ -15,7 +15,7 @@ class KDAutoCompleteController extends KDViewController
       itemDataPath          : ''
       separator             : ','
       wrapper               : 'parent'
-      submitValuesAsText   : no
+      submitValuesAsText    : no
       defaultValue          : []
     ,options
 
@@ -32,11 +32,9 @@ class KDAutoCompleteController extends KDViewController
     @selectedItemCounter = 0
 
   reset:->
-    {itemClass} = @getOptions()
     subViews    = @itemWrapper.getSubViews().slice()
     for item in subViews
-      if item instanceof itemClass
-        @removeFromSubmitQueue item
+      @removeFromSubmitQueue item
 
   loadView:(mainView)->
     @createDropDown()
@@ -53,6 +51,7 @@ class KDAutoCompleteController extends KDViewController
       @addItemToSubmitQueue @getView(), item
 
   keyDownOnInputView:(autoCompleteView,event)=>
+
     switch event.which
       when 13, 9 #enter, tab
         unless autoCompleteView.getValue() is ""
@@ -190,12 +189,13 @@ class KDAutoCompleteController extends KDViewController
         @appendAutoCompletedItem()
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
+      @emit 'ItemListChanged'
     else
       inputView.setValue ''
       @getSingleton("windowController").setKeyView null
       new KDNotificationView
         type      : "mini"
-        title   : "You can add up to #{@getOptions().selectedItemsLimit} items!"
+        title     : "You can add up to #{@getOptions().selectedItemsLimit} items!"
         duration  : 4000
 
     @hideDropdown()
@@ -263,7 +263,7 @@ class KDAutoCompleteController extends KDViewController
     path.join('.')
 
   addSuggestion:(title)->
-    @propagateEvent KDEventType: 'AutocompleteSuggestionWasAdded', title
+    @emit 'AutocompleteSuggestionWasAdded', title
 
   addItemToSubmitQueue:(item,data)->
     data or= item.getData()
@@ -275,8 +275,7 @@ class KDAutoCompleteController extends KDViewController
     else
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
-      @addSuggestion itemValue
-    
+
     return no if @isItemAlreadySelected data
 
     path = @getCollectionPath()
@@ -325,6 +324,7 @@ class KDAutoCompleteController extends KDViewController
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
+    @emit 'ItemListChanged'
 
   rearrangeInputWidth:()->
     # mainView = @getView()

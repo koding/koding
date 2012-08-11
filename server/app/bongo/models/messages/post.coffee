@@ -9,9 +9,9 @@ class JPost extends jraphical.Message
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
-  
+
   {log} = console
-  
+
   schema = _.extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     counts        :
@@ -36,7 +36,7 @@ class JPost extends jraphical.Message
         'delete','modify','fetchRelativeComments'
       ]
     schema            : schema
-    relationships     : 
+    relationships     :
       comment         : JComment
       participant     :
         targetType    : JAccount
@@ -57,15 +57,15 @@ class JPost extends jraphical.Message
   @getAuthorType =-> JAccount
 
   @getActivityType =-> CActivity
-  
+
   @getFlagRole =-> ['sender', 'recipient']
-  
+
   createKodingError =(err)->
     kodingErr = new KodingError(err.message)
     for own prop of err
       kodingErr[prop] = err[prop]
     kodingErr
-  
+
   @create = secure (client, data, callback)->
     constructor = @
     {connection:{delegate}} = client
@@ -129,15 +129,15 @@ class JPost extends jraphical.Message
           , ->
             callback null, teaser
             queue.next()
-        -> 
+        ->
           status.addParticipant delegate, 'author'
       ]
-  
+
   constructor:->
     super
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
-  
+
   fetchOrigin: (callback)->
     originType = @getAt 'originType'
     originId   = @getAt 'originId'
@@ -145,7 +145,7 @@ class JPost extends jraphical.Message
       Base.constructors[originType].one {_id: originId}, callback
     else
       callback null
-  
+
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
@@ -191,7 +191,7 @@ class JPost extends jraphical.Message
       dash queue, =>
         @emit 'PostIsDeleted', 1
         callback null
-  
+
   fetchActivityId:(callback)->
     Relationship.one {
       targetId    : @getId()
@@ -203,14 +203,14 @@ class JPost extends jraphical.Message
         callback new KodingError 'No activity found'
       else
         callback null, rel.getAt 'sourceId'
-  
+
   fetchActivity:(callback)->
     @fetchActivityId (err, id)->
       if err
         callback err
       else
-        CActivity.one _id: id, callback 
-  
+        CActivity.one _id: id, callback
+
   flushSnapshot:(removedSnapshotIds, callback)->
     removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
@@ -238,12 +238,12 @@ class JPost extends jraphical.Message
       callback
     ]
     daisy queue
-  
+
   removeReply:(rel, callback)->
     id = @getId()
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'    
+    repliesCount = @getAt 'repliesCount'
     queue = [
       ->
         rel.update $set: 'data.deletedAt': new Date, -> queue.next()
@@ -254,7 +254,7 @@ class JPost extends jraphical.Message
       callback
     ]
     daisy queue
-  
+
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
@@ -321,40 +321,47 @@ class JPost extends jraphical.Message
             @addComment comment,
               flags:
                 isLowQuality    : exempt
-              respondWithCount  : yes
-            , (err, docs, count)=>
+            , (err, docs)=>
               if err
                 callback err
               else
                 if exempt
                   callback null, comment
                 else
-                  @update $set: repliesCount: count, (err)=>
+                  Relationship.count {
+                    sourceId                    : @getId()
+                    as                          : 'reply'
+                    'data.flags.isLowQuality'   : $ne: yes
+                  }, (err, count)=>
                     if err
                       callback err
                     else
-                      callback null, comment
-                      @fetchActivityId (err, id)->
-                        CActivity.update {_id: id}, {
-                          $set: 'sorts.repliesCount': count
-                        }, log
-                      @fetchOrigin (err, origin)=>
+                      @update $set: repliesCount: count, (err)=>
                         if err
-                          console.log "Couldn't fetch the origin"
+                          callback err
                         else
-                          unless exempt
-                            @emit 'ReplyIsAdded', {
-                              origin
-                              subject       : ObjectRef(@).data
-                              actorType     : 'replier'
-                              actionType    : 'reply'
-                              replier 		  : ObjectRef(delegate).data
-                              reply   		  : ObjectRef(comment).data
-                              repliesCount	: count
-                              relationship  : docs[0]
-                            }
-                          @follow client, emitActivity: no, (err)->
-                          @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                          callback null, comment
+                          @fetchActivityId (err, id)->
+                            CActivity.update {_id: id}, {
+                              $set: 'sorts.repliesCount': count
+                            }, log
+                          @fetchOrigin (err, origin)=>
+                            if err
+                              console.log "Couldn't fetch the origin"
+                            else
+                              unless exempt
+                                @emit 'ReplyIsAdded', {
+                                  origin
+                                  subject       : ObjectRef(@).data
+                                  actorType     : 'replier'
+                                  actionType    : 'reply'
+                                  replier 		  : ObjectRef(delegate).data
+                                  reply   		  : ObjectRef(comment).data
+                                  repliesCount	: count
+                                  relationship  : docs[0]
+                                }
+                              @follow client, emitActivity: no, (err)->
+                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.

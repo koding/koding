@@ -152,7 +152,11 @@ class MySQL
       callback null,result # return object {dbName:<>,dbUser:<>,dbPass:<>,completedWithErrors:<>}
 
     dbCount = (username,callback) =>
+<<<<<<< HEAD
+      @fetchDatabaseList {username},(err,data)->
+=======
       @fetchDatabaseList {username},(err,rows)->
+>>>>>>> 135064bce5ef797874183c0522758a901a5a7658
         if err then callback err
         else
           callback null,rows.length
@@ -182,8 +186,12 @@ class MySQL
                 else
                   sendResult null, result
         else
+<<<<<<< HEAD
+          callback new KodingError "You exceeded your quota, please delete one before adding a new one."
+=======
           console.log e = "You exceeded your quota, please delete one before adding a new one."
           callback new KodingError e
+>>>>>>> 135064bce5ef797874183c0522758a901a5a7658
       else
         callback new KodingError "There was an error completing this request, please try again later."
 

@@ -96,7 +96,7 @@ KD = @KD or {}
     @subscriptions
 
   registerInstance : (anInstance)->
-    warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
+    # warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
     @classes[anInstance.constructor.name] ?= anInstance.constructor
   

@@ -18,6 +18,7 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+processes   = require "processes"
 # log = 
 #   info  : console.log
 #   debug : console.log
@@ -31,7 +32,13 @@ mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
  
 # get current version
-version = (fs.readFileSync ".revision").toString().replace("\n","")
+
+if process.argv[2] is 'buildForProduction'
+  rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
+  rev[2]++
+  version = rev.join(".")
+else
+  version = (fs.readFileSync ".revision").toString().replace("\n","")
 
  
 targetPaths =
@@ -71,7 +78,12 @@ targetPaths =
         console.log execStr
         exec execStr,(err,stdout,stderr)->
           if stderr
-            console.log "23",arguments
+            unless arguments[2].indexOf "\n0 error(s)"
+              log.error arguments
+              log.error "CLOSURE FAILED TO COMPILE KD.JS CHECK THE ERROR MSG ABOVE. EXITING."
+              process.exit()
+            else
+              # log.debug "closure compile finished successfully."
           else if stdout
             console.log "12",arguments
           else throw err
@@ -98,7 +110,7 @@ targetPaths =
     else
       compressJs (libraries+kdjs),(err,data)->
         unless err
-          callback null,data            
+          callback null,data         
         else
           throw err
         
@@ -128,6 +140,28 @@ targetPaths =
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
+task 'buildAll',"build chris's modules", ->
+
+  buildables = ["processes","pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
+  # log.info "building..."
+  b = (next) ->
+    cmd = "cd ./node_modules/#{buildables[next]} && cake build"
+    log.info "building... cmd: #{cmd}"
+    processes.run 
+      cmd     : cmd
+      log     : yes       # or provide a path for log file
+      restart : no        # or provide a function
+      onExit  : (id)->
+        # log.debug "pid.#{id} said: 'im done.'[#{cmd}]"
+        if next is buildables.length-1
+          log.info "build complete. now running cake build."
+          # process.exit()
+          invoke "build"
+        else
+          b next+1
+  b 0
+
+
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
   
@@ -139,16 +173,16 @@ task 'buildForProduction','set correct flags, and get ready to run in production
   options.uglify    = yes
   options.useStatic = yes
 
-  
-  rev = fs.readFileSync "./.revision"
   prompt.start()
-  prompt.get [{message:"Did you update the .revision? - current:#{rev} (type yes to continue)",name:'p'}],  (err, result) ->
-    # fs.writeFileSync "./.revision",result.p
-    # version = targetPaths.version = result.p
+  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
     
     if result.p is "yes"
+      log.debug 'version',version
+      fs.writeFileSync "./.revision",version
       invoke 'build'
-      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{rev}"
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
+    else
+      process.exit()
 
 
 
@@ -172,6 +206,7 @@ task 'uninstall', 'uninstall all modules listed in CakeNodeModules.coffee',(opti
 
 task 'checkModules', 'check node_modules dir',(options)->  
   {our_modules, npm_modules} = require "./CakeNodeModules"
+  required_versions = npm_modules
   npm_modules = (name for name,ver of npm_modules)  
   gitIgnore = ((fs.readFileSync "./.gitignore").toString().split "\n")
 
@@ -189,16 +224,23 @@ task 'checkModules', 'check node_modules dir',(options)->
     console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
 
+  # check if versions match
+  for mod,ver of required_versions when (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version isnt required_versions[mod]
+    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect. it has to be #{ver}."
+    log.info  "If you want to keep this version edit CakeNodeModules.coffee or run: npm install #{mod}@#{ver}"
+    process.exit()
+
   all_mods = npm_modules.concat our_modules
   uninstalled_mods = (mod for mod in all_mods when mod not in data)
   if uninstalled_mods.length > 0      
     console.log "[ERROR] UNINSTALLED MODULES FOUND:",uninstalled_mods
-    console.log "Please run: cake install"
+    console.log "Please run: npm install #{uninstalled_mods.join(" ")} (or cake install)"
     console.log "Exiting."
     process.exit()
   else
     console.log "./node_modules check complete."
-    
+
+
 
 task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in ./node_modules',(options)->
   
@@ -233,7 +275,7 @@ task 'build', 'optimized version for deployment', (options)->
 build = (options)->
   log.debug "building with following options, ctrl-c before too late:",options
 
-  debug = if options.debug? then "--debug --prof --prof-lazy" else "--max-stack-size=1073741824"
+  debug = if options.debug? then "--debug --prof --prof-lazy" else "--max-stack-size=8073741824"
   run = 
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
 
