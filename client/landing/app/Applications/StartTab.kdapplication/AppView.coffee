@@ -35,7 +35,7 @@ class StartTabMainView extends JView
       callback : =>
         @removeAppIcons()
         @loader.show()
-        @getSingleton("kodingAppsController").fetchApps (err, apps)=>
+        @getSingleton("kodingAppsController").refreshApps (err, apps)=>
           @loader.hide()
           @button.hideLoader()
           @decorateApps apps
@@ -304,9 +304,10 @@ class StartTabAppView extends JView
 
     super options, data
     
+    {icns} = @getData()
     @imgHolder = new KDView
       tagName : "p"
-      partial : "<img src=\"#{@getData().icns['512']}\" />"
+      partial : "<img src=\"#{icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}\" />"
 
     @loader = new KDLoaderView
       size          :

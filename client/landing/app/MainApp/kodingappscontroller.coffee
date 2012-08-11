@@ -10,14 +10,17 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
     
-    @fetchAppsFromDb (err, apps)=>
-      if err
-        @fetchAppsFromFs (err, apps)=>
-          if err then callback()
-          else
-            callback null, apps
-      else
-        callback? err, apps
+    if Object.keys(@constructor.manifests).length isnt 0
+      callback null, @constructor.manifests
+    else
+      @fetchAppsFromDb (err, apps)=>
+        if err
+          @fetchAppsFromFs (err, apps)=>
+            if err then callback()
+            else
+              callback null, apps
+        else
+          callback? err, apps
 
   fetchAppsFromFs:(callback)->
     
@@ -68,6 +71,12 @@ class KodingAppsController extends KDController
           callback null, apps
         else
           callback new Error "There are no apps in the app storage."
+
+  refreshApps:(callback)->
+
+    @constructor.manifests = {}
+    KDApps = {}
+    @fetchAppsFromFs callback
 
   putAppsToAppStorage:(apps)->
 
@@ -234,7 +243,7 @@ class KodingAppsController extends KDController
         
         log "concatenating the app"
         
-        _final = "(function() {\n\n/* KDAPP STARTS */"
+        _final = "(function() {\n\n/* KDAPP STARTS */" 
         result.forEach (output)=>
           _final += "\n\n/* BLOCK STARTS */\n\n"
           _final += "#{output}"
@@ -251,3 +260,56 @@ class KodingAppsController extends KDController
     else
       kallback @constructor.manifests[name]
 
+  installApp:(app, callback)->
+    
+    @fetchApps (err, manifests = {})=>
+      if err
+        warn err
+        new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+        callback? err
+      else
+        log manifests
+        if app.title in Object.keys(manifests)
+          new KDNotificationView type : "mini", title : "App is already installed!"
+          callback? msg : "App is already installed!"
+        else
+          log "installing the app: #{app.title}"
+          app.fetchCreator (err, acc)=>
+            if err
+              callback? err
+            else
+              kiteController = @getSingleton("kiteController")
+              sourcePath = "/opt/Apps/#{acc.profile.nickname}/#{app.manifest.name}/latest/"
+              targetPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{app.manifest.name}.kdapp/"
+              log "creating the targetPath", targetPath
+              kiteController.run
+                withArgs  :
+                  command : "mkdir -p #{targetPath}"
+              , (err, response)=>
+                if err 
+                  warn err
+                  callback err
+                else
+                  log "copying the app", targetPath
+                  kiteController.run
+                    withArgs  :
+                      command : "cp #{sourcePath}index.js #{targetPath}index.js"
+                  , (err, response)=>
+                    if err 
+                      warn err
+                      callback err
+                    else
+                      log "done!!!"
+                      callback?()
+
+  forkApp:(app, callback)->
+
+    @fetchApps (err, manifests = {})=>
+      if err
+        warn err
+        new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+        callback? err
+      else
+        log "forking the app: #{app.title}"
+        new KDNotificationView type : "mini", title : "Not yet ready hang on!"
+        callback?()
