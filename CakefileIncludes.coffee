@@ -349,6 +349,7 @@ Includes =
         appView                       : "./client/app/Applications/Apps.kdapplication/Views/appview.coffee"
         appScreenshotListItem         : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee"
         appScreenshotsView            : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee"
+        appDetailsView                : "./client/app/Applications/Apps.kdapplication/Views/appdetailsview.coffee"
 
         appsDisplay                   : "./client/app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee"
         singleAppNavigation           : "./client/app/Applications/Apps.kdapplication/ContentDisplays/SingleAppNavigation.coffee"

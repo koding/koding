@@ -23,7 +23,7 @@ class JApp extends jraphical.Module
     sharedMethods   :
       instance      : [
         "update",'follow', 'unfollow', 'remove'
-        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship'
+        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator'
       ]
       static        : [
         "one","on","some","create"
@@ -48,6 +48,10 @@ class JApp extends jraphical.Module
       screenshots   : [Object]
       meta          : require "bongo/bundles/meta"
       manifest      : Object
+      type          :
+        type        : String
+        enum        : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
+        default     : "web-app"
 
     relationships   :
       creator       : JAccount
@@ -83,10 +87,13 @@ class JApp extends jraphical.Module
 
     app.save (err)->
       if err
-        console.log "error 3"
         callback err
       else
-        callback null, app
+        app.addCreator delegate, (err)->
+          if err
+            callback err
+          else
+            callback null, app
 
   # @create = secure (client, data, callback)->
 

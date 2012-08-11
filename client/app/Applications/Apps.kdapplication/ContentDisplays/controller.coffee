@@ -27,48 +27,9 @@ class ContentDisplayControllerApps extends KDViewController
       delegate : mainView
     , app
 
-    # @innerNav = new SingleAppNavigation
-    # @tabs     = new KDTabView
-    #   cssClass             : "app-info-tabs"
-    #   hideHandleCloseIcons : yes
-    #   hideHandleContainer  : yes
-    # @createTabs()
-    # mainView.addSubView appSplit = new ContentPageSplitBelowHeader
-    #   views     : [@innerNav,@tabs]
-    #   sizes     : [139,null]
-    #   minimums  : [10,null]
-    #   resizable : no
-
-    # appSplit._windowDidResize()
-
-  createTabs:()->
-    app = @getData()
-    @tabs.addPane infoTab = new KDTabPaneView
-      name : 'appinfo'
-    @tabs.addPane screenshotsTab = new KDTabPaneView
-      name : 'screenshots'
-
-    infoTab.addSubView new CommonListHeader
-      title : "Application Info"
-    infoTab.addSubView new AppInfoView
+    mainView.addSubView appView = new AppDetailsView 
       cssClass : "info-wrapper"
+      delegate : mainView
     , app
 
-    screenshotsListController = new KDListViewController
-      view            : new KDListView
-        subItemClass  : AppScreenshotsListItem
-    ,
-      items           : app.screenshots
 
-    screenshotsTab.addSubView screenshotsListController.getView()
-    # screenshotsListController.getView().addSubView new CommonListHeader
-    #   title : "Screenshots"
-    # , null, yes
-
-    @tabs.showPane infoTab
-
-    @innerNav.registerListener
-      KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
-      listener      : @
-      callback      : (pubInst,event)=>
-        @tabs.showPaneByName event.type

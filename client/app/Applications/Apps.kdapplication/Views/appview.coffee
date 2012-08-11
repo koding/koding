@@ -28,6 +28,96 @@ class AppView extends KDView
       ]
     , app
 
+    appsController = @getSingleton("kodingAppsController")
+
+    @installButton = new KDButtonView
+      title     : "Install Now"
+      style     : "cupid-green"
+      loader    :
+        top     : 0
+        diameter: 30
+        color   : "#ffffff"
+      callback  : ->
+        appsController.installApp app, (err)=>
+          @hideLoader()
+
+    @forkButton = new KDButtonView
+      title     : "Fork"
+      style     : "clean-gray"
+      loader    :
+        top     : 0
+        diameter: 30
+      callback  : ->
+        appsController.forkApp app, (err)=>
+          @hideLoader()
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  putThumb:(manifest)->
+    {icns} = manifest
+    if icns
+      thumb = "<img src='#{icns["128"] or icns["256"] or icns["512"] or icns["64"] or icns["32"] or '/images/default.app.listthumb.png'}'/>"
+    else
+      ""
+
+  pistachio:->
+    """
+    <div class="profileleft">
+      <span>
+        <a class='profile-avatar' href='#'>{{ @putThumb #(manifest)}}</a>
+      </span>
+    </div>
+    <section class="right-overflow">
+      <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
+      <div class="installerbar clearfix">
+        {{> @installButton}}
+        {{> @forkButton}}
+        <div class="versionstats updateddate">Version {{ #(manifest.version) or "---" }}<p>Updated: ---</p></div>
+        <div class="versionscorecard">
+          <div class="versionstats">{{#(counts.installed) or 0}}<p>INSTALLS</p></div>
+          <div class="versionstats">{{#(counts.likes) or 0}}<p>Likes</p></div>
+          <div class="versionstats">{{#(counts.followers) or 0}}<p>Followers</p></div>
+        </div>
+        <div class="appfollowlike">
+          {{> @followButton}}
+          {{> @likeButton}}
+        </div>
+      </div>
+    </section>
+    """
+
+class AppViewOld extends KDView
+
+  constructor:->
+
+    super
+
+    app = @getData()
+
+    @followButton = new KDToggleButton
+      style           : "kdwhitebtn"
+      dataPath        : "followee"
+      states          : [
+        "Follow", (callback)->
+          callback? null
+        "Unfollow", (callback)->
+          callback? null
+      ]
+    , app
+
+    @likeButton = new KDToggleButton
+      style           : "kdwhitebtn"
+      dataPath        : "followee"
+      states          : [
+        "Like", (callback)->
+          callback? null
+        "Unlike", (callback)->
+          callback? null
+      ]
+    , app
+
     @installButton = new KDButtonView
       title     : "Install Now"
       style     : "cupid-green"

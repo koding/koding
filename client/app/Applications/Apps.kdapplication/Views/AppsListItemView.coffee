@@ -1,20 +1,16 @@
 class AppsListItemView extends KDListItemView
-  constructor:(options,data)->
-    options = options ? {} 
+  
+  constructor:(options = {},data)->
+    
     options.type = "appstore"
-    options.bind = "mouseenter mouseleave"
+    
     super options,data
     
-    # log data
-    
-    thumbOptions = if data.thumbnails?[0]?
+    icns = data.manifest.icns or {}
+    thumbOptions =
       tagName     : 'img'
       attributes  :
-        src       : '/images/uploads/' + data.thumbnails[0].listThumb
-    else
-      tagName     : 'img'
-      attributes  :
-        src       : '/images/default.app.listthumb.png'
+        src       : icns["160"] or icns["128"] or icns["256"] or icns["512"] or icns["64"] or icns["32"] or '/images/default.app.listthumb.png'
 
     @thumbnail = new KDCustomHTMLView thumbOptions
     @removeButton = new KDButtonView
@@ -67,7 +63,9 @@ class AppsListItemView extends KDListItemView
   
   pistachio:->
     """
-    {{> @thumbnail}}
+    <figure>
+      {{> @thumbnail}}
+    </figure>
     <div class="appmeta clearfix">
       <h3>{a[href=#]{#(title)}}</h3>
       <div class="appstats">

@@ -34,12 +34,16 @@ appstore.styl
   &:last-child
     border-bottom 1px solid #E6E6E6
 
-  img
+  > figure
+    position        relative
     width           160px
     height          80px
     border          1px solid #CCC
     margin-bottom   0px
     background      linear-gradient(top, #FCFCFC 0%, #C8C8C8 100%)
+    overflow        hidden
+    img
+      width         100%
 
   .appmeta
     color           #353535
@@ -123,6 +127,25 @@ appstore.styl
   
 // single app page
 .content-display.apps
+  .profilearea
+    vendor              transition, box-shadow .3s linear
+    &.cast-shadow
+      shadow            0 0 20px rgba(0,0,0,.3)
+    section
+      h3
+        cite
+          font-size     12px
+          color         #999
+          font-weight   300
+          font-style    normal
+          margin-left   5px
+  .profileleft
+    .profile-avatar
+      span
+        display         block
+        size            90px, 90px
+        img
+          max-width     90px
   section
     .profileinfo
       .profile-about
@@ -172,12 +195,13 @@ appstore.styl
   .installerbar
     margin              10px 0 0 0
     rounded             4px
-    .cupid-green
-      margin            11px 0 0px 0px
+    > .kdbutton
+      margin            11px 10px 0px 0px
       font-size         14px
       font-weight       600
       line-height       1
       padding           9px 20px 10px 20px
+      width             auto
       fl()
 
   .topic.appversion 
@@ -188,7 +212,7 @@ appstore.styl
 
 
   .versionscorecard
-    margin              12px 0px 0 5px
+    margin              12px 0px 0 0
     fl()
   .versionstats
     margin-left       0
@@ -196,12 +220,12 @@ appstore.styl
     font-size         14px
     line-height       16px
     padding-left      0
-    margin-left       25px!important
+    margin-right      25px
     fl()
     &:first-child 
       margin-left     0!important
     &.updateddate
-      margin          12px 25px 0 25px
+      margin          12px 25px 0 0
     p
       font-size       11px
       line-height     18px
@@ -210,7 +234,7 @@ appstore.styl
 
   .appfollowlike
     display             inline-block
-    margin              5px 5px 5px 25px
+    margin              5px 0
     button
       display           block
       font-size         11px
@@ -222,55 +246,55 @@ appstore.styl
       &:first-child
         margin-bottom   2px
 
-.app-info-tabs
-  border-left         1px solid #E8E8E8
+.info-wrapper
+  padding             25px
   borderBox()
-  .info-wrapper
-    padding             43px 20px 27px
-    margin-top          -28px
-    borderBox()
-    header
-      font-size         14px
-      margin-bottom     10px
-      a
-        font-size       12px
-        font-weight     bold
-        color           #666
-        noTextDeco()
-        &:before
-          content           ' '
-          height            0
-          display           inline-block
-          width             8px
-          border            4px solid transparent
-          border-top-color  #555
-          margin-right      4px
-          borderBox()
-    section
-      margin-bottom         18px
-      margin-top            0
-      font-size             12px
-      line-height           150%
-      padding               0
-      color                 #353535
-      figure
-        margin              15px 0
-  .kdtabpaneview.screenshots
-    background              #e2e2e2
-    shadow                  inset 0 0 5px rgba(0, 0, 0, 0.17)
-    .kdview
-      overflow              visible
-    .listview-wrapper
-      .kdscrollview
-        overflow            auto
-        padding             30px
+  header
+    font-size         14px
+    margin-bottom     10px
+    a
+      font-size       12px
+      font-weight     bold
+      color           #666
+      noTextDeco()
+      &:before
+        content           ' '
+        height            0
+        display           inline-block
+        width             8px
+        border            4px solid transparent
+        border-top-color  #555
+        margin-right      4px
         borderBox()
-      figure
-        img
-          margin-bottom       30px
-          max-width           100%
-          bg                  color, white
-          shadow              0 0 20px rgba(0, 0, 0, 0.34)
+  > section
+    margin-bottom         18px
+    margin-top            0
+    font-size             12px
+    line-height           150%
+    padding               0
+    color                 #353535
+    figure
+      margin              15px 0
+  
+  section.screenshots
+    background            #e2e2e2
+    shadow                inset 0 0 5px rgba(0, 0, 0, 0.17)
+    padding               30px
+    borderBox()
+    ul
+      margin              0
+      text-align          center
+    li
+      display             inline-block
+      clear               both
+      margin              30px 0 0 0
+      bg                  color, white
+      shadow              0 0 20px rgba(0, 0, 0, 0.34)
+      &:last-child
+        margin            30px 0
+      img
+        max-width         100%
+        vertical-align    top
       
 
 
