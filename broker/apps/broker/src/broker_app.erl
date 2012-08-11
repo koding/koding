@@ -38,8 +38,8 @@
                         consumer,
                         routing_keys = orddict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
-%-define (RABBITMQ, "localhost").
--define (RABBITMQ, "web0.beta.system.aws.koding.com").
+-define (RABBITMQ, "localhost").
+%-define (RABBITMQ, "web0.beta.system.aws.koding.com").
 
 %% ===================================================================
 %% Application callbacks
