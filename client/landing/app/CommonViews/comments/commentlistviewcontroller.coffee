@@ -14,7 +14,6 @@ class CommentListViewController extends KDListViewController
       if a<b then -1 else if a>b then 1 else 0
       
     for comment, i in items
-      console.log "loading a comment"
       nextComment = items[i+1]
 
       skipComment = no
