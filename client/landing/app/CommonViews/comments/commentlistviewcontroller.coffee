@@ -7,9 +7,14 @@ class CommentListViewController extends KDListViewController
   instantiateListItems:(items, keepDeletedComments = no)->
 
     newItems = []
-
+    
+    items.sort (a,b) =>
+      a = a.meta.createdAt
+      b = b.meta.createdAt
+      if a<b then -1 else if a>b then 1 else 0
+      
     for comment, i in items
-
+      console.log "loading a comment"
       nextComment = items[i+1]
 
       skipComment = no
@@ -25,7 +30,7 @@ class CommentListViewController extends KDListViewController
       unless skipComment
         commentView = @getListView().addItem comment
         newItems.push commentView
-
+  
     return newItems
 
   startListeners:->
