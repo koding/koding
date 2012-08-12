@@ -416,7 +416,8 @@ class JPost extends jraphical.Message
       if to
         queryOptions.limit = to - from
     selector['data.flags.isLowQuality'] = $ne: yes
-    queryOptions.sort = timestamp: 1
+    queryOptions.sort = timestamp: -1
+    console.log queryOptions
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->
