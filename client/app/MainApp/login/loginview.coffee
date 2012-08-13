@@ -4,7 +4,7 @@ class LoginView extends KDScrollView
 
     super
     @hidden = no
-    
+
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
@@ -13,8 +13,8 @@ class LoginView extends KDScrollView
       # click       : =>
       #   @slideUp ->
       #     appManager.openApplication "Home"
-      
-    
+
+
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "back-to-home"
@@ -32,7 +32,7 @@ class LoginView extends KDScrollView
       #   @slideUp ->
       #     appManager.openApplication "Home"
 
-    @backToLoginLink = new KDCustomHTMLView 
+    @backToLoginLink = new KDCustomHTMLView
       tagName   : "a"
       # cssClass  : "back-to-login"
       partial   : "Go ahead and login"
@@ -116,13 +116,13 @@ class LoginView extends KDScrollView
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
       callback : (formData)=> @doRequest formData
-    
+
     @video = new KDView
       cssClass : "video-wrapper"
 
     @on "LoginViewHidden", (name)=>
       @video.updatePartial ""
-    
+
     @on "LoginViewShown", (name)=>
       if @video.$('iframe').length is 0
         @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
@@ -146,7 +146,7 @@ class LoginView extends KDScrollView
     @template.update()
     # @hide()
 
-  
+
   pistachio:->
     """
     <div class="flex-wrapper">
@@ -215,7 +215,7 @@ class LoginView extends KDScrollView
       <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
     </section>
     {{> @backToHomeLink}}
-    """    
+    """
 
   doReset:({recoveryToken, password})->
     bongo.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
@@ -299,7 +299,7 @@ class LoginView extends KDScrollView
       $('body').removeClass 'login'
       # @hide()
       callback?()
-    
+
   slideDown:(callback)->
 
     $('body').addClass 'login'
@@ -309,12 +309,12 @@ class LoginView extends KDScrollView
     @utils.wait 601,()=>
       @hidden = no
       callback?()
-  
+
   _windowDidResize:(event)->
 
     {winWidth,winHeight} = @windowController
     @$().css marginTop : -winHeight if @hidden
-      
+
   animateToForm: (name)->
     if name is "register"
       bongo.api.JVisitor.isRegistrationEnabled (status)=>

@@ -1,7 +1,7 @@
 module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
-    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector"
+    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
   ]
   npm_modules :
     bitly				    : '1.2.3'
@@ -36,12 +36,10 @@ module.exports =
     profiler				: '1.1.0'
     request				  : '2.9.202'
     stylus				  : '0.21.2'
-    traverse				: '0.6.3'
     underscore			: '1.2.3'
     url				      : '0.4.9'
     validator				: '0.2.0'
     'http-proxy'    : '0.8.1'
     jsonify         : '0.0.0'
-    browserify      : '1.10.12'
     cron            : '0.3.4'
     csv             : '0.0.17'

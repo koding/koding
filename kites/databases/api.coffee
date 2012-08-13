@@ -27,7 +27,7 @@ class KodingError extends Error
 
 this.Error = KodingError
 
-module.exports = new Kite "databases"
+databasesKites = new Kite 'databases'
 
   #**********************************************#
   #***************** MySQL **********************#
