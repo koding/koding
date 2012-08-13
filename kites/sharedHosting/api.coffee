@@ -158,7 +158,7 @@ module.exports = new Kite 'sharedHosting'
       if err then console.error err
       else callback? null
 
-    mkdirp version4edPath, (err)->
+    mkdirp versionedPath, (err)->
       if err then cb err
       else
         fs.readFile "#{userAppPath}/index.js", (err, appScript)->
