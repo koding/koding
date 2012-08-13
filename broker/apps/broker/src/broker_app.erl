@@ -265,7 +265,8 @@ broadcast(From, Channel, Exchange, Event, Data) ->
 subscribe(Conn, Channel, Exchange, Subscriber) -> 
     Declare = #'exchange.declare'{  exchange = Exchange, 
                                     type = <<"topic">>,
-                                    durable = true},
+                                    durable = true,
+                                    auto_delete = true},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 
     loop(Conn, Subscriber).
@@ -277,7 +278,8 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing, Consumer) ->
     #'queue.declare_ok'{queue = Queue} =
-        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
+        amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
+                                                    durable = true}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,

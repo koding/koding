@@ -2,10 +2,11 @@ var Broker = function (app_key, options) {
     this.options = options || {};
     this.sockURL = this.options.sockURL || 'http://localhost:8008/subscribe';
     this.key = app_key;
-    this.channel_auth_endpoint = "auth";
     this.channels = {};
     this.connect();
 }
+
+Broker.channel_auth_endpoint = "auth";
 
 Broker.prototype.connect = function () {
     this.ws = new SockJS(this.sockURL);
@@ -65,7 +66,7 @@ Broker.prototype.subscribe = function (channelName) {
     var channel = new Channel(this.ws, escape(channelName));
     this.channels[escape(channelName)] = channel;
 
-    channel.isPrivate = /^(private.[a-z]*)/.test(channelName);
+    channel.isPrivate = /^(private-[\w-.]*)/.test(channelName);
 
     if (!channel.isPrivate) {
         channel.state.emit('authorized');
@@ -81,7 +82,7 @@ Broker.prototype.subscribe = function (channelName) {
 };
 
 Broker.prototype.authorize = function (channelName, callback) {
-    $.get(this.channel_auth_endpoint, {channel: channelName}, callback);
+    $.get(Broker.channel_auth_endpoint, {channel: channelName}, callback);
 };
 
 Broker.prototype.unsubscribe = function (channel) {
@@ -107,7 +108,8 @@ var Channel = function(ws, name) {
                 var channel = self.privateName || self.name;
                 if (data.channel !== channel) return;
                 var evt = new Event(channel+'.'+data.event);
-                evt.data = JSON.parse(data.payload);
+                if (data.payload) data.payload = JSON.parse(data.payload);
+                evt.data = data.payload;
                 ws.dispatchEvent(evt);
             });
         }
