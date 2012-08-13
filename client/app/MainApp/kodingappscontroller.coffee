@@ -279,28 +279,19 @@ class KodingAppsController extends KDController
               callback? err
             else
               kiteController = @getSingleton("kiteController")
-              sourcePath = "/opt/Apps/#{acc.profile.nickname}/#{app.manifest.name}/latest/"
-              targetPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{app.manifest.name}.kdapp/"
-              log "creating the targetPath", targetPath
-              kiteController.run
-                withArgs  :
-                  command : "mkdir -p #{targetPath}"
-              , (err, response)=>
-                if err 
-                  warn err
-                  callback err
+
+              options     =
+                toDo          : "installApp"
+                withArgs      :
+                  owner       : acc.profile.nickname
+                  username    : KD.whoami().profile.nickname
+                  appName     : manifest.name
+
+              kiteController.run options, (err, res)=>
+                if err then warn err
                 else
-                  log "copying the app", targetPath
-                  kiteController.run
-                    withArgs  :
-                      command : "cp #{sourcePath}index.js #{targetPath}index.js"
-                  , (err, response)=>
-                    if err 
-                      warn err
-                      callback err
-                    else
-                      log "done!!!"
-                      callback?()
+                  appManager.openApplication "Develop"
+                  callback?()
 
   forkApp:(app, callback)->
 
