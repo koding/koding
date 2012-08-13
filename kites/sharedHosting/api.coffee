@@ -161,22 +161,28 @@ module.exports = new Kite 'sharedHosting'
     mkdirp versionedPath, (err)->
       if err then cb err
       else
-        fs.readFile userAppPath, (err, appScript)->
+        fs.readFile "#{userAppPath}/index.js", (err, appScript)->
           if err then cb err
           else
-            fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+            fs.readFile "#{userAppPath}/.manifest", (err, manifest)->
               if err then cb err
               else
-                fs.stat latestPath, (err, statObj)->
-                  if err
-                    exec "ln -s #{versionedPath} #{latestPath}", cb
+                fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+                  if err then cb err
                   else
-                    if statObj.isSymbolicLink() or statObj.isFile()
-                      exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                    else if statObj.isDirectory() and appName.length?
-                      exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                    else
-                      cb new KodingError "Something went wrong"
+                    fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
+                      if err then cb err
+                      else
+                        fs.stat latestPath, (err, statObj)->
+                          if err
+                            exec "ln -s #{versionedPath} #{latestPath}", cb
+                          else
+                            if statObj.isSymbolicLink() or statObj.isFile()
+                              exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                            else if statObj.isDirectory() and appName.length?
+                              exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+                            else
+                              cb new KodingError "Something went wrong"
 
   installApp: (options, callback)->
 
