@@ -63,5 +63,6 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
+/node_modules/amqp
 node_modules/cron/
 sftp-config.json
