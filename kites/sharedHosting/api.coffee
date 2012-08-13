@@ -178,6 +178,32 @@ module.exports = new Kite 'sharedHosting'
                     else
                       cb new KodingError "Something went wrong"
 
+  installApp: (options, callback)->
+
+    {username, owner, appName} = options
+
+    kpmAppPath  = "/opt/Apps/#{owner}/#{appName}/latest"
+    userAppPath = "/Users/#{username}/Applications/#{appName}/latest"
+
+    cb = (err)->
+      if err then console.error err
+      else callback? null
+
+    mkdirp userAppPath, (err)->
+      if err then cb err
+      else
+        fs.chown userAppPath, username, username, (err)->
+          if err then cb err
+          else
+            targetStream = fs.createWriteStream("#{userAppPath}/index.js")
+            targetStream.on "error", cb
+            targetStream.on "end", -> cb null
+            sourceStream = fs.createReadStream("#{kpmAppPath}/index.js")
+            sourceStream.on "error", cb
+            sourceStream.pipe targetStream
+
+
+
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
