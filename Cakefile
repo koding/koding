@@ -18,7 +18,10 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = require "processes"
+
+
 # log = 
 #   info  : console.log
 #   debug : console.log
@@ -190,7 +193,7 @@ task 'install', 'install all modules in CakeNodeModules.coffee, get ready for bu
   l = (d) -> log.info d.replace /\n+$/, ''
   {our_modules, npm_modules} = require "./CakeNodeModules"
   reqs = npm_modules
-  exe = "npm i "+(name+"@"+ver for name,ver of reqs).join " "
+  exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
   a = exec exe,->
   a.stdout.on 'data', l
   a.stderr.on 'data', l
@@ -293,7 +296,9 @@ build = (options)->
         log.info "Auto reload is not on. Use cake -r to enable."
 
 
-  builder.watcher.on "initDidComplete",(changes)-> 
+  builder.watcher.on "initDidComplete",(changes)->
+    fs.writeFileSync "./website/dev/sourceClient.json",JSON.stringify sourceCodeAnalyzer.tree.Client
+    fs.writeFileSync "./website/dev/sourceServer.json",JSON.stringify sourceCodeAnalyzer.tree.Server
     builder.buildServer "",()->
       unless options.dontStart
         builder.processMonitor.flags.forever = yes
@@ -333,6 +338,8 @@ build = (options)->
 
     issueFrontendReloadCommand()
 
+  builder.watcher.on "coffeeFileContents",sourceCodeAnalyzer.add
+
   builder.processMonitor.on "processDidExit",(code)->
 
   builder.watcher.on "CoffeeScript Compile Error",(filePath,error)->
@@ -342,6 +349,8 @@ build = (options)->
       # builder.watcher.initialize()
 
 # ------------- BUILDER END ----------#
+
+
 
 
 

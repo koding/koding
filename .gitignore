@@ -16,6 +16,7 @@ node_modules/.bin
 *.swo
 /broker/deps
 ebin
+/website/dev/*.json
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
