@@ -20,20 +20,20 @@ class KiteController {
   }
   
   public function add_cluster ($kite_name, $cluster=NULL) {
-    #trace($kite_name, $cluster);
+    // trace($kite_name, $cluster);
     if (!isset($cluster)) {
-      trace('in here');
       $cluster = $this->get_cluster($kite_name);
     }
     if (!isset($this->clusters[$kite_name])) {
       $this->clusters = array();
     }
-    else {
-      array_push(
-        $this->clusters[$kite_name],
-        new KiteCluster($kite_name, $cluster)
-      );
-    }
+    $cluster = new KiteCluster($kite_name, $cluster);
+    trace('pushing', $kite_name, $cluster);
+    array_push(
+      $this->clusters[$kite_name],
+      $cluster
+    );
+    trace('kluster name', $kite_name, count($this->clusters[$kite_name]));
     return count($this->clusters[$kite_name]);
   }
   
@@ -76,7 +76,9 @@ class KiteController {
         return FALSE;
       }
     }
+    trace('klusters', $clusters);
     foreach ($clusters as $index=>$cluster) {
+      trace('looking at a kluster', $index);
       if (
       ((  isset($service_key)
       &&  $cluster->trustPolicy->test('untrustedKite', $service_key))
@@ -85,6 +87,7 @@ class KiteController {
       ))
       && $cluster->add_kite($uri)
       ) {
+        trace('in here captain');
         $pinger = $this->get_kite('pinger', 'kc');
         if (!isset($pinger)) {
           error_log('Pinger kite could not be reached!');
