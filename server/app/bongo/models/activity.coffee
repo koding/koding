@@ -1,16 +1,16 @@
 class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash} = bongo
   {Relationship} = jraphical
-  
+
   @mixin Flaggable
   @::mixin Flaggable::
-  
+
   @getFlagRole =-> 'activity'
-  
+
   jraphical.Snapshot.watchConstructor @
-  
+
   @share()
-  
+
   @set
     feedable          : yes
     # indexes           :
@@ -44,7 +44,7 @@ class CActivity extends jraphical.Capsule
       # readBy        : [bongo.ObjectId]
       originType      : String
       originId        : bongo.ObjectId
-  
+
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->
   #     console.log('made it here')
@@ -66,7 +66,7 @@ class CActivity extends jraphical.Capsule
   #                   $addToSet:
   #                     snapshotIds: subject.getId()
   #                 , callback
-  
+
   @captureSortCounts =(callback)->
     selector = {
       type: {$in: ['CStatusActivity','CCodeSnipActivity']}
@@ -126,9 +126,7 @@ class CActivity extends jraphical.Capsule
                                  'sorts.repliesCount' : repliesCount
                                  'sorts.likesCount'   : meta?.likes or 0
                               CActivity.update {_id}, op, -> queue.fin()
-                        
-              
-  
+
   fetchTeaser:(callback)->
     @fetchSubject (err, subject)->
       if err
@@ -136,20 +134,20 @@ class CActivity extends jraphical.Capsule
       else
         subject.fetchTeaser (err, teaser)->
           callback err, teaser
-  
+
   @teasers =(selector, options, callback)->
     [callback, options] = [options, callback] unless callback
     @someData {snapshot:$exists:1}, {snapshot:1}, {limit:20}, (err, cursor)->
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
-  
+
   markAsRead: bongo.secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
     , callback
-  
+
 class CRepliesActivity extends CActivity
-  
+
   @share()
 
   @set

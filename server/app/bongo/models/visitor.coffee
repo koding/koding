@@ -1,7 +1,7 @@
 class JVisitor extends bongo.Model
-  
+
   @share()
-  
+
   @set
     sharedMethods :
       static      : ['on','getVersion','isRegistrationEnabled']
@@ -11,13 +11,13 @@ class JVisitor extends bongo.Model
         type      : Date
         default   : -> new Date
       clientId    : String
-  
+
   {defineProperty} = Object
 
   defineProperty(@, 'visitors', value: {})
   defineProperty(@, 'guests', value: {})
   defineProperty(@, 'users', value: {})
-  
+
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
@@ -25,8 +25,8 @@ class JVisitor extends bongo.Model
   @getVersion=(callback)->
     fs.readFile "./.revision",'utf-8',(err,data)->
       version = data.replace("\n", "")
-      callback null,version  
-  
+      callback null,version
+
   createGuest:(connection)->
     visitor = @
     {constructor} = visitor
@@ -48,7 +48,7 @@ class JVisitor extends bongo.Model
               visitor.emit 'error', err
             else
               visitor.emit ['change','logout'], guest
-  
+
   start: bongo.secure ({connection}, callback)->
     visitor = @
     {constructor} = visitor
@@ -80,7 +80,7 @@ class JVisitor extends bongo.Model
                       connection.delegate = account
                       visitor.emit ['change','login'], account
                       callback? null
-          else   
+          else
             {guestId} = session
             JGuest.one {guestId}, (err, guest)->
               if err

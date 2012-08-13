@@ -12,6 +12,10 @@ define  yumrepos ($repo) {
          'koding': {
             include yumrepos::koding
          }
+         'erlang': {
+            include yumrepos::erlang
+         }
+
 
 
     }

@@ -15,6 +15,8 @@ node_modules/.bin
 *.swp
 *.swo
 sftp-config.json
+/broker/deps
+ebin
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin

@@ -1,6 +1,6 @@
 @import "./client/Framework/themes/default/kdfn"
 
-/* 
+/*
 **  KDInput STYLES
 */
 label.kdlabel
@@ -49,7 +49,7 @@ label.kdlabel
 input.kdinput.text.validation-error,textarea.kdinput.text.validation-error
   border-color red
 
-input.kdinput.checkbox  
+input.kdinput.checkbox
   &:focus
     shadow            0 0 3px rgba(125,190,241,.7)
 
@@ -100,7 +100,7 @@ div.kdselectbox
     left              0
     size              100%,100%
     z-index           100
-    
+
 
   span.title
     display           block
@@ -122,8 +122,8 @@ div.kdselectbox
     opacity           .8
     sprite()
     bg                position,-60px -280px
-    
-    
+
+
 
 .kd-radio-holder
   line-height 20px
@@ -152,9 +152,9 @@ div.kdselectbox
 // # Ryan's Switch
 // #####
 
-.kdinputswitch-ry
+.on-off
   font-family           sans
-  width                 60px
+  width                 auto
   rounded               2px
   a
     display             inline-block
@@ -203,6 +203,11 @@ div.kdselectbox
       font-size         11px
       padding           9px 0px
       width             36px
+
+  &.tiny
+    a
+      padding           3px 0px 2px 0px
+
   &.dark
     a
       shadow            none
@@ -215,10 +220,10 @@ div.kdselectbox
 
 
 
-  
+
 .kdview.kdfileupload
   min-width         340px
-  
+
   .kdfileuploadlist,.kdfileuploadthumblist
     margin          5px 0
     span.file-size
@@ -240,7 +245,7 @@ div.kdselectbox
       size(16px,16px)
       &:hover
         color       k-orange
-  
+
   .kdfileuploadthumblist
     p.meta
       margin        0 5px
@@ -281,7 +286,7 @@ div.kdselectbox
       color         dimmed-text
       font-size     1.2em
       cursor        pointer
-    
+
 
   .kdfileuploadarea.hover
     border          1px solid rgba(125,190,241,1)

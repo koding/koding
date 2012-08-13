@@ -1,6 +1,8 @@
 class MembersMainView extends KDView
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Members"
+    header.setSearchInput()
+
     # @addSubView new CommonFeedMessage
     #   title           : "<p>Here you'll find a list of members of the Koding community. We haven't quite finished our search functionality yet, but it will be available soon.</p>"
     #   messageLocation : 'Members'

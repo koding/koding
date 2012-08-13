@@ -35,22 +35,22 @@ class KDTabView extends KDTabViewController
     pane.handleEvent type : "PaneDidShow"
     @handleEvent {type : "PaneDidShow", pane}
     pane
-  
+
   hideAllPanes:()->
     for pane in @panes
       pane.hide()
     for handle in @handles
       handle.makeInactive()
 
-  hideHandleContainer:()-> 
+  hideHandleContainer:()->
     @tabHandleContainer.hide()
     @_tabHandleContainerHidden = yes
-  showHandleContainer:()-> 
+  showHandleContainer:()->
     @tabHandleContainer.show()
     @_tabHandleContainerHidden = no
   toggleHandleContainer:(duration = 0)-> @tabHandleContainer.getDomElement().toggle duration
 
-  hideHandleCloseIcons:()-> 
+  hideHandleCloseIcons:()->
     @tabHandleContainer.getDomElement().addClass "hide-close-icons"
   showHandleCloseIcons:()->
     @tabHandleContainer.getDomElement().removeClass "hide-close-icons"

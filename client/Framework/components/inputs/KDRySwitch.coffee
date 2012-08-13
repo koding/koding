@@ -2,18 +2,25 @@
 # Ryan Switch Class
 #####
 
-class KDRySwitch extends KDInputView
-  constructor:(options)->
-    options = $.extend
-      type : "switch"       # mandatory
-      size : "small"        # a String "small" or "big"
-    ,options  
-    super options
+class KDOnOffSwitch extends KDInputView
+  constructor:(options = {}, data)->
+
+    options.type or= "switch"       # mandatory
+    options.size or= "small"        # a String tiny/small/big
+
+    super options, data
+
     @setClass options.size
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
   setDomElement:(cssClass)->
-    @domElement = $ "<div class='kdinput kdinputswitch-ry off #{cssClass}'><a href='#' class='on' title='turn on'>ON</a><a href='#' class='off' title='turn off'>OFF</a></div>"
+    title = @getOptions().title or ""
+
+    @domElement = $ """
+      <div class='kdinput on-off off #{cssClass}'>
+        #{title}
+        <a href='#' class='on' title='turn on'>ON</a><a href='#' class='off' title='turn off'>OFF</a>
+      </div> """
 
   setDefaultValue:(value) ->
     switch value
@@ -27,7 +34,7 @@ class KDRySwitch extends KDInputView
     switch value
       when on   then @_setOn()
       when off  then @_setOff()
-      
+
   _setDefaultValue: (val) ->
     setTimeout =>
       val = !!val
@@ -35,7 +42,7 @@ class KDRySwitch extends KDInputView
     , 0
 
   _setOff:(wCallback = yes)->
-    return unless @getValue()
+    return if not @getValue() and wCallback
     @inputDefaultValue = off
     @getDomElement().find("input").eq(0).attr "checked",no
     @$('a.on').removeClass('active')
@@ -43,7 +50,7 @@ class KDRySwitch extends KDInputView
     @switchStateChanged() if wCallback
 
   _setOn:(wCallback = yes)->
-    return if @getValue()
+    return if @getValue() and wCallback
     @inputDefaultValue = on
     @getDomElement().find("input").eq(0).attr "checked",yes
     @$('a.off').removeClass('active')

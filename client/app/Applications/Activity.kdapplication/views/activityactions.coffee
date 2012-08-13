@@ -91,7 +91,7 @@ class ActivityActionsView extends KDView
           #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
-    
+
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()

@@ -54,7 +54,7 @@ class Followable extends jraphical.Module
 
     sourceId = @getId()
     targetId = follower.getId()
-  
+
     Relationship.count {
       sourceId, targetId, as:'follower'
     }, (err, count)=>

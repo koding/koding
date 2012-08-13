@@ -23,9 +23,9 @@ Number::decimalToOctal = ->
       t = t + s.substring n - i - 1, n - i
     s = t
     s
-    
+
   decimalToAnother @, 8
-  
+
 
 Function::swiss = (parent, names...)->
   for name in names
@@ -33,7 +33,7 @@ Function::swiss = (parent, names...)->
   @
 
 class utils
-  
+
   rules = [
     [/(matr|vert|ind)ix|ex$/gi  , '$1ices'  ]
     [/(m)an$/gi                 , '$1en'    ]
@@ -82,15 +82,15 @@ class utils
     'deer'
     'news'
   ]
-  
+
   regExpEscape:(text)->
       text.replace /[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&"
-  
+
   getPathRegExp:(path)->
     # we coopt the express "Router" class (private API) for our own sinister purposes:
     {Route} = require 'express'
     new Route(null, path).regexp
-  
+
   pluralize:(str) ->
     # original author: TJ Holowaychuk (extracted from Ext.js)
     # ported to coffeescript for inclusion here.
@@ -102,7 +102,7 @@ class utils
 
   capitalize:(str)->
     str[0].toUpperCase()+str.substr 1
-  
+
   toCamelCase:(str)->
     str.replace /([\-][a-z])/g, ($1)-> $1.toUpperCase().replace /\-/g, ''
 
@@ -115,7 +115,7 @@ class utils
   now: ->     Date.now()
 
   uniqid: ->  Date.now() + Math.floor Math.random()*110000
-  
+
   randomBase62Hash:(length=8, ensureLength=yes)->
     # TODO: this function was ported from an answer on stackoverflow, and must
     #       perform wretchedly.  Also, it would seem likely that it is not
@@ -132,7 +132,7 @@ class utils
         hash #TODO: wtf is going on that this line is needed!? (but it is)
 
     hash.substr 0, length
-  
+
   filename:(path) -> new RegExp("(/?([^\/]+))+").exec(path).pop()
 
   dirname:(path) -> "dirname_test"
@@ -145,26 +145,26 @@ class utils
 
   nicename:(name) ->
     name.toLowerCase().replace /[^a-z0-9]+/g, '-'
-  
+
   makeTeaser:(long, options={})->
     return unless long
-    
+
     minLength = options.minLength or 450
     maxLength = options.maxLength or 600
-    
+
     return long if long < minLength or long < maxLength
-    
+
     long = long.substr 0, maxLength
-    
+
     # prefer to end the teaser at the end of a sentence (a period).
     # failing that prefer to end the teaser at the end of a word (a space).
     candidate = @tryToShorten(long, '.') or @tryToShorten long, ' ', '...'
-    
+
     if candidate?.length > minLength
       candidate
     else
       long
-  
+
   tryToShorten:(long, optimalBreak, suffix)->
     unless ~ long.indexOf optimalBreak then no
     else
@@ -182,7 +182,7 @@ class utils
 
   getNextGuestUsername:->
     'guest'
-    
+
   traverseAndStripTags:(obj, allowed)->
     self = @
     traverse(obj).map (value, key)->
@@ -200,7 +200,7 @@ class utils
 (->
   Path = require 'path'
 
-  Path.toDropbox = (path)-> 
+  Path.toDropbox = (path)->
     path = if path then @normalize path else ''
     path = path.substr 1 if path.length > 0 and path[0] is '/'
     path
@@ -211,9 +211,9 @@ class utils
 
   calls the provided function with the first filename that is
   similar to filepath, but that does not exist in the filesystem.
-  generate new filename candidates by appending an underscore "_", 
+  generate new filename candidates by appending an underscore "_",
   and the next integer.
-  ###     
+  ###
   Path.makeSafe = (filepath, callback)->
     _checkPath filepath, callback
   ###
@@ -259,7 +259,7 @@ class utils
           run path + '/' + newFolder
         else
           callback()
-          
+
     run dirs.shift()
 
 )()
