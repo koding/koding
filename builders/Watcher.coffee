@@ -231,7 +231,7 @@ class Watcher extends EventEmitter
           # if file.section is "Client"
           #   file.contents = postProcess source:(cs.compile newContent,bare:yes)
           #   # log.debug file.contents
-          # else
+          # else          
           file.contents = cs.compile newContent,bare:yes
           #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
         catch error
@@ -239,9 +239,9 @@ class Watcher extends EventEmitter
           log.error "#{(error.stack.split "\n")[0]} at: #{file.path}"
           @emit "CoffeeScript Compile Error",file.path,(error.stack.split "\n")[0]
 
-    
+            
         callback file
-  
+        @emit "coffeeFileContents",file # for sourceCodeAnalyzer.
       else
         file.contents = newContent
         callback file
