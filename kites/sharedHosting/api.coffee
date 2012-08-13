@@ -158,7 +158,7 @@ module.exports = new Kite 'sharedHosting'
       if err then console.error err
       else callback? null
 
-    mkdirp versionedPath, (err)->
+    mkdirp version4edPath, (err)->
       if err then cb err
       else
         fs.readFile userAppPath, (err, appScript)->
@@ -183,7 +183,7 @@ module.exports = new Kite 'sharedHosting'
     {username, owner, appName} = options
 
     kpmAppPath  = "/opt/Apps/#{owner}/#{appName}/latest"
-    userAppPath = "/Users/#{username}/Applications/#{appName}/latest"
+    userAppPath = "/Users/#{username}/Applications/#{appName}.kdapp"
 
     cb = (err)->
       if err then console.error err
@@ -192,15 +192,25 @@ module.exports = new Kite 'sharedHosting'
     mkdirp userAppPath, (err)->
       if err then cb err
       else
-        fs.chown userAppPath, username, username, (err)->
-          if err then cb err
+        exec "cp #{kpmAppPath}/index.js #{userAppPath}/index.js", (err, stdout, stderr)->
+          if err or stderr.length
+            cb err or new KodingError "stderr: #{stderr}"
           else
-            targetStream = fs.createWriteStream("#{userAppPath}/index.js")
-            targetStream.on "error", cb
-            targetStream.on "end", -> cb null
-            sourceStream = fs.createReadStream("#{kpmAppPath}/index.js")
-            sourceStream.on "error", cb
-            sourceStream.pipe targetStream
+            exec "chown -R #{username}:#{username} #{userAppPath}", (err, stdout, stderr)->
+              if err or stderr.length
+                cb err or new KodingError "stderr : #{stderr}"
+              else
+                cb null
+
+        #fs.chown userAppPath, username, username, (err)->
+        #  if err then cb err
+        #  else
+        #    targetStream = fs.createWriteStream("#{userAppPath}/index.js")
+        #    targetStream.on "error", cb
+        #    targetStream.on "end", -> cb null
+        #    sourceStream = fs.createReadStream("#{kpmAppPath}/index.js")
+        #    sourceStream.on "error", cb
+        #    sourceStream.pipe targetStream
 
 
 
