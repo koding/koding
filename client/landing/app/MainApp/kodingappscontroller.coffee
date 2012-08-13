@@ -279,13 +279,12 @@ class KodingAppsController extends KDController
               callback? err
             else
               kiteController = @getSingleton("kiteController")
-
-              options     =
+              options        =
                 toDo          : "installApp"
                 withArgs      :
                   owner       : acc.profile.nickname
                   username    : KD.whoami().profile.nickname
-                  appName     : manifest.name
+                  appName     : app.manifest.name
 
               kiteController.run options, (err, res)=>
                 if err then warn err
