@@ -104,7 +104,7 @@ class AccountEditUsername extends KDView
     
     emailFrequency = user.getAt('emailFrequency.global')
 
-    @emailOptOutView.addSubView new KDRySwitch
+    @emailOptOutView.addSubView new KDOnOffSwitch
       cssClass      : 'dark'
       defaultValue  : if emailFrequency is 'never' then off else on
       callback      : (state)-> 

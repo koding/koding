@@ -4,28 +4,28 @@ class ContentDisplayControllerTopic extends KDViewController
       view : mainView = new KDView
         cssClass : 'topic content-display'
     ,options
-      
+
     super options, data
-  
+
   loadView:(mainView)->
     topic = @getData()
 
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
-    
+
     contentDisplayController = @getSingleton "contentDisplayController"
-    
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
         contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
-    
+
     topicView = @addTopicView topic
 
     topicView.on 'FollowButtonClicked', @followAccount
     topicView.on 'UnfollowButtonClicked', @unfollowAccount
-    
+
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass        : ActivityListItemView
       listCssClass        : "activity-related"
@@ -48,7 +48,7 @@ class ContentDisplayControllerTopic extends KDViewController
           direction       : -1
     }, (controller)->
       mainView.addSubView controller.getView()
-  
+
   addTopicView:(topic)->
     topicContentDisplay = @getView()
     topicContentDisplay.addSubView topicView = new TopicView
@@ -56,10 +56,10 @@ class ContentDisplayControllerTopic extends KDViewController
       delegate : topicContentDisplay
     , topic
     topicView
-    
+
   followAccount:(topic, callback)->
     topic.follow callback
-  
+
   unfollowAccount:(topic,callback)->
     topic.unfollow callback
 
@@ -67,19 +67,19 @@ class TopicView extends KDView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    
+
     topic = @getData()
 
     if topic.followee
       @unfollowTheButton()
     else
       @followTheButton()
-  
+
   followTheButton:->
     {profile, counts} = topic = @getData()
-    
+
     @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView 
+    @followButton = new KDButtonView
       style : 'kdwhitebtn profilefollowbtn'
       title : "Follow"
       callback: =>
@@ -93,12 +93,12 @@ class TopicView extends KDView
           else
             @setFollowCounts followerCount, counts.following
     @addSubView @followButton, '.profileleft'
-  
+
   unfollowTheButton:()->
     {profile, counts} = topic = @getData()
-    
+
     @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView 
+    @followButton = new KDButtonView
       style : 'kdwhitebtn profilefollowbtn following-btn'
       title : "Following"
       callback: =>

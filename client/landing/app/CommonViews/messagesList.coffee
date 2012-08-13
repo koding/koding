@@ -1,14 +1,14 @@
 class MessagesListItemView extends KDListItemView
   constructor:(options, data)->
     super
-  
+
   partial:(data)->
     "<div>#{data.subject or '(No title)'}</div>"
 
 class MessagesListView extends KDListView
 
 class MessagesListController extends KDListViewController
-  
+
   constructor:(options, data)->
     options.subItemClass or= InboxMessagesListItem
     options.listView     or= new MessagesListView
@@ -18,7 +18,7 @@ class MessagesListController extends KDListViewController
     @getListView().registerListener
       KDEventTypes  : "AvatarPopupShouldBeHidden"
       listener      : @
-      callback      : => 
+      callback      : =>
         @propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
 
   fetchMessages:(callback)->
@@ -35,7 +35,7 @@ class MessagesListController extends KDListViewController
       unreadCount = 0
       for message in messages
         unreadCount++ unless message.flags_?.read
-          
+
       @emit "MessageCountDidChange", unreadCount
       callback? err,messages
 
@@ -78,7 +78,7 @@ class NotificationListItem extends KDListItemView
     follow  : ""
     share   : "shared"
     commit  : "committed"
-  
+
   constructor:(options = {}, data)->
 
     options.tagName        or= "li"
@@ -88,7 +88,7 @@ class NotificationListItem extends KDListItemView
     super options, data
 
     @setClass bucketNameMap()[data.bongo_.constructorName]
-    
+
     @snapshot = JSON.parse Encoder.htmlDecode data.snapshot
 
     # group = data.map (participant)->
@@ -96,10 +96,10 @@ class NotificationListItem extends KDListItemView
     #   id              : participant.targetOriginId
 
     {group} = @snapshot
-    
+
     @participants = new options.linkGroupClass {group}
     @avatar       = new options.avatarClass
-      size     : 
+      size     :
         width  : 40
         height : 40
       origin   : group[0]
@@ -120,13 +120,13 @@ class NotificationListItem extends KDListItemView
         </footer>
       </div>
     """
-  
+
   getLatestTimeStamp:()->
     data = @getData()
     # lastUpdateAt = @snapshot.group[@snapshot.group.length-1]
     lastUpdateAt = @snapshot.group.modifiedAt
     return lastUpdateAt or data.createdAt
-  
+
   getActionPhrase:()->
     data = @getData()
     if @snapshot.anchor.constructorName is "JPrivateMessage"
@@ -139,9 +139,9 @@ class NotificationListItem extends KDListItemView
   getActivityPlot:()->
     data = @getData()
     return activityNameMap()[@snapshot.anchor.constructorName]
-    
+
   click:->
-    
+
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
     else

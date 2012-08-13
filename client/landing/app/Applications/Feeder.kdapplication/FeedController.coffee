@@ -111,17 +111,24 @@ class FeedController extends KDViewController
     console.log options
     options
 
+  emitLoadCompleted:(filter)=>
+    listController = @resultsController.listControllers[filter.name]
+    listController.propagateEvent KDEventType : 'LazyLoadComplete'
+    return listController
+
   loadFeed:(filter = @selection)->
 
     options  = @getFeedOptions()
     selector = @getFeedSelector()
-    # log selector,options
-    filter.dataSource selector, options, (err, items)=>
-      listController = @resultsController.listControllers[filter.name]
-      listController.propagateEvent KDEventType : 'LazyLoadComplete'
-      unless err
-        listController.instantiateListItems items
-        if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
-          @loadFeed filter
-      else
-        warn err
+
+    if options.skip isnt 0 and options.skip < options.limit # Dont load forever
+      @emitLoadCompleted filter
+    else
+      filter.dataSource selector, options, (err, items)=>
+        listController = @emitLoadCompleted filter
+        unless err
+          listController.instantiateListItems items
+          if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
+            @loadFeed filter
+        else
+          warn err
