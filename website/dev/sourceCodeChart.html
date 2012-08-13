@@ -1,0 +1,56 @@
+<!--
+You are free to copy and use this sample in accordance with the terms of the
+Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>
+      Google Visualization API Sample
+    </title>
+
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['orgchart']});
+    </script>
+    <script type="text/javascript">
+      var source = []
+      part = window.location.hash.substr(1);
+      $(function(){
+          console.log("ready");
+          $.ajax({
+            url: './source'+part+'.json',
+            dataType: 'json',
+            success: function(sourceArr) {
+               source = sourceArr;
+               
+               function drawVisualization() {
+                  // Create and populate the data table.
+                  console.log(source);
+                  var data = google.visualization.arrayToDataTable(source);
+                
+                  // Create and draw the visualization.
+                  new google.visualization.OrgChart(document.getElementById('visualization')).draw(data, {allowHtml: true, size:"medium"});
+                } 
+                drawVisualization()                             
+            }
+          });
+     });
+    </script>
+  </head>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization" style="width: 300px; height: 300px;"></div>
+        <style type="text/css">
+    .google-visualization-orgchart-node {
+        width: 240px;
+    }
+    .google-visualization-orgchart-node-medium {
+        vertical-align: top;
+    }
+     </style>
+  </body>
+</html>
+​
