@@ -22,5 +22,6 @@ node hipache_nodes inherits base {
  
 node 'ip-10-85-62-69.ec2.internal' inherits hipache_nodes {
     include redis
+    include hipache
 }
  
