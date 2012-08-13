@@ -3,6 +3,9 @@ node hipache_nodes inherits base {
     include ssh
     include sudo 
 
+    yumrepos { 'koding':
+         repo => 'koding',
+    }
 
 
     hosts_file {"$fqdn": ipaddr=> $ipaddress_eth0, aliases=>$hostname}
