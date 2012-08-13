@@ -1,5 +1,5 @@
 #
 #
-class redis {
-    include redis::install,redis::service,redis::config
+class hipache {
+    include hipache::install,hipache::service,hipache::config
 }
