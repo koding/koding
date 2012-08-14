@@ -13,20 +13,6 @@
   <link rel="stylesheet" href="https://api.koding.com/css/kd.css?1336501035131" />
 </head>
 <body class="loading">
-  <script type="text/javascript">
-      var regEx = /AppleWebKit\/([\d.]+)/;
-      var result = regEx.exec(navigator.userAgent);
-
-      if(result) {
-        webkitVersion = parseFloat(result[1]);
-     
-        if(webkitVersion < 535.0) {
-          window.location.href = 'https://vimeo.com/45156018';
-        }
-      }
-      alert(webkitVersion);
-      console.log(webkitVersion);
-  </script>
   <div class="kdview main-loading">
     <figure>
       <ul>
@@ -39,7 +25,21 @@
       </ul>
     </figure>
   </div>
+
+  <script type="text/javascript">
+    var regEx = /AppleWebKit\/([\d.]+)/;
+    var result = regEx.exec(navigator.userAgent);
+
+    if(result || navigator.appName=='Microsoft Internet Explorer') {
+      webkitVersion = parseFloat(result[1]);
+      if(webkitVersion < 535.0) {
+        window.location.href = '/unsupported.html';
+      }
+    }
+  </script>
+
   <script src="https://api.koding.com/js/require.js"></script>
+
   <script>
     require.config({baseUrl: "https://api.koding.com/js", waitSeconds:15});
     require([
@@ -51,6 +51,7 @@
       "order!https://api.koding.com/js/libs/diff_match_patch.js"
     ]);    
   </script>
+
   <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-6520910-8']);
