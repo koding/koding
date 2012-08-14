@@ -92,7 +92,6 @@ Includes =
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
         jdatabase                 : "./server/app/bongo/models/database.coffee"
-        jenvironment              : "./server/app/bongo/models/environment.coffee"
         jappstorage               : "./server/app/bongo/models/appStorage.coffee"
         jaccount                  : "./server/app/bongo/models/account.coffee"
         jsession                  : "./server/app/bongo/models/session.coffee"

@@ -27,7 +27,8 @@ Broker.prototype.connect = function () {
     this.ws.addEventListener('message', function (e) {
         var data = JSON.parse(e.data);
         if (!data.event) return;
-        var evt = new Event(data.event);
+        var evt = {};
+        evt.type = data.event;        
         evt.data = data.payload;
         self.ws.dispatchEvent(evt);
     });
@@ -47,8 +48,11 @@ Broker.prototype.channel = function (name) {
     return this.channels[name];
 };
 
-Broker.prototype.on = Broker.prototype.bind = function (eventType, listener) {
-    this.ws.addEventListener(eventType, listener);
+Broker.prototype.on = Broker.prototype.bind = function (eventType, listener, ctx) {
+    var self = this;
+    this.ws.addEventListener(eventType, function (event) {
+        listener.call(ctx || self, event.data);
+    });
 };
 
 Broker.prototype.off = Broker.prototype.unbind = function (eventType, listener) {
@@ -107,8 +111,11 @@ var Channel = function(ws, name) {
                 if (!data.event || !data.channel) return;
                 var channel = self.privateName || self.name;
                 if (data.channel !== channel) return;
-                var evt = new Event(channel+'.'+data.event);
-                if (data.payload) data.payload = JSON.parse(data.payload);
+                var evt = {};
+                evt.type = channel+'.'+data.event;
+                if (data.payload) {
+                  data.payload = JSON.parse(data.payload);
+                }
                 evt.data = data.payload;
                 ws.dispatchEvent(evt);
             });
@@ -123,12 +130,17 @@ var Channel = function(ws, name) {
     self.state.on('authorized', onopen);
 };
 
-Channel.prototype.on = Channel.prototype.bind = function(eventType, listener) {
+Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ctx) {
+    var self = this;
+    var brokerListener = function (event) {
+        listener.call(ctx || self, event.data);
+    };
+
     if (this.ws.readyState > 0) {
         if (!this.isPrivate || this.privateName) {
             var channel = this.privateName || this.name;
             sendWsMessage(this.ws, "client-bind-event", channel, eventType);
-            this.ws.addEventListener(channel+'.'+eventType, listener);
+            this.ws.addEventListener(channel+'.'+eventType, brokerListener);
         } else {
             this.state.on('authorized', this.on.bind(this, eventType, listener));
         }
