@@ -158,7 +158,7 @@ module.exports = new Kite 'sharedHosting'
       if err then console.error err
       else callback? null
 
-    mkdirp version4edPath, (err)->
+    mkdirp versionedPath, (err)->
       if err then cb err
       else
         fs.readFile "#{userAppPath}/index.js", (err, appScript)->
@@ -171,6 +171,7 @@ module.exports = new Kite 'sharedHosting'
                   if err then cb err
                   else
                     fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
+                      console.log manifest
                       if err then cb err
                       else
                         fs.stat latestPath, (err, statObj)->
@@ -198,7 +199,7 @@ module.exports = new Kite 'sharedHosting'
     mkdirp userAppPath, (err)->
       if err then cb err
       else
-        exec "cp #{kpmAppPath}/index.js #{userAppPath}/index.js", (err, stdout, stderr)->
+        exec "cp #{kpmAppPath}/index.js #{userAppPath}/index.js && cp #{kpmAppPath}/.manifest #{userAppPath}/.manifest", (err, stdout, stderr)->
           if err or stderr.length
             cb err or new KodingError "stderr: #{stderr}"
           else
