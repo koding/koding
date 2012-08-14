@@ -153,8 +153,8 @@ bongo.connect (api, conn)->
         channel.bind 'change.channel', ->
           bongo.mq.unsubscribe channelId
           cyclePrivateChannel delegate
-        channel.bind 'message', (msg)->
-          console.log msg
+        ###channel.bind 'message', (msg)->
+          console.log msg###
 
     changeLoginState = (delegate)->
       cyclePrivateChannel(delegate)
