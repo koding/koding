@@ -138,9 +138,9 @@ class KodingAppsController extends KDController
       {nickname}  = KD.whoami().profile
       publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
       userAppPath = if /~\//.test manifest.path
-        manifest.path.replace("~/", "/Users/#{nickname}/") + "index.js"
+        manifest.path.replace("~/", "/Users/#{nickname}/")
       else 
-        "#{manifest.path}/index.js"
+        "#{manifest.path}/"
       options     =
         toDo          : "publishApp"
         withArgs      :
