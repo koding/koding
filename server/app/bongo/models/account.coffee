@@ -41,7 +41,7 @@ class JAccount extends jraphical.Module
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','getDefaultEnvironment'
+        'fetchFollowingWithRelationship'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
@@ -53,7 +53,6 @@ class JAccount extends jraphical.Module
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
-        # defaultEnvironment  : JEnvironment
         defaultToLastUsedEnvironment :
           type              : Boolean
           default           : yes
@@ -97,10 +96,6 @@ class JAccount extends jraphical.Module
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
-      environment   :
-        as          : 'owner'
-        targetType  : JEnvironment
-
       mount         :
         as          : 'owner'
         targetType  : JMount
@@ -409,13 +404,6 @@ class JAccount extends jraphical.Module
               if err then callback err
               else
                 callback null,environment
-
-  getDefaultEnvironment: secure (client, callback)->
-    unless @equals client.connection.delegate
-      return callback null, 'Not enough privileges'
-
-    defaultEnvironment = new JEnvironment environmentId : 'wikiwikiblueblue'
-    callback defaultEnvironment
 
   setClientId:(@clientId)->
 

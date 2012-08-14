@@ -20,26 +20,35 @@ class KiteController {
   }
   
   public function add_cluster ($kite_name, $cluster=NULL) {
-    // trace($kite_name, $cluster);
     if (!isset($cluster)) {
       $cluster = $this->get_cluster($kite_name);
     }
     if (!isset($this->clusters[$kite_name])) {
-      $this->clusters = array();
+      $this->clusters[$kite_name] = array();
     }
     $cluster = new KiteCluster($kite_name, $cluster);
-    trace('pushing', $kite_name, $cluster);
     array_push(
       $this->clusters[$kite_name],
       $cluster
     );
-    trace('kluster name', $kite_name, count($this->clusters[$kite_name]));
     return count($this->clusters[$kite_name]);
   }
   
   public function get_cluster ($kite_name) {
     if (!isset($this->clusters[$kite_name])) {
       $this->clusters[$kite_name] = array();
+      $db = get_mongo_db();
+      $custom_cluster = $db->jKiteClusters->findOne(array(
+        'kiteName' => $kite_name,
+      ));
+      if (isset($custom_cluster)) {
+        trace('in here');
+        $custom_cluster = (object) $custom_cluster;
+        $this->add_cluster($kite_name, $custom_cluster);
+        $clusters =& $this->get_cluster($kite_name);
+        trace('kluster', $clusters);
+        return $clusters;
+      }
     }
     return $this->clusters[$kite_name];
   }
@@ -58,27 +67,7 @@ class KiteController {
     $parsed_uri = parse_url($uri);
     $result = array('addedTo' => array());
     $clusters =& $this->get_cluster($kite_name);
-    if (count($clusters) == 0) {
-      if (isset($service_key)) {
-        $db = get_mongo_db();
-        $custom_cluster = $db->jKiteClusters->findOne(array(
-          'kiteName' => $kite_name,
-          'serviceKey' => $service_key,
-        ));
-        if (isset($custom_cluster)) {
-          $custom_cluster = (object) $custom_cluster;
-          $this->add_cluster($kite_name, $custom_cluster);
-          $clusters =& $this->get_cluster($kite_name);
-        }
-      }
-      if (!isset($clusters)) {
-        error_log("Couldn't find a kite named: $kite_name.  ($service_key)");
-        return FALSE;
-      }
-    }
-    trace('klusters', $clusters);
     foreach ($clusters as $index=>$cluster) {
-      trace('looking at a kluster', $index);
       if (
       ((  isset($service_key)
       &&  $cluster->trustPolicy->test('untrustedKite', $service_key))
@@ -87,7 +76,6 @@ class KiteController {
       ))
       && $cluster->add_kite($uri)
       ) {
-        trace('in here captain');
         $pinger = $this->get_kite('pinger', 'kc');
         if (!isset($pinger)) {
           error_log('Pinger kite could not be reached!');
@@ -103,7 +91,7 @@ class KiteController {
         else {
           foreach ($this->clusters as $cluster) {
             foreach ($cluster as $node) {
-              if ($node->name == 'pinger') {
+              if ($node->kite_name == 'pinger') {
                 continue;
               }
               $kites = $node->get_kites();
@@ -147,7 +135,8 @@ class KiteController {
   }
 
   private function get_next_kite_uri ($kite_name) {
-    $clusters = $this->clusters[$kite_name];
+    $clusters = $this->get_cluster($kite_name);
+    trace('kite name', $kite_name, 'cluster', $cluster);
     $cluster = $clusters[0];
     if (!isset($cluster)) {
       error_log("Cluster is not found: $kite_name");
