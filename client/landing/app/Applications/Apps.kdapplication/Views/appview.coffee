@@ -41,16 +41,16 @@ class AppView extends KDView
         appsController.installApp app, (err)=>
           @hideLoader()
 
-    @forkButton = new KDButtonView
-      title     : "Fork"
-      style     : "clean-gray"
-      disabled  : !app.manifest.repo?
-      loader    :
-        top     : 0
-        diameter: 30
-      callback  : ->
-        appsController.forkApp app, (err)=>
-          @hideLoader()
+    # @forkButton = new KDButtonView
+    #   title     : "Fork"
+    #   style     : "clean-gray"
+    #   disabled  : !app.manifest.repo?
+    #   loader    :
+    #     top     : 0
+    #     diameter: 30
+    #   callback  : ->
+    #     appsController.forkApp app, (err)=>
+    #       @hideLoader()
     
     unless app.manifest.repo
       @forkButton.setTooltip
@@ -79,7 +79,6 @@ class AppView extends KDView
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
       <div class="installerbar clearfix">
         {{> @installButton}}
-        {{> @forkButton}}
         <div class="versionstats updateddate">Version {{ #(manifest.version) or "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) or 0}}<p>INSTALLS</p></div>

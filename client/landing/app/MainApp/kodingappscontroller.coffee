@@ -18,7 +18,7 @@ class KodingAppsController extends KDController
     
     return path
 
-  getAppFromPath = (path, callback = noop)->
+  getManifestFromPath = (path, callback = noop)->
 
     folderName = (arr = path.split("/"))[arr.length-1]
     app        = null
@@ -184,7 +184,7 @@ class KodingAppsController extends KDController
   publishApp:(path, callback)->
 
     kiteController = @getSingleton('kiteController')
-    appName        = getAppFromPath(path).name
+    appName        = getManifestFromPath(path).name
     
     @getApp appName, (appScript)=>
 
@@ -316,7 +316,14 @@ class KodingAppsController extends KDController
                   appManager.openApplication "Develop"
                   callback?()
 
-  forkApp:(app, callback)->
+  forkRepoCommandMap = ->
+    git : "git clone"
+    svn : "svn checkout"
+    hg  : "hg clone"
+
+  cloneApp:(path, callback)->
+
+    kiteController = @getSingleton('kiteController')
 
     @fetchApps (err, manifests = {})=>
       if err
@@ -324,6 +331,33 @@ class KodingAppsController extends KDController
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
         callback? err
       else
-        log "forking the app: #{app.title}"
-        new KDNotificationView type : "mini", title : "Not yet ready hang on!"
-        callback?()
+        manifest = getManifestFromPath path
+        # debugger
+        log "cloning the app: #{manifest.name}"
+        log "checking the repo: #{manifest.repo}" 
+        {repo} = manifest
+
+        if /^git/.test repo      then repoType = "git"
+        else if /^svn/.test repo then repoType = "svn"
+        else if /^hg/.test repo  then repoType = "hg"
+        else
+          log repoType,">>>>"
+          err = "Unsupported repository specified, quitting!"
+          new KDNotificationView type : "mini", title : err
+          callback? err
+          return no
+
+        appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
+        kiteController.run
+          withArgs    :
+            command   : "mv #{appPath} #{appPath}.old#{@utils.getRandomNumber 9999}"
+        , (err, response)->
+          if err then warn err
+          kiteController.run
+            withArgs    :
+              command   : "#{forkRepoCommandMap()[repoType]} #{repo} /Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp/"
+          , (err, response)->
+            if err then warn err
+            else
+              log response, "App cloned!"
+            callback? err, response

@@ -162,6 +162,9 @@ class NFinderContextMenuController extends KDController
           Compile                 :
             action                : "compile"
             separator             : yes
+          "Download source files" :
+            action                : "cloneRepo"
+            separator             : yes
           "Publish to App Catalog":
             action                : "publish"
 
