@@ -47,8 +47,9 @@ init_state(Callback) ->
 
 sockjs_init(Conn, State) ->
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
-    Event = [{<<"event">>,<<"connected">>}, {<<"socket_id">>,SocketId}],
-    Conn:send(jsx:encode(Event)),
+    Event = {<<"event">>, <<"connected">>},
+    Payload = {<<"socket_id">>, SocketId},
+    Conn:send(jsx:encode([Event, Payload])),
     {ok, State#state{socket_id=SocketId}}.
 
 sockjs_handle(Conn, Data, State = #state{callback=Callback, 
@@ -56,7 +57,6 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
                                         socket_id=SocketId}) ->
     [Event, Exchange, Payload] = decode(Data),
 
-    % Check the event type and whether Conn is subscribed to the Exchange
     case {Event, orddict:is_key(Exchange, Subscriptions)} of
         {<<"client-subscribe">>, false} ->
             VConn = broker_channel:new(Conn, Exchange),
@@ -71,9 +71,24 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             Subs1 = orddict:erase(Exchange, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
+        {<<"client-bind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Body = {bind, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
+        {<<"client-unbind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Body = {unbind, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
         {<<"client-",_EventName/binary>>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
-            Sub1 = emit({recv, Payload, SocketId}, Callback, Subscription),
+            Body = {trigger, Event, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -82,10 +97,10 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             {ok, State}
     end.
 
-sockjs_terminate(_Conn, State = #state{callback=Callback, 
+sockjs_terminate(_Conn, #state{ callback=Callback, 
                                 subscriptions=Subscriptions}) ->
-    _ = [ {emit(closed, Callback, Subscription)} ||
-            {_Exchange, Subscription} <- orddict:to_list(Subscriptions) ],
+    _ = [{emit(closed, Callback, Subscription)} ||
+        {_Exchange, Subscription} <- orddict:to_list(Subscriptions)],
     {ok, #state{callback=Callback, subscriptions=orddict:new()}}.
 
 
@@ -101,30 +116,15 @@ sockjs_terminate(_Conn, State = #state{callback=Callback,
 %%--------------------------------------------------------------------
 emit(What, Callback, Subscription = #subscription{state = State, 
                                                 vconn = VConn}) ->
-    %State1 = State#subscription{exchange = Exchange},
     case Callback(VConn, What, State) of
         {ok, State1} -> Subscription#subscription{state = State1};
         ok           -> Subscription
     end.
 
 decode(Data) ->
-    [{<<"event">>, Event}, {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+    [{<<"event">>, Event}, 
+        {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
     case lists:keyfind(<<"payload">>, 1, Rest) of
         {<<"payload">>, Payload} ->  [Event, Exchange, Payload];
         false -> [Event, Exchange, <<>>]
     end.
-
-%%--------------------------------------------------------------------
-%% Function: split(Char, Str, Limit) -> [Event, Exchange, Payload]
-%% Description: Split the binary-to-string-list Data into a list.
-%%--------------------------------------------------------------------
-split(Char, Str, Limit) ->
-    Acc = split(Char, Str, Limit, []),
-    lists:reverse(Acc).
-split(_Char, _Str, 0, Acc) -> Acc;
-split(Char, Str, Limit, Acc) ->
-    {L, R} = case string:chr(Str, Char) of
-                 0 -> {Str, ""};
-                 I -> {string:substr(Str, 1, I-1), string:substr(Str, I+1)}
-             end,
-    split(Char, R, Limit-1, [L | Acc]).
