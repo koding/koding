@@ -283,6 +283,9 @@ build = (options)->
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
 
   builder = new Builder options,targetPaths,"",run
+  
+  sourceCodeAnalyzer.attachListeners builder
+  
   builder.watcher.initialize()
 
   # EVENTS -
@@ -297,8 +300,6 @@ build = (options)->
 
 
   builder.watcher.on "initDidComplete",(changes)->
-    fs.writeFileSync "./website/dev/sourceClient.json",JSON.stringify sourceCodeAnalyzer.tree.Client
-    fs.writeFileSync "./website/dev/sourceServer.json",JSON.stringify sourceCodeAnalyzer.tree.Server
     builder.buildServer "",()->
       unless options.dontStart
         builder.processMonitor.flags.forever = yes
@@ -338,7 +339,7 @@ build = (options)->
 
     issueFrontendReloadCommand()
 
-  builder.watcher.on "coffeeFileContents",sourceCodeAnalyzer.add
+  
 
   builder.processMonitor.on "processDidExit",(code)->
 
