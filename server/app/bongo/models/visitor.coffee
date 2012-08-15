@@ -51,6 +51,7 @@ class JVisitor extends bongo.Model
 
   start: bongo.secure ({connection}, callback)->
     visitor = @
+    console.log visitor
     {constructor} = visitor
     connection.remote.fetchClientId (clientId)->
       constructor.visitors[clientId] = visitor
@@ -58,28 +59,31 @@ class JVisitor extends bongo.Model
         if err
           callback? err
         else
+          console.log session
           unless session
             visitor.createGuest connection
           else if session.username
             {username} = session
-            user = constructor.users[username]
-            if user
-              user.fetchOwnAccount (err, account)->
-                if err
-                  callback? err
-                visitor.emit ['change', 'login'], account
-            else
-              JUser.one {username}, (err, user)->
-                if err
-                  callback? err
-                else
-                  user.fetchOwnAccount (err, account)->
-                    if err
-                      callback? err
-                    else
-                      connection.delegate = account
+            # user = constructor.users[username]
+            # if user
+            #   user.fetchOwnAccount (err, account)->
+            #     if err
+            #       callback? err
+            #     visitor.emit ['change', 'login'], account
+            # else
+            JUser.one {username}, (err, user)->
+              if err
+                callback? err
+              else
+                user.fetchOwnAccount (err, account)->
+                  if err
+                    callback? err
+                  else
+                    connection.delegate = account
+                    setTimeout ->
                       visitor.emit ['change','login'], account
-                      callback? null
+                    , 5000
+                    callback? null
           else
             {guestId} = session
             JGuest.one {guestId}, (err, guest)->
@@ -93,6 +97,8 @@ class JVisitor extends bongo.Model
                     visitor.createGuest connection
               else
                 connection.delegate = guest
-                visitor.emit ['change','logout'], guest
+                setTimeout ->
+                  visitor.emit ['change','logout'], guest
+                , 5000
                 callback? null
                 # visitor.uber 'save', callback

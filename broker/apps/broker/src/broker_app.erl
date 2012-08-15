@@ -38,8 +38,8 @@
                         consumer,
                         routing_keys = orddict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
--define (RABBITMQ, "localhost").
-%-define (RABBITMQ, "web0.beta.system.aws.koding.com").
+%-define (RABBITMQ, "localhost").
+-define (RABBITMQ, "web0.beta.system.aws.koding.com").
 
 %% ===================================================================
 %% Application callbacks
@@ -143,7 +143,9 @@ terminate(_Req, _State) ->
 %%--------------------------------------------------------------------
 handle_subscription(Conn, {init, From}, _State) ->
     {ok, Broker} =
-        amqp_connection:start(#amqp_params_network{host = ?RABBITMQ}),
+        amqp_connection:start(#amqp_params_network{host = ?RABBITMQ,
+                                                    username = <<"guest">>,
+                                                    password = <<"x1srTA7!%Vb}$n|S">>}),
 
     {topic, Exchange} = lists:last(Conn:info()),
 
@@ -181,8 +183,9 @@ handle_subscription(_Conn, {bind, Event, _From},
                                         exchange = Exchange,
                                         consumer = Consumer,
                                         routing_keys = Keys}) ->
-
+    io:format("Begin time ~p~n", [now()]),
     Queue = bind_queue(Channel, Exchange, Event, Consumer),
+    io:format("End time ~p~n", [now()]),
     NewKeys = orddict:store(Event, Queue, Keys),
     {ok, State#subscription{routing_keys = NewKeys}};
 
