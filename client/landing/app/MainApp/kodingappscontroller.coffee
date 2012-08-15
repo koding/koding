@@ -4,9 +4,34 @@ class KodingAppsController extends KDController
 
   @manifests = {}
 
-  constructor:->
+  # #
+  # HELPERS
+  # #
 
-    super
+  getAppPath = (app)->
+
+    {profile} = KD.whoami()
+    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}"
+    else app.path
+ 
+    path += "/" unless path[path.length-1] is "/"
+    
+    return path
+
+  getAppFromPath = (path, callback = noop)->
+
+    folderName = (arr = path.split("/"))[arr.length-1]
+    app        = null
+    
+    for own name, manifest of KodingAppsController.manifests
+      do ->
+        app = manifest if manifest.path.search(folderName) > -1
+          
+    return app
+
+  # #
+  # FETCHERS
+  # #
 
   fetchApps:(callback)->
     
@@ -72,6 +97,20 @@ class KodingAppsController extends KDController
         else
           callback new Error "There are no apps in the app storage."
 
+  fetchCompiledApp:(name, callback)->
+
+    @getSingleton("kiteController").run
+      withArgs  : 
+        command : "cat /Users/#{KD.whoami().profile.nickname}/Applications/#{name}.kdapp/index.js"
+    , (err, response)=>
+      if err then warn err
+      callback err, response
+
+
+  # #
+  # MISC
+  # #
+
   refreshApps:(callback)->
 
     @constructor.manifests = {}
@@ -85,12 +124,37 @@ class KodingAppsController extends KDController
         $set: { "bucket.apps" : apps }
       }, => log arguments,"kodingAppsController storage updated"
 
+  defineApp:(name, script)->
+    
+    KDApps[name] = script
+
+  getApp:(name, callback = noop)->
+
+    if KDApps[name]
+      callback KDApps[name]
+    else
+      @fetchCompiledApp name, (err, script)=>
+        if err
+          @compileSource name, (err)=>
+            if err
+              new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+              callback err
+            else
+              callback KDApps[name]
+        else
+          @defineApp name, script
+          callback KDApps[name]
+
+  # #
+  # KITE INTERACTIONS
+  # #
+
   addScript:(app, scriptInput, callback)->
     
     if /^\.\//.test scriptInput
       @getSingleton("kiteController").run
         withArgs  : 
-          command : "cat #{@getAppPath app}/#{scriptInput}"
+          command : "cat #{getAppPath app}/#{scriptInput}"
       , (err, response)=>
         if err then warn err
         
@@ -103,23 +167,13 @@ class KodingAppsController extends KDController
     else
       callback null, scriptInput
   
-  getAppPath:(app)->
-
-    {profile} = KD.whoami()
-    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}"
-    else app.path
- 
-    path += "/" unless path[path.length-1] is "/"
-    
-    return path
   
   saveCompiledApp:(app, script, callback)->
     
-
     @getSingleton("kiteController").run
       toDo        : "uploadFile"
       withArgs    : {
-        path      : FSHelper.escapeFilePath "#{@getAppPath app}index.js"
+        path      : FSHelper.escapeFilePath "#{getAppPath app}index.js"
         contents  : script
       }
     , (err, response)=>
@@ -130,7 +184,7 @@ class KodingAppsController extends KDController
   publishApp:(path, callback)->
 
     kiteController = @getSingleton('kiteController')
-    appName        = @getAppFromPath(path).name
+    appName        = getAppFromPath(path).name
     
     @getApp appName, (appScript)=>
 
@@ -162,38 +216,9 @@ class KodingAppsController extends KDController
               # instance.feedController.changeActiveSort "meta.modifiedAt"
               callback?()
 
-
-  defineApp:(app, script)->
-    
-    KDApps[app.name] = script
-  
-  getAppFromPath:(path, callback = noop)->
-
-    folderName = (arr = path.split("/"))[arr.length-1]
-    app        = null
-    
-    for own name, manifest of @constructor.manifests
-      do ->
-        app = manifest if manifest.path.search(folderName) > -1
-          
-    return app
-
-  getApp:(name, callback = noop)->
-
-    if KDApps[name]
-      callback KDApps[name]
-    else
-      @compileSource name, =>
-        callback KDApps[name]
-  
   compileSource:(name, callback)->
 
-    # log "ever compileSource"
-    
-    
     kallback = (app)=>
-      
-      # log "ever kallback"
       
       return warn "#{name}: No such app!" unless app
 
@@ -213,11 +238,10 @@ class KodingAppsController extends KDController
       asyncStack   = []
 
       orderedBlocks.forEach (block)=>
-        # log block.pre  if block.pre
+
         if block.pre
           asyncStack.push (cb)=> @addScript app, block.pre, cb
-          
-        # log ">>>>>>> processing block named #{block.name} <<<<<<<<"
+
         if block.files
           {files} = block
           files.forEach (file, index)=>
@@ -251,7 +275,7 @@ class KodingAppsController extends KDController
         _final += "/* KDAPP ENDS */\n\n}).call();"
         
         
-        _final = @defineApp app, _final
+        _final = @defineApp app.name, _final
         @saveCompiledApp app, _final, =>
           callback?()
 
