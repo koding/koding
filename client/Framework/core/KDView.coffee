@@ -1,7 +1,9 @@
 class KDView extends KDObject
+
 # #
 # CLASS LEVEL STUFF
 # #
+
   {defineProperty} = Object
   deprecated = (methodName)-> warn "#{methodName} is deprecated from KDView if you need it override in your subclass"
   eventNames =

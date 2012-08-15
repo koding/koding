@@ -44,12 +44,18 @@ class AppView extends KDView
     @forkButton = new KDButtonView
       title     : "Fork"
       style     : "clean-gray"
+      disabled  : !app.manifest.repo?
       loader    :
         top     : 0
         diameter: 30
       callback  : ->
         appsController.forkApp app, (err)=>
           @hideLoader()
+    
+    unless app.manifest.repo
+      @forkButton.setTooltip
+        title   : "No repository specified for the app!"
+        gravity : "w"
 
   viewAppended:->
     @setTemplate @pistachio()

@@ -151,6 +151,7 @@ class StartTabMainView extends JView
         type         : "application"
       , (appView = new KDView)
       callback?()
+      # security please!
       eval appScript
       return appView
 
