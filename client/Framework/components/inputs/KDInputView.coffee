@@ -72,14 +72,16 @@ class KDInputView extends KDView
         listenedToInstance : @
         callback           : => @clearValidationFeedback()
 
-
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @
-      callback           : =>
-        o = @getOptions()
-        if o.type is "select" and o.selectOptions
-          @setValue o.selectOptions[0].value unless o.defaultValue
+    if options.type is "select" and options.selectOptions
+      @listenTo
+        KDEventTypes       : "viewAppended"
+        listenedToInstance : @
+        callback           : =>
+          o = @getOptions()
+          unless o.selectOptions.length
+            @setValue o.selectOptions[Object.keys(o.selectOptions)[0]][0].value unless o.defaultValue
+          else
+            @setValue o.selectOptions[0].value unless o.defaultValue
 
   setDomElement:(cssClass = "")->
     @inputName = @options.name
@@ -120,8 +122,18 @@ class KDInputView extends KDView
     @$().trigger "focus"
 
   setSelectOptions:(options)->
-    for option in options
-      @$().append "<option value='#{option.value}'>#{option.title}</option>"
+    unless options.length
+      for optGroup, subOptions of options
+        $optGroup = $ "<optgroup label='#{optGroup}'/>"
+        @$().append $optGroup
+        for option in subOptions
+          $optGroup.append "<option value='#{option.value}'>#{option.title}</option>"
+    else if options.length
+      for option in options
+        @$().append "<option value='#{option.value}'>#{option.title}</option>"
+    else
+      warn "no valid options specified for the input:", @
+
     @$().val @getDefaultValue()
 
   setDefaultValue:(value) ->
