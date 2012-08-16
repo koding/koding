@@ -201,7 +201,7 @@ handle_subscription(_Conn, {unbind, Event, _From},
                     State = #subscription{  channel = Channel,
                                             exchange = Exchange,
                                             routing_keys = Keys}) ->
-    case orddict:find(Event, Keys) of 
+    case dict:find(Event, Keys) of 
         {ok, Queue} ->
             unbind_queue(Channel, Exchange, Event, Queue),
             % Remove from the dictionary
@@ -231,18 +231,23 @@ handle_subscription(_Conn, {trigger, Event, Payload, From},
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(_Conn, closed, State) -> {ok, State}.
-%% Description: When the client unsubscribes from the exchange, delete
-%% the exchange, close the channel and the connection.
+%% Description: When the client unsubscribes from the exchange, unbind
+%% all the bound queues from the exchange.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, #subscription{channel = Channel}) ->
+handle_subscription(_Conn, closed, 
+                    #subscription{channel = Channel,
+                                    exchange = Exchange,
+                                    routing_keys = Keys}) ->
+    [unbind_queue(Channel, Exchange, Binding, Queue) || 
+        {Binding, Queue} <- dict:to_list(Keys)],
     {ok, #subscription{}};
 
+%%--------------------------------------------------------------------
+%% Function: handle_subscription(_Conn, ended, Channel) -> {ok, State}.
+%% Description: When the connection terminates, close the channel.
+%%--------------------------------------------------------------------
 handle_subscription(_Conn, ended, Channel) ->
-    % TODO: Check if exchane has no bound queue (passive), then delete
-    % Delete = #'exchange.delete'{exchange = Exchange},
-    % #'exchange.delete_ok'{} = amqp_channel:call(Channel, Delete)
     amqp_channel:close(Channel),
-    %amqp_connection:close(Broker),
     {ok, #subscription{}}.
 
 %%--------------------------------------------------------------------
