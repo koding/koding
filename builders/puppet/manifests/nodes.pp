@@ -51,7 +51,7 @@ node base {
                 "perl-Digest-HMAC.noarch",
                 "python-boto.noarch",
                 "python-argparse.noarch",
-                "make"]:
+                ]:
             ensure => present
             }
             
@@ -73,3 +73,4 @@ import 'ftp_nodes.pp'
 import 'api_nodes.pp'
 import 'gluster_nodes.pp'
 import 'fm_nodes.pp'
+import 'hipache_nodes.pp'

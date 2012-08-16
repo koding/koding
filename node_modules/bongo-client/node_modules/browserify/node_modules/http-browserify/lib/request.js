@@ -1,10 +1,11 @@
 var EventEmitter = require('events').EventEmitter;
 var Response = require('./response');
+var concatStream = require('concat-stream')
 
 var Request = module.exports = function (xhr, params) {
     var self = this;
     self.xhr = xhr;
-    self.body = '';
+    self.body = concatStream()
     
     var uri = params.host + ':' + params.port + (params.path || '/');
     
@@ -52,12 +53,13 @@ Request.prototype.setHeader = function (key, value) {
 };
 
 Request.prototype.write = function (s) {
-    this.body += s;
+    this.body.write(s);
 };
 
 Request.prototype.end = function (s) {
-    if (s !== undefined) this.write(s);
-    this.xhr.send(this.body);
+    if (s !== undefined) this.body.write(s);
+    this.body.end()
+    this.xhr.send(this.body.getBody());
 };
 
 // Taken from http://dxr.mozilla.org/mozilla/mozilla-central/content/base/src/nsXMLHttpRequest.cpp.html
