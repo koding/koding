@@ -38,8 +38,8 @@
                         consumer,
                         routing_keys = orddict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
-%-define (RABBITMQ, "localhost").
--define (RABBITMQ, "web0.beta.system.aws.koding.com").
+-define (RABBITMQ, "localhost").
+%-define (RABBITMQ, "web0.beta.system.aws.koding.com").
 
 %% ===================================================================
 %% Application callbacks
@@ -58,7 +58,10 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
-    MultiplexState = sockjs_mq:init_state(fun handle_subscription/3),
+    {ok, Broker} =
+        amqp_connection:start(#amqp_params_network{host = ?RABBITMQ}),
+
+    MultiplexState = sockjs_mq:init_state(Broker, fun connect/1, fun handle_subscription/3),
 
     %% sockjs_handler:init_state(Prefix, Callback, State, Options)
     %% Callback is a sockjs_service behavior module.
@@ -135,17 +138,23 @@ terminate(_Req, _State) ->
 %% SockJS_MQ Handlers
 %% ===================================================================
 
+connect(Broker) ->
+    {ok, Channel} = amqp_connection:open_channel(Broker),
+    Channel.
+
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {init, From}, _State) -> 
 %%              {ok, NewState}
 %% Description: Set up RabbitMQ connection and channel, then spawn the 
 %% receiving loop. This process also declares the Exchange.
 %%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From}, _State) ->
-    {ok, Broker} =
-        amqp_connection:start(#amqp_params_network{host = ?RABBITMQ,
-                                                    username = <<"guest">>,
-                                                    password = <<"x1srTA7!%Vb}$n|S">>}),
+handle_subscription(Conn, {init, From, Channel}, _State) ->
+    
+    % io:format("Begin time ~p~n", [now()]),
+    % {ok, Broker} =
+    %     amqp_connection:start(#amqp_params_network{host = ?RABBITMQ}),
+    % io:format("End time ~p~n", [now()]),
+
 
     {topic, Exchange} = lists:last(Conn:info()),
 
@@ -157,15 +166,13 @@ handle_subscription(Conn, {init, From}, _State) ->
         {match, _}  -> Private = true;
         nomatch     -> Private = false
     end,
-
-    {ok, Channel} = amqp_connection:open_channel(Broker),
+    % {ok, Channel} = amqp_connection:open_channel(Broker),
 
     Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
 
     Conn:send(<<"broker:subscription_succeeded">>, <<>>),
     
-    {ok, #subscription{ broker      = Broker, 
-                        channel     = Channel, 
+    {ok, #subscription{ channel     = Channel, 
                         exchange    = Exchange,
                         private     = Private,
                         consumer    = Pid}};
@@ -183,9 +190,9 @@ handle_subscription(_Conn, {bind, Event, _From},
                                         exchange = Exchange,
                                         consumer = Consumer,
                                         routing_keys = Keys}) ->
-    io:format("Begin time ~p~n", [now()]),
+    %io:format("Begin time ~p~n", [now()]),
     Queue = bind_queue(Channel, Exchange, Event, Consumer),
-    io:format("End time ~p~n", [now()]),
+    %io:format("End time ~p~n", [now()]),
     NewKeys = orddict:store(Event, Queue, Keys),
     {ok, State#subscription{routing_keys = NewKeys}};
 
@@ -233,13 +240,12 @@ handle_subscription(_Conn, {trigger, Event, Payload, From},
 %% Description: When the client unsubscribes from the exchange, delete
 %% the exchange, close the channel and the connection.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, #subscription{channel = Channel,
-                                                broker=Broker}) ->
+handle_subscription(_Conn, closed, #subscription{channel = Channel}) ->
     % TODO: Check if exchane has no bound queue (passive), then delete
     % Delete = #'exchange.delete'{exchange = Exchange},
     % #'exchange.delete_ok'{} = amqp_channel:call(Channel, Delete)
-    amqp_channel:close(Channel),
-    amqp_connection:close(Broker),
+    %amqp_channel:close(Channel),
+    %amqp_connection:close(Broker),
     {ok, #subscription{}}.
 
 %%--------------------------------------------------------------------
@@ -268,7 +274,7 @@ broadcast(From, Channel, Exchange, Event, Data) ->
 subscribe(Conn, Channel, Exchange, Subscriber) -> 
     Declare = #'exchange.declare'{  exchange = Exchange, 
                                     type = <<"topic">>,
-                                    durable = true,
+                                    durable = false,
                                     auto_delete = true},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 

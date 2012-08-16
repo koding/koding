@@ -25,12 +25,12 @@
 -behaviour (sockjs_service).
 
 %% Application callbacks
--export ([init_state/1]).
+-export ([init_state/3]).
 
 %% SocjJS Service callbacks
 -export([sockjs_init/2, sockjs_handle/3, sockjs_terminate/2]).
 
--record (state, {callback, subscriptions, socket_id}).
+-record (state, {broker, func, callback, subscriptions, socket_id, channel}).
 -record (subscription, {state, vconn, exchange}).
 
 %% ===================================================================
@@ -38,30 +38,39 @@
 %% This is for each SockJS connection only.
 %% ===================================================================
 
-init_state(Callback) ->
-    #state{callback=Callback, subscriptions=orddict:new()}.
+init_state(Broker, ConnectionFun, Callback) ->
+    #state{broker=Broker, 
+            func=ConnectionFun,
+            callback=Callback, 
+            subscriptions=orddict:new()}.
 
 %% ===================================================================
 %% SockJS Service callbacks
 %% ===================================================================
 
-sockjs_init(Conn, State) ->
+sockjs_init(Conn, State=#state{broker=Broker, func=Func}) ->
+    io:format("Start Acquire a channel on ~p", [now()]),
+    Channel = Func(Broker),
+    io:format("Got the channel ~p on ~p~n", [Channel, now()]),
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
     Event = {<<"event">>, <<"connected">>},
     Payload = {<<"socket_id">>, SocketId},
     Conn:send(jsx:encode([Event, Payload])),
-    {ok, State#state{socket_id=SocketId}}.
+    {ok, State#state{socket_id=SocketId, channel=Channel}}.
 
 sockjs_handle(Conn, Data, State = #state{callback=Callback, 
                                         subscriptions=Subscriptions,
-                                        socket_id=SocketId}) ->
+                                        socket_id=SocketId,
+                                        channel=Channel}) ->
     [Event, Exchange, Payload] = decode(Data),
+    io:format("Receive connection data of ~p:~p:~p on ~p~n", [Event, Exchange, Payload, now()]),
 
     case {Event, orddict:is_key(Exchange, Subscriptions)} of
         {<<"client-subscribe">>, false} ->
             VConn = broker_channel:new(Conn, Exchange),
             Subscription = #subscription{vconn = VConn},
-            Sub1 = emit({init, SocketId}, Callback, Subscription),
+            Sub1 = emit({init, SocketId, Channel}, Callback, Subscription),
+            io:format("Finished subscription ~p on ~p~n", [Exchange, now()]),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -75,6 +84,7 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             Subscription = orddict:fetch(Exchange, Subscriptions),
             Body = {bind, Payload, SocketId},
             Sub1 = emit(Body, Callback, Subscription),
+            %io:format("Bound event ~p on ~p~n", [Payload, now()]),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 

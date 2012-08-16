@@ -66,15 +66,29 @@ Broker.prototype.disconnect = function () {
 Broker.prototype.subscribe = function (channelName) {
     var self = this;
     if (this.channels[channelName]) return this;
-    var begin = new Date();
     var channel = new Channel(this.ws, escape(channelName));
     this.channels[escape(channelName)] = channel;
 
     channel.isPrivate = /^(private-[\w-.]*)/.test(channelName);
 
-    this.bind("broker:subscription_succeeded", function () {
-      console.log(channelName, new Date() - begin);
-    })
+    var begin;
+    var log = function () {
+      console.log(channelName, (new Date).getTime() - begin);
+      setTimeout(function() {
+        self.off("broker:subscription_succeeded", log);
+      }, 0);
+    }
+    if (this.ws.readyState > 0) {
+      begin = (new Date).getTime();
+      this.bind("broker:subscription_succeeded", log);
+    } else {
+      this.ws.addEventListener('open', function () {
+          begin = (new Date).getTime();
+          self.bind("broker:subscription_succeeded", log);
+      });
+    }
+    
+
     if (!channel.isPrivate) {
         channel.state.emit('authorized');
         return channel;
