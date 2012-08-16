@@ -131,8 +131,8 @@ var Channel = function(ws, name) {
 
 Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ctx) {
     var self = this;
-    var brokerListener = function (event) {
-        listener.call(ctx || self, event.data);
+    var brokerListener = function (eventObj) {
+        listener.call(ctx || self, eventObj.data);
     };
 
     if (this.ws.readyState > 0) {
