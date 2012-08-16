@@ -51,7 +51,6 @@ class JVisitor extends bongo.Model
 
   start: bongo.secure ({connection}, callback)->
     visitor = @
-    console.log visitor
     {constructor} = visitor
     connection.remote.fetchClientId (clientId)->
       constructor.visitors[clientId] = visitor
@@ -59,7 +58,6 @@ class JVisitor extends bongo.Model
         if err
           callback? err
         else
-          console.log session
           unless session
             visitor.createGuest connection
           else if session.username
@@ -80,9 +78,7 @@ class JVisitor extends bongo.Model
                     callback? err
                   else
                     connection.delegate = account
-                    setTimeout ->
-                      visitor.emit ['change','login'], account
-                    , 5000
+                    visitor.emit ['change','login'], account
                     callback? null
           else
             {guestId} = session
@@ -97,8 +93,6 @@ class JVisitor extends bongo.Model
                     visitor.createGuest connection
               else
                 connection.delegate = guest
-                setTimeout ->
-                  visitor.emit ['change','logout'], guest
-                , 5000
+                visitor.emit ['change','logout'], guest
                 callback? null
                 # visitor.uber 'save', callback
