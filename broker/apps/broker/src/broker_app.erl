@@ -38,8 +38,15 @@
                         consumer,
                         routing_keys = dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
--define (RABBITMQ, "localhost").
-%-define (RABBITMQ, "web0.beta.system.aws.koding.com").
+
+% -define (RABBITMQ, #amqp_params_network{
+%                         host = "localhost",
+%                         username = <<"guest">>,
+%                         password = <<"guest">>}).
+-define (RABBITMQ, #amqp_params_network{
+                        host = "web0.beta.system.aws.koding.com",
+                        username = <<"guest">>,
+                        password = <<"x1srTA7!%Vb}$n|S">>}).
 
 %% ===================================================================
 %% Application callbacks
@@ -58,8 +65,7 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
-    {ok, Broker} =
-        amqp_connection:start(#amqp_params_network{host = ?RABBITMQ}),
+    {ok, Broker} = amqp_connection:start(?RABBITMQ),
 
     MultiplexState = sockjs_mq:init_state(Broker, fun connect/1, fun handle_subscription/3),
 
@@ -184,7 +190,7 @@ handle_subscription(_Conn, {bind, Event, _From},
                                         routing_keys = Keys}) ->
     % Ensure one queue per key per exchange
     case dict:find(Event, Keys) of
-        {ok, Queue} -> {ok, State};
+        {ok, _Queue} -> {ok, State};
         error ->
             Queue = bind_queue(Channel, Exchange, Event, Consumer),
             NewKeys = dict:store(Event, Queue, Keys),
@@ -314,16 +320,6 @@ unbind_queue(Channel, Exchange, Routing, Queue) ->
     % Delete the queue
     Delete = #'queue.delete'{queue = Queue},
     #'queue.delete_ok'{} = amqp_channel:call(Channel, Delete).
-
-rpc_call(Broker, RoutingKey, Payload) ->
-    %Fun = fun(X) -> X + 1 end,
-    %RPCHandler = fun(X) -> term_to_binary(Fun(binary_to_term(X))) end,
-    %Server = amqp_rpc_server:start(Broker, <<"RoutingKey">>, RPCHandler),
-    RpcClient = amqp_rpc_client:start(Broker, RoutingKey),
-    io:format("RpcClient ~p~n", [RpcClient]),
-    _Reply = amqp_rpc_client:call(RpcClient, list_to_binary(Payload)).
-    %Reply = amqp_rpc_client:call(RpcClient, term_to_binary(1)),
-    %io:format("Reply ~p~n", [binary_to_term(Reply)]).
 
 %%--------------------------------------------------------------------
 %% Function: loop(Conn) -> void()
