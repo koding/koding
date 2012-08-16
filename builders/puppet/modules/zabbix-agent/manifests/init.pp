@@ -1,7 +1,7 @@
 #$zabbix_user_parameters = []
 
 class zabbix-agent {
-    $zabbix_server = "10.190.86.118"
+    $zabbix_server = "mon.prod.system.aws.koding.com"
     $zabbix_config_dir = "/etc/zabbix"
     $zabbix_agent_conf = "$zabbix_config_dir/zabbix_agent.conf"
     $zabbix_agentd_conf = "$zabbix_config_dir/zabbix_agentd.conf"
@@ -12,7 +12,7 @@ class zabbix-agent {
     package {
         "zabbix-agent":
             ensure => installed,
-            require => Class["yumrepos::epel"]
+            require => Class["yumrepos::koding"]
     }
 
     user { "zabbix":
@@ -58,7 +58,7 @@ class zabbix-agent {
             require => Package["zabbix-agent"];
     }
     service {
-        "zabbix-agent":
+        "zabbix-agentd":
             enable => true,
             ensure => running,
             hasstatus => true,
