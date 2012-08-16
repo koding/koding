@@ -71,23 +71,6 @@ Broker.prototype.subscribe = function (channelName) {
 
     channel.isPrivate = /^(private-[\w-.]*)/.test(channelName);
 
-    // var begin;
-    // var log = function () {
-    //   console.log(channelName, (new Date).getTime() - begin);
-    //   setTimeout(function() {
-    //     self.off("broker:subscription_succeeded", log);
-    //   }, 0);
-    // }
-    // if (this.ws.readyState > 0) {
-    //   begin = (new Date).getTime();
-    //   this.bind("broker:subscription_succeeded", log);
-    // } else {
-    //   this.ws.addEventListener('open', function () {
-    //       begin = (new Date).getTime();
-    //       self.bind("broker:subscription_succeeded", log);
-    //   });
-    // }
-
     if (!channel.isPrivate) {
         channel.state.emit('authorized');
         return channel;
