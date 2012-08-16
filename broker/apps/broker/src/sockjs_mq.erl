@@ -103,9 +103,12 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
     end.
 
 sockjs_terminate(_Conn, #state{ callback=Callback, 
-                                subscriptions=Subscriptions}) ->
-    _ = [{emit(closed, Callback, Subscription)} ||
+                                subscriptions=Subscriptions,
+                                channel = Channel}) ->
+    [FirstSub | _] = [emit(closed, Callback, Subscription) ||
         {_Exchange, Subscription} <- orddict:to_list(Subscriptions)],
+
+    Callback(FirstSub#subscription.vconn, ended, Channel),
     {ok, #state{callback=Callback, subscriptions=orddict:new()}}.
 
 

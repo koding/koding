@@ -66,7 +66,7 @@ start(_StartType, _StartArgs) ->
     %% sockjs_handler:init_state(Prefix, Callback, State, Options)
     %% Callback is a sockjs_service behavior module.
     SockjsState = sockjs_handler:init_state(
-                    <<"/subscribe">>, sockjs_mq, MultiplexState, []),
+                    <<"/subscribe">>, sockjs_mq, MultiplexState, [{disconnect_delay, 10000}]),
 
     VhostRoutes = [
         {
@@ -237,7 +237,7 @@ handle_subscription(_Conn, {trigger, Event, Payload, From},
 handle_subscription(_Conn, closed, #subscription{channel = Channel}) ->
     {ok, #subscription{}};
 
-handle_subscription(_Conn, ended, #subscription{channel = Channel}) ->
+handle_subscription(_Conn, ended, Channel) ->
     % TODO: Check if exchane has no bound queue (passive), then delete
     % Delete = #'exchange.delete'{exchange = Exchange},
     % #'exchange.delete_ok'{} = amqp_channel:call(Channel, Delete)
