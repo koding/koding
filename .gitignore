@@ -65,3 +65,6 @@ ebin
 /node_modules/csv
 node_modules/cron/
 sftp-config.json
+
+/website/dev/sourceClient.json
+/website/dev/sourceServer.json
