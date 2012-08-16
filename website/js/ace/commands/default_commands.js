@@ -117,11 +117,13 @@ exports.commands = [{
     name: "selecttostart",
     bindKey: bindKey("Ctrl-Shift-Home", "Command-Shift-Up"),
     exec: function(editor) { editor.getSelection().selectFileStart(); },
+    multiSelectAction: "forEach",
     readOnly: true
 }, {
     name: "gotostart",
     bindKey: bindKey("Ctrl-Home", "Command-Home|Command-Up"),
     exec: function(editor) { editor.navigateFileStart(); },
+    multiSelectAction: "forEach",
     readOnly: true
 }, {
     name: "selectup",
@@ -295,13 +297,13 @@ exports.commands = [{
     readOnly: true
 }, {
     name: "jumptomatching",
-    bindKey: bindKey("Ctrl-P", "Ctrl-P"),
+    bindKey: bindKey("Ctrl-P", "Ctrl-Shift-P"),
     exec: function(editor) { editor.jumpToMatching(); },
     multiSelectAction: "forEach",
     readOnly: true
 }, {
     name: "selecttomatching",
-    bindKey: bindKey("Ctrl-Shift-P", "Ctrl-Shift-P"),
+    bindKey: bindKey("Ctrl-Shift-P", null),
     exec: function(editor) { editor.jumpToMatching(true); },
     readOnly: true
 }, 

@@ -55,151 +55,39 @@ __aceSettings =
       title: '8 chars'
   ]
   
-  # syntaxes: [
-  #     value: 'c_cpp'
-  #     title: 'C++'
-  #   ,
-  #     value: 'javascript'
-  #     title: 'Javascript'
-  #   ,
-  #     value: 'json'
-  #     title: 'JSON'
-  #   ,
-  #     value: 'coffee'
-  #     title: 'Coffee-script'
-  #   ,
-  #     value: 'css'
-  #     title: 'CSS'
-  #   ,
-  #     value: 'html'
-  #     title: 'HTML'
-  #   ,
-  #     value: 'java'
-  #     title: 'Java'
-  #   ,
-  #     value: 'perl'
-  #     title: 'Perl'
-  #   ,
-  #     value: 'php'
-  #     title: 'PHP'
-  #   ,
-  #     value: 'python'
-  #     title: 'Python'
-  #   ,
-  #     value: 'scss'
-  #     title: 'SCSS'
-  #   ,
-  #     value: 'ruby'
-  #     title: 'Ruby'
-  #   ,
-  #     value: 'svg'
-  #     title: 'SVG'
-  #   ,
-  #     value: 'xml'
-  #     title: 'XML'
-  #   ,
-  #     value: 'groovy'
-  #     title: 'Groovy'
-  #   ,
-  #     value: 'ocaml'
-  #     title: 'Ocaml'
-  #   ,
-  #     value: 'scad'
-  #     title: 'Scad'
-  #   ,
-  #     value: 'scala'
-  #     title: 'Scala'
-  #   , 
-  #     title: 'ColdFusion'
-  #     value: 'coldfusion'
-  #   , 
-  #     value: 'haxe'
-  #     title: 'Haxe'
-  #   ,
-  #     value: 'latex'
-  #     title: 'Latex'
-  #   ,
-  #     title: 'Lua'
-  #     value: 'lua'
-  #   ,
-  #     title: 'Markdown'
-  #     value: 'markdown'
-  #   ,
-  #     title: 'PowerShell'
-  #     value: 'powershell'
-  #   ,
-  #     title: 'SQL'
-  #     value: 'sql'
-  #   ].sort (a, b) ->
-  #     if a.title < b.title then -1 else 1
-  themes: [
-      value: 'clouds'
-      title: 'Clouds'
-    ,
-      value: 'clouds_midnight'
-      title: 'Clouds Midnight'
-    ,
-      value: 'cobalt'
-      title: 'Cobalt'
-    ,
-      value: 'dawn'
-      title: 'Dawn'
-    ,
-      value: 'eclipse'
-      title: 'Eclipse'
-    ,
-      value: 'idle_fingers'
-      title: 'Idle Fingers'
-    ,
-      value: 'kr_theme'
-      title: 'KR Theme'
-    ,
-      value: 'merbivore'
-      title: 'Merbivore'
-    ,
-      value: 'merbivore_soft'
-      title: 'Merbivore Soft'
-    ,
-      value: 'mono_industrial'
-      title: 'Mono Industrial'
-    ,
-      value: 'monokai'
-      title: 'Monokai'
-    ,
-      value: 'pastel_on_dark'
-      title: 'Pastel On Dark'
-    ,
-      value: 'twilight'
-      title: 'Twilight'
-    ,
-      value: 'vibrant_ink'
-      title: 'Vibtrant Ink'
-    ,
-      value: 'crimson_editor'
-      title: 'Crimson Editor'
-    ,
-      value: 'solarized_dark'
-      title: 'Solarized Dark'
-    ,
-      value: 'solarized_light'
-      title: 'Solarized Light'
-    ,
-      title: 'Tomorrow'
-      value: 'tomorrow'
-    ,
-      title: 'Tomorrow Night'
-      value: 'tomorrow_night'
-    ,
-      title: 'Tomorrow Night Blue'
-      value: 'tomorrow_night_blue'
-    ,
-      title: 'Tomorrow Night Bright'
-      value: 'tomorrow_night_bright'
-    ,
-      title: 'Tomorrow Night Eighties'
-      value: 'tomorrow_night_eighties'
-    ].sort (a, b) ->
-      if a.title < b.title then -1 else 1
+  themes: 
+    Bright : [
+      { title: 'Chrome',                value: 'chrome' }
+      { title: 'Clouds',                value: 'clouds' }
+      { title: 'Crimson Editor',        value: 'crimson_editor' }
+      { title: 'Dawn',                  value: 'dawn' }
+      { title: 'Dreamweaver',           value: 'dreamweaver' }
+      { title: 'Eclipse',               value: 'eclipse' }
+      { title: 'GitHub',                value: 'GitHub' }
+      { title: 'Solarized Light',       value: 'solarized_light' }
+      { title: 'TextMate',              value: 'textmate' }
+      { title: 'Tomorrow',              value: 'tomorrow' }
+    ].sort (a, b) -> if a.title < b.title then -1 else 1
+    
+    Dark : [
+      { title: 'Clouds Midnight',       value: 'clouds_midnight' }
+      { title: 'Cobalt',                value: 'cobalt' }
+      { title: 'Idle Fingers',          value: 'idle_fingers' }
+      { title: 'KR Theme',              value: 'kr_theme' }
+      { title: 'Merbivore',             value: 'merbivore' }
+      { title: 'Merbivore Soft',        value: 'merbivore_soft' }
+      { title: 'Mono Industrial',       value: 'mono_industrial' }
+      { title: 'Monokai',               value: 'monokai' }
+      { title: 'Pastel on Dark',        value: 'pastel_on_dark' }
+      { title: 'Solarized Dark',        value: 'solarized_dark' }
+      { title: 'Twilight',              value: 'twilight' }
+      { title: 'Tomorrow Night',        value: 'tomorrow_night' }
+      { title: 'Tomorrow Night Blue',   value: 'tomorrow_night_blue' }
+      { title: 'Tomorrow Night Bright', value: 'tomorrow_night_bright' }
+      { title: 'Tomorrow Night 80s',    value: 'tomorrow_night_eighties' }
+      { title: 'Vibrant Ink',           value: 'vibrant_ink' }
+    ].sort (a, b) -> if a.title < b.title then -1 else 1
+
 
   syntaxAssociations :
 
@@ -217,10 +105,12 @@ __aceSettings =
     java        : ["Java"         , "java"]
     javascript  : ["JavaScript"   , "js"]
     json        : ["JSON"         , "json|manifest|kdapp"]
+    jsx         : ["JSX"          , "jsx"]
     latex       : ["LaTeX"        , "latex|tex|ltx|bib"]
     less        : ["LESS"         , "less"]
     liquid      : ["Liquid"       , "liquid"]
     lua         : ["Lua"          , "lua"]
+    luapage     : ["LuaPage"      , "lp"]
     markdown    : ["Markdown"     , "md|markdown"]
     ocaml       : ["OCaml"        , "ml|mli"]
     perl        : ["Perl"         , "pl|pm"]

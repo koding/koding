@@ -165,7 +165,7 @@ var Editor = function(renderer, session) {
         this.$onTokenizerUpdate = this.onTokenizerUpdate.bind(this);
         session.addEventListener("tokenizerUpdate", this.$onTokenizerUpdate);
 
-        this.$onChangeTabSize = this.renderer.updateText.bind(this.renderer);
+        this.$onChangeTabSize = this.renderer.onChangeTabSize.bind(this.renderer);
         session.addEventListener("changeTabSize", this.$onChangeTabSize);
 
         this.$onChangeWrapLimit = this.onChangeWrapLimit.bind(this);
@@ -694,6 +694,9 @@ var Editor = function(renderer, session) {
      * called whenever a text "paste" happens.
      **/
     this.onPaste = function(text) {
+        // todo this should change when paste becomes a command
+        if (this.$readOnly) 
+            return;
         this._emit("paste", text);
         this.insert(text);
     };
@@ -988,9 +991,6 @@ var Editor = function(renderer, session) {
      * If `showInvisibiles` is set to `true`, invisible characters&mdash;like spaces or new lines&mdash;are show in the editor.
      **/
     this.setShowInvisibles = function(showInvisibles) {
-        if (this.getShowInvisibles() == showInvisibles)
-            return;
-
         this.renderer.setShowInvisibles(showInvisibles);
     };
 
@@ -1001,6 +1001,14 @@ var Editor = function(renderer, session) {
      **/
     this.getShowInvisibles = function() {
         return this.renderer.getShowInvisibles();
+    };
+
+    this.setDisplayIndentGuides = function(display) {
+        this.renderer.setDisplayIndentGuides(display);
+    };
+
+    this.getDisplayIndentGuides = function() {
+        return this.renderer.getDisplayIndentGuides();
     };
 
     /**
@@ -1772,7 +1780,7 @@ var Editor = function(renderer, session) {
 
         var range = this.session.getBracketRange(cursor);
         if (!range) {
-            range = editor.find({
+            range = this.find({
                 needle: /[{}()\[\]]/g,
                 preventScroll:true,
                 start: {row: cursor.row, column: cursor.column - 1}
@@ -1787,10 +1795,10 @@ var Editor = function(renderer, session) {
         pos = range && range.cursor || pos;
         if (pos) {
             if (select) {
-                if (range && range.isEqual(editor.getSelectionRange()))
+                if (range && range.isEqual(this.getSelectionRange()))
                     this.clearSelection();
                 else
-                    this.selection.selectTo(pos.row, pos.column);            
+                    this.selection.selectTo(pos.row, pos.column);
             } else {
                 this.clearSelection();
                 this.moveCursorTo(pos.row, pos.column);

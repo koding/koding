@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
+ *      Garen J. Torikian <gjtorikian AT gmail DOT com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,11 +36,39 @@
  * ***** END LICENSE BLOCK ***** */
 
 define(function(require, exports, module) {
+"use strict";
 
-exports.isDark = true;
-exports.cssClass = "ace-github";
-exports.cssText = require('ace/requirejs/text!./github.css');
+var oop = require("../lib/oop");
+var TextMode = require("./text").Mode;
+var Tokenizer = require("../tokenizer").Tokenizer;
+var C9SearchHighlightRules = require("./c9search_highlight_rules").C9SearchHighlightRules;
+var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
+var C9StyleFoldMode = require("./folding/c9search").FoldMode;
 
-    var dom = require("../lib/dom");
-    dom.importCssString(exports.cssText, exports.cssClass);
+var Mode = function() {
+    this.$tokenizer = new Tokenizer(new C9SearchHighlightRules().getRules(), "i");
+    this.$outdent = new MatchingBraceOutdent();
+    this.foldingRules = new C9StyleFoldMode();
+};
+oop.inherits(Mode, TextMode);
+
+(function() {
+    
+    this.getNextLineIndent = function(state, line, tab) {
+        var indent = this.$getIndent(line);
+        return indent;
+    };
+
+    this.checkOutdent = function(state, line, input) {
+        return this.$outdent.checkOutdent(line, input);
+    };
+
+    this.autoOutdent = function(state, doc, row) {
+        this.$outdent.autoOutdent(doc, row);
+    };
+
+}).call(Mode.prototype);
+
+exports.Mode = Mode;
+
 });
