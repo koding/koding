@@ -9,6 +9,7 @@ option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
+option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -284,7 +285,7 @@ build = (options)->
 
   builder = new Builder options,targetPaths,"",run
   
-  sourceCodeAnalyzer.attachListeners builder
+  sourceCodeAnalyzer.attachListeners builder if options.sourceCodeAnalyze
   
   builder.watcher.initialize()
 
