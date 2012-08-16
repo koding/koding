@@ -213,9 +213,12 @@ class Ace extends KDView
     @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
-
-    @editor.getSession().setTabSize value
-    @appStorage.setValue 'tabSize', value, =>
+    
+    # FIXME: this causes ace to show weird 21s, 41s instead of tabs
+    # temporarily disabled
+    
+    # @editor.getSession().setTabSize value
+    # @appStorage.setValue 'tabSize', value, =>
 
   setUseWordWrap:(value)->
 
