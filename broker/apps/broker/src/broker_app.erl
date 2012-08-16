@@ -36,7 +36,7 @@
                         exchange,
                         private,
                         consumer,
-                        routing_keys = orddict:new()}).
+                        routing_keys = dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 -define (RABBITMQ, "localhost").
 %-define (RABBITMQ, "web0.beta.system.aws.koding.com").
@@ -182,9 +182,14 @@ handle_subscription(_Conn, {bind, Event, _From},
                                         exchange = Exchange,
                                         consumer = Consumer,
                                         routing_keys = Keys}) ->
-    Queue = bind_queue(Channel, Exchange, Event, Consumer),
-    NewKeys = orddict:store(Event, Queue, Keys),
-    {ok, State#subscription{routing_keys = NewKeys}};
+    % Ensure one queue per key per exchange
+    case dict:find(Event, Keys) of
+        {ok, Queue} -> {ok, State};
+        error ->
+            Queue = bind_queue(Channel, Exchange, Event, Consumer),
+            NewKeys = dict:store(Event, Queue, Keys),
+            {ok, State#subscription{routing_keys = NewKeys}}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {unbind, Event, _From}, State)
@@ -196,12 +201,11 @@ handle_subscription(_Conn, {unbind, Event, _From},
                     State = #subscription{  channel = Channel,
                                             exchange = Exchange,
                                             routing_keys = Keys}) ->
-    
     case orddict:find(Event, Keys) of 
         {ok, Queue} ->
             unbind_queue(Channel, Exchange, Event, Queue),
             % Remove from the dictionary
-            NewKeys = orddict:erase(Event, Keys),
+            NewKeys = dict:erase(Event, Keys),
             {ok, State#subscription{routing_keys = NewKeys}};
         error ->
             {ok, State}
