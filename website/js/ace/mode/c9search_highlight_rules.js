@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
+ *      Garen J. Torikian <gjtorikian AT gmail DOT com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,24 +35,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/*
- * Extremely simplified version of the requireJS text plugin
- */
- 
-(function() {
-    
-var globalRequire = typeof require != "undefined" && require;
- 
-define(function (require, exports, module) {
-    "use strict";
-    
-    exports.load = function (name, req, onLoad, config) {
-        //Using special require.nodeRequire, something added by r.js.
-        if (globalRequire && globalRequire.nodeRequire)
-            onLoad(globalRequire.nodeRequire('fs').readFileSync(req.toUrl(name), 'utf8'));
-        else
-            require("ace/lib/net").get(req.toUrl(name), onLoad);
-    };
-});
+define(function(require, exports, module) {
+"use strict";
 
-})();
+var oop = require("../lib/oop");
+var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
+
+var C9SearchHighlightRules = function() {
+
+    // regexp must not have capturing parentheses. Use (?:) instead.
+    // regexps are ordered -> the first match is used
+    this.$rules = {
+        "start" : [
+            {
+                token : ["c9searchresults.constant.numeric", "c9searchresults.text", "c9searchresults.text"],
+                regex : "(^\\s+[0-9]+)(:\\s*)(.+)"
+            },
+            {
+                token : ["string", "text"], // single line
+                regex : "(.+)(:$)"
+            }
+        ]
+    };
+};
+
+oop.inherits(C9SearchHighlightRules, TextHighlightRules);
+
+exports.C9SearchHighlightRules = C9SearchHighlightRules;
+
+});

@@ -108,11 +108,6 @@ exports.getButton = function(e) {
 
 if (document.documentElement.setCapture) {
     exports.capture = function(el, eventHandler, releaseCaptureHandler) {
-        function onMouseMove(e) {
-            eventHandler(e);
-            return exports.stopPropagation(e);
-        }
-
         var called = false;
         function onReleaseCapture(e) {
             eventHandler(e);
@@ -137,22 +132,17 @@ if (document.documentElement.setCapture) {
 }
 else {
     exports.capture = function(el, eventHandler, releaseCaptureHandler) {
-        function onMouseMove(e) {
-            eventHandler(e);
-            e.stopPropagation();
-        }
-
         function onMouseUp(e) {
             eventHandler && eventHandler(e);
             releaseCaptureHandler && releaseCaptureHandler(e);
 
-            document.removeEventListener("mousemove", onMouseMove, true);
+            document.removeEventListener("mousemove", eventHandler, true);
             document.removeEventListener("mouseup", onMouseUp, true);
 
             e.stopPropagation();
         }
 
-        document.addEventListener("mousemove", onMouseMove, true);
+        document.addEventListener("mousemove", eventHandler, true);
         document.addEventListener("mouseup", onMouseUp, true);
     };
 }
@@ -193,7 +183,7 @@ exports.addMultiMouseDownListener = function(el, timeouts, eventHandler, callbac
         4: "quadclick"
     };
 
-    var listener = function(e) {
+    exports.addListener(el, "mousedown", function(e) {
         if (exports.getButton(e) != 0) {
             clicks = 0;
         } else {
@@ -219,15 +209,23 @@ exports.addMultiMouseDownListener = function(el, timeouts, eventHandler, callbac
             clicks = 0;
         else if (clicks > 1)
             return eventHandler[callbackName](eventNames[clicks], e);
-    };
+    });
 
-    exports.addListener(el, "mousedown", listener);
-    useragent.isOldIE && exports.addListener(el, "dblclick", listener);
+    if (useragent.isOldIE) {
+        exports.addListener(el, "dblclick", function(e) {
+            clicks = 2;
+            if (timer)
+                clearTimeout(timer);
+            timer = setTimeout(function() {timer = null}, timeouts[clicks - 1] || 600);
+            eventHandler[callbackName]("mousedown", e);
+            eventHandler[callbackName](eventNames[clicks], e);
+        });
+    }
 };
 
 function normalizeCommandKeys(callback, e, keyCode) {
     var hashId = 0;
-    if (useragent.isOpera && useragent.isMac) {
+    if ((useragent.isOpera && !("KeyboardEvent" in window)) && useragent.isMac) {
         hashId = 0 | (e.metaKey ? 1 : 0) | (e.altKey ? 2 : 0)
             | (e.shiftKey ? 4 : 0) | (e.ctrlKey ? 8 : 0);
     } else {
@@ -268,7 +266,7 @@ function normalizeCommandKeys(callback, e, keyCode) {
 
 exports.addCommandKeyListener = function(el, callback) {
     var addListener = exports.addListener;
-    if (useragent.isOldGecko || useragent.isOpera) {
+    if (useragent.isOldGecko || (useragent.isOpera && !("KeyboardEvent" in window))) {
         // Old versions of Gecko aka. Firefox < 4.0 didn't repeat the keydown
         // event if the user pressed the key for a longer time. Instead, the
         // keydown event was fired once and later on only the keypress event.
@@ -292,7 +290,7 @@ exports.addCommandKeyListener = function(el, callback) {
     }
 };
 
-if (window.postMessage) {
+if (window.postMessage && !useragent.isOldIE) {
     var postMessageId = 1;
     exports.nextTick = function(callback, win) {
         win = win || window;
