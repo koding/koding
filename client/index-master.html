@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <!-- note: don't alter  references. see cakefile.targetPaths.staticFilesBaseUrl -->
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
   <title>Welcome to Koding. A new way for developers to get work done.</title>
-  <meta name="description" content="">
-  <meta name="author" content="">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="shortcut icon" href="https://api.koding.com/images/favicon.ico">
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" href="https://api.koding.com/images/favicon.ico" />
   <link rel="fluid-icon" href="https://api.koding.com/images/kd-fluid-icon512.png" title="Koding" />
-  <link rel="stylesheet" href="https://api.koding.com/css/kd.css?1336501035131">
+  <link rel="stylesheet" href="https://api.koding.com/css/kd.css?1336501035131" />
 </head>
 <body class="loading">
   <div class="kdview main-loading">
@@ -25,7 +25,21 @@
       </ul>
     </figure>
   </div>
+
+  <script type="text/javascript">
+    var regEx = /AppleWebKit\/([\d.]+)/;
+    var result = regEx.exec(navigator.userAgent);
+
+    if(result || navigator.appName=='Microsoft Internet Explorer') {
+      webkitVersion = parseFloat(result[1]);
+      if(webkitVersion < 535.0) {
+        window.location.href = '/unsupported.html';
+      }
+    }
+  </script>
+
   <script src="https://api.koding.com/js/require.js"></script>
+
   <script>
     require.config({baseUrl: "https://api.koding.com/js", waitSeconds:15});
     require([
@@ -37,6 +51,7 @@
       "order!https://api.koding.com/js/libs/diff_match_patch.js"
     ]);    
   </script>
+
   <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-6520910-8']);
