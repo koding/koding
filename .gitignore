@@ -68,3 +68,5 @@ sftp-config.json
 
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
+/node_modules/amqp/
+/npm-debug.log
