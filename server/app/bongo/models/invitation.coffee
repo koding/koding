@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','__sendBetaInvites']#,,'__createBetaInvites']
+      static        : ['create','byCode','__sendBetaInvites'] # ,'__createBetaInvites'
     schema          :
       code          : String
       inviteeEmail  : String
@@ -108,7 +108,7 @@ class JInvitation extends jraphical.Module
 
 
   @__sendBetaInvites = bongo.secure do->
-    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+    betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
     betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
     protocol = 'https://'
@@ -122,7 +122,7 @@ class JInvitation extends jraphical.Module
 
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(11762, 12367).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(1000, 1999).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -141,7 +141,7 @@ class JInvitation extends jraphical.Module
                 Subject   : '[Koding] Here is your beta invite!'
                 TextBody  : personalizedMail
               , (err)-> 
-                console.log 'finished', i++, err
+                # console.log 'finished', i++, err
                 recipients.next(err)
                 # else console.log email
             else
@@ -152,8 +152,8 @@ class JInvitation extends jraphical.Module
         
   
   @__createBetaInvites =do ->
-    # betaTestersEmails = 'chris123412341234@jraphical.com'
-    # betaTestersEmails = fs.readFileSync('./invitee-emails.txt', 'utf-8')
+    #betaTestersEmails = 'chris123412341234@jraphical.com'
+    betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
     #betaTestersEmails = 'chris123123@jraphical.com'
     (callback)->
       JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>

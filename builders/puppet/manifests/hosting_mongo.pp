@@ -4,6 +4,9 @@ node mongo  inherits base {
     include ssh
     include sudo
     
+    yumrepos { 'koding':
+        repo => 'koding',
+    }
       resolve { "resolver":
         nameserver1 => '172.16.0.23',
         nameserver2 => '8.8.8.8',

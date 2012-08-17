@@ -5,6 +5,9 @@ node ftp inherits base {
    include pure-ftpd
    include ssh
 
+    yumrepos { 'koding':
+            repo => 'koding',
+    }
    monit::nodeapp { "PureFTPDauth":
        appname   => "PureFTPDauth",
        isenabled => 'enabled',
