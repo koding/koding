@@ -1,6 +1,6 @@
 var Broker = function (app_key, options) {
     this.options = options || {};
-    this.sockURL = this.options.sockURL || 'http://localhost:8008/subscribe';
+    this.sockURL = this.options.sockURL || 'http://web0.beta.system.aws.koding.com:8008/subscribe';
     this.key = app_key;
     this.channels = {};
     this.connect();
