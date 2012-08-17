@@ -1,12 +1,7 @@
 module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
-<<<<<<< HEAD
-    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse",
-    "broker"
-=======
-    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse","amqp"
->>>>>>> 8fbb78b740cfcf536b71a5f1f62855cae0678b54
+    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse","amqp", "broker"
   ]
   npm_modules :
     bitly           : '1.2.3'
