@@ -6,6 +6,9 @@ node relay inherits base {
     include httpd
     include ssh
 
+    yumrepos { 'koding':
+            repo => 'koding',
+    }
 
     base_mysql::createdb { "cluebringer":
          rootpw => 'ti-ka-phe-zex',
