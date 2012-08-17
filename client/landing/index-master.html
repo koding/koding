@@ -27,15 +27,14 @@
   </div>
 
   <script type="text/javascript">
-    var regEx = /AppleWebKit\/([\d.]+)/;
-    var result = regEx.exec(navigator.userAgent);
-
-    if(result || navigator.appName=='Microsoft Internet Explorer') {
-      webkitVersion = parseFloat(result[1]);
-      if(webkitVersion < 535.0) {
-        window.location.href = '/unsupported.html';
+    (function() {
+      var redirect, result;
+      redirect = function() { window.location.href = '/unsupported.html' }
+      if (navigator.appName === 'Microsoft Internet Explorer') {redirect()}
+      else if (result = /AppleWebKit\/([\d.]+)/.exec(navigator.userAgent)) {
+        if (parseFloat(result[1]) < 535.0) {redirect()}
       }
-    }
+    })();
   </script>
 
   <script src="https://api.koding.com/js/require.js"></script>
