@@ -207,10 +207,11 @@ class Ace extends KDView
     @editor.setShowInvisibles value
     @appStorage.setValue 'showInvisibles', value, =>
 
-  setFontSize:(value)->
+  setFontSize:(value, store = yes)->
 
     @$("#editor#{@getId()}").css 'font-size', "#{value}px"
-    @appStorage.setValue 'fontSize', value, =>
+    if store
+      @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
     
