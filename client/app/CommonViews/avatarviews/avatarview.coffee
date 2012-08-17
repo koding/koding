@@ -13,6 +13,8 @@ class AvatarView extends LinkView
 
     super options,data
 
+    @bgImg = null
+
   click:(event)->
 
     event.stopPropagation()
@@ -28,8 +30,13 @@ class AvatarView extends LinkView
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
     @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
-    fallbackUrl = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
-    @$().css "background-image", fallbackUrl
+
+    # this is a temp fix to avoid avatar flashing on each account change - Sinan 08/2012
+    bgImg = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
+    if @bgImg isnt bgImg
+      @$().css "background-image", bgImg
+      @bgImg = bgImg
+
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
 
