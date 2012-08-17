@@ -9,6 +9,7 @@ option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
+option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -283,6 +284,9 @@ build = (options)->
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
 
   builder = new Builder options,targetPaths,"",run
+  
+  sourceCodeAnalyzer.attachListeners builder if options.sourceCodeAnalyze
+  
   builder.watcher.initialize()
 
   # EVENTS -
@@ -297,8 +301,6 @@ build = (options)->
 
 
   builder.watcher.on "initDidComplete",(changes)->
-    fs.writeFileSync "./website/dev/sourceClient.json",JSON.stringify sourceCodeAnalyzer.tree.Client
-    fs.writeFileSync "./website/dev/sourceServer.json",JSON.stringify sourceCodeAnalyzer.tree.Server
     builder.buildServer "",()->
       unless options.dontStart
         builder.processMonitor.flags.forever = yes
@@ -338,7 +340,7 @@ build = (options)->
 
     issueFrontendReloadCommand()
 
-  builder.watcher.on "coffeeFileContents",sourceCodeAnalyzer.add
+  
 
   builder.processMonitor.on "processDidExit",(code)->
 

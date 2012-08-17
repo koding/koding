@@ -14,7 +14,6 @@ v8.log
 node_modules/.bin
 *.swp
 *.swo
-sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json
@@ -64,4 +63,11 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
-/node_modules/cron
+/node_modules/amqp
+node_modules/cron/
+sftp-config.json
+
+/website/dev/sourceClient.json
+/website/dev/sourceServer.json
+/node_modules/amqp/
+/npm-debug.log
