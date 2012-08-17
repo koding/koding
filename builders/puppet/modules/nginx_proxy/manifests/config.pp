@@ -30,10 +30,10 @@ class nginx_proxy::config {
     }
 
     file { "/opt/Apps":
-        ensure => directory;
-        mode => 755;
-        owner => 'root';
-        group => 'root';
+        ensure => directory,
+        mode => 755,
+        owner => 'root',
+        group => 'root',
     }
 
     file { "/etc/nginx/conf.d/app.koding.com.conf":
@@ -41,7 +41,7 @@ class nginx_proxy::config {
         source  => "puppet:///modules/nginx_proxy/etc/conf.d/app.koding.com.conf",
         owner   => 'root',
         group   => 'root',
-        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf']],
+        require => [Class["nginx_proxy::install"],File['/etc/nginx/nginx.conf'],File["/opt/Apps"]],
         notify  => Class["nginx_proxy::service"],
     }
 
