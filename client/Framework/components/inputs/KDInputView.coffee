@@ -278,7 +278,47 @@ class KDInputView extends KDView
 
   inputSelectAll:-> @getDomElement().select()
 
-  setAutoGrow:-> @$().autogrow()
+  setAutoGrow:->
+    
+    @setClass "autogrow"
+    $growCalculator = $ "<div/>", class : "invisible"
+    
+    @listenTo
+      KDEventTypes       : "focus"
+      listenedToInstance : @
+      callback           : ->
+        @utils.wait 10, =>
+          $growCalculator.appendTo 'body'
+          $growCalculator.css 
+            height        : "auto"
+            "z-index"     : 100000
+            width         : @$().width()
+            padding       : @$().css('padding')
+            "word-break"  : @$().css('word-break')
+            "font-size"   : @$().css('font-size')
+            "line-height" : @$().css('line-height')
+
+    @listenTo
+      KDEventTypes       : "blur"
+      listenedToInstance : @
+      callback           : -> 
+        $growCalculator.detach()
+        @$()[0].style.height = "none" # hack to set to initial
+
+    @listenTo
+      KDEventTypes : "keyup"
+      listenedToInstance : @
+      callback : ->
+        $growCalculator.text @getValue()
+        height    = $growCalculator.height()
+        if @$().css('box-sizing') is "border-box"
+          padding = parseInt(@$().css('padding-top'),10) + parseInt(@$().css('padding-bottom'),10)
+          border  = parseInt(@$().css('border-top-width'),10) + parseInt(@$().css('border-bottom-width'),10)
+          height  = height + border + padding
+
+        @setHeight height
+
+
 
   enableTabKey:-> @inputTabKeyEnabled = yes
 
