@@ -6,7 +6,7 @@ module.exports =
   npm_modules :
     bitly           : '1.2.3'
     braintree       : '1.1.0'
-    'coffee-script' : '1.1.2'
+    'coffee-script' : '1.3.3'
     dateformat      : '1.0.2-1.2.3'
     dropbox         : '0.3.3'
     eventemitter2   : '0.4.1'

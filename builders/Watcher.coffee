@@ -89,8 +89,8 @@ class Watcher extends EventEmitter
     paths = []
     for section of @watchlist.order
       if section isnt "__watch"
-        for subSection, package of @watchlist.order[section]
-          for key,path of package
+        for subSection, pkg of @watchlist.order[section]
+          for key,path of pkg
             if paths
               paths.push path
             else
@@ -123,15 +123,15 @@ class Watcher extends EventEmitter
     changes = {}
     for section of @watchlist.order
       if section isnt "__watch"
-        for subSection, package of @watchlist.order[section]
-          for key,path of package
+        for subSection, pkg of @watchlist.order[section]
+          for key,path of pkg
             build.totalCount++
     bar = new ProgressBar 'Initializing includeFiles [:bar] :percent :elapseds',{total: build.totalCount,width:50,incomplete:" "} if @watcher.isInitializing
     for section of @watchlist.order
       if section isnt "__watch"
-        for subSection, package of @watchlist.order[section]
-          for key,path of package
-            do (section,subSection,package,key,path) =>
+        for subSection, pkg of @watchlist.order[section]
+          for key,path of pkg
+            do (section,subSection,pkg,key,path) =>
               @watchlist.order.__watch[path] ?= {}
               file = @watchlist.order.__watch[path]
               mtime = (Date.parse((fs.statSync(path).mtime)))/1000

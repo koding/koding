@@ -23,7 +23,6 @@ class FinderBottomControlsListItem extends KDListItemView
       @$().twipsy
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "right"
-        offset    : 3
         delayIn   : 300
         html      : yes
         animate   : yes
