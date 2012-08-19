@@ -161,7 +161,7 @@ class Activity12345 extends AppController
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
         $.ajax KD.apiUri+'/1.0'
           data      :
-            t       : 1 if exempt
+            t       : if exempt then 1 else undefined
             data    : JSON.stringify(_.extend options, selector)
             env     : KD.env
           dataType  : 'jsonp'
