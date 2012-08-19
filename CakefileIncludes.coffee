@@ -287,6 +287,18 @@ Includes =
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
+        # webterm
+        WebTermController     : "./client/app/Applications/WebTerm.kdapplication/AppController.coffee"
+        WebTermView           : "./client/app/Applications/WebTerm.kdapplication/AppView.coffee"
+        WebTerm1              : "./client/app/Applications/WebTerm.kdapplication/src/Connection.coffee"
+        WebTerm2              : "./client/app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee"
+        WebTerm3              : "./client/app/Applications/WebTerm.kdapplication/src/Cursor.coffee"
+        WebTerm4              : "./client/app/Applications/WebTerm.kdapplication/src/InputHandler.coffee"
+        WebTerm5              : "./client/app/Applications/WebTerm.kdapplication/src/ScreenBuffer.coffee"
+        WebTerm6              : "./client/app/Applications/WebTerm.kdapplication/src/StyledText.coffee"
+        WebTerm7              : "./client/app/Applications/WebTerm.kdapplication/src/Terminal.coffee"
+        WebTermDnode          : "./client/app/Applications/WebTerm.kdapplication/dnode.js"
+
       ApplicationPageViews :
 
         # ACTIVITY VIEWS
@@ -666,6 +678,8 @@ Includes =
         app480              : "./client/stylus/app.480.styl"
 
         toolsdemos          : "./client/stylus/tools.demos.styl"
+
+        WebTermDefaultTheme : "./client/app/Applications/WebTerm.kdapplication/themes/default.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
