@@ -29,7 +29,7 @@ class AvatarView extends LinkView
     {profile} = account
     options = @getOptions()
     host = "#{location.protocol}//#{location.host}/"
-    @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
+    # @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
 
     # this is a temp fix to avoid avatar flashing on each account change - Sinan 08/2012
     bgImg = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
