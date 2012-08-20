@@ -1,0 +1,55 @@
+<div id="footer">
+  <p class='copy'>Copyright &copy; 2011 <a href="https://github.com/mcavage">Mark Cavage</a></p>
+</div>
+</div> <!-- end of #main -->
+</div> <!-- end of #wrapper -->
+<script type="text/javascript" charset="utf-8">
+$(function () {
+    $("#toc").click(function(event) {
+        // This to ensure clicks in the #toc don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#toc a").click(function(event) {
+        $("#tocbutton").click();
+    })
+    $("#tocbutton").click(function(event) {
+        var target = $("#toc");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.tocCloser", function(event) {
+                $("#tocbutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.tocCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
+
+    $("#api").click(function(event) {
+        // This to ensure clicks in the #api don't make it up to the
+        // button handler.
+        event.stopPropagation();
+    });
+    $("#api a").click(function(event) {
+        $("#apibutton").click();
+    })
+    $("#apibutton").click(function(event) {
+        var target = $("#api");
+        if (target.css("display") !== "block") {
+            $("body").bind("click.apiCloser", function(event) {
+                $("#apibutton").click();
+                event.stopPropagation();
+            });
+        } else {
+            $("body").unbind("click.apiCloser");
+        }
+        target.slideToggle(100);
+        event.stopPropagation();
+    });
+});
+</script>
+
+</body>
+</html>

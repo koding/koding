@@ -3,7 +3,7 @@ class MainController extends KDController
   wasLoggedIn = no
 
   constructor:()->
-    
+
     super
 
     window.appManager = new ApplicationManager
@@ -17,7 +17,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController", new ActivityController
 
     @putGlobalEventListeners()
-  
+
   appReady:do ->
     applicationIsReady = no
     queue = []
@@ -50,7 +50,7 @@ class MainController extends KDController
           env     : KD.env
         xhrFields :
           withCredentials: yes
-  
+
   initiateApplication:do->
     modal = null
     fail =->
@@ -66,7 +66,7 @@ class MainController extends KDController
             callback  : ()->
               modal.destroy()
               location.reload yes
-    
+
     connectionFails =(connectedState)->
       fail() unless connectedState.connected
     ->
@@ -82,10 +82,10 @@ class MainController extends KDController
       @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
 
   accountChanged:(account, connectedState)->
-    
+
     connectedState.connected = yes
     @emit "RemoveModal"
-    
+
     @emit "AccountChanged", account
 
     KDRouter.init()
@@ -188,7 +188,7 @@ class MainController extends KDController
   getAccount: -> @getVisitor().currentDelegate
 
   isUserLoggedIn: -> @getVisitor().currentDelegate instanceof bongo.api.JAccount
-  
+
   unmarkUserAsTroll:(data)->
 
     kallback = (acc)=>
@@ -197,7 +197,7 @@ class MainController extends KDController
         else
           new KDNotificationView
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
-  
+
     if data.originId
       bongo.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
@@ -211,9 +211,9 @@ class MainController extends KDController
       content        : """
                         <div class='modalformline'>
                           This is what we call "Trolling the troll" mode.<br><br>
-                          All of the troll's activity will disappear from the feeds, but the troll 
+                          All of the troll's activity will disappear from the feeds, but the troll
                           himself will think that people still gets his posts/comments.<br><br>
-                          Are you sure you want to mark him as a troll? 
+                          Are you sure you want to mark him as a troll?
                         </div>
                        """
       height         : "auto"

@@ -23,7 +23,7 @@ class Taggable
               =>
                 @addTag tag, (err)=>
                   if err then callback err
-                  else queue.next()
+                  else do queue.next
               =>
                 tag.addContent @, {
                   as: taggedContentRole

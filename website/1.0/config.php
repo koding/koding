@@ -43,10 +43,7 @@ else {
   $pusher_app_id = 22120;
 }
 
-
 $connStr = "mongodb://{$dbUser}:{$dbPass}@{$dbHost}:{$dbPort}/{$dbName}";
-
-
 
 try {
 	if(!isset($mongo)) $mongo = new Mongo($connStr, array("persist" => $dbName));
@@ -55,15 +52,4 @@ try {
 	//commment in to see what the exception is
   //echo 'Caught exception: ',  $e->getMessage(), "\n";
   respondWith(array("error" => "DB connection can't be established.".$e->getMessage()));
-}
-
-
-function get_mongo_host () {
-  global $env;
-  $hosts = array(
-    'vpn'         => 'mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98',
-    'beta'        => 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost',
-    'mongohq-dev' => 'mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy',
-  );
-  return $hosts[$env];
 }

@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','__sendBetaInvites']#,,'__createBetaInvites']
+      static        : ['create','byCode','__sendBetaInvites'] # ,'__createBetaInvites'
     schema          :
       code          : String
       inviteeEmail  : String
@@ -61,7 +61,7 @@ class JInvitation extends jraphical.Module
   #             #   callback 'ok'
   # 
   @__sendBetaInvites = bongo.secure do->
-    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+    betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
     betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
     protocol = 'https://'
@@ -75,7 +75,7 @@ class JInvitation extends jraphical.Module
 
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(9000, 10000).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(1000, 1999).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
@@ -88,24 +88,25 @@ class JInvitation extends jraphical.Module
                   # shortenedUrl = url
               personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               
-              Emailer.simulate
+              Emailer.send
                 From      : @getInviteEmail()
                 To        : email
                 Subject   : '[Koding] Here is your beta invite!'
-                HtmlBody  : personalizedMail
+                TextBody  : personalizedMail
               , (err)-> 
-                console.log 'finished', i++, err
-                recipients.fin(err)
+                # console.log 'finished', i++, err
+                recipients.next(err)
                 # else console.log email
             else
-              console.log "no invitation was found for #{email}"
-              recipients.fin null
-      dash recipients, callback
+              console.log "no invitation was found for #{email}"              
+              recipients.next null
+      recipients.push callback
+      daisy recipients
         
   
   @__createBetaInvites =do ->
-    betaTestersEmails = 'chris123412341234@jraphical.com'
-    # betaTestersEmails = fs.readFileSync('./invitee-emails.txt', 'utf-8')
+    #betaTestersEmails = 'chris123412341234@jraphical.com'
+    betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
     #betaTestersEmails = 'chris123123@jraphical.com'
     (callback)->
       JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>

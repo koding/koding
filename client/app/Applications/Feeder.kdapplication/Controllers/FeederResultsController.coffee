@@ -20,20 +20,20 @@ class FeederResultsController extends KDViewController
     setTimeout ->
       mainView._windowDidResize()
     ,500
-  
+
   openTab:(filter, callback)->
     tabView = @getView()
     pane = tabView.getPaneByName filter.name
     tabView.showPane pane
     callback? @listControllers[filter.name]
-    
+
   createTab:(name, filter, callback)->
     {paneClass,subItemClass,listControllerClass,listCssClass} = @getOptions()
     tabView = @getView()
 
     @listControllers[name] = listController = new listControllerClass
       lazyLoadThreshold : .75
-      viewOptions       : 
+      viewOptions       :
         cssClass        : listCssClass
         subItemClass    : subItemClass
         type            : name
@@ -41,14 +41,14 @@ class FeederResultsController extends KDViewController
     listController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
       listener      : @
-      callback      : => 
+      callback      : =>
         @propagateEvent KDEventType : "LazyLoadThresholdReached"
-    
+
     tabView.addPane @panes[name] = new paneClass
       name : name
-    
-    @panes[name].addSubView @panes[name].listHeader  = new CommonListHeader 
-      title : filter.title
+
+    @panes[name].addSubView @panes[name].listHeader  = new CommonListHeader
+      title : filter.optional_title or filter.title
 
     @panes[name].addSubView @panes[name].listWrapper = listController.getView()
 

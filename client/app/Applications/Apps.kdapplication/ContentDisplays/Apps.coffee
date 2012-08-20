@@ -4,9 +4,9 @@ class ContentDisplayControllerApps extends KDViewController
       view : mainView = new KDView
         cssClass : 'apps content-display'
     ,options
-      
+
     super options, data
-  
+
   loadView:(mainView)->
     app = @getData()
 
@@ -18,16 +18,16 @@ class ContentDisplayControllerApps extends KDViewController
         href      : "#"
       click       : ->
         contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
-    
+
     contentDisplayController = @getSingleton "contentDisplayController"
-    
+
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
-    
+
     mainView.addSubView appView = new AppView
       cssClass : "profilearea clearfix"
       delegate : mainView
     , app
-    
+
     @innerNav = new SingleAppNavigation
     @tabs     = new KDTabView
       cssClass             : "app-info-tabs"
@@ -39,9 +39,9 @@ class ContentDisplayControllerApps extends KDViewController
       sizes     : [139,null]
       minimums  : [10,null]
       resizable : no
-    
+
     appSplit._windowDidResize()
-  
+
   createTabs:()->
     app = @getData()
     @tabs.addPane infoTab = new KDTabPaneView
@@ -49,7 +49,7 @@ class ContentDisplayControllerApps extends KDViewController
     @tabs.addPane screenshotsTab = new KDTabPaneView
       name : 'screenshots'
 
-    infoTab.addSubView new CommonListHeader 
+    infoTab.addSubView new CommonListHeader
       title : "Application Info"
     infoTab.addSubView new AppInfoView
       cssClass : "info-wrapper"
@@ -60,14 +60,14 @@ class ContentDisplayControllerApps extends KDViewController
         subItemClass  : AppScreenshotsListItem
     ,
       items           : app.screenshots
-    
+
     screenshotsTab.addSubView screenshotsListController.getView()
-    # screenshotsListController.getView().addSubView new CommonListHeader 
+    # screenshotsListController.getView().addSubView new CommonListHeader
     #   title : "Screenshots"
     # , null, yes
 
     @tabs.showPane infoTab
-    
+
     @innerNav.registerListener
       KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
       listener      : @
@@ -83,7 +83,7 @@ class AppView extends KDView
       style           : "kdwhitebtn"
       dataPath        : "followee"
       states          : [
-        "Follow", (callback)-> 
+        "Follow", (callback)->
           callback? null
         "Unfollow", (callback)->
           callback? null
@@ -94,7 +94,7 @@ class AppView extends KDView
       style           : "kdwhitebtn"
       dataPath        : "followee"
       states          : [
-        "Like", (callback)-> 
+        "Like", (callback)->
           callback? null
         "Unlike", (callback)->
           callback? null
@@ -117,13 +117,13 @@ class AppView extends KDView
               @createBashScript formOutput,app
               modal.destroy()
             forms       : modalOptions
-          
-        
+
+
   createBashScript:(formOutput,app)->
     bashScript = Encoder.htmlDecode app.attachments[0].content
     for key,value of formOutput
       bashScript = bashScript.replace "$#{key}","\"#{value}\""
-    
+
     log bashScript
 
   sanitizeInstallModalOptions:->
@@ -192,7 +192,7 @@ class AppInfoView extends KDScrollView
     requirementsData = {syntax : reqs.syntax, content : Encoder.htmlEncode(reqs.content), title : ""}
     @installScript = new AppCodeSnippetView {}, scriptData
     @requirementsScript = new AppCodeSnippetView {}, requirementsData
-    
+
   viewAppended:->
     app = @getData()
     @setTemplate @pistachio()
@@ -214,7 +214,7 @@ class AppScreenshotsListItem extends KDListItemView
 
   partial :(data)->
     "<figure><img class='screenshot' src='/images/uploads/#{data.screenshot}'></figure>"
-    
+
 
 class AppScreenshotsView extends KDScrollView
   viewAppended:->
@@ -227,11 +227,10 @@ class AppScreenshotsView extends KDScrollView
     htmlStr = ""
     for set in app.screenshots
       htmlStr += "<figure><img class='screenshot' src='/images/uploads/#{set.screenshot}'></figure>"
-    return htmlStr  
+    return htmlStr
 
   pistachio:->
     """
     <header><a href='#'>{{#(title)}} Screenshots</a></header>
     {{ @putScreenshots #(screenshots)}}
     """
-  
