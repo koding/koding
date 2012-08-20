@@ -41,7 +41,7 @@ class Ace extends KDView
     @setHighlightActiveLine @appStorage.getValue 'highlightActiveLine', yes
     @setShowInvisibles      @appStorage.getValue 'showInvisibles',      no
     @setSoftWrap            @appStorage.getValue 'softWrap',            'off'
-    @setFontSize            @appStorage.getValue 'fontSize',            10
+    @setFontSize            @appStorage.getValue 'fontSize',            12
     @setTabSize             @appStorage.getValue 'tabSize',             4
     @setEditorListeners()
 
@@ -123,7 +123,7 @@ class Ace extends KDView
     @appStorage.getValue 'showInvisibles', @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 10)
+    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
 
   getTabSize:->
     @appStorage.getValue 'tabSize', @editor.getSession().getTabSize()
