@@ -15,15 +15,17 @@ class KDFormView extends KDView
   ###
   INSTANCE LEVEL
   ###
-  constructor:(options,data)->
-    options = $.extend
-      callback    : noop       # a Function
-      customData  : {}         # an Object of key/value pairs
-    ,options
+  constructor:(options = {},data)->
+
+    options.callback   or= noop       # a Function
+    options.customData or= {}         # an Object of key/value pairs
+
     super options,data
+
     @valid = null
     @setCallback options.callback
     @customData = {}
+    @bindEvent "submit"
   
   childAppended:(child)->
     child.associateForm? @
@@ -31,11 +33,6 @@ class KDFormView extends KDView
       @propagateEvent KDEventType: 'inputWasAdded', child
     super
   
-  bindEvents:()->
-    @getDomElement().bind "submit",(event)=>
-      @handleEvent event
-    super()
-
   handleEvent:(event)->
     # log event.type
     # thisEvent = @[event.type]? event or yes #this would be way awesomer than lines 98-103, but then we have to break camelcase convention in mouseUp, etc. names....??? worth it?
