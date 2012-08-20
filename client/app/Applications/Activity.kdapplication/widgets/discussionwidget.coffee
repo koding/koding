@@ -28,6 +28,7 @@ class ActivityDiscussionWidget extends KDFormView
       label       : @labelContent
       name        : "body"
       type        : "textarea"
+      autogrow    : yes
       placeholder : "What do you want to talk about?"
       validate  :
         rules     :
@@ -81,11 +82,13 @@ class ActivityDiscussionWidget extends KDFormView
 
   reset:=>
     @tagController.reset()
-    @submitBtn.setTitle "Submit"
+    @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
+    @inputDiscussionTitle.setValue ''
     super
 
   viewAppended:()->
+    @inputContent.setHeight 72
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

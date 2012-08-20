@@ -55,7 +55,15 @@ class ActivityUpdateWidgetController extends KDViewController
     mainView.addWidgetPane
       paneName    : "discussion"
       mainContent : discussionWidget = new ActivityDiscussionWidget
-        callback  : @discussionWidgetSubmit
+        delegate  : mainView
+        callback  : (data)=>
+          msg = new KDNotificationView
+            title : "You kinda submitted"
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @discussionWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
 
     mainView.showPane "update"
 
@@ -66,6 +74,9 @@ class ActivityUpdateWidgetController extends KDViewController
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
+
+      log "activity constructor", activity.bongo_.constructorName
+
       switch activity.bongo_.constructorName
         when "JStatusUpdate"
           mainView.showPane "update"
@@ -75,7 +86,7 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
         when "JDiscussion"
           mainView.showPane "discussion"
-          codeWidget.switchToEditView acivity
+          codeWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
 
@@ -138,8 +149,28 @@ class ActivityUpdateWidgetController extends KDViewController
     bongo.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
       warn 'couldnt save tutorial', error if error
 
-  discussionWidgetSubmit:(data)->
-    log 'starting discussion', data
-    bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
-      warn 'couldnt save discussion', error if error
+  discussionWidgetSubmit:(data, callback)->
+
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+      bongo.api.JDiscussion.create data, (err, discussion) =>
+        callback? err, discussion
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), discussion
+    # log 'starting discussion', data
+    # bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
+    #   warn 'couldnt save discussion', error if error
 
