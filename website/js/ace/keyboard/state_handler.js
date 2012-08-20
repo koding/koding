@@ -105,11 +105,11 @@ StateHandler.prototype = {
 
         var bufferObj = {
             bufferToUse: bufferToUse,
-            symbolicName: symbolicName,
+            symbolicName: symbolicName
         };
 
         if (e) {
-            bufferObj.keyIdentifier = e.keyIdentifier
+            bufferObj.keyIdentifier = e.keyIdentifier;
         }
 
         return bufferObj;

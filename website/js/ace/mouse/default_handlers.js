@@ -65,7 +65,7 @@ function DefaultHandlers(mouseHandler) {
 
     mouseHandler.selectByLines = this.extendSelectionBy.bind(mouseHandler, "getLineRange");
     mouseHandler.selectByWords = this.extendSelectionBy.bind(mouseHandler, "getWordRange");
-    
+
     mouseHandler.$focusWaitTimout = 250;
 }
 
@@ -76,7 +76,6 @@ function DefaultHandlers(mouseHandler) {
         var pos = ev.getDocumentPosition();
         this.mousedownEvent = ev;
         var editor = this.editor;
-        var _self = this;
 
         var button = ev.getButton();
         if (button !== 0) {
@@ -127,7 +126,7 @@ function DefaultHandlers(mouseHandler) {
             this.editor.selection.clearSelection();
         }
         this.setState("select");
-    }
+    };
 
     this.select = function() {
         var anchor, editor = this.editor;
@@ -163,10 +162,12 @@ function DefaultHandlers(mouseHandler) {
 
             if (cmpStart == -1 && cmpEnd <= 0) {
                 anchor = this.$clickSelection.end;
-                cursor = range.start;
+                if (range.end.row != cursor.row || range.end.column != cursor.column)
+                    cursor = range.start;
             } else if (cmpEnd == 1 && cmpStart >= 0) {
                 anchor = this.$clickSelection.start;
-                cursor = range.end;
+                if (range.start.row != cursor.row || range.start.column != cursor.column)
+                    cursor = range.end;
             } else if (cmpStart == -1 && cmpEnd == 1) {
                 cursor = range.end;
                 anchor = range.start;
@@ -199,7 +200,7 @@ function DefaultHandlers(mouseHandler) {
                 command: {
                     exec: function(editor) {
                         var self = editor.$mouseHandler;
-                        self.dragCursor = null
+                        self.dragCursor = null;
                         self.dragEnd();
                         self.startSelect();
                     }
@@ -224,7 +225,7 @@ function DefaultHandlers(mouseHandler) {
         var editor = this.editor;
 
         if (distance > DRAG_OFFSET) {
-            this.startSelect();
+            this.startSelect(this.mousedownEvent.getDocumentPosition());
         } else if (time - this.mousedownEvent.time > editor.getDragDelay()) {
             this.startDrag();
         }
@@ -274,7 +275,7 @@ function DefaultHandlers(mouseHandler) {
     this.onDoubleClick = function(ev) {
         var pos = ev.getDocumentPosition();
         var editor = this.editor;
-        var session = editor.session
+        var session = editor.session;
 
         var range = session.getBracketRange(pos);
         if (range) {
@@ -286,7 +287,7 @@ function DefaultHandlers(mouseHandler) {
             this.setState("select");
             return;
         }
-    
+
         this.$clickSelection = editor.selection.getWordRange(pos.row, pos.column);
         this.setState("selectByWords");
     };
@@ -296,10 +297,7 @@ function DefaultHandlers(mouseHandler) {
         var editor = this.editor;
 
         this.setState("selectByLines");
-
-        editor.moveCursorToPosition(pos);
-        editor.selection.selectLine();
-        this.$clickSelection = editor.getSelectionRange();
+        this.$clickSelection = editor.selection.getLineRange(pos.row);
     };
 
     this.onQuadClick = function(ev) {
@@ -345,7 +343,7 @@ function calcRangeOrientation(range, cursor) {
         var cmp = 2 * cursor.column - range.start.column - range.end.column;
     else
         var cmp = 2 * cursor.row - range.start.row - range.end.row;
-    
+
     if (cmp < 0)
         return {cursor: range.start, anchor: range.end};
     else

@@ -98,7 +98,7 @@ class PreviewerView extends KDView
   
   viewAppended:->
     @addSubView @viewerHeader = new ViewerTopBar {}, @path
-    @addSubView @iframe = new KDView
+    @addSubView @iframe = new KDCustomHTMLView
       tagName : 'iframe'
 
 
