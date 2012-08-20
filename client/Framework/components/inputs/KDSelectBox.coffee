@@ -24,13 +24,13 @@ class KDSelectBox extends KDInputView
     @_$title  = @$().find("span.title").eq(0)
     @domElement
 
-  bindDefaultEvents:()->
+  bindEvents:()->
     @_$select.bind "blur change focus",(event)=>
       # log "kdselectbox change" if event.type is "change"
       @getCallback()? @getValue() if event.type is "change"
       @emit event.type, event, @getValue()
       @handleEvent event
-    super @_$select
+    super
 
   setDefaultValue:(value)-> 
     @getDomElement().val value if value isnt ""

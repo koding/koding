@@ -409,7 +409,7 @@ class KDAutoComplete extends KDInputView
   getValue:()-> @$input().val()
   setValue:(value)-> @$input().val(value)
 
-  bindDefaultEvents:()->
+  bindEvents:()->
     super @$input()
 
   # FIX THIS: on blur dropdown should disappear but the
@@ -541,10 +541,14 @@ class KDAutoCompleteListItemView extends KDListItemView
     super options,data
     @setClass "kdautocompletelistitem"
     @active = no
-    @bindEvents "mouseenter mouseleave"
 
   viewAppended:()->
     @$().append @partial @data
+
+  bindEvents:()->
+    @getDomElement().bind "mouseenter mouseleave",(event)=>
+      @handleEvent event
+    super
 
   mouseEnter:()->
     @makeItemActive()

@@ -4,7 +4,7 @@ class KDView extends KDObject
 # #
   {defineProperty} = Object
   deprecated = (methodName)-> warn "#{methodName} is deprecated from KDView if you need it override in your subclass"
-  eventNamesRegEx =
+  eventNames =
     ///
     ^(
     (dbl)?click|
@@ -174,7 +174,7 @@ class KDView extends KDObject
     @setDraggable options.draggable if options.draggable
 
 
-    @bindDefaultEvents()
+    @bindEvents()
 
 # #
 # VIEW PROPERTY GETTERS
@@ -453,34 +453,31 @@ class KDView extends KDObject
           lastRatio = ratio
 
   # counter = 0
-  bindDefaultEvents:($elm)->
+  bindEvents:($elm)->
+    $elm or= @getDomElement()
+    # defaultEvents = "mousedown mouseup click dblclick dragstart dragenter dragleave dragover drop resize"
+    defaultEvents = "mousedown mouseup click dblclick"
+    instanceEvents = @getOptions().bind
 
-    $elm or= @$()
-    
-    eventsToBeBound = "mousedown mouseup click dblclick".split " "
+    eventsToBeBound = if instanceEvents
+      eventsToBeBound = defaultEvents.trim().split(" ")
+      instanceEvents  = instanceEvents.trim().split(" ")
+      for event in instanceEvents
+        eventsToBeBound.push event unless event in eventsToBeBound
+      eventsToBeBound.join(" ")
+    else
+      defaultEvents
 
-    if @getOptions().bind
-      for eventName in @getOptions().bind.trim().split(" ")
-        eventsToBeBound.push eventName unless eventName in eventsToBeBound
-
-    @bindEvents eventsToBeBound
-    return eventsToBeBound
-
-  bindEvents:($elm, eventNames)->
-    [eventNames, $elm] = [$elm, @$()] unless eventNames
-
-    if "string" is typeof eventNames
-      eventNames = eventNames.split " "
-
-    @bindEvent $elm, eventName for eventName in eventNames
-
-  bindEvent:($elm, eventName)->
-    [$elm, eventNames] = [@$(), eventName] unless eventName
-
-    $elm.bind eventName, (event)=>
+    $elm.bind eventsToBeBound, (event)=>
       willPropagateToDOM = @handleEvent event
       event.stopPropagation() unless willPropagateToDOM
       yes
+
+    # if @contextMenu?
+    #   $elm.bind "contextmenu",(event)=>
+    #     @handleEvent event
+
+    eventsToBeBound
 
   handleEvent:(event)->
     # log event.type
@@ -579,7 +576,7 @@ class KDView extends KDObject
 
   addEventHandlers:(options)->
     for key,value of options
-      if eventNamesRegEx.test key
+      if eventNames.test key
         @listenTo
           KDEventTypes       : key
           listenedToInstance : @
@@ -725,9 +722,6 @@ class KDView extends KDObject
 
   setTooltip:(o = {})->
 
-    @$tooltip = $ "<div />", class : "tipsy"
-    @$tooltip.append "<div class='tipsy-inner'></div>"
-
     placementMap =
       above      : "s"
       below      : "n"
@@ -735,61 +729,38 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
-    o.html      or= yes
-    o.opacity   or= 0.9
-
     o.placement or= "above"
     o.offset    or= 0
     o.delayIn   or= 300
+    o.html      or= yes
     o.animate   or= no
+    o.opacity   or= 0.9
     o.selector  or= null
+    o.engine    or= "tipsy" # we still can use twipsy
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
     o.fallback  or= o.title
-    o.engine    or= "tipsy" # we still can use twipsy
-
-    # @listenTo
-    #   KDEventTypes        : "viewAppended"
-    #   listenedToInstance  : @
-    #   callback            : =>
-    #     # log "get rid of this timeout there should be an event after template update"
-    #     @utils.wait =>
-    #       @$(o.selector)[o.engine] o
-
-    @$tooltip[if o.html then "html" else "text"] o.title
-    @$tooltip.css
-     opacity : o.opacity
-
-    @bindEvent "mouseenter"
-    
-    @listenTo
-      KDEventTypes        : "mouseenter"
-      listenedToInstance  : @
-      callback            : (pubInst, event)=>
-        log "show tooltip"
-        if o.selector
-          return unless $(event.target).closest(@$(o.selector)).length
-        @$tooltip.appendTo "body"
 
     @listenTo
-      KDEventTypes        : "mouseleave"
+      KDEventTypes        : "viewAppended"
       listenedToInstance  : @
       callback            : =>
-        log "remove tooltip"
-        @$tooltip.detach()
+        # log "get rid of this timeout there should be an event after template update"
+        @utils.wait =>
+          @$(o.selector)[o.engine] o
 
   getTooltip:(o = {})->
-    # o.selector or= null
-    # return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
+    o.selector or= null
+    return @$(o.selector)[0].getAttribute "original-title" or @$(o.selector)[0].getAttribute "title"
 
   updateTooltip:(o = {})->
-    # o.selector or= null
-    # o.title    or= ""
-    # @$(o.selector)[0].setAttribute "original-title", o.title
+    o.selector or= null
+    o.title    or= ""
+    @$(o.selector)[0].setAttribute "original-title", o.title
 
   hideTooltip:(o = {})->
-    # o.selector or= null
-    # @$(o.selector).tipsy "hide"
+    o.selector or= null
+    @$(o.selector).tipsy "hide"
 
   listenWindowResize:->
 

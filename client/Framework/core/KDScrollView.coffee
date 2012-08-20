@@ -10,7 +10,7 @@ class KDScrollView extends KDView
     # if @getOptions().ownScrollBars
     #   @_createScrollBars()
 
-  bindDefaultEvents:()->
+  bindEvents:()->
     @getDomElement().bind "scroll mousewheel",(event,delta,deltaX,deltaY)=> #FIXME: mousewheel works in FF, IE??
       event._delta = {delta,deltaX,deltaY} if delta
       @handleEvent event
