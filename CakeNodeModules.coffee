@@ -2,6 +2,7 @@ module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
+    "kite-amqp", "amqp"
   ]
   npm_modules :
     bitly				    : '1.2.3'

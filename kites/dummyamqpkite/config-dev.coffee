@@ -1,0 +1,11 @@
+nodePath = require 'path'
+# configuration
+
+module.exports =
+  name       : "dummyamqpkite"
+  pidPath    : "/var/run/node/pinger.pid"
+  logFile    : "/var/log/node/pinger.log"
+  amqp       :
+    host     : 'localhost'
+    port     : 5672
+  apiUri     : 'https://dev-api.koding.com/1.0'
