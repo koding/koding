@@ -73,6 +73,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JCodeSnip"
           mainView.showPane "codesnip"
           codeWidget.switchToEditView activity
+        when "JDiscussion"
+          mainView.showPane "discussion"
+          codeWidget.switchToEditView acivity
 
   updateWidgetSubmit:(data, callback)->
 

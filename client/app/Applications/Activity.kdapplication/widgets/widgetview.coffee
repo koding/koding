@@ -91,8 +91,7 @@ class ActivityUpdateWidget extends KDView
         }
         {
           title       : "Start a Discussion"
-          type        : "default discussion disabledForBeta"
-          disabled    : yes
+          type        : "default discussion"
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
         }
         {
