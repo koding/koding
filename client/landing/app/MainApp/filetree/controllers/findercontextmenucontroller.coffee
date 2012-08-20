@@ -161,6 +161,8 @@ class NFinderContextMenuController extends KDController
         children                  :
           Compile                 :
             action                : "compile"
+          Run                     :
+            action                : "runApp"
             separator             : yes
           "Download source files" :
             action                : "cloneRepo"

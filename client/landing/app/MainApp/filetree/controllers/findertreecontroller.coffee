@@ -385,6 +385,16 @@ class NFinderTreeController extends JTreeViewController
           @utils.wait =>
             @selectNode @nodes["#{folder.path}/index.js"]
 
+  runApp:(nodeView, callback)->
+
+    folder = nodeView.getData()
+    folder.emit "fs.run.started"
+    name = FSHelper.trimExtension folder.path
+    @getSingleton('kodingAppsController').runApp name, =>
+      folder.emit "fs.run.finished"
+      callback?()
+
+
   cloneAppRepo:(nodeView)->
 
     folder = nodeView.getData()
@@ -433,6 +443,7 @@ class NFinderTreeController extends JTreeViewController
 
   contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
   contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
+  contextMenuOperationRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
   contextMenuOperationCloneRepo:    (nodeView, contextMenuItem)-> @cloneAppRepo nodeView
   contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
 
