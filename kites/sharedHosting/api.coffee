@@ -171,7 +171,6 @@ module.exports = new Kite 'sharedHosting'
                   if err then cb err
                   else
                     fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
-                      console.log manifest
                       if err then cb err
                       else
                         fs.stat latestPath, (err, statObj)->

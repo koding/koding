@@ -148,6 +148,10 @@ class KodingAppsController extends KDController
   # #
   # KITE INTERACTIONS
   # #
+  runApp:(name, callback)->
+
+    log "app to run:", name
+    callback?()
 
   addScript:(app, scriptInput, callback)->
     
