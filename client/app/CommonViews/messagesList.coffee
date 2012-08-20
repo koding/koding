@@ -42,6 +42,7 @@ class MessagesListController extends KDListViewController
   fetchNotificationTeasers:(callback)->
     KD.whoami().fetchActivityTeasers? {
       targetName: $in: [
+        # 'CActivity'
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'
