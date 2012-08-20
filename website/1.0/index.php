@@ -38,13 +38,13 @@ function getFeed($collection,$limit,$sort,$skip){
     global $mongo,$dbName,$query;
 
     $type     = $query["data"]["type"];
+    $isPublic = $query["data"]["isPublic"];
     $originId = isset($query["data"]["originId"]) ? new MongoId(
       $query["data"]["originId"]
     ) : array(
       '$ne' => -1,
     );
 
-    trace($type);
 
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
@@ -54,8 +54,8 @@ function getFeed($collection,$limit,$sort,$skip){
       "snapshot"  => array( '$exists'  => true ),
       "type"      => $type,
       "originId"  => $originId,
+      "isPublic"  => $isPublic,
     );
-    trace('RUSSIAN SPAMMERS --- ', $query);
     if (!isset($query['t'])) {
       $activityQuery['isLowQuality'] = array( '$ne' => true );
     }

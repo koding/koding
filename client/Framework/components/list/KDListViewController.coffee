@@ -32,7 +32,7 @@ class KDListViewController extends KDViewController
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
       # log "hev hev", @
-      listView.on 'KeyDownOnList', (event)=> 
+      listView.on 'KeyDownOnList', (event)=>
         # log "alo"
         @keyDownPerformed listView, event
 
@@ -147,7 +147,6 @@ class KDListViewController extends KDViewController
   ###
 
   mouseDownHappenedOnItem:(item, event)->
-    log "asdasd"
     @getSingleton("windowController").setKeyView @getListView() if @getOptions().keyNav
 
     @lastEvent = event

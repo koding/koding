@@ -9,6 +9,7 @@ option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
+option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -18,7 +19,10 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = require "processes"
+
+
 # log = 
 #   info  : console.log
 #   debug : console.log
@@ -190,7 +194,7 @@ task 'install', 'install all modules in CakeNodeModules.coffee, get ready for bu
   l = (d) -> log.info d.replace /\n+$/, ''
   {our_modules, npm_modules} = require "./CakeNodeModules"
   reqs = npm_modules
-  exe = "npm i "+(name+"@"+ver for name,ver of reqs).join " "
+  exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
   a = exec exe,->
   a.stdout.on 'data', l
   a.stderr.on 'data', l
@@ -280,6 +284,9 @@ build = (options)->
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
 
   builder = new Builder options,targetPaths,"",run
+  
+  sourceCodeAnalyzer.attachListeners builder if options.sourceCodeAnalyze
+  
   builder.watcher.initialize()
 
   # EVENTS -
@@ -293,7 +300,7 @@ build = (options)->
         log.info "Auto reload is not on. Use cake -r to enable."
 
 
-  builder.watcher.on "initDidComplete",(changes)-> 
+  builder.watcher.on "initDidComplete",(changes)->
     builder.buildServer "",()->
       unless options.dontStart
         builder.processMonitor.flags.forever = yes
@@ -333,6 +340,8 @@ build = (options)->
 
     issueFrontendReloadCommand()
 
+  
+
   builder.processMonitor.on "processDidExit",(code)->
 
   builder.watcher.on "CoffeeScript Compile Error",(filePath,error)->
@@ -342,6 +351,8 @@ build = (options)->
       # builder.watcher.initialize()
 
 # ------------- BUILDER END ----------#
+
+
 
 
 

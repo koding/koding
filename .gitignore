@@ -16,6 +16,7 @@ node_modules/.bin
 *.swo
 /broker/deps
 ebin
+/website/dev/*.json
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -62,5 +63,11 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
+/node_modules/amqp
 node_modules/cron/
 sftp-config.json
+
+/website/dev/sourceClient.json
+/website/dev/sourceServer.json
+/node_modules/amqp/
+/npm-debug.log

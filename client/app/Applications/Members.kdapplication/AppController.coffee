@@ -108,6 +108,7 @@ class Members12345 extends AppController
   loadView:(mainView, firstRun = yes)->
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
+        return if value is @_searchValue
         @_searchValue = value
         @_lastSubview.destroy?()
         @loadView mainView, no
