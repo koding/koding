@@ -25,12 +25,12 @@
 -behaviour (sockjs_service).
 
 %% Application callbacks
--export ([init_state/1]).
+-export ([init_state/3]).
 
 %% SocjJS Service callbacks
 -export([sockjs_init/2, sockjs_handle/3, sockjs_terminate/2]).
 
--record (state, {callback, subscriptions, socket_id}).
+-record (state, {broker, func, callback, subscriptions, socket_id, channel}).
 -record (subscription, {state, vconn, exchange}).
 
 %% ===================================================================
@@ -38,30 +38,35 @@
 %% This is for each SockJS connection only.
 %% ===================================================================
 
-init_state(Callback) ->
-    #state{callback=Callback, subscriptions=orddict:new()}.
+init_state(Broker, ConnectionFun, Callback) ->
+    #state{broker=Broker, 
+            func=ConnectionFun,
+            callback=Callback, 
+            subscriptions=orddict:new()}.
 
 %% ===================================================================
 %% SockJS Service callbacks
 %% ===================================================================
 
-sockjs_init(Conn, State) ->
+sockjs_init(Conn, State=#state{broker=Broker, func=Func}) ->
+    Channel = Func(Broker),
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
-    Event = [{<<"event">>,<<"connected">>}, {<<"socket_id">>,SocketId}],
-    Conn:send(jsx:encode(Event)),
-    {ok, State#state{socket_id=SocketId}}.
+    Event = {<<"event">>, <<"connected">>},
+    Payload = {<<"socket_id">>, SocketId},
+    Conn:send(jsx:encode([Event, Payload])),
+    {ok, State#state{socket_id=SocketId, channel=Channel}}.
 
 sockjs_handle(Conn, Data, State = #state{callback=Callback, 
                                         subscriptions=Subscriptions,
-                                        socket_id=SocketId}) ->
+                                        socket_id=SocketId,
+                                        channel=Channel}) ->
     [Event, Exchange, Payload] = decode(Data),
 
-    % Check the event type and whether Conn is subscribed to the Exchange
     case {Event, orddict:is_key(Exchange, Subscriptions)} of
         {<<"client-subscribe">>, false} ->
             VConn = broker_channel:new(Conn, Exchange),
             Subscription = #subscription{vconn = VConn},
-            Sub1 = emit({init, SocketId}, Callback, Subscription),
+            Sub1 = emit({init, SocketId, Channel}, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -71,9 +76,24 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             Subs1 = orddict:erase(Exchange, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
+        {<<"client-bind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Body = {bind, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
+        {<<"client-unbind-event">>, true} ->
+            Subscription = orddict:fetch(Exchange, Subscriptions),
+            Body = {unbind, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
+            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+            {ok, State#state{subscriptions=Subs1}};
+
         {<<"client-",_EventName/binary>>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
-            Sub1 = emit({recv, Payload, SocketId}, Callback, Subscription),
+            Body = {trigger, Event, Payload, SocketId},
+            Sub1 = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -82,10 +102,18 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             {ok, State}
     end.
 
-sockjs_terminate(_Conn, State = #state{callback=Callback, 
-                                subscriptions=Subscriptions}) ->
-    _ = [ {emit(closed, Callback, Subscription)} ||
-            {_Exchange, Subscription} <- orddict:to_list(Subscriptions) ],
+sockjs_terminate(_Conn, #state{ callback=Callback, 
+                                subscriptions=Subscriptions,
+                                channel = Channel}) ->
+    case orddict:size(Subscriptions) of 
+        0 -> Callback(none, ended, Channel);
+        _ ->
+            List = orddict:to_list(Subscriptions),
+            [Sub | _] = [emit(closed, Callback, Subscription) ||
+                {_Exchange, Subscription} <- List],
+            Callback(Sub#subscription.vconn, ended, Channel)
+    end,
+    
     {ok, #state{callback=Callback, subscriptions=orddict:new()}}.
 
 
@@ -101,30 +129,15 @@ sockjs_terminate(_Conn, State = #state{callback=Callback,
 %%--------------------------------------------------------------------
 emit(What, Callback, Subscription = #subscription{state = State, 
                                                 vconn = VConn}) ->
-    %State1 = State#subscription{exchange = Exchange},
     case Callback(VConn, What, State) of
         {ok, State1} -> Subscription#subscription{state = State1};
         ok           -> Subscription
     end.
 
 decode(Data) ->
-    [{<<"event">>, Event}, {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+    [{<<"event">>, Event}, 
+        {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
     case lists:keyfind(<<"payload">>, 1, Rest) of
         {<<"payload">>, Payload} ->  [Event, Exchange, Payload];
         false -> [Event, Exchange, <<>>]
     end.
-
-%%--------------------------------------------------------------------
-%% Function: split(Char, Str, Limit) -> [Event, Exchange, Payload]
-%% Description: Split the binary-to-string-list Data into a list.
-%%--------------------------------------------------------------------
-split(Char, Str, Limit) ->
-    Acc = split(Char, Str, Limit, []),
-    lists:reverse(Acc).
-split(_Char, _Str, 0, Acc) -> Acc;
-split(Char, Str, Limit, Acc) ->
-    {L, R} = case string:chr(Str, Char) of
-                 0 -> {Str, ""};
-                 I -> {string:substr(Str, 1, I-1), string:substr(Str, I+1)}
-             end,
-    split(Char, R, Limit-1, [L | Acc]).

@@ -24,9 +24,9 @@
 %% Description: Starts the server
 %%--------------------------------------------------------------------
 start(Connection, Conn, Subscriber) ->
-    {ok, Pid} = gen_server:start(?MODULE, 
+    {ok, Broker} = gen_server:start(?MODULE, 
                             [Connection, Conn, Subscriber], []),
-    Pid.
+    Broker.
 
 subscribe(Broker, Exchange) ->
     %gen_server:call(?SERVER, {subscribe, Exchange}).
@@ -34,6 +34,15 @@ subscribe(Broker, Exchange) ->
 
 broadcast(Broker, Exchange, Data) ->
     gen_server:call(Broker, {broadcast, Exchange, Data}).
+
+bind(Broker, Exchange, Event) ->
+    gen_server:call(Broker, {bind, Exchange, Event}).
+
+unbind(Broker, Exchange, Event) ->
+    gen_server:call(Broker, {unbind, Exchange, Event}).
+
+change_exchange(Broker, Exchange) ->
+    gen_server:call(Broker, {change, Exchange}).
 
 rpc(Broker, RoutingKey, Payload) ->
     gen_server:call(Broker, {rpc, RoutingKey, Payload}).

@@ -12,7 +12,7 @@ slice         = Array::slice
 splice        = Array::splice
 noop          = Function()
 
-Error.stackTraceLimit = 100
+# Error.stackTraceLimit = 100
 
 if process.argv[5] is "true"
   __runCronJobs   = yes
@@ -21,8 +21,7 @@ if process.argv[5] is "true"
 
 process.on 'uncaughtException', (err)->
   exec './beep'
-  throw err
-  # console.log err, err?.stack
+  console.log err, err?.stack
 
 
 dbCallback= (err)->
