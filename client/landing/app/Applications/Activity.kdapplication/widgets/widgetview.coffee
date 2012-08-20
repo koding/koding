@@ -90,7 +90,7 @@ class ActivityUpdateWidget extends KDView
           callback    : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
         }
         {
-          title       : "Start a Discussion"
+          title       : "Start discussing"
           type        : "default discussion"
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
         }
