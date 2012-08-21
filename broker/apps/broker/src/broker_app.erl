@@ -336,7 +336,7 @@ loop(Conn, Subscriber) ->
         % Only send message from the bound event
         {#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
             #amqp_msg{payload = Body}} ->
-            io:format(" [x] ~p:~p:~p~n", [Exchange, Event, Body]),
+            % io:format(" [x] ~p:~p:~p~n", [Exchange, Event, Body]),
             Conn:send(Event, Body),
             loop(Conn, Subscriber)
     end.
