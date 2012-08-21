@@ -25,7 +25,7 @@ class NewCommentForm extends KDView
       type        : "textarea"
       delegate    : @
       placeholder : "Type your comment and hit enter..."
-      # autogrow    : yes
+      autogrow    : yes
       validate    :
         # event       : "keyup"
         rules       :
