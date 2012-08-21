@@ -6,7 +6,7 @@ class ActivityListItemView extends KDListItemView
     # CCodeSnipActivity   : CodesnipActivityItemView
     JCodeSnip           : CodesnipActivityItemView
     JQuestionActivity   : QuestionActivityItemView
-    JDiscussionActivity : DiscussionActivityItemView
+    JDiscussion         : DiscussionActivityItemView
     JLinkActivity       : LinkActivityItemView
 
   getActivityChildCssClass = ->
@@ -23,29 +23,29 @@ class ActivityListItemView extends KDListItemView
     JTag      : TagFollowBucketItemView
 
   constructor:(options = {},data)->
-    
+
     options.type = "activity"
-    
+
     super options, data
-    
+
     data = @getData()
-    
+
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
     unless options.isHidden
       if 'function' is typeof data.fetchTeaser
-        data.fetchTeaser? (err, teaser)=> 
+        data.fetchTeaser? (err, teaser)=>
           @addChildView teaser
       else
         @addChildView data
-    
+
     data.on 'ContentMarkedAsLowQuality', =>
       @hide() unless KD.checkFlag 'exempt'
     data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
-    
+    log data
     {constructorName} = data.bongo_
 
     childConstructor =
@@ -69,4 +69,3 @@ class ActivityListItemView extends KDListItemView
       @addChildView teaser, => @slideIn()
 
   slideIn:()-> @$().removeClass 'hidden-item'
-  

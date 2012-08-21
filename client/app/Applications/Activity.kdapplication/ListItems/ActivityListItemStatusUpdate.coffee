@@ -16,7 +16,6 @@ class StatusActivityItemView extends ActivityItemChild
     @template.update()
 
   click:(event)->
-    log "click", @
     if $(event.target).is("p span.more a.more-link")
       @$("p span.more").addClass "show"
 
