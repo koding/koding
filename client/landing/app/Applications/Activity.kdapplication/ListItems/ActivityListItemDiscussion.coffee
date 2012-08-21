@@ -1,6 +1,5 @@
 class DiscussionActivityItemView extends ActivityItemChild
   constructor:(options, data)->
-    log "constructor"
     options = $.extend
       cssClass    : "activity-item discussion"
       tooltip     :
@@ -11,12 +10,16 @@ class DiscussionActivityItemView extends ActivityItemChild
     super options,data
 
   viewAppended:()->
-    log "view appended"
     return if @getData().constructor is bongo.api.CDiscussion
     super()
-    log "this is:", @
     @setTemplate @pistachio()
     @template.update()
+
+  click:(event)->
+    log "a click! at ", event.target
+    if $(event.target).is("[data-paths~=title]")
+      appManager.tell "Activity", "createContentDisplay", @getData()
+
   applyTextExpansions:(str = "")->
 
     str = @utils.applyTextExpansions str
@@ -36,7 +39,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
-      <p>{{@applyTextExpansions #(body)}}</p>
+      <p>{{@applyTextExpansions #(title)}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}

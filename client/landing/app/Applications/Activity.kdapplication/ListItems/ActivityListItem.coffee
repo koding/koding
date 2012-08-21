@@ -45,7 +45,6 @@ class ActivityListItemView extends KDListItemView
     data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
-    log data
     {constructorName} = data.bongo_
 
     childConstructor =
