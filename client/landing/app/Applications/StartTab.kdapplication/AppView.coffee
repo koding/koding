@@ -250,43 +250,6 @@ class StartTabMainView extends JView
       },
     ]
 
-  apps = [
-    {
-      name      : 'Ace Editor'
-      type      : 'Code Editor'
-      appToOpen : 'Ace'
-      image     : '../images/icn-ace.png'
-    },
-    {
-      name      : 'CodeMirror'
-      type      : 'Code Editor'
-      appToOpen : 'CodeMirror'
-      image     : '../images/icn-codemirror.png'
-      disabled  : yes
-    },
-    {
-      name      : 'yMacs'
-      type      : 'Code Editor'
-      appToOpen : 'YMacs'
-      image     : '../images/icn-ymacs.png'
-      disabled  : yes
-    },
-    {
-      name      : 'Pixlr'
-      type      : 'Image Editor'
-      appToOpen : 'Pixlr'
-      image     : '../images/icn-pixlr.png'
-      disabled  : yes
-    },
-    {
-      name      : 'Get more...'
-      appToOpen : 'Apps'
-      image     : '../images/icn-appcatalog.png'
-      catalog   : yes
-    }
-  ]
-
-
 class AppItemContainer extends KDView
   parentDidResize:->
     # log @getDelegate().getHeight()

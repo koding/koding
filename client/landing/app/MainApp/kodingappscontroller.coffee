@@ -215,6 +215,11 @@ class KodingAppsController extends KDController
             appManager.openApplication "Apps", yes, (instance)=>
               # instance.feedController.changeActiveSort "meta.modifiedAt"
               callback?()
+  compileApp:(path, callback)->
+
+    manifest = getManifestFromPath path
+
+    @compileSource manifest.name, => callback?()
 
   compileSource:(name, callback)->
 
