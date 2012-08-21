@@ -34,7 +34,8 @@ fs            = require "fs"
 # create required folders
 mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
- 
+fs.writeFileSync "./.revision","0.0.1"
+
 # get current version
 
 if process.argv[2] is 'buildForProduction'
