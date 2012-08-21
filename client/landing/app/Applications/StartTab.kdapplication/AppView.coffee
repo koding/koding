@@ -308,7 +308,7 @@ class StartTabAppView extends JView
     {icns} = @getData()
     @imgHolder = new KDView
       tagName : "p"
-      partial : "<img src=\"#{icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}\" />"
+      partial : "<img src=\"#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'] else KD.apiUri + '/images/default.app.listthumb.png'}\" />"
 
     @loader = new KDLoaderView
       size          :
