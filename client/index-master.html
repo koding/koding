@@ -25,13 +25,16 @@
       </ul>
     </figure>
   </div>
-
+  <!--[if IE]>
+  <script type="text/javascript">
+    (function() { window.location.href = '/unsupported.html'})();
+  </script>
+  <![endif]-->
   <script type="text/javascript">
     (function() {
       var redirect, result;
       redirect = function() { window.location.href = '/unsupported.html' }
-      if (navigator.appName === 'Microsoft Internet Explorer') {redirect()}
-      else if (result = /AppleWebKit\/([\d.]+)/.exec(navigator.userAgent)) {
+      if (result = /AppleWebKit\/([\d.]+)/.exec(navigator.userAgent)) {
         if (parseFloat(result[1]) < 535.0) {redirect()}
       }
     })();
