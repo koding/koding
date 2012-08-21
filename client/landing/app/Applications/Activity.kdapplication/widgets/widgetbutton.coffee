@@ -1,7 +1,6 @@
 class WidgetButton extends KDButtonViewWithMenu
 
   setTitle:(title)->
-    log arguments
     @$('button').append("<span class='title'>#{title}</span>")
 
   click:(event)->
