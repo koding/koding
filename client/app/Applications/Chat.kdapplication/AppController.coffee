@@ -1,20 +1,44 @@
 class Chat12345 extends AppController
+  {mq} = bongo
+
   constructor:(options = {}, data)->
     options.view = new ChatView
       cssClass : "content-page chat"
 
     super options, data
 
+    @account = KD.whoami()
+    @username = @account?.profile?.nickname
+    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
+
+    @channels = {}
+    @broadcaster = mq.subscribe "private-KDPublicChat"
+
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
 
   loadView:(mainView)->
-    @addChannelTab 'public'
-    @addOnlineUser name: "sntran", status: "online"
+    @joinChannel 'public'
+    @addOnlineUser name: @username, status: "online"
 
-  addChannelTab: (name) ->
+  joinChannel: (name) ->
     view = @getOptions().view
-    view.addChannelTab name
+    channelPaneInstance = view.addChannelTab name
+    channelName = "client-#{name}"
+
+    channel = new Channel 
+      name: name
+      view: channelPaneInstance
+
+    channel.view.on "ChatMessageSent", (message) =>
+      console.log "what"
+      channel.messageReceived message
+      @broadcaster.emit channelName, JSON.stringify(message)
+
+    @channels[name] = channel
+    @broadcaster.on channelName, (msg) ->
+      console.log "received", msg
+      channel.messageReceived
 
   addOnlineUser: (user) ->
     view = @getOptions().view
@@ -23,8 +47,23 @@ class Chat12345 extends AppController
       KDEventTypes: 'click'
       listener    : @
       callback    : =>
-        @addChannelTab user.name
-    
+        @joinChannel user.name
+
+class Channel extends KDEventEmitter
+  constructor: (options = {}, data) ->
+    @account = KD.whoami()
+    @username = @account?.profile?.nickname
+    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
+    @messages = []
+    @participants = {}
+    @participants[@username] = @account
+
+    @name = options.name
+    @view = options.view
+
+  messageReceived: (message) ->
+    @messages.push message
+    @view.newMessage message
 
 class ChatView extends KDView
   viewAppended: ->
@@ -51,30 +90,14 @@ class ChatView extends KDView
       subItemClass: ChannelListItemView
 
   addChannelTab: (name) ->
-    if @chatTabView.getPaneByName name
+    channelTabPane = @chatTabView.getPaneByName name
+    if channelTabPane
       @chatTabView.showPaneByName name
-      return
+      return channelTabPane
 
-    tabPane = @chatTabView.addPane new TabPaneViewWithList
+    tabPane = @chatTabView.addPane new ChannelView
       name: name
-      subItemClass: ChatListItemView
       listHeight: 500
-
-    formView = new KDFormView
-    formView.addSubView input = new KDInputView
-      name: "chatInput"
-      cssClass: "fl"
-
-    formView.addSubView new KDButtonView
-      title: "send"
-      cssClass: "fl"
-      style: "cupid-green"
-      callback: ->
-        chatMsg = input.getValue()
-        tabPane.addItem title: chatMsg
-        input.setValue ""
-
-    tabPane.addSubView formView
 
   addOnlineUser: (userItem) ->
     userPane = @rosterTabView.getPaneByName 'people'
@@ -93,8 +116,6 @@ class TabPaneViewWithList extends KDTabPaneView
 
     @listController = new KDListViewController controllerOptions
     @listView = @listController.getListView()
-    @listView.on 'ListItemClicked', =>
-      log @getDelegate()
     @controllerView = @listController.getView()
 
     if options.listHeight
@@ -111,15 +132,31 @@ class TabPaneViewWithList extends KDTabPaneView
   addItem: (item, index, animation) ->
     @listView.addItem item, index, animation
 
+class ChannelView extends TabPaneViewWithList
+  constructor: (options = {}, data) ->
+    options.subItemClass || (options.subItemClass = ChatListItemView)
+    super options, data
+
+  viewAppended: ->
+    super()
+    @addSubView inputForm = new ChatInputForm delegate : @
+
+  newMessage: (message) ->
+    @listView.addItem message
 
 class ChatListItemView extends KDListItemView
   viewAppended: ->
-    # @setPartial @getData().title
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-    "<p>{{#(title)}}</p>"
+    """
+    <div class='meta'>
+      <span class="author-wrapper">{{#(author)}}</span>
+      <span class='time'>{{$.timeago #(meta.createdAt)}}</span>
+    </div>
+    <div>{{#(body)}}</div>
+    """
 
 class ChannelListItemView extends KDListItemView
   viewAppended: ->
@@ -128,3 +165,31 @@ class ChannelListItemView extends KDListItemView
 
   pistachio: ->
     "<p>{{#(name)}} - {{#(status)}} </p>"
+
+class ChatInputForm extends KDFormView
+  viewAppended: ->
+    @addSubView @input = new KDInputView
+      placeholder: "Click here to reply"
+      name: "chatInput"
+      cssClass: "fl"
+      validate      :
+        rules       :
+          required  : yes
+        messages    :
+          required  : "Reply field is empty..."
+
+    @addSubView @sendButton = new KDButtonView
+      title: "Send"
+      cssClass: "fl"
+      style: "clean-gray inside-button"
+      callback: =>
+        chatMsg = 
+          author: "me"
+          body: @input.getValue()
+          meta: {createdAt: new Date()}
+
+        @input.setValue ""
+        @input.blur()
+        @input.$().blur()
+
+        @getDelegate().emit 'ChatMessageSent', chatMsg

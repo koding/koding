@@ -64,7 +64,7 @@ Broker.prototype.disconnect = function () {
 
 Broker.prototype.subscribe = function (channelName) {
     var self = this;
-    if (this.channels[channelName]) return this;
+    if (this.channels[channelName]) return this.channels[channelName];
     var channel = new Channel(this.ws, escape(channelName));
     this.channels[escape(channelName)] = channel;
 
