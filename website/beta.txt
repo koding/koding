@@ -11,7 +11,7 @@
     <li>We're working on Dropbox, dropbox style sharing, chat and online collaboration.</li>
     <li>We will be iterating on the social features of the site over the next weeks, content types (status updates, code shares, questions) and your profile will look much better very soon.</li>
     <li>We will work on Groups next. So you can form teams and work together on the same backend.</li>
-    <li>Koding users created a <a href="http://kwiki.koding.com">wiki</a> look at it for other answers.</li>
+    <li>Koding users created a <a href="http://kwiki.koding.com" target="_blank">wiki</a> look at it for other answers.(thanks @obsidiangolem21)</li>
     <li>Yes, we can use your help. If you're seriously in love with this project, just like we are, <a href="http://blog.koding.com/2012/06/we-want-to-date-not-hire/" target="blank">we want to date, not hire.</a></li> 
   </ol>
 </div>
