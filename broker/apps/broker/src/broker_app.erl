@@ -56,9 +56,9 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
-    {ok, MqHost} = application:get_env(broker, mq_host),
-    {ok, MqUser} = application:get_env(broker, mq_user),
-    {ok, MqPass} = application:get_env(broker, mq_pass),
+    MqHost = get_env(mq_host, "localhost"),
+    MqUser = get_env(mq_user, <<"guest">>),
+    MqPass = get_env(mq_pass, <<"guest">>),
 
     {ok, Broker} = amqp_connection:start(#amqp_params_network{
         host = MqHost, username = MqUser, password = MqPass
@@ -345,4 +345,10 @@ debug_log(Text, Args) ->
         {ok, Val} when Val ->
             io:format(Text, Args);
         _ -> true
+    end.
+
+get_env(Param, DefaultValue) ->
+    case application:get_env(broker, Param) of
+        {ok, Val} -> Val;
+        undefined -> DefaultValue
     end.
