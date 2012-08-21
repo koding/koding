@@ -3,24 +3,30 @@
 #      |_ JComment*
 
 class JDiscussionReply extends JComment
-	relationships     :
-	  comment         : JComment
-	  participant     :
-	    targetType    : JAccount
-	    as            : ['author','commenter']
-	  likedBy         :
-	    targetType    : JAccount
-	    as            : 'like'
-	  repliesActivity :
-	    targetType    : CRepliesActivity
-	    as            : 'repliesActivity'
-	  tag             :
-	    targetType    : JTag
-	    as            : 'tag'
-	  follower        :
-	    as            : 'follower'
-	    targetType    : JAccount
-# give it the relationships of a post while being a comment
+  {secure} = require 'bongo'
+  @share()
+  @set
+  	relationships     :
+  	  comment         : JComment
+  	  participant     :
+  	    targetType    : JAccount
+  	    as            : ['author','commenter']
+  	  likedBy         :
+  	    targetType    : JAccount
+  	    as            : 'like'
+  	  repliesActivity :
+  	    targetType    : CRepliesActivity
+  	    as            : 'repliesActivity'
+  	  tag             :
+  	    targetType    : JTag
+  	    as            : 'tag'
+  	  follower        :
+  	    as            : 'follower'
+  	    targetType    : JAccount
+
+  @create = secure (client, data, callback) ->
+    log arguments
+
 # dont forget about garbage collection when a reply gets deleted
 
 class JDiscussion extends JPost
@@ -57,6 +63,26 @@ class JDiscussion extends JPost
       title 	: data.title
       body		: data.body
       meta		: data.meta
-    log discussion
+    JPost.create.call @, client, discussion, callback
 
 
+  modify: secure (client, data, callback)->
+    discussion =
+      title   : data.title
+      body    : data.body
+      meta    : data.meta
+    JPost::modify.call @, client, discussion, callback
+
+  reply : secure (client, data, callback)->
+    JPost::reply.call @, client, discussion, callback
+
+class CDiscussionActivity extends CActivity
+  @share()
+  @set
+    encapsulatedBy  : CActivity
+    sharedMethods   : CActivity.sharedMethods
+    schema          : CActivity.schema
+    relationships   :
+      subject       :
+        targetType  : JDiscussion
+        as          : 'content'
