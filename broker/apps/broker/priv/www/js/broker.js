@@ -1,7 +1,7 @@
 var Broker = function (app_key, options) {
     this.options = options || {};
     //this.sockURL = this.options.sockURL || 'http://web0.beta.system.aws.koding.com:8008/subscribe';
-    this.sockURL = this.options.sockURL || 'http://localhost:8008/subscribe';
+    this.sockURL = this.options.sockURL || 'http://'+window.location.hostname+':8008/subscribe';
     this.key = app_key;
     this.channels = {};
     this.connect();
@@ -155,13 +155,13 @@ Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener)
     this.ws.removeEventListener(channel+'.'+eventType, listener);
 };
 
-Channel.prototype.emit = Channel.prototype.trigger = function (event_name, payload) {
+Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload) {
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
-    if (!event_name.match(/^(client-[a-z0-9]*)/)) return false;
+    if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
     var channel = this.privateName || this.name;
-    sendWsMessage(this.ws, event_name, channel, payload);
+    sendWsMessage(this.ws, eventType, channel, payload);
     return true;
 };
 
