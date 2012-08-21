@@ -5,8 +5,15 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  sockjs,
+                  cowboy
                  ]},
   {mod, { broker_app, []}},
-  {env, []}
+  {env, [
+    {mq_host, "web0.beta.system.aws.koding.com"},
+    {mq_user, <<"guest">>},
+    {mq_pass, <<"x1srTA7!%Vb}$n|S">>},
+    {verbose, true}
+    ]}
  ]}.
