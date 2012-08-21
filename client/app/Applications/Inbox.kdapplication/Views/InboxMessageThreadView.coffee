@@ -3,7 +3,7 @@ class InboxMessageThreadView extends CommentView
     super
     @unsetClass "comment-container"
     @setClass "thread-container"
-  
+
   createSubViews:(data)->
 
     @commentList = new KDListView
@@ -25,10 +25,9 @@ class InboxMessageThreadView extends CommentView
     showMore.setClass "show-more"
     @addSubView @commentList
     # @addSubView @commentForm = new InboxReplyForm delegate : @commentList
-    
+
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
-        
-    @commentList.emit "BackgroundActivityFinished"
 
+    @commentList.emit "BackgroundActivityFinished"

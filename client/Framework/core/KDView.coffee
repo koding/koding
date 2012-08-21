@@ -763,6 +763,10 @@ class KDView extends KDObject
     o.title    or= ""
     @$(o.selector)[0].setAttribute "original-title", o.title
 
+  hideTooltip:(o = {})->
+    o.selector or= null
+    @$(o.selector).tipsy "hide"
+
   listenWindowResize:->
 
     @getSingleton('windowController').registerWindowResizeListener @

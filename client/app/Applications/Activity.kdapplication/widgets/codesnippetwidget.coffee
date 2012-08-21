@@ -164,6 +164,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setShowGutter no
       @ace.setContents "//your code snippet goes here..."
       @ace.setTheme()
+      @ace.setFontSize(12, no)
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
       @emit "codeSnip.aceLoaded"

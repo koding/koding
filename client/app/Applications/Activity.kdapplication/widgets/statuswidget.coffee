@@ -19,6 +19,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'
       style         : 'input-with-extras'
+      autogrow      : yes
       validate      :
         rules       :
           required  : yes
@@ -124,8 +125,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     <div class="formline">
       {{> @labelAddTags}}
       <div>
-        {{> @tagAutoComplete}}
         {{> @selectedItemWrapper}}
+        {{> @tagAutoComplete}}
       </div>
     </div>
     <div class="formline submit">

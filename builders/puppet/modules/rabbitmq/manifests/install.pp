@@ -4,11 +4,11 @@
 class rabbitmq::install {
     
     
-    package { "erlang":
+    package { "esl-erlang":
         ensure => installed,
     }
     package { "rabbitmq-server":
         ensure => installed,
-	require => [Package["erlang"],Yumrepo["koding"]]
+    	require => [Package["esl-erlang"],Yumrepo["koding"],Yumrepo["erlang"]]
     }
 }

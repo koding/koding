@@ -44,27 +44,20 @@ function GutterHandler(mouseHandler) {
     var editor = mouseHandler.editor;
 
     mouseHandler.editor.setDefaultHandler("guttermousedown", function(e) {
-        var target = e.domEvent.target;
-        if (target.className.indexOf("ace_gutter-cell") == -1)
-            return;
-
         if (!editor.isFocused())
             return;
+        var gutterRegion = editor.renderer.$gutterLayer.getRegion(e);
 
-        var padding = parseInt(dom.computedStyle(target).paddingLeft);
-        if (e.x < padding + target.getBoundingClientRect().left + 1)
+        if (gutterRegion)
             return;
 
         var row = e.getDocumentPosition().row;
         var selection = editor.session.selection;
 
-        if (e.getShiftKey()) {
+        if (e.getShiftKey())
             selection.selectTo(row, 0);
-        } else {
-            selection.moveCursorTo(row, 0);
-            selection.selectLine();
-            mouseHandler.$clickSelection = selection.getRange();
-        }
+        else
+            mouseHandler.$clickSelection = editor.selection.getLineRange(row);
 
         mouseHandler.captureMouse(e, "selectByLines");
         return e.preventDefault();

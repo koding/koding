@@ -2,7 +2,7 @@ class ProfileView extends KDView
   constructor:->
     super
     memberData = @getData()
-    @avatar = new AvatarStaticView 
+    @avatar = new AvatarStaticView
       size      :
         width  : 90
         height : 90
@@ -36,7 +36,7 @@ class ProfileView extends KDView
     , memberData
 
     @skillTags = @putSkillTags()
-    
+
     @followers = new KDView
       tagName     : 'a'
       attributes  :
@@ -58,11 +58,11 @@ class ProfileView extends KDView
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
-    
+
     memberData.locationTags or= []
     if memberData.locationTags.length < 1
-      memberData.locationTags[0] = "Earth" 
-      
+      memberData.locationTags[0] = "Earth"
+
     @location = new LocationView {},memberData
     @setListeners()
     @skillTags = new SkillTagGroup {}, memberData
@@ -91,8 +91,9 @@ class ProfileView extends KDView
     @template.update()
 
   putNick:(nick)-> "@#{nick}"
-      
+
   pistachio:->
+    userDomain = "#{@getData().profile.nickname}.koding.com"
     """
     <div class="profileleft">
       <span>
@@ -104,8 +105,9 @@ class ProfileView extends KDView
 
     <section>
       <div class="profileinfo">
-        <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3> 
+        <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
+        <h5><span class='icon fl'></span><a class="user-home-link right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a></h5>
         <div class="profilestats">
           <div class="fers">
             {{> @followers}}
@@ -121,7 +123,7 @@ class ProfileView extends KDView
         <div class="profilebio">
           <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
         </div>
-        
+
         <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>
 
       </div>
@@ -130,20 +132,20 @@ class ProfileView extends KDView
     {{> @trollSettings}}
     """
 
-  
+
   putSkillTags:()->
     memberData = @getData()
-    
+
     memberData.skillTags or= ['No Tags']
     skillTagHTML = "<label>Skills</label>"
     for skillTag in memberData.skillTags
-      if skillTag = 'No Tags' 
+      if skillTag = 'No Tags'
         skillTagHTML += '<p>No Tags Yet. Add One.</p>'
-      else 
+      else
         skillTagHTML += "<span>#{skillTag}</span>"
-    
+
     skillTagHTML
-    
+
   setListeners:->
     @sendMessageLink.registerListener
       KDEventTypes : "ToFieldHasNewInput"
@@ -160,14 +162,14 @@ class ProfileView extends KDView
     @sendMessageLink.registerListener
       KDEventTypes  : "AutoCompleteNeedsMemberData"
       listener      : @
-      callback      : (pubInst,event)=> 
+      callback      : (pubInst,event)=>
         {callback,inputValue,blacklist} = event
         @fetchAutoCompleteForToField inputValue,blacklist,callback
 
     @sendMessageLink.registerListener
       KDEventTypes  : 'MessageShouldBeSent'
       listener      : @
-      callback      : (pubInst,{formOutput,callback})-> 
+      callback      : (pubInst,{formOutput,callback})->
         @prepareMessage formOutput,callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
@@ -175,9 +177,9 @@ class ProfileView extends KDView
       callback accounts
 
   prepareMessage:(formOutput, callback)=>
-    {body, subject, recipients} = formOutput    
+    {body, subject, recipients} = formOutput
     to = recipients.join ' '
-    
+
     @sendMessage {to, body, subject}, (err, message)->
       new KDNotificationView
         title     : if err then "Failure!" else "Success!"

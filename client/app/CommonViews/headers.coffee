@@ -19,13 +19,20 @@ class HeaderViewSection extends KDHeaderView
     @searchInput?.destroy() # If already exist, destroy the old one
 
     @addSubView @searchInput = new KDHitEnterInputView
-      placeholder  : options.placeholder or "click to search"
-      name         : options.name or "searchInput"
-      cssClass     : options.cssClass or "header-search-input"
+      placeholder  : options.placeholder or "Search..."
+      name         : options.name        or "searchInput"
+      cssClass     : options.cssClass    or "header-search-input"
       type         : "text"
       callback     : =>
         @parent.emit "searchFilterChanged", @searchInput.getValue()
         @searchInput.focus()
+      keyup        : =>
+        if @searchInput.getValue() is ""
+          @parent.emit "searchFilterChanged", ""
+
+    @addSubView icon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "header-search-input-icon"
 
 class WelcomeHeader extends KDHeaderView
   constructor:->
