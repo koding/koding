@@ -9,6 +9,13 @@ class DiscussionActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
+    @replyBox = new ReplyView null, data
+
+    @actionLinks = new DiscussionActivityActionsView
+      delegate : @replyBox.commentList
+      cssClass : "reply-header"
+    , data
+
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussion
     super()
@@ -16,7 +23,6 @@ class DiscussionActivityItemView extends ActivityItemChild
     @template.update()
 
   click:(event)->
-    log "a click! at ", event.target
     if $(event.target).is("[data-paths~=title]")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
