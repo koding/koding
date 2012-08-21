@@ -151,8 +151,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
   discussionWidgetSubmit:(data, callback)->
 
-    log "stating submit"
-
     if data.activity
 
       {activity} = data
