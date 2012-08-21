@@ -39,15 +39,6 @@
                         routing_keys = dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 
-% -define (RABBITMQ, #amqp_params_network{
-%                         host = "localhost",
-%                         username = <<"guest">>,
-%                         password = <<"guest">>}).
--define (RABBITMQ, #amqp_params_network{
-                        host = "web0.beta.system.aws.koding.com",
-                        username = <<"guest">>,
-                        password = <<"x1srTA7!%Vb}$n|S">>}).
-
 %% ===================================================================
 %% Application callbacks
 %% ===================================================================
@@ -65,7 +56,15 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
-    {ok, Broker} = amqp_connection:start(?RABBITMQ),
+    MqHost = get_env(mq_host, "localhost"),
+    MqUser = get_env(mq_user, <<"guest">>),
+    MqPass = get_env(mq_pass, <<"guest">>),
+
+    {ok, Broker} = amqp_connection:start(#amqp_params_network{
+        host = MqHost, username = MqUser, password = MqPass
+        }),
+
+    debug_log("Connected to MQ ~p@~p~n", [MqUser, MqHost]),
 
     MultiplexState = sockjs_mq:init_state(Broker, fun connect/1, fun handle_subscription/3),
 
@@ -92,7 +91,7 @@ start(_StartType, _StartArgs) ->
     ],
     Routes = [{'_',  VhostRoutes}], % any vhost
 
-    io:format(" [*] Running at http://localhost:~p~n", [Port]),
+    debug_log(" [*] Running at http://localhost:~p~n", [Port]),
 
     cowboy:start_listener(http, 
         NumberOfAcceptors,
@@ -336,7 +335,20 @@ loop(Conn, Subscriber) ->
         % Only send message from the bound event
         {#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
             #amqp_msg{payload = Body}} ->
-            % io:format(" [x] ~p:~p:~p~n", [Exchange, Event, Body]),
+            debug_log(" [x] ~p:~p:~p~n", [Exchange, Event, Body]),
             Conn:send(Event, Body),
             loop(Conn, Subscriber)
+    end.
+
+debug_log(Text, Args) ->
+    case application:get_env(broker, verbose) of
+        {ok, Val} when Val ->
+            io:format(Text, Args);
+        _ -> true
+    end.
+
+get_env(Param, DefaultValue) ->
+    case application:get_env(broker, Param) of
+        {ok, Val} -> Val;
+        undefined -> DefaultValue
     end.
