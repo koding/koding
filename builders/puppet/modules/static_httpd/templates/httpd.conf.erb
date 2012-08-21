@@ -176,7 +176,7 @@ LoadModule headers_module modules/mod_headers.so
 LoadModule setenvif_module modules/mod_setenvif.so
 LoadModule mime_module modules/mod_mime.so
 #LoadModule dav_module modules/mod_dav.so
-#LoadModule status_module modules/mod_status.so
+LoadModule status_module modules/mod_status.so
 #LoadModule autoindex_module modules/mod_autoindex.so
 #LoadModule info_module modules/mod_info.so
 #LoadModule dav_fs_module modules/mod_dav_fs.so
@@ -226,7 +226,7 @@ Include conf.d/php.conf
 # information (ExtendedStatus On) or just basic information (ExtendedStatus
 # Off) when the "server-status" handler is called. The default is Off.
 #
-#ExtendedStatus On
+ExtendedStatus On
 
 #
 # If you wish httpd to run as a different user or group, you must run
@@ -919,12 +919,12 @@ BrowserMatch "^Dreamweaver-WebDAV-SCM1" redirect-carefully
 # with the URL of http://servername/server-status
 # Change the ".example.com" to match your domain to enable.
 #
-#<Location /server-status>
-#    SetHandler server-status
-#    Order deny,allow
-#    Deny from all
-#    Allow from .example.com
-#</Location>
+<Location /server-status>
+    SetHandler server-status
+    Order deny,allow
+    Deny from all
+    Allow from 127.0.0.1
+</Location>
 
 #
 # Allow remote server configuration reports, with the URL of
