@@ -1,0 +1,1 @@
+class ReplyView extends CommentView

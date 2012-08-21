@@ -299,6 +299,7 @@ Includes =
         activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
+        discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -501,6 +502,8 @@ Includes =
         CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
+
+        InboxReplyView              : "./client/app/CommonViews/replies/replyview.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"

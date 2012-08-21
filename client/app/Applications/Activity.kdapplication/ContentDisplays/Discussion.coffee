@@ -12,6 +12,13 @@ class ContentDisplayDiscussion extends ContentDisplayStatusUpdate
     @unsetClass 'status'
     @setClass 'discussion'
 
+    @replyBox = new ReplyView null, data
+
+    @actionLinks = new DiscussionActivityActionsView
+      delegate : @replyBox.commentList
+      cssClass : "comment-header"
+    , data
+
   pistachio:->
 
     """
@@ -30,6 +37,6 @@ class ContentDisplayDiscussion extends ContentDisplayStatusUpdate
         </div>
         {{> @actionLinks}}
       </footer>
-      {{> @commentBox}}
+      {{> @replyBox}}
     </div>
     """
