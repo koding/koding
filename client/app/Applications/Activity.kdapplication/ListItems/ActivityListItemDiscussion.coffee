@@ -7,6 +7,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         offset    : 3
         selector  : "span.type-icon"
     ,options
+
     super options,data
 
     @replyBox = new ReplyView null, data
@@ -54,6 +55,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
+      {{> @replyBox}}
     </div>
     """
 
