@@ -1,13 +1,11 @@
 var Broker = function (app_key, options) {
     this.options = options || {};
-    //this.sockURL = this.options.sockURL || 'http://web0.beta.system.aws.koding.com:8008/subscribe';
     this.sockURL = this.options.sockURL || 'http://'+window.location.hostname+':8008/subscribe';
+    this.channel_auth_endpoint = this.options.authEndPoint || 'http://'+window.location.hostname+':8008/auth';
     this.key = app_key;
     this.channels = {};
     this.connect();
 }
-
-Broker.channel_auth_endpoint = "auth";
 
 Broker.prototype.connect = function () {
     this.ws = new SockJS(this.sockURL);
@@ -86,7 +84,7 @@ Broker.prototype.subscribe = function (channelName) {
 };
 
 Broker.prototype.authorize = function (channelName, callback) {
-    $.get(Broker.channel_auth_endpoint, {channel: channelName}, callback);
+    $.get(this.channel_auth_endpoint, {channel: channelName}, callback);
 };
 
 Broker.prototype.unsubscribe = function (channel) {
