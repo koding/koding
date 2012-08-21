@@ -27,7 +27,7 @@ class NotificationController extends KDObject
           @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
-    
+
     # NOTIFICATION SAMPLES
 
     # 1 - < actor fullname > commented on your < activity type >.
@@ -39,24 +39,24 @@ class NotificationController extends KDObject
 
     options = {}
     {origin, subject, actionType, replier, liker, sender} = notification.contents
-    
-    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no    
+
+    isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
     actor  = replier or liker or sender
-    
+
     bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
-      
+
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
-      
+
       options.title = switch actionType
         when "reply"
           if isMine
-            switch subject.constructorName 
+            switch subject.constructorName
               when "JPrivateMessage"
                 "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
               else
                 "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
           else
-            switch subject.constructorName 
+            switch subject.constructorName
               when "JPrivateMessage"
                 "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
               else
@@ -77,14 +77,14 @@ class NotificationController extends KDObject
       options.click = ->
         view = @
         if subject.constructorName is "JPrivateMessage"
-          appManager.openApplication "Inbox"          
+          appManager.openApplication "Inbox"
         else
           # ask chris if bongo.cacheable is good for this
           bongo.api[subject.constructorName].one _id : subject.id, (err, post)->
             appManager.tell "Activity", "createContentDisplay", post
             view.destroy()
       options.type  = actionType or ''
-      
+
       @notify options
 
   notify:(options  = {})->

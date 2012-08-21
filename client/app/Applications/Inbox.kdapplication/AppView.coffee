@@ -46,14 +46,18 @@ class PageInbox extends KDView
     @inboxMessagesContainer.hideHandleContainer()
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
-      # lastToFirst : yes
-      delegate    : @
-      subItemClass  : InboxMessagesListItem
-    inboxMessageBody = new KDView cssClass : "message-body-wrap"
-    inboxMessageInputWrapper = new KDView cssClass : "input-wrapper"
+      delegate          : @
+      subItemClass      : InboxMessagesListItem
 
     inboxMessageListController = new InboxMessageListController
-      view          : inboxMessagesList
+      delegate          : @
+      view              : inboxMessagesList
+
+    # lazyLoadThreshold : .75
+    # inboxMessageListController.registerListener
+    #   KDEventTypes  : 'LazyLoadThresholdReached'
+    #   listener      : @
+    #   callback      : => log "asdfasdfasdfasdf"
 
     tab.addSubView @newMessageBar = new InboxNewMessageBar
       cssClass  : "new-message-bar clearfix"
@@ -65,18 +69,15 @@ class PageInbox extends KDView
 
     @newMessageBar.disableMessageActionButtons()
 
-    inboxMessageListController.loadMessages()
-
     messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
-      views     : [inboxMessagesList,@inboxMessagesContainer]
+      views     : [inboxMessagesList, @inboxMessagesContainer]
       cssClass  : "messages-split"
       resizable : yes
       minimums  : [150, null]
 
     tab.addSubView messagesSplit
     messagesSplit._windowDidResize()
-
 
     messagesSplit.didResizeBefore = no
     messagesSplit.listenTo
@@ -88,27 +89,32 @@ class PageInbox extends KDView
           messagesSplit.resizePanel "100%",0
 
     messagesSplit.listenTo
-      KDEventTypes : "MessageIsSelected"
+      KDEventTypes : "MessageSelectedFromOutside"
       listenedToInstance : @
-      callback :=>
+      callback :(pubInst, {item, event})=>
+
         messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
         messagesSplit.didResizeBefore = yes
         @newMessageBar.enableMessageActionButtons()
 
-    inboxMessageInputWrapper.addSubView @messageInputElement = new KDHitEnterInputView
-      type         : "textarea"
-      name         : "sendMessage"
-      cssClass     : "sendMessageInput"
-      placeholder  : "Just type and press enter.."
-      callback     : ()=>
-        reply = @messageInputElement.getValue()
-        @messageInputElement.setValue ''
-        @propagateEvent KDEventType: 'ReplyShouldBeSent', {message: @messageInputElement.getData(), reply}
+        messageIsSelectable = =>
+          {items} = inboxMessagesList
+          return no if items.length is 0
+          {_id} = item.getData()
+          wasMessageInList = no
+          items.forEach (message) =>
+            if message.getData()?.getId() is _id
+              message.click()
+              wasMessageInList = yes
+          wasMessageInList
 
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @messageInputElement
-      callback           : messagesSplit._windowDidResize
+        if item
+          if not messageIsSelectable()
+            inboxMessageListController.loadMessages =>
+              if not messageIsSelectable()
+                @propagateEvent KDEventType : "MessageIsSelected", {item, event}
+        else
+          inboxMessageListController.loadMessages()
 
     return tab
 
@@ -160,7 +166,6 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     @setTemplate @pistachio()
     @template.update()
 
-
   partial:()-> ''
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
@@ -182,11 +187,3 @@ class MemberAutoCompletedItemView extends KDAutoCompletedItem
     @template.update()
 
   partial:()-> ''
-
-
-
-
-
-
-
-

@@ -83,8 +83,6 @@ class ActivityCodeSnippetWidget extends KDFormView
         range       : 0.4
         speed       : 1
         FPS         : 24
-      click         : =>
-        log "ASDASDAS"
 
     @syntaxSelect = new KDSelectBox
       name          : "syntax"
@@ -99,8 +97,8 @@ class ActivityCodeSnippetWidget extends KDFormView
   updateSyntaxTag:(syntax)=>
     # Remove already appended syntax tag from submit queue if exists
     # FIXME It still fails for meta characters like /
-    oldSyntax = __aceSettings.syntaxAssociations[@ace.getSyntax()][0].toLowerCase()
-    # oldSyntax = @ace.getSyntax()
+    # oldSyntax = __aceSettings.syntaxAssociations[@ace.getSyntax()][0].toLowerCase()
+    oldSyntax = @ace.getSyntax()
     subViews = @tagController.itemWrapper.getSubViews().slice()
     for item in subViews
       if item.getData().title is oldSyntax
@@ -110,7 +108,6 @@ class ActivityCodeSnippetWidget extends KDFormView
     {selectedItemsLimit} = @tagController.getOptions()
     # Add new syntax tag to submit queue
     if @tagController.selectedItemCounter < selectedItemsLimit
-      syntax = __aceSettings.syntaxAssociations[syntax][0].toLowerCase()
       @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
   submit:=>
@@ -125,6 +122,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @description.setValue ''
     @utils.wait =>
       @ace.setContents "//your code snippet goes here..."
+      @ace.setSyntax 'javascript'
     @syntaxSelect.setValue 'javascript'
     @tagController.reset()
     @updateSyntaxTag 'javascript'
@@ -166,6 +164,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       @ace.setShowGutter no
       @ace.setContents "//your code snippet goes here..."
       @ace.setTheme()
+      @ace.setFontSize(12, no)
       @ace.setSyntax "javascript"
       @ace.editor.getSession().on 'change', => @refreshEditorView()
       @emit "codeSnip.aceLoaded"

@@ -4,7 +4,7 @@
 @import "nib/vendor"
 
 @css {
-/*  
+/*
 ACTIVITY stylesheet
 app.activity.styl
 */
@@ -13,16 +13,16 @@ app.activity.styl
 // .content-page.activity
 //   > .kdsplitview
 //     margin-top          75px
-    
+
 .activity-main-split
   height              100%
   .panel-1
     overflow hidden
-    
+
   a,&:visited
     color #FF9200
 
-.notification-header 
+.notification-header
   background-color      #F4F4F4!important
   font-weight           400px!important
   display               block!important
@@ -55,7 +55,7 @@ app.activity.styl
 
   .kdtabview
     overflow            visible !important
-  
+
   .listview-wrapper
     // .kdscrollview
     //   margin-top         28px
@@ -84,12 +84,19 @@ app.activity.styl
   borderBox()
 
   div
-    margin-right    20px
+    margin-right    6px
+    margin-left     4px
     font-size       88%
     color           #AAA
     fr()
-    &.kdinputswitch-ry
-      margin-top    -5px
+
+    &.on-off
+      margin-top    -1px
+
+    > a
+      text-decoration   none
+      font-size         88%
+
     span
       rounded           3px
       background-color  #FF9200
@@ -97,7 +104,7 @@ app.activity.styl
       font-size         10px
       padding           1px 4px
       line-height       10px
-      blockMid()
+      display           inline-block
 
 .super .activity-related .activity-item.exempt
   bg                    color, rgba(255, 0, 0, .03)
@@ -110,7 +117,7 @@ app.activity.styl
     font-weight           600
     font-size             11px
     cursor                pointer
-    &:hover               
+    &:hover
       color               #27a3c9
       text-decoration     none
   .kdlistitemview-activity
@@ -121,7 +128,7 @@ app.activity.styl
     left                  0
     borderBox()
     &.hidden-item
-      border-width        0              
+      border-width        0
       background-color    #FDF5D9
       left                -100%
 
@@ -135,7 +142,7 @@ app.activity.styl
       width               auto
       margin              2px 0 2px 33px
       padding             2px 0 0 0
-    
+
 
     .ttag
       margin              -1px 0 0 0
@@ -166,11 +173,11 @@ app.activity.styl
       .icon
         bg(position,-340px -140px)
 
-  .activity-item 
+  .activity-item
     max-width           840px
     padding             22px 0 21px 20px
     borderBox()
-      
+
     span.avatar
       padding       1px
       border        1px solid #E3E3E3
@@ -184,7 +191,7 @@ app.activity.styl
         background-position   center
         background-image      url('../images/defaultavatar/default.avatar.40.png')
         blockMid()
-  
+
     .type-icon
       text-indent       -9999em
       border-radius     0
@@ -193,7 +200,7 @@ app.activity.styl
       sprite()
       size(18px,16px)
       blockMid()
-      
+
     &.status
       .type-icon
         bg(position,-399px -376px)
@@ -253,7 +260,7 @@ app.activity.styl
       bg                position, -80px -261px
   .kdcontextmenutreeview
     margin              3px 0
-    .kdview.kdtreeitemview.default      
+    .kdview.kdtreeitemview.default
       padding           2px
       font-size         11px
 
@@ -274,13 +281,13 @@ app.activity.styl
     display               inline-block
   > p > span
     cursor                pointer
-  p 
+  p
     color                 #5F5F5F
     font-size             14px
     font-weight           300
     line-height           125%
     a
-      font-size           14px
+      font-size           12px
       line-height         125%
       font-weight         300
       noTextDeco()
@@ -303,14 +310,14 @@ app.activity.styl
         a
           font-size       14px
 
-  p.context               
+  p.context
     margin                0 0 18px 0
     font-size             12px
     line-height           150%
     padding               0
     color                 #353535
     min-height            12px
-  footer                  
+  footer
     color                 #A5A5A5
     line-height           26px
     margin-top            15px
@@ -325,12 +332,12 @@ app.activity.styl
           text-transform  capitalize
       time, .tag-group
         font-size           11px
-      
+
     .activity-actions
       color               #ccc
       size                auto,auto
       fr()
-      
+
       a.action-link
         margin            0 2px
         color             #FF9200
@@ -357,13 +364,13 @@ button.kdbutton.dark
     sprite()
     &.save
       bg                position,-260px -420px
-    &.copy  
+    &.copy
       bg                position,-240px -420px
     &.open
       bg                position,-220px -420px
     &.select-all
       bg                position,-280px -420px
-    
+
 
 .narrow
   .activity-item-right-col
@@ -377,19 +384,19 @@ button.kdbutton.dark
         span.optional
           hidden()
 
-  .activity-related   
-    .activity-item    
+  .activity-related
+    .activity-item
       padding         15px 0 15px 15px
 
       span.avatar
         margin-right  10px
 
-    .system-message 
+    .system-message
       > div
         margin        5px 0 1px 23px
       .icon
         margin        -3px 18px 0 0
-        
+
 .extra-narrow
   .activity-item-right-col
     padding-right     10px
@@ -402,13 +409,13 @@ button.kdbutton.dark
         span.optional
           hidden()
 
-  .activity-related   
-    .activity-item    
+  .activity-related
+    .activity-item
       padding         15px 0 15px 10px
       span.avatar
         margin-right  10px
 
-    .system-message 
+    .system-message
       > div
         margin        5px 0 1px 23px
       .icon
@@ -421,13 +428,13 @@ button.kdbutton.dark
 // *
 
 .update-options.codesnip
-  .ace 
+  .ace
     height                  250px !important
     overflow                auto
     white-space             pre
-    bg(color,#000)          
-                            
-.update-widget-tabs         
+    bg(color,#000)
+
+.update-widget-tabs
   z-index                   3
   overflow                  visible
 
@@ -440,20 +447,20 @@ button.kdbutton.dark
     borderBox()
     &.no-shadow
       shadow                none
-    &.kdhiddentab           
+    &.kdhiddentab
       display               none
 
   form.update-options
     display               block
     position              relative
-    .form-actions-mask    
+    .form-actions-mask
       width               100%
       z-index             10
       .form-actions-holder
         width             100%
         z-index           10
         bg                color,white
-  
+
   .kdinput.text
     size                  100%,33px
     font-size             13px
@@ -471,7 +478,7 @@ button.kdbutton.dark
   .kdautocompletewrapper
     size                  100%,32px
     color                 #b2b2b2
-    font-size             13px 
+    font-size             13px
     display               inline-block!important
     input.kdinput.text
       border-color        rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
@@ -483,12 +490,12 @@ button.kdbutton.dark
     size                    560px,31px
     max-width               560px
     shadow                  0px 1px 0px 0px white
-  
+
 
   .tags-selected-item-wrapper
     margin                  10px 0 0 0
-                            
-                            
+
+
   .formline
     position                relative
     width                   100%
@@ -497,10 +504,10 @@ button.kdbutton.dark
     borderBox()
     &:first-child > div
       margin-left           153px
-    
+
     .formline-wrapper
       max-width             713px
-    
+
     > div
       overflow              hidden
       max-width             560px
@@ -518,48 +525,48 @@ button.kdbutton.dark
     .ov
       overflow              visible
 
-    div.kdselectbox 
+    div.kdselectbox
       position              absolute
       bottom                5px
       right                 5px
       background            rgb(36,36,36)
-      shadow                none      
+      shadow                none
       font-size             10px
       border                1px solid rgb(74,74,74)!important
-      span.title            
+      span.title
         color               rgba(255, 255, 255,.7)
         text-shadow         0 -1px 1px rgb(9,9,9)
-      &.focus               
+      &.focus
         outline             none
         shadow              none!important
         border              1px solid rgb(255,255,255)
-      span.arrows           
+      span.arrows
         sprite()
         bg                  position,-80px -200px!important
-    
 
 
-  .formline.submit          
+
+  .formline.submit
     position                relative
     background              rgb(244,244,244)
     border-top              1px solid rgb(229,229,229)
     height                  55px
     padding                 14px 16px
 
-  .submit-box               
-    button                  
+  .submit-box
+    button
       vertical-align        middle
-      font-weight 600       
-    button.clean-gray       
+      font-weight 600
+    button.clean-gray
       padding-left          14px
       padding-right         14px
-    a                       
+    a
       color                 rgb(173,173,173)
       margin-right          10px
       cursor                pointer
-      blockMid()            
+      blockMid()
 
-  .modal-cancel             
+  .modal-cancel
     font-size               11px
 
   .help-box
@@ -575,14 +582,16 @@ form.status-widget
     margin-left           169px
     margin-right          16px
     max-width             560px
-    
-    
+
+
   .kdinput.text.status-update-input
-    &.validation-error    
+    &.validation-error
       border-color        red
 
   textarea.kdinput.text.status-update-input
     size                  100%,72px
+    min-height            72px
+    max-height            300px
     padding               7px 10px 6px 11px
     vendor                transition, height .1s ease-out
     margin-bottom         20px
@@ -616,7 +625,7 @@ form.status-widget
   .kdview.kdloader
     display                 block
     margin                  20px auto
-    
+
   .code-wrapper.ace_editor
     overflow                visible
     size                    100%,100%
@@ -629,7 +638,7 @@ form.status-widget
       color                 #999
       bg                    color, #444!important
       border                none
-  
+
   .bottom-right-wrapper
     float                 left
 
@@ -697,22 +706,22 @@ form.status-widget
     blockMid()
     &.update
       bg            position,-80px 0
-    &.discussion    
+    &.discussion
       bg            position,-80px -20px
-    &.question      
+    &.question
       bg            position,-80px -40px
-    &.tutorial     
+    &.tutorial
       bg            position,-80px -60px
-    &.link         
+    &.link
       bg            position,-80px -80px
-    &.codesnip     
+    &.codesnip
       bg            position,-80px -100px
 
   > button.icon-only
     padding       4px 4px 5px 5px
 
   button.active
-    span.icon       
+    span.icon
       bg            position-x, -60px
 // *
 // * ACTIVITY PAGE UPDATE WIDGET BUTTON DROPDOWN STYLES
@@ -769,8 +778,8 @@ button.activity-status-context
 .widget-holder
   overflow              visible
   min-height            75px
-  borderBox()           
-  // .widget-back          
+  borderBox()
+  // .widget-back
   //   width               100%
   //   height              74px
   //   position            absolute
@@ -793,7 +802,7 @@ button.activity-status-context
   .title
     font-size         11px
     blockMid()
-  
+
   .no-shadow
 
     .status-widget
@@ -817,12 +826,12 @@ button.activity-status-context
     rounded                 0 3px 0 0
     .chevron-arrow-ghost
       margin                6px 0 0 6px
-  
+
   .icon
     margin-right            7px
     sprite()
     size(20px,20px)
-    blockMid()  
+    blockMid()
   .context-menu-item
     margin                  0 !important
     padding                 0 10px !important
@@ -865,7 +874,7 @@ button.activity-status-context
     &:hover
       .icon
         bg(position,-160px -420px)
-  
+
   // .hoverhook /* hover hook for context menu */
   //   cursor            pointer !important
   //   margin            0

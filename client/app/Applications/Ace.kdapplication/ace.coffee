@@ -41,7 +41,7 @@ class Ace extends KDView
     @setHighlightActiveLine @appStorage.getValue 'highlightActiveLine', yes
     @setShowInvisibles      @appStorage.getValue 'showInvisibles',      no
     @setSoftWrap            @appStorage.getValue 'softWrap',            'off'
-    @setFontSize            @appStorage.getValue 'fontSize',            10
+    @setFontSize            @appStorage.getValue 'fontSize',            12
     @setTabSize             @appStorage.getValue 'tabSize',             4
     @setEditorListeners()
 
@@ -123,7 +123,7 @@ class Ace extends KDView
     @appStorage.getValue 'showInvisibles', @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 10)
+    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
 
   getTabSize:->
     @appStorage.getValue 'tabSize', @editor.getSession().getTabSize()
@@ -207,15 +207,19 @@ class Ace extends KDView
     @editor.setShowInvisibles value
     @appStorage.setValue 'showInvisibles', value, =>
 
-  setFontSize:(value)->
+  setFontSize:(value, store = yes)->
 
     @$("#editor#{@getId()}").css 'font-size', "#{value}px"
-    @appStorage.setValue 'fontSize', value, =>
+    if store
+      @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
-
-    @editor.getSession().setTabSize value
-    @appStorage.setValue 'tabSize', value, =>
+    
+    # FIXME: this causes ace to show weird 21s, 41s instead of tabs
+    # temporarily disabled
+    
+    # @editor.getSession().setTabSize value
+    # @appStorage.setValue 'tabSize', value, =>
 
   setUseWordWrap:(value)->
 

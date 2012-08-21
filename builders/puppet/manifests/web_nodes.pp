@@ -21,7 +21,16 @@ node webnode inherits base {
     }
     
     
+    yumrepos { 'koding':
+        repo => 'koding',
+    }
+    yumrepos { 'erlang':
+        repo => 'erlang',
+    }
+
+
     include nodejs_rpm
+    include rabbitmq
     #include mount_nas
     #include stunnel
     include ssh

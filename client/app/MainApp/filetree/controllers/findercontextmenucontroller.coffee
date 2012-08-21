@@ -6,7 +6,7 @@ class NFinderContextMenuController extends KDController
   ###
 
   getMenuItems:(fileViews)->
-    
+
     if fileViews.length > 1
       @getMutilpleItemMenu fileViews
     else
@@ -18,7 +18,7 @@ class NFinderContextMenuController extends KDController
         # when "section" then @getSectionMenu fileData
 
   getContextMenu:(fileViews, event)->
-    
+
     @contextMenu.destroy() if @contextMenu
     items = @getMenuItems fileViews
     [fileView] = fileViews
@@ -35,18 +35,18 @@ class NFinderContextMenuController extends KDController
       return @contextMenu
     else
       return no
-  
+
   destroyContextMenu:->
     @contextMenu.destroy()
 
   handleContextMenuClick:(fileView, contextMenuItem)->
-    
+
     @propagateEvent KDEventType : 'ContextMenuItemClicked', {fileView, contextMenuItem}
 
   getFileMenu:(fileView)->
-    
+
     fileData = fileView.getData()
-    
+
     items =
       'Open File'                 :
         action                    : 'openFile'
@@ -96,7 +96,7 @@ class NFinderContextMenuController extends KDController
       'Clone from Github...'      :
         disabled                  : yes
         action                    : 'gitHubClone'
-    
+
     if 'archive' isnt @utils.getFileType @utils.getFileExtension fileData.name
       delete items.Extract
     else
@@ -106,9 +106,9 @@ class NFinderContextMenuController extends KDController
 
 
   getFolderMenu:(fileView)->
-    
+
     fileData = fileView.getData()
-    
+
     items =
       Expand                      :
         action                    : "expand"
@@ -123,7 +123,7 @@ class NFinderContextMenuController extends KDController
         action                    : 'rename'
       Duplicate                   :
         action                    : 'duplicate'
-      Compress                    : 
+      Compress                    :
         children                  :
           'as .zip'               :
             action                : 'zip'
@@ -143,7 +143,7 @@ class NFinderContextMenuController extends KDController
       'Clone from Github...'      :
         disabled                  : yes
         action                    : 'gitHubClone'
-      Download                    : 
+      Download                    :
         disabled                  : yes
         action                    : "download"
         separator                 : yes
@@ -154,7 +154,7 @@ class NFinderContextMenuController extends KDController
       delete items.Expand
     else
       delete items.Collapse
-      
+
     if fileView.getData().getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
@@ -171,7 +171,7 @@ class NFinderContextMenuController extends KDController
   getMountMenu:(fileView)->
 
     fileData = fileView.getData()
-    
+
     items =
       Refresh                     :
         action                    : 'refresh'
@@ -198,7 +198,7 @@ class NFinderContextMenuController extends KDController
     return items
 
   getMutilpleItemMenu:(fileViews)->
-    
+
     types =
       file    : no
       folder  : no
@@ -206,7 +206,7 @@ class NFinderContextMenuController extends KDController
 
     for fileView in fileViews
       types[fileView.getData().type] = yes
-    
+
     if types.file and not types.folder and not types.mount
       return @getMultipleFileMenu fileViews
 
@@ -229,13 +229,13 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : 'download'
-    
+
     return items
-    
-    
-    
+
+
+
   getMultipleFolderMenu:(folderViews)->
-    
+
     items =
       Expand                      :
         action                    : "expand"
@@ -308,10 +308,10 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : 'download'
-    
+
     return items
-    
-    
+
+
 # this is shorter but needs coffee script update
 
 # 'Open File'                 : action : 'openFile'

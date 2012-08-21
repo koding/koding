@@ -15,19 +15,38 @@ class HeaderViewSection extends KDHeaderView
   setTitle:(title)->
     @$().append "<cite></cite> <span class='section-title'>#{title}</span>"
 
+  setSearchInput:(options = {})->
+    @searchInput?.destroy() # If already exist, destroy the old one
+
+    @addSubView @searchInput = new KDHitEnterInputView
+      placeholder  : options.placeholder or "Search..."
+      name         : options.name        or "searchInput"
+      cssClass     : options.cssClass    or "header-search-input"
+      type         : "text"
+      callback     : =>
+        @parent.emit "searchFilterChanged", @searchInput.getValue()
+        @searchInput.focus()
+      keyup        : =>
+        if @searchInput.getValue() is ""
+          @parent.emit "searchFilterChanged", ""
+
+    @addSubView icon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "header-search-input-icon"
+
 class WelcomeHeader extends KDHeaderView
   constructor:->
     super
     @setClass "notification-header"
-  
-  click :(event)->
+
+  click:(event)->
     if $(event.target).is "a"
       localStorage.welcomeMessageClosed = yes
       @remove()
 
   remove:(callback)->
     h = @getHeight()
-    @$().animate marginTop : -h, 100, ()=> 
+    @$().animate marginTop : -h, 100, ()=>
       @destroy()
       @notifyResizeListeners()
       # after half an hour try i didn't understand why it didnt work at one call, so have the second :)

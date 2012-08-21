@@ -242,12 +242,27 @@ ul.inbox-list
     &:hover
       bg                  color,rgba(255,255,255,.65)
       shadow              0 0 4px 0 rgba(0,0,0,.17)
+      .delete-link
+        opacity         .5
+        &:hover
+          opacity       1
     &.active
       bg                  color,white
       shadow              0 0 10px 0 rgba(0,0,0,.17)
     // &.active.unread
     //   bg                  color,red
 
+    .delete-link
+      display                 block
+      size                    20px, 20px
+      position                absolute
+      top                     5px
+      right                   5px
+      bg                      position, -80px -520px
+      opacity                 0
+      vendor                  transition, opacity .15s linear
+      sprite()
+      // border                  1px solid transparent
 
 .notifications-tab
   background-color    #f9f9f9
@@ -322,6 +337,9 @@ ul.inbox-list
         left          6px
         bg(color,white)
         size(20px,20px)
+      .avatarview
+        cite
+          hidden()
 
       span.profile
         margin        0

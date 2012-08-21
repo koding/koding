@@ -42,6 +42,13 @@ function parseHeaders (res) {
     return headers;
 }
 
+Response.prototype.getResponse = function (xhr) {
+    var respType = xhr.responseType.toLowerCase();
+    if (respType === "blob") return xhr.responseBlob;
+    if (respType === "arraybuffer") return xhr.response;
+    return xhr.responseText;
+}
+
 Response.prototype.getHeader = function (key) {
     return this.headers[key.toLowerCase()];
 };
@@ -85,15 +92,21 @@ Response.prototype.handle = function (res) {
         this.write(res);
         
         if (res.error) {
-            this.emit('error', res.responseText);
+            this.emit('error', this.getResponse(res));
         }
         else this.emit('end');
     }
 };
 
 Response.prototype.write = function (res) {
-    if (res.responseText.length > this.offset) {
-        this.emit('data', res.responseText.slice(this.offset));
-        this.offset = res.responseText.length;
+    var respBody = this.getResponse(res);
+    if (respBody.toString().match(/ArrayBuffer/)) {
+        this.emit('data', new Uint8Array(respBody, this.offset));
+        this.offset = respBody.byteLength;
+        return;
+    }
+    if (respBody.length > this.offset) {
+        this.emit('data', respBody.slice(this.offset));
+        this.offset = respBody.length;
     }
 };

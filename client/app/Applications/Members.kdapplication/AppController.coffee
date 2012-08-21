@@ -15,7 +15,6 @@ class Members12345 extends AppController
     @bringToFront()
     callback()
 
-
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
@@ -29,10 +28,14 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
+          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all members" else null
           dataSource        : (selector, options, callback)=>
-            bongo.api.JAccount.someWithRelationship selector, options, callback
-            {currentDelegate} = @getSingleton('mainController').getVisitor()
-            @setCurrentViewNumber 'all'
+            if @_searchValue
+              bongo.api.JAccount.byRelevance @_searchValue, options, callback
+            else
+              bongo.api.JAccount.someWithRelationship selector, options, callback
+              {currentDelegate} = @getSingleton('mainController').getVisitor()
+              @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           dataSource        : (selector, options, callback)=>
@@ -57,7 +60,7 @@ class Members12345 extends AppController
           direction         : -1
     }, (controller)=>
 
-      view.addSubView controller.getView()
+      view.addSubView @_lastSubview = controller.getView()
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
@@ -102,8 +105,14 @@ class Members12345 extends AppController
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
 
-  loadView:(mainView)->
-    mainView.createCommons()
+  loadView:(mainView, firstRun = yes)->
+    if firstRun
+      mainView.on "searchFilterChanged", (value) =>
+        return if value is @_searchValue
+        @_searchValue = value
+        @_lastSubview.destroy?()
+        @loadView mainView, no
+      mainView.createCommons()
     @createFeed mainView
 
   showMemberContentDisplay:(pubInst, event)=>
@@ -175,8 +184,8 @@ class MembersListViewController extends KDListViewController
       data.counts.following = followingCount
       item.setFollowerCount followerCount
       switch @getSingleton('mainController').getVisitor().currentDelegate
-       when newFollower, oldFollower
-        if newFollower then item.unfollowTheButton() else item.followTheButton()
+        when newFollower, oldFollower
+          if newFollower then item.unfollowTheButton() else item.followTheButton()
 
     item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
     item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount

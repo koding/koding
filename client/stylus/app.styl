@@ -613,6 +613,7 @@ span.main-nav-icon
       left              35px
       size              20px, 20px
       display           block
+      z-index           1
 
       sprite()
     &.comment
@@ -870,6 +871,24 @@ span.main-nav-icon
     text-shadow         0px 1px 0px rgba(255,255,255,1)
     color               #222
     fl()
+  .header-search-input.hitenterview.active
+    font-size           12px
+    position            absolute
+    right               24px
+    top                 24px
+    padding             5px 24px 5px 10px
+    height              32px
+    line-height         20px
+    bg                  image, none
+  .header-search-input-icon
+    position            absolute
+    top                 30px
+    right               30px
+    display             block
+    size                20px, 20px
+    bg                  position, -100px -480px
+    opacity             .6
+    sprite()
 
 
 // Coming soon pages

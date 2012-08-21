@@ -1,5 +1,17 @@
 class ActivityUpdateWidgetController extends KDViewController
 
+  # WIP: stop submission if user wants to submit stuff too often
+
+  submissionStopped = no
+
+  notifySubmissionStopped = ->
+
+    # new KDNotificationView type : "mini", title : "Please take a little break!"
+
+  stopSubmission = ->
+    # submissionStopped = yes
+    # __utils.wait 20000, -> submissionStopped = no
+
   loadView:(mainView)->
 
     mainView.addWidgetPane
@@ -7,36 +19,42 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : updateWidget = new ActivityStatusUpdateWidget
         cssClass  : "status-widget"
         callback  : (formData)=>
-          @updateWidgetSubmit formData
-          updateWidget.switchToSmallView()
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @updateWidgetSubmit formData, stopSubmission
+            updateWidget.switchToSmallView()
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "question"
-      mainContent : questionWidget = new ActivityQuestionWidget 
+      mainContent : questionWidget = new ActivityQuestionWidget
         callback  : @questionWidgetSubmit
 
     codeSnippetPane = mainView.addWidgetPane
       paneName    : "codesnip"
-      mainContent : codeWidget = new ActivityCodeSnippetWidget 
+      mainContent : codeWidget = new ActivityCodeSnippetWidget
         delegate  : mainView
         callback  : (data)=>
-          @codeSnippetWidgetSubmit data
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @codeSnippetWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "link"
-      mainContent : linkWidget = new ActivityLinkWidget 
+      mainContent : linkWidget = new ActivityLinkWidget
         callback  : @linkWidgetSubmit
 
     mainView.addWidgetPane
       paneName    : "tutorial"
-      mainContent : tutorialWidget = new ActivityTutorialWidget 
+      mainContent : tutorialWidget = new ActivityTutorialWidget
         callback  : @tutorialWidgetSubmit
 
     mainView.addWidgetPane
       paneName    : "discussion"
-      mainContent : discussionWidget = new ActivityDiscussionWidget 
+      mainContent : discussionWidget = new ActivityDiscussionWidget
         callback  : @discussionWidgetSubmit
 
     mainView.showPane "update"
@@ -45,7 +63,7 @@ class ActivityUpdateWidgetController extends KDViewController
       KDEventTypes : 'PaneDidShow'
       listener     : @
       callback     : -> codeWidget.widgetShown()
-    
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
       switch activity.bongo_.constructorName
@@ -57,7 +75,8 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
-    
+
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -80,6 +99,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
   codeSnippetWidgetSubmit:(data, callback)->
 
+
     if data.activity
       {activity} = data
       delete data.activity
@@ -90,8 +110,11 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
+      if submissionStopped
+        return notifySubmissionStopped()
       bongo.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
+        stopSubmission()
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
@@ -101,7 +124,7 @@ class ActivityUpdateWidgetController extends KDViewController
     log 'creating question', data
     bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
-  
+
   linkWidgetSubmit:(data)->
     log 'sharing link', data
     bongo.api.JActivity.create {type: 'link', activity: data}, (error) ->

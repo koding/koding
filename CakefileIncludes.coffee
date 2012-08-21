@@ -121,6 +121,7 @@ Includes =
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
         jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
+        
 
 
       OtherStuff :
@@ -296,6 +297,7 @@ Includes =
         activitylistheader          : "./client/app/Applications/Activity.kdapplication/views/activitylistheader.coffee"
         activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
+        ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -457,8 +459,24 @@ Includes =
         activitycontroller          : "./client/app/MainApp/activitycontroller.coffee"
         notificationcontroller      : "./client/app/MainApp/notificationcontroller.coffee"
 
-        # COMMON VIEW
+        # COMMON VIEWS
+
+        linkView                    : "./client/app/CommonViews/linkviews/linkview.coffee"
+        linkGroup                   : "./client/app/CommonViews/linkviews/linkgroup.coffee"
+        profileLinkView             : "./client/app/CommonViews/linkviews/profilelinkview.coffee"
+        profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"
+        profileTextGroup            : "./client/app/CommonViews/linkviews/profiletextgroup.coffee"
+        tagLinkView                 : "./client/app/CommonViews/linkviews/taglinkview.coffee"
+        activityTagGroup            : "./client/app/CommonViews/linkviews/activitychildviewtaggroup.coffee"
+        autoCompleteProfileTextView : "./client/app/CommonViews/linkviews/autocompleteprofiletextview.coffee"
+
+        avatarView                  : "./client/app/CommonViews/avatarviews/avatarview.coffee"
+        avatarStaticView            : "./client/app/CommonViews/avatarviews/avatarstaticview.coffee"
+        avatarSwapView              : "./client/app/CommonViews/avatarviews/avatarswapview.coffee"
+        autoCompleteAvatarView      : "./client/app/CommonViews/avatarviews/autocompleteavatarview.coffee"
+
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
+
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"

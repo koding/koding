@@ -835,7 +835,7 @@ var EditSession = function(text, mode) {
         if (!this.$mode)
             this.$setModePlaceholder();
 
-        fetch(function() {
+        fetch(mode, function() {
             require([mode], done);
         });
 
@@ -852,13 +852,11 @@ var EditSession = function(text, mode) {
             callback(_self.$modes[mode]);
         }
 
-        function fetch(callback) {
+        function fetch(name, callback) {
             if (!config.get("packaged"))
                 return callback();
 
-            var base = mode.split("/").pop();
-            var filename = config.get("modePath") + "/mode-" + base + ".js";
-            net.loadScript(filename, callback);
+            net.loadScript(config.moduleUrl(name, "mode"), callback);
         }
     };
 
@@ -1063,7 +1061,7 @@ var EditSession = function(text, mode) {
                 if (i > foldStart) {
                     i = foldLine.end.row + 1;
                     if (i >= len)
-                        break
+                        break;
                     foldLine = this.$foldData[foldIndex++];
                     foldStart = foldLine ? foldLine.start.row : Infinity;
                 }
@@ -1480,7 +1478,7 @@ var EditSession = function(text, mode) {
     this.$clipRangeToDocument = function(range) {
         if (range.start.row < 0) {
             range.start.row = 0;
-            range.start.column = 0
+            range.start.column = 0;
         } else {
             range.start.column = this.$clipColumnToRow(
                 range.start.row,
@@ -1578,7 +1576,7 @@ var EditSession = function(text, mode) {
             this.$modified = true;
             if (this.$useWrapMode) {
                 this.$updateWrapData(0, this.getLength() - 1);
-                this.$resetRowCache(0)
+                this.$resetRowCache(0);
                 this._emit("changeWrapLimit");
             }
             return true;
@@ -1945,7 +1943,7 @@ var EditSession = function(text, mode) {
             addSplit(split);
         }
         return splits;
-    }
+    };
 
     /** internal, hide
     * EditSession.$getDisplayTokens(str, offset) -> Array
@@ -1983,7 +1981,7 @@ var EditSession = function(text, mode) {
             }
         }
         return arr;
-    }
+    };
 
     /** internal, hide
     * EditSession.$getStringScreenWidth(str, maxScreenColumn, screenColumn) -> [Number]
@@ -2019,19 +2017,19 @@ var EditSession = function(text, mode) {
                 screenColumn += 1;
             }
             if (screenColumn > maxScreenColumn) {
-                break
+                break;
             }
         }
 
         return [screenColumn, column];
-    }
+    };
 
     /**
     * EditSession.getRowLength(row) -> Number
     * - row (Number): The row number to check
     *
     *
-    * Returns the length of the indicated row.
+    * Returns number of screenrows in a wrapped line.
     **/
     this.getRowLength = function(row) {
         if (!this.$useWrapMode || !this.$wrapData[row]) {
@@ -2039,19 +2037,7 @@ var EditSession = function(text, mode) {
         } else {
             return this.$wrapData[row].length + 1;
         }
-    }
-
-    /**
-    * EditSession.getRowHeight(config, row) -> Number
-    * - config (Object): An object containing a parameter indicating the `lineHeight`.
-    * - row (Number): The row number to check
-    *
-    * Returns the height of the indicated row. This is mostly relevant for situations where wrapping occurs, and a single line spans across multiple rows.
-    *
-     **/
-    this.getRowHeight = function(config, row) {
-        return this.getRowLength(row) * config.lineHeight;
-    }
+    };
 
     /** internal, hide, related to: EditSession.documentToScreenColumn
     * EditSession.getScreenLastRowColumn(screenRow) -> Number
@@ -2060,7 +2046,7 @@ var EditSession = function(text, mode) {
     * Returns the column position (on screen) for the last character in the provided row.
     **/
     this.getScreenLastRowColumn = function(screenRow) {
-        var pos = this.screenToDocumentPosition(screenRow, Number.MAX_VALUE)
+        var pos = this.screenToDocumentPosition(screenRow, Number.MAX_VALUE);
         return this.documentToScreenColumn(pos.row, pos.column);
     };
 
@@ -2147,8 +2133,6 @@ var EditSession = function(text, mode) {
 
         var rowCache = this.$screenRowCache;
         var i = this.$getRowCacheIndex(rowCache, screenRow);
-        var row1 = rowCache[i];
-        var docRow1 = this.$docRowCache[i];
         if (0 < i && i < rowCache.length) {
             var row = rowCache[i];
             var docRow = this.$docRowCache[i];

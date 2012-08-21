@@ -19,7 +19,7 @@ class JStatusUpdate extends JPost
 class CStatusActivity extends CActivity
 
   @share()
-  
+
   @set
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
@@ -28,4 +28,3 @@ class CStatusActivity extends CActivity
       subject       :
         targetType  : JStatusUpdate
         as          : 'content'
-      

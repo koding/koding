@@ -8,7 +8,7 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     ,options
     super options,data
     @count = 0
-  
+
   updateCount:(newCount = 0)->
     # log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
@@ -18,22 +18,22 @@ class AvatarAreaIconLink extends KDCustomHTMLView
       @$('.count').removeClass "in"
     else
       @$('.count').addClass "in"
-  
+
   click:->
     popup = @getDelegate()
     popup.show()
-  
+
 
 class AvatarAreaIconMenu extends KDView
   constructor:->
     super
     @setClass "actions"
-  
+
   viewAppended:->
     mainView = @getSingleton 'mainView'
     sidebar  = @getDelegate()
     @setClass "invisible" unless KD.isLoggedIn()
-  
+
     mainView.addSubView @avatarStatusUpdatePopup = new AvatarPopupShareStatus
       cssClass : "status-update"
       delegate : sidebar
@@ -45,46 +45,48 @@ class AvatarAreaIconMenu extends KDView
     mainView.addSubView @avatarMessagesPopup = new AvatarPopupMessages
       cssClass : "messages"
       delegate : sidebar
-  
-    @addSubView @statusUpdateIcon = new AvatarAreaIconLink 
+
+    @addSubView @statusUpdateIcon = new AvatarAreaIconLink
       cssClass   : 'status-update'
       attributes :
         title    : 'Status Update'
       delegate   : @avatarStatusUpdatePopup
 
-    @addSubView @notificationsIcon = new AvatarAreaIconLink 
+    @addSubView @notificationsIcon = new AvatarAreaIconLink
       cssClass   : 'notifications'
       attributes :
         title    : 'Notifications'
       delegate   : @avatarNotificationsPopup
 
-    @addSubView @messagesIcon = new AvatarAreaIconLink 
+    @addSubView @messagesIcon = new AvatarAreaIconLink
       cssClass   : 'messages'
       attributes :
         title    : 'Messages'
       delegate   : @avatarMessagesPopup
-  
+
     @attachListeners()
-  
+
   attachListeners:->
 
     # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
     #   @notificationsIcon.updateCount @notificationsIcon.count + 1
-    
+
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
-    
+
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
+      if count > 0 then @avatarNotificationsPopup.noNotification.hide() else @avatarNotificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
     @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
       @utils.killWait @avatarMessagesPopup.loaderTimeout
+      if count > 0 then @avatarMessagesPopup.noMessage.hide() else @avatarMessagesPopup.noMessage.show()
       @messagesIcon.updateCount count
-    
+
     @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
       @notificationsIcon.updateCount 0
-  
+
   accountChanged:(account)->
     if KD.isLoggedIn()
       @unsetClass "invisible"
@@ -92,7 +94,7 @@ class AvatarAreaIconMenu extends KDView
       messagesPopup      = @avatarMessagesPopup
       messagesPopup.listController.removeAllItems()
       notificationsPopup.listController.removeAllItems()
-      
+
       #do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
         notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
@@ -143,24 +145,24 @@ class AvatarPopup extends KDView
       listenedToInstance  : @avatarPopupTab
       callback:(pubInst, event)->
         @hide()
-  
+
   _windowDidResize:=>
     if @listController
       {scrollView}    = @listController
       windowHeight    = $(window).height()
       avatarTopOffset = @$().offset().top
       @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 50
-    
+
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
   show:->
     super()
-    
+
     if (visitor = KD.getSingleton('mainController').getVisitor())
       {profile} = visitor.currentDelegate
       if @statusField.getOptions().placeholder is ""
         @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
-    
+
   viewAppended:->
     super()
 
@@ -185,23 +187,23 @@ class AvatarPopupShareStatus extends AvatarPopup
         @statusField.setValue ""
         @statusField.setPlaceHolder reply.body
         @hide()
-        
+
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
         @hide()
-        
+
 # avatar popup box Notifications
 class AvatarPopupNotifications extends AvatarPopup
   activitesArrived:-> console.log arguments
-  
+
   viewAppended:->
     super()
 
-    @_popupList = new PopupList 
+    @_popupList = new PopupList
       subItemClass : PopupNotificationListItem
       # lastToFirst   : yes
 
-    @listController = new MessagesListController 
+    @listController = new MessagesListController
       view         : @_popupList
       maxItems     : 5
 
@@ -209,15 +211,21 @@ class AvatarPopupNotifications extends AvatarPopup
       KDEventTypes  : "AvatarPopupShouldBeHidden"
       listener      : @
       callback      : => @hide()
-    
+
+    @avatarPopupContent.addSubView @noNotification = new KDView
+      height   : "auto"
+      cssClass : "sublink"
+      partial  : "You have no new notifications..."
+    @noNotification.hide()
+
     @avatarPopupContent.addSubView @listController.getView()
 
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"
       cssClass : "sublink"
       partial  : "<a href='#'>View all of your activity notifications...</a>"
-    
-    @listenTo 
+
+    @listenTo
       KDEventTypes        : "click"
       listenedToInstance  : redirectLink
       callback            : ()=>
@@ -232,21 +240,21 @@ class AvatarPopupNotifications extends AvatarPopup
       @listController.instantiateListItems notifications
 
     KD.whoami().glanceActivities ->
-    
+
 class AvatarPopupMessages extends AvatarPopup
-  
+
   viewAppended:->
     super()
-    
+
     @_popupList = new PopupList
       subItemClass  : PopupMessageListItem
       # lastToFirst   : yes
-    
-    @listController = new MessagesListController 
+
+    @listController = new MessagesListController
       view         : @_popupList
       maxItems     : 5
 
-    @getSingleton('notificationController').on "NewMessageArrived", => 
+    @getSingleton('notificationController').on "NewMessageArrived", =>
       @listController.fetchMessages()
 
     @listController.registerListener
@@ -254,18 +262,19 @@ class AvatarPopupMessages extends AvatarPopup
       listener      : @
       callback      : => @hide()
 
-    @listController.registerListener
-      KDEventTypes  : "AvatarPopupShouldBeHidden"
-      listener      : @
-      callback      : => @hide()
-    
+    @avatarPopupContent.addSubView @noMessage = new KDView
+      height   : "auto"
+      cssClass : "sublink"
+      partial  : "You have no new messages..."
+    @noMessage.hide()
+
     @avatarPopupContent.addSubView @listController.getView()
-    
+
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"
       cssClass : "sublink"
       partial  : "<a href='#'>See all messages...</a>"
-    
+
     @listenTo
       KDEventTypes        : "click"
       listenedToInstance  : redirectLink
@@ -273,10 +282,10 @@ class AvatarPopupMessages extends AvatarPopup
         appManager.openApplication('Inbox')
         appManager.tell 'Inbox', "goToMessages"
         @hide()
-  
+
   accountChanged:->
     @listController.removeAllItems()
-  
+
   show:->
     super
     @listController.fetchMessages()
@@ -285,17 +294,17 @@ class AvatarPopupMessages extends AvatarPopup
 class PopupList extends KDListView
 
   constructor:(options = {}, data)->
-    
+
     options.tagName     or= "ul"
     options.cssClass    or= "avatararea-popup-list"
     # options.lastToFirst or= no
-  
+
     super options,data
-  
+
 class PopupNotificationListItem extends NotificationListItem
-  
+
   constructor:(options = {}, data)->
-    
+
     options.tagName        or= "li"
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
@@ -313,7 +322,7 @@ class PopupNotificationListItem extends NotificationListItem
         </footer>
       </div>
     """
-  
+
   click:(event)->
 
     popupList = @getDelegate()
@@ -328,25 +337,25 @@ class PopupMessageListItem extends KDListItemView
     ,options
 
     super options,data
-    
+
     @initializeReadState()
-    
+
     group = data.participants.map (participant)->
       constructorName : participant.sourceName
       id              : participant.sourceId
-    
+
     @participants = new ProfileTextGroup {group}
     @avatar       = new AvatarStaticView {
       size    : {width: 40, height: 40}
       origin  : group[0]
     }
-  
+
   initializeReadState:->
     if @getData().getFlagValue('read')
       @unsetClass 'unread'
     else
       @setClass 'unread'
-  
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
