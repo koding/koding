@@ -1,3 +1,4 @@
+.revision
 /.revision
 .DS_Store
 website/js/kd*.js
@@ -63,11 +64,11 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
-/node_modules/amqp
 node_modules/cron/
-sftp-config.json
 
+# Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
+
+sftp-config.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
-/node_modules/amqp/
-/npm-debug.log
+npm-debug.log
