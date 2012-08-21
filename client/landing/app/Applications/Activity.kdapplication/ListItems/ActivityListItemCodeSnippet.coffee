@@ -97,8 +97,6 @@ class CodeSnippetView extends KDCustomHTMLView
     @codeView.setClass hjsSyntax if hjsSyntax
     @codeView.unsetClass "kdcustomhtml"
 
-    log @
-
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
       partial  : __aceSettings.syntaxAssociations[syntax][0] or syntax
