@@ -111,8 +111,13 @@ var Channel = function(ws, name) {
                 if (data.channel !== channel) return;
                 var evt = {};
                 evt.type = channel+'.'+data.event;
-                if (data.payload) {
-                  data.payload = JSON.parse(data.payload);
+                var payload;
+                try {
+                  payload = JSON.parse(data.payload);
+                } catch (ex) {
+                  payload = data.payload;
+                } finally {
+                  data.payload = payload
                 }
                 evt.data = data.payload;
                 ws.dispatchEvent(evt);
