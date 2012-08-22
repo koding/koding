@@ -75,7 +75,7 @@ class JInvitation extends jraphical.Module
 
       # host = 'localhost:3000'
       # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(2000, 2999).forEach (email)=>
+      uniq(betaTestersEmails.split '\n').slice(2983, 3999).forEach (email)=>
         recipients.push =>
           @one {inviteeEmail: email}, (err, invite)=>
             if err
