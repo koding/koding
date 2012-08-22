@@ -1,32 +1,3 @@
-# JDiscussion
-#  |_ JDiscussionReply*
-#      |_ JComment*
-
-class JDiscussionReply extends JComment
-  {secure} = require 'bongo'
-  @share()
-  @set
-  	relationships     :
-  	  comment         : JComment
-  	  participant     :
-  	    targetType    : JAccount
-  	    as            : ['author','commenter']
-  	  likedBy         :
-  	    targetType    : JAccount
-  	    as            : 'like'
-  	  repliesActivity :
-  	    targetType    : CRepliesActivity
-  	    as            : 'repliesActivity'
-  	  tag             :
-  	    targetType    : JTag
-  	    as            : 'tag'
-  	  follower        :
-  	    as            : 'follower'
-  	    targetType    : JAccount
-
-
-# dont forget about garbage collection when a reply gets deleted
-
 class JDiscussion extends JPost
 
   {secure} = require 'bongo'
@@ -39,7 +10,7 @@ class JDiscussion extends JPost
     sharedMethods : JPost.sharedMethods
     schema        : JPost.schema
     relationships     :
-      comment         : JDiscussionReply
+      comment         : JComment
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
@@ -71,11 +42,8 @@ class JDiscussion extends JPost
       meta    : data.meta
     JPost::modify.call @, client, discussion, callback
 
-  reply : secure (client, data, callback)->
-    log "reply data is ", data
-    discussion =
-      body: data
-    JReply::reply.call @, client, discussion, callback
+  reply: secure (client, comment, callback)->
+    JPost::reply.call @, client, JComment, comment, callback
 
 class CDiscussionActivity extends CActivity
   @share()
