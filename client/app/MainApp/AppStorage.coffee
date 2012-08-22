@@ -1,4 +1,6 @@
 
+# FIXME : # too many parameters on some methods, callback is not the last 08/2012 - Sinan
+
 class AppStorage # extends KDObject
 
   constructor: (appId, version)->
@@ -17,6 +19,7 @@ class AppStorage # extends KDObject
     else
       callback @_storage
 
+  # FIXME : # FAIL at async return, no use of callback here
   fetchValue: (key, defaultValue, callback, group = 'bucket')->
 
     @reset()
@@ -30,7 +33,8 @@ class AppStorage # extends KDObject
 
   setValue: (key, value, callback, group = 'bucket')->
 
-    return if @getValue(key) is value
+    # FIXME: this is problematic because it's a reference if you update the ref you can not write it to db
+    # return if @getValue(key) is value
 
     pack = @zip key, group, value
 
