@@ -36,6 +36,7 @@ class WebTerm.Terminal
     @measurebox.css "position", "fixed"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
+    @updateSizeTimer = null
     @updateSize()
     
     @container.bind "mousedown", (event) =>
@@ -60,6 +61,9 @@ class WebTerm.Terminal
     
   keyUp: (event) ->
     @inputHandler.keyUp event if @inSession
+  
+  setFocused: (value) ->
+    @cursor.setFocused value
   
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY
@@ -91,13 +95,18 @@ class WebTerm.Terminal
       @measurebox.empty()
       @measurebox.append elements
       newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
+      newHeight = Math.max height, Math.floor((@pixelHeight - 1) / @measurebox.height() * height)
       break if newWidth is width and newHeight is height
+      break if newWidth > 1000 or newHeight > 1000 # sanity check
       width = newWidth
       height = newHeight
     
     @measurebox.empty()
     @setSize width, height
+  
+  windowDidResize: ->
+    window.clearTimeout @updateSizeTimer
+    @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
   
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]

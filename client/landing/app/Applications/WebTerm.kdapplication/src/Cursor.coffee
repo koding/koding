@@ -5,6 +5,7 @@ class WebTerm.Cursor
     @element = null
     @inversed = true
     @visible = true
+    @focused = true
     @blinkInterval = null
     @savedX = 0
     @savedY = 0
@@ -38,20 +39,23 @@ class WebTerm.Cursor
     @element = null
     @terminal.screenBuffer.addLineToUpdate @y
   
+  setFocused: (value) ->
+    return if @focused is value
+    @focused = value
+    @resetBlink()
+  
   resetBlink: ->
     if @blinkInterval?
       window.clearInterval @blinkInterval
       @blinkInterval = null
-    
     @inversed = true
-    @blinkInterval = window.setInterval =>
-      @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
-      if @element?
-        @element.style.inverse = @inversed
-        @element.updateNode()
-    , 600
-    @terminal.screenBuffer.flush()
-  
+    @updateCursorElement()
+    if @focused
+      @blinkInterval = window.setInterval =>
+        @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
+        @updateCursorElement()
+      , 600
+    
   addCursorElement: (content) ->
     return content if not @visible
     newContent = content.substring 0, @x
@@ -59,7 +63,14 @@ class WebTerm.Cursor
     @element = content.substring(@x, @x + 1).get(0) ? new WebTerm.StyledText(" ", @terminal.currentStyle)
     @element.spanForced = true
     @element.style = jQuery.extend true, {}, @element.style
-    @element.style.inverse = @inversed
+    @element.style.outlined = not @focused
+    @element.style.inverse = @focused and @inversed
     newContent.push @element
     newContent.pushAll content.substring(@x + 1)
     newContent
+
+  updateCursorElement: ->
+    return if not @element?
+    @element.style.outlined = not @focused
+    @element.style.inverse = @focused and @inversed
+    @element.updateNode()

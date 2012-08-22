@@ -55,6 +55,12 @@ class WebTermView extends KDView
     @sessionBox.addSubView createSessionButton
     
     @listenWindowResize()
+    
+    $(window).bind "focus", =>
+      @terminal.setFocused true
+    
+    $(window).bind "blur", =>
+      @terminal.setFocused false
   
   click: ->
     @setKeyView()
@@ -69,7 +75,7 @@ class WebTermView extends KDView
     @terminal.keyUp event
   
   _windowDidResize: (event) ->
-    @terminal.updateSize()
+    @terminal.windowDidResize()
 
 class WebTermSessionItem extends KDListItemView
   constructor: (options = {},data) ->
