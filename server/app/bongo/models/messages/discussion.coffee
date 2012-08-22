@@ -1,3 +1,6 @@
+class JOpinion extends JPost
+
+
 class JDiscussion extends JPost
 
   {secure} = require 'bongo'
@@ -10,7 +13,7 @@ class JDiscussion extends JPost
     sharedMethods : JPost.sharedMethods
     schema        : JPost.schema
     relationships     :
-      comment         : JComment
+      opinion         : JOpinion
       participant     :
         targetType    : JAccount
         as            : ['author','commenter']
@@ -42,8 +45,8 @@ class JDiscussion extends JPost
       meta    : data.meta
     JPost::modify.call @, client, discussion, callback
 
-  reply: secure (client, comment, callback)->
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: secure (client, opinion, callback)->
+    JOpinion.create.call @, client, opinion, callback
 
 class CDiscussionActivity extends CActivity
   @share()
