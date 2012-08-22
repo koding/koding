@@ -27,7 +27,7 @@
 -behaviour(cowboy_http_handler). %% To handle the default route
 
 %% Application callbacks
--export([start/0, start/2, stop/1, subscribe/4]).
+-export([start/0, start/2, stop/1, loop/2]).
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
@@ -165,14 +165,14 @@ handle_subscription(Conn, {init, From, Channel}, _State) ->
         nomatch     -> Private = false
     end,
 
-    Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
+    Consumer = subscribe(Conn, Channel, Exchange, From),
 
     Conn:send(<<"broker:subscription_succeeded">>, <<>>),
     
     {ok, #subscription{ channel     = Channel, 
                         exchange    = Exchange,
                         private     = Private,
-                        consumer    = Pid}};
+                        consumer    = Consumer}};
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
@@ -285,7 +285,7 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
                                     auto_delete = true},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 
-    loop(Conn, Subscriber).
+    spawn(?MODULE, loop, [Conn, Subscriber]).
 
 %%--------------------------------------------------------------------
 %% Function: bind_queue(Channel, Exchange, Routing, Consumer) -> pid()
