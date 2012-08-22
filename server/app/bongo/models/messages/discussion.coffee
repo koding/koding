@@ -24,8 +24,6 @@ class JDiscussionReply extends JComment
   	    as            : 'follower'
   	    targetType    : JAccount
 
-  @create = secure (client, data, callback) ->
-    log arguments
 
 # dont forget about garbage collection when a reply gets deleted
 
@@ -74,7 +72,10 @@ class JDiscussion extends JPost
     JPost::modify.call @, client, discussion, callback
 
   reply : secure (client, data, callback)->
-    JPost::reply.call @, client, discussion, callback
+    log "reply data is ", data
+    discussion =
+      body: data
+    JReply::reply.call @, client, discussion, callback
 
 class CDiscussionActivity extends CActivity
   @share()

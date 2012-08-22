@@ -91,6 +91,7 @@ class NewCommentForm extends KDView
       @commentInput.setValue ''
       @commentInput.blur()
       @commentInput.$().blur()
+      log "the delegate is ", @getDelegate()
       @getDelegate().propagateEvent KDEventType: 'CommentSubmitted', reply
     else
       new KDNotificationView
