@@ -58,7 +58,7 @@ class ActivityUpdateWidgetController extends KDViewController
         delegate  : mainView
         callback  : (data)=>
           msg = new KDNotificationView
-            title : "You kinda submitted"
+            title : "You started a discussion!"
           if submissionStopped
             return notifySubmissionStopped()
           else
@@ -158,7 +158,7 @@ class ActivityUpdateWidgetController extends KDViewController
       activity.modify data, (err, res)=>
         callback? err, res
         unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
+          new KDNotificationView type : "mini", title : "Updated the discussion successfully"
         else
           new KDNotificationView type : "mini", title : err.message
     else
