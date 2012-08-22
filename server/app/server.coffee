@@ -110,6 +110,17 @@ class Server
     #       # res.header 200, 'text/plain'
     #       res.send 'feed:'+(item.snapshot for item in arr).join '\n'
     
+    app.get '/auth', (req, res)->
+      crypto = require 'crypto'
+      channel = req.query?.channel
+      return res.send "-1" unless channel
+
+      [priv, kite, pubName] = channel.split '-'
+      privName = ['secret', kite, crypto.createHash('md5').update(''+pubName+42).digest('hex')].join '-'
+      console.log privName
+      return res.send privName+'.private'
+
+
     app.get '/images/uploads/:filename', (req, res)->
       {filename} = req.params
       Resource.get filename, (err, gs, data, responseCode)->

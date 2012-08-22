@@ -3,7 +3,7 @@ BONGO_MQ = do->
   options = {
     encrypted: yes
     sockURL: 'http://localhost:8008/subscribe'
-    authEndPoint: 'http://localhost:8008/auth'
+    authEndPoint: 'http://localhost:3000/auth'
   }
   switch KD.env
     when 'beta'

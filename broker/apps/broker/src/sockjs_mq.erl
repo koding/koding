@@ -60,6 +60,7 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
                                         subscriptions=Subscriptions,
                                         socket_id=SocketId,
                                         channel=Channel}) ->
+	io:format("Received ~p~n", [Data]),
     [Event, Exchange, Payload] = decode(Data),
 
     case {Event, orddict:is_key(Exchange, Subscriptions)} of

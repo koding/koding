@@ -11,7 +11,7 @@
                  ]},
   {mod, { broker_app, []}},
   {env, [
-    %{mq_host, "web0.beta.system.aws.koding.comom"},"},
+    %{mq_host, "web0.beta.system.aws.koding.com"},"},
     {mq_host, "localhost"},
     {mq_user, <<"guest">>},
     {mq_pass, <<"guest">>},
