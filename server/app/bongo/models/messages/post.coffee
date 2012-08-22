@@ -110,6 +110,7 @@ class JPost extends jraphical.Message
           tags or= []
           status.addTags client, tags, (err)->
             if err
+              log err
               callback createKodingError err
             else
               queue.next()
@@ -307,7 +308,7 @@ class JPost extends jraphical.Message
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
-      comment = new JComment body: comment
+      comment = new replyType body: comment
       exempt = delegate.checkFlag('exempt')
       if exempt
         comment.isLowQuality = yes

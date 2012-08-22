@@ -1,12 +1,46 @@
 class JOpinion extends JPost
+  {secure} = bongo
+  {Relationship} = jraphical
+  {once} = require 'underscore'
 
-
-class JDiscussion extends JPost
-
-  {secure} = require 'bongo'
   @share()
 
   @getActivityType =-> CDiscussionActivity
+
+  @getAuthorType =-> JAccount
+
+  @set
+    sharedMethods : JPost.sharedMethods
+    schema        : JPost.schema
+    relationships : JPost.relationships
+
+  @create = secure (client, data, callback)->
+    codeSnip =
+      title       : data.title
+      body        : data.body
+      meta        : data.meta
+    JPost.create.call @, client, codeSnip, callback
+
+  modify: secure (client, data, callback)->
+    codeSnip =
+      title       : data.title
+      body        : data.body
+      meta        : data.meta
+    JPost::modify.call @, client, codeSnip, callback
+
+  reply: secure (client, comment, callback)->
+    JPost::reply.call @, client, JComment, comment, callback
+class JDiscussion extends JPost
+
+  # broken : tag support
+  {secure} = bongo
+  {Relationship} = jraphical
+  {once} = require 'underscore'
+
+  @share()
+
+  @getActivityType =-> CDiscussionActivity
+
   @getAuthorType =-> JAccount
 
   @set
@@ -32,24 +66,36 @@ class JDiscussion extends JPost
 
   @create = secure (client, data, callback)->
     discussion =
-      title 	: data.title
-      body		: data.body
-      meta		: data.meta
+      title       : data.title
+      body        : data.body
+      meta        : data.meta
     JPost.create.call @, client, discussion, callback
-
 
   modify: secure (client, data, callback)->
     discussion =
-      title   : data.title
-      body    : data.body
-      meta    : data.meta
+      title       : data.title
+      body        : data.body
+      meta        : data.meta
     JPost::modify.call @, client, discussion, callback
 
-  reply: secure (client, opinion, callback)->
-    JOpinion.create.call @, client, opinion, callback
+  reply: secure (client, comment, callback)->
+    JPost::reply.call @, client, JOpinion, comment, callback
+
+  fetchEntireMessage:(callback)->
+    @beginGraphlet()
+      .edges
+        query         :
+          targetName  :'JOpinion'
+        sort          :
+          timestamp   : 1
+      .nodes()
+    .endGraphlet()
+    .fetchRoot callback
 
 class CDiscussionActivity extends CActivity
+
   @share()
+
   @set
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
