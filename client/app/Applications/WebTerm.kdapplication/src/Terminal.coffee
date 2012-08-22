@@ -95,7 +95,7 @@ class WebTerm.Terminal
       @measurebox.empty()
       @measurebox.append elements
       newWidth = Math.max width, Math.floor(@pixelWidth / @measurebox.width() * width)
-      newHeight = Math.max height, Math.floor((@pixelHeight - 1) / @measurebox.height() * height)
+      newHeight = Math.max height, Math.floor(@pixelHeight / @measurebox.height() * height)
       break if newWidth is width and newHeight is height
       break if newWidth > 1000 or newHeight > 1000 # sanity check
       width = newWidth
