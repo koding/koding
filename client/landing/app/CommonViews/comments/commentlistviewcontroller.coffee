@@ -6,13 +6,15 @@ class CommentListViewController extends KDListViewController
 
   instantiateListItems:(items, keepDeletedComments = no)->
 
+    log "items are ", items
+
     newItems = []
-    
+
     items.sort (a,b) =>
       a = a.meta.createdAt
       b = b.meta.createdAt
       if a<b then -1 else if a>b then 1 else 0
-      
+
     for comment, i in items
       nextComment = items[i+1]
 
@@ -29,7 +31,7 @@ class CommentListViewController extends KDListViewController
       unless skipComment
         commentView = @getListView().addItem comment
         newItems.push commentView
-  
+
     return newItems
 
   startListeners:->
@@ -58,6 +60,10 @@ class CommentListViewController extends KDListViewController
       listener      : @
       callback      : (pubInst, reply)->
         model = listView.getData()
+
+        log "model is ", model
+        log "reply is ", reply
+
         listView.emit "BackgroundActivityStarted"
         model.reply reply, (err, reply)->
           # listView.emit "AllCommentsLinkWasClicked"
@@ -69,6 +75,9 @@ class CommentListViewController extends KDListViewController
     [to,callback] = [callback,to] unless callback
     query = {from,to}
     message = @getListView().getData()
+
+    log "fcbr", message
+
     message.commentsByRange query,(err,comments)=>
       @getListView().emit "BackgroundActivityFinished"
       callback err,comments
@@ -86,13 +95,18 @@ class CommentListViewController extends KDListViewController
   fetchRelativeComments:(_limit = 10, _after)=>
     listView = @getListView()
     message = @getListView().getData()
+
+    log "frc", message
+
+
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
-
+      log "before inst"
       @instantiateListItems comments[_limit-10...], yes
+      log "after inst"
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
