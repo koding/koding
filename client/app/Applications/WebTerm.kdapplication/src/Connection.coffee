@@ -1,6 +1,6 @@
 class WebTerm.Connection
   constructor: (@terminal) ->
-    @ws = new WebSocket("ws://neelance.de:8080/")
+    @ws = new WebSocket("ws://" + window.location.hostname + ":8080/")
     $(window).bind "beforeunload", =>
       @ws.close()
     

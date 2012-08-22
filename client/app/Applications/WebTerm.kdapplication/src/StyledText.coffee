@@ -24,6 +24,7 @@ class WebTerm.StyledText
     constructor: ->
       @bold = false
       @underlined = false
+      @outlined = false
       @inverse = false
       @textColor = null
       @backgroundColor = null
@@ -40,6 +41,7 @@ class WebTerm.StyledText
   
       classes.push "bold" if @bold
       classes.push "underlined" if @underlined
+      classes.push "outlined" if @outlined
       classes.push "inverse" if @inverse
       if @textColor?
         if @textColor < 16
