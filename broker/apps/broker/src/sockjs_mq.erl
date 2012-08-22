@@ -25,12 +25,13 @@
 -behaviour (sockjs_service).
 
 %% Application callbacks
--export ([init_state/3]).
+-export ([init_state/2]).
 
 %% SocjJS Service callbacks
 -export([sockjs_init/2, sockjs_handle/3, sockjs_terminate/2]).
 
--record (state, {broker, func, callback, subscriptions, socket_id, channel}).
+-record (state, {   connection_fun, callback, subscriptions, 
+                    socket_id, channel}).
 -record (subscription, {state, vconn, exchange}).
 
 %% ===================================================================
@@ -38,9 +39,8 @@
 %% This is for each SockJS connection only.
 %% ===================================================================
 
-init_state(Broker, ConnectionFun, Callback) ->
-    #state{broker=Broker, 
-            func=ConnectionFun,
+init_state(ConnectionFun, Callback) ->
+    #state{ connection_fun=ConnectionFun,
             callback=Callback, 
             subscriptions=orddict:new()}.
 
@@ -48,8 +48,8 @@ init_state(Broker, ConnectionFun, Callback) ->
 %% SockJS Service callbacks
 %% ===================================================================
 
-sockjs_init(Conn, State=#state{broker=Broker, func=Func}) ->
-    Channel = Func(Broker),
+sockjs_init(Conn, State=#state{connection_fun=Func}) ->
+    Channel = Func(),
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
     Event = {<<"event">>, <<"connected">>},
     Payload = {<<"socket_id">>, SocketId},

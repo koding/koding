@@ -66,7 +66,12 @@ start(_StartType, _StartArgs) ->
 
     debug_log("Connected to MQ ~p@~p~n", [MqUser, MqHost]),
 
-    MultiplexState = sockjs_mq:init_state(Broker, fun connect/1, fun handle_subscription/3),
+    ConnectionFun = fun () -> 
+        {ok, Channel} = amqp_connection:open_channel(Broker),
+        Channel
+    end,
+
+    MultiplexState = sockjs_mq:init_state(ConnectionFun, fun handle_subscription/3),
 
     %% sockjs_handler:init_state(Prefix, Callback, State, Options)
     %% Callback is a sockjs_service behavior module.
@@ -142,10 +147,6 @@ terminate(_Req, _State) ->
 %% ===================================================================
 %% SockJS_MQ Handlers
 %% ===================================================================
-
-connect(Broker) ->
-    {ok, Channel} = amqp_connection:open_channel(Broker),
-    Channel.
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {init, From}, _State) -> 
