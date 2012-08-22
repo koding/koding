@@ -133,13 +133,14 @@ class JTag extends Followable
             callback null, tag
 
   @findSuggestions = (seed, options, callback)->
-    {limit, blacklist}  = options
+    {limit, blacklist, skip}  = options
 
     @some {
       title   : seed
       _id     :
         $nin  : blacklist
     },{
+      skip
       limit
       sort    : 'title' : 1
     }, callback
