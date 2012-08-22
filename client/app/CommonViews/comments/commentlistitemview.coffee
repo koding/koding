@@ -67,8 +67,6 @@ class CommentListItemView extends KDListItemView
     super
 
   viewAppended:->
-
-    log "displaying comments in ",@
     @setTemplate @pistachio()
     @template.update()
     # super unless @_partialUpdated
