@@ -111,7 +111,7 @@ class Activity12345 extends AppController
       KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
       listener      : @
       callback      : (pubInst, data)=>
-        @filter data.type
+        @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -210,13 +210,14 @@ class Activity12345 extends AppController
       sort        :
         createdAt : -1
 
-    @fetchTeasers selector, options, (activities)=>
-      if activities
-        for activity in activities
-          @activityListController.addItem activity
-        callback? activities
-      else
-        callback?()
+    if not options.skip < options.limit
+      @fetchTeasers selector, options, (activities)=>
+        if activities
+          for activity in activities
+            @activityListController.addItem activity
+          callback? activities
+        else
+          callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     bongo.api.Relationship.within sourceIds, options, (err, rels)->
@@ -232,7 +233,7 @@ class Activity12345 extends AppController
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
         item.hide() if not controller.isInFollowing(item.data)
-      return
+      return no
 
     else if show is 'public'
       controller._state = 'public'
