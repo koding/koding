@@ -224,13 +224,13 @@ handle_subscription(_Conn, {unbind, Event, _From},
 %% The payload of the event will be broadcasted to the exchange under
 %% the routing key the same as the event name.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, {trigger, Event, Payload, From},
+handle_subscription(_Conn, {trigger, Event, Payload, From, Meta},
                     State = #subscription{channel = Channel,
                                             exchange = Exchange,
                                             private = Private}) ->
     case Private of 
         true -> 
-            broadcast(From, Channel, Exchange, Event, Payload),
+            broadcast(From, Channel, Exchange, Event, Payload, Meta),
             {ok, State};
         false -> {ok, State}
     end;
@@ -265,12 +265,21 @@ handle_subscription(_Conn, ended, Channel) ->
 %% Description: Set up the correlation id, then publish the Data to 
 %% the Exchange on the routing key the same as the Event.
 %%--------------------------------------------------------------------
-broadcast(From, Channel, Exchange, Event, Data) ->
-    Props = #'P_basic'{correlation_id = From},
+broadcast(From, Channel, Exchange, Event, Data, Meta) ->
     Publish = #'basic.publish'{ exchange = Exchange, 
                                 routing_key = Event},
-    Msg = #amqp_msg{props = Props, payload = Data},
-    amqp_channel:cast(Channel, Publish, Msg).
+
+    case lists:keyfind(<<"replyTo">>, 1, Meta) of 
+        {_, ReplyTo} -> 
+            Props = #'P_basic'{correlation_id = From,
+                                reply_to = ReplyTo},
+            Msg = #amqp_msg{props = Props, payload = Data},
+            amqp_channel:cast(Channel, Publish, Msg);
+        false ->        
+            Props = #'P_basic'{correlation_id = From},
+            Msg = #amqp_msg{props = Props, payload = Data},
+            amqp_channel:cast(Channel, Publish, Msg)
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()

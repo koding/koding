@@ -60,7 +60,7 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
                                         subscriptions=Subscriptions,
                                         socket_id=SocketId,
                                         channel=Channel}) ->
-    [Event, Exchange, Payload] = decode(Data),
+    [Event, Exchange, Payload, Meta] = decode(Data),
 
     case {Event, orddict:is_key(Exchange, Subscriptions)} of
         {<<"client-subscribe">>, false} ->
@@ -92,7 +92,7 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
 
         {<<"client-",_EventName/binary>>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
-            Body = {trigger, Event, Payload, SocketId},
+            Body = {trigger, Event, Payload, SocketId, Meta},
             Sub1 = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
@@ -137,7 +137,13 @@ emit(What, Callback, Subscription = #subscription{state = State,
 decode(Data) ->
     [{<<"event">>, Event}, 
         {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
-    case lists:keyfind(<<"payload">>, 1, Rest) of
-        {<<"payload">>, Payload} ->  [Event, Exchange, Payload];
-        false -> [Event, Exchange, <<>>]
+
+    Payload = bin_key_find(<<"payload">>, Rest),
+    Meta = bin_key_find(<<"meta">>, Rest),
+    [Event, Exchange, Payload, Meta].
+
+bin_key_find(BinKey, List) ->
+    case lists:keyfind(BinKey, 1, List) of
+        {BinKey, Val} -> Val;
+        false -> <<>>
     end.

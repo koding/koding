@@ -158,18 +158,21 @@ Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener)
     this.ws.removeEventListener(channel+'.'+eventType, listener);
 };
 
-Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload) {
+Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload, meta) {
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
     if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
     var channel = this.privateName || this.name;
-    sendWsMessage(this.ws, eventType, channel, payload);
+    sendWsMessage(this.ws, eventType, channel, payload, meta);
     return true;
 };
 
-var sendWsMessage = function (ws, event_name, channel, payload) {
+var sendWsMessage = function (ws, event_name, channel, payload, meta) {
     var subJSON = {event:event_name,channel:channel,payload:payload};
+    if (typeof meta === 'object') {
+      subJSON.meta = meta;
+    }
     ws.send(JSON.stringify(subJSON));
 }
 
