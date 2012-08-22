@@ -71,4 +71,4 @@ node_modules/cron/
 sftp-config.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
-npm-debug.log
+/npm-debug.log
