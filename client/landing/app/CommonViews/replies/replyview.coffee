@@ -3,7 +3,7 @@ class ReplyView extends CommentView
     super
 
   createSubViews:(data)->
-    log "reply is ", data
+    log "reply is in ", data
     @commentList = new KDListView
       type          : "comments"
       subItemClass  : CommentListItemView
