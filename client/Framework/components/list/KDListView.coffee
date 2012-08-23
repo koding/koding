@@ -19,7 +19,7 @@ class KDListView extends KDView
     new (@getOptions().subItemClass ? KDListItemView) options, data
 
   keyDown:(event)->
-    log "herer", @
+
     event.stopPropagation()
     event.preventDefault()
     @emit "KeyDownOnList", event
@@ -36,6 +36,7 @@ class KDListView extends KDView
     return itemInstance
 
   addHiddenItem:(item, index, animation)->
+
     @_addItemHelper item, {
       viewOptions :
         isHidden  : yes
@@ -45,9 +46,10 @@ class KDListView extends KDView
     }
 
   addItem:(itemData, index, animation)->
+
     @_addItemHelper itemData, {index, animation}
 
-  removeItem:(itemInstance,itemData,index)->
+  removeItem:(itemInstance, itemData, index)->
 
     if index
       @emit 'ItemIsBeingDestroyed', { view : @items[index], index : index }
@@ -64,6 +66,7 @@ class KDListView extends KDView
           return
 
   addItemView:(itemInstance,index,animation)->
+    
     @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
@@ -75,6 +78,7 @@ class KDListView extends KDView
     itemInstance
 
   destroy:(animated = no, animationType = "slideUp", duration = 100)->
+    
     for item in @items
       # log "destroying listitem", item
       item.destroy()

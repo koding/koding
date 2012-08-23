@@ -26,6 +26,10 @@ class AppStorage # extends KDObject
     @fetchStorage (storage)=>
       if storage[group]?[key] then storage[group][key] else defaultValue
 
+  # FIXME: defaultValue is not a good idea here it pollutes params unnecessarily
+  #        usage hint :
+  #        instead of     : val = appStorage.getValue "someKey", "myDefaultValue"
+  #        this is better : val = appStorage.getValue("someKey") or "myDefaultValue"
   getValue: (key, defaultValue, group = 'bucket')->
 
     return defaultValue unless @_storage
@@ -33,7 +37,10 @@ class AppStorage # extends KDObject
 
   setValue: (key, value, callback, group = 'bucket')->
 
-    # FIXME: this is problematic because it's a reference if you update the ref you can not write it to db
+    # FIXME: i think this was to avoid unnecessary writes but 
+    #        it is problematic because it's a reference if you update 
+    #        the ref you can not write it to db
+    
     # return if @getValue(key) is value
 
     pack = @zip key, group, value

@@ -54,8 +54,8 @@ class KDListViewController extends KDViewController
       callback           : (windowController, event)-> @mouseUpHappened windowController, event
 
   instantiateListItems:(items)->
-    newItems = for listItem in items
-      @getListView().addItem listItem
+    newItems = for itemData in items
+      @getListView().addItem itemData
 
     @emit "AllItemsAddedToList"
 
@@ -86,8 +86,16 @@ class KDListViewController extends KDViewController
     @listView
 
   ###
-  CRUD OPERATIONS FOR ITEMS
+  ITEM OPERATIONS
   ###
+
+  addItem:(itemData, index, animation)->
+
+    @getListView().addItem itemData, index, animation
+
+  removeItem:(itemInstance, itemData, index)->
+
+    @getListView().removeItem itemInstance, itemData, index
 
   registerItem:(view, index)->
 
