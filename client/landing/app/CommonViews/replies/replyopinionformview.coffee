@@ -1,0 +1,1 @@
+class ReplyOpinionFormView extends KDFormView

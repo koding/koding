@@ -1,31 +1,45 @@
-class ReplyView extends CommentView
-  constructor:->
+class ReplyView extends KDView
+
+  constructor:(options, data)->
+
     super
 
+    @setClass "comment-container"
+    @createSubViews data
+    @resetDecoration()
+    @attachListeners()
+
+  render:->
+    @resetDecoration()
+
   createSubViews:(data)->
-    log "reply is in ", data
+    log "ReplyView is creating subViews"
+    log "replies are to be added for ", data
     @commentList = new KDListView
       type          : "comments"
-      subItemClass  : CommentListItemView
+      subItemClass  : ReplyListItemView
       delegate      : @
     , data
 
-    @commentController        = new CommentListViewController view: @commentList
+    @commentController        = new ReplyListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
     @addSubView @commentList
-    @addSubView @commentForm  = new NewCommentForm delegate : @commentList
+    @addSubView addOpinionForm = new ReplyOpinionFormView
+
 
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
 
-    log "adding replies from", data.replies
+
+    log "data is ", data, @, @parent
 
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
-        log "adding reply"
         @commentList.addItem reply
 
     @commentList.emit "BackgroundActivityFinished"
+
+    log "ReplyView is done creating subViews"
 
   attachListeners:->
 
@@ -47,3 +61,91 @@ class ReplyView extends CommentView
       KDEventTypes : "CommentViewShouldReset"
       listenedToInstance : @commentList
       callback : @resetDecoration
+
+  resetDecoration:->
+    post = @getData()
+    if post.repliesCount is 0
+      @decorateNoCommentState()
+    else
+      @decorateCommentedState()
+
+  decorateNoCommentState:->
+    @unsetClass "active-comment"
+    @unsetClass "commented"
+    @setClass "no-comment"
+
+  decorateCommentedState:->
+    @unsetClass "active-comment"
+    @unsetClass "no-comment"
+    @setClass "commented"
+
+  decorateActiveCommentState:->
+    @unsetClass "commented"
+    @unsetClass "no-comment"
+    @setClass "active-comment"
+
+  decorateItemAsLiked:(likeObj)->
+    if likeObj?.results?.likeCount > 0
+      @setClass "liked"
+    else
+      @unsetClass "liked"
+    @ActivityActionsView.setLikedCount likeObj
+
+
+# class ReplyView extends CommentView
+#   constructor:(options, data)->
+
+#     super
+
+#     @setClass "comment-container"
+#     @createSubViews data
+#     @resetDecoration()
+#     @attachListeners()
+
+
+#   createSubViews:(data)->
+
+#     log "replies are added for ", data
+#     @commentList = new KDListView
+#       type          : "comments"
+#       subItemClass  : CommentListItemView
+#       delegate      : @
+#     , data
+
+#     @commentController        = new CommentListViewController view: @commentList
+#     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
+#     @addSubView @commentList
+#     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
+
+#     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
+#     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
+
+#     log "adding replies from", data.replies, data, @
+
+#     if data.replies
+#       for reply in data.replies when reply? and 'object' is typeof reply
+#         log "adding reply"
+#         @commentList.addItem reply
+
+#     @commentList.emit "BackgroundActivityFinished"
+
+#   attachListeners:->
+
+#     @listenTo
+#       KDEventTypes : "DecorateActiveCommentView"
+#       listenedToInstance : @commentList
+#       callback : @decorateActiveCommentState
+
+#     @listenTo
+#       KDEventTypes : "CommentLinkReceivedClick"
+#       listenedToInstance : @commentList
+#       callback : (pubInst, event) =>
+#         @commentForm.commentInput.setFocus()
+
+#     @commentList.on "CommentCountClicked", =>
+#       @commentList.emit "AllCommentsLinkWasClicked"
+
+#     @listenTo
+#       KDEventTypes : "CommentViewShouldReset"
+#       listenedToInstance : @commentList
+#       callback : @resetDecoration

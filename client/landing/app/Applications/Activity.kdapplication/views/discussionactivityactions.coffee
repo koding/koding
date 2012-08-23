@@ -5,8 +5,18 @@ class DiscussionActivityActionsView extends ActivityActionsView
     activity = @getData()
 
     @replyLink = new ActivityActionLink
-      partial  : "Join this discussion"
+      partial   : "Join this discussion"
+      click     : (pubInst, event)=>
+        appManager.tell "Activity", "createContentDisplay", @getData()
 
+
+
+    @commentCount.destroy()
+
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Show all"
+    , activity
 
   viewAppended:->
 
@@ -34,12 +44,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
               new KDNotificationView
                 title     : "You already liked this!"
                 duration  : 1300
-
-    @replyLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : (pubInst, event) ->
-        commentList.propagateEvent KDEventType : "CommentLinkReceivedClick", event
 
 
 

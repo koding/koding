@@ -1,6 +1,8 @@
 class DiscussionActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
+
+    # in case of Discussions, the comments can go beyond one level. we need another view for that
     options = $.extend
       cssClass    : "activity-item discussion"
       tooltip     :
@@ -11,16 +13,15 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     super options,data
 
-    @replyBox = new ReplyView null, data
-
     @actionLinks = new DiscussionActivityActionsView
-      delegate : @replyBox.commentList
+      delegate : @commentBox.commentList
       cssClass : "reply-header"
     , data
 
-    @commentBox.hidden = yes
+    @commentBox.destroy()
 
   viewAppended:()->
+    log "constructor is ", @getData().constructor
     return if @getData().constructor is bongo.api.CDiscussion
     super()
     @setTemplate @pistachio()
@@ -58,7 +59,6 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
-      {{> @replyBox}}
     </div>
     """
 
