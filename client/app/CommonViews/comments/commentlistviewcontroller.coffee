@@ -84,6 +84,8 @@ class CommentListViewController extends KDListViewController
 
   fetchAllComments:(skipCount=3, callback = noop)=>
 
+    log "fac"
+
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
