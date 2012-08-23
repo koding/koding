@@ -172,6 +172,8 @@ class JDiscussion extends JPost
                               console.log "Couldn't fetch the origin"
                             else
                               log "origin", origin
+                              log "emitting ReplyIsAdded event", ObjectRef(@).data, "as", docs[0]
+                              log "from", ObjectRef(delegate).data, "to", ObjectRef(comment).data, "with a count of ", count
                               unless exempt
                                 @emit 'ReplyIsAdded', {
                                   origin
