@@ -8,4 +8,3 @@ module.exports =
   amqp       :
     host     : 'localhost'
     port     : 5672
-  apiUri     : 'https://dev-api.koding.com/1.0'

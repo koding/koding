@@ -1,5 +1,5 @@
 config          = require './config'
-Kite            = require 'kite'
+Kite            = require 'kite-amqp'
 _               = require 'underscore'
 {exec}          = require 'child_process'
 
@@ -22,9 +22,9 @@ module.exports = new Kite 'terminaljs'
       
     
 
-    exec "killall -9 -u #{username}",(err,stdout,stderr)->
-      console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
-
+    # exec "killall -9 -u #{username}",(err,stdout,stderr)->
+    #       console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
+    
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
@@ -35,8 +35,10 @@ module.exports = new Kite 'terminaljs'
       # create a fake one, use this to detect network lags, errors etc.
       # return callback null, FakeController.createTerminal options
 
-      #create a real one.
-      terminal = new Terminal "su -l #{username}",rows,cols
+      #create a real one.      # 
+            # terminal = new Terminal "su -l #{username}",rows,cols
+            
+      terminal = new Terminal "bash echo fuck you",rows,cols
 
       nr = 0
       terminal.on "data", (screen)-> 
@@ -56,11 +58,11 @@ module.exports = new Kite 'terminaljs'
         close              : ()->
           console.log "close is called"
           terminal.kill terminal.id
-          delete terminal
+          #delete terminal
         kill               : ()->
           console.log "kill is called"
           terminal.kill terminal.id
-          delete terminal
+          #delete terminal
         closeOtherSessions : ()->
           #just to be compatible with other terminaljs
         ping:()->

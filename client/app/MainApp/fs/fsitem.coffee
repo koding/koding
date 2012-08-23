@@ -29,7 +29,7 @@ class FSItem extends KDObject
   @getSafePath:(path, callback) ->
 
     KD.getSingleton('kiteController').run
-      toDo        : "fetchSafeFileName"
+      method        : "fetchSafeFileName"
       withArgs    :
         filePath  : path
     , callback

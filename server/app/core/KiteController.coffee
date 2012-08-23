@@ -124,7 +124,7 @@ class KiteController extends bongo.Base
       
   tell : (options,callback)->
     
-    {kiteId,toDo,withArgs,kiteName} = options
+    {kiteId,method,withArgs,kiteName} = options
     
     if not kiteId and kiteName
       kiteId = @getKiteByName kiteName
@@ -138,12 +138,12 @@ class KiteController extends bongo.Base
       kite = kites[kiteId].direct ? kites[kiteId].viaProxy
       # # log.debug kiteId,kite?.name,kites
       if kite
-        if kite.api?[toDo]
-          # log.debug "told kite:#{kite.name} toDo:#{toDo}"
-          kite.api[toDo] withArgs,options.callback
+        if kite.api?[method]
+          # log.debug "told kite:#{kite.name} method:#{method}"
+          kite.api[method] withArgs,options.callback
           callback null
         else
-          err = "kite:#{kite.name} said it has no such function:#{toDo}"
+          err = "kite:#{kite.name} said it has no such function:#{method}"
           log.error err
           options.callback? err
           callback? null

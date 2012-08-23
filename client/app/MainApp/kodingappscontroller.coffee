@@ -74,7 +74,7 @@ class KodingAppsController extends KDController
     
 
     @getSingleton("kiteController").run
-      toDo        : "uploadFile"
+      method        : "uploadFile"
       withArgs    : {
         path      : FSHelper.escapeFilePath "#{@getAppPath app}index.js"
         contents  : script

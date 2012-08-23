@@ -31,7 +31,7 @@ class JDatabase extends jraphical.Capsule
     else
       switch @data.bongo_.constructorName
         when "JDatabaseMySql"
-          account.tellKiteInternal account:account, kiteName:"databases",toDo:"createMysqlDatabase",withArgs: 
+          account.tellKiteInternal account:account, kiteName:"databases",method:"createMysqlDatabase",withArgs: 
             dbUser  : @data.users[0].username
             dbPass  : @data.users[0].password
             dbName  : @data.name
@@ -44,7 +44,7 @@ class JDatabase extends jraphical.Capsule
               finishSaving @,account,callback
             else callback err
         when "JDatabaseMongo"
-          account.tellKiteInternal account:account, kiteName:"databases",toDo:"createMongoDatabase",withArgs:
+          account.tellKiteInternal account:account, kiteName:"databases",method:"createMongoDatabase",withArgs:
             dbUser  : @data.users[0].username
             dbPass  : @data.users[0].password
             dbName  : @data.name
@@ -84,7 +84,7 @@ class JDatabase extends jraphical.Capsule
           # console.log @data
           switch @data.bongo_.constructorName
             when "JDatabaseMySql"
-              account.tellKiteInternal account:account, kiteName:"databases",toDo:"changeMysqlPassword",withArgs: 
+              account.tellKiteInternal account:account, kiteName:"databases",method:"changeMysqlPassword",withArgs: 
                 dbUser  : @data.users[0].username
                 dbPass  : @data.users[0].password
                 dbName  : @data.name
@@ -92,7 +92,7 @@ class JDatabase extends jraphical.Capsule
                 unless err then finishUpdating @,callback
                 else callback err
             when "JDatabaseMongo"
-              account.tellKiteInternal account:account, kiteName:"databases",toDo:"changeMongoPassword",withArgs:
+              account.tellKiteInternal account:account, kiteName:"databases",method:"changeMongoPassword",withArgs:
                 dbUser      : @data.users[0].username
                 dbName      : @data.name
                 newPassword : @data.users[0].password
@@ -128,7 +128,7 @@ class JDatabase extends jraphical.Capsule
         else
           switch @data.bongo_.constructorName
             when "JDatabaseMySql"
-              account.tellKiteInternal account:account, kiteName:"databases",toDo:"removeMysqlDatabase",withArgs: 
+              account.tellKiteInternal account:account, kiteName:"databases",method:"removeMysqlDatabase",withArgs: 
                 dbUser  : @data.users[0].username
                 dbName  : @data.name
               ,(err,res)=>                 
@@ -136,7 +136,7 @@ class JDatabase extends jraphical.Capsule
                 console.log "there was a problem deleting dbName: #{@data.name}, but it's removed anyway from mongo.",err if err
             when "JDatabaseMongo"
               console.log @data
-              account.tellKiteInternal account:account, kiteName:"databases",toDo:"removeMongoDatabase",withArgs: 
+              account.tellKiteInternal account:account, kiteName:"databases",method:"removeMongoDatabase",withArgs: 
                 dbUser  : @data.users[0].username
                 dbName  : @data.name
               ,(err,res)=>                 

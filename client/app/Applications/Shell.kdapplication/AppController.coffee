@@ -106,7 +106,7 @@ class Shell12345 extends KDViewController
     options.type = type ? view.clientType
     @account.tellKite 
       kiteName :"terminaljs"
-      toDo     :"create"
+      method     :"create"
       withArgs : options
     ,(error,terminal)=>
       if error
@@ -179,7 +179,7 @@ class Shell12345 extends KDViewController
     KD.singletons.kiteController.run
       kiteName  : "terminaljs"
       # kiteId    : kiteId
-      toDo      : "create"
+      method      : "create"
       withArgs  : options
     , (error, terminal) =>
       if error

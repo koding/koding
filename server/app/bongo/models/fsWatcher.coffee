@@ -51,10 +51,10 @@ class Watcher extends EventEmitter
     
     # @api = bongo.kites.fsWatcherKitesTest.api
     
-    kiteController.tell kiteName:"fsWatcher",toDo:"on",withArgs:'start', (a, b, c) ->
+    kiteController.tell kiteName:"fsWatcher",method:"on",withArgs:'start', (a, b, c) ->
       log 'start', a, b, c
       
-    kiteController.tell kiteName:"fsWatcher",toDo:"on",withArgs:'warn', (a, b, c) ->
+    kiteController.tell kiteName:"fsWatcher",method:"on",withArgs:'warn', (a, b, c) ->
       log 'warn', a, b, c
       
     # @api.on 'fschange', (event) =>
@@ -64,8 +64,8 @@ class Watcher extends EventEmitter
     newId = hat()
     @_subscriptions[dir] = newId
     
-    kiteController.tell kiteName:"fsWatcher",toDo:"watch",withArgs:{dir, eventID: newId}
-    kiteController.tell kiteName:"fsWatcher",toDo:"on", withArgs:newId, (event) =>
+    kiteController.tell kiteName:"fsWatcher",method:"watch",withArgs:{dir, eventID: newId}
+    kiteController.tell kiteName:"fsWatcher",method:"on", withArgs:newId, (event) =>
       @emit 'change', event
       
       
