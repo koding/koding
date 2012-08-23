@@ -1,4 +1,5 @@
 class DiscussionActivityItemView extends ActivityItemChild
+
   constructor:(options, data)->
     options = $.extend
       cssClass    : "activity-item discussion"
@@ -16,6 +17,8 @@ class DiscussionActivityItemView extends ActivityItemChild
       delegate : @replyBox.commentList
       cssClass : "reply-header"
     , data
+
+    @commentBox.hidden = yes
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussion

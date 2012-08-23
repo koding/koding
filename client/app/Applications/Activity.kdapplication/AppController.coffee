@@ -12,6 +12,7 @@ class Activity12345 extends AppController
       'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
+      'COpinionActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -187,6 +188,7 @@ class Activity12345 extends AppController
           'CDiscussionActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
+          'COpinionActivity'
         ]
 
     options =
@@ -246,6 +248,7 @@ class Activity12345 extends AppController
         'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
+        'COpinionActivity'
       ]
 
     controller.removeAllItems()

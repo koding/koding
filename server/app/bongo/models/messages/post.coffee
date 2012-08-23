@@ -308,7 +308,9 @@ class JPost extends jraphical.Message
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
+      log "thing to be posted:", comment
       comment = new replyType body: comment
+      log "it is now:",comment
       exempt = delegate.checkFlag('exempt')
       if exempt
         comment.isLowQuality = yes
@@ -318,7 +320,7 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            delegate.addContent comment, (err)-> console.log 'error adding content', err
+            delegate.addContent comment, (err)-> console.log 'error adding content to delegate', err
             @addComment comment,
               flags:
                 isLowQuality    : exempt
@@ -389,6 +391,7 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
+    log @
 
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
