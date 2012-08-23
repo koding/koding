@@ -100,6 +100,10 @@ class NFinderTreeController extends JTreeViewController
     #   log "put", file.path
     #   @aceViews[file.path]
 
+  getOpenFolders: ->
+    
+    return Object.keys(@listControllers).slice(1)
+
 
   ###
   FINDER OPERATIONS
@@ -376,7 +380,6 @@ class NFinderTreeController extends JTreeViewController
     folder.emit "fs.compile.started"
     kodingAppsController = @getSingleton('kodingAppsController')
     kodingAppsController.compileApp folder.path, =>
-      log "ever here"
       folder.emit "fs.compile.finished"
       @notify "App compiled!", "success"
       callback?()

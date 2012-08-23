@@ -21,11 +21,11 @@ class MainTabView extends KDTabView
     
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
-    @_tabHandleContainerHidden = no
+    @handlesHidden = no
 
   hideHandleContainer:()->
     @tabHandleContainer.$().css top : 0
-    @_tabHandleContainerHidden = yes
+    @handlesHidden = yes
   
   showPane:(pane)->
     super pane
@@ -153,7 +153,7 @@ class MainTabView extends KDTabView
   
   resizeTabHandles:(pubInst,event)->
     return if event.type is "PaneAdded" and event.pane.hiddenHandle
-    return if @_tabHandleContainerHidden
+    return if @handlesHidden
 
     containerSize   = @tabHandleContainer.getWidth()
     {plusHandle}    = @tabHandleContainer

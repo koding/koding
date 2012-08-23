@@ -94,6 +94,7 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
+    KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
   resetAdminNavController:->
