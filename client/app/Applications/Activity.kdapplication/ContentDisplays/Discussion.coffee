@@ -1,4 +1,4 @@
-class ContentDisplayDiscussion extends ContentDisplayStatusUpdate
+class ContentDisplayDiscussion extends KDView
 
   constructor:(options = {}, data)->
 
@@ -9,8 +9,18 @@ class ContentDisplayDiscussion extends ContentDisplayStatusUpdate
 
     super options, data
 
-    @unsetClass 'status'
-    @setClass 'discussion'
+    @setClass 'activity-item discussion'
+
+    origin =
+      constructorName  : data.originType
+      id               : data.originId
+
+    @avatar = new AvatarStaticView
+      tagName : "span"
+      size    : {width: 50, height: 50}
+      origin  : origin
+
+    @author = new ProfileLinkView {origin}
 
     @replyBox = new ReplyView null, data
 
@@ -18,6 +28,26 @@ class ContentDisplayDiscussion extends ContentDisplayStatusUpdate
       delegate : @replyBox.commentList
       cssClass : "comment-header"
     , data
+
+    @tags = new ActivityChildViewTagGroup
+      itemsToShow   : 3
+      subItemClass  : TagLinkView
+    , data.tags
+
+  viewAppended:()->
+
+    # return if @getData().constructor is bongo.api.CStatusActivity
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+    # temp for beta
+    # take this bit to comment view
+    if @getData().repliesCount? and @getData().repliesCount > 0
+      commentController = @replyBox.commentController
+      commentController.fetchAllComments 0, (err, comments)->
+        commentController.removeAllItems()
+        commentController.instantiateListItems comments
 
   pistachio:->
 

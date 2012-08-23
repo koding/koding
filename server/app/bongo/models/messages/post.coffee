@@ -337,12 +337,18 @@ class JPost extends jraphical.Message
                     'data.flags.isLowQuality'   : $ne: yes
                   }, (err, count)=>
                     if err
+                      log "Relationship.count failed"
                       callback err
                     else
+                      log "Relationship.count succeeded with ", count
                       @update $set: repliesCount: count, (err)=>
                         if err
+                          log "repliesCount not set"
                           callback err
                         else
+                          log "repliesCount set to ", count
+
+                          # this is where the post itself is done.
                           callback null, comment
                           @fetchActivityId (err, id)->
                             CActivity.update {_id: id}, {
@@ -421,7 +427,6 @@ class JPost extends jraphical.Message
         queryOptions.limit = to - from
     selector['data.flags.isLowQuality'] = $ne: yes
     queryOptions.sort = timestamp: -1
-    console.log queryOptions
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->

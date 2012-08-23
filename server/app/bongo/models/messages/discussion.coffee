@@ -20,6 +20,9 @@ class JOpinion extends JPost
   @getFlagRole =-> ['sender', 'recipient']
 
   @set
+    emitFollowingActivities: yes
+    taggedContentRole : 'post'
+    tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
     schema        : JPost.schema
     relationships     :
@@ -39,6 +42,13 @@ class JOpinion extends JPost
       follower        :
         as            : 'follower'
         targetType    : JAccount
+
+  createKodingError =(err)->
+    kodingErr = new KodingError(err.message)
+    for own prop of err
+      kodingErr[prop] = err[prop]
+    kodingErr
+
   @create = secure (client, data, callback)->
     log "creating opinion"
     codeSnip =
@@ -81,6 +91,9 @@ class JDiscussion extends JPost
   @getAuthorType =-> JAccount
   @getFlagRole =-> ['sender', 'recipient']
   @set
+    emitFollowingActivities: yes
+    taggedContentRole : 'post'
+    tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
     schema        : JPost.schema
     relationships     :
@@ -148,9 +161,12 @@ class JDiscussion extends JPost
                 if exempt
                   callback null, comment
                 else
+                  # setting it to "reply" will not increase repliesCount
+                  # using "follower" will allow only for ONE post to count
+
                   Relationship.count {
                     sourceId                    : @getId()
-                    as                          : 'reply'
+                    as                          : 'follower'
                     'data.flags.isLowQuality'   : $ne: yes
                   }, (err, count)=>
                     if err
@@ -159,8 +175,10 @@ class JDiscussion extends JPost
                       log "relationship count", count
                       @update $set: repliesCount: count, (err)=>
                         if err
+                          log "reply count NOT set"
                           callback err
                         else
+                          log "reply count set to ", count
                           callback null, comment
                           @fetchActivityId (err, id)->
                             log "activity id", id
@@ -171,15 +189,15 @@ class JDiscussion extends JPost
                             if err
                               console.log "Couldn't fetch the origin"
                             else
-                              log "origin", origin
+                              # log "origin", origin
                               log "emitting ReplyIsAdded event", ObjectRef(@).data, "as", docs[0]
                               log "from", ObjectRef(delegate).data, "to", ObjectRef(comment).data, "with a count of ", count
                               unless exempt
                                 @emit 'ReplyIsAdded', {
                                   origin
                                   subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'reply'
+                                  actorType     : 'follower'
+                                  actionType    : 'follow'
                                   replier       : ObjectRef(delegate).data
                                   reply         : ObjectRef(comment).data
                                   repliesCount  : count
@@ -190,12 +208,12 @@ class JDiscussion extends JPost
                               log "looks like we've completed the whole reply thing"
 
   fetchTeaser:(callback)->
-    log "fetching teaser"
+    log "discussion fetching teaser"
     @beginGraphlet()
       .edges
         query         :
           targetName  : 'JOpinion'
-          as          : 'reply'
+          as          : 'follower'
           'data.deletedAt':
             $exists   : no
           'data.flags.isLowQuality':
@@ -213,10 +231,10 @@ class JDiscussion extends JPost
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-    log "teaser was fetched", @
+    log "discussion teaser was fetched", @
 
   fetchRelativeComments:({limit, before, after}, callback)->
-    log "fetching relative comments"
+    log "discussion fetching relative comments"
     limit ?= 10
     if before? and after?
       callback new KodingError "Don't use before and after together."
@@ -228,7 +246,7 @@ class JDiscussion extends JPost
     @fetchOpinions selector, options, callback
 
   commentsByRange:(options, callback)->
-    log "fetching comments by range"
+    log "discussion fetching comments by range"
     [callback, options] = [options, callback] unless callback
     {from, to} = options
     from or= 0
@@ -249,7 +267,7 @@ class JDiscussion extends JPost
     @fetchOpinions selector, queryOptions, callback
 
   restComments:(skipCount, callback)->
-    log "fetching restcomments"
+    log "discussion fetching restcomments"
     [callback, skipCount] = [skipCount, callback] unless callback
     skipCount ?= 3
     @fetchOpinions {
@@ -262,11 +280,12 @@ class JDiscussion extends JPost
       if err
         callback err
       else
+        log "restcomment comments are",comments
         # comments.reverse()
         callback null, comments
 
   fetchEntireMessage:(callback)->
-    log "fetching entire message"
+    log "discussion fetching entire message"
     @beginGraphlet()
       .edges
         query         :

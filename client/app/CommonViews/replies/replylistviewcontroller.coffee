@@ -1,4 +1,4 @@
-class CommentListViewController extends KDListViewController
+class ReplyListViewController extends KDListViewController
   constructor:->
     super
     @_hasBackgrounActivity = no
@@ -6,7 +6,7 @@ class CommentListViewController extends KDListViewController
 
   instantiateListItems:(items, keepDeletedComments = no)->
 
-    log "items are ", items, @
+    log "replies ", items, @
 
     newItems = []
 
@@ -72,7 +72,7 @@ class CommentListViewController extends KDListViewController
     query = {from,to}
     message = @getListView().getData()
 
-    log "comment fcbr", message
+    log "reply fcbr", message
 
     message.commentsByRange query,(err,comments)=>
       @getListView().emit "BackgroundActivityFinished"
@@ -80,7 +80,7 @@ class CommentListViewController extends KDListViewController
 
   fetchAllComments:(skipCount=3, callback = noop)=>
 
-    log "comment fac"
+    log "reply fac"
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
@@ -94,7 +94,7 @@ class CommentListViewController extends KDListViewController
     listView = @getListView()
     message = @getListView().getData()
 
-    log "comment frc", message
+    log "reply frc", message
 
 
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
@@ -102,9 +102,9 @@ class CommentListViewController extends KDListViewController
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
-      log "before inst"
+      log "before reply inst"
       @instantiateListItems comments[_limit-10...], yes
-      log "after inst"
+      log "after reply inst"
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
@@ -116,6 +116,6 @@ class CommentListViewController extends KDListViewController
         @_hasBackgrounActivity = no
 
   replaceAllComments:(comments)->
-    log "comment replaceAllComments"
+    log "replaceAllComments"
     @removeAllItems()
     @instantiateListItems comments
