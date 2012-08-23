@@ -165,16 +165,20 @@ decode(Data) ->
     [{<<"event">>, Event}, 
         {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
 
-    Payload = bin_key_find(<<"payload">>, Rest),
-    Meta = bin_key_find(<<"meta">>, Rest),
+    Payload = bin_key_find(<<"payload">>, Rest, false),
+    Meta = bin_key_find(<<"meta">>, Rest, true),
     [Event, Exchange, Payload, Meta].
 
 %%--------------------------------------------------------------------
-%% Function: bin_key_find(BinKey, List) -> Val || false
+%% Function: bin_key_find(BinKey, List, ReturnsEmptyList) -> Val || false
 %% Description:  A helper to find a binary key in a binary proplist.
+%% The third boolean argument specifies to return an empty list or empty
+%% binary when the BinKey not found.
 %%--------------------------------------------------------------------
-bin_key_find(BinKey, List) ->
+bin_key_find(BinKey, List, ReturnEmptyList) ->
     case lists:keyfind(BinKey, 1, List) of
-        {BinKey, Val} -> Val;
+        {_, Val} when is_integer(Val) -> list_to_binary(integer_to_list(Val));
+        {_, Val} -> Val;
+        false when ReturnEmptyList -> [];
         false -> <<>>
     end.
