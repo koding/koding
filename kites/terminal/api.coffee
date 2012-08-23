@@ -19,11 +19,9 @@ module.exports = new Kite 'terminaljs'
     if requesterId then username = requesterId
     
     if requesterId is "undefined" or username is "undefined" then console.log "_disconnect : ignoring 'undefined'"
-      
-    
 
-    # exec "killall -9 -u #{username}",(err,stdout,stderr)->
-    #       console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
+    exec "killall -9 -u #{username}",(err,stdout,stderr)->
+          console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
     
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
@@ -36,9 +34,9 @@ module.exports = new Kite 'terminaljs'
       # return callback null, FakeController.createTerminal options
 
       #create a real one.      # 
-            # terminal = new Terminal "su -l #{username}",rows,cols
+      terminal = new Terminal "su -l #{username}",rows,cols
             
-      terminal = new Terminal "bash echo fuck you",rows,cols
+      # terminal = new Terminal "bash echo fuck you",rows,cols
 
       nr = 0
       terminal.on "data", (screen)-> 

@@ -42,6 +42,8 @@ execute = (options,callback)->
   else
     log.error "execute can only work with provided .filename or .command"
   
+
+  console.log execStr
   cmd = exec execStr,(err,stdout,stderr)->
     respond {err,stdout,stderr},callback
     fs.unlink filename if unlink is yes

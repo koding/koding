@@ -6,9 +6,9 @@ module.exports =
   name              : "sharedhosting"
   pidPath           : "/var/run/node/SharedHosting.pid"
   logFile           : "/var/log/node/SharedHosting.log"
-  port              : 4566
+  # port              : 4566
   amqp              :
-    host            : 'web0.beta.service.aws.koding.com'
+    host            : 'web0.beta.system.aws.koding.com'
     username        : 'guest'
     password        : 'x1srTA7!%Vb}$n|S'
   # pusher            :

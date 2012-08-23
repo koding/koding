@@ -1,7 +1,7 @@
 Kite = require 'kite-amqp'
 
-debugger
 module.exports = new Kite 'dummyamqpkite'
   
   foo:(data, callback)->
+    console.log 'hello'
     callback null, 42

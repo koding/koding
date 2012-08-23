@@ -5,10 +5,10 @@ module.exports =
   port    : 4567
   pidPath : "/var/run/node/TerminalJS.pid"
   logFile : "/var/log/node/TerminalJS.log"
-  
   amqp              :
-    host            : 'localhost'
-    port            : 5672
+    host            : 'web0.beta.system.aws.koding.com'
+    username        : 'guest'
+    password        : 'x1srTA7!%Vb}$n|S'
     # username        : 'guest'
     # password        : 'x1srTA7!%Vb}$n|S'
   # pusher  :

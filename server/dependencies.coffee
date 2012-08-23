@@ -41,12 +41,12 @@ try
         secret  : '9a2f248630abaf977547'###
   #bongo.mq = bongo.Base::mq = new Broker({host: "localhost"})
   bongo.mq = bongo.Base::mq = new Broker {
-    host      : "localhost"
-    login     : "guest"
-    password  : "guest"
-    # host      : "web0.beta.system.aws.koding.com"
+    # host      : "localhost"
     # login     : "guest"
-    # password  : "x1srTA7!%Vb}$n|S"
+    # password  : "guest"
+    host      : "web0.beta.system.aws.koding.com"
+    login     : "guest"
+    password  : "x1srTA7!%Vb}$n|S"
   }
 
 catch err
