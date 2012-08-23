@@ -27,7 +27,7 @@
 -behaviour(cowboy_http_handler). %% To handle the default route
 
 %% Application callbacks
--export([start/0, start/2, stop/1, subscribe/4]).
+-export([start/0, start/2, stop/1, loop/2, notify_first/3]).
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
@@ -66,7 +66,12 @@ start(_StartType, _StartArgs) ->
 
     debug_log("Connected to MQ ~p@~p~n", [MqUser, MqHost]),
 
-    MultiplexState = sockjs_mq:init_state(Broker, fun connect/1, fun handle_subscription/3),
+    ConnectionFun = fun () -> 
+        {ok, Channel} = amqp_connection:open_channel(Broker),
+        Channel
+    end,
+
+    MultiplexState = sockjs_mq:init_state(ConnectionFun, fun handle_subscription/3),
 
     %% sockjs_handler:init_state(Prefix, Callback, State, Options)
     %% Callback is a sockjs_service behavior module.
@@ -143,17 +148,14 @@ terminate(_Req, _State) ->
 %% SockJS_MQ Handlers
 %% ===================================================================
 
-connect(Broker) ->
-    {ok, Channel} = amqp_connection:open_channel(Broker),
-    Channel.
-
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {init, From}, _State) -> 
 %%              {ok, NewState}
 %% Description: Set up RabbitMQ connection and channel, then spawn the 
 %% receiving loop. This process also declares the Exchange.
 %%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From, Channel}, _State) ->
+handle_subscription(Conn, {init, From, _Channel, Func}, _State) ->
+    Channel = Func(),
     {topic, Exchange} = lists:last(Conn:info()),
 
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
@@ -165,14 +167,23 @@ handle_subscription(Conn, {init, From, Channel}, _State) ->
         nomatch     -> Private = false
     end,
 
-    Pid = spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
+    spawn(?MODULE, notify_first, [Conn, Func(), Exchange]),
 
-    Conn:send(<<"broker:subscription_succeeded">>, <<>>),
-    
-    {ok, #subscription{ channel     = Channel, 
-                        exchange    = Exchange,
-                        private     = Private,
-                        consumer    = Pid}};
+    State = #subscription{ exchange = Exchange, 
+                            private = Private,
+                            channel = Channel},
+
+    try subscribe(Conn, Channel, Exchange, From) of
+        Consumer ->
+            {ok, State#subscription{consumer = Consumer}}
+    catch
+        error:precondition_failed ->
+            NewChannel = Func(),
+            ErrMsg = get_env(precondition_failed, <<"Unknow error">>),
+            debug_log("Subscription error: ~p~n", [ErrMsg]),
+            Conn:send(<<"broker:subscription_error">>, ErrMsg),
+            {error, State#subscription{channel = NewChannel}}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
@@ -223,13 +234,13 @@ handle_subscription(_Conn, {unbind, Event, _From},
 %% The payload of the event will be broadcasted to the exchange under
 %% the routing key the same as the event name.
 %%--------------------------------------------------------------------
-handle_subscription(_Conn, {trigger, Event, Payload, From},
+handle_subscription(_Conn, {trigger, Event, Payload, From, Meta},
                     State = #subscription{channel = Channel,
                                             exchange = Exchange,
                                             private = Private}) ->
     case Private of 
         true -> 
-            broadcast(From, Channel, Exchange, Event, Payload),
+            broadcast(From, Channel, Exchange, Event, Payload, Meta),
             {ok, State};
         false -> {ok, State}
     end;
@@ -264,12 +275,38 @@ handle_subscription(_Conn, ended, Channel) ->
 %% Description: Set up the correlation id, then publish the Data to 
 %% the Exchange on the routing key the same as the Event.
 %%--------------------------------------------------------------------
-broadcast(From, Channel, Exchange, Event, Data) ->
-    Props = #'P_basic'{correlation_id = From},
+broadcast(From, Channel, Exchange, Event, Data, Meta) ->
     Publish = #'basic.publish'{ exchange = Exchange, 
                                 routing_key = Event},
-    Msg = #amqp_msg{props = Props, payload = Data},
-    amqp_channel:cast(Channel, Publish, Msg).
+
+    case lists:keyfind(<<"replyTo">>, 1, Meta) of 
+        {_, ReplyTo} -> 
+            Props = #'P_basic'{correlation_id = From,
+                                reply_to = ReplyTo},
+            Msg = #amqp_msg{props = Props, payload = Data},
+            amqp_channel:cast(Channel, Publish, Msg);
+        false ->        
+            Props = #'P_basic'{correlation_id = From},
+            Msg = #amqp_msg{props = Props, payload = Data},
+            amqp_channel:cast(Channel, Publish, Msg)
+    end.
+
+%%--------------------------------------------------------------------
+%% Function: notify_first(Conn, Channel, Exchange) -> void()
+%% Description: Perform a check for existence against an exchange and 
+%% notify the Conn if the exchange does not exist.
+%% This is a one-off function to be run in a separate process and exit
+%% normally to avoid blocking the current process.
+%%--------------------------------------------------------------------
+notify_first(Conn, Channel, Exchange) ->
+    Check = #'exchange.declare'{ exchange = Exchange,
+                                    passive = true},
+    try amqp_channel:call(Channel, Check) of
+        #'exchange.declare_ok'{} -> exit(normal)
+    catch exit:_Ex1 -> 
+            Conn:send(<<"broker:first_connection">>, Exchange),
+            exit(normal)
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
@@ -283,9 +320,15 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
                                     type = <<"topic">>,
                                     durable = true,
                                     auto_delete = true},
-    #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
 
-    loop(Conn, Subscriber).
+    try amqp_channel:call(Channel, Declare) of
+        #'exchange.declare_ok'{} -> 
+            Conn:send(<<"broker:subscription_succeeded">>, <<>>),
+            spawn(?MODULE, loop, [Conn, Subscriber])
+    catch
+        exit:Error ->
+            handle_amqp_error(Error)
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: bind_queue(Channel, Exchange, Routing, Consumer) -> pid()
@@ -293,9 +336,12 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
 %% starts the subscription on that queue.
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing, Consumer) ->
+    % Ensure the client has time to consume the message
+    Args = [{<<"x-message-ttl">>, long, 1000}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true}),
+                                                    durable = true,
+                                                    arguments = Args}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,
@@ -352,3 +398,6 @@ get_env(Param, DefaultValue) ->
         {ok, Val} -> Val;
         undefined -> DefaultValue
     end.
+
+handle_amqp_error({{shutdown, {_Reason, 406, _Msg}}, _Who}) ->
+    error(precondition_failed).

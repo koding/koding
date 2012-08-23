@@ -101,23 +101,38 @@ var Channel = function(ws, name) {
     this.ws = ws;
     this.events = {};
     var self = this;
+
     var onopen = function() {
         if (ws.readyState > 0) {
             sendWsMessage(ws, "client-subscribe", self.privateName || self.name);
 
-            ws.addEventListener('message', function (e) {
+            var msgListener = function (e) {
                 var data = JSON.parse(e.data);
                 if (!data.event || !data.channel) return;
                 var channel = self.privateName || self.name;
                 if (data.channel !== channel) return;
                 var evt = {};
                 evt.type = channel+'.'+data.event;
-                if (data.payload) {
-                  data.payload = JSON.parse(data.payload);
+                var payload;
+                try {
+                  payload = JSON.parse(data.payload);
+                } catch (ex) {
+                  payload = data.payload;
+                } finally {
+                  data.payload = payload
                 }
                 evt.data = data.payload;
-                ws.dispatchEvent(evt);
-            });
+
+                if (data.event === "broker:subscription_error") {
+                  setTimeout(function() {
+                    ws.removeEventListener('message', msgListener);
+                  }, 0);
+                } else {
+                  ws.dispatchEvent(evt);
+                }
+            };
+
+            ws.addEventListener('message', msgListener);
         }
         else {
             ws.addEventListener('open', function () {
@@ -184,18 +199,21 @@ Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener)
     return this;
 };
 
-Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload) {
+Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload, meta) {
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
     if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
     var channel = this.privateName || this.name;
-    sendWsMessage(this.ws, eventType, channel, payload);
+    sendWsMessage(this.ws, eventType, channel, payload, meta);
     return true;
 };
 
-var sendWsMessage = function (ws, event_name, channel, payload) {
+var sendWsMessage = function (ws, event_name, channel, payload, meta) {
     var subJSON = {event:event_name,channel:channel,payload:payload};
+    if (typeof meta === 'object') {
+      subJSON.meta = meta;
+    }
     ws.send(JSON.stringify(subJSON));
 }
 
