@@ -154,7 +154,7 @@ terminate(_Req, _State) ->
 %% Description: Set up RabbitMQ connection and channel, then spawn the 
 %% receiving loop. This process also declares the Exchange.
 %%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From, Channel}, _State) ->
+handle_subscription(Conn, {init, From, Channel, Func}, _State) ->
     {topic, Exchange} = lists:last(Conn:info()),
 
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
@@ -166,14 +166,19 @@ handle_subscription(Conn, {init, From, Channel}, _State) ->
         nomatch     -> Private = false
     end,
 
-    Consumer = subscribe(Conn, Channel, Exchange, From),
-
-    Conn:send(<<"broker:subscription_succeeded">>, <<>>),
-    
-    {ok, #subscription{ channel     = Channel, 
-                        exchange    = Exchange,
-                        private     = Private,
-                        consumer    = Consumer}};
+    State = #subscription{ exchange = Exchange, 
+                            private = Private,
+                            channel = Channel},
+    TempChannel = Func(),
+    case check_existing_exchange(TempChannel, Exchange) of 
+        true ->
+            Consumer = subscribe(Conn, Channel, Exchange, From),
+            {ok, State#subscription{consumer = Consumer}};
+        false ->
+            Conn:send(<<"broker:first_connection">>, Exchange),
+            Consumer = subscribe(Conn, Channel, Exchange, From),
+            {ok, State#subscription{consumer = Consumer}}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
@@ -281,6 +286,15 @@ broadcast(From, Channel, Exchange, Event, Data, Meta) ->
             amqp_channel:cast(Channel, Publish, Msg)
     end.
 
+check_existing_exchange(Channel, Exchange) ->
+    Check = #'exchange.declare'{ exchange = Exchange,
+                                    passive = true},
+    try amqp_channel:call(Channel, Check) of
+        #'exchange.declare_ok'{} -> false
+    catch
+        exit:_Ex1 -> true
+    end.
+
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
 %% Description: Declares the exchange and starts the receive loop
@@ -294,7 +308,7 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
                                     durable = true,
                                     auto_delete = true},
     #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
-
+    Conn:send(<<"broker:subscription_succeeded">>, <<>>),
     spawn(?MODULE, loop, [Conn, Subscriber]).
 
 %%--------------------------------------------------------------------

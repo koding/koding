@@ -59,14 +59,16 @@ sockjs_init(Conn, State=#state{connection_fun=Func}) ->
 sockjs_handle(Conn, Data, State = #state{callback=Callback, 
                                         subscriptions=Subscriptions,
                                         socket_id=SocketId,
-                                        channel=Channel}) ->
+                                        channel=Channel,
+                                        connection_fun=Func}) ->
     [Event, Exchange, Payload, Meta] = decode(Data),
 
     case {Event, orddict:is_key(Exchange, Subscriptions)} of
         {<<"client-subscribe">>, false} ->
             VConn = broker_channel:new(Conn, Exchange),
             Subscription = #subscription{vconn = VConn},
-            Sub1 = emit({init, SocketId, Channel}, Callback, Subscription),
+            What = {init, SocketId, Channel, Func},
+            Sub1 = emit(What, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
