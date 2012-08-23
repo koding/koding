@@ -14,6 +14,7 @@
     {mq_host, "web0.beta.system.aws.koding.com"},
     {mq_user, <<"guest">>},
     {mq_pass, <<"x1srTA7!%Vb}$n|S">>},
-    {verbose, true}
+    {verbose, true},
+    {precondition_failed, <<"Request not allowed">>}
     ]}
  ]}.

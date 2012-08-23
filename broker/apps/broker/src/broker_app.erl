@@ -179,6 +179,9 @@ handle_subscription(Conn, {init, From, _Channel, Func}, _State) ->
     catch
         error:precondition_failed ->
             NewChannel = Func(),
+            ErrMsg = get_env(precondition_failed, <<"Unknow error">>),
+            debug_log("Subscription error: ~p~n", [ErrMsg]),
+            Conn:send(<<"broker:subscription_error">>, ErrMsg),
             {error, State#subscription{channel = NewChannel}}
     end;
 
@@ -292,6 +295,8 @@ broadcast(From, Channel, Exchange, Event, Data, Meta) ->
 %% Function: notify_first(Conn, Channel, Exchange) -> void()
 %% Description: Perform a check for existence against an exchange and 
 %% notify the Conn if the exchange does not exist.
+%% This is a one-off function to be run in a separate process and exit
+%% normally to avoid blocking the current process.
 %%--------------------------------------------------------------------
 notify_first(Conn, Channel, Exchange) ->
     Check = #'exchange.declare'{ exchange = Exchange,
@@ -315,7 +320,7 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
                                     type = <<"topic">>,
                                     durable = true,
                                     auto_delete = true},
-                                    
+
     try amqp_channel:call(Channel, Declare) of
         #'exchange.declare_ok'{} -> 
             Conn:send(<<"broker:subscription_succeeded">>, <<>>),

@@ -100,11 +100,12 @@ var Channel = function(ws, name) {
     this.state = new EventEmitter;
     this.ws = ws;
     var self = this;
+
     var onopen = function() {
         if (ws.readyState > 0) {
             sendWsMessage(ws, "client-subscribe", self.privateName || self.name);
 
-            ws.addEventListener('message', function (e) {
+            var msgListener = function (e) {
                 var data = JSON.parse(e.data);
                 if (!data.event || !data.channel) return;
                 var channel = self.privateName || self.name;
@@ -120,8 +121,17 @@ var Channel = function(ws, name) {
                   data.payload = payload
                 }
                 evt.data = data.payload;
-                ws.dispatchEvent(evt);
-            });
+
+                if (data.event === "broker:subscription_error") {
+                  setTimeout(function() {
+                    ws.removeEventListener('message', msgListener);
+                  }, 0);
+                } else {
+                  ws.dispatchEvent(evt);
+                }
+            };
+
+            ws.addEventListener('message', msgListener);
         }
         else {
             ws.addEventListener('open', function () {
