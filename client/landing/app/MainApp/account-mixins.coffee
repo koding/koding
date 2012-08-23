@@ -37,11 +37,37 @@ AccountMixin = do ->
     JAccount::tellKite = do->
       {Scrubber, Store} = bongo.dnodeProtocol
 
-      (options, callback)->
-        bongo.mq.fetchChannel 'private-kite-'+options.kiteName, (channel)->
-          console.log channel
-          channel.on 'message', console.log
+      localStore = new Store
+      remoteStore = new Store
 
+      listenerId = 0
+
+      messageHandler =(secretChannelId, args) ->
+        callback = localStore.get(args.method)
+        scrubber = new Scrubber localStore
+        unscrubbed = scrubber.unscrub args, (callbackId)->
+          unless remoteStore.has callbackId
+            remoteStore.add callbackId, ->
+              request secretChannelId, callbackId, [].slice.call arguments
+          remoteStore.get callbackId
+        callback.apply @, unscrubbed
+
+      (options, callback=->)->
+        scrubber = new Scrubber localStore
+        args = [options, callback]
+        onMethod = if options.autoCull is false then 'on' else 'once'
+        delete options.autoCull
+        scrubber.scrub args, =>
+          scrubbed = scrubber.toDnodeProtocol()
+          # scrubbed.method or= callbackId
+          do (listenerId)=>
+            bongo.mq.fetchChannel "private-kite-#{options.kiteName}", (channel)=>
+              channel[onMethod](
+                "reply-client-message.#{listenerId}",
+                messageHandler.bind null, channel.privateName
+              )
+              channel.emit "client-message.#{listenerId}", JSON.stringify(scrubbed)
+          listenerId++
     # JAccount::tellKite = do->
     #   {Scrubber, Store} = bongo.dnodeProtocol
 
