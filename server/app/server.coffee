@@ -114,11 +114,18 @@ class Server
       crypto = require 'crypto'
       channel = req.query?.channel
       return res.send "-1" unless channel
-
-      [priv, kite, pubName] = channel.split '-'
-      privName = ['secret', kite, crypto.createHash('md5').update(''+pubName+42).digest('hex')].join '-'
-      console.log privName
-      return res.send privName+'.private'
+      clientId = req.cookies.clientid
+      JSession.one {clientId}, (err, session)->
+        [priv, type, pubName] = channel.split '-'
+        {username} = session
+        cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
+        cipher.update(
+          ''+pubName+req.cookies.clientid+Date.now()+Math.random()
+        )
+        privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+        privName += '.private'
+        bongo.mq.emit(channel, 'join', privName)
+        return res.send privName
 
 
     app.get '/images/uploads/:filename', (req, res)->

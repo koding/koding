@@ -64,7 +64,7 @@ Broker.prototype.disconnect = function () {
 
 Broker.prototype.subscribe = function (channelName) {
     var self = this;
-    if (this.channels[channelName]) return this;
+    if (this.channels[channelName]) return this.channels[channelName];
     var channel = new Channel(this.ws, escape(channelName));
     this.channels[escape(channelName)] = channel;
 
@@ -99,6 +99,7 @@ var Channel = function(ws, name) {
     this.name = name;
     this.state = new EventEmitter;
     this.ws = ws;
+    this.events = {};
     var self = this;
     var onopen = function() {
         if (ws.readyState > 0) {
@@ -128,29 +129,59 @@ var Channel = function(ws, name) {
     self.state.on('authorized', onopen);
 };
 
+Channel.prototype.once = function(eventType, listener, ctx) {
+  var self, wrapper;
+  self = this;
+  wrapper = function () {
+    listener.apply(ctx || self, [].slice.call(arguments));
+    self.off(eventType, wrapper);
+  };
+  self.on(eventType, wrapper);
+  return this;
+};
+
 Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ctx) {
-    var self = this;
-    var brokerListener = function (eventObj) {
+    var brokerListener, boundBind, self, channel;
+    self = this;
+    brokerListener = function (eventObj) {
+        eventType
         listener.call(ctx || self, eventObj.data);
     };
-
+    brokerListener.orig = listener;
+    boundBind = this.on.bind(this, eventType, listener);
     if (this.ws.readyState > 0) {
         if (!this.isPrivate || this.privateName) {
-            var channel = this.privateName || this.name;
+            channel = this.privateName || this.name;
             sendWsMessage(this.ws, "client-bind-event", channel, eventType);
             this.ws.addEventListener(channel+'.'+eventType, brokerListener);
+            this.events[eventType] || (this.events[eventType] = []);
+            this.events[eventType].push(brokerListener);
         } else {
-            this.state.on('authorized', this.on.bind(this, eventType, listener));
+            this.state.on('authorized', boundBind);
         }
     } else {
-        this.ws.addEventListener('open', this.on.bind(this, eventType, listener));
+        this.ws.addEventListener('open', boundBind);
     }
+    return this;
 };
 
 Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
-    var channel = this.privateName || this.name;
+    var brokerListener, channel, i, self;
+    self = this;
+    channel = this.privateName || this.name;
     sendWsMessage(this.ws, "client-unbind-event", channel, eventType);
-    this.ws.removeEventListener(channel+'.'+eventType, listener);
+    listeners = this.events[eventType] || [];
+    for (i=0; i < listeners.length; i++) {
+      brokerListener = listeners[i];
+      if (brokerListener.orig === listener) {
+        setTimeout(function () {
+          self.ws.removeEventListener(channel+'.'+eventType, brokerListener);
+          listeners.splice(i, 1);
+        }), 0;
+        break;
+      }
+    }
+    return this;
 };
 
 Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload) {

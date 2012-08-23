@@ -1,3 +1,4 @@
+require 'coffee-script'
 api     = require './api'
 config  = require './config'
 
