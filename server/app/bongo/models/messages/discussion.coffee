@@ -1,4 +1,10 @@
 class JOpinion extends JPost
+  @mixin Followable
+  @::mixin Followable::
+  @::mixin Taggable::
+  @::mixin Notifying::
+  @mixin Flaggable
+  @::mixin Flaggable::
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -11,6 +17,7 @@ class JOpinion extends JPost
   @getActivityType =-> COpinionActivity
 
   @getAuthorType =-> JAccount
+  @getFlagRole =-> ['sender', 'recipient']
 
   @set
     sharedMethods : JPost.sharedMethods
@@ -55,7 +62,12 @@ class JOpinion extends JPost
 
 class JDiscussion extends JPost
 
-  # broken : tag support
+  @mixin Followable
+  @::mixin Followable::
+  @::mixin Taggable::
+  @::mixin Notifying::
+  @mixin Flaggable
+  @::mixin Flaggable::
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
   {log} = console
@@ -67,7 +79,7 @@ class JDiscussion extends JPost
   @getActivityType =-> CDiscussionActivity
 
   @getAuthorType =-> JAccount
-
+  @getFlagRole =-> ['sender', 'recipient']
   @set
     sharedMethods : JPost.sharedMethods
     schema        : JPost.schema
@@ -104,7 +116,7 @@ class JDiscussion extends JPost
     JPost::modify.call @, client, discussion, callback
 
   reply: secure (client, comment, callback)->
-  #  JPost::reply.call @, client, JOpinion, comment, callback
+
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
