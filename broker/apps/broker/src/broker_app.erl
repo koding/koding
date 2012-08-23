@@ -27,7 +27,7 @@
 -behaviour(cowboy_http_handler). %% To handle the default route
 
 %% Application callbacks
--export([start/0, start/2, stop/1, loop/2]).
+-export([start/0, start/2, stop/1, loop/2, notify_first/3]).
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
@@ -154,7 +154,8 @@ terminate(_Req, _State) ->
 %% Description: Set up RabbitMQ connection and channel, then spawn the 
 %% receiving loop. This process also declares the Exchange.
 %%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From, Channel, Func}, _State) ->
+handle_subscription(Conn, {init, From, _Channel, Func}, _State) ->
+    Channel = Func(),
     {topic, Exchange} = lists:last(Conn:info()),
 
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
@@ -166,18 +167,19 @@ handle_subscription(Conn, {init, From, Channel, Func}, _State) ->
         nomatch     -> Private = false
     end,
 
+    spawn(?MODULE, notify_first, [Conn, Func(), Exchange]),
+
     State = #subscription{ exchange = Exchange, 
                             private = Private,
                             channel = Channel},
-    TempChannel = Func(),
-    case check_existing_exchange(TempChannel, Exchange) of 
-        true ->
-            Consumer = subscribe(Conn, Channel, Exchange, From),
-            {ok, State#subscription{consumer = Consumer}};
-        false ->
-            Conn:send(<<"broker:first_connection">>, Exchange),
-            Consumer = subscribe(Conn, Channel, Exchange, From),
+
+    try subscribe(Conn, Channel, Exchange, From) of
+        Consumer ->
             {ok, State#subscription{consumer = Consumer}}
+    catch
+        error:precondition_failed ->
+            NewChannel = Func(),
+            {error, State#subscription{channel = NewChannel}}
     end;
 
 %%--------------------------------------------------------------------
@@ -286,13 +288,19 @@ broadcast(From, Channel, Exchange, Event, Data, Meta) ->
             amqp_channel:cast(Channel, Publish, Msg)
     end.
 
-check_existing_exchange(Channel, Exchange) ->
+%%--------------------------------------------------------------------
+%% Function: notify_first(Conn, Channel, Exchange) -> void()
+%% Description: Perform a check for existence against an exchange and 
+%% notify the Conn if the exchange does not exist.
+%%--------------------------------------------------------------------
+notify_first(Conn, Channel, Exchange) ->
     Check = #'exchange.declare'{ exchange = Exchange,
                                     passive = true},
     try amqp_channel:call(Channel, Check) of
-        #'exchange.declare_ok'{} -> false
-    catch
-        exit:_Ex1 -> true
+        #'exchange.declare_ok'{} -> exit(normal)
+    catch exit:_Ex1 -> 
+            Conn:send(<<"broker:first_connection">>, Exchange),
+            exit(normal)
     end.
 
 %%--------------------------------------------------------------------
@@ -307,9 +315,15 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
                                     type = <<"topic">>,
                                     durable = true,
                                     auto_delete = true},
-    #'exchange.declare_ok'{} = amqp_channel:call(Channel, Declare), 
-    Conn:send(<<"broker:subscription_succeeded">>, <<>>),
-    spawn(?MODULE, loop, [Conn, Subscriber]).
+                                    
+    try amqp_channel:call(Channel, Declare) of
+        #'exchange.declare_ok'{} -> 
+            Conn:send(<<"broker:subscription_succeeded">>, <<>>),
+            spawn(?MODULE, loop, [Conn, Subscriber])
+    catch
+        exit:Error ->
+            handle_amqp_error(Error)
+    end.
 
 %%--------------------------------------------------------------------
 %% Function: bind_queue(Channel, Exchange, Routing, Consumer) -> pid()
@@ -317,6 +331,7 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
 %% starts the subscription on that queue.
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing, Consumer) ->
+    % Ensure the client has time to consume the message
     Args = [{<<"x-message-ttl">>, long, 1000}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
@@ -378,3 +393,6 @@ get_env(Param, DefaultValue) ->
         {ok, Val} -> Val;
         undefined -> DefaultValue
     end.
+
+handle_amqp_error({{shutdown, {_Reason, 406, _Msg}}, _Who}) ->
+    error(precondition_failed).

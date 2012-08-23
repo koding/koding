@@ -68,9 +68,14 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
             VConn = broker_channel:new(Conn, Exchange),
             Subscription = #subscription{vconn = VConn},
             What = {init, SocketId, Channel, Func},
-            Sub1 = emit(What, Callback, Subscription),
-            Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
-            {ok, State#state{subscriptions=Subs1}};
+            {Status, Sub1} = emit(What, Callback, Subscription),
+            case Status of
+                ok ->
+                    Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
+                    {ok, State#state{subscriptions=Subs1}};
+                error ->
+                    {ok, State}
+            end;
 
         {<<"client-unsubscribe">>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
@@ -81,21 +86,21 @@ sockjs_handle(Conn, Data, State = #state{callback=Callback,
         {<<"client-bind-event">>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
             Body = {bind, Payload, SocketId},
-            Sub1 = emit(Body, Callback, Subscription),
+            {ok, Sub1} = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
         {<<"client-unbind-event">>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
             Body = {unbind, Payload, SocketId},
-            Sub1 = emit(Body, Callback, Subscription),
+            {ok, Sub1} = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
         {<<"client-",_EventName/binary>>, true} ->
             Subscription = orddict:fetch(Exchange, Subscriptions),
             Body = {trigger, Event, Payload, SocketId, Meta},
-            Sub1 = emit(Body, Callback, Subscription),
+            {ok, Sub1} = emit(Body, Callback, Subscription),
             Subs1 = orddict:store(Exchange, Sub1, Subscriptions),
             {ok, State#state{subscriptions=Subs1}};
 
@@ -111,7 +116,7 @@ sockjs_terminate(_Conn, #state{ callback=Callback,
         0 -> Callback(none, ended, Channel);
         _ ->
             List = orddict:to_list(Subscriptions),
-            [Sub | _] = [emit(closed, Callback, Subscription) ||
+            [{_, Sub} | _] = [emit(closed, Callback, Subscription) ||
                 {_Exchange, Subscription} <- List],
             Callback(Sub#subscription.vconn, ended, Channel)
     end,
@@ -125,17 +130,37 @@ sockjs_terminate(_Conn, #state{ callback=Callback,
 
 %%--------------------------------------------------------------------
 %% @doc Run the callback for the connection and receive the new state.
-%% Function: emit(What, Callback, Subscription) -> NewSubscription
+%% Function: emit(What, Callback, Subscription) -> 
+%%                          {ok, NewSubscription} ||
+%%                          {error, NewSubscription}
+%% Types:
+%%  What = {Type, ...}
+%%  Type = atom()
+%%  Callback = fun()
+%%  Subscription = record#subscription
+%%  NewSubscription = record#subscription
 %% Description:  Run the callback for the connection and receive the 
 %% new state.
 %%--------------------------------------------------------------------
 emit(What, Callback, Subscription = #subscription{state = State, 
                                                 vconn = VConn}) ->
     case Callback(VConn, What, State) of
-        {ok, State1} -> Subscription#subscription{state = State1};
-        ok           -> Subscription
+        {Status, State1} -> 
+            {Status, Subscription#subscription{state = State1}};
+        ok           -> {ok, Subscription}
     end.
 
+%%--------------------------------------------------------------------
+%% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
+%% Types:
+%%  Data = binary()
+%%  Event = binary()
+%%  Exchange = binary()
+%%  Payload = binary()
+%%  Meta = binary()
+%% Description:  Decode a binary data from the websocket connection
+%% into a list of data that the handler expects
+%%--------------------------------------------------------------------
 decode(Data) ->
     [{<<"event">>, Event}, 
         {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
@@ -144,6 +169,10 @@ decode(Data) ->
     Meta = bin_key_find(<<"meta">>, Rest),
     [Event, Exchange, Payload, Meta].
 
+%%--------------------------------------------------------------------
+%% Function: bin_key_find(BinKey, List) -> Val || false
+%% Description:  A helper to find a binary key in a binary proplist.
+%%--------------------------------------------------------------------
 bin_key_find(BinKey, List) ->
     case lists:keyfind(BinKey, 1, List) of
         {BinKey, Val} -> Val;
