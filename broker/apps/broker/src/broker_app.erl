@@ -317,9 +317,11 @@ subscribe(Conn, Channel, Exchange, Subscriber) ->
 %% starts the subscription on that queue.
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing, Consumer) ->
+    Args = [{<<"x-message-ttl">>, long, 1000}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true}),
+                                                    durable = true,
+                                                    arguments = Args}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,
