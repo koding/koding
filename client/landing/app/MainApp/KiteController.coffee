@@ -52,11 +52,11 @@ class KiteController extends KDController
 
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
-      mainView.putOverlay
-        isRemovable : no
-        cssClass    : "dummy"
-        animated    : yes
-        parent      : "#finder-panel"
+#      mainView.putOverlay
+#        isRemovable : no
+#        cssClass    : "dummy"
+#        animated    : yes
+#        parent      : "#finder-panel"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
