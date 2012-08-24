@@ -18,6 +18,7 @@ class ReplyOpinionFormView extends KDFormView
       name : "body"
       title: ""
       type: "textarea"
+      placeholder: "What do you want to contribute to the discussion?"
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
