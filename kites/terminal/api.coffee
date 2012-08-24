@@ -40,7 +40,6 @@ module.exports = new Kite 'terminaljs'
 
       nr = 0
       terminal.on "data", (screen)-> 
-
         patch = terminal.getHtml()
         callbacks.data patch, nr++
 
@@ -49,8 +48,10 @@ module.exports = new Kite 'terminaljs'
         type               : "anyterm.js"
         isNew              : yes
         totalSessions      : 1
-        write              : (data) ->        
-          terminal.write d[3] for d in data
+        write              : (data) ->
+          for d in data
+            #callbacks.data 'foo', nr++
+            terminal.write d[3]
 
         resize             : (rows, cols) -> terminal.setScreenSize rows, cols
         close              : ()->

@@ -105,13 +105,15 @@ class Shell12345 extends KDViewController
     options = @generateTerminalOptions()
     options.type = type ? view.clientType
     @account.tellKite 
-      kiteName :"terminaljs"
-      method     :"create"
-      withArgs : options
+      kiteName  :"terminaljs"
+      method    :"create"
+      withArgs  : options
+      autoCull  : no
     ,(error,terminal)=>
       if error
         @setNotification "Failed to start terminal : #{error}"
       else
+        debugger
         @setNotification()
         @terminal = terminal
         @welcomeUser yes
@@ -181,6 +183,7 @@ class Shell12345 extends KDViewController
       # kiteId    : kiteId
       method      : "create"
       withArgs  : options
+      autoCull  : no
     , (error, terminal) =>
       if error
         @setNotification "Failed to start terminal, please close the tab and try again."
