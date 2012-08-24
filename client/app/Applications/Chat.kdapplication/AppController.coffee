@@ -13,6 +13,9 @@ class Chat12345 extends AppController
 
     @channels = {}
     @broadcaster = mq.subscribe "private-KDPublicChat"
+    @broadcaster.emit 'client-presence', JSON.stringify(@username)
+    @broadcaster.on 'client-presence', (username) =>
+      @addOnlineUser username
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
@@ -31,14 +34,12 @@ class Chat12345 extends AppController
       view: channelPaneInstance
 
     channel.view.on "ChatMessageSent", (message) =>
-      console.log "what"
       channel.messageReceived message
       @broadcaster.emit channelName, JSON.stringify(message)
 
     @channels[name] = channel
     @broadcaster.on channelName, (msg) ->
-      console.log "received", msg
-      channel.messageReceived
+      channel.messageReceived msg
 
   addOnlineUser: (user) ->
     view = @getOptions().view
