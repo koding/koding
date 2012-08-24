@@ -2,10 +2,12 @@ class KDListView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.type or= "default"
-    options.cssClass = if options.cssClass? then "kdlistview kdlistview-#{options.type} #{options.cssClass}" else "kdlistview kdlistview-#{options.type}"
+    options.type       or= "default"
+    options.lastToFirst ?= no
+    options.cssClass     = if options.cssClass? then "kdlistview kdlistview-#{options.type} #{options.cssClass}" else "kdlistview kdlistview-#{options.type}"
 
     @items = [] unless @items
+
     super options,data
 
   empty:->

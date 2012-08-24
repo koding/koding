@@ -7,11 +7,13 @@ class KDListViewController extends KDViewController
     options.keyNav            ?= no
     options.multipleSelection ?= no
     options.selection         ?= yes
+    options.lastToFirst       ?= no
     @itemsOrdered             = [] unless @itemsOrdered
     @itemsIndexed             = {}
     @selectedItems            = []
     @lazyLoader               = null
     viewOptions               = options.viewOptions or {}
+    viewOptions.lastToFirst   = options.lastToFirst
 
     if options.subItemClass
       viewOptions.subItemClass = options.subItemClass
@@ -102,7 +104,7 @@ class KDListViewController extends KDViewController
     options = @getOptions()
 
     if index?
-      actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
+      actualIndex = if @getOptions().lastToFirst then @getListView().items.length - index - 1 else index
       @itemsOrdered.splice(actualIndex, 0, view)
     else
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
@@ -129,7 +131,7 @@ class KDListViewController extends KDViewController
 
     @emit "UnregisteringItem", itemInfo
     {index, view} = itemInfo
-    actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
+    actualIndex = if @getOptions().lastToFirst then @getListView().items.length - index - 1 else index
     @itemsOrdered.splice actualIndex, 1
     if view.getData()?
       delete @itemsIndexed[view.getItemDataId()]
