@@ -6,8 +6,6 @@ class ReplyListViewController extends KDListViewController
 
   instantiateListItems:(items, keepDeletedComments = no)->
 
-    log "replies ", items, @
-
     newItems = []
 
     items.sort (a,b) =>
@@ -86,6 +84,9 @@ class ReplyListViewController extends KDListViewController
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
     message.restComments skipCount, (err, comments)=>
+
+      log "fetched all comments with err ", err, comments
+
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllCommentsWereAdded"
       callback err, comments
@@ -98,6 +99,8 @@ class ReplyListViewController extends KDListViewController
 
 
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
+
+      log "fetched relative comments with err", err, comments
 
       if not @_removedBefore
         @removeAllItems()

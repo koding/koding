@@ -29,7 +29,9 @@ class ContentDisplayDiscussion extends KDView
       callback  : (data)=>
         msg = new KDNotificationView
           title : "You continued a discussion."
-        bongo.api.JDiscussion::reply data.body, (err, opinion) =>
+
+        # do not use JDiscussion::reply here
+        @getData().reply data.body, (err, opinion) =>
           callback? err, opinion
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
