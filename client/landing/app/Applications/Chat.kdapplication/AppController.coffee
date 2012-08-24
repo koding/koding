@@ -1,3 +1,8 @@
+###
+The main controller to keep track of channels the current client
+are in, handling the communication between the ChatView and each
+Channel instance.
+###
 class Chat12345 extends AppController
   {mq} = bongo
 
