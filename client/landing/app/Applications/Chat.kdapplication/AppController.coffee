@@ -15,7 +15,8 @@ class Chat12345 extends AppController
     @broadcaster = mq.subscribe "private-KDPublicChat"
     @broadcaster.emit 'client-presence', JSON.stringify(@username)
     @broadcaster.on 'client-presence', (username) =>
-      @addOnlineUser username
+      console.log "#{username} joined"
+      @addOnlineUser name: username, status: "online"
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
