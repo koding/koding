@@ -33,9 +33,15 @@ class Chat12345 extends AppController
       name: name
       view: channelPaneInstance
 
-    channel.view.on "ChatMessageSent", (message) =>
-      channel.messageReceived message
-      @broadcaster.emit channelName, JSON.stringify(message)
+    channel.view.on "ChatMessageSent", (messageBody) =>
+      chatItem = 
+        author: @username
+        body: messageBody
+        meta: {createdAt: new Date()}
+
+      @broadcaster.emit channelName, JSON.stringify(chatItem)
+      chatItem.author = "me"
+      channel.messageReceived chatItem
 
     @channels[name] = channel
     @broadcaster.on channelName, (msg) ->
@@ -184,10 +190,7 @@ class ChatInputForm extends KDFormView
       cssClass: "fl"
       style: "clean-gray inside-button"
       callback: =>
-        chatMsg = 
-          author: "me"
-          body: @input.getValue()
-          meta: {createdAt: new Date()}
+        chatMsg = @input.getValue()
 
         @input.setValue ""
         @input.blur()
