@@ -88,10 +88,12 @@ class ContentDisplayDiscussion extends KDView
         {{> @actionLinks}}
       </footer>
       {{> @replyBox}}
+    </div>
+    <div class="content-display-main-section opinion-form-footer">
       <div class="opinion-form-headline">
         <p>post your reply here</p>
       </div>
-      {{> @opinionForm}}
-    </div>
+    {{> @opinionForm}}
     {{> @heartBox}}
+    </div>
     """
