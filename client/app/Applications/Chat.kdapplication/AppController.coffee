@@ -18,10 +18,27 @@ class Chat12345 extends AppController
 
     @channels = {}
     @broadcaster = mq.subscribe "private-KDPublicChat"
-    @broadcaster.emit 'client-presence', JSON.stringify(@username)
-    @broadcaster.on 'client-presence', (username) =>
-      console.log "#{username} joined"
+
+
+    ###
+    When this client connects to the chat, it emits its presence.
+    Assuming there is B is currently in the chat, B will receive
+    this client's presence, and sends back B's presence.
+    ###
+
+    @presence = mq.subscribe "KDPresence"
+    ###
+    On first bound, an initial summary is sent one by one.
+    ###
+    @presence.on "", (headers) ->
+      # TODO: extract the username from key header
       @addOnlineUser name: username, status: "online"
+
+    ###
+    Binding to a key same as the username to let the presence exchange
+    know its presence. It will not receive any message.
+    ###
+    @presence.on @username, ->
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'

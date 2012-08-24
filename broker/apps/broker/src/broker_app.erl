@@ -374,10 +374,22 @@ loop(Conn, Subscriber) ->
     receive
         #'basic.consume_ok'{} ->
             loop(Conn, Subscriber);
+
         % Own message is ignored
         {#'basic.deliver'{}, 
         #amqp_msg{props = #'P_basic'{correlation_id = Subscriber}}} ->
             loop(Conn, Subscriber);
+
+        % An presence message, send headers instead of body.
+        {#'basic.deliver'{  routing_key = Event, 
+                            exchange = <<"KDPresence">>},
+        #amqp_msg{props = #'P_basic'{headers = Headers}}} ->
+            [{<<"action">>, longstr, Action}, % "bind" || "unbind"
+             {<<"exchange">>, longstr, XName}, % same as this excchange
+             {<<"queue">>, longstr, QName}, % name of queue
+             {<<"key">>, longstr, BindingKey}] = Headers,
+            loop(Conn, Subscriber);
+
         % Only send message from the bound event
         {#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
             #amqp_msg{payload = Body}} ->

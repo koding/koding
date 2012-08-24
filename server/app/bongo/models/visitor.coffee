@@ -78,7 +78,9 @@ class JVisitor extends bongo.Model
                     callback? err
                   else
                     connection.delegate = account
-                    visitor.emit ['change','login'], account
+                    setTimeout ->
+                      visitor.emit ['change','login'], account
+                    , 5000
                     callback? null
           else
             {guestId} = session
