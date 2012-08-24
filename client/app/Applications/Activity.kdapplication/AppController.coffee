@@ -213,7 +213,7 @@ class Activity12345 extends AppController
       skip        : skip  or= @activityListController.getItemCount()
       sort        :
         createdAt : -1
-
+    log "fetching teasers"
     @fetchTeasers selector, options, (activities)=>
       if activities
         for activity in activities
