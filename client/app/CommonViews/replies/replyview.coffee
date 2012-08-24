@@ -13,8 +13,6 @@ class ReplyView extends KDView
     @resetDecoration()
 
   createSubViews:(data)->
-    log "ReplyView is creating subViews"
-    log "replies are to be added for ", data
     @commentList = new KDListView
       type          : "comments"
       subItemClass  : ReplyListItemView
@@ -24,14 +22,9 @@ class ReplyView extends KDView
     @commentController        = new ReplyListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
     @addSubView @commentList
-    @addSubView addOpinionForm = new ReplyOpinionFormView
-
 
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
-
-
-    log "data is ", data, @, @parent
 
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
@@ -39,10 +32,7 @@ class ReplyView extends KDView
 
     @commentList.emit "BackgroundActivityFinished"
 
-    log "ReplyView is done creating subViews"
-
   attachListeners:->
-
     @listenTo
       KDEventTypes : "DecorateActiveCommentView"
       listenedToInstance : @commentList

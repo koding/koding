@@ -24,10 +24,31 @@ class ContentDisplayDiscussion extends KDView
 
     @replyBox = new ReplyView null, data
 
+    @opinionForm = new ReplyOpinionFormView
+      cssClass : "opinion-container"
+      callback  : (data)=>
+        msg = new KDNotificationView
+          title : "You continued a discussion."
+        bongo.api.JDiscussion::reply data.body, (err, opinion) =>
+          callback? err, opinion
+          if err
+            new KDNotificationView type : "mini", title : "There was an error, try again later!"
+          else
+            new KDNotificationView title : "Opinion added to database"
+            @propagateEvent (KDEventType:"OwnActivityHasArrived"), opinion
+
+
+
     @actionLinks = new DiscussionActivityActionsView
       delegate : @replyBox.commentList
       cssClass : "comment-header"
     , data
+
+    @heartBox = new HelpBox
+      subtitle : "About Status Updates"
+      tooltip  :
+        title  : "This a public wall, here you can share anything with the Koding community."
+
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
@@ -50,7 +71,6 @@ class ContentDisplayDiscussion extends KDView
         commentController.instantiateListItems comments
 
   pistachio:->
-
     """
     <span>
       {{> @avatar}}
@@ -68,5 +88,10 @@ class ContentDisplayDiscussion extends KDView
         {{> @actionLinks}}
       </footer>
       {{> @replyBox}}
+      <div class="opinion-form-headline">
+        <p>post your reply here</p>
+      </div>
+      {{> @opinionForm}}
     </div>
+    {{> @heartBox}}
     """

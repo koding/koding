@@ -397,7 +397,6 @@ class JPost extends jraphical.Message
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-    log @
 
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10

@@ -130,6 +130,8 @@ class JDiscussion extends JPost
 
   reply: secure (client, comment, callback)->
 
+    log "reply called with THIS:", arguments
+
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
@@ -231,7 +233,7 @@ class JDiscussion extends JPost
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-    log "discussion teaser was fetched", @
+    log "discussion teaser was fetched for ", @data.title
 
   fetchRelativeComments:({limit, before, after}, callback)->
     log "discussion fetching relative comments"
