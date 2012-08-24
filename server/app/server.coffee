@@ -124,6 +124,7 @@ class Server
         )
         privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
+        bongo.mq.emit('race-condition','race-condition','koding')
         bongo.mq.emit(channel, 'join', privName)
         return res.send privName
 
