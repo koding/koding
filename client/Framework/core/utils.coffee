@@ -84,6 +84,30 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
+  applyMarkdown: (text)->
+
+    # problems with markdown so far:
+    # - clashes with some of the htmlentities in the sanitized properties
+    # - links are broken due to textexpansions (images too i guess)
+
+
+    return null unless text
+    marked.setOptions
+      gfm: true
+      pedantic: false
+      sanitize: true
+      highlight:->
+        null
+    log "applying markdown to ", text
+    text = text.replace /(&#10;)/g,"\n"
+    text = text.replace /&quot;/g,'"'
+    log "it's now", text
+    marked text
+
+  applyLineBreaks: (text)->
+    return null unless text
+    text.replace "\n", "<br />"
+
   applyTextExpansions: (text)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
