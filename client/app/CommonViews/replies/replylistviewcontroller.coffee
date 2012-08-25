@@ -36,10 +36,10 @@ class ReplyListViewController extends KDListViewController
     listView = @getListView()
 
     listView.on 'ItemWasAdded', (view, index)=>
-      view.on 'CommentIsDeleted', ->
-        listView.emit "CommentIsDeleted"
+      view.on 'OpinionIsDeleted', ->
+        listView.emit "OpinionIsDeleted"
 
-    listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
+    listView.on "AllOpinionsLinkWasClicked", (commentHeader)=>
 
       return if @_hasBackgrounActivity
 
@@ -55,7 +55,7 @@ class ReplyListViewController extends KDListViewController
 
 
     listView.registerListener
-      KDEventTypes  : "CommentSubmitted"
+      KDEventTypes  : "OpinionSubmitted"
       listener      : @
       callback      : (pubInst, reply)->
         model = listView.getData()
@@ -63,16 +63,13 @@ class ReplyListViewController extends KDListViewController
         model.reply reply, (err, reply)->
           # listView.emit "AllCommentsLinkWasClicked"
           listView.addItem reply
-          listView.emit "OwnCommentHasArrived"
+          listView.emit "OwnOpinionHasArrived"
           listView.emit "BackgroundActivityFinished"
-          log "here"
 
   fetchCommentsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
     query = {from,to}
     message = @getListView().getData()
-
-    log "reply fcbr", message
 
     message.commentsByRange query,(err,comments)=>
       @getListView().emit "BackgroundActivityFinished"
@@ -80,36 +77,25 @@ class ReplyListViewController extends KDListViewController
 
   fetchAllComments:(skipCount=3, callback = noop)=>
 
-    log "reply fac"
-
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
     message.restComments skipCount, (err, comments)=>
 
-      log "fetched all comments with err ", err, comments
-
       listView.emit "BackgroundActivityFinished"
-      listView.emit "AllCommentsWereAdded"
+      listView.emit "AllOpinionsWereAdded"
       callback err, comments
 
   fetchRelativeComments:(_limit = 10, _after)=>
     listView = @getListView()
     message = @getListView().getData()
 
-    log "reply frc", message
-
-
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
-
-      log "fetched relative comments with err", err, comments
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
-      log "before reply inst"
       @instantiateListItems comments[_limit-10...], yes
-      log "after reply inst"
 
       if comments.length is _limit
         startTime = comments[comments.length-1].meta.createdAt
@@ -117,7 +103,7 @@ class ReplyListViewController extends KDListViewController
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
-        listView.emit "AllCommentsWereAdded"
+        listView.emit "AllOpinionsWereAdded"
         @_hasBackgrounActivity = no
 
   replaceAllComments:(comments)->

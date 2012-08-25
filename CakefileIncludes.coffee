@@ -505,6 +505,7 @@ Includes =
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
         ReplyView                   : "./client/app/CommonViews/replies/replyview.coffee"
+        ReplyViewHeader             : "./client/app/CommonViews/replies/replyviewheader.coffee"
         ReplyListViewController     : "./client/app/CommonViews/replies/replylistviewcontroller.coffee"
         ReplyListItemView           : "./client/app/CommonViews/replies/replylistitemview.coffee"
         ReplyOpinionFormView        : "./client/app/CommonViews/replies/replyopinionformview.coffee"
