@@ -1,4 +1,4 @@
-# 
+#
 # App Globals
 #
 
@@ -8,12 +8,13 @@ tc         = fc.treeController
 {nickname} = KD.whoami().profile
 appStorage = new AppStorage "wp-installer", "1.0"
 
-# 
+#
 # App Functions
-# 
+#
 
 parseOutput = (res, err = no)->
   res = "<br><cite style='color:red'>[ERROR] #{res}</cite><br>" if err
+  {output} = split
   output.setPartial res
   output.utils.wait 100, ->
     output.scrollTo
@@ -23,7 +24,7 @@ parseOutput = (res, err = no)->
 installWordpress = (formData, callback)->
   {path}     = formData
   timestamp  = Date.now()
-  
+
   commands   = [
     "mkdir -vp '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}'"
     "curl --location 'http://sinan.koding.com/planet.zip' >'/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}.zip'"
@@ -81,9 +82,9 @@ installWordpress = (formData, callback)->
                               parseOutput res
                               parseOutput "<br>temp files cleared!"
 
-# 
+#
 # App Classes
-# 
+#
 
 class Pane extends KDTabPaneView
 
@@ -94,10 +95,14 @@ class Pane extends KDTabPaneView
     @listenWindowResize()
 
   viewAppended:->
-    
+
     @setTemplate @pistachio()
     @template.update()
     @_windowDidResize()
+    @listenTo
+      KDEventTypes        : "PanelDidResize"
+      listenedToInstance  : split
+      callback            : => @_windowDidResize()
 
   _windowDidResize:->
 
@@ -113,18 +118,20 @@ class DashboardPane extends Pane
     @listController = new KDListViewController
       lastToFirst     : yes
       viewOptions     :
+        type          : "wp-blog"
         subItemClass  : InstalledAppListItem
-    
+
     @listWrapper = @listController.getView()
-    
+
     @notice = new KDCustomHTMLView
       tagName : "p"
-      partial : "Why you no create wordpress!!"
+      cssClass: "why-u-no"
+      partial : "Why u no create wordpress!!!"
 
     @notice.hide()
 
     @listController.getListView().on "DeleteLinkClicked", (listItemView)=>
-      
+
       @removeItem listItemView
       {path} = listItemView.getData()
       command = "rm -r '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}'"
@@ -140,6 +147,9 @@ class DashboardPane extends Pane
           parseOutput "<br>#############<br><br>"
           tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website"]
 
+        __utils.wait 1500, ->
+          split.resizePanel 0, 1
+
   removeItem:(listItemView)->
     @listController.removeItem listItemView
     appStorage.fetchStorage (storage)=>
@@ -147,22 +157,23 @@ class DashboardPane extends Pane
       @notice.show() if blogs.length is 0
 
 
-  putNewItem:({path, timestamp})->
+  putNewItem:({path, timestamp}, resizeSplit = yes)->
 
     @getDelegate().showPane @
     @listController.addItem {path, timestamp}
     @notice.hide()
-
+    if resizeSplit
+      __utils.wait 1500, -> split.resizePanel 0, 1
 
   viewAppended:->
-    
+
     super
-    
+
     appStorage.fetchStorage (storage)=>
       blogs = appStorage.getValue("blogs") or []
       if blogs.length > 0
         blogs.sort (a, b) -> if a.timestamp < b.timestamp then -1 else 1
-        blogs.forEach @putNewItem.bind(@)
+        blogs.forEach (item)=> @putNewItem item, no
       else
         @notice.show()
 
@@ -174,14 +185,17 @@ class DashboardPane extends Pane
 
 class InstalledAppListItem extends KDListItemView
 
-  constructor:->
+  constructor:(options, data)->
 
-    super
+    options.type = "wp-blog"
+
+    super options, data
 
     @delete = new KDCustomHTMLView
       tagName : "a"
-      partial : "Delete"
+      cssClass: "delete-link"
       click   : (pubInst, event)=>
+        split.resizePanel "50%", 1
         blogs = appStorage.getValue "blogs"
         blogs.splice blogs.indexOf(@getData()), 1
         appStorage.setValue "blogs", blogs, =>
@@ -191,14 +205,15 @@ class InstalledAppListItem extends KDListItemView
 
     @setTemplate @pistachio()
     @template.update()
+    @utils.wait => @setClass "in"
 
   pistachio:->
     {path, timestamp} = @getData()
     url = "http://#{nickname}.koding.com/#{path}"
     """
-    <a href='#{url}' target='_blank'>#{url}</a>
-    <time>#{$.timeago new Date(timestamp)}</time>
     {{> @delete}}
+    <a href='#{url}' target='_blank'>#{url}</a>
+    <time datetime='#{new Date(timestamp)}'>#{$.timeago new Date(timestamp)}</time>
     """
 
 class InstallPane extends Pane
@@ -211,18 +226,40 @@ class InstallPane extends Pane
       callback              : @submit.bind(@)
       buttons               :
         "Install Wordpress" :
-          style             : "modal-clean-gray"
+          style             : "cupid-green"
           type              : "submit"
           loader            :
             color           : "#444444"
             diameter        : 12
       fields                :
+        name                :
+          label             : "Name of your blog:"
+          name              : "path"
+          placeholder       : "type a name for your blog..."
+          validate          :
+            rules           :
+              required      : "yes"
+            messages        :
+              required      : "a path for your wordpress is required!"
         Path                :
-          label             : "Path"
-          name              : 'path'
-  
-  submit:(formData)=> 
-    installWordpress formData, (path, timestamp)=> 
+          label             : "Path </#{nickname}/Sites/#{nickname}.koding.com/website/[path]>:"
+          name              : "path"
+          placeholder       : "type a path for your blog... (just the last 'path' part)"
+          validate          :
+            rules           :
+              required      : "yes"
+            messages        :
+              required      : "a path for your wordpress is required!"
+        Database            :
+          label             : "Create a new database:"
+          name              : "db"
+          title             : ""
+          labels            : ["YES","NO"]
+          itemClass         : KDOnOffSwitch
+
+  submit:(formData)=>
+    split.resizePanel "50%", 1
+    installWordpress formData, (path, timestamp)=>
       @emit "WordPressInstalled", path, timestamp
       @form.buttons["Install Wordpress"].hideLoader()
 
@@ -231,37 +268,79 @@ class InstallPane extends Pane
     {{> @form}}
     """
 
-# 
+class WpApp extends JView
+
+  constructor:->
+
+    super
+
+    @dashboardTabs = new KDTabView
+      hideHandleCloseIcons : yes
+      cssClass             : "wp-installer-tabs"
+
+  viewAppended:->
+
+    super
+
+    @dashboardTabs.addPane dashboard = new DashboardPane
+      cssClass : "dashboard"
+      name     : "Your Wordpress instances"
+
+    @dashboardTabs.addPane installPane = new InstallPane
+      name     : "Install a new Wordpress"
+
+    @dashboardTabs.showPane dashboard
+
+    installPane.on "WordPressInstalled", (path, timestamp)->
+      dashboard.putNewItem {path, timestamp}
+      __utils.wait 200, ->
+        # timed out because we give some time to server to cleanup the temp files until it filetree refreshes
+        tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website"], ->
+          __utils.wait 200, ->
+            tc.selectNode tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}"]
+
+  pistachio:->
+
+    """
+    <header>
+      <figure></figure>
+      <article>
+        <h3>Wordpress Installer</h3>
+        <p>This application installs wordpress instances and gives you a dashboard of what is already installed</p>
+      </article>
+    </header>
+    {{> @dashboardTabs}}
+    """
+
+class WpSplit extends KDSplitView
+
+  constructor:(options, data)->
+
+    @output = new KDScrollView
+      tagName  : "pre"
+      cssClass : "terminal-screen"
+
+    @wpApp = new WpApp
+
+    options.views = [ @wpApp, @output ]
+
+    super options, data
+
+  viewAppended:->
+
+    super
+
+    @panels[1].setClass "terminal-tab"
+
+#
 # Bootstrap
 #
 
-dashboardTabs = new KDTabView
-  hideHandleCloseIcons : yes
+appView.addSubView split = new WpSplit
+  type      : "horizontal"
+  resizable : no
+  sizes     : ["100%",null]
 
-output = new KDScrollView
-  tagName  : "pre"
-  cssClass : "terminal-screen"
-
-appView.addSubView split = new KDSplitView
-  type  : "horizontal"
-  views : [dashboardTabs, output]
-
-split.panels[1].setClass "terminal-tab"
-
-dashboardTabs.addPane dashboard = new DashboardPane
-  cssClass : "dashboard"
-  name     : "Your Wordpress instances"
-
-dashboardTabs.addPane installPane = new InstallPane
-  name     : "Install a new Wordpress"
-
-dashboardTabs.showPane dashboard
-
-installPane.on "WordPressInstalled", (path, timestamp)->
-  dashboard.putNewItem {path, timestamp}
-  @utils.wait 200, ->
-    # timed out because we give some time to server to cleanup the temp files until it filetree refreshes
-    tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website"]
 
 
 

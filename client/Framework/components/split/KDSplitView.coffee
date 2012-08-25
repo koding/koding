@@ -20,19 +20,19 @@ class KDSplitView extends KDView
 
   viewAppended:->
     @sizes = @_sanitizeSizes()
-    
+
     @_putClassNames()
     @_createPanels()
     @_calculatePanelBounds()
     @_putPanels()
     @_setPanelPositions()
     @_putViews()
-    
+
     if @options.resizable and @panels.length
       @_createResizers()
       @_putResizers()
       @_setResizerPositions()
-      
+
     @listenWindowResize()
 
   _setInstanceVariables:->
@@ -42,22 +42,22 @@ class KDSplitView extends KDView
 
   _putClassNames:->
     @setClass "kdsplitview kdsplitview-#{@options.type} #{@options.cssClass}"
-  
-  # CREATE PANELS  
+
+  # CREATE PANELS
   _createPanels:->
     panelCount = @options.sizes.length
     @panels = for i in [0...panelCount]
       @_createPanel i
-  
+
   _createPanel:(index)->
-    panel = new KDSplitViewPanel 
+    panel = new KDSplitViewPanel
       cssClass : "kdsplitview-panel panel-#{index}"
       index    : index
       type     : @options.type
       size     : @_sanitizeSize @sizes[index]
       minimum  : @_sanitizeSize @options.minimums[index] if @options.minimums
       maximum  : @_sanitizeSize @options.maximums[index] if @options.maximums
-    
+
 
   _calculatePanelBounds:()->
     @panelsBounds = for size,i in @sizes
@@ -67,7 +67,7 @@ class KDSplitView extends KDView
         offset = 0
         for prevSize in [0...i]
           offset += @sizes[prevSize]
-        offset          
+        offset
 
   _putPanels:()->
     for panel in @panels
@@ -84,21 +84,21 @@ class KDSplitView extends KDView
   _createResizers:->
     @resizers = for i in [1...@sizes.length]
       @_createResizer i
-      
+
   _createResizer:(index)->
-    resizer = new KDSplitResizer 
+    resizer = new KDSplitResizer
       cssClass : "kdsplitview-resizer #{@options.type}"
       type     : @options.type
       panel0   : @panels[index-1]
       panel1   : @panels[index]
-    
+
   _putResizers:->
     @addSubView resizer for resizer in @resizers
-      
+
   _setResizerPositions:->
     resizer._setOffset @panelsBounds[i+1] for resizer,i in @resizers
-  
-  
+
+
   # PUT VIEWS
   _putViews:->
     @options.views ?= []
@@ -117,27 +117,27 @@ class KDSplitView extends KDView
         # log size, "null"
         nullCount++
         null
-      else 
+      else
         panelSize = @_sanitizeSize size
         @_getLegitPanelSize size,i
         # check maxs and mins
         totalOccupied += panelSize
         panelSize
-    
+
     for size in newSizes
       if size is null
         nullSize = (splitSize - totalOccupied) / nullCount
         Math.round(nullSize)
       else
         Math.round(size)
-  
+
   _sanitizeSize:(size)->
     if "number" is typeof size or /px$/.test(size)
       parseInt size,10
     else if /%$/.test size
       splitSize = @_getSize()
       splitSize / 100 * parseInt size,10
-  
+
   _setMinsAndMaxs:->
     @options.minimums ?= []
     @options.maximums ?= []
@@ -145,7 +145,7 @@ class KDSplitView extends KDView
     for i in [0...panelAmount]
       @options.minimums[i] = if @options.minimums[i] then @_sanitizeSize @options.minimums[i] else -1
       @options.maximums[i] = if @options.maximums[i] then @_sanitizeSize @options.maximums[i] else 99999
-        
+
   _getSize:()->
     if @options.type.toLowerCase() is "vertical" then @getWidth() else @getHeight()
 
@@ -159,9 +159,9 @@ class KDSplitView extends KDView
       if type is "vertical" then @parent.getWidth() else @parent.getHeight()
     else
       if type is "vertical" then $(window).width() else $(window).height()
-    
+
   _getLegitPanelSize:(size,index)->
-    size = 
+    size =
       if @options.minimums[index] > size
         @options.minimums[index]
       else if @options.maximums[index] < size
@@ -171,18 +171,18 @@ class KDSplitView extends KDView
 
   _resetSizes:->
     # THIS RESIZES ALL PANELS BY THEIR CURRENT PERCENTAGES <- BAD
-    
+
     # for i in [0...@sizes.length]
     #   splitSize = @_getSize()
     #   panelSize = @panels[i].size = @panels[i]._getSize()
-    #   
+    #
     #   newSizeInPercentage = Math.round panelSize * 100 / splitSize
-    # 
+    #
     #   if newSizeInPercentage isnt Infinity and isNaN(newSizeInPercentage) isnt true
     #     @options.sizes[i] = "#{newSizeInPercentage}%"
     #   else
     #     @options.sizes[i] = null
-    #   
+    #
     # total = 0
     # total += parseInt(size,10) for size in @options.sizes
     # lastPanelSize = parseInt(@options.sizes[@options.sizes.length-1])
@@ -192,23 +192,23 @@ class KDSplitView extends KDView
     # else
     #   lastPanelSize -= total - 100
     #   @options.sizes[@options.sizes.length-1] = "#{lastPanelSize}%"
-    
-    
+
+
     # ONLY RESIZE PANELS WHICH ARENT GIVEN ANY SIZE INFO WHEN INSTANTIATED
     panelsToBeResized = []
     for size,index in @options.sizes
       panelsToBeResized.push index if size is null
-    
+
     occupiedSize = 0
     for size,index in @sizes
       if panelsToBeResized.indexOf index
         @options.sizes[index] = size
         occupiedSize += size
-        
+
 
   # EVENT HANDLING
   _windowDidResize:(event)=>
-    
+
     # this is a hack and should be removed
     # because we have an animation in contentpanel
     # i had to do this otherwise a big refactoring is necessary
@@ -227,7 +227,7 @@ class KDSplitView extends KDView
   mouseUp:(event)->
     @$().unbind "mousemove.resizeHandle"
     @_resizeDidStop event
-  
+
   _panelReachedMinimum:(panelIndex)->
     @panels[panelIndex].handleEvent type : "PanelReachedMinimum"
     @handleEvent type : "PanelReachedMinimum", panel : @panels[panelIndex]
@@ -242,7 +242,7 @@ class KDSplitView extends KDView
 
   _resizeDidStop:(event)=>
     @handleEvent type : "ResizeDidStop", orgEvent : event
-    setTimeout -> 
+    setTimeout ->
       $('body').removeClass "resize-in-action"
     ,300
 
@@ -253,42 +253,42 @@ class KDSplitView extends KDView
     value     = @_sanitizeSize value
     panel0    = @panels[panelIndex]
     isReverse = no
-    
+
     if panel0.size is value
       @_resizeDidStop()
       callback()
       return
-    
+
     # get the secondary panel and resizer which will be resized/positioned accordingly
     panel1 = unless @panels.length - 1 is panelIndex
       p1index = panelIndex + 1
       resizer = @resizers[panelIndex] if @options.resizable
-      @panels[p1index] 
-    else 
+      @panels[p1index]
+    else
       isReverse = yes
       p1index   = panelIndex-1
       resizer   = @resizers[p1index] if @options.resizable
       @panels[p1index]
-    
+
     # stop if it's not doable
 
     # totalActionArea = panel0._getSize() + panel1._getSize() # trying to improve performance here
     totalActionArea = panel0.size + panel1.size
 
     return no if value > totalActionArea
-    
+
     p0size    = @_getLegitPanelSize(value,panelIndex)
     surplus   = panel0.size - p0size
     p1newSize = panel1.size + surplus
     p1size    = @_getLegitPanelSize(p1newSize,p1index)
-    
+
     raceCounter = 0
     race = ()=>
       raceCounter++
-      if raceCounter is 2 
+      if raceCounter is 2
         @_resizeDidStop()
         callback()
-    
+
     unless isReverse
       p1offset = (panel1._getOffset() - surplus)
       if @options.animated
@@ -302,7 +302,7 @@ class KDSplitView extends KDView
         panel1._setOffset p1offset
         race()
         resizer._setOffset p1offset if resizer
-        
+
     else
       p0offset = (panel0._getOffset() + surplus)
       if @options.animated
@@ -323,7 +323,7 @@ class KDSplitView extends KDView
     panel._lastSize = panel._getSize()
     @resizePanel 0,panelIndex,()=>
       callback.call @,(panel : panel, index : panelIndex )
-    
+
 
   showPanel:(panelIndex,callback = noop)=>
     panel = @panels[panelIndex]
@@ -331,7 +331,7 @@ class KDSplitView extends KDView
     panel._lastSize = null
     @resizePanel newSize,panelIndex,()->
       callback.call @,(panel : panel, index : panelIndex )
-  
+
   splitPanel:(index,options,callback = noop)->
 
     newPanelOptions = $.extend
@@ -344,13 +344,13 @@ class KDSplitView extends KDView
     isLastPanel = if @resizers[index] then no else yes
 
     # DO PANEL
-      
+
     # CREATE NEW PANEL
     panelToBeSplitted = @panels[index]
     @panels.splice index + 1, 0, newPanel = @_createPanel(index)
     @sizes.splice index + 1, 0, @sizes[index]/2
     @sizes[index] = @sizes[index]/2
-    
+
     # MINS AND MAXS ARE NOT FUNCTIONAL YET ON NEWLY CREATED PANELS
     # BUT TO AVOID CONFLICTS WE UPDATE THEM HERE
     o.minimums.splice index + 1, 0, newPanelOptions.minimum
@@ -373,7 +373,7 @@ class KDSplitView extends KDView
     # COLORIZE PANELS
     panelToBeSplitted.$().css backgroundColor : __utils.getRandomRGB()
     newPanel.$().css backgroundColor : __utils.getRandomRGB()
-    
+
     # RE-ENUMERATE PANELS
     for panel,i in @panels[index+1...@panels.length]
       panel.index = newIndex = index+1+i
@@ -403,10 +403,10 @@ class KDSplitView extends KDView
       newResizer._setOffset @panelsBounds[index+1]
       # APPEND NEW RESIZER
       @addSubView newResizer
-    
+
     callback()
     newPanel
-  
+
   removePanel:(index,callback = noop)->
     return warn "this is the only panel left" if @panels.length is 1
 
@@ -443,7 +443,7 @@ class KDSplitView extends KDView
     @options.minimums.splice index,1
     @options.maximums.splice index,1
     @options.views.splice index,1 if @options.views[index]?
-  
+
   setView:(view,index)->
     if index > @panels.length or not view
       warn "Either 'view' or 'index' is missing at KDSplitView::setView!"
@@ -456,14 +456,14 @@ class KDSplitResizer extends KDView
     super
     {@panel0,@panel1} = @options
     @isVertical = @options.type.toLowerCase() is "vertical"
-    
+
   _setOffset:(offset)->
     offset = 0 if offset < 0
     if @isVertical then @$().css left : offset-5 else @$().css top : offset-5
 
   _getOffset:(offset)->
     if @isVertical then @getRelativeX() else @getRelativeY()
-  
+
   _animateTo:(offset)->
     offset -= @getWidth() / 2
     d = @parent.options.duration
@@ -485,7 +485,7 @@ class KDSplitResizer extends KDView
     @parent.$().bind "mousemove.resizeHandle",(dynamicEvent)=>
       if @isVertical
         # calculate moved mouse distance
-        deltaX = dynamicEvent.clientX - event.clientX 
+        deltaX = dynamicEvent.clientX - event.clientX
         # check if views are fine with that
         p0WouldResize = @panel0._wouldResize deltaX + p0Size
         p1WouldResize = @panel1._wouldResize -deltaX + p1Size
@@ -498,7 +498,7 @@ class KDSplitResizer extends KDView
         @_setOffset rOffset + deltaX + 5 if p0DidResize and p1DidResize
       else
         # calculate moved mouse distance
-        deltaY = dynamicEvent.clientY - event.clientY 
+        deltaY = dynamicEvent.clientY - event.clientY
         # check if views are fine with that
         p0WouldResize = @panel0._wouldResize deltaY + p0Size
         p1WouldResize = @panel1._wouldResize -deltaY + p1Size
@@ -531,7 +531,7 @@ class KDSplitViewPanel extends KDScrollView
       @handleEvent type : "PanelDidResize", newSize : size
     else
       no
-      
+
   _wouldResize:(size)->
     @minimum ?= -1
     @maximum ?= 99999
@@ -553,7 +553,7 @@ class KDSplitViewPanel extends KDScrollView
 
   _getOffset:->
     if @isVertical then @getRelativeX() else @getRelativeY()
-  
+
   _animateTo:(size,offset,callback)=>
     if "undefined" is typeof callback and "function" is typeof offset then callback = offset
     callback or= noop
@@ -568,17 +568,17 @@ class KDSplitViewPanel extends KDScrollView
       panel.handleEvent         type : "PanelDidResize", newSize : newSize
       callback.call panel
       # ,100
-      
+
 
     properties = {}
     size = 0 if size < 0
-    if panel.isVertical 
+    if panel.isVertical
       properties.width  = size
       properties.left   = offset if offset?
-    else 
+    else
       properties.height = size
       properties.top    = offset if offset?
-    
+
     options =
       duration : d
       complete : cb
@@ -587,6 +587,6 @@ class KDSplitViewPanel extends KDScrollView
       #   panel
       #   newSize
       # }
-    
+
     panel.$().stop()
-    panel.$().animate properties,options    
+    panel.$().animate properties,options

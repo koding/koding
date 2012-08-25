@@ -101,7 +101,7 @@ class NFinderTreeController extends JTreeViewController
     #   @aceViews[file.path]
 
   getOpenFolders: ->
-    
+
     return Object.keys(@listControllers).slice(1)
 
 
@@ -280,12 +280,14 @@ class NFinderTreeController extends JTreeViewController
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
     FSItem.create path, type, (err, file)=>
-      @notify null, null, err if err
-      @refreshFolder @nodes[parentPath], =>
-        @notify "#{type} created!", "success"
-        node = @nodes[file.path]
-        @selectNode node
-        @showRenameDialog node
+      if err
+        @notify null, null, err
+      else
+        @refreshFolder @nodes[parentPath], =>
+          @notify "#{type} created!", "success"
+          node = @nodes[file.path]
+          @selectNode node
+          @showRenameDialog node
 
 
   moveFiles:(nodesToBeMoved, targetNodeView, callback)->
@@ -407,7 +409,7 @@ class NFinderTreeController extends JTreeViewController
 
     folder.emit "fs.publish.started"
     @getSingleton('kodingAppsController').publishApp folder.path, =>
-      folder.emit "fs.publish.finished"      
+      folder.emit "fs.publish.finished"
       @notify "App published!", "success"
 
 

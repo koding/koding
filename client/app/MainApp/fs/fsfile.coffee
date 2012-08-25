@@ -4,15 +4,15 @@ class FSFile extends FSItem
     super
     @modified = no
     @_savedContents = ''
-    
+
     @on "file.requests.saveAs", (contents, name, parentPath)=> @saveAs contents, name, parentPath
     @on "file.requests.save", (contents)=> @save contents
-  
+
   fetchContents:(callback)->
-    
+
     @emit "fs.fetchContents.started"
     @kiteController.run
-      withArgs  : 
+      withArgs  :
         command : "cat #{@path}"
     , (err, response)=>
       if err then warn err
@@ -49,4 +49,3 @@ class FSFile extends FSItem
       @emit "fs.save.finished", err, res
       if err then warn err
       callback? err,res
-    

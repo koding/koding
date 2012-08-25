@@ -83,11 +83,11 @@ Includes =
         notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-        
-        
+
+
         cactivity                 : "./server/app/bongo/models/activity.coffee"
         cbucket                   : "./server/app/bongo/models/bucket.coffee"
-        
+
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -99,9 +99,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-        
+
         jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-        
+
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -308,8 +308,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
-        
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
+
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
