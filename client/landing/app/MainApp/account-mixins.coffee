@@ -2,25 +2,25 @@ AccountMixin = do ->
   init:(api)->
     {JAccount, JGuest} = api
 
-    JGuest::fetchNonce = ->
+    # JGuest::fetchNonce = ->
 
-    nonces = []
+    # nonces = []
 
-    fetchNonces = (callback)->
-      KD.whoami().fetchNonces (err, moreNonces)->
-        if err
-          new KDNotificationView
-            title: 'Could not authorize this client.'
-        else
-          nonces = nonces.concat moreNonces
-        callback nonces
+    # fetchNonces = (callback)->
+    #   KD.whoami().fetchNonces (err, moreNonces)->
+    #     if err
+    #       new KDNotificationView
+    #         title: 'Could not authorize this client.'
+    #     else
+    #       nonces = nonces.concat moreNonces
+    #     callback nonces
 
-    fetchNonce = (callback)->
-      nonce = nonces.shift()
-      if nonce? then callback nonce
-      else fetchNonces -> fetchNonce callback
+    # fetchNonce = (callback)->
+    #   nonce = nonces.shift()
+    #   if nonce? then callback nonce
+    #   else fetchNonces -> fetchNonce callback
 
-    JAccount::fetchNonce = fetchNonce
+    # JAccount::fetchNonce = fetchNonce
 
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
@@ -52,6 +52,7 @@ AccountMixin = do ->
               "reply-client-message.#{callbackId}",
               messageHandler.bind null, kiteName
             )
+            channel.on 'broker:subscription_succeeded'
             channel.emit "client-message.#{callbackId}", JSON.stringify(scrubbed)
 
       messageHandler =(kiteName, args) ->
