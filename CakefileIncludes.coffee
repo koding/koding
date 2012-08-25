@@ -595,7 +595,7 @@ Includes =
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
 
-
+        marked            : "./client/libs/marked.js"
 
         # bootstrapPopover  : "./client/libs/bootstrap-popover.js"
         # xml2json          : "./client/libs/xml2json.js"

@@ -35,6 +35,8 @@ class OpinionListViewController extends KDListViewController
   startListeners:->
     listView = @getListView()
 
+    log "this is me", @
+
     listView.on 'ItemWasAdded', (view, index)=>
       view.on 'OpinionIsDeleted', ->
         listView.emit "OpinionIsDeleted"
@@ -52,11 +54,6 @@ class OpinionListViewController extends KDListViewController
       @_hasBackgrounActivity = yes
       @_removedBefore = no
       @fetchRelativeOpinions 10, meta.createdAt
-
-    listView.on "OpinionWasSubmitted"=>
-      @fetchAllOpinions
-
-
 
     # listView.registerListener
     #   KDEventTypes  : "OpinionSubmitted"
