@@ -124,7 +124,7 @@ class OpinionListItemView extends KDListItemView
             {{> @author}}
           </p>
           <p class='comment-body'>
-            {{@utils.applyTextExpansions #(body)}}
+            {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
           </p>
           <time>{{$.timeago #(meta.createdAt)}}</time>
         </div>

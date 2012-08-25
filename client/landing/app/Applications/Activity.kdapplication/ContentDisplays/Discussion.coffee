@@ -80,7 +80,7 @@ class ContentDisplayDiscussion extends KDView
     </span>
     <div class='activity-item-right-col'>
       <h3>{{#(title)}}</h3>
-      <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
+      <p class='context'>{{@utils.applyLineBreaks @utils.applyMarkdown @utils.applyTextExpansions #(body)}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
@@ -92,9 +92,6 @@ class ContentDisplayDiscussion extends KDView
       {{> @opinionBox}}
     </div>
     <div class="content-display-main-section opinion-form-footer">
-      <div class="opinion-form-headline">
-        <p>Post your reply here</p>
-      </div>
     {{> @opinionForm}}
     {{> @heartBox}}
     </div>

@@ -58,7 +58,12 @@ class OpinionFormView extends KDFormView
   pistachio:->
       """
       <div class="opinion-box">
+
         <div class="opinion-form">
+        <div class="opinion-form-headline">
+        <p>Post your reply here</p>
+      </div>
+        <span>You can use Markdown here.</span>
         {{> @opinionBody}}
         </div>
         <div class="formline">
