@@ -1,5 +1,5 @@
 class FSFolder extends FSFile
-  
+
   fetchContents:(callback)->
 
     # @emit "fs.fetchContents.started"
@@ -8,7 +8,7 @@ class FSFolder extends FSFile
     #   withArgs  :
     #     command : @path
     # , (err, response)=>
-    #   if err 
+    #   if err
     #     warn err
     #     @emit "fs.fetchContents.finished", err
     #   else
@@ -16,7 +16,7 @@ class FSFolder extends FSFile
     #     @emit "fs.fetchContents.finished", files
     #     callback? files
 
-    
+
     @emit "fs.fetchContents.started"
     # a = Date.now()
     @kiteController.run
@@ -25,7 +25,7 @@ class FSFolder extends FSFile
     , (err, response)=>
       # log "------------------------------------------------------------------"
       # log "l flag response in: #{Date.now()-a} msec."
-      if err 
+      if err
         warn err
         @emit "fs.fetchContents.finished", err
       else
