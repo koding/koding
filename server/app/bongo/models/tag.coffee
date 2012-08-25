@@ -9,7 +9,7 @@ class JTag extends Followable
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
 
-  {ObjectRef,Inflector,secure,daisy} = bongo
+  {ObjectId, ObjectRef, Inflector, secure, daisy} = require 'bongo'
 
   @share()
 
@@ -109,7 +109,7 @@ class JTag extends Followable
                     callbackForEach null, tag
                     fin i
           else
-            existingTagIds.push bongo.ObjectId tagRef.id
+            existingTagIds.push ObjectId tagRef.id
             fin i
       ->
         JTag.all (_id: $in: existingTagIds), (err, existingTags)->
@@ -178,21 +178,6 @@ class JTag extends Followable
                     contents.forEach (content)->
                       content.flushSnapshot tagId, (err)->
                         if err then console.log err
-  # save: secure (client,callback)->
-  #   tag = @
-  #   account = client.connection.delegate
-  #   if account instanceof JGuest
-  #     callback new Error "guest cant add topic"
-  #   else
-  #     bongo.Model::save.call @, (err)->
-  #       if err
-  #         callback err
-  #       else
-  #         callback null,tag
-  #
-  # update: bongo.secure (client,callback)->
-  # remove: bongo.secure (client,callback)->
-
 
 #
 # class JLicense extends JTag

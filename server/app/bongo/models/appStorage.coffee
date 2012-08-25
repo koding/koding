@@ -32,5 +32,5 @@ class JAppStorage extends jraphical.Module
     @save (error)->
       callback? error, @bucket
   
-  getOption:  bongo.secure (client, optionName, callback) ->
+  getOption:  Bongo.secure (client, optionName, callback) ->
     callback? null, optionName

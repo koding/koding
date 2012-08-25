@@ -8,6 +8,7 @@ class JGitBranch extends jraphical.Module
     
 class JApplication extends jraphical.Module
   {exec} = require 'child_process'
+  {secure} = require 'bongo'
   
   @share()
 
@@ -62,7 +63,7 @@ class JApplication extends jraphical.Module
         else
           callback safePath
   
-  cloneRemoteAppDirectory: bongo.secure (client, callback)->
+  cloneRemoteAppDirectory: secure (client, callback)->
     application = @
     
     application._createAccountAppDir client, (safePath, err)->
@@ -77,7 +78,7 @@ class JApplication extends jraphical.Module
             application.addInstaller client.connection.account, ->
               callback()
   
-  initNewAdminAppDirectory: bongo.secure (client, callback)->
+  initNewAdminAppDirectory: secure (client, callback)->
     application = @
     
     application._createAdminAppDir client, (appPath, err)->
@@ -106,7 +107,7 @@ class JApplication extends jraphical.Module
                         application.addCreator client.connection.account, ->
                           callback()
     
-  initNewLocalAppDirectory: bongo.secure (client, callback)->
+  initNewLocalAppDirectory: secure (client, callback)->
     application = @
     
     application._createAccountAppDir client, (safePath, err)->

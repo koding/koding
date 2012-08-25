@@ -1,5 +1,5 @@
 class JRepo extends jraphical.Capsule
-  {Model,secure} = bongo
+  {Model,secure} = require 'bongo'
   {Module,Relationship} = jraphical
   
   @share()

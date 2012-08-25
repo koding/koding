@@ -21,16 +21,16 @@ class Server
     #@everyone = nowjs.initialize app
     #exposeApi @everyone
     
-    bongo.listen app, io : {
-      # 'match origin protocol': yes
-      transports: [
-#       'websocket'
-#       we're taking the websocket transport away from socket.io
-        'xhr-polling'
-        'xhr-multipart'
-        'jsonp-polling'
-      ]
-    }#.listen 5000
+#     bongo.listen app, io : {
+#       # 'match origin protocol': yes
+#       transports: [
+# #       'websocket'
+# #       we're taking the websocket transport away from socket.io
+#         'xhr-polling'
+#         'xhr-multipart'
+#         'jsonp-polling'
+#       ]
+#     }#.listen 5000
     
     #nowjs.server.set 'log level', 1
 
@@ -124,8 +124,8 @@ class Server
         )
         privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
-        bongo.mq.emit('race-condition','race-condition','koding')
-        bongo.mq.emit(channel, 'join', privName)
+        koding.mq.emit('race-condition','race-condition','koding')
+        koding.mq.emit(channel, 'join', privName)
         return res.send privName
 
 

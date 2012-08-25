@@ -1,4 +1,5 @@
-class KiteController extends bongo.Base
+{Base} = require 'bongo'
+class KiteController extends Base
   log4js  = require "log4js"
   log     = log4js.getLogger("[KiteController]")
   kites   = {}

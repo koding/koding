@@ -11,7 +11,7 @@ class JAccount extends jraphical.Module
   
   @getFlagRole = 'content'
 
-  {ObjectId,secure,race,dash} = bongo
+  {ObjectId,secure,race,dash} = require 'bongo'
   {Relationship} = jraphical
   @share()
   Experience = 
@@ -280,7 +280,7 @@ class JAccount extends jraphical.Module
   # temp dummy stuff ends
 
   fetchPrivateChannel:(callback)->
-    bongo.fetchChannel @getPrivateChannelName(), callback
+    require('bongo').fetchChannel @getPrivateChannelName(), callback
   
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
@@ -417,7 +417,7 @@ class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  bongo.pre 'methodIsInvoked', (client, callback)=>
+  koding.pre 'methodIsInvoked', (client, callback)=>
     delegate = client?.connection?.delegate
     id = delegate?.getId()
     unless id

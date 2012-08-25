@@ -1,4 +1,5 @@
-class JKiteSubscription extends bongo.Model
+{Model} = require 'bongo'
+class JKiteSubscription extends Model
   @setSchema
     planId        : String
     key           : String

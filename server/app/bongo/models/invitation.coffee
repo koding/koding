@@ -5,7 +5,7 @@ class JInvitation extends jraphical.Module
   
   @isEnabledGlobally = yes
   
-  {ObjectRef, dash, daisy} = bongo
+  {ObjectRef, dash, daisy} = require 'bongo'
   
   @share()
   
@@ -107,7 +107,7 @@ class JInvitation extends jraphical.Module
         callback arguments...
 
 
-  @__sendBetaInvites = bongo.secure do->
+  @__sendBetaInvites = Bongo.secure do->
     betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
     betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
@@ -176,7 +176,7 @@ class JInvitation extends jraphical.Module
               recipients.next(err)
         recipients.push -> callback(recipients)
         daisy recipients
-  
+
   @grant =(selector, quota, options, callback)->
     [callback, options] = [options, callback] unless callback
     unless quota > 0
@@ -184,7 +184,6 @@ class JInvitation extends jraphical.Module
     else
       batch = []
       i = 0
-      console.log arguments
       JAccount.all selector, options, (err, accounts)->
         accounts.forEach (account)->
           batch.push ->
@@ -221,7 +220,7 @@ class JInvitation extends jraphical.Module
   
   @byCode = (code, callback)-> @one {code}, callback
   
-  @__createMultiuse = bongo.secure (client, options, callback)->
+  @__createMultiuse = Bongo.secure (client, options, callback)->
     {delegate} = client.connection
     {code, maxUses} = options
     invite = new JInvitation {
@@ -236,7 +235,7 @@ class JInvitation extends jraphical.Module
       else
         invite.addInvitedBy delegate, callback
   
-  @create = bongo.secure (client, options, callback)->
+  @create = Bongo.secure (client, options, callback)->
     {delegate} = client.connection
     {emails, subject, customMessage, type} = options
     delegate.fetchLimit 'invite', (err, limit)=>
@@ -292,7 +291,7 @@ class JInvitation extends jraphical.Module
                         invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
                         callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
   
-  redeem:bongo.secure ({connection:{delegate}}, callback=->)->
+  redeem:Bongo.secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}
     isRedeemed = if @type is 'multiuse' then @uses + 1 >= @maxUses else yes
     operation.$set = {status: 'redeemed'} if isRedeemed

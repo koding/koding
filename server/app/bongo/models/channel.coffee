@@ -1,4 +1,6 @@
-class JChannel extends bongo.Model
+{Model} = require 'bongo'
+
+class JChannel extends Model
   
   channels = {}
   
@@ -40,7 +42,7 @@ class JChannel extends bongo.Model
     channelName.replace /(?:(.*)(?:_private$))|(.*)/,
       (name, channelId, generalChannel)-> callback channelId, generalChannel
 
-  @fetch = bongo.secure (client, publicChannelId, callback)->
+  @fetch = Bongo.secure (client, publicChannelId, callback)->
     @parseChannel publicChannelId, (channelId, generalChannel)=>
       if channelId
         # if client.is channelId

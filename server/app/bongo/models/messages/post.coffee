@@ -7,7 +7,7 @@ class JPost extends jraphical.Message
   @mixin Flaggable
   @::mixin Flaggable::
 
-  {Base,ObjectRef,secure,dash,daisy} = bongo
+  {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
 
   {log} = console

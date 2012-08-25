@@ -1,4 +1,5 @@
-class JHyperlink extends bongo.Model
+{Model} = require 'bongo'
+class JHyperlink extends Model
   
   @share()
   

@@ -127,7 +127,7 @@ class JEnvironment extends jraphical.Module
 
 
   
-  getMountedDisks: bongo.secure (client, callback)->
+  getMountedDisks: Bongo.secure (client, callback)->
     #FIXME: add api call with account and environment
     callback [
       type : "mount"
@@ -135,10 +135,10 @@ class JEnvironment extends jraphical.Module
       name : client.connection.delegate.profile.nickname
     ]
   
-  accessMount: bongo.secure (client, callback)->
+  accessMount: Bongo.secure (client, callback)->
     log 'gimmmmme some kite action'
     
-  # run: bongo.secure (client, command, callback)->
+  # run: Bongo.secure (client, command, callback)->
   #   account = client.connection.delegate
   #   # log.debug "got cmd:",command
   #   account.tellKite kiteName:"sharedHosting",method:"executeCommand",withArgs:{command}, (error, response) ->
@@ -146,28 +146,28 @@ class JEnvironment extends jraphical.Module
   #     callback error, response
   # 
   #     
-  # searchFile: bongo.secure (client, options, callback)->
+  # searchFile: Bongo.secure (client, options, callback)->
   #   account = client.connection.delegate
   #   account.tellKite kiteName:"sharedHosting",method:"searchFiles",withArgs:options, (error, response) ->
   #     callback error, response
   #     
-  # extract: bongo.secure (client, options, callback)->
+  # extract: Bongo.secure (client, options, callback)->
   #   account   =     client.connection.delegate
   #   account.tellKite kiteName:"sharedHosting",method:"smartUnarchiver",withArgs:options, (error, response) ->
   #     callback error, response
       
-  # makePublic: bongo.secure (client, options, callback)->
+  # makePublic: Bongo.secure (client, options, callback)->
   #   account   =     client.connection.delegate
   #   account.tellKite kiteName:"sharedHosting",method:"prepareFileForDownload",withArgs:options, (error, response) ->
   #     callback error, response
 
   #FIXME::!!!! These are un-secure- sah 12/27/11
-  # safePath: bongo.secure (client, {filePath}, callback)->
+  # safePath: Bongo.secure (client, {filePath}, callback)->
   #   account   = client.connection.delegate
   #   account.tellKite kiteName:"sharedHosting",method:"returnSafeFileName",withArgs:{filePath}, (error, response) ->
   #     callback error, response
     
-  # uploadFile: bongo.secure (client, file, callback)->
+  # uploadFile: Bongo.secure (client, file, callback)->
   #   account   = client.connection.delegate
   #   {path} = file
   #   account.tellKite kiteName:"sharedHosting",method:"uploadFile",withArgs:file, (error, response) ->
@@ -175,7 +175,7 @@ class JEnvironment extends jraphical.Module
   #     # error = 'wtf'
   #     callback error, response
   
-  # saveToDefaultCodeSnippetFolder: bongo.secure (client, title, contents, callback)->
+  # saveToDefaultCodeSnippetFolder: Bongo.secure (client, title, contents, callback)->
   #   # This custom method is used because FS, command, environment are all a mess and devrim is currently working on refactoring them - 3/15/12 sah
   #   env = @
   #   dirPath = "#{client.connection.delegate.getRootPath()}/CodeSnippets"

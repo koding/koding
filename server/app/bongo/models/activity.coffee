@@ -1,5 +1,5 @@
 class CActivity extends jraphical.Capsule
-  {Base, ObjectId, race, dash} = bongo
+  {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
 
   @mixin Flaggable
@@ -41,9 +41,8 @@ class CActivity extends jraphical.Capsule
       modifiedAt      :
         type          : Date
         get           : -> new Date
-      # readBy        : [bongo.ObjectId]
       originType      : String
-      originId        : bongo.ObjectId
+      originId        : ObjectId
 
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->
@@ -141,7 +140,7 @@ class CActivity extends jraphical.Capsule
       cursor.toArray (err, arr)->
         callback null, 'feed:'+(item.snapshot for item in arr).join '\n'
 
-  markAsRead: bongo.secure ({connection:{delegate}}, callback)->
+  markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
     , callback

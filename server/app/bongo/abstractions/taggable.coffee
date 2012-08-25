@@ -1,12 +1,12 @@
 class Taggable
 
-  {ObjectRef,daisy} = bongo
+  {ObjectRef, daisy, secure} = require 'bongo'
   {Relationship} = jraphical
 
   getTaggedContentRole  :-> @constructor.taggedContentRole or 'tagged'
   getTagRole            :-> @constructor.tagRole           or 'tag'
 
-  addTags: bongo.secure (client, tags, options, callback)->
+  addTags: secure (client, tags, options, callback)->
     [callback, options] = [options, callback] unless callback
     options or= silent: no
     taggedContentRole = @getTaggedContentRole()
@@ -40,7 +40,7 @@ class Taggable
                     callback null
             ]
 
-  removeAllTags: bongo.secure (client, options, callback)->
+  removeAllTags: secure (client, options, callback)->
     [callback, options] = [options, callback] unless callback
     options or= silent: no
     Relationship.remove $or: [{

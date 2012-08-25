@@ -1,4 +1,5 @@
-class Kite extends bongo.Model
+{Model} = require 'bongo'
+class Kite extends Model
 
   @share()
 

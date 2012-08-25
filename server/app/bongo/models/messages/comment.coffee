@@ -1,6 +1,6 @@
 class JComment extends jraphical.Reply
   
-  {ObjectId,ObjectRef,dash,daisy} = require 'bongo'
+  {ObjectId,ObjectRef,dash,daisy,secure} = require 'bongo'
   {Relationship}  = require 'jraphical'
   
   @share()
@@ -23,7 +23,7 @@ class JComment extends jraphical.Reply
       deletedBy   : ObjectRef
       meta        : require 'bongo/bundles/meta'
   
-  delete: bongo.secure (client, callback)->
+  delete: secure (client, callback)->
     {delegate} = client.connection
     {getDeleteHelper} = Relationship
     id = @getId()

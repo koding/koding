@@ -107,19 +107,19 @@ class MainController extends KDController
       appManager.quitAll =>
         @createLoggedInState account
 
-      # account = KD.whoami()
-      # unless account.getAt('isEnvironmentCreated')
-      #   @getSingleton('kiteController').createSystemUser (err)=>
-      #     if err
-      #       new KDNotificationView
-      #         title   : 'Fail!'
-      #         duration: 1000
-      #     else
-      #       account.modify isEnvironmentCreated: yes, (err)->
-      #         if err
-      #           console.log err
-      #         else
-      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
+      account = KD.whoami()
+      unless account.getAt('isEnvironmentCreated')
+        @getSingleton('kiteController').createSystemUser (err)=>
+          if err
+            new KDNotificationView
+              title   : 'Fail!'
+              duration: 1000
+          else
+            account.modify isEnvironmentCreated: yes, (err)->
+              if err
+                console.log err
+              else
+                console.log "environment is created for #{account.getAt('profile.nickname')}"
 
     else
       @createLoggedOutState account

@@ -1,4 +1,6 @@
-class JKitePlanInterval extends bongo.Model
+{Model, secure} = require 'bongo'
+
+class JKitePlanInterval extends Model
   @setSchema
     unit    :
       type  : String
@@ -10,7 +12,7 @@ class JKitePlanInterval extends bongo.Model
       type  : Number
       set   : Math.floor
 
-class JKitePlan extends bongo.Model
+class JKitePlan extends Model
   @setSchema
     type      :
       type    : String
@@ -29,12 +31,12 @@ class JKitePlan extends bongo.Model
       required    : yes
     setupFee      : Number
 
-class JKiteSubscription extends bongo.Model
+class JKiteSubscription extends Model
   @setSchema
     planId          : String
     subscriptionKey : String
 
-class JKiteCluster extends bongo.Model
+class JKiteCluster extends Model
   crypto = require 'crypto'
   
   @share()
@@ -70,7 +72,7 @@ class JKiteCluster extends bongo.Model
   createServiceKey =(id, kiteName)->
     crypto.createHash('md5').update(id+kiteName).digest('hex')
   
-  @create = bongo.secure (client, data, callback)->
+  @create = secure (client, data, callback)->
     {delegate} = client.connection
     cluster = new @ {
       kiteName        : data.kiteData.kiteName

@@ -2,11 +2,9 @@ class Resource
   
   {GridStore} = mongodb
   
-  {Model, JsPath, secure, daisy} = bongo
+  {ObjectId, Model, JsPath, secure, daisy} = require 'bongo'
   
   {db} = Model.getClient()
-  
-  # client = bongo.Model.getClient()
   
   @storeImages = secure (client, images, callback)->
     {connection:{delegate}} = client
@@ -29,7 +27,7 @@ class Resource
       callback null, filenames
     daisy queue
   
-  @createFilename =(options)-> new bongo.ObjectId + '.png'
+  @createFilename =(options)-> new ObjectId + '.png'
   
   @put =(data, options, callback)->
     [callback, options] = [options, callback] unless callback

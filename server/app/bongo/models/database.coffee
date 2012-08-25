@@ -10,8 +10,8 @@ class JDatabase extends jraphical.Capsule
     indexes:
       uniqueName : "unique"
 
-  {Model,secure} = bongo
-  {Module,Relationship} = jraphical
+  {Model,secure} = require 'bongo'
+  {Module,Relationship} = require 'jraphical'
   
   @share()
 

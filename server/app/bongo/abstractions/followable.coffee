@@ -1,7 +1,7 @@
 class Followable extends jraphical.Module
 
-  {dash} = bongo
-  {Relationship,Module} = jraphical
+  {Model, dash, secure} = require 'bongo'
+  {Relationship, Module} = jraphical
 
   @schema =
     counts        :
@@ -12,7 +12,7 @@ class Followable extends jraphical.Module
         type      : Number
         default   : 0
 
-  count: bongo.secure (client, filter, callback)->
+  count: secure (client, filter, callback)->
     unless @equals client.connection.delegate
       callback new KodingError 'Access denied'
     else switch filter
@@ -29,11 +29,11 @@ class Followable extends jraphical.Module
       else
         @constructor.count {}, callback
 
-  @someWithRelationship = bongo.secure (client, selector, options, callback)->
+  @someWithRelationship = secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
 
-  @markFollowing = bongo.secure (client, followables, callback)->
+  @markFollowing = secure (client, followables, callback)->
     Relationship.all
       targetId  : client.connection.delegate.getId()
       as        : 'follower'
@@ -47,7 +47,7 @@ class Followable extends jraphical.Module
             break
       callback err, followables
 
-  follow: bongo.secure (client, options, callback)->
+  follow: secure (client, options, callback)->
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
@@ -95,7 +95,7 @@ class Followable extends jraphical.Module
                       callback null, count
                 else callback null, count
 
-  unfollow: bongo.secure (client,callback)->
+  unfollow: secure (client,callback)->
     follower = client.connection.delegate
     @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
       if err
@@ -133,15 +133,15 @@ class Followable extends jraphical.Module
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
-  fetchFollowersWithRelationship: bongo.secure (client, query, page, callback)->
+  fetchFollowersWithRelationship: secure (client, query, page, callback)->
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
-  fetchFollowingWithRelationship: bongo.secure (client, query, page, callback)->
+  fetchFollowingWithRelationship: secure (client, query, page, callback)->
     @fetchFollowing query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
-  fetchFollowedTopics: bongo.secure (client, query, page, callback)->
+  fetchFollowedTopics: secure (client, query, page, callback)->
     _.extend query,
       targetId  : @getId()
       as        : 'follower'
@@ -154,7 +154,7 @@ class Followable extends jraphical.Module
 
   updateFollowingCount: ()->
     Relationship.count targetId:@_id, as:'follower', (error, count)=>
-      bongo.Model::update.call @, $set: 'counts.following': count, (err)->
+      Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
         followerCount   : @getAt('counts.followers')

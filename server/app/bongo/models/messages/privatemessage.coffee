@@ -1,5 +1,5 @@
 class JPrivateMessage extends JPost
-  {ObjectRef, secure, race} = bongo
+  {ObjectRef, secure, race} = require 'bongo'
 
   @share()
 

@@ -1,6 +1,7 @@
-class JInvitationRequest extends bongo.Model
+{Model} = require 'bongo'
+class JInvitationRequest extends Model
   
-  {daisy} = bongo
+  {daisy} = require 'bongo'
   
   csvParser = require 'csv'
 

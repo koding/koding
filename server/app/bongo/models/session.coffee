@@ -1,4 +1,6 @@
-class JToken extends bongo.Model
+{Model} = require 'bongo'
+
+class JToken extends Model
   
   @setSchema
     token       : String
@@ -6,7 +8,7 @@ class JToken extends bongo.Model
     authority   : String
     requester   : String
 
-class JSession extends bongo.Model
+class JSession extends Model
 
   @setSchema
     clientId      : String

@@ -1,5 +1,5 @@
 class JStatusUpdate extends JPost
-  {secure} = bongo
+  {secure} = require 'bongo'
   {Relationship} = jraphical
 
   {once} = require 'underscore'
@@ -28,4 +28,3 @@ class CStatusActivity extends CActivity
       subject       :
         targetType  : JStatusUpdate
         as          : 'content'
-      

@@ -1,4 +1,5 @@
 class FSWatcher extends jraphical.Module
+  {secure} = require 'bongo'
   
   log4js      = require "log4js"
   logger      = log4js.getLogger("[FSWatcher]")
@@ -20,21 +21,14 @@ class FSWatcher extends jraphical.Module
     else
       FSWatcher[connection.clientId] = new Watcher connection
       
-  bongo.on "clientDidDisconnect",(conn)->
-    # log "user disconnected kill - "+Terminal.terminals[conn.clientId]+" if user doesn't come back in next 60 seconds."
-    log 'dropping watcher'
-    #delete FSWatcher[conn.clientId]
-    # anytermKite.close Terminal.terminals[conn.clientId],(err,res)->
-    #       Terminal.terminals[conn.clientId] = null
-    
-  @watch: bongo.secure (client, {dir}, callback) ->
+  @watch: secure (client, {dir}, callback) ->
     log 'asked to watch for', dir
     getWatcher(client.connection).watch dir
     
-  @unwatch: bongo.secure (client, {dir}, callback) ->
+  @unwatch: secure (client, {dir}, callback) ->
     log 'unwatch called, but I dont know api for unsubscribing'
     
-  @onChange: bongo.secure (client, callback) ->
+  @onChange: secure (client, callback) ->
     log 'on change', callback
     getWatcher(client.connection).on 'change', callback
       

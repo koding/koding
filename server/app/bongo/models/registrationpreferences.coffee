@@ -1,4 +1,5 @@
-class JRegistrationPreferences extends bongo.Model
+{Model} = require 'bongo'
+class JRegistrationPreferences extends Model
   
   @setSchema
     isRegistrationEnabled : Boolean

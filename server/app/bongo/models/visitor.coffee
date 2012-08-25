@@ -1,4 +1,7 @@
-class JVisitor extends bongo.Model
+{Model} = require 'bongo'
+
+class JVisitor extends Model
+  {secure} = require 'bongo'
 
   @share()
 
@@ -49,7 +52,7 @@ class JVisitor extends bongo.Model
             else
               visitor.emit ['change','logout'], guest
 
-  start: bongo.secure ({connection}, callback)->
+  start: secure ({connection}, callback)->
     visitor = @
     {constructor} = visitor
     connection.remote.fetchClientId (clientId)->

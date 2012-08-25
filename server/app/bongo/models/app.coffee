@@ -12,7 +12,7 @@ class JApp extends jraphical.Module
   @::mixin Followable::   # brings only prototype methods
   @::mixin Taggable::
   # 
-  {Inflector,JsPath,secure,daisy} = bongo
+  {Inflector,JsPath,secure,daisy} = require 'bongo'
   
   @share()
 

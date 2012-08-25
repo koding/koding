@@ -1,6 +1,6 @@
 class CBucket extends jraphical.Module
 
-  {Model, ObjectRef, ObjectId, dash, daisy} = bongo
+  {Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
   
   @mixin Notifying
   @::mixin Notifying::

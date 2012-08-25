@@ -1,14 +1,15 @@
 class Filterable
+  {secure, ObjectId} = require 'bongo'
   
   @findSuggestions = ()->
     throw new Error "Filterable must implement static method findSuggestions!"
 
-  @byRelevance = bongo.secure (client, seed, options, callback)->
+  @byRelevance = secure (client, seed, options, callback)->
     [callback, options] = [options, callback] unless callback
     {limit,blacklist}  = options
     limit     ?= 10
     blacklist or= []
-    blacklist = blacklist.map(bongo.ObjectId)
+    blacklist = blacklist.map(ObjectId)
     cleanSeed = seed.replace(/[^\w\s]/).trim() #TODO: this is wrong for international charsets
     startsWithSeedTest = RegExp '^'+cleanSeed, "i"
     startsWithOptions = {limit, blacklist}

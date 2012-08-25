@@ -1,7 +1,7 @@
 JMessage = jraphical.Message
 
 class JQuestion extends JMessage
-  {secure} = bongo
+  {secure} = require 'bongo'
   
   @share()
 

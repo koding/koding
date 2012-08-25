@@ -47,8 +47,15 @@ dbUrl = switch process.argv[3] or 'local'
   when "mongohq-dev"
     "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
 
+koding = new Bongo
+  mongo   : dbUrl
+  mq      : new Broker {
+      # host      : "localhost"
+      # login     : "guest"
+      # password  : "guest"
+      host      : "web0.beta.system.aws.koding.com"
+      login     : "guest"
+      password  : "x1srTA7!%Vb}$n|S"
+  }
 
-console.log 'connecting to '+dbUrl
-# log "connecting to #{dbUrl}"
-#mongoose.connect dbUrl, dbCallback
-bongo.setClient dbUrl
+console.log koding

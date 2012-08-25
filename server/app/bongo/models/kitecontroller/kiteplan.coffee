@@ -1,4 +1,5 @@
-class JKitePlan extends bongo.Model
+{Model} = require 'bongo'
+class JKitePlan extends Model
   @setSchema
     type      :
       type    : String

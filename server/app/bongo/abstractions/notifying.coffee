@@ -1,6 +1,6 @@
 class Notifying
   
-  {ObjectRef} = bongo
+  {ObjectRef} = require 'bongo'
   {Relationship} = jraphical
   
   @getNotificationEmail =-> 'hi@koding.com'

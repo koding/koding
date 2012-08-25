@@ -50,7 +50,6 @@ module.exports = new Kite 'terminaljs'
         totalSessions      : 1
         write              : (data) ->
           for d in data
-            #callbacks.data 'foo', nr++
             terminal.write d[3]
 
         resize             : (rows, cols) -> terminal.setScreenSize rows, cols

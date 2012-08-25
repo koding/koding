@@ -1,5 +1,6 @@
 class JGuest extends jraphical.Module
-
+  {secure} = require 'bongo'
+  
   @share()
   
   counter = 0
@@ -27,9 +28,6 @@ class JGuest extends jraphical.Module
         description : String
         avatar      : String
         status      : String
-
-  getDefaultEnvironment: bongo.secure (client, callback)->
-    callback null
     
-  fetchStorage: bongo.secure (client, options, callback)->
+  fetchStorage: secure (client, options, callback)->
     callback null, new JAppStorage options

@@ -1,4 +1,5 @@
 class JPasswordRecovery extends jraphical.Module
+  {secure} = require 'bongo'
   
   createId = require 'hat'
   
@@ -45,14 +46,14 @@ class JPasswordRecovery extends jraphical.Module
     #{url}
     """
   
-  @recoverPassword = bongo.secure (client, usernameOrEmail, callback)->
+  @recoverPassword = secure (client, usernameOrEmail, callback)->
     if JUser.validateAt 'email', usernameOrEmail
       @recoverPasswordByEmail client, usernameOrEmail, callback
     else if JUser.validateAt 'username', usernameOrEmail
       @recoverPasswordByUsername client, usernameOrEmail, callback
     else callback new KodingError 'Invalid input.'
 
-  @recoverPasswordByUsername = bongo.secure (client, username, callback)->
+  @recoverPasswordByUsername = secure (client, username, callback)->
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in.'
@@ -61,7 +62,7 @@ class JPasswordRecovery extends jraphical.Module
         unless user then callback new KodingError "Unknown username"
         else @create client, user.getAt('email'), callback
 
-  @recoverPasswordByEmail = bongo.secure (client, email, callback)->
+  @recoverPasswordByEmail = secure (client, email, callback)->
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in.'
@@ -71,7 +72,7 @@ class JPasswordRecovery extends jraphical.Module
         else @create client, email, callback
 
   
-  @create = bongo.secure ({connection:{delegate}}, email, callback)->
+  @create = secure ({connection:{delegate}}, email, callback)->
     token = createId()
     JUser.one {email}, (err, user)=>
       if err
@@ -100,7 +101,7 @@ class JPasswordRecovery extends jraphical.Module
               TextBody  : @getPasswordRecoveryMessage(messageOptions)
             , (err)-> callback err
 
-  @validate = bongo.secure ({connection:{delegate}}, token, callback)->
+  @validate = secure ({connection:{delegate}}, token, callback)->
     @one {token, status: 'active'}, (err, certificate)->
       if err
         callback err
@@ -118,7 +119,7 @@ class JPasswordRecovery extends jraphical.Module
     query.status = 'active'
     @update query, {$set: status: 'invalidated'}, callback
   
-  @resetPassword = bongo.secure (client, token, newPassword, callback)->
+  @resetPassword = secure (client, token, newPassword, callback)->
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in!'

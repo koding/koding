@@ -1,4 +1,5 @@
-class JKitePlanInterval extends bongo.Model
+{Model} = require 'bongo'
+class JKitePlanInterval extends Model
   @setSchema
     unit    :
       type  : String

@@ -1,5 +1,5 @@
 class Flaggable
-  {secure} = bongo
+  {secure} = require 'bongo'
   
   @getFlagRole =-> 'content'
   

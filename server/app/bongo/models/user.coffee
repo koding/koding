@@ -1,5 +1,6 @@
 class JUser extends jraphical.Module
-
+  {secure} = require 'bongo'
+  
   @bannedUserList = ['abrt','amykhailov','apache','about','visa',
                      'cthorn','daemon','dbus','dyasar','ec2-user',
                      'games','ggoksel','gopher','haldaemon','halt','mail',
@@ -87,7 +88,7 @@ class JUser extends jraphical.Module
   users     = {}
   guests    = {}
 
-  # @fetchUser = bongo.secure (client,options,callback)->
+  # @fetchUser = Bongo.secure (client,options,callback)->
   #   {username} = options
   #   constructor = @
   #   connection.remote.fetchClientId (clientId)->
@@ -139,9 +140,9 @@ class JUser extends jraphical.Module
           account.profile.hash = getHash user.email
           account.save (err)-> throw err if err
   
-  @whoami = bongo.secure ({connection:{delegate}}, callback)-> callback delegate 
+  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate 
   
-  @login = bongo.secure ({connection}, credentials, callback)->
+  @login = secure ({connection}, credentials, callback)->
     {username, password} = credentials
     constructor = @
     connection.remote.fetchClientId (clientId)->
@@ -196,7 +197,7 @@ class JUser extends jraphical.Module
                             else
                               console.log 'user link was added'
   
-  @logout = bongo.secure ({connection}, callback)->
+  @logout = secure ({connection}, callback)->
     connection.remote.fetchClientId (clientId)->
       visitor = JVisitor.visitors[clientId]
       JSession.one {clientId}, (err, session)->
@@ -256,7 +257,7 @@ class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
-  @register = bongo.secure (client, userFormData, callback)->
+  @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, 
      firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
@@ -358,7 +359,7 @@ class JUser extends jraphical.Module
                                               callback?()
   
   
-  @fetchUser = bongo.secure ({connection},callback)->
+  @fetchUser = secure ({connection},callback)->
     connection.remote.fetchClientId (clientId)->
       JSession.one {clientId},(err,session)->
         if err
@@ -368,7 +369,7 @@ class JUser extends jraphical.Module
           JUser.one {username}, (err, user)->
             callback null, user
 
-  @changePassword = bongo.secure (client,password,callback)->
+  @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
   
   @emailAvailable = (email, callback)->

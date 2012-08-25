@@ -1,4 +1,5 @@
-class JEmailNotification extends bongo.Model
+{Model} = require 'bongo'
+class JEmailNotification extends Model
   
   @setSchema
     timestamp :
