@@ -22,9 +22,9 @@ class ContentDisplayDiscussion extends KDView
 
     @author = new ProfileLinkView {origin}
 
-    @replyBox = new ReplyView null, data
+    @opinionBox = new OpinionView null, data
 
-    @opinionForm = new ReplyOpinionFormView
+    @opinionForm = new OpinionFormView
       cssClass : "opinion-container"
       callback  : (data)=>
         # msg = new KDNotificationView
@@ -36,13 +36,11 @@ class ContentDisplayDiscussion extends KDView
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
-            # new KDNotificationView title : "Opinion added to database"
-            @propagateEvent (KDEventType:"OwnActivityHasArrived"), opinion
-
-
-
+            log "REPLY SUBMITTED",@, @opinionBox, @opinionBox.showMore
+            @propagateEvent (KDEventType:"OwnOpinionHasArrived"), opinion
+            @propagateEvent (KDEventType:"OpinionWasSubmitted"), @opinionBox.showMore
     @actionLinks = new DiscussionActivityActionsView
-      delegate : @replyBox.commentList
+      delegate : @opinionBox.opinionList
       cssClass : "comment-header"
     , data
 
@@ -67,11 +65,13 @@ class ContentDisplayDiscussion extends KDView
     # temp for beta
     # take this bit to comment view
     if @getData().repliesCount? and @getData().repliesCount > 0
-      commentController = @replyBox.commentController
-      commentController.fetchAllComments 0, (err, comments)->
-        commentController.removeAllItems()
-        commentController.instantiateListItems comments
+      opinionController = @opinionBox.opinionController
+      opinionController.fetchAllOpinions 0, (err, opinions)->
+        opinionController.removeAllItems()
+        opinionController.instantiateListItems opinions
 
+
+  # insert Markdown support here and in the replyView
   pistachio:->
     """
     <span>
@@ -89,7 +89,7 @@ class ContentDisplayDiscussion extends KDView
         </div>
         {{> @actionLinks}}
       </footer>
-      {{> @replyBox}}
+      {{> @opinionBox}}
     </div>
     <div class="content-display-main-section opinion-form-footer">
       <div class="opinion-form-headline">

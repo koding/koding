@@ -1,4 +1,4 @@
-class ReplyOpinionFormView extends KDFormView
+class OpinionFormView extends KDFormView
 
   constructor :(options, data)->
 

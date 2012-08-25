@@ -13,15 +13,16 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     super options,data
 
+    log "opinonBox", @
+
     @actionLinks = new DiscussionActivityActionsView
-      delegate : @commentBox.commentList
+      delegate : @commentBox.opinionList
       cssClass : "reply-header"
     , data
 
     @commentBox.destroy()
 
   viewAppended:()->
-    log "constructor is ", @getData().constructor
     return if @getData().constructor is bongo.api.CDiscussion
     super()
     @setTemplate @pistachio()

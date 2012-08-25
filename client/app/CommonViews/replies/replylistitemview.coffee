@@ -1,4 +1,4 @@
-class ReplyListItemView extends KDListItemView
+class OpinionListItemView extends KDListItemView
   constructor:(options,data)->
     options = $.extend
       type      : "comment"
@@ -61,11 +61,11 @@ class ReplyListItemView extends KDListItemView
         @listenTo
           KDEventTypes       : "click"
           listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteComment data
+          callback           : => @conformDeleteOpinion data
 
   render:->
     if @getData().getAt 'deletedAt'
-      @emit 'CommentIsDeleted'
+      @emit 'OpinionIsDeleted'
     @setTemplate @pistachio()
     super
 
@@ -81,9 +81,9 @@ class ReplyListItemView extends KDListItemView
         unless err
           appManager.tell "Members", "createContentDisplay", origin
 
-  confirmDeleteComment:(data)->
+  conformDeleteOpinion:(data)->
     modal = new KDModalView
-      title          : "Delete comment"
+      title          : "Delete opinion"
       content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
       height         : "auto"
       overlay        : yes

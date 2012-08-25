@@ -1,4 +1,4 @@
-class ReplyViewHeader extends JView
+class OpinionViewHeader extends JView
 
   constructor:(options = {}, data)->
 
@@ -32,13 +32,17 @@ class ReplyViewHeader extends JView
       tagName   : "a"
       cssClass  : "all-count"
       pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
-      click     : => list.emit "AllOpinionsLinkWasClicked", @
+      click     : =>
+        log "emitting from allitemslink ",@
+        list.emit "AllOpinionsLinkWasClicked", @
     , data
 
     @newItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "new-items"
-      click     : => list.emit "AllOpinionsLinkWasClicked", @
+      click     : =>
+        log "emitting from newitemslink ",@
+        list.emit "AllOpinionsLinkWasClicked", @
 
   ownCommentArrived:->
 

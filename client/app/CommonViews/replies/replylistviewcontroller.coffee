@@ -1,10 +1,10 @@
-class ReplyListViewController extends KDListViewController
+class OpinionListViewController extends KDListViewController
   constructor:->
     super
     @_hasBackgrounActivity = no
     @startListeners()
 
-  instantiateListItems:(items, keepDeletedComments = no)->
+  instantiateListItems:(items, keepDeletedOpinions = no)->
 
     newItems = []
 
@@ -13,22 +13,22 @@ class ReplyListViewController extends KDListViewController
       b = b.meta.createdAt
       if a<b then -1 else if a>b then 1 else 0
 
-    for comment, i in items
-      nextComment = items[i+1]
+    for opinion, i in items
+      nextOpinion = items[i+1]
 
-      skipComment = no
-      if nextComment? and comment.deletedAt
-        if Date.parse(nextComment.meta.createdAt) > Date.parse(comment.deletedAt)
-          skipComment = yes
+      skipOpinion = no
+      if nextOpinion? and opinion.deletedAt
+        if Date.parse(nextOpinion.meta.createdAt) > Date.parse(opinion.deletedAt)
+          skipOpinion = yes
 
-      if not nextComment and comment.deletedAt
-        skipComment = yes
+      if not nextOpinion and opinion.deletedAt
+        skipOpinion = yes
 
-      skipComment = no if keepDeletedComments
+      skipOpinion = no if keepDeletedOpinions
 
-      unless skipComment
-        commentView = @getListView().addItem comment
-        newItems.push commentView
+      unless skipOpinion
+        opinionView = @getListView().addItem opinion
+        newItems.push opinionView
 
     return newItems
 
@@ -39,7 +39,7 @@ class ReplyListViewController extends KDListViewController
       view.on 'OpinionIsDeleted', ->
         listView.emit "OpinionIsDeleted"
 
-    listView.on "AllOpinionsLinkWasClicked", (commentHeader)=>
+    listView.on "AllOpinionsLinkWasClicked", (opinionHeader)=>
 
       return if @_hasBackgrounActivity
 
@@ -51,61 +51,67 @@ class ReplyListViewController extends KDListViewController
       listView.emit "BackgroundActivityStarted"
       @_hasBackgrounActivity = yes
       @_removedBefore = no
-      @fetchRelativeComments 10, meta.createdAt
+      @fetchRelativeOpinions 10, meta.createdAt
+
+    listView.on "OpinionWasSubmitted"=>
+      @fetchAllOpinions
 
 
-    listView.registerListener
-      KDEventTypes  : "OpinionSubmitted"
-      listener      : @
-      callback      : (pubInst, reply)->
-        model = listView.getData()
-        listView.emit "BackgroundActivityStarted"
-        model.reply reply, (err, reply)->
-          # listView.emit "AllCommentsLinkWasClicked"
-          listView.addItem reply
-          listView.emit "OwnOpinionHasArrived"
-          listView.emit "BackgroundActivityFinished"
 
-  fetchCommentsByRange:(from,to,callback)=>
+    # listView.registerListener
+    #   KDEventTypes  : "OpinionSubmitted"
+    #   listener      : @
+    #   callback      : (pubInst, reply)->
+    #     log "Opinion Submitted!"
+    #     model = listView.getData()
+    #     listView.emit "BackgroundActivityStarted"
+    #     model.reply reply, (err, reply)->
+    #       listView.addItem reply
+    #       listView.emit "OwnOpinionHasArrived"
+    #       log "in callback now"
+    #       listView.emit "BackgroundActivityFinished"
+
+
+  fetchOpinionsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
     query = {from,to}
     message = @getListView().getData()
 
-    message.commentsByRange query,(err,comments)=>
+    message.commentsByRange query,(err,opinions)=>
       @getListView().emit "BackgroundActivityFinished"
-      callback err,comments
+      callback err,opinions
 
-  fetchAllComments:(skipCount=3, callback = noop)=>
+  fetchAllOpinions:(skipCount=3, callback = noop)=>
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
-    message.restComments skipCount, (err, comments)=>
+    message.restComments skipCount, (err, opinions)=>
 
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllOpinionsWereAdded"
-      callback err, comments
+      callback err, opinions
 
-  fetchRelativeComments:(_limit = 10, _after)=>
+  fetchRelativeOpinions:(_limit = 10, _after)=>
     listView = @getListView()
     message = @getListView().getData()
 
-    message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
+    message.fetchRelativeComments limit:_limit, after:_after, (err, opinions)=>
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
-      @instantiateListItems comments[_limit-10...], yes
+      @instantiateListItems opinions[_limit-10...], yes
 
-      if comments.length is _limit
-        startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments 11, startTime
+      if opinions.length is _limit
+        startTime = opinions[opinions.length-1].meta.createdAt
+        @fetchRelativeOpinions 11, startTime
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
         listView.emit "AllOpinionsWereAdded"
         @_hasBackgrounActivity = no
 
-  replaceAllComments:(comments)->
+  replaceAllOpinions:(opinions)->
     @removeAllItems()
-    @instantiateListItems comments
+    @instantiateListItems opinions

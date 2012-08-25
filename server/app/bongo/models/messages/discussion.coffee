@@ -67,6 +67,7 @@ class JOpinion extends JPost
     JPost::modify.call @, client, codeSnip, callback
 
   reply: secure (client, comment, callback)->
+    log "replying to opinion"
     JPost::reply.call @, client, JComment, comment, callback
 
 

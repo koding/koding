@@ -4,7 +4,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     activity = @getData()
 
-    @replyLink = new ActivityActionLink
+    @opinionLink = new ActivityActionLink
       partial   : "Join this discussion"
       click     : (pubInst, event)=>
 
@@ -14,9 +14,9 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
 
 
-    @commentCount.destroy()
+    @opinionCount?.destroy()
 
-    @commentCount = new ActivityCommentCount
+    @opinionCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
     , activity
@@ -32,10 +32,10 @@ class DiscussionActivityActionsView extends ActivityActionsView
   attachListeners:->
 
     activity    = @getData()
-    commentList = @getDelegate()
+    opinionList = @getDelegate()
 
-    commentList.on "BackgroundActivityStarted", => @loader.show()
-    commentList.on "BackgroundActivityFinished", => @loader.hide()
+    opinionList.on "BackgroundActivityStarted", => @loader.show()
+    opinionList.on "BackgroundActivityFinished", => @loader.hide()
     @likeLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
@@ -54,7 +54,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     """
     {{> @loader}}
-    {{> @replyLink}}{{> @commentCount}} ·
+    {{> @opinionLink}}{{> @opinionCount}} ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>

@@ -1,4 +1,4 @@
-class ReplyView extends KDView
+class OpinionView extends KDView
 
   constructor:(options, data)->
 
@@ -13,44 +13,46 @@ class ReplyView extends KDView
     @resetDecoration()
 
   createSubViews:(data)->
-    @commentList = new KDListView
+    @opinionList = new KDListView
       type          : "comments"
-      subItemClass  : ReplyListItemView
+      subItemClass  : OpinionListItemView
       delegate      : @
     , data
 
-    @commentController        = new ReplyListViewController view: @commentList
-    @addSubView showMore      = new ReplyViewHeader delegate: @commentList, data
-    @addSubView @commentList
+    @opinionController        = new OpinionListViewController view: @opinionList
+    @addSubView @showMore      = new OpinionViewHeader delegate: @opinionList, data
+    @addSubView @opinionList
 
-    @commentList.on "OwnOpinionHasArrived", -> showMore.ownCommentArrived()
-    @commentList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
+    @opinionList.on "OwnOpinionHasArrived", ->
+      log "reply is here"
+      showMore.ownCommentArrived()
+    @opinionList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
 
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
         log "reply #", i, reply
-        @commentList.addItem reply
+        @opinionList.addItem reply
 
-    @commentList.emit "BackgroundActivityFinished"
+    @opinionList.emit "BackgroundActivityFinished"
 
   attachListeners:->
     @listenTo
       KDEventTypes : "DecorateActiveCommentView"
-      listenedToInstance : @commentList
+      listenedToInstance : @opinionList
       callback : @decorateActiveCommentState
 
     @listenTo
       KDEventTypes : "OpinionLinkReceivedClick"
-      listenedToInstance : @commentList
+      listenedToInstance : @opinionList
       callback : (pubInst, event) =>
-        @commentForm.commentInput.setFocus()
+        @opinionForm.commentInput.setFocus()
 
-    @commentList.on "CommentCountClicked", =>
-      @commentList.emit "AllOpinionsLinkWasClicked"
+    @opinionList.on "CommentCountClicked", =>
+      @opinionList.emit "AllOpinionsLinkWasClicked"
 
     @listenTo
       KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @commentList
+      listenedToInstance : @opinionList
       callback : @resetDecoration
 
   resetDecoration:->

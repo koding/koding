@@ -24,7 +24,7 @@ class ActivityItemChild extends KDView
     # -> JOpinion
     #    -> JComment
     if data.bongo_.constructorName is "JDiscussion"
-      @commentBox = new ReplyView null, data
+      @commentBox = new OpinionView null, data
     else
       @commentBox = new CommentView null, data
 
