@@ -28,7 +28,7 @@ try
   bitly             = new (require "bitly")('kodingen','R_677549f555489f455f7ff77496446ffa')
   
   bongo.mq = bongo.Base::mq = switch process.argv[3]
-    when 'beta'
+    when 'beta','beta-local'
       new Pusher
         appId   : 18240
         key     : 'a19c8bf6d2cad6c7a006'

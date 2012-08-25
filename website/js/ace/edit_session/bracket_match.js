@@ -94,7 +94,7 @@ function BracketMatch() {
         var match = chr && chr.match(/([\(\[\{])|([\)\]\}])/);
         if (!match) {
             chr = line.charAt(pos.column);
-            pos.column++;
+            pos = {row: pos.row, column: pos.column + 1};
             match = chr && chr.match(/([\(\[\{])|([\)\]\}])/);
             before = false;
         }
@@ -123,9 +123,6 @@ function BracketMatch() {
             range.cursor = range.start;
         }
         
-        if (!before)
-            pos.column--;
-        
         return range;
     };
 
@@ -147,7 +144,7 @@ function BracketMatch() {
         if (!token)
             token = iterator.stepForward();
         if (!token)
-            return
+            return;
         
          if (!typeRe){
             typeRe = new RegExp(
@@ -194,7 +191,7 @@ function BracketMatch() {
         return null;
     };
 
-    this.$findClosingBracket = function(bracket, position, typeRe, allowBlankLine) {
+    this.$findClosingBracket = function(bracket, position, typeRe) {
         var closingBracket = this.$brackets[bracket];
         var depth = 1;
 
@@ -203,7 +200,7 @@ function BracketMatch() {
         if (!token)
             token = iterator.stepForward();
         if (!token)
-            return
+            return;
 
         if (!typeRe){
             typeRe = new RegExp(
@@ -239,12 +236,6 @@ function BracketMatch() {
             // whose type matches typeRe
             do {
                 token = iterator.stepForward();
-                if (allowBlankLine) {
-                    // if you've reached the doc end, or, you match a new content  line 
-                    if (token === null || token.type == "string") {
-                        return {row: iterator.getCurrentTokenRow() + (token === null ? 1 : -1), column: 0}; 
-                    }
-                }
             } while (token && !typeRe.test(token.type));
 
             if (token == null)

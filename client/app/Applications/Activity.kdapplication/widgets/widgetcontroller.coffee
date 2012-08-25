@@ -1,5 +1,17 @@
 class ActivityUpdateWidgetController extends KDViewController
 
+  # WIP: stop submission if user wants to submit stuff too often
+
+  submissionStopped = no
+
+  notifySubmissionStopped = ->
+
+    # new KDNotificationView type : "mini", title : "Please take a little break!"
+
+  stopSubmission = ->
+    # submissionStopped = yes
+    # __utils.wait 20000, -> submissionStopped = no
+
   loadView:(mainView)->
 
     mainView.addWidgetPane
@@ -7,9 +19,12 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : updateWidget = new ActivityStatusUpdateWidget
         cssClass  : "status-widget"
         callback  : (formData)=>
-          @updateWidgetSubmit formData
-          updateWidget.switchToSmallView()
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @updateWidgetSubmit formData, stopSubmission
+            updateWidget.switchToSmallView()
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "question"
@@ -21,8 +36,11 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : codeWidget = new ActivityCodeSnippetWidget
         delegate  : mainView
         callback  : (data)=>
-          @codeSnippetWidgetSubmit data
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @codeSnippetWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -58,6 +76,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
 
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -80,6 +99,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
   codeSnippetWidgetSubmit:(data, callback)->
 
+
     if data.activity
       {activity} = data
       delete data.activity
@@ -90,8 +110,11 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
+      if submissionStopped
+        return notifySubmissionStopped()
       bongo.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
+        stopSubmission()
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else

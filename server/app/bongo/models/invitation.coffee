@@ -13,7 +13,7 @@ class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','__sendBetaInvites'] # ,'__createBetaInvites'
+      static        : ['create','byCode','sendBetaInviteFromClient'] # ,'__createBetaInvites'
     schema          :
       code          : String
       inviteeEmail  : String
@@ -28,7 +28,7 @@ class JInvitation extends jraphical.Module
         default     : 0
       type          :
         type        : String
-        enum        : ['invalid invitation type', ['personal','multiuse','launchrock']]
+        enum        : ['invalid invitation type', ['personal','multiuse','launchrock','koding.com','kodingen.com']]
         default     : 'personal'
       status        : 
         type        : String 
@@ -60,76 +60,173 @@ class JInvitation extends jraphical.Module
   #             #   console.log 'finished', i++
   #             #   callback 'ok'
   # 
-  @__sendBetaInvites = bongo.secure do->
-    betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
-    # betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
-    protocol = 'https://'
-    (client,callback)->
-      i = 0
-      recipients = []
-      {host, port} = server
-      account = client.connection.delegate
-      unless 'super-admin' in account.globalFlags 
-        return callback new KodingError "not authorized"
+  # @__sendBetaInvites = bongo.secure do->
+  #   betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
+  #   # betaTestersEmails = 'chris123412341234@jraphical.com'
+  #   betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+  #   protocol = 'https://'
+  #   (client,callback)->
+  #     i = 0
+  #     recipients = []
+  #     {host, port} = server
+  #     account = client.connection.delegate
+  #     unless 'super-admin' in account.globalFlags 
+  #       return callback new KodingError "not authorized"
 
-      # host = 'localhost:3000'
-      # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(1000, 1999).forEach (email)=>
-        recipients.push =>
-          @one {inviteeEmail: email}, (err, invite)=>
-            if err
-              console.log err
-            else if invite?
-              url = "#{protocol}#{host}/invitation/#{invite.code}"
-              # bitly.shorten url, (err, response)=>
-              #   shortenedUrl = response.data.url
-              #   if shortenedUrl?
-                  # shortenedUrl = url
-              personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
+  #     # host = 'localhost:3000'
+  #     # protocol = 'http://'
+  #     uniq(betaTestersEmails.split '\n').slice(2983, 3999).forEach (email)=>
+  #       recipients.push =>
+  #         @one {inviteeEmail: email}, (err, invite)=>
+  #           if err
+  #             console.log err
+  #           else if invite?
+  #             url = "#{protocol}#{host}/invitation/#{invite.code}"
+  #             # bitly.shorten url, (err, response)=>
+  #             #   shortenedUrl = response.data.url
+  #             #   if shortenedUrl?
+  #                 # shortenedUrl = url
+  #             personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               
-              Emailer.send
-                From      : @getInviteEmail()
-                To        : email
-                Subject   : '[Koding] Here is your beta invite!'
-                TextBody  : personalizedMail
-              , (err)-> 
-                # console.log 'finished', i++, err
-                recipients.next(err)
-                # else console.log email
-            else
-              console.log "no invitation was found for #{email}"              
-              recipients.next null
-      recipients.push callback
-      daisy recipients
-        
+  #             Emailer.send
+  #               From      : @getInviteEmail()
+  #               To        : email
+  #               Subject   : '[Koding] Here is your beta invite!'
+  #               TextBody  : personalizedMail
+  #             , (err)-> 
+  #               # console.log 'finished', i++, err
+  #               recipients.next(err)
+  #               # else console.log email
+  #           else
+  #             console.log "no invitation was found for #{email}"              
+  #             recipients.next null
+  #     recipients.push callback
+  #     daisy recipients
   
-  @__createBetaInvites =do ->
-    #betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
-    #betaTestersEmails = 'chris123123@jraphical.com'
-    (callback)->
-      JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
-        i = 0
-        recipients = []
-        uniq(betaTestersEmails.split '\n').forEach (email)->
-          code = crypto
-            .createHmac('sha1', 'kodingsecret')
-            .update(email)
-            .digest('hex')
-          # console.log email, code
-          recipients.push ->
-            invite = new JInvitation {
-              code
-              inviteeEmail  : email
-              maxUses       : 1
-              origin        : ObjectRef(devrim)
-              type          : 'launchrock'
-            }
-            invite.save (err)-> 
-              recipients.next(err)
-        recipients.push -> callback(recipients)
-        daisy recipients
+  createBetaInvite = (options,callback)->
+    {inviterUsername,inviteeEmail,inviteType} = options
+    inviterUsername ?= "devrim"
+    inviteeEmail    ?= "devrim+"+Date.now()+"@koding.com"
+    inviteType      ?= "koding.com"
+
+    JAccount.one {'profile.nickname': inviterUsername}, (err, inviterAccount)->
+      code = crypto
+        .createHmac('sha1', 'kodingsecret')
+        .update(inviteeEmail)
+        .digest('hex')
+      
+      
+      invite = new JInvitation
+        code          : code
+        inviteeEmail  : inviteeEmail
+        maxUses       : 1
+        origin        : ObjectRef(inviterAccount)
+        type          : inviteType
+      
+      invite.save (err)->
+        if err
+          console.log err 
+          callback err
+        else
+          callback null
+
+  @sendBetaInviteFromClient = bongo.secure (client, options,callback)->
+    account = client.connection.delegate
+    # unless 'super-admin' in account.globalFlags 
+    unless account?.profile?.nickname is 'devrim'
+      return callback new KodingError "not authorized"
+    else
+      if options.batch?
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:-1},(err,emails)->        
+          daisy queue = emails.map (item)->
+            ->
+              # queue.push ->
+              log item.email
+              item.sent = yes
+              JInvitation.sendBetaInvite email:item.email,(err,res)->
+                if err
+                  callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
+                else
+                  item.save (err)->
+                    if err
+                      callback 'err',"#{item.email}something went wrong saving the item as sent."
+                    else
+                      callback null,"#{item.email} is sent and marked as sent."
+                    setTimeout (-> queue.next()), 50
+      else
+        JInvitation.sendBetaInvite options,callback
+
+  betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+  @sendBetaInvite = (options,callback) ->
+    protocol = 'http://'
+    {host, port} = server
+    email   = options.email ? "devrim+#{Date.now()}@koding.com"
+    
+    JInvitation.one {inviteeEmail: email}, (err, invite)=>
+      if err
+        console.log err
+      else if invite?
+        url = "#{protocol}#{host}/invitation/#{invite.code}"
+        personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
+        
+        emailerObj = 
+          From      : @getInviteEmail()
+          To        : email
+          Subject   : '[Koding] Here is your beta invite!'
+          TextBody  : personalizedMail
+
+        # console.log emailerObj
+        if options.justInviteNoEmail
+          callback null,"invite link: #{url}"
+          bitly.shorten url, (err, response)->
+            if err              
+              callback err
+            else
+              shortenedUrl = response.data.url
+              callback err,shortenedUrl
+        else
+          Emailer.send emailerObj, (err)-> 
+            if err
+              console.log '[ERROR SENDING MAIL]', email,err
+            else
+              callback null
+          # else console.log email
+      else
+        # console.log "no invitation was found for #{email}"
+        createBetaInvite inviteeEmail:email,(err)->
+          unless err
+            options.email = email
+            JInvitation.sendBetaInvite options,callback
+          else
+            log "[JInvitation.sendBetaInvite] something got messed up."
+
+  
+  # @__createBetaInvites =do ->
+  #   #betaTestersEmails = 'chris123412341234@jraphical.com'
+  #   betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
+  #   #betaTestersEmails = 'chris123123@jraphical.com'
+  #   (callback)->
+  #     JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
+  #       i = 0
+  #       recipients = []
+  #       uniq(betaTestersEmails.split '\n').forEach (email)->
+  #         code = crypto
+  #           .createHmac('sha1', 'kodingsecret')
+  #           .update(email)
+  #           .digest('hex')
+  #         # console.log email, code
+  #         recipients.push ->
+  #           invite = new JInvitation {
+  #             code
+  #             inviteeEmail  : email
+  #             maxUses       : 1
+  #             origin        : ObjectRef(devrim)
+  #             type          : 'launchrock'
+  #           }
+  #           invite.save (err)-> 
+  #             recipients.next(err)
+  #       recipients.push -> callback(recipients)
+  #       daisy recipients
   
   @grant =(selector, quota, callback)->
     unless quota > 0

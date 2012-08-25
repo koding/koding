@@ -28,13 +28,14 @@ processes   = require "processes"
 #   debug : console.log
 #   warn  : console.log
 
-{spawn, exec}     = require 'child_process'
-fs          = require "fs"
+{spawn, exec} = require 'child_process'
+fs            = require "fs"
  
 # create required folders
 mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
- 
+fs.writeFileSync "./.revision","0.0.1"
+
 # get current version
 
 if process.argv[2] is 'buildForProduction'
@@ -121,7 +122,12 @@ targetPaths =
          
   useStaticFilesServer  : (options)-> !!options.useStatic
 
-  whichEnv : (options)-> options.database
+  whichEnv : (options)->
+    {database} = options
+    if database is "beta" or database is "beta-local"
+      return "beta"
+    else
+      return "dev"
 
   prodPostBuildSteps : (options,callback)->
     callback null
@@ -229,8 +235,8 @@ task 'checkModules', 'check node_modules dir',(options)->
     process.exit()
 
   # check if versions match
-  for mod,ver of required_versions when (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version isnt required_versions[mod]
-    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect. it has to be #{ver}."
+  for mod,ver of required_versions when (packageVersion = (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version) isnt required_versions[mod]
+    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect:#{packageVersion}. it has to be #{ver}."
     log.info  "If you want to keep this version edit CakeNodeModules.coffee or run: npm install #{mod}@#{ver}"
     process.exit()
 
@@ -278,8 +284,7 @@ task 'build', 'optimized version for deployment', (options)->
 # ------------- BUILDER START ----------#
 build = (options)->
   log.debug "building with following options, ctrl-c before too late:",options
-
-  debug = if options.debug? then "--debug --prof --prof-lazy" else "--max-stack-size=1073741824"
+  debug = if options.debug? then "--debug --prof --prof-lazy" else "--stack_size=2048"
   run = 
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
 
