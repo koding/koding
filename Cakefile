@@ -235,8 +235,8 @@ task 'checkModules', 'check node_modules dir',(options)->
     process.exit()
 
   # check if versions match
-  for mod,ver of required_versions when (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version isnt required_versions[mod]
-    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect. it has to be #{ver}."
+  for mod,ver of required_versions when (packageVersion = (JSON.parse(fs.readFileSync "./node_modules/#{mod}/package.json")).version) isnt required_versions[mod]
+    log.error "[ERROR] NPM MODULE VERSION MISMATCH: #{mod} version is incorrect:#{packageVersion}. it has to be #{ver}."
     log.info  "If you want to keep this version edit CakeNodeModules.coffee or run: npm install #{mod}@#{ver}"
     process.exit()
 

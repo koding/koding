@@ -4,7 +4,7 @@ module.exports =
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse","amqp"
   ]
   npm_modules :
-    bitly           : '1.2.3'
+    bitly           : '1.2.4'
     braintree       : '1.1.0'
     'coffee-script' : '1.1.2'
     dateformat      : '1.0.2-1.2.3'
