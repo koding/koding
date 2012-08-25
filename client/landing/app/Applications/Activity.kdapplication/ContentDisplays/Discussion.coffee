@@ -38,7 +38,7 @@ class ContentDisplayDiscussion extends KDView
           else
             log "REPLY SUBMITTED",@, @opinionBox, @opinionBox.showMore
             @propagateEvent (KDEventType:"OwnOpinionHasArrived"), opinion
-            @propagateEvent (KDEventType:"OpinionWasSubmitted"), @opinionBox.showMore
+
     @actionLinks = new DiscussionActivityActionsView
       delegate : @opinionBox.opinionList
       cssClass : "comment-header"
