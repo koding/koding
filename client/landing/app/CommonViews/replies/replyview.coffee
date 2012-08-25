@@ -20,11 +20,11 @@ class ReplyView extends KDView
     , data
 
     @commentController        = new ReplyListViewController view: @commentList
-    @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
+    @addSubView showMore      = new ReplyViewHeader delegate: @commentList, data
     @addSubView @commentList
 
-    @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
-    @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
+    @commentList.on "OwnOpinionHasArrived", -> showMore.ownCommentArrived()
+    @commentList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
 
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
@@ -40,13 +40,13 @@ class ReplyView extends KDView
       callback : @decorateActiveCommentState
 
     @listenTo
-      KDEventTypes : "CommentLinkReceivedClick"
+      KDEventTypes : "OpinionLinkReceivedClick"
       listenedToInstance : @commentList
       callback : (pubInst, event) =>
         @commentForm.commentInput.setFocus()
 
     @commentList.on "CommentCountClicked", =>
-      @commentList.emit "AllCommentsLinkWasClicked"
+      @commentList.emit "AllOpinionsLinkWasClicked"
 
     @listenTo
       KDEventTypes : "CommentViewShouldReset"
