@@ -53,6 +53,7 @@ class ReplyListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeComments 10, meta.createdAt
 
+
     listView.registerListener
       KDEventTypes  : "CommentSubmitted"
       listener      : @
@@ -64,6 +65,7 @@ class ReplyListViewController extends KDListViewController
           listView.addItem reply
           listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
+          log "here"
 
   fetchCommentsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
@@ -119,6 +121,5 @@ class ReplyListViewController extends KDListViewController
         @_hasBackgrounActivity = no
 
   replaceAllComments:(comments)->
-    log "replaceAllComments"
     @removeAllItems()
     @instantiateListItems comments

@@ -6,26 +6,25 @@ class ReplyOpinionFormView extends KDFormView
 
     {profile} = KD.whoami()
 
-    log "delegate ", @getDelegate
-
     @submitOpinionBtn = new KDButtonView
-      title: "Post your reply"
-      type: "submit"
-      cssClass : "opinion-submit"
+      title           : "Post your reply"
+      type            : "submit"
+      cssClass        : "clean-gray opinion-submit"
 
     @opinionBody = new KDInputView
-      cssClass: "opinion-body"
-      name : "body"
-      title: ""
-      type: "textarea"
-      placeholder: "What do you want to contribute to the discussion?"
+      cssClass        : "opinion-body"
+      name            : "body"
+      title           : "your Opinion"
+      type            : "textarea"
+      autogrow        : yes
+      placeholder     : "What do you want to contribute to the discussion?"
 
     @labelAddTags = new KDLabelView
-      title : "Add Tags:"
+      title           : "Add Tags:"
 
     @selectedItemWrapper = new KDCustomHTMLView
-      tagName  : "div"
-      cssClass : "tags-selected-item-wrapper clearfix"
+      tagName         : "div"
+      cssClass        : "tags-selected-item-wrapper clearfix"
 
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"

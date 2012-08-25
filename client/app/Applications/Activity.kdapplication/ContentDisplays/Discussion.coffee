@@ -27,8 +27,8 @@ class ContentDisplayDiscussion extends KDView
     @opinionForm = new ReplyOpinionFormView
       cssClass : "opinion-container"
       callback  : (data)=>
-        msg = new KDNotificationView
-          title : "You continued a discussion."
+        # msg = new KDNotificationView
+        #   title : "You continued a discussion."
 
         # do not use JDiscussion::reply here
         @getData().reply data.body, (err, opinion) =>
@@ -36,7 +36,7 @@ class ContentDisplayDiscussion extends KDView
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
-            new KDNotificationView title : "Opinion added to database"
+            # new KDNotificationView title : "Opinion added to database"
             @propagateEvent (KDEventType:"OwnActivityHasArrived"), opinion
 
 
