@@ -27,6 +27,7 @@ class ActivityDiscussionWidget extends KDFormView
     @inputContent = new KDInputView
       label       : @labelContent
       name        : "body"
+      cssClass    : "discussion-body"
       type        : "textarea"
       autogrow    : yes
       placeholder : "What do you want to talk about?"
@@ -88,7 +89,6 @@ class ActivityDiscussionWidget extends KDFormView
     super
 
   viewAppended:()->
-    @inputContent.setHeight 72
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

@@ -7,7 +7,10 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @replyLink = new ActivityActionLink
       partial   : "Join this discussion"
       click     : (pubInst, event)=>
-        appManager.tell "Activity", "createContentDisplay", @getData()
+
+        # as an item, in the activity feed, this should link to the ContenD
+        unless @parent instanceof ContentDisplayDiscussion
+          appManager.tell "Activity", "createContentDisplay", @getData()
 
 
 

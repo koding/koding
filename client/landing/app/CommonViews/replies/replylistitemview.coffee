@@ -48,6 +48,9 @@ class ReplyListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'delete-link hidden'
 
+    @opinionComments = new KDCustomHTMLView
+
+
     activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
@@ -127,8 +130,8 @@ class ReplyListItemView extends KDListItemView
         </div>
       </div>
       <div class='item-content-comment clearfix'>
-        <p>
-          This could potentiall be a comment
-        </p>
+        <div class='opinion-comment'>
+          {{> @opinionComments}}
+        </div>
       </div>
       """
