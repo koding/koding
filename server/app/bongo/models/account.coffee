@@ -219,7 +219,7 @@ class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
 
-  dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

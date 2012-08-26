@@ -1,13 +1,15 @@
 class KDTabView extends KDTabViewController
-  constructor:(options)->
-    options = options ? {}
-    cssClass = "kdtabview"
-    cssClass += " #{options.cssClass}" if options.cssClass?
-    options.cssClass = cssClass
+
+  constructor:(options = {})->
+    
     super options
-    @_tabHandleContainerHidden = no
+
+    @setClass "kdtabview"
+    
+    @handlesHidden = no
+    
     @hideHandleCloseIcons() if options.hideHandleCloseIcons
-    @hideHandleContainer() if options.hideHandleContainer
+    @hideHandleContainer()  if options.hideHandleContainer
 
   appendHandleContainer:()->
     @addSubView @tabHandleContainer
@@ -43,14 +45,19 @@ class KDTabView extends KDTabViewController
       handle.makeInactive()
 
   hideHandleContainer:()->
+
     @tabHandleContainer.hide()
-    @_tabHandleContainerHidden = yes
+    @handlesHidden = yes
+
   showHandleContainer:()->
+
     @tabHandleContainer.show()
-    @_tabHandleContainerHidden = no
-  toggleHandleContainer:(duration = 0)-> @tabHandleContainer.getDomElement().toggle duration
+    @handlesHidden = no
+
+  toggleHandleContainer:(duration = 0)-> @tabHandleContainer.$().toggle duration
 
   hideHandleCloseIcons:()->
-    @tabHandleContainer.getDomElement().addClass "hide-close-icons"
+    @tabHandleContainer.$().addClass "hide-close-icons"
+  
   showHandleCloseIcons:()->
-    @tabHandleContainer.getDomElement().removeClass "hide-close-icons"
+    @tabHandleContainer.$().removeClass "hide-close-icons"

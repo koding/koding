@@ -83,11 +83,11 @@ Includes =
         notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-        
-        
+
+
         cactivity                 : "./server/app/bongo/models/activity.coffee"
         cbucket                   : "./server/app/bongo/models/bucket.coffee"
-        
+
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -99,9 +99,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-        
+
         jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-        
+
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -308,8 +308,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
-        
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
+
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
@@ -567,14 +567,11 @@ Includes =
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
         jqueryHash        : "./client/libs/jquery-hashchange.js"
-        # jqueryAutoGrow    : "./client/libs/jquery-autogrow.js"
         jqueryTimeAgo     : "./client/libs/jquery-timeago.js"
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
-        # jqueryJodo        : "./client/libs/jquery.jodo.js"
-        # jqueryTipTip      : "./client/libs/jquery.tipTip.min.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
         # log4js            : "./client/libs/log4js.js"
@@ -591,9 +588,6 @@ Includes =
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
 
-
-
-        # bootstrapPopover  : "./client/libs/bootstrap-popover.js"
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
 
@@ -660,11 +654,7 @@ Includes =
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
 
-        # group          : "./client/stylus/app.group.styl"
-        # responsive     : "./client/stylus/responsive.styl"
         temp             : "./client/stylus/temp.styl"
-        # app1           : "./client/stylus/app1.styl"
-        # appdiscarded   : "./client/stylus/app.discarded.styl" => junk styles from app.styl seperated.
 
         # mediaqueries should stay at the bottom
         app1200             : "./client/stylus/app.1200.styl"
@@ -672,21 +662,9 @@ Includes =
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
 
-        toolsdemos          : "./client/stylus/tools.demos.styl"
-
       CssFiles  :
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
-        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
-        # deprecated!
-        # buttons       : "./client/css/buttons.css"
-        # wmd           : "./client/css/wmd.css"
-        # terminal      : "./client/css/terminal.css"
-        # iconic        : "./client/css/iconic.css"
-        # mediaqueries  : "./client/css/mediaqueries.css"
-        # multiselect : "./client/css/jquery.multiselect.css"
-        # tipTip    : "./client/css/tipTip.css"
-        # fonts     : "./client/css/fonts.css"
 
 module.exports = Includes
