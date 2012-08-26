@@ -85,23 +85,20 @@ __utils =
     value.replace /<(?:.|\n)*?>/gm, ''
 
   applyMarkdown: (text)->
-
     # problems with markdown so far:
-    # - clashes with some of the htmlentities in the sanitized properties
     # - links are broken due to textexpansions (images too i guess)
-
-
     return null unless text
+
     marked.setOptions
       gfm: true
       pedantic: false
       sanitize: true
       highlight:->
+        # highlight wants a callback to fetch syntax highlighting
         null
-    log "applying markdown to ", text
-    text = text.replace /(&#10;)/g,"\n"
-    text = text.replace /&quot;/g,'"'
-    log "it's now", text
+
+    text = Encoder.htmlDecode text
+
     marked text
 
   applyLineBreaks: (text)->
