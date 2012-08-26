@@ -53,7 +53,18 @@ class AceView extends JView
         return if publicPath is @getData().path
         appManager.openFileWithApplication publicPath, "Viewer"
 
-    unless publicUrlCheck.test(@getData().path) then @previewButton.hide()
+    @previewButton.hide() unless publicUrlCheck.test(@getData().path)
+
+    @compileButton = new KDButtonView
+      style     : "editor-button"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "compile"
+      callback  : => 
+        @getSingleton('kodingAppsController').compileApp @getData().path, =>
+          @ace.notify "App compiled!", "success"
+
+    @compileButton.hide() unless /\.kdapp\//.test @getData().path
 
     @setViewListeners()
     
@@ -89,6 +100,7 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
+        {{> @compileButton}}
         {{> @previewButton}}
         {{> @saveButton}}
       </div>

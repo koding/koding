@@ -90,10 +90,7 @@ class NFinderController extends KDViewController
       # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       @mount.emit "fs.fetchContents.started"
-      kiteController.run
-        withArgs  :
-          command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
-      , (err, response)=>
+      @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
@@ -101,6 +98,15 @@ class NFinderController extends KDViewController
         # temp fix this doesn't fire in kitecontroller
         kiteController.emit "UserEnvironmentIsCreated"
         @mount.emit "fs.fetchContents.finished"
+
+
+  multipleLs:(pathArray, callback)->
+    
+    KD.getSingleton('kiteController').run
+      withArgs  :
+        command : "ls #{pathArray.join(" ")} -lpva --group-directories-first --time-style=full-iso"
+    , callback
+      
 
 
   fetchStorage:(callback)->

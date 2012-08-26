@@ -1,4 +1,6 @@
 
+# FIXME : # too many parameters on some methods, callback is not the last 08/2012 - Sinan
+
 class AppStorage # extends KDObject
 
   constructor: (appId, version)->
@@ -17,12 +19,17 @@ class AppStorage # extends KDObject
     else
       callback @_storage
 
+  # FIXME : # FAIL at async return, no use of callback here
   fetchValue: (key, defaultValue, callback, group = 'bucket')->
 
     @reset()
     @fetchStorage (storage)=>
       if storage[group]?[key] then storage[group][key] else defaultValue
 
+  # FIXME: defaultValue is not a good idea here it pollutes params unnecessarily
+  #        usage hint :
+  #        instead of     : val = appStorage.getValue "someKey", "myDefaultValue"
+  #        this is better : val = appStorage.getValue("someKey") or "myDefaultValue"
   getValue: (key, defaultValue, group = 'bucket')->
 
     return defaultValue unless @_storage
@@ -30,7 +37,11 @@ class AppStorage # extends KDObject
 
   setValue: (key, value, callback, group = 'bucket')->
 
-    return if @getValue(key) is value
+    # FIXME: i think this was to avoid unnecessary writes but 
+    #        it is problematic because it's a reference if you update 
+    #        the ref you can not write it to db
+    
+    # return if @getValue(key) is value
 
     pack = @zip key, group, value
 

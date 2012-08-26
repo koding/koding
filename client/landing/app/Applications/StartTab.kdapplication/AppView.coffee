@@ -142,18 +142,23 @@ class StartTabMainView extends JView
         , manifest
 
   runApp:(manifest, callback)->
-
+    {options} = manifest
     @getSingleton("kodingAppsController").getApp manifest.name, (appScript)=>
-      mainView = @getSingleton('mainView')
-      mainView.mainTabView.showPaneByView
-        name         : manifest.name
-        hiddenHandle : no
-        type         : "application"
-      , (appView = new KDView)
-      callback?()
-      # security please!
-      eval appScript
-      return appView
+      if options and options.type is "tab"
+        mainView = @getSingleton('mainView')
+        mainView.mainTabView.showPaneByView
+          name         : manifest.name
+          hiddenHandle : no
+          type         : "application"
+        , (appView = new KDView)
+        callback?()
+        # security please!
+        eval appScript
+        return appView
+      else
+        eval appScript
+        callback?()
+        return null
 
   addSplitOptions:->
     for splitOption in getSplitOptions()
@@ -250,43 +255,6 @@ class StartTabMainView extends JView
       },
     ]
 
-  apps = [
-    {
-      name      : 'Ace Editor'
-      type      : 'Code Editor'
-      appToOpen : 'Ace'
-      image     : '../images/icn-ace.png'
-    },
-    {
-      name      : 'CodeMirror'
-      type      : 'Code Editor'
-      appToOpen : 'CodeMirror'
-      image     : '../images/icn-codemirror.png'
-      disabled  : yes
-    },
-    {
-      name      : 'yMacs'
-      type      : 'Code Editor'
-      appToOpen : 'YMacs'
-      image     : '../images/icn-ymacs.png'
-      disabled  : yes
-    },
-    {
-      name      : 'Pixlr'
-      type      : 'Image Editor'
-      appToOpen : 'Pixlr'
-      image     : '../images/icn-pixlr.png'
-      disabled  : yes
-    },
-    {
-      name      : 'Get more...'
-      appToOpen : 'Apps'
-      image     : '../images/icn-appcatalog.png'
-      catalog   : yes
-    }
-  ]
-
-
 class AppItemContainer extends KDView
   parentDidResize:->
     # log @getDelegate().getHeight()
@@ -308,7 +276,7 @@ class StartTabAppView extends JView
     {icns} = @getData()
     @imgHolder = new KDView
       tagName : "p"
-      partial : "<img src=\"#{icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}\" />"
+      partial : "<img src=\"#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'] else KD.apiUri + '/images/default.app.listthumb.png'}\" />"
 
     @loader = new KDLoaderView
       size          :
