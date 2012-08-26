@@ -48,8 +48,12 @@ class OpinionListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'delete-link hidden'
 
-    @opinionComments = new KDCustomHTMLView
+    @commentBox = new CommentView null, data
 
+    @actionLinks = new ActivityActionsView
+      delegate : @commentBox.commentList
+      cssClass : "comment-header"
+    , data
 
     activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
@@ -119,11 +123,12 @@ class OpinionListItemView extends KDListItemView
       <div class='item-content-comment clearfix'>
         <span class='avatar'>{{> @avatar}}</span>
         <div class='comment-contents clearfix'>
+          {{> @actionLinks}}
           {{> @deleteLink}}
           <p class='comment-body'>
             {{> @author}}
           </p>
-          <p class='comment-body'>
+          <p class='comment-body opinion-body-with-markup'>
             {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
           </p>
           <time>{{$.timeago #(meta.createdAt)}}</time>
@@ -131,7 +136,7 @@ class OpinionListItemView extends KDListItemView
       </div>
       <div class='item-content-comment clearfix'>
         <div class='opinion-comment'>
-          {{> @opinionComments}}
+          {{> @commentBox}}
         </div>
       </div>
       """
