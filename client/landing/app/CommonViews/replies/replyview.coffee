@@ -4,7 +4,7 @@ class OpinionView extends KDView
 
     super
 
-    @setClass "comment-container"
+    @setClass "comment-container opinion-container-box"
     @createSubViews data
     @resetDecoration()
     @attachListeners()
@@ -24,13 +24,11 @@ class OpinionView extends KDView
     @addSubView @opinionList
 
     @opinionList.on "OwnOpinionHasArrived", ->
-      log "reply is here"
       showMore.ownCommentArrived()
     @opinionList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
 
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
-        log "reply #", i, reply
         @opinionList.addItem reply
 
     @opinionList.emit "BackgroundActivityFinished"

@@ -31,12 +31,12 @@ class ContentDisplayDiscussion extends KDView
         #   title : "You continued a discussion."
 
         # do not use JDiscussion::reply here
-        @getData().reply data.body, (err, opinion) =>
+        log "submitted data is",data
+        @getData().reply data, (err, opinion) =>
           callback? err, opinion
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
-            log "REPLY SUBMITTED",@, @opinionBox, @opinionBox.showMore
             @propagateEvent (KDEventType:"OwnOpinionHasArrived"), opinion
 
     @actionLinks = new DiscussionActivityActionsView
@@ -81,7 +81,7 @@ class ContentDisplayDiscussion extends KDView
     <div class='activity-item-right-col'>
       <h3>{{#(title)}}</h3>
       <p class='context'>{{@utils.applyLineBreaks @utils.applyMarkdown @utils.applyTextExpansions #(body)}}</p>
-      <footer class='clearfix'>
+      <footer class='discussion-footer clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>

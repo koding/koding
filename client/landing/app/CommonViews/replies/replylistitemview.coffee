@@ -55,6 +55,11 @@ class OpinionListItemView extends KDListItemView
       cssClass : "comment-header"
     , data
 
+    @tags = new ActivityChildViewTagGroup
+      itemsToShow   : 3
+      subItemClass  : TagLinkView
+    , data.meta.tags
+
     activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
@@ -120,10 +125,9 @@ class OpinionListItemView extends KDListItemView
         "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
     else
       """
-      <div class='item-content-comment clearfix'>
+      <div class='item-content-opinion item-content-comment clearfix'>
         <span class='avatar'>{{> @avatar}}</span>
         <div class='comment-contents clearfix'>
-          {{> @actionLinks}}
           {{> @deleteLink}}
           <p class='comment-body'>
             {{> @author}}
@@ -131,8 +135,15 @@ class OpinionListItemView extends KDListItemView
           <p class='comment-body opinion-body-with-markup'>
             {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
           </p>
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-        </div>
+          <footer class='clearfix'>
+            <div class='type-and-time'>
+              <span class='type-icon'></span> by {{> @author}}
+              <time>{{$.timeago #(meta.createdAt)}}</time>
+              {{> @tags}}
+            </div>
+            {{> @actionLinks}}
+      </footer>
+      </div>
       </div>
       <div class='item-content-comment clearfix'>
         <div class='opinion-comment'>
