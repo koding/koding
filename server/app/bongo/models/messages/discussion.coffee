@@ -142,8 +142,9 @@ class JDiscussion extends JPost
       callback new Error 'Log in required!'
     else
       comment = new JOpinion
-        body: comment
-        title: comment
+        body: comment.body
+        title: comment.body
+        meta: comment.meta
       exempt = delegate.checkFlag('exempt')
       if exempt
         comment.isLowQuality = yes

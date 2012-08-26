@@ -13,8 +13,6 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     super options,data
 
-    log "opinonBox", @
-
     @actionLinks = new DiscussionActivityActionsView
       delegate : @commentBox.opinionList
       cssClass : "reply-header"
