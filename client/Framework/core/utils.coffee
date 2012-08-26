@@ -106,7 +106,7 @@ __utils =
 
   applyLineBreaks: (text)->
     return null unless text
-    text.replace "\n", "<br />"
+    text.replace /\n/g, "<br />"
 
   applyTextExpansions: (text)->
     return null unless text
