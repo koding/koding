@@ -19,13 +19,15 @@ class OpinionView extends KDView
       delegate      : @
     , data
 
-    @opinionController        = new OpinionListViewController view: @opinionList
-    @addSubView @showMore      = new OpinionViewHeader delegate: @opinionList, data
+    @opinionController          = new OpinionListViewController view: @opinionList
+    @addSubView @showMore       = new OpinionViewHeader delegate: @opinionList, data
     @addSubView @opinionList
 
     @opinionList.on "OwnOpinionHasArrived", ->
       showMore.ownCommentArrived()
     @opinionList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
+
+    log "data.replies is", data.replies
 
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
@@ -45,8 +47,8 @@ class OpinionView extends KDView
       callback : (pubInst, event) =>
         @opinionForm.commentInput.setFocus()
 
-    @opinionList.on "CommentCountClicked", =>
-      @opinionList.emit "AllOpinionsLinkWasClicked"
+    # @opinionList.on "CommentCountClicked", =>
+    #   @opinionList.emit "AllOpinionsLinkWasClicked"
 
     @listenTo
       KDEventTypes : "CommentViewShouldReset"
