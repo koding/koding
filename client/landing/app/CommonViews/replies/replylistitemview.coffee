@@ -43,11 +43,20 @@ class OpinionListItemView extends KDListItemView
     #     callback    : (event)=> @settingsButton.contextMenu event
     # else
 
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
+        title     : "Delete your opinion"
         href      : '#'
       cssClass    : 'delete-link hidden'
+
+    @editLink = new KDCustomHTMLView
+      tagName     : 'a'
+      attributes  :
+        title     : "Edit your opinion"
+        href      : '#'
+      cssClass    : 'edit-link hidden'
 
     @commentBox = new CommentView null, data
 
@@ -68,10 +77,29 @@ class OpinionListItemView extends KDListItemView
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
-        log "adding editForm for",data
         @editForm = new OpinionFormView
           title : "edit-opinion"
+          cssClass : "edit-opinion-form hidden"
+          callback : (data)=>
+            @getData().modify data, (err, opinion) =>
+              callback? err, opinion
+              if err
+                new KDNotificationView title : "Your changes weren't saved.", type :"mini"
+              else
+                # new KDNotificationView title : "modified!"
+                @editForm.setClass "hidden"
+
         , data
+
+        @editLink.unsetClass "hidden"
+
+        @listenTo
+          KDEventTypes       : "click"
+          listenedToInstance : @editLink
+          callback           : =>
+            log "clicked edit"
+            @editForm.unsetClass "hidden"
+
 
 
         @deleteLink.unsetClass "hidden"
@@ -79,6 +107,8 @@ class OpinionListItemView extends KDListItemView
           KDEventTypes       : "click"
           listenedToInstance : @deleteLink
           callback           : => @conformDeleteOpinion data
+      # workaround: how would this be solved better?
+      else @editForm = new KDCustomHTMLView
 
   render:->
     if @getData().getAt 'deletedAt'
@@ -137,10 +167,12 @@ class OpinionListItemView extends KDListItemView
         <span class='avatar'>{{> @avatar}}</span>
         <div class='comment-contents clearfix'>
           {{> @deleteLink}}
+          {{> @editLink}}
           <p class='comment-body'>
             {{> @author}}
           </p>
-          <p class='comment-body opinion-body-with-markup'>
+          <p class='opinion-body comment-body opinion-body-with-markup'>
+            {{> @editForm}}
             {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
           </p>
           <footer class='clearfix'>

@@ -27,9 +27,6 @@ class ContentDisplayDiscussion extends KDView
     @opinionForm = new OpinionFormView
       cssClass : "opinion-container"
       callback  : (data)=>
-        # msg = new KDNotificationView
-        #   title : "You continued a discussion."
-
         # do not use JDiscussion::reply here
         log "submitted data is",data
         @getData().reply data, (err, opinion) =>

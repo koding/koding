@@ -65,6 +65,10 @@ app.comments.styl
           line-height       11px
           color             #aaa
         &:hover
+          .edit-link
+            opacity         .5
+            &:hover
+              opacity       1
           .delete-link
             opacity         .5
             &:hover
@@ -85,6 +89,17 @@ app.comments.styl
     sprite()
     // border                  1px solid transparent
 
+  .edit-link
+    display                 block
+    size                    20px, 20px
+    position                absolute
+    top                     5px
+    right                   20px
+    bg                      position, -120px -400px
+    opacity                 0
+    vendor                  transition, opacity .15s linear
+    sprite()
+    // border                  1px solid black
 
 
   .item-add-comment-box
@@ -150,7 +165,7 @@ app.comments.styl
 
   .show-more-comments
     size                  auto, 0
-    bg                    color,#F8F8F8        
+    bg                    color,#F8F8F8
     padding               0 10px
     rounded               4px 4px 0 0
     line-height           27px
@@ -163,7 +178,7 @@ app.comments.styl
     &.has-new-items
       a.new-count
         display           inline
-    
+
     a
       line-height         14px
       color               #299FC6
