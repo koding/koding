@@ -28,7 +28,6 @@ class ContentDisplayDiscussion extends KDView
       cssClass : "opinion-container"
       callback  : (data)=>
         # do not use JDiscussion::reply here
-        log "submitted data is",data
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
           if err

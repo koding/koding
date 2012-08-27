@@ -27,8 +27,6 @@ class OpinionView extends KDView
       showMore.ownCommentArrived()
     @opinionList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
 
-    log "data.replies is", data.replies
-
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
         @opinionList.addItem reply
