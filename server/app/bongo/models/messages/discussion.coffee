@@ -13,12 +13,32 @@ class JOpinion extends JPost
 
   @share()
 
+  schema = _.extend {}, jraphical.Message.schema, {
+    isLowQuality  : Boolean
+    counts        :
+      followers   :
+        type      : Number
+        default   : 0
+      following   :
+        type      : Number
+        default   : 0
+    originType  :
+      type      : String
+      required  : yes
+    originId    :
+      type      : ObjectId
+      required  : yes
+    deletedAt   : Date
+    deletedBy   : ObjectRef
+    meta        : require 'bongo/bundles/meta'
+  }
+
   @set
     emitFollowingActivities: yes
     taggedContentRole : 'reply'
     tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
-    schema        : JPost.schema
+    schema        : schema
     relationships     :
       comment         : JComment
       participant     :
@@ -57,12 +77,42 @@ class JOpinion extends JPost
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
 
+  delete: secure ({connection:{delegate}}, callback)->
+    originId = @getAt 'originId'
+    unless delegate.getId().equals originId
+      callback new KodingError 'Access denied!'
+    else
+      id = @getId()
+      {getDeleteHelper} = Relationship
+      queue = [
+        getDeleteHelper {
+          targetId    : id
+          sourceName  : /Activity$/
+        }, 'source', -> queue.fin()
+        # getDeleteHelper {
+        #   targetName  : {$ne : 'JAccount'}
+        #   sourceId    : id
+        #   sourceName  : 'JOpinion'
+        # }, 'target', -> queue.fin()
+        ->
+          Relationship.remove {
+            targetId  : id
+            as        : 'opinion'
+          }, -> queue.fin()
+        => @remove -> queue.fin()
+      ]
+      dash queue, =>
+        log "deleted opinion"
+        @emit 'OpinionIsDeleted', 1
+        callback null
+
+
   modify: secure (client, data, callback)->
-    codeSnip =
+    opinion =
       title       : data.title
       body        : data.body
       meta        : data.meta
-    JPost::modify.call @, client, codeSnip, callback
+    JPost::modify.call @, client, opinion, callback
 
   #?>
 
