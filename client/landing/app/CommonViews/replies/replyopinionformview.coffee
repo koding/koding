@@ -26,6 +26,27 @@ class OpinionFormView extends KDFormView
       tagName         : "div"
       cssClass        : "tags-selected-item-wrapper clearfix"
 
+    @markdownSelect = new KDSelectBox
+      type          : "select"
+      name          : "markdown-select"
+      cssClass      : "select markdown-select"
+      selectOptions :
+          [
+              title     : "enable markdown syntax"
+              value     : "markdown"
+            ,
+              title     : "disable markdown syntax"
+              value     : "nomarkdown"
+          ]
+      defaultValue  : "markdown"
+      callback      : (value) =>
+        @emit "opinion.changeMarkdown", value
+
+    # insert functionality for markdown swapping here
+    @on "opinion.changeMarkdown", (value) ->
+
+
+
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
       type                : "tags"
@@ -58,13 +79,13 @@ class OpinionFormView extends KDFormView
   pistachio:->
       """
       <div class="opinion-box">
-
         <div class="opinion-form">
-        <div class="opinion-form-headline">
-        <p>Post your reply here</p>
-      </div>
-        <span>You can use Markdown here.</span>
-        {{> @opinionBody}}
+          <div class="opinion-form-headline">
+            <h3>Post your reply here, {{#(firstName)}}</h3>
+          </div>
+          {{> @markdownSelect}}
+
+          {{> @opinionBody}}
         </div>
         <div class="formline">
           {{> @labelAddTags}}
