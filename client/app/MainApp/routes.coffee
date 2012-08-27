@@ -15,7 +15,7 @@ do ->
         mainController.loginScreen.hidden = no
         
         recoveryToken = decodeURIComponent recoveryToken
-        bongo.api.JPasswordRecovery.validate recoveryToken, (err, isValid)->
+        koding.api.JPasswordRecovery.validate recoveryToken, (err, isValid)->
           if err or !isValid
             new KDNotificationView
               title   : 'Something went wrong.'
@@ -33,7 +33,7 @@ do ->
       if KD.isLoggedIn()
         new KDNotificationView
           title: 'Could not redeem invitation because you are already logged in.'
-      else bongo.api.JInvitation.byCode inviteToken, (err, invite)->
+      else koding.api.JInvitation.byCode inviteToken, (err, invite)->
         if err or !invite? or invite.status not in ['active','sent']
           if err then error err
           console.log invite
@@ -63,7 +63,7 @@ do ->
     
     '/verify/:confirmationToken': ({confirmationToken})->
       confirmationToken = decodeURIComponent confirmationToken
-      bongo.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
+      koding.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
         location.replace '#'
         if err
           throw err
@@ -75,7 +75,7 @@ do ->
 
     '/member/:username': ({username})->
 
-        bongo.api.JAccount.one "profile.nickname" : username, (err, account)->
+        koding.api.JAccount.one "profile.nickname" : username, (err, account)->
           if err then warn err
           else if account
             appManager.tell "Members", "createContentDisplay", account

@@ -57,5 +57,3 @@ koding = new Bongo
       login     : "guest"
       password  : "x1srTA7!%Vb}$n|S"
   }
-
-console.log koding

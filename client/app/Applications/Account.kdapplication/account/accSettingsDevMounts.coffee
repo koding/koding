@@ -86,26 +86,26 @@ class AccountMountListController extends KDListViewController
       when "add"
         switch f.type
           when "ftp"
-            jm = new bongo.api.JMountFTP
+            jm = new koding.api.JMountFTP
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
               password      : f.password
               port          : f.port               
           when "sftp"
-            jm = new bongo.api.JMountSFTP
+            jm = new koding.api.JMountSFTP
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
               password      : f.password
               port          : f.port               
           when "s3"
-            jm = new bongo.api.JMountS3
+            jm = new koding.api.JMountS3
               title         : f.title ? f.hostname
               accessKeyId   : f.accessKey
               secret        : f.secret
           when "webdav"
-            jm = new bongo.api.JMountWebDav
+            jm = new koding.api.JMountWebDav
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username

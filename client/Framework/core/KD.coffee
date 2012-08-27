@@ -49,7 +49,7 @@ KD = @KD or {}
   
   whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
   
-  isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
+  isLoggedIn:-> @whoami() instanceof koding.api.JAccount
   
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
 
@@ -60,7 +60,7 @@ KD = @KD or {}
   requireLogin:(errMsg, callback)->
     [callback, errMsg] = [errMsg, callback] unless callback
     {currentDelegate} = @getSingleton('mainController').getVisitor()
-    if currentDelegate instanceof bongo.api.JGuest
+    if currentDelegate instanceof koding.api.JGuest
       # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'

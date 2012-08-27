@@ -174,7 +174,7 @@ class AvatarPopupShareStatus extends AvatarPopup
 
   updateStatus:(status)->
 
-    bongo.api.JStatusUpdate.create body : status, (err,reply)=>
+    koding.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView

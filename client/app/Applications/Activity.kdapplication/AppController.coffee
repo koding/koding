@@ -56,7 +56,7 @@ class Activity12345 extends AppController
         title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
-    unless account instanceof bongo.api.JGuest
+    unless account instanceof koding.api.JGuest
         # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
@@ -166,10 +166,10 @@ class Activity12345 extends AppController
             env     : KD.env
           dataType  : 'jsonp'
           success   : (data)->
-            bongo.reviveFromJSONP data, (err, instances)->
+            Bongo.reviveFromJSONP data, (err, instances)->
               callback instances
     #
-    # bongo.api.CActivity.teasers selector, options, (err, activities) =>
+    # koding.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
     #     callback? activities
     #   else
@@ -219,8 +219,8 @@ class Activity12345 extends AppController
         callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
-    bongo.api.Relationship.within sourceIds, options, (err, rels)->
-      bongo.cacheable rels.map((rel)->
+    koding.api.Relationship.within sourceIds, options, (err, rels)->
+      Bongo.cacheable rels.map((rel)->
         constructorName : rel.targetName
         id              : rel.targetId
       ), callback
@@ -337,7 +337,7 @@ class ActivityListController extends KDListViewController
         @activityHeader.newActivityArrived()
     else
       switch activity.constructor
-        when bongo.api.CFolloweeBucket
+        when koding.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
 

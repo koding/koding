@@ -451,8 +451,8 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
-        bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
+        bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
 
         # mainapp controllers
