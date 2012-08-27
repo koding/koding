@@ -87,7 +87,7 @@ class OpinionFormView extends KDFormView
       <div class="opinion-box">
         <div class="opinion-form">
           <div class="opinion-form-headline">
-            <h3>Post your reply here, {{#(firstName)}}</h3>
+            <h3>Post your reply here, {{#(profile.firstName)}}</h3>
           </div>
           {{> @markdownSelect}}
 
