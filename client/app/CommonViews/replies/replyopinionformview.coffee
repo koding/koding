@@ -2,9 +2,9 @@ class OpinionFormView extends KDFormView
 
   constructor :(options, data)->
 
-    log "ofv args are",options, data
-
     super
+
+
 
     {profile} = KD.whoami()
 
@@ -30,7 +30,7 @@ class OpinionFormView extends KDFormView
 
     @markdownSelect = new KDSelectBox
       type          : "select"
-      name          : "markdown-select"
+      name          : "markdown"
       cssClass      : "select markdown-select"
       selectOptions :
           [
@@ -43,6 +43,10 @@ class OpinionFormView extends KDFormView
       defaultValue  : "markdown"
       callback      : (value) =>
         @emit "opinion.changeMarkdown", value
+
+    if data instanceof bongo.api.JOpinion
+      # Insert markdown stuff here when needed
+      @opinionBody.setValue Encoder.htmlDecode data.body
 
     # insert functionality for markdown swapping here
     @on "opinion.changeMarkdown", (value) ->
