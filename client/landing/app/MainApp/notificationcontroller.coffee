@@ -21,7 +21,7 @@ class NotificationController extends KDObject
     nickname = account.getAt('profile.nickname')
     if nickname
       channelName = 'private-'+nickname+'-private'
-      bongo.mq.fetchChannel channelName, (channel)=>
+      koding.mq.fetchChannel channelName, (channel)=>
         channel.on 'notification', (notification)=>
           @emit "NotificationHasArrived", notification
           @prepareNotification notification if notification.contents
@@ -43,7 +43,7 @@ class NotificationController extends KDObject
     isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
     actor  = replier or liker or sender
 
-    bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
+    Bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
 
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
 
@@ -79,8 +79,8 @@ class NotificationController extends KDObject
         if subject.constructorName is "JPrivateMessage"
           appManager.openApplication "Inbox"
         else
-          # ask chris if bongo.cacheable is good for this
-          bongo.api[subject.constructorName].one _id : subject.id, (err, post)->
+          # ask chris if Bongo.cacheable is good for this
+          koding.api[subject.constructorName].one _id : subject.id, (err, post)->
             appManager.tell "Activity", "createContentDisplay", post
             view.destroy()
       options.type  = actionType or ''

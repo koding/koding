@@ -168,7 +168,7 @@ class AccountRepoList extends KDListView
     switch f.operation
       
       when "add"
-        jr = new bongo.api[f.type]
+        jr = new koding.api[f.type]
           title : f.title
           url   : f.url
           color : f.color

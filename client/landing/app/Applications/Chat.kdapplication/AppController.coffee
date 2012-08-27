@@ -1,5 +1,5 @@
 class Chat12345 extends AppController
-  {mq} = bongo
+  {mq} = Bongo
 
   constructor:(options = {}, data)->
     options.view = new ChatView

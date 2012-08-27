@@ -171,7 +171,7 @@ class ProfileView extends KDView
         @prepareMessage formOutput,callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    koding.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   prepareMessage:(formOutput, callback)=>
@@ -186,7 +186,7 @@ class ProfileView extends KDView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
-    bongo.api.JPrivateMessage.create messageDetails, callback
+    koding.api.JPrivateMessage.create messageDetails, callback
 
 # get rid of this Sinan - 06/2012
 class ContentDisplayControllerVisitor extends ContentDisplayControllerMember

@@ -38,7 +38,7 @@ class CodesnipActivityItemView extends ActivityItemChild
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeSnipActivity
+    return if @getData().constructor is koding.api.CCodeSnipActivity
     super()
     @setTemplate @pistachio()
     @template.update()

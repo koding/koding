@@ -3,7 +3,7 @@ class AccountEditUsername extends KDView
     # =================
     # ADDING EMAIL FORM
     # =================
-    bongo.api.JUser.fetchUser (err,user)=>
+    koding.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->

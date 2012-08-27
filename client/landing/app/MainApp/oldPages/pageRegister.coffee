@@ -12,7 +12,7 @@ class PageRegister extends KDView
     @manageTraditional()
 
   formSubmit:(formData)=>
-    bongo.api.JUser.register formData, (error, result) =>
+    koding.api.JUser.register formData, (error, result) =>
       if error
         new KDNotificationView
           title   : error.message
@@ -409,14 +409,14 @@ class RegisterFormDefault extends RegisterFormTemplate
 #   formSubmit:(formData,event)=>
 #     log formData,"<<<<<<<< KD SUBMIT"
 #     
-#     bongo.api.JUser.register formData, (err)->
+#     koding.api.JUser.register formData, (err)->
 #       console.log err
     
     #user.save (err,docs)->
     #  log err,docs,">>>>>>>>>> BONGO RESULT"
     #
     
-    # bongo.api.Site.login credentials,(result)=>
+    # koding.api.Site.login credentials,(result)=>
     #   log "login response :",result
     #   if result.success
     #     new KDNotificationView

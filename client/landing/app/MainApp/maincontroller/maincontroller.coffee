@@ -107,19 +107,19 @@ class MainController extends KDController
       appManager.quitAll =>
         @createLoggedInState account
 
-      account = KD.whoami()
-      unless account.getAt('isEnvironmentCreated')
-        @getSingleton('kiteController').createSystemUser (err)=>
-          if err
-            new KDNotificationView
-              title   : 'Fail!'
-              duration: 1000
-          else
-            account.modify isEnvironmentCreated: yes, (err)->
-              if err
-                console.log err
-              else
-                console.log "environment is created for #{account.getAt('profile.nickname')}"
+      # account = KD.whoami()
+      # unless account.getAt('isEnvironmentCreated')
+      #   @getSingleton('kiteController').createSystemUser (err)=>
+      #     if err
+      #       new KDNotificationView
+      #         title   : 'Fail!'
+      #         duration: 1000
+      #     else
+      #       account.modify isEnvironmentCreated: yes, (err)->
+      #         if err
+      #           console.log err
+      #         else
+      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
 
     else
       @createLoggedOutState account
@@ -166,7 +166,7 @@ class MainController extends KDController
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
-        bongo.api.JUser.logout ->
+        koding.api.JUser.logout ->
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
@@ -186,7 +186,7 @@ class MainController extends KDController
   getVisitor: -> @visitor
   getAccount: -> @getVisitor().currentDelegate
 
-  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof bongo.api.JAccount
+  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof koding.api.JAccount
 
   unmarkUserAsTroll:(data)->
 
@@ -198,7 +198,7 @@ class MainController extends KDController
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
     if data.originId
-      bongo.cacheable "JAccount", data.originId, (err, account)->
+      Bongo.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
     else if data._bongo.constructorName is 'JAccount'
       kallback data
@@ -234,7 +234,7 @@ class MainController extends KDController
                     title : "@#{acc.profile.nickname} marked as a troll!"
 
             if data.originId
-              bongo.cacheable "JAccount", data.originId, (err, account)->
+              Bongo.cacheable "JAccount", data.originId, (err, account)->
                 kallback account if account
             else if data._bongo.constructorName is 'JAccount'
               kallback data

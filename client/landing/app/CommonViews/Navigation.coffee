@@ -79,7 +79,7 @@ class NavigationInviteLink extends NavigationLink
   
   sendInvite:(formData, modal)->
 
-    bongo.api.JInvitation.create
+    koding.api.JInvitation.create
       emails        : [formData.recipient]
       customMessage :
         # subject     : formData.subject

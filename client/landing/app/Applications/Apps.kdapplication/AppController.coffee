@@ -28,7 +28,7 @@ class Apps12345 extends AppController
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            koding.api.JApp.someWithRelationship selector, options, callback
         kodingAddOns        :
           title             : "Koding Add-ons"
           dataSource        : (selector, options, callback)=>
@@ -81,7 +81,7 @@ class Apps12345 extends AppController
       @putAddAnAppButton()
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
+    koding.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
       unless err
         callback? tags
       else
@@ -107,7 +107,7 @@ class Apps12345 extends AppController
   createApp:(formData,callback)->
     log formData,"in createApp"
     # log JSON.stringify formData
-    bongo.api.JApp.create formData, (err, app)->
+    koding.api.JApp.create formData, (err, app)->
       callback? err,app
 
   showAppSubmissionView:->

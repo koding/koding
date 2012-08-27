@@ -218,14 +218,14 @@ class LoginView extends KDScrollView
     """
 
   doReset:({recoveryToken, password})->
-    bongo.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
+    koding.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
       @animateToForm 'login'
       @doLogin {username, password}
 
   doRecover:(formData)->
-    bongo.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
+    koding.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
       @recoverForm.button.hideLoader()
       if err
         new KDNotificationView
@@ -240,7 +240,7 @@ class LoginView extends KDScrollView
   doRegister:(formData)->
     {kodingenUser} = formData
     formData.agree = 'on'
-    bongo.api.JUser.register formData, (error, result)=>
+    koding.api.JUser.register formData, (error, result)=>
       @registerForm.button.hideLoader()
       if error
         {message} = error
@@ -259,7 +259,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    bongo.api.JUser.login credentials, (error, result) =>
+    koding.api.JUser.login credentials, (error, result) =>
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView
@@ -275,7 +275,7 @@ class LoginView extends KDScrollView
 
   doRequest:(formData)->
 
-    bongo.api.JInvitationRequest.create formData, (err, result)=>
+    koding.api.JInvitationRequest.create formData, (err, result)=>
 
       if err
         msg = if err.code is 11000 then "This email was used for a request before!"
@@ -317,7 +317,7 @@ class LoginView extends KDScrollView
 
   animateToForm: (name)->
     if name is "register"
-      bongo.api.JVisitor.isRegistrationEnabled (status)=>
+      koding.api.JVisitor.isRegistrationEnabled (status)=>
         if status is no
           @registerForm.$('div').hide()
           @registerForm.$('section').show()

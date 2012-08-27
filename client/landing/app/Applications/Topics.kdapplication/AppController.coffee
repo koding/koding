@@ -38,9 +38,9 @@ class Topics12345 extends AppController
           optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all topics" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
-              bongo.api.JTag.byRelevance @_searchValue, options, callback
+              koding.api.JTag.byRelevance @_searchValue, options, callback
             else
-              bongo.api.JTag.someWithRelationship selector, options, callback
+              koding.api.JTag.someWithRelationship selector, options, callback
         followed            :
           title             : "Followed"
           dataSource        : (selector, options, callback)=>
@@ -145,11 +145,11 @@ class Topics12345 extends AppController
         "counts.followers": -1
         # "meta.modifiedAt": -1
     selector = {}
-    bongo.api.JTag.someWithRelationship selector, options, callback
+    koding.api.JTag.someWithRelationship selector, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
-  #   bongo.api.JTag.create formData, (err, tag)->
+  #   koding.api.JTag.create formData, (err, tag)->
   #     if err
   #       warn err,"there was an error creating topic!"
   #     else
@@ -166,7 +166,7 @@ class Topics12345 extends AppController
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
+    koding.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
       unless err
         callback? tags
       else
