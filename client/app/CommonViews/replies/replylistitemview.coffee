@@ -42,6 +42,7 @@ class OpinionListItemView extends KDListItemView
     #     ]
     #     callback    : (event)=> @settingsButton.contextMenu event
     # else
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
@@ -66,6 +67,13 @@ class OpinionListItemView extends KDListItemView
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
+
+        log "adding editForm for",data
+        @editForm = new OpinionFormView
+          title : "edit-opinion"
+        , data
+
+
         @deleteLink.unsetClass "hidden"
         @listenTo
           KDEventTypes       : "click"
@@ -120,9 +128,9 @@ class OpinionListItemView extends KDListItemView
     if @getData().getAt 'deletedAt'
       @setClass "deleted"
       if @deleter
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s opinion has been deleted by {{> @deleter}}.</span></div>"
       else
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s opinion has been deleted.</span></div>"
     else
       """
       <div class='item-content-opinion item-content-comment clearfix'>
