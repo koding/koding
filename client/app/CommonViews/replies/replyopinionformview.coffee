@@ -2,6 +2,8 @@ class OpinionFormView extends KDFormView
 
   constructor :(options, data)->
 
+    log "ofv args are",options, data
+
     super
 
     {profile} = KD.whoami()

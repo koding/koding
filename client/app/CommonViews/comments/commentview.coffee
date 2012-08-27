@@ -14,8 +14,6 @@ class CommentView extends KDView
 
   createSubViews:(data)->
 
-    log "checking for comments in ", data
-
     @commentList = new KDListView
       type          : "comments"
       subItemClass  : CommentListItemView
