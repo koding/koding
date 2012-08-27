@@ -33,7 +33,6 @@ class OpinionViewHeader extends JView
       cssClass  : "all-count"
       pistachio : "View all {{#(repliesCount)}} #{@getOptions().itemTypeString}..."
       click     : =>
-        log "emitting from allitemslink ",@
         list.emit "AllOpinionsLinkWasClicked", @
     , data
 
@@ -41,7 +40,6 @@ class OpinionViewHeader extends JView
       tagName   : "a"
       cssClass  : "new-items"
       click     : =>
-        log "emitting from newitemslink ",@
         list.emit "AllOpinionsLinkWasClicked", @
 
   ownCommentArrived:->

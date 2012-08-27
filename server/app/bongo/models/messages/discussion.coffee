@@ -43,7 +43,7 @@ class JOpinion extends JPost
 
   @getFlagRole =-> ['sender', 'recipient']
 
-
+  # ?<
   createKodingError =(err)->
     kodingErr = new KodingError(err.message)
     for own prop of err
@@ -51,13 +51,11 @@ class JOpinion extends JPost
     kodingErr
 
   @create = secure (client, data, callback)->
-    log "creating opinion"
     codeSnip =
       title       : data.title
       body        : data.body
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
-    log "done creating opinion"
 
   modify: secure (client, data, callback)->
     codeSnip =
@@ -66,8 +64,9 @@ class JOpinion extends JPost
       meta        : data.meta
     JPost::modify.call @, client, codeSnip, callback
 
+  #?>
+
   reply: secure (client, comment, callback)->
-    log "replying to opinion"
     JPost::reply.call @, client, JComment, comment, callback
 
 
@@ -203,7 +202,6 @@ class JDiscussion extends JPost
                               @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   fetchTeaser:(callback)->
-    log "discussion fetching teaser"
     @beginGraphlet()
       .edges
         query         :
@@ -229,7 +227,6 @@ class JDiscussion extends JPost
     #log "discussion teaser was fetched for ", @data.title
 
   fetchRelativeComments:({limit, before, after}, callback)->
-    log "discussion fetching relative comments"
     limit ?= 10
     if before? and after?
       callback new KodingError "Don't use before and after together."
@@ -241,7 +238,6 @@ class JDiscussion extends JPost
     @fetchOpinions selector, options, callback
 
   commentsByRange:(options, callback)->
-    log "discussion fetching comments by range"
     [callback, options] = [options, callback] unless callback
     {from, to} = options
     from or= 0
@@ -262,7 +258,6 @@ class JDiscussion extends JPost
     @fetchOpinions selector, queryOptions, callback
 
   restComments:(skipCount, callback)->
-    log "discussion fetching restcomments"
     [callback, skipCount] = [skipCount, callback] unless callback
     skipCount ?= 3
 

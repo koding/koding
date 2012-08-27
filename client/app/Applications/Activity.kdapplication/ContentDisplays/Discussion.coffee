@@ -49,7 +49,6 @@ class ContentDisplayDiscussion extends KDView
       tooltip  :
         title  : "This a public wall, here you can share anything with the Koding community."
 
-
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
       subItemClass  : TagLinkView
@@ -90,9 +89,9 @@ class ContentDisplayDiscussion extends KDView
         {{> @actionLinks}}
       </footer>
       {{> @opinionBox}}
-    </div>
     <div class="content-display-main-section opinion-form-footer">
     {{> @opinionForm}}
     {{> @heartBox}}
+    </div>
     </div>
     """
