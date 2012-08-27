@@ -4,11 +4,9 @@ class NFinderItemRenameView extends JView
 
     super
     @setClass "rename-container"
-    @input = new KDHitEnterInputView
+    @input = new NFinderRenameInput
       defaultValue  : data.name
       type          : "text"
-      mousedown     : (pubInst, event)->
-        log event,">>>>"
       callback      : (newValue)=> @emit "FinderRenameConfirmation", newValue
     @getSingleton("windowController").addLayer @input
     
@@ -26,3 +24,7 @@ class NFinderItemRenameView extends JView
     {{> @input}}  
     {{> @cancel}}
     """
+class NFinderRenameInput extends KDHitEnterInputView
+
+  click    : -> no
+  dblClick : -> no
