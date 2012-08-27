@@ -97,8 +97,13 @@ class OpinionListItemView extends KDListItemView
           KDEventTypes       : "click"
           listenedToInstance : @editLink
           callback           : =>
-            log "clicked edit"
-            @editForm.unsetClass "hidden"
+            if @editForm.$().hasClass "hidden"
+              @editForm.unsetClass "hidden"
+            else
+              @editForm.setClass "hidden"
+
+
+
 
 
 
