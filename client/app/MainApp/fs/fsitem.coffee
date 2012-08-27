@@ -21,7 +21,6 @@ class FSItem extends KDObject
           withArgs  :
             command : "#{if type is 'file' then 'touch' else 'mkdir'} #{escapeFilePath response}"
         , (err, res)->
-          log err, res, ">>>>>>"
           if err then warn err
           else
             file = FSHelper.createFileFromPath response, type

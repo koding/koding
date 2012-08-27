@@ -33,7 +33,7 @@ class NFinderItem extends JTreeItemView
     @beingEdited = no
     @callback = null
     @unsetClass "being-deleted being-edited"
-    # @setKeyView()
+    @getDelegate().setKeyView()
   
   confirmDelete:(callback)->
     

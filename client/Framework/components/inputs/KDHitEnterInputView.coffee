@@ -55,6 +55,8 @@ class KDHitEnterInputView extends KDInputView
       listenedToInstance : @inputEnterToggler
       callback : @toggleEnterKey
 
+  # click:-> no
+
   hideButton:-> @button.hide()
 
   showButton:-> @button.show()

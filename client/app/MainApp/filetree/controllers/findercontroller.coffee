@@ -52,7 +52,6 @@ class NFinderController extends KDViewController
         name        : nickname
         path        : "/Users/#{nickname}"
         type        : "mount"
-
     else
       FSHelper.createFile
         name        : "guest"

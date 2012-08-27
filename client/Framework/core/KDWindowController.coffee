@@ -92,6 +92,7 @@ class KDWindowController extends KDController
     #     return msg
 
   setDragInAction:(action = no)->
+    
     $('body')[if action then "addClass" else "removeClass"]("dragInAction")
     @dragInAction = action
 
@@ -101,15 +102,20 @@ class KDWindowController extends KDController
   getMainView:(view)->
     @mainView
 
-  revertKeyView:->
+  revertKeyView:(view)->
 
-    if @keyView isnt @oldKeyView
+    unless view
+      warn "you must pass the view as a param, which doesn't want to be keyview anymore!"
+      return
+
+    if view is @keyView and @keyView isnt @oldKeyView
       @setKeyView @oldKeyView
 
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
-    # log newKeyView, "newKeyView"
+    # debugger
+    # log newKeyView.getOptions().name, "newKeyView" if newKeyView
 
     @oldKeyView = @keyView
     @keyView = newKeyView
@@ -146,7 +152,7 @@ class KDWindowController extends KDController
     @keyView
 
   key:(event)=>
-    # log @keyView, 'key view'
+    # log event.type, @keyView.constructor.name, @keyView.getOptions().name
     @keyView?.handleEvent event
 
   allowScrolling:(shouldAllowScrolling)->

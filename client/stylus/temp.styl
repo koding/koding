@@ -24,6 +24,7 @@ wpUrl = 'http://sinan.koding.com/wp/'
       fl()
     article
       overflow              hidden
+      margin                0 0 15px 0
       h3
         font-size           32px
         line-height         60px
@@ -115,22 +116,25 @@ wpUrl = 'http://sinan.koding.com/wp/'
         height              28px
         line-height         28px
       label
-        min-width           300px
+        min-width           30%
         text-shadow         0 1px 0 white
         color               #444
+        margin              0
       .kdinput
-        min-width           500px
+        min-width           70%
         display             inline-block
         float               none
         padding             4px 8px
         height              28px
         &.on-off
+          padding           0
+          borderBox()
           >span
             hidden()
     .button-field
       bg                    color, transparent
       .kdbutton
-        margin-left         305px
+        margin-left         30%
 
 
   .why-u-no

@@ -22,19 +22,17 @@ parseOutput = (res, err = no)->
       duration : 100
 
 installWordpress = (formData, callback)->
-  {path}     = formData
-  timestamp  = Date.now()
-
-  commands   = [
-    "mkdir -vp '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}'"
-    "curl --location 'http://sinan.koding.com/planet.zip' >'/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}.zip'"
-    # "curl --location 'http://wordpress.org/latest.zip' >'/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}.zip'"
-    "unzip '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}.zip' -d '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}'"
-    "chmod 774 -R '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}'"
-    "rm '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}.zip'"
-    "mv '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet' '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}';"
-    # "mv '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}/wordpress' '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}';"
-    "rm -r '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/app.#{timestamp}'"
+  {path, domain, timestamp} = formData
+  commands = [
+    "mkdir -vp '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    "curl --location 'http://sinan.koding.com/planet.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    # "curl --location 'http://wordpress.org/latest.zip' >'/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    "unzip '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip' -d '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    "chmod 774 -R '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
+    "rm '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}.zip'"
+    "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/Users/sinan/Sites/sinan.koding.com/website/planet' '/Users/#{nickname}/Sites/#{domain}/website/#{path}';"
+    # "mv '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}/wordpress' '/Users/#{nickname}/Sites/#{domain}/website/#{path}';"
+    "rm -r '/Users/#{nickname}/Sites/#{domain}/website/app.#{timestamp}'"
   ]
 
   parseOutput commands[0]
@@ -68,12 +66,12 @@ installWordpress = (formData, callback)->
                         else
                           parseOutput res
                           parseOutput "<br>#############"
-                          parseOutput "<br>Wordpress successfully installed to: /Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}"
+                          parseOutput "<br>Wordpress successfully installed to: /Users/#{nickname}/Sites/#{domain}/website/#{path}"
                           parseOutput "<br>#############<br>"
-                          callback? path, timestamp
+                          callback? formData
                           appStorage.fetchStorage ->
                             blogs = appStorage.getValue("blogs") or []
-                            blogs.push {path, timestamp}
+                            blogs.push formData
                             appStorage.setValue "blogs", blogs, noop
                           parseOutput "<br>$> " + commands[6] + "<br>"
                           kc.run withArgs  : command : commands[6] , (err, res)->
@@ -133,9 +131,9 @@ class DashboardPane extends Pane
     @listController.getListView().on "DeleteLinkClicked", (listItemView)=>
 
       @removeItem listItemView
-      {path} = listItemView.getData()
-      command = "rm -r '/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}'"
-      parseOutput "<br><br>Deleting /Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}<br><br>"
+      {path, domain, name} = listItemView.getData()
+      command = "rm -r '/Users/#{nickname}/Sites/#{domain}/website/#{path}'"
+      parseOutput "<br><br>Deleting /Users/#{nickname}/Sites/#{domain}/website/#{path}<br><br>"
       parseOutput command
       kc.run withArgs  : {command} , (err, res)=>
         if err
@@ -143,9 +141,9 @@ class DashboardPane extends Pane
           new KDNotificationView title : "There was an error, you may need to remove it manually!"
         else
           parseOutput "<br><br>#############"
-          parseOutput "<br>#{path} successfully deleted."
+          parseOutput "<br>#{name} successfully deleted."
           parseOutput "<br>#############<br><br>"
-          tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website"]
+          tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"]
 
         __utils.wait 1500, ->
           split.resizePanel 0, 1
@@ -157,10 +155,10 @@ class DashboardPane extends Pane
       @notice.show() if blogs.length is 0
 
 
-  putNewItem:({path, timestamp}, resizeSplit = yes)->
+  putNewItem:(formData, resizeSplit = yes)->
 
     @getDelegate().showPane @
-    @listController.addItem {path, timestamp}
+    @listController.addItem formData
     @notice.hide()
     if resizeSplit
       __utils.wait 1500, -> split.resizePanel 0, 1
@@ -208,11 +206,13 @@ class InstalledAppListItem extends KDListItemView
     @utils.wait => @setClass "in"
 
   pistachio:->
-    {path, timestamp} = @getData()
-    url = "http://#{nickname}.koding.com/#{path}"
+    {path, timestamp, domain, name} = @getData()
+    url = "http://#{domain}/#{path}"
     """
     {{> @delete}}
+    {{> #(name)}}
     <a href='#{url}' target='_blank'>#{url}</a>
+    <a href='#{url}/wp-admin' target='_blank'>admin</a>
     <time datetime='#{new Date(timestamp)}'>#{$.timeago new Date(timestamp)}</time>
     """
 
@@ -225,7 +225,8 @@ class InstallPane extends Pane
     @form = new KDFormViewWithFields
       callback              : @submit.bind(@)
       buttons               :
-        "Install Wordpress" :
+        install             :
+          title             : "Install Wordpress"
           style             : "cupid-green"
           type              : "submit"
           loader            :
@@ -234,33 +235,96 @@ class InstallPane extends Pane
       fields                :
         name                :
           label             : "Name of your blog:"
-          name              : "path"
+          name              : "name"
           placeholder       : "type a name for your blog..."
+          defaultValue      : "My Wordpress"
           validate          :
             rules           :
               required      : "yes"
             messages        :
               required      : "a path for your wordpress is required!"
-        Path                :
-          label             : "Path </#{nickname}/Sites/#{nickname}.koding.com/website/[path]>:"
+          keyup             : => @completeInputs()
+          blur              : =>
+            @completeInputs()
+            path   = __utils.slugify name.getValue()
+            kc.run
+              toDo        : "fetchSafeFileName"
+              withArgs    :
+                filePath  : path
+            , (err, res)-> 
+              log err, res, ">>>> fetch safe name"
+              if path isnt res
+                log err, res
+        domain              :
+          label             : "Domain :"
+          name              : "domain"
+          itemClass         : KDSelectBox
+          defaultValue      : "#{nickname}.koding.com"
+          nextElement       :
+            pathExtension   :
+              label         : "/my-wordpress/"
+              type          : "hidden"
+        path                :
+          label             : "Path :"
           name              : "path"
           placeholder       : "type a path for your blog... (just the last 'path' part)"
+          defaultValue      : "my-wordpress"
+          keyup             : => @completeInputs yes
+          blur              : => @completeInputs yes
           validate          :
             rules           :
-              required      : "yes"
+              required      : yes
+              regExp        : /^[a-z\d]+([-][a-z\d]+)*$/i
             messages        :
               required      : "a path for your wordpress is required!"
-        Database            :
-          label             : "Create a new database:"
-          name              : "db"
-          title             : ""
-          labels            : ["YES","NO"]
-          itemClass         : KDOnOffSwitch
+              regExp        : "please enter a valid path!"
+        # Database            :
+        #   label             : "Create a new database:"
+        #   name              : "db"
+        #   title             : ""
+        #   labels            : ["YES","NO"]
+        #   itemClass         : KDOnOffSwitch
+        timestamp           :
+          name              : "timestamp"
+          type              : "hidden"
+          defaultValue      : Date.now()
+
+    @form.on "FormValidationFailed", => @form.buttons["Install Wordpress"].hideLoader()
+
+    domainsPath = "/Users/#{nickname}/Sites"
+
+    kc.run
+      withArgs  :
+        command : "ls #{domainsPath} -lpva"
+    , (err, response)=>
+      if err then warn err
+      else
+        files = FSHelper.parseLsOutput [domainsPath], response
+        newSelectOptions = []
+
+        files.forEach (domain)->
+          newSelectOptions.push {title : domain.name, value : domain.name}
+
+        log newSelectOptions
+        {domain} = @form.inputs
+        domain.setSelectOptions newSelectOptions
+
+  completeInputs:(fromPath = no)->
+    {path, name, pathExtension} = @form.inputs
+    if fromPath
+      slug = __utils.slugify path.getValue()
+    else
+      slug = __utils.slugify name.getValue()
+      path.setValue slug
+    
+    pathExtension.inputLabel.updateTitle "/#{slug}/"
 
   submit:(formData)=>
     split.resizePanel "50%", 1
+    {path, domain, name} = formData
+    formData.fullPath = "#{domain}/website/#{path}"
     installWordpress formData, (path, timestamp)=>
-      @emit "WordPressInstalled", path, timestamp
+      @emit "WordPressInstalled", formData
       @form.buttons["Install Wordpress"].hideLoader()
 
   pistachio:->
@@ -276,7 +340,19 @@ class WpApp extends JView
 
     @dashboardTabs = new KDTabView
       hideHandleCloseIcons : yes
+      hideHandleContainer  : yes
       cssClass             : "wp-installer-tabs"
+
+    @installButton = new KDButtonView
+      title    : "Install a new Wordpress"
+      callback : =>
+        @dashboardTabs.showPaneByIndex 1
+
+    @listButton = new KDButtonView
+      title    : "Dashboard"
+      callback : =>
+        @dashboardTabs.showPaneByIndex 0
+
 
   viewAppended:->
 
@@ -291,13 +367,14 @@ class WpApp extends JView
 
     @dashboardTabs.showPane dashboard
 
-    installPane.on "WordPressInstalled", (path, timestamp)->
-      dashboard.putNewItem {path, timestamp}
+    installPane.on "WordPressInstalled", (formData)->
+      {domain, path} = formData
+      dashboard.putNewItem formData
       __utils.wait 200, ->
         # timed out because we give some time to server to cleanup the temp files until it filetree refreshes
-        tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website"], ->
+        tc.refreshFolder tc.nodes["/Users/#{nickname}/Sites/#{domain}/website"], ->
           __utils.wait 200, ->
-            tc.selectNode tc.nodes["/Users/#{nickname}/Sites/#{nickname}.koding.com/website/#{path}"]
+            tc.selectNode tc.nodes["/Users/#{nickname}/Sites/#{domain}/website/#{path}"]
 
   pistachio:->
 
@@ -308,6 +385,10 @@ class WpApp extends JView
         <h3>Wordpress Installer</h3>
         <p>This application installs wordpress instances and gives you a dashboard of what is already installed</p>
       </article>
+      <section>
+      {{> @listButton}}
+      {{> @installButton}}
+      </section>
     </header>
     {{> @dashboardTabs}}
     """

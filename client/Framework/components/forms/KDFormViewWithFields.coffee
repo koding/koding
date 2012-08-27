@@ -12,7 +12,7 @@ class KDFormViewWithFields extends KDFormView
 
   sanitizeOptions:(options)->
     for key,option of options
-      option.title = key unless option.title
+      option.title or= key
       option
   
   createFields:(fields)->
@@ -20,19 +20,11 @@ class KDFormViewWithFields extends KDFormView
 
   createButtons:(buttons)->
     @addSubView @buttonField = new KDView cssClass : "formline button-field clearfix"
-    # for buttonOptions in buttons
     buttons.forEach (buttonOptions)=>
-      # {callback} = buttonOptions
-      # oldCallback = callback or noop
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.title] = button
-      # newCallback = =>
-        # @addCustomData '__clickedButton',buttonOptions.title
-        # oldCallback.call button, button, @getData()
-      # button.setCallback newCallback
-
       
-  createField:(data,field)->
+  createField:(data, field)->
     {itemClass,title} = data
     itemClass or= KDInputView
     field or= new KDView cssClass : "formline #{data.name}"
@@ -40,9 +32,9 @@ class KDFormViewWithFields extends KDFormView
     field.addSubView input = @createInput itemClass,data
     @fields[title] = field
     if data.nextElement
-      for key,next of data.nextElement
-        next.title = key
-        @createField next,field
+      for key, next of data.nextElement
+        next.title or= key
+        @createField next, field
     
     return field
   

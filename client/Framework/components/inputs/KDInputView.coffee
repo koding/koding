@@ -337,11 +337,16 @@ class KDInputView extends KDView
     @getSingleton("windowController").setKeyView @
 
   blur:->
+    # this messes up things
+    # if you switch between inputs on focus next input sets the keyview to itself
+    # and this fires right afterwards and reverts it back to blurred one
 
-    @getSingleton("windowController").revertKeyView()
+    # hopefully fixed
+    
+    @getSingleton("windowController").revertKeyView @
 
   mouseDown:=>
-    # log "input mouse down"
+
     @setFocus()
     #WHY NO?
     #NO because if it propagates, other stuff might become keyview
