@@ -1,4 +1,5 @@
-Pusher.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
+#Broker.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
+#Broker.channel_auth_endpoint = 'http://localhost:8008/auth'
 
 mainController = new MainController
 
@@ -7,6 +8,7 @@ mainController = new MainController
 bongo.use (remote, connection)->
   clientId = localStorage.clientId or= bongo.createId()
   connection.clientId = clientId
+  $.cookie 'clientId', clientId
 
 # Cacheable = new Cacheable
 
@@ -152,8 +154,8 @@ bongo.connect (api, conn)->
         channel.bind 'change.channel', ->
           bongo.mq.unsubscribe channelId
           cyclePrivateChannel delegate
-        channel.bind 'message', (msg)->
-          console.log msg
+        ###channel.bind 'message', (msg)->
+          console.log msg###
 
     changeLoginState = (delegate)->
       cyclePrivateChannel(delegate)

@@ -110,6 +110,25 @@ class Server
     #       # res.header 200, 'text/plain'
     #       res.send 'feed:'+(item.snapshot for item in arr).join '\n'
     
+    app.get '/auth', (req, res)->
+      crypto = require 'crypto'
+      channel = req.query?.channel
+      return res.send "-1" unless channel
+      clientId = req.cookies.clientid
+      JSession.one {clientId}, (err, session)->
+        [priv, type, pubName] = channel.split '-'
+        {username} = session
+        cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
+        cipher.update(
+          ''+pubName+req.cookies.clientid+Date.now()+Math.random()
+        )
+        privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+        privName += '.private'
+        bongo.mq.emit('race-condition','race-condition','koding')
+        bongo.mq.emit(channel, 'join', privName)
+        return res.send privName
+
+
     app.get '/images/uploads/:filename', (req, res)->
       {filename} = req.params
       Resource.get filename, (err, gs, data, responseCode)->

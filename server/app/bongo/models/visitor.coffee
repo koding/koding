@@ -62,24 +62,24 @@ class JVisitor extends bongo.Model
             visitor.createGuest connection
           else if session.username
             {username} = session
-            user = constructor.users[username]
-            if user
-              user.fetchOwnAccount (err, account)->
-                if err
-                  callback? err
-                visitor.emit ['change', 'login'], account
-            else
-              JUser.one {username}, (err, user)->
-                if err
-                  callback? err
-                else
-                  user.fetchOwnAccount (err, account)->
-                    if err
-                      callback? err
-                    else
-                      connection.delegate = account
-                      visitor.emit ['change','login'], account
-                      callback? null
+            # user = constructor.users[username]
+            # if user
+            #   user.fetchOwnAccount (err, account)->
+            #     if err
+            #       callback? err
+            #     visitor.emit ['change', 'login'], account
+            # else
+            JUser.one {username}, (err, user)->
+              if err
+                callback? err
+              else
+                user.fetchOwnAccount (err, account)->
+                  if err
+                    callback? err
+                  else
+                    connection.delegate = account
+                    visitor.emit ['change','login'], account
+                    callback? null
           else
             {guestId} = session
             JGuest.one {guestId}, (err, guest)->

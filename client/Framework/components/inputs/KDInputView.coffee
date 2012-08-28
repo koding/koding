@@ -77,8 +77,9 @@ class KDInputView extends KDView
       listenedToInstance : @
       callback           : =>
         o = @getOptions()
-        if o.type is "select" and o.selectOptions
-          @setValue o.selectOptions[0].value unless o.defaultValue
+        if o.type is "select" and o.selectOptions and
+           not o.defaultValue and o.selectOptions.length
+            @setValue o.selectOptions[0].value
 
   setDomElement:(cssClass = "")->
     @inputName = @options.name

@@ -8,7 +8,7 @@ function handle_vacated_channel($type, $event, $ms) {
   list(,$kite_id, $requester_id) = explode('-', $event->channel);
   error_log(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
-    'toDo' => '_disconnect',
+    'method' => '_disconnect',
     'secretChannelId' => $event->channel,
   );
   

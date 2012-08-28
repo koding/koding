@@ -141,36 +141,36 @@ class JEnvironment extends jraphical.Module
   # run: bongo.secure (client, command, callback)->
   #   account = client.connection.delegate
   #   # log.debug "got cmd:",command
-  #   account.tellKite kiteName:"sharedHosting",toDo:"executeCommand",withArgs:{command}, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"executeCommand",withArgs:{command}, (error, response) ->
   #     warn "Error: #{error} from command: #{command}" if error
   #     callback error, response
   # 
   #     
   # searchFile: bongo.secure (client, options, callback)->
   #   account = client.connection.delegate
-  #   account.tellKite kiteName:"sharedHosting",toDo:"searchFiles",withArgs:options, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"searchFiles",withArgs:options, (error, response) ->
   #     callback error, response
   #     
   # extract: bongo.secure (client, options, callback)->
   #   account   =     client.connection.delegate
-  #   account.tellKite kiteName:"sharedHosting",toDo:"smartUnarchiver",withArgs:options, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"smartUnarchiver",withArgs:options, (error, response) ->
   #     callback error, response
       
   # makePublic: bongo.secure (client, options, callback)->
   #   account   =     client.connection.delegate
-  #   account.tellKite kiteName:"sharedHosting",toDo:"prepareFileForDownload",withArgs:options, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"prepareFileForDownload",withArgs:options, (error, response) ->
   #     callback error, response
 
   #FIXME::!!!! These are un-secure- sah 12/27/11
   # safePath: bongo.secure (client, {filePath}, callback)->
   #   account   = client.connection.delegate
-  #   account.tellKite kiteName:"sharedHosting",toDo:"returnSafeFileName",withArgs:{filePath}, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"returnSafeFileName",withArgs:{filePath}, (error, response) ->
   #     callback error, response
     
   # uploadFile: bongo.secure (client, file, callback)->
   #   account   = client.connection.delegate
   #   {path} = file
-  #   account.tellKite kiteName:"sharedHosting",toDo:"uploadFile",withArgs:file, (error, response) ->
+  #   account.tellKite kiteName:"sharedHosting",method:"uploadFile",withArgs:file, (error, response) ->
   #     # log 'emulating upload error'
   #     # error = 'wtf'
   #     callback error, response

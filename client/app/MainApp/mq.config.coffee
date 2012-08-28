@@ -1,11 +1,13 @@
+Broker.channel_auth_endpoint = 'http://localhost:3000/auth'
 BONGO_MQ = do->
   options = {
     encrypted: yes
+    sockURL: 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+    authEndPoint: 'http://localhost:3000/auth'
   }
   switch KD.env
     when 'beta'
-      new Pusher 'a19c8bf6d2cad6c7a006', options
+      new Broker 'a19c8bf6d2cad6c7a006', options
     else
-      new Pusher 'a6f121a130a44c7f5325', options
-
+      new Broker 'a6f121a130a44c7f5325', options
 # _addFlashFallback BONGO_MQ, connectionTimeout: 10000

@@ -92,7 +92,6 @@ Includes =
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
         jdatabase                 : "./server/app/bongo/models/database.coffee"
-        jenvironment              : "./server/app/bongo/models/environment.coffee"
         jappstorage               : "./server/app/bongo/models/appStorage.coffee"
         jaccount                  : "./server/app/bongo/models/account.coffee"
         jsession                  : "./server/app/bongo/models/session.coffee"
@@ -121,7 +120,8 @@ Includes =
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
         jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        
+        jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
+        jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
 
       OtherStuff :
@@ -611,6 +611,7 @@ Includes =
 
       Libraries :
         #pusher            : "./client/libs/pusher.min.js"
+        broker            : "./broker/apps/broker/priv/www/js/broker.js"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"

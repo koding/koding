@@ -42,11 +42,11 @@ if process.argv[2] is 'buildForProduction'
   rev[2]++
   version = rev.join(".")
 else
-  version = (fs.readFileSync ".revision").toString().replace("\n","")
+  version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
  
 targetPaths =
-  server                : "/tmp/kd-server.js"
+  server                : "./kd-server.js"
   serverProd            : process.cwd()+"/kd-server.js" # "/opt/kfmjs/kd-server.js"
   client                : "./website/js/kd.#{version}.js"
   css                   : "./website/css/kd.#{version}.css"
@@ -212,9 +212,8 @@ task 'checkModules', 'check node_modules dir',(options)->
   {our_modules, npm_modules} = require "./CakeNodeModules"
   required_versions = npm_modules
   npm_modules = (name for name,ver of npm_modules)  
-  gitIgnore = ((fs.readFileSync "./.gitignore").toString().split "\n")
+  gitIgnore = ((fs.readFileSync "./.gitignore").toString().replace(/\r\n/g,"\n").split "\n")
 
-  
   data = fs.readdirSync "./node_modules"
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)    
   if untracked_mods.length > 0      
@@ -265,7 +264,7 @@ task 'build', 'optimized version for deployment', (options)->
   options.uglify    ?= no
   
 
-  targetPaths.server = options.target ? "/tmp/kd-server.js"
+  options.target = targetPaths.server ? "/tmp/kd-server.js" 
   
   {dontStart,uglify,database} = options
   build options
@@ -281,7 +280,7 @@ build = (options)->
 
   debug = if options.debug? then "--debug --prof --prof-lazy" else "--max-stack-size=8073741824"
   run = 
-    command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
+    command: ["node", [debug,options.target, process.cwd(), options.database, options.port, options.cron, options.host]]
 
   builder = new Builder options,targetPaths,"",run
   
