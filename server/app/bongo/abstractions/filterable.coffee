@@ -13,8 +13,10 @@ class Filterable
     startsWithSeedTest = RegExp '^'+cleanSeed, "i"
     startsWithOptions = {limit, blacklist, skip}
     @findSuggestions startsWithSeedTest, startsWithOptions, (err, suggestions)=>
-      if err then callback err
-      else if limit is suggestions.length then callback null, suggestions
+      if err
+        callback err
+      else if limit is suggestions.length
+          callback null, suggestions
       else
         containsSeedTest = RegExp cleanSeed, 'i'
         containsOptions =
