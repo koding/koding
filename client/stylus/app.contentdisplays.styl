@@ -355,60 +355,171 @@ app.contentdisplays.styl
 
 .opinion-container
 
-  font-size 11px
-  margin-top 10px
+  font-size                           12px
+  margin-top                          10px
 
-  border 1px solid #e0e0df
-  borderBox()
-  rounded(4px)
+  a.count
+    font-style                        normal
+    display                           inline-block
+    bg                                color, #0A92BA
+    color                             #fff
+    font-size                         10px
+    padding                           1px 4px
+    line-height                       10px
+    rounded                           3px
+    noTextDeco()
 
-  .opinion-box
-    margin 10px
-    width auto
-    .opinion-form
-      width               auto
-      height              auto
-      textarea.opinion-body
-        width             100%
-        outline            none
-        padding           6px
-        height            144px
-        min-height        144px
-        width             100%
-        box-shadow        inset 0 1px 2px rgba(0,0,0,0.10)
-        padding           2px 6px
-        borderBox()
+  .kdlistview-opinions
+    .kdview.kdlistitemview-opinion
+      margin-top                      10px
+    .item-content-opinion
+      padding-top                     0px
+      padding-bottom                  0px
+      margin-top                      15px
+      &:hover
+        .edit-link
+          opacity                     .5
+          &:hover
+            opacity                   1
+        .delete-link
+          opacity                     .5
+          &:hover
+            opacity                   1
+      span.avatar
+        border                        1px solid #E3E3E3
+        padding                       1px
+        margin-right                  10px
+        width                         50px
+        height                        50px
+        bg(color,#fff)
+        fl()
+        a
+          display                     block
+          background-position         center
+          background-image            url('../images/defaultavatar/default.avatar.50.png')
+          bg(size,cover)
+          bg(repeat,no-repeat)
+      .opinion-contents
+        padding-left                    75px
 
-.opinion-form-headline
-  margin-left 5px
+        .opinion-footer
+          .type-and-time
+            display                   inline
 
-.opinion-body-with-markup
-  margin-top 10px
-  padding-left 5px
 
-.opinion-comment
-  .comment-container
-    width auto
-    margin-left 45px
-.discussion-footer
-  padding-bottom 10px
-  border-bottom 1px solid #E0E0DF
-.item-content-opinion
-  padding-bottom 0px
-  margin-top 10px
-.item-content-opinion-comments
-  padding 0px !important
-  margin 0px
-.opinion-comment
-  margin-bottom 5px
+.opinion-box
+        margin                10px
+        width                 auto
+        .opinion-form
+          width               auto
+          height              auto
+          .opinion-form-headline
+            margin-left       5px
+          textarea.opinion-body
+            width             100%
+            outline            none
+            height            144px
+            min-height        144px
+            width             100%
+            box-shadow        inset 0 1px 2px rgba(0,0,0,0.10)
+            borderBox()
+      .opinion-body
+        width                 100%
+        min-height            144px
+  .opinion-body-with-markup
+    margin-top                12px
+    padding-bottom            12px
+  .item-content-opinion-comments
+    padding                   0
+    margin                    0 0 20px 75px
+    .opinion-comment
+      margin-bottom           5px
+
+      .comment-container
+        width                 auto
+
+div.discussion-contents
+  a.count
+    font-style                        normal
+    display                           inline-block
+    bg                                color, #0A92BA
+    color                             #fff
+    font-size                         10px
+    padding                           1px 4px
+    line-height                       10px
+    rounded                           3px
+    noTextDeco()
+  padding                             0 10px 0 20px
+  width                               auto
+  overflow                            hidden
+  p.discussion-body
+    line-height                       150%
+    a.user-fullname
+      font-size                       12px
+      font-weight                     600
+      color                           linkColor1
+      noTextDeco()
+    span
+      font-weight                     400
+      font-size                       12px
+  time
+    line-height                       11px
+    color                             #aaa
+
+  .opinion-form-footer
+    margin-top                        35px
+  .discussion-footer
+    font-size                         11px
+    float                             right
+    padding-bottom                    10px
+  .discussion-main-opinion
+    h3
+      margin-bottom                   10px
+    &:hover
+      > .edit-link
+        opacity                       .5
+        &:hover
+          opacity                     1
+      > .delete-link
+        opacity                       .5
+        &:hover
+          opacity                     1
+
+
+
 .markdown-select
-  float right
-  position absolute
-  bottom 5px
-  display inline
-.opinion-form-footer
-  margin-top 35px
-.edit-opinion-form
-  .opinion-body
-    width 100%
-    min-height 144px
+  float                               right
+  position                            absolute
+  bottom                              5px
+  display                             inline
+
+.delete-link
+  display                             block
+  size                                20px, 20px
+  position                            absolute
+  top                                 5px
+  right                               5px
+  bg                                  position, -80px -520px
+  opacity                             0
+  vendor                              transition, opacity .15s linear
+  sprite()
+
+.edit-link
+  display                             block
+  size                                20px, 20px
+  position                            absolute
+  top                                 5px
+  right                               20px
+  bg                                  position, -120px -400px
+  opacity                             0
+  vendor                              transition, opacity .15s linear
+  sprite()
+
+// Markdown related
+
+.data
+  p
+    margin-bottom                     5px
+  ul
+    margin-bottom                     5px
+    list-style                        disc

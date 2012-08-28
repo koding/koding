@@ -4,7 +4,7 @@ class OpinionView extends KDView
 
     super
 
-    @setClass "comment-container opinion-container-box"
+    @setClass "opinion-container opinion-container-box"
     @createSubViews data
     @resetDecoration()
     @attachListeners()
@@ -14,7 +14,7 @@ class OpinionView extends KDView
 
   createSubViews:(data)->
     @opinionList = new KDListView
-      type          : "comments"
+      type          : "opinions"
       subItemClass  : OpinionListItemView
       delegate      : @
     , data
@@ -60,19 +60,19 @@ class OpinionView extends KDView
       @decorateCommentedState()
 
   decorateNoCommentState:->
-    @unsetClass "active-comment"
-    @unsetClass "commented"
-    @setClass "no-comment"
+    @unsetClass "active-opinion"
+    @unsetClass "opinionated"
+    @setClass "no-opinion"
 
   decorateCommentedState:->
-    @unsetClass "active-comment"
-    @unsetClass "no-comment"
-    @setClass "commented"
+    @unsetClass "active-opinion"
+    @unsetClass "no-opinion"
+    @setClass "opinionated"
 
   decorateActiveCommentState:->
-    @unsetClass "commented"
-    @unsetClass "no-comment"
-    @setClass "active-comment"
+    @unsetClass "opinionated"
+    @unsetClass "no-opinion"
+    @setClass "active-opinion"
 
   decorateItemAsLiked:(likeObj)->
     if likeObj?.results?.likeCount > 0

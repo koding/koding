@@ -509,6 +509,8 @@ Includes =
         OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
         OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"
         OpinionFormView               : "./client/app/CommonViews/opinions/opinionformview.coffee"
+        OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
+        DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
