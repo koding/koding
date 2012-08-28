@@ -3,7 +3,7 @@ class OpinionViewHeader extends JView
   constructor:(options = {}, data)->
 
     options.cssClass       = "show-more-comments in"
-    options.itemTypeString = options.itemTypeString or "comments"
+    options.itemTypeString = options.itemTypeString or "opinions"
 
     super options, data
 
@@ -23,6 +23,7 @@ class OpinionViewHeader extends JView
     list = @getDelegate()
 
     list.on "AllOpinionsWereAdded", =>
+      log "AllOpinionsWereAdded"
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()

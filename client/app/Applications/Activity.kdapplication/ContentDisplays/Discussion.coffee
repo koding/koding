@@ -20,7 +20,7 @@ class ContentDisplayDiscussion extends KDView
       size    : {width: 50, height: 50}
       origin  : origin
 
-    @author = new ProfileLinkView {origin}
+    @author = new ProfileLinkView {origin:origin}
 
     @opinionBox = new OpinionView null, data
 
@@ -33,7 +33,10 @@ class ContentDisplayDiscussion extends KDView
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
-            @propagateEvent (KDEventType:"OwnOpinionHasArrived"), opinion
+            @emit "OwnOpinionHasArrived", opinion
+            log "here it was submitted", @, @getData()
+            @opinionBox.opinionList.emit "AllOpinionsLinkWasClicked"
+    , data
 
     @actionLinks = new DiscussionActivityActionsView
       delegate : @opinionBox.opinionList
@@ -51,7 +54,6 @@ class ContentDisplayDiscussion extends KDView
     , data.tags
 
   viewAppended:()->
-
     # return if @getData().constructor is bongo.api.CStatusActivity
     super()
     @setTemplate @pistachio()
@@ -65,8 +67,6 @@ class ContentDisplayDiscussion extends KDView
         opinionController.removeAllItems()
         opinionController.instantiateListItems opinions
 
-
-  # insert Markdown support here and in the replyView
   pistachio:->
     """
     <span>

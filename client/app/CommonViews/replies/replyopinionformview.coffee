@@ -4,8 +4,6 @@ class OpinionFormView extends KDFormView
 
     super
 
-
-
     {profile} = KD.whoami()
 
     @submitOpinionBtn = new KDButtonView
@@ -31,7 +29,7 @@ class OpinionFormView extends KDFormView
     @markdownSelect = new KDSelectBox
       type          : "select"
       name          : "markdown"
-      cssClass      : "select markdown-select"
+      cssClass      : "select markdown-select hidden"
       selectOptions :
           [
               title     : "enable markdown syntax"
@@ -45,13 +43,9 @@ class OpinionFormView extends KDFormView
         @emit "opinion.changeMarkdown", value
 
     if data instanceof bongo.api.JOpinion
-      # Insert markdown stuff here when needed
       @opinionBody.setValue Encoder.htmlDecode data.body
 
-    # insert functionality for markdown swapping here
     @on "opinion.changeMarkdown", (value) ->
-
-
 
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
@@ -87,7 +81,7 @@ class OpinionFormView extends KDFormView
       <div class="opinion-box">
         <div class="opinion-form">
           <div class="opinion-form-headline">
-            <h3>Post your reply here, {{#(profile.firstName)}}</h3>
+            <h3>Post your reply here, {{}}</h3>
           </div>
           {{> @markdownSelect}}
 

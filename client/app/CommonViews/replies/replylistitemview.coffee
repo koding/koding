@@ -1,9 +1,11 @@
 class OpinionListItemView extends KDListItemView
+
   constructor:(options,data)->
     options = $.extend
-      type      : "comment"
+      type      : "opinion"
       cssClass  : "kdlistitemview kdlistitemview-comment"
     ,options
+
     super options,data
 
     data = @getData()
@@ -16,33 +18,18 @@ class OpinionListItemView extends KDListItemView
       constructorName  : originType
       id               : originId
     }
+
     @avatar = new AvatarView {
       size    : {width: 30, height: 30}
       origin
     }
+
     @author = new ProfileLinkView {
       origin
     }
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
-    # if data.originId is KD.whoami().getId()
-    #   @settingsButton = new KDButtonViewWithMenu
-    #     style       : 'transparent activity-settings-context'
-    #     cssClass    : 'activity-settings-menu'
-    #     title       : ''
-    #     icon        : yes
-    #     delegate    : @
-    #     iconClass   : "cog"
-    #     menu        : [
-    #       type      : "contextmenu"
-    #       items     : [
-    #         { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
-    #       ]
-    #     ]
-    #     callback    : (event)=> @settingsButton.contextMenu event
-    # else
-
 
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -77,9 +64,11 @@ class OpinionListItemView extends KDListItemView
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
+        # push that into the click even , destroy if exists, create if not
+
         @editForm = new OpinionFormView
           title : "edit-opinion"
-          cssClass : "edit-opinion-form hidden"
+          cssClass : "edit-opinion-form hidden opinion-container"
           callback : (data)=>
             @getData().modify data, (err, opinion) =>
               callback? err, opinion
@@ -87,9 +76,13 @@ class OpinionListItemView extends KDListItemView
                 new KDNotificationView title : "Your changes weren't saved.", type :"mini"
               else
                 # new KDNotificationView title : "modified!"
+                @emit "OwnOpinionWasAdded", opinion
                 @editForm.setClass "hidden"
-
         , data
+
+        log "adding editform"
+        @addSubView @editForm, "p.opinion-body-edit", yes
+        log @editForm
 
         @editLink.unsetClass "hidden"
 
@@ -97,34 +90,24 @@ class OpinionListItemView extends KDListItemView
           KDEventTypes       : "click"
           listenedToInstance : @editLink
           callback           : =>
+            log "clicked me", @editForm
             if @editForm.$().hasClass "hidden"
+              log "has hidden"
               @editForm.unsetClass "hidden"
             else
               @editForm.setClass "hidden"
-
-
-
-
-
 
         @deleteLink.unsetClass "hidden"
         @listenTo
           KDEventTypes       : "click"
           listenedToInstance : @deleteLink
-          callback           : => @conformDeleteOpinion data
-      # workaround: how would this be solved better?
-      else @editForm = new KDCustomHTMLView
+          callback           : => @confirmDeleteOpinion data
 
-  render:->
-    if @getData().getAt 'deletedAt'
-      @emit 'OpinionIsDeleted'
-    @setTemplate @pistachio()
-    super
+      # workaround: how would this be solved better?
 
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    # super unless @_partialUpdated
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
@@ -133,7 +116,7 @@ class OpinionListItemView extends KDListItemView
         unless err
           appManager.tell "Members", "createContentDisplay", origin
 
-  conformDeleteOpinion:(data)->
+  confirmDeleteOpinion:(data)->
     modal = new KDModalView
       title          : "Delete opinion"
       content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
@@ -149,50 +132,41 @@ class OpinionListItemView extends KDListItemView
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
-              # unless err then @emit 'CommentIsDeleted'
+              unless err then @emit 'OpinionIsDeleted'
               # else
               if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+
         # cancel       :
         #   style      : "modal-cancel"
         #   callback   : => modal.destroy()
 
   pistachio:->
-    if @getData().getAt 'deletedAt'
-      @setClass "deleted"
-      if @deleter
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s opinion has been deleted by {{> @deleter}}.</span></div>"
-      else
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s opinion has been deleted.</span></div>"
-    else
-      """
-      <div class='item-content-opinion item-content-comment clearfix'>
-        <span class='avatar'>{{> @avatar}}</span>
-        <div class='comment-contents clearfix'>
-          {{> @deleteLink}}
-          {{> @editLink}}
-          <p class='comment-body'>
-            {{> @author}}
-          </p>
-          <p class='opinion-body comment-body opinion-body-with-markup'>
-            {{> @editForm}}
-            {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
-          </p>
-          <footer class='clearfix'>
-            <div class='type-and-time'>
-              <span class='type-icon'></span> by {{> @author}}
-              <time>{{$.timeago #(meta.createdAt)}}</time>
-              {{> @tags}}
-            </div>
-            {{> @actionLinks}}
-      </footer>
+    """
+    <div class='item-content-opinion item-content-comment clearfix'>
+      <span class='avatar'>{{> @avatar}}</span>
+      <div class='comment-contents clearfix'>
+        {{> @deleteLink}}
+        {{> @editLink}}
+        <p class="opinion-body-edit"></p>
+        <p class='opinion-body comment-body opinion-body-with-markup'>
+          {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
+        </p>
+        <footer class='clearfix float-right'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> written by {{> @author}}
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+    </div>
+    </div>
+    <div class='item-content-opinion-comments item-content-comment clearfix'>
+      <div class='opinion-comment'>
+        {{> @commentBox}}
       </div>
-      </div>
-      <div class='item-content-comment clearfix'>
-        <div class='opinion-comment'>
-          {{> @commentBox}}
-        </div>
-      </div>
-      """
+    </div>
+    """
