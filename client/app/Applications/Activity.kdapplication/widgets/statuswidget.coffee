@@ -125,8 +125,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     <div class="formline">
       {{> @labelAddTags}}
       <div>
-        {{> @tagAutoComplete}}
         {{> @selectedItemWrapper}}
+        {{> @tagAutoComplete}}
       </div>
     </div>
     <div class="formline submit">
