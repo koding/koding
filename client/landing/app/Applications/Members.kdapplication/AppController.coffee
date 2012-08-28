@@ -18,7 +18,7 @@ class Members12345 extends AppController
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
-      listControllerClass   : MembersListViewController
+      qlistControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
         subtitle            : "Learn About Members"
@@ -28,9 +28,10 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
-          optional_title    : if @_searchValue then "Searching for <strong>#{@_searchValue}</strong>..." else null
+          optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
+              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               bongo.api.JAccount.byRelevance @_searchValue, options, (err, items)=>
                 @_currentItemCount += items.length
                 @setCurrentViewHeader(items.length, '+' if items.length >= 10)
@@ -151,18 +152,21 @@ class Members12345 extends AppController
 
   setCurrentViewNumber:(type)->
     {currentDelegate} = @getSingleton('mainController').getVisitor()
-    # typeClass =
     currentDelegate.count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   setCurrentViewHeader:(count, postfix='')->
+    if typeof 1 isnt typeof count
+      @getView().$(".activityhead span.optional_title").html count
+      return no
+
     if count < 10 and @_currentItemCount isnt 0
       count = @_currentItemCount
 
     count  = 'No' if count is 0
     result = "#{count}#{postfix} member" + if count isnt 1 then 's' else ''
     title  = "#{result} found for <strong>#{@_searchValue}</strong>"
-    @getView().$(".activityhead").html title
+    @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options =
