@@ -64,12 +64,6 @@ class OpinionListItemView extends KDListItemView
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
-        # push that into the click even , destroy if exists, create if not
-
-
-
-        @editLink.unsetClass "hidden"
-
         @listenTo
           KDEventTypes       : "click"
           listenedToInstance : @editLink
@@ -78,7 +72,6 @@ class OpinionListItemView extends KDListItemView
               @editForm?.destroy()
               delete @editForm
             else
-              # only works once, why!?
               @editForm = new OpinionFormView
                 title : "edit-opinion"
                 cssClass : "edit-opinion-form opinion-container"
@@ -88,18 +81,19 @@ class OpinionListItemView extends KDListItemView
                     if err
                       new KDNotificationView title : "Your changes weren't saved.", type :"mini"
                     else
-                      # new KDNotificationView title : "modified!"
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
               , data
 
               @addSubView @editForm, "p.opinion-body-edit", yes
 
-        @deleteLink.unsetClass "hidden"
         @listenTo
           KDEventTypes       : "click"
           listenedToInstance : @deleteLink
           callback           : => @confirmDeleteOpinion data
+
+        @editLink.unsetClass "hidden"
+        @deleteLink.unsetClass "hidden"
 
       # workaround: how would this be solved better?
 
@@ -117,7 +111,7 @@ class OpinionListItemView extends KDListItemView
   confirmDeleteOpinion:(data)->
     modal = new KDModalView
       title          : "Delete opinion"
-      content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
+      content        : "<div class='modalformline'>Are you sure you want to delete this opinion?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -130,16 +124,14 @@ class OpinionListItemView extends KDListItemView
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
-              unless err then @emit 'OpinionIsDeleted'
-              # else
+              unless err
+                @emit 'OpinionIsDeleted', data
+                @destroy()
+
               if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
 
   pistachio:->
     """
