@@ -12,13 +12,13 @@ class DiscussionActivityActionsView extends ActivityActionsView
         unless @parent instanceof ContentDisplayDiscussion
           appManager.tell "Activity", "createContentDisplay", @getData()
 
-
-
     @opinionCount?.destroy()
 
     @opinionCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
+      click       :=>
+        @getDelegate().emit "OpinionCountClicked"
     , activity
 
   viewAppended:->
@@ -36,6 +36,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     opinionList.on "BackgroundActivityStarted", => @loader.show()
     opinionList.on "BackgroundActivityFinished", => @loader.hide()
+
     @likeLink.registerListener
       KDEventTypes  : "Click"
       listener      : @
@@ -47,6 +48,12 @@ class DiscussionActivityActionsView extends ActivityActionsView
               new KDNotificationView
                 title     : "You already liked this!"
                 duration  : 1300
+
+    @opinionLink.registerListener
+      KDEventTypes  : "Click"
+      listener      : @
+      callback      : (pubInst, event) ->
+        opinionList.propagateEvent KDEventType : "OpinionLinkReceivedClick", event
 
 
 
