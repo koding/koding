@@ -142,8 +142,6 @@ class JInvitation extends jraphical.Module
             ->
               continueLooping = ->
                 setTimeout (-> queue.next()), 50
-              # queue.push ->
-              log item.email
               item.sent = yes
               JInvitation.sendBetaInvite email:item.email,(err,res)->
                 if err

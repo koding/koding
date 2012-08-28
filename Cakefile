@@ -284,7 +284,6 @@ task 'build', 'optimized version for deployment', (options)->
 # ------------- BUILDER START ----------#
 build = (options)->
   log.debug "building with following options, ctrl-c before too late:",options
-
   debug = if options.debug? then "--debug --prof --prof-lazy" else "--stack_size=2048"
   run = 
     command: ["node", [debug,'/tmp/kd-server.js', process.cwd(), options.database, options.port, options.cron, options.host]]
