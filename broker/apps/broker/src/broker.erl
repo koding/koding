@@ -10,7 +10,7 @@
 -module(broker).
 -behaviour(gen_server).
 %% API
--export([start_link/0, subscribe/1, unsubscribe/1,
+-export([start_link/0, subscribe/2, unsubscribe/1,
             bind/2, unbind/2, trigger/4]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
@@ -42,16 +42,11 @@ start_link() ->
 %% Function: subscribe(Exchange) -> Reply
 %% Description: Init a subscription for the requesting client.
 %%--------------------------------------------------------------------
-subscribe(Exchange) ->
-    gen_server:call(?SERVER, {subscribe, Exchange}).
+subscribe(Conn, Exchange) ->
+    gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
 
 unsubscribe(Subscription) when is_pid(Subscription) ->
-    gen_server:call(?SERVER, {close, Subscription});
-
-unsubscribe(Exchange) when is_binary(Exchange) ->
-    % Probably need a hash map Exchange <> Subscription
-    % unsubscribe(Subscription).
-    ok. 
+    gen_server:call(?SERVER, {close, Subscription})
 
 %%====================================================================
 %% Wrappers for subscription gen_server
@@ -90,8 +85,8 @@ init([Connection]) ->
 %% Description: Handling subscription request. Subscription supervisor
 %% will create one under its supervision tree.
 %%--------------------------------------------------------------------
-handle_call({subscribe, Exchange}, From, Connection) ->
-    {ok, SID} = subscription_sup:start_subscription(From, Exchange),
+handle_call({subscribe, Conn, Exchange}, From, Connection) ->
+    {ok, SID} = subscription_sup:start_subscription(From, Conn, Exchange),
     {reply, SID, Connection};
 
 %%--------------------------------------------------------------------
@@ -103,7 +98,7 @@ handle_call({subscribe, Exchange}, From, Connection) ->
 %%-------------------------------------------------------------------- 
 handle_call({unsubscribe, Subscription}, _From, Connection) ->
     ok = subscription_sup:stop_subscription(Subscription),
-    {noreply, Connection};
+    {reply, ok, Connection};
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |

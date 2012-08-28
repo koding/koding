@@ -31,7 +31,7 @@
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
--record (subscription, {id}).
+-record (client, {id, socket_id, subscriptions=dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 %% ===================================================================
@@ -53,19 +53,9 @@ start(_StartType, _StartArgs) ->
 
     % This will start the Broker gen_server and the subscription_sup
     broker:start_link(),
-
-    ConnectionFun = fun
-        () when guard ->
-            ok
-    end,
-
-    MultiplexState = sockjs_mq:init_state(ConnectionFun, fun handle_subscription/3),
-
-    %% sockjs_handler:init_state(Prefix, Callback, State, Options)
-    %% Callback is a sockjs_service behavior module.
+    
     SockjsState = sockjs_handler:init_state(
-                    <<"/subscribe">>, sockjs_mq, MultiplexState, [{disconnect_delay, 10000}]),
-
+                    <<"/subscribe">>, fun handle_client/3, {}, []),
     VhostRoutes = [
         {
             [<<"subscribe">>, '...'], 
@@ -136,71 +126,63 @@ terminate(_Req, _State) ->
 %% SockJS_MQ Handlers
 %% ===================================================================
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {init, From}, _State) -> 
-%%              {ok, NewState}
-%% Description: Set up RabbitMQ connection and channel, then spawn the 
-%% receiving loop. This process also declares the Exchange.
-%%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From, _Channel, Func}, _State) ->
-    {topic, Exchange} = lists:last(Conn:info()),
+handle_client(Conn, init, _State) ->
+    SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
+    Event = {<<"event">>, <<"connected">>},
+    Payload = {<<"socket_id">>, SocketId},
+    Conn:send(jsx:encode([Event, Payload])),
+    {ok, #client{socket_id=SocketId}};
 
-    Subscription = broker:subscribe(Exchange),
-    {ok, #subscription{id = Subscription}};
+handle_client(Conn, {recv, Data}, 
+                    State=#client{subscriptions= Subscriptions}) ->
+    [Event, Exchange, Payload, Meta] = Decoded = decode(Data),
+    Check = {Event, dict:is_key(Exchange, Subscriptions)},
+    io:format("Event ~p~n", [Decoded]),
+    NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
+    {ok, State#client{subscriptions=NewSubs}};
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
-%%              {ok, NewState}
-%% Description: When the client binds on certain event, this function
-%% declare a queue and bind to an routing key with the same name as
-%% the event name. This allows client to only receive messages from
-%% that event.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {bind, Event, _From},
-                State = #subscription{id=Id}) ->
-    broker:bind(Id, Event),
-    {ok, State};
+handle_client(_Conn, closed, 
+                State=#client{subscriptions= Subscriptions}) ->
+    case dict:size(Subscriptions) of 
+        0 -> ok;
+        _ ->
+            List = dict:to_list(Subscriptions),
+            [broker:unsubscribe(Subscription) 
+                || {_Exchange, Subscription} <- List]
+    end,
+    {ok, #client{}}.
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {unbind, Event, _From}, State)
-%%              -> {ok, NewState}.
-%% Description: When the client unbinds certain event, this function
-%% unbinds the associated queue.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {unbind, Event, _From}, 
-                    State = #subscription{id=Id}) ->
-    broker:unbind(Id, Event),
-    {ok, State};
+handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    Subscription = broker:subscribe(Conn, Exchange),
+    dict:store(Exchange, Subscription, Subs);
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {trigger, Event, Payload, From}
-%%              , State) -> {ok, NewState}.
-%% Description: Allows client to trigger certain event in an exchange.
-%% The payload of the event will be broadcasted to the exchange under
-%% the routing key the same as the event name.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {trigger, Event, Payload, From, Meta},
-                    State = #subscription{id=Id}) ->
-    broker:trigger(Id, Event, Payload, Meta),
-    {ok, State};
+handle_event(Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:bind(Subscription, Payload),
+    Subs;
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(_Conn, closed, State) -> {ok, State}.
-%% Description: When the client unsubscribes from the exchange, unbind
-%% all the bound queues from the exchange.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, 
-                    #subscription{id=Id}) ->
-    broker:unsubscribe(Id),
-    {ok, #subscription{}};
+handle_event(Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unbind(Subscription, Payload),
+    Subs;
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(_Conn, ended, Channel) -> {ok, State}.
-%% Description: When the connection terminates, close the channel.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, ended, Channel) ->
-    amqp_channel:close(Channel),
-    {ok, #subscription{}}.
+handle_event(Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unsubscribe(Subscription),
+    dict:erease(Exchange, Subs);
+
+handle_event(Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
+    [Event, Exchange, Payload, Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:trigger(Subscription, Event, Payload, Meta),
+    Subs;
+
+handle_event(Conn, _Else, _Data, Subs) ->
+    Subs.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
@@ -211,4 +193,37 @@ debug_log(Text, Args) ->
         {ok, Val} when Val ->
             io:format(Text, Args);
         _ -> true
+    end.
+
+%%--------------------------------------------------------------------
+%% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
+%% Types:
+%%  Data = binary()
+%%  Event = binary()
+%%  Exchange = binary()
+%%  Payload = binary()
+%%  Meta = binary()
+%% Description:  Decode a binary data from the websocket connection
+%% into a list of data that the handler expects
+%%--------------------------------------------------------------------
+decode(Data) ->
+    [{<<"event">>, Event}, 
+        {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+
+    Payload = bin_key_find(<<"payload">>, Rest, false),
+    Meta = bin_key_find(<<"meta">>, Rest, true),
+    [Event, Exchange, Payload, Meta].
+
+%%--------------------------------------------------------------------
+%% Function: bin_key_find(BinKey, List, ReturnsEmptyList) -> Val || false
+%% Description:  A helper to find a binary key in a binary proplist.
+%% The third boolean argument specifies to return an empty list or empty
+%% binary when the BinKey not found.
+%%--------------------------------------------------------------------
+bin_key_find(BinKey, List, ReturnEmptyList) ->
+    case lists:keyfind(BinKey, 1, List) of
+        {_, Val} when is_integer(Val) -> list_to_binary(integer_to_list(Val));
+        {_, Val} -> Val;
+        false when ReturnEmptyList -> [];
+        false -> <<>>
     end.

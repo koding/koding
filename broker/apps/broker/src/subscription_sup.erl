@@ -9,7 +9,7 @@
 -behaviour (supervisor).
 
 %% API
--export([start_link/1, start_subscription/2, stop_subscription/1]).
+-export([start_link/1, start_subscription/3, stop_subscription/1]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -20,11 +20,11 @@
 start_link(Connection) ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, [Connection]).
 
-start_subscription(Client, Exchange) ->
+start_subscription(Client, Conn, Exchange) ->
     % In the case of SOFO, the second argument of start_child will be
     % appended to the Args of StartFunc.
     {ok, _SubscriptionId} = 
-        supervisor:start_child(?MODULE, [Client, Exchange]).
+        supervisor:start_child(?MODULE, [Client, Conn, Exchange]).
 
 stop_subscription(SubscriptionId) ->
     ok = supervisor:terminate_child(?MODULE, SubscriptionId).
