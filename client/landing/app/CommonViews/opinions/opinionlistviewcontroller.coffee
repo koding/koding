@@ -38,7 +38,6 @@ class OpinionListViewController extends KDListViewController
     listView.on 'ItemWasAdded', (view, index)=>
       view.on "OpinionIsDeleted", (data)->
         listView.emit "OpinionIsDeleted", data
-        log "delegate:", @getDelegate()
 
     listView.on "AllOpinionsLinkWasClicked", (opinionHeader)=>
 

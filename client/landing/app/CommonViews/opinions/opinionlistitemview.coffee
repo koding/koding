@@ -14,13 +14,15 @@ class OpinionListItemView extends KDListItemView
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
 
-    origin = {
+    origin =
       constructorName  : originType
       id               : originId
-    }
+
 
     @avatar = new AvatarView {
-      size    : {width: 30, height: 30}
+      size    :
+        width: 50
+        height: 50
       origin
     }
 
@@ -45,7 +47,7 @@ class OpinionListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-    @commentBox = new CommentView null, data
+    @commentBox = new OpinionCommentView null, data
 
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
@@ -95,8 +97,6 @@ class OpinionListItemView extends KDListItemView
         @editLink.unsetClass "hidden"
         @deleteLink.unsetClass "hidden"
 
-      # workaround: how would this be solved better?
-
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -135,16 +135,16 @@ class OpinionListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class='item-content-opinion item-content-comment clearfix'>
+    <div class='item-content-opinion clearfix'>
       <span class='avatar'>{{> @avatar}}</span>
-      <div class='comment-contents clearfix'>
+      <div class='opinion-contents clearfix'>
         {{> @deleteLink}}
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
-        <p class='opinion-body comment-body opinion-body-with-markup'>
-          {{@utils.applyLineBreaks @utils.applyTextExpansions @utils.applyMarkdown #(body)}}
+        <p class='opinion-body-with-markup'>
+          {{@utils.applyTextExpansions @utils.applyMarkdown #(body)}}
         </p>
-        <footer class='clearfix float-right'>
+        <footer class='opinion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> written by {{> @author}}
             <time>{{$.timeago #(meta.createdAt)}}</time>
@@ -154,7 +154,7 @@ class OpinionListItemView extends KDListItemView
         </footer>
     </div>
     </div>
-    <div class='item-content-opinion-comments item-content-comment clearfix'>
+    <div class='item-content-opinion-comments clearfix'>
       <div class='opinion-comment'>
         {{> @commentBox}}
       </div>
