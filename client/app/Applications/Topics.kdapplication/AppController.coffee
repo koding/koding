@@ -35,10 +35,13 @@ class Topics12345 extends AppController
       filter                :
         everything          :
           title             : "All topics"
-          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all topics" else null
+          optional_title    : if @_searchValue then "Searching for <strong>#{@_searchValue}</strong>..." else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
-              bongo.api.JTag.byRelevance @_searchValue, options, callback
+              bongo.api.JTag.byRelevance @_searchValue, options, (err, items)=>
+                @_currentItemCount += items.length
+                @setCurrentViewHeader(items.length, '+' if items.length >= 20)
+                callback err, items
             else
               bongo.api.JTag.someWithRelationship selector, options, callback
         followed            :
@@ -60,6 +63,7 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
+      @_currentItemCount = 0
       view.addSubView @_lastSubview = controller.getView()
 
   loadView:(mainView, firstRun = yes)->
@@ -158,6 +162,15 @@ class Topics12345 extends AppController
 
   createContentDisplay:(tag,doShow = yes)->
     @showContentDisplay tag
+
+  setCurrentViewHeader:(count, postfix='')->
+    if count < 20 and @_currentItemCount isnt 0
+      count = @_currentItemCount
+
+    count  = 'No' if count is 0
+    result = "#{count}#{postfix} result" + if count isnt 1 then 's' else ''
+    title  = "#{result} found for <strong>#{@_searchValue}</strong>"
+    @getView().$(".activityhead").html title
 
   showContentDisplay:(content)->
     contentDisplayController = @getSingleton "contentDisplayController"

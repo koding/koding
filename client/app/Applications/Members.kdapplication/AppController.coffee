@@ -28,10 +28,13 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
-          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all members" else null
+          optional_title    : if @_searchValue then "Searching for <strong>#{@_searchValue}</strong>..." else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
-              bongo.api.JAccount.byRelevance @_searchValue, options, callback
+              bongo.api.JAccount.byRelevance @_searchValue, options, (err, items)=>
+                @_currentItemCount += items.length
+                @setCurrentViewHeader(items.length, '+' if items.length >= 10)
+                callback err, items
             else
               bongo.api.JAccount.someWithRelationship selector, options, callback
               {currentDelegate} = @getSingleton('mainController').getVisitor()
@@ -59,7 +62,7 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-
+      @_currentItemCount = 0
       view.addSubView @_lastSubview = controller.getView()
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
@@ -151,6 +154,15 @@ class Members12345 extends AppController
     # typeClass =
     currentDelegate.count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
+
+  setCurrentViewHeader:(count, postfix='')->
+    if count < 10 and @_currentItemCount isnt 0
+      count = @_currentItemCount
+
+    count  = 'No' if count is 0
+    result = "#{count}#{postfix} member" + if count isnt 1 then 's' else ''
+    title  = "#{result} found for <strong>#{@_searchValue}</strong>"
+    @getView().$(".activityhead").html title
 
   fetchFeedForHomePage:(callback)->
     options =
