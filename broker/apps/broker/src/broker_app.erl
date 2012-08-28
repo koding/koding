@@ -134,15 +134,13 @@ handle_client(Conn, init, _State) ->
     {ok, #client{socket_id=SocketId}};
 
 handle_client(Conn, {recv, Data}, 
-                    State=#client{subscriptions= Subscriptions}) ->
-    [Event, Exchange, Payload, Meta] = Decoded = decode(Data),
+                    State=#client{subscriptions=Subscriptions}) ->
+    [Event, Exchange, _Payload, _Meta] = Decoded = decode(Data),
     Check = {Event, dict:is_key(Exchange, Subscriptions)},
-    io:format("Event ~p~n", [Decoded]),
     NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
     {ok, State#client{subscriptions=NewSubs}};
 
-handle_client(_Conn, closed, 
-                State=#client{subscriptions= Subscriptions}) ->
+handle_client(_Conn, closed, #client{subscriptions=Subscriptions}) ->
     case dict:size(Subscriptions) of 
         0 -> ok;
         _ ->
@@ -150,38 +148,44 @@ handle_client(_Conn, closed,
             [broker:unsubscribe(Subscription) 
                 || {_Exchange, Subscription} <- List]
     end,
-    {ok, #client{}}.
+    {ok, #client{}};
+
+handle_client(_Conn, Other, _) ->
+    io:format("Other data ~p~n", [Other]).
 
 handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
-    Subscription = broker:subscribe(Conn, Exchange),
-    dict:store(Exchange, Subscription, Subs);
+    case broker:subscribe(Conn, Exchange) of
+        {error, Error} -> Subs;
+        {ok, Subscription} ->
+            dict:store(Exchange, Subscription, Subs)
+    end;
 
-handle_event(Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
     [_Event, Exchange, Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:bind(Subscription, Payload),
     Subs;
 
-handle_event(Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
     [_Event, Exchange, Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:unbind(Subscription, Payload),
     Subs;
 
-handle_event(Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:unsubscribe(Subscription),
     dict:erease(Exchange, Subs);
 
-handle_event(Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
     [Event, Exchange, Payload, Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:trigger(Subscription, Event, Payload, Meta),
     Subs;
 
-handle_event(Conn, _Else, _Data, Subs) ->
+handle_event(_Conn, _Else, _Data, Subs) ->
     Subs.
 
 %%--------------------------------------------------------------------

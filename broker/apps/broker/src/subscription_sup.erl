@@ -23,8 +23,7 @@ start_link(Connection) ->
 start_subscription(Client, Conn, Exchange) ->
     % In the case of SOFO, the second argument of start_child will be
     % appended to the Args of StartFunc.
-    {ok, _SubscriptionId} = 
-        supervisor:start_child(?MODULE, [Client, Conn, Exchange]).
+    supervisor:start_child(?MODULE, [Client, Conn, Exchange]).
 
 stop_subscription(SubscriptionId) ->
     ok = supervisor:terminate_child(?MODULE, SubscriptionId).

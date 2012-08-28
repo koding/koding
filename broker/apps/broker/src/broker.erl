@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, subscribe/2, unsubscribe/1,
-            bind/2, unbind/2, trigger/4]).
+            bind/2, unbind/2, trigger/4, rpc/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
         handle_call/3, handle_cast/2, handle_info/2]).
@@ -45,12 +45,13 @@ start_link() ->
 subscribe(Conn, Exchange) ->
     gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
 
-unsubscribe(Subscription) when is_pid(Subscription) ->
-    gen_server:call(?SERVER, {close, Subscription}).
-
 %%====================================================================
 %% Wrappers for subscription gen_server
 %%====================================================================
+unsubscribe(Subscription) when is_pid(Subscription) ->
+    subscription:stop(Subscription).
+    %gen_server:call(?SERVER, {close, Subscription}).
+
 bind(Subscription, Event) ->
     subscription:bind(Subscription, Event).
 
@@ -59,9 +60,6 @@ unbind(Subscription, Event) ->
 
 trigger(Subscription, Event, Payload, Meta) ->
     subscription:trigger(Subscription, Event, Payload, Meta).
-
-change_exchange(Subscription, Exchange) ->
-    gen_server:call(Subscription, {change, Exchange}).
 
 rpc(Subscription, RoutingKey, Payload) ->
     gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
@@ -86,15 +84,15 @@ init([Connection]) ->
 %% will create one under its supervision tree.
 %%--------------------------------------------------------------------
 handle_call({subscribe, Conn, Exchange}, From, Connection) ->
-    {ok, SID} = subscription_sup:start_subscription(From, Conn, Exchange),
-    {reply, SID, Connection};
+    Result = subscription_sup:start_subscription(From, Conn, Exchange),
+    {reply, Result, Connection};
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call({unsubscribe, Subscription}, From, State) -> 
 %%                          {noreply, State} 
 %% Description: Handling unsubscription request. This will tell the
-%% subscription supervisor to stop the child subscription, resulting
-%% in its `terminate/2` to be called to do all clean up necessesary.
+%% subscription supervisor to stop the child subscription, but not call
+%% its `terminate/2` to do all clean up necessesary.
 %%-------------------------------------------------------------------- 
 handle_call({unsubscribe, Subscription}, _From, Connection) ->
     ok = subscription_sup:stop_subscription(Subscription),

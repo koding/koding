@@ -9,7 +9,9 @@
 -module(subscription).
 -behaviour(gen_server).
 %% API
--export([start_link/4, bind/2, unbind/2, trigger/4, notify_first/3]).
+-export([start_link/4, stop/1, 
+        bind/2, unbind/2, trigger/4, rpc/3,
+        notify_first/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
         handle_call/3, handle_cast/2, handle_info/2]).
@@ -52,8 +54,8 @@ unbind(Subscription, Event) ->
 trigger(Subscription, Event, Payload, Meta) ->
     gen_server:call(Subscription, {trigger, Event, Payload, Meta}).
 
-change_exchange(Subscription, Exchange) ->
-    gen_server:call(Subscription, {change, Exchange}).
+stop(Subscription) ->
+    gen_server:cast(Subscription, stop).
 
 rpc(Subscription, RoutingKey, Payload) ->
     gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
@@ -71,6 +73,9 @@ rpc(Subscription, RoutingKey, Payload) ->
 %% in gen_server:start_link call
 %%--------------------------------------------------------------------
 init([Connection, Client, Conn, Exchange]) ->
+    % To know when the supervisor shuts down. In that case, this
+    % terminate function will be called to give the gen_server a chance
+    % to clean up.
     process_flag(trap_exit, true),
 
     SendFun = fun (Data) -> send(Conn, Exchange, Data) end,
@@ -90,8 +95,6 @@ init([Connection, Client, Conn, Exchange]) ->
         ok -> {ok, State}
     catch
         error:precondition_failed ->
-            NewChannel = channel(Connection),
-            % TODO: Close the subscription
             ErrMsg = get_env(precondition_failed, <<"Unknow error">>),
             SendFun([<<"broker:subscription_error">>, ErrMsg]),
             {stop, precondition_failed}
@@ -106,7 +109,7 @@ init([Connection, Client, Conn, Exchange]) ->
 %%  State = #state{}
 %% Description: Handling key binding to the exchange.
 %%--------------------------------------------------------------------
-handle_call({bind, Event}, From, State=#state{channel=Channel,
+handle_call({bind, Event}, _From, State=#state{channel=Channel,
                                                 exchange=Exchange,
                                                 bindings=Bindings}) ->
     % Ensure one queue per key per exchange
@@ -127,7 +130,7 @@ handle_call({bind, Event}, From, State=#state{channel=Channel,
 %%  State = #state{}
 %% Description: Handling key unbinding from the exchange.
 %%--------------------------------------------------------------------
-handle_call({unbind, Event}, From, State=#state{channel=Channel,
+handle_call({unbind, Event}, _From, State=#state{channel=Channel,
                                                 exchange=Exchange,
                                                 bindings=Bindings}) ->
     case dict:find(Event, Bindings) of 
@@ -182,6 +185,20 @@ handle_call({rpc, RoutingKey, Payload}, _From, State) ->
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_cast(stop, State) -> {noreply, State}.
+%% Types:
+%%  State = #state{}
+%% Description: Tell this gen_server to terminate normally.
+%%--------------------------------------------------------------------
+handle_cast(stop, State) ->    
+    % By replying with stop, this terminate function will be
+    % called. if any reason other than normal, shutdown or 
+    % {shutdown, Term} is used when terminate/2 is called, the
+    % OTP framework will see this as a failure and start 
+    % logging a bunch of stuff here and there for you.
+    {stop, normal, State};
     
 %%--------------------------------------------------------------------
 %% Function: handle_cast(Msg, State) -> {noreply, State} |
@@ -197,8 +214,7 @@ handle_cast(_Msg, State) ->
 %%                                          {noreply, State}
 %% Description: Acknowledge the subscription from MQ.
 %%--------------------------------------------------------------------
-handle_info(#'basic.consume_ok'{}, State) -> 
-    io:format("start consuming~n"),
+handle_info(#'basic.consume_ok'{}, State) ->
     {noreply, State};
 
 %%--------------------------------------------------------------------
@@ -214,10 +230,10 @@ handle_info(#'basic.consume_ok'{}, State) ->
 %%--------------------------------------------------------------------
 handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
             #amqp_msg{props=#'P_basic'{headers = Headers}}}, State) ->
-    [{<<"action">>, longstr, Action}, % "bind" || "unbind"
-     {<<"exchange">>, longstr, XName}, % same as this excchange
-     {<<"queue">>, longstr, QName}, % name of queue
-     {<<"key">>, longstr, BindingKey}] = Headers,
+    [{<<"action">>, longstr, _Action}, % "bind" || "unbind"
+     {<<"exchange">>, longstr, _XName}, % same as this excchange
+     {<<"queue">>, longstr, _QName}, % name of queue
+     {<<"key">>, longstr, _BindingKey}] = Headers,
     {noreply, State};
 
 %%--------------------------------------------------------------------
@@ -231,16 +247,14 @@ handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
 %%  Payload = bitstring(),
 %% Description: Echo to the client receiving message from bound events.
 %%--------------------------------------------------------------------
-handle_info({#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
+handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange}, 
             #amqp_msg{props =  #'P_basic'{correlation_id = CorId},
                 payload = Payload}}, State=#state{sender=Sender}) ->
     Self = term_to_binary(self()),
     case CorId of 
         Self -> 
-            io:format("Own message, ignored~n"),
             {noreply, State};
         _ -> 
-            io:format("New message: ~p~n", [Payload]),
             Sender([Event, Payload]),
             {noreply, State}
     end;
@@ -258,9 +272,8 @@ handle_info(_Info, State) ->
 %%--------------------------------------------------------------------
 %% Function: terminate(Reason, State) -> void()
 %% Description: This function is called by a gen_server when it is about to
-%% terminate. It should be the opposite of Module:init/1 and do any necessary
-%% cleaning up. When it returns, the gen_server terminates with Reason.
-%% The return value is ignored.
+%% terminate, or when the parent terminates. In here, we clean up all
+%% the bound queues, then closes the channel.
 %%--------------------------------------------------------------------
 terminate(_Reason, #state{channel = Channel,
                             exchange = Exchange,
