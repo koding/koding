@@ -66,23 +66,7 @@ class OpinionListItemView extends KDListItemView
 
         # push that into the click even , destroy if exists, create if not
 
-        @editForm = new OpinionFormView
-          title : "edit-opinion"
-          cssClass : "edit-opinion-form hidden opinion-container"
-          callback : (data)=>
-            @getData().modify data, (err, opinion) =>
-              callback? err, opinion
-              if err
-                new KDNotificationView title : "Your changes weren't saved.", type :"mini"
-              else
-                # new KDNotificationView title : "modified!"
-                @emit "OwnOpinionWasAdded", opinion
-                @editForm.setClass "hidden"
-        , data
 
-        log "adding editform"
-        @addSubView @editForm, "p.opinion-body-edit", yes
-        log @editForm
 
         @editLink.unsetClass "hidden"
 
@@ -90,12 +74,26 @@ class OpinionListItemView extends KDListItemView
           KDEventTypes       : "click"
           listenedToInstance : @editLink
           callback           : =>
-            log "clicked me", @editForm
-            if @editForm.$().hasClass "hidden"
-              log "has hidden"
-              @editForm.unsetClass "hidden"
+            if @editForm?
+              @editForm?.destroy()
+              delete @editForm
             else
-              @editForm.setClass "hidden"
+              # only works once, why!?
+              @editForm = new OpinionFormView
+                title : "edit-opinion"
+                cssClass : "edit-opinion-form opinion-container"
+                callback : (data)=>
+                  @getData().modify data, (err, opinion) =>
+                    callback? err, opinion
+                    if err
+                      new KDNotificationView title : "Your changes weren't saved.", type :"mini"
+                    else
+                      # new KDNotificationView title : "modified!"
+                      @emit "OwnOpinionWasAdded", opinion
+                      @editForm.setClass "hidden"
+              , data
+
+              @addSubView @editForm, "p.opinion-body-edit", yes
 
         @deleteLink.unsetClass "hidden"
         @listenTo
