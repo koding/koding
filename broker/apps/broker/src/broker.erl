@@ -46,7 +46,7 @@ subscribe(Conn, Exchange) ->
     gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
 
 unsubscribe(Subscription) when is_pid(Subscription) ->
-    gen_server:call(?SERVER, {close, Subscription})
+    gen_server:call(?SERVER, {close, Subscription}).
 
 %%====================================================================
 %% Wrappers for subscription gen_server
