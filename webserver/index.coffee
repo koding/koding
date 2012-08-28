@@ -1,13 +1,13 @@
 {webPort, mongo, amqp} = require './config'
 
 path = __dirname+'/..'
-console.log path
 
 express = require 'express'
 Broker = require 'broker'
 Bongo = require 'bongo'
 gzippo = require 'gzippo'
 fs = require 'fs'
+hat = require 'hat'
 
 app = express.createServer()
 
@@ -23,25 +23,36 @@ koding = new Bongo {mongo, mq: new Broker amqp}
 
 JSession = require './models/session'
 
-app.get '/auth', (req, res)->
+authenticationFailed = (res, err)->
+  res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
+
+app.get '/auth', do ->
   crypto = require 'crypto'
-  channel = req.query?.channel
-  return res.send "-1" unless channel
-  clientId = req.cookies.clientid
-  JSession.one {clientId}, (err, session)->
-    if err or not session?
-      res.send "forbidden! (reason: #{err or "no session!"})", 403
-    else
-      [priv, type, pubName] = channel.split '-'
-      {username} = session
-      cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
-      cipher.update(
-        ''+pubName+req.cookies.clientid+Date.now()+Math.random()
-      )
-      privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
-      privName += '.private'
-      koding.mq.emit(channel, 'join', privName)
-      return res.send privName
+  (req, res)->
+    channel = req.query?.channel
+    return res.send 'user error', 400 unless channel
+    clientId = req.cookies.clientid
+    JSession.one {clientId}, (err, session)->
+      if err
+        authenticationFailed(res, err)
+      else
+        [priv, type, pubName] = channel.split '-'
+        if /^bongo\./.test type
+          privName = 'secret-bongo-'+hat()
+          koding.mq.emit('bongo', 'join', privName)
+          res.send privName
+        else unless session?
+          authenticationFailed(res)
+        else
+          {username} = session
+          cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
+          cipher.update(
+            ''+pubName+req.cookies.clientid+Date.now()+Math.random()
+          )
+          privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+          privName += '.private'
+          koding.mq.emit(channel, 'join', privName)
+          return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
