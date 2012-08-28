@@ -16,10 +16,12 @@ class CommentListItemView extends KDListItemView
       constructorName  : originType
       id               : originId
     }
+
     @avatar = new AvatarView {
       size    : {width: 30, height: 30}
       origin
     }
+
     @author = new ProfileLinkView {
       origin
     }
@@ -42,6 +44,7 @@ class CommentListItemView extends KDListItemView
     #     ]
     #     callback    : (event)=> @settingsButton.contextMenu event
     # else
+
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :

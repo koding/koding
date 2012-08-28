@@ -28,6 +28,7 @@ class OpinionListViewController extends KDListViewController
 
       unless skipOpinion
         opinionView = @getListView().addItem opinion
+        log "opinionView", opinionView
         newItems.push opinionView
 
     return newItems
@@ -36,7 +37,9 @@ class OpinionListViewController extends KDListViewController
     listView = @getListView()
 
     listView.on 'ItemWasAdded', (view, index)=>
-      view.on 'OpinionIsDeleted', ->
+      log "item was added with view/index", view, index
+      view.on "OpinionIsDeleted", ->
+        log "opinion was depeted in view"
         listView.emit "OpinionIsDeleted"
 
     listView.on "AllOpinionsLinkWasClicked", (opinionHeader)=>
@@ -53,18 +56,16 @@ class OpinionListViewController extends KDListViewController
       @_removedBefore = no
       @fetchRelativeOpinions 10, meta.createdAt
 
-    # listView.registerListener
-    #   KDEventTypes  : "OpinionSubmitted"
-    #   listener      : @
-    #   callback      : (pubInst, reply)->
-    #     log "Opinion Submitted!"
-    #     model = listView.getData()
-    #     listView.emit "BackgroundActivityStarted"
-    #     model.reply reply, (err, reply)->
-    #       listView.addItem reply
-    #       listView.emit "OwnOpinionHasArrived"
-    #       log "in callback now"
-    #       listView.emit "BackgroundActivityFinished"
+    listView.registerListener
+      KDEventTypes  : "OwnOpinionHasArrived"
+      listener      : @
+      callback      : (pubInst, reply)->
+        log "OwnOpinionHasArrived"
+        listView.emit "BackgroundActivityStarted"
+        listView.addItem reply
+
+        log "in callback now"
+        listView.emit "BackgroundActivityFinished"
 
 
   fetchOpinionsByRange:(from,to,callback)=>

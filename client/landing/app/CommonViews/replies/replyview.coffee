@@ -20,12 +20,14 @@ class OpinionView extends KDView
     , data
 
     @opinionController          = new OpinionListViewController view: @opinionList
-    @addSubView @showMore       = new OpinionViewHeader delegate: @opinionList, data
+    # @addSubView showMore       = new OpinionViewHeader delegate: @opinionList, data
     @addSubView @opinionList
 
     @opinionList.on "OwnOpinionHasArrived", ->
-      showMore.ownCommentArrived()
-    @opinionList.on "OpinionIsDeleted", -> showMore.ownCommentDeleted()
+      # showMore.ownCommentArrived()
+    @opinionList.on "OpinionIsDeleted", ->
+      log "opinion is deleted"
+      # showMore.ownCommentDeleted()
 
     if data.replies
       for reply, i in data.replies when reply? and 'object' is typeof reply
@@ -35,7 +37,7 @@ class OpinionView extends KDView
 
   attachListeners:->
     @listenTo
-      KDEventTypes : "DecorateActiveCommentView"
+      KDEventTypes : "DecorateActiveOpinionView"
       listenedToInstance : @opinionList
       callback : @decorateActiveCommentState
 
@@ -45,11 +47,11 @@ class OpinionView extends KDView
       callback : (pubInst, event) =>
         @opinionForm.commentInput.setFocus()
 
-    # @opinionList.on "CommentCountClicked", =>
-    #   @opinionList.emit "AllOpinionsLinkWasClicked"
+    @opinionList.on "OpinionCountClicked", =>
+      @opinionList.emit "AllOpinionsLinkWasClicked"
 
     @listenTo
-      KDEventTypes : "CommentViewShouldReset"
+      KDEventTypes : "OpinionViewShouldReset"
       listenedToInstance : @opinionList
       callback : @resetDecoration
 
