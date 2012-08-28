@@ -1,271 +1,195 @@
-class KDChannel extends KDEventEmitter
+class Chat12345 extends AppController
   {mq} = bongo
-  
-  constructor:()->
+
+  constructor:(options = {}, data)->
+    options.view = new ChatView
+      cssClass : "content-page chat"
+
+    super options, data
+
     @account = KD.whoami()
     @username = @account?.profile?.nickname
     @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
-    @type = "base"
-    @messages = []
-    @participants = {}
-    @state = {}
-    @master = null
-    super
 
-  joinRoom:(options,callback)->
-    
-    {name} = options
-    
-    name ?= __utils.getRandomNumber()
-    @name = "private-#{@type}-#{name}"
-    mq.fetchChannel @name,(channel,isNew)=>
-      console.log arguments
-      console.log @username+" joined this channel: #{@name}"
+    @channels = {}
+    @broadcaster = mq.subscribe "private-KDPublicChat"
 
-      @room = channel      
-      @emit "ready"
-      @attachListeners()
-      @send event:"join"
-      
-      setTimeout =>
-        {master,nrOfParticipants} = @getRoomInfo()
-        if nrOfParticipants is 0
-          log "seems like nobody is in this room. You're now the master host.",@participants
-          @isMaster = yes
-        else
-          log "There are #{nrOfParticipants} people in this room.",@participants
-          @send event:"getScreen",recipient:master
-      ,1000
-  
-  getRoomInfo:->
-    i=0
-    for username,participant of @participants
-      master = username if participant.isMaster is yes
-      i++
-    @master = master
-    return master:master,nrOfParticipants:i
-      
-  attachListeners:()->  
-    @room.on 'client-#{@type}-msg',(messages)=>
-      for msgObj in messages
-        {event,recipient} = msgObj
-        if recipient
-          @emit "#{event}-#{recipient}",msgObj
-        else
-          @emit event,msgObj    
-
-      
-    
-  sendThrottled : _.throttle ->
-    if @room
-      @room.emit 'client-#{@type}-msg',@messages
-      @messages = []
-      clearInterval @state.joiningIsInProgress if @state.joiningIsInProgress
-    else
-      unless @state.joiningIsInProgress
-        log "@room is not ready yet, will keep on trying every sec."
-        @state.joiningIsInProgress = setInterval ->
-          log "trying to join to the @room"
-          @sendThrottled()
-        ,1000
-  ,110
-  
-  
-  send : (options,callback) ->
-    # console.log "finally sending:",options
-    options.date = Date.now()
-    options.sender = @username
-    options.event ?= "msg"
-    @messages.push options
-    @sendThrottled()
-
-class Chat extends KDChannel
-  
-  constructor:->
-    super
-    @msgHistory = []
-    @type = "chat"
-  attachListeners:->
-
-
-class SharedDoc extends KDChannel  
-  
-  constructor:(options)->
-    # {isMaster} = options
-    # @isMaster = isMaster ? null
-    @lastScreen = ""
-    super
-    @type = "sharedDoc"
-    @dmp = new diff_match_patch()
-    
-  attachListeners:->
-    super 
-    #console.log "attachlisteners cagirdik"
-    @on "ready",(isNew)=>
-      #@isMaster = yes if isNew
-
-    @on "patch",({patch,sender,date})=>
-      # if sender isnt @username  
-      # console.log "sharedDoc on.patch geldi",arguments
-      @registerAndEmitScreen patch,sender,date
-
-    @on "join",({sender,date})=>
-      console.log "#{sender} geldi hosgeldi",arguments
-      # make this  efficient later.
-      # if @isMaster
-      @send event:"ping",screen:@lastScreen #,isMaster:@isMaster
-      # else
-      #   @send event:"ping"
-
-    @on "ping",({sender,screen,isMaster})=>
-      log "#{sender} said 'hi'.",arguments,@master
-      @participants[sender] = status:"online",lastPing:Date.now(),isMaster:isMaster
-      # if screen and sender is @master
-      if screen
-        @lastScreen = screen
-        @emit "screen",screen
-    
-    @on "getScreen-#{@username}",({sender})=>
-      log "#{sender} wanted to get the latest screen from me. sending.."
-      @send event:"screen",screen:@lastScreen,recipient:sender
-    
-    @on "screen-#{@username}",({screen,sender})->
-      log "i got screen from #{sender}"
-      @lastScreen = screen
-      @emit "screen",screen
-
-  registerAndEmitScreen:({patch})->
-    sha1 = SHA1.hex_sha1 @lastScreen
-    if @screens[sha1]?
-      # nothing changed on screen, no need to emit.
-    else
-      (@screens[sha1] ?= []).push {patch,sender}
-      
-      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]      
-      @lastScreen = @currentScreen
-      @emit "patchApplied",@currentScreen,sender
-
-      
-  join :(options,callback)->    
-    @joinRoom options,(err,res)->
-  
-  send : (options,callback)->
-    # console.log 'zz',arguments
-    {newScreen,event} = options
-    if newScreen
-      patch = @dmp.patch_make @lastScreen, newScreen      
-      @lastScreen = newScreen
-      super event:"patch",patch:patch
-    else
-      # log "sending",options
-      super options
-
-      
-
-
-
-
-
-
-class ChatterView extends KDView
-  
-  viewAppended:->
-    # @addSubView @joinButton = new KDButtonView
-    #   title    : "Share"
-    #   callback : =>
-    #     
-    file = @getSingleton('docManager').createEmptyDocument()
-    @addSubView @ace = new Ace {},file
-    window.A = @ace
-      # type    : "textarea"      
-      # keyup   : =>
-      #   @emit 'newScreen',@input.getValue()
-      # 
-      # paste   : =>
-      #   @emit 'newScreen',@input.getValue()        
-    @ace.on "ace.ready",=>
-      @emit "userWantsToJoin"
-      
-      @ace.editor.getSession().on "onTextInput",(e)->
-        log "onTextInput",e
-
-      @ace.editor.getSession().on "onDocumentChange",(e)->
-        log "onDocumentChange",e
-      
-      @ace.editor.getSession().on "change",(e)=>
-        # log "e",e
-        {row,column}  = e.data.range.end
-        cursorPosition  = {row,column}
-        # @ace.setContents "abc"
-        @emit 'cursorPositionChanged',cursorPosition
-        # @emit 'newScreen',{screen:@ace.getContents(),event}
-    
-    # @input.setHeight @getSingleton("windowController").winHeight-100
-    # @input.setWidth  @getSingleton("windowController").winWidth-500
-    
-  click : ->
-    @setKeyView()
-  
-  keyUp:(event) ->
-    # log "SHA1-hex",SHA1.hex_sha1 @ace.getContents()
-    # log "SHA1-b64",SHA1.b64_sha1 @ace.getContents()
-    # log "SHA1-any",SHA1.any_sha1 @ace.getContents()
-
-      
-    @emit 'newScreen',{screen:@ace.getContents()}
-  
-  keyDown: ->  
-    # log "down",arguments    
-    
-class Chat12345 extends AppController
-  
-  constructor:(options = {}, data)->
-    options.view = new ChatterView
-      #cssClass : "content-page chat"
-    @cursorPosition = {}
-    
-    super options, data
-    @view = @getView()
-    @sharedDoc = new SharedDoc
-    
-    @sharedDoc.on "patchApplied",(newScreen,sender)=>
-      # view.input.setValue newScreen
-      log "#{sender} sent a new patch."
-      @setScreen newScreen
-      
-    @sharedDoc.on "screen",(newScreen)=>
-      # view.input.setValue newScreen
-      @setScreen newScreen
-  
-  setScreen:(newScreen)->
-    {row,column}  = @cursorPosition
-    @view.ace.setContents newScreen
-    @view.ace.editor.getSession().getSelection().selectionLead.setPosition row,column
-    
-  
-  loadView:(view)->
-
-    view.on 'newScreen',({screen})=>
-      # console.log 'newScreen',scr      
-      @sharedDoc.send {newScreen:screen}
-    
-    view.on 'userWantsToJoin',=>
-      console.log 'user joined'
-      @sharedDoc.join {name:"myDoc"}
-    
-    view.on 'cursorPositionChanged',(cursorPosition)=>
-      log "cursorPosition",cursorPosition
-      @cursorPosition = cursorPosition
-    
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
+  loadView:(mainView)->
+    @joinChannel 'public'
+    @addOnlineUser name: @username, status: "online"
+
+  joinChannel: (name) ->
+    view = @getOptions().view
+    channelPaneInstance = view.addChannelTab name
+    channelName = "client-#{name}"
+
+    channel = new Channel 
+      name: name
+      view: channelPaneInstance
+
+    channel.view.on "ChatMessageSent", (message) =>
+      console.log "what"
+      channel.messageReceived message
+      @broadcaster.emit channelName, JSON.stringify(message)
+
+    @channels[name] = channel
+    @broadcaster.on channelName, (msg) ->
+      console.log "received", msg
+      channel.messageReceived
+
+  addOnlineUser: (user) ->
+    view = @getOptions().view
+    userItemViewInstance = view.addOnlineUser user
+    userItemViewInstance.registerListener
+      KDEventTypes: 'click'
+      listener    : @
+      callback    : =>
+        @joinChannel user.name
+
+class Channel extends KDEventEmitter
+  constructor: (options = {}, data) ->
+    @account = KD.whoami()
+    @username = @account?.profile?.nickname
+    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
+    @messages = []
+    @participants = {}
+    @participants[@username] = @account
+
+    @name = options.name
+    @view = options.view
+
+  messageReceived: (message) ->
+    @messages.push message
+    @view.newMessage message
+
+class ChatView extends KDView
+  viewAppended: ->
+    @chatTabView = new KDTabView
+    @rosterTabView = new KDTabView
+    
+    @addSubView splitView = new KDSplitView
+      sizes: ["30%","70%"]
+      views: [@rosterTabView, @chatTabView]
+
+    @rosterTabView.addPane new TabPaneViewWithList 
+      name: "topics"
+      unclosable: true
+      subItemClass: ChannelListItemView
+      items: [
+        {name: "erlang", status: "99 online"}
+        {name: "nodejs", status: "10 online"}
+        {name: "python", status: "25 online"}
+      ]
+
+    @rosterTabView.addPane new TabPaneViewWithList 
+      name: "people"
+      unclosable: true
+      subItemClass: ChannelListItemView
+
+  addChannelTab: (name) ->
+    channelTabPane = @chatTabView.getPaneByName name
+    if channelTabPane
+      @chatTabView.showPaneByName name
+      return channelTabPane
+
+    tabPane = @chatTabView.addPane new ChannelView
+      name: name
+      listHeight: 500
+
+  addOnlineUser: (userItem) ->
+    userPane = @rosterTabView.getPaneByName 'people'
+    userPane.addItem userItem
+
+###
+This is a view for a tab pane that has a list view in there.
+###
+class TabPaneViewWithList extends KDTabPaneView
+  constructor: (options = {}, data) ->
+    super options, data
+    controllerOptions = options.controllerOptions or {}
+    
+    if options.subItemClass
+      controllerOptions.subItemClass = options.subItemClass
+
+    @listController = new KDListViewController controllerOptions
+    @listView = @listController.getListView()
+    @controllerView = @listController.getView()
+
+    if options.listHeight
+      @controllerView.setHeight 500
+
+    if options.items
+      @listController.instantiateListItems options.items
+
+  viewAppended: ->
+    @addSubView @controllerView
+    if @getOptions().unclosable
+      @hideTabCloseIcon()
+
+  addItem: (item, index, animation) ->
+    @listView.addItem item, index, animation
+
+class ChannelView extends TabPaneViewWithList
+  constructor: (options = {}, data) ->
+    options.subItemClass || (options.subItemClass = ChatListItemView)
+    super options, data
+
+  viewAppended: ->
+    super()
+    @addSubView inputForm = new ChatInputForm delegate : @
+
+  newMessage: (message) ->
+    @listView.addItem message
+
+class ChatListItemView extends KDListItemView
+  viewAppended: ->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <div class='meta'>
+      <span class="author-wrapper">{{#(author)}}</span>
+      <span class='time'>{{$.timeago #(meta.createdAt)}}</span>
+    </div>
+    <div>{{#(body)}}</div>
+    """
+
+class ChannelListItemView extends KDListItemView
+  viewAppended: ->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio: ->
+    "<p>{{#(name)}} - {{#(status)}} </p>"
+
+class ChatInputForm extends KDFormView
+  viewAppended: ->
+    @addSubView @input = new KDInputView
+      placeholder: "Click here to reply"
+      name: "chatInput"
+      cssClass: "fl"
+      validate      :
+        rules       :
+          required  : yes
+        messages    :
+          required  : "Reply field is empty..."
+
+    @addSubView @sendButton = new KDButtonView
+      title: "Send"
+      cssClass: "fl"
+      style: "clean-gray inside-button"
+      callback: =>
+        chatMsg = 
+          author: "me"
+          body: @input.getValue()
+          meta: {createdAt: new Date()}
+
+        @input.setValue ""
+        @input.blur()
+        @input.$().blur()
+
+        @getDelegate().emit 'ChatMessageSent', chatMsg
