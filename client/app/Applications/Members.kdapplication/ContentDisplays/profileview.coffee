@@ -1,11 +1,30 @@
 class ProfileView extends KDView
   constructor:->
+    
     super
+    
     memberData = @getData()
+    
     @avatar = new AvatarStaticView
-      size      :
+      size     :
         width  : 90
         height : 90
+      click    : =>
+        pos = 
+          top  : @avatar.getBounds().y - 8
+          left : @avatar.getBounds().x - 8
+        modal = new KDModalView
+          # title   : "#{memberData.profile.firstName} #{memberData.profile.lastName}"
+          width    : 400
+          fx       : yes
+          overlay  : yes
+          draggable: yes
+          position : pos
+        modal.addSubView new AvatarStaticView
+          size     :
+            width  : 400
+            height : 400
+        , memberData
     , memberData
 
     defaultState  = if memberData.followee then "Unfollow" else "Follow"
