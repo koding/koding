@@ -63,7 +63,6 @@ class JOpinion extends JPost
 
   @getFlagRole =-> ['sender', 'recipient']
 
-  # ?<
   createKodingError =(err)->
     kodingErr = new KodingError(err.message)
     for own prop of err
@@ -89,11 +88,11 @@ class JOpinion extends JPost
           targetId    : id
           sourceName  : /Activity$/
         }, 'source', -> queue.fin()
-        # getDeleteHelper {
-        #   targetName  : {$ne : 'JAccount'}
-        #   sourceId    : id
-        #   sourceName  : 'JOpinion'
-        # }, 'target', -> queue.fin()
+        getDeleteHelper {
+          targetName  : {$ne : 'JAccount'}
+          sourceId    : id
+          sourceName  : 'JOpinion'
+        }, 'target', -> queue.fin()
         ->
           Relationship.remove {
             targetId  : id
@@ -102,10 +101,8 @@ class JOpinion extends JPost
         => @remove -> queue.fin()
       ]
       dash queue, =>
-        log "deleted opinion"
         @emit 'OpinionIsDeleted', 1
         callback null
-
 
   modify: secure (client, data, callback)->
     opinion =
@@ -113,8 +110,6 @@ class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost::modify.call @, client, opinion, callback
-
-  #?>
 
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback
