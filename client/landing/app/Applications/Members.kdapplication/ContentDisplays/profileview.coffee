@@ -112,6 +112,7 @@ class ProfileView extends KDView
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
+    userDomain = "#{@getData().profile.nickname}.koding.com"
     """
     <div class="profileleft">
       <span>
@@ -125,6 +126,7 @@ class ProfileView extends KDView
       <div class="profileinfo">
         <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
+        <h5><span class='icon fl'></span><a class="user-home-link right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a></h5>
         <div class="profilestats">
           <div class="fers">
             {{> @followers}}
