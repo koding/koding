@@ -166,10 +166,8 @@ class JPost extends jraphical.Message
       callback new KodingError "Access denied"
 
   delete: secure ({connection:{delegate}}, callback)->
-    originId = @getAt 'originId'
-    unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
-    else
+
+    if delegate.can 'delete', this
       id = @getId()
       {getDeleteHelper} = Relationship
       queue = [
@@ -191,6 +189,8 @@ class JPost extends jraphical.Message
       dash queue, =>
         @emit 'PostIsDeleted', 1
         callback null
+    else
+      callback new KodingError 'Access denied!'
 
   fetchActivityId:(callback)->
     Relationship.one {
