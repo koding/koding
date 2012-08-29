@@ -19,16 +19,16 @@ console.log "new sharedhosting api."
 
 
 module.exports = new Kite 'sharedHosting'
-  
-  
+
+
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
- 
+
   interval:({interval}, callback)->
     setInterval (-> callback null, interval), interval
 
   executeCommand: require './executecommand'
-  
+
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
     original      = filePath+""
@@ -44,7 +44,7 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-        
+
   uploadFile:(options,callback)->
     #
     # options =
@@ -63,11 +63,11 @@ module.exports = new Kite 'sharedHosting'
         else
           @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
             unless err
-              callback? null,path        
+              callback? null,path
             else
               callback? "[ERROR] can't upload file : #{err}"
-        
-  
+
+
   checkUid:(options,callback)->
     #
     # This methid will check user's uid
@@ -92,7 +92,7 @@ module.exports = new Kite 'sharedHosting'
               log.error "CANT CREATE THIS USER"
               callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
 
-          
+
       else if stdout < config.minAllowedUid
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.error e = "[ERROR]  min UID for commands is #{config.minAllowedUid}, your #{stdout}"
@@ -100,8 +100,8 @@ module.exports = new Kite 'sharedHosting'
       else
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.debug "[OK] func:checkUid: user's #{username} UID #{stdout} allowed"
-        callback? null  
-  
+        callback? null
+
   secureUser : (options,callback)->
     # put user to the secure env http://www.cloudlinux.com/docs/cagefs/
 
@@ -117,7 +117,7 @@ module.exports = new Kite 'sharedHosting'
       else
         log.info "[OK] user #{username} was secured"
         callback? null,"[OK] user #{username} was secured"
-  
+
   buildHome : (options,callback)->
     #
     # this methid will make home directory for user, set correct perms and copy all default files in it
@@ -161,28 +161,36 @@ module.exports = new Kite 'sharedHosting'
     mkdirp versionedPath, (err)->
       if err then cb err
       else
-        fs.readFile "#{userAppPath}/index.js", (err, appScript)->
-          if err then cb err
-          else
-            fs.readFile "#{userAppPath}/.manifest", (err, manifest)->
-              if err then cb err
-              else
-                fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
-                  if err then cb err
-                  else
-                    fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
-                      if err then cb err
-                      else
-                        fs.stat latestPath, (err, statObj)->
-                          if err
-                            exec "ln -s #{versionedPath} #{latestPath}", cb
-                          else
-                            if statObj.isSymbolicLink() or statObj.isFile()
-                              exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                            else if statObj.isDirectory() and appName.length?
-                              exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                            else
-                              cb new KodingError "Something went wrong"
+        exec "cp -r #{userAppPath}/* #{versionedPath}/ && rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else cb null
+
+
+    # mkdirp versionedPath, (err)->
+    #   if err then cb err
+    #   else
+    #     fs.readFile "#{userAppPath}/index.js", (err, appScript)->
+    #       if err then cb err
+    #       else
+    #         fs.readFile "#{userAppPath}/.manifest", (err, manifest)->
+    #           if err then cb err
+    #           else
+    #             fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
+    #               if err then cb err
+    #               else
+    #                 fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
+    #                   if err then cb err
+    #                   else
+    #                     fs.stat latestPath, (err, statObj)->
+    #                       if err
+    #                         exec "ln -s #{versionedPath} #{latestPath}", cb
+    #                       else
+    #                         if statObj.isSymbolicLink() or statObj.isFile()
+    #                           exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+    #                         else if statObj.isDirectory() and appName.length?
+    #                           exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
+    #                         else
+    #                           cb new KodingError "Something went wrong"
 
   installApp: (options, callback)->
 
@@ -225,21 +233,21 @@ module.exports = new Kite 'sharedHosting'
     # This method will create operation system user with default group in LDAP
     # Note: you should not define default group for user. dafault group name has the same name with username
     #
-    
+
     #
     # options =
     #   username : String #username of the unix user
     #   fullName : String #fullName - real name for unux user
     #   password : String #password of the unix
-    
+
     #
     # return =
     #   backend : String # backend FQDN where user has created
-    
+
     {username,fullName,password} = options
-    
+
     # define user and group ldap schema
-    
+
     user =
       objectClass: ['top','person','organizationalPerson','inetorgperson','posixAccount']
       cn : username
@@ -250,11 +258,11 @@ module.exports = new Kite 'sharedHosting'
       gecos: fullName
       homeDirectory : '/Users/'+username
       userPassword: password
-    
+
     group =
       objectClass: ['top','posixgroup','groupofuniquenames']
       cn: username
-    
+
     # first of all we have to connect and bind to ldap
     ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
@@ -264,7 +272,7 @@ module.exports = new Kite 'sharedHosting'
       else
         # search for  free UID
         ldapClient.search config.ldap.freeUID,attributes:'uidNumber',(err,res)=>
-          callback err if err? 
+          callback err if err?
           res.on 'searchEntry', (entry)=>
             # increment current UID in the ldap database, we will use incremented for next new user
             id = entry.object.uidNumber
@@ -279,7 +287,7 @@ module.exports = new Kite 'sharedHosting'
             #  operation     :'add'
             #  modification  :
             #    memberUid     : username
-    
+
             ldapClient.add "uid=#{username},#{config.ldap.userDN}",user, (err)=>
               if err
                 log.error error = "[ERROR] can't create ldap record for user #{username} in #{config.ldap.userDN} : #{err.message}"
@@ -296,7 +304,7 @@ module.exports = new Kite 'sharedHosting'
                       log.error err if err?
                     callback error
                   else
-                    log.info "[OK] Group #{username} added to #{config.ldap.groupDN}" 
+                    log.info "[OK] Group #{username} added to #{config.ldap.groupDN}"
                     ldapClient.modify config.ldap.freeUID,change,(err)=>
                       if err?
                         log.error error = "[ERROR] can't increment uidNumber for special record #{config.ldap.freeUID}: #{err.message}"
@@ -321,14 +329,14 @@ module.exports = new Kite 'sharedHosting'
                             callback null,"[OK] user and group #{username} has been added to LDAP"
 
   createVhost : (options,callback)->
-    
+
     {username,uid,domainName} = options
-    
+
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd
-    
+
     exec cmd,(err,stdout,stderr)->
       unless err
         callback null, "vhost created with default files:",domainName
