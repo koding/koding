@@ -354,10 +354,10 @@ app.contentdisplays.styl
   border none
 
 .opinion-container
-
-  font-size                           12px
   margin-top                          10px
-
+  a
+    noTextDeco()
+    font-size   inherit
   a.count
     font-style                        normal
     display                           inline-block
@@ -375,7 +375,7 @@ app.contentdisplays.styl
     .item-content-opinion
       padding-top                     0px
       padding-bottom                  0px
-      margin-top                      15px
+      margin-top                      18px
       &:hover
         .edit-link
           opacity                     .5
@@ -403,42 +403,79 @@ app.contentdisplays.styl
         padding-left                    75px
 
         .opinion-footer
-          .type-and-time
-            display                   inline
+          margin                    12px 0 0 0
 
+          .type-and-time
+            font-weight               300
+            color                     #a5a5a5
+            display                   inline
+.opinion-body-edit
+  .formline
+    border none
 
 .opinion-box
-        margin                10px
-        width                 auto
-        .opinion-form
-          width               auto
-          height              auto
-          .opinion-form-headline
-            margin-left       5px
-          textarea.opinion-body
-            width             100%
-            outline            none
-            height            144px
-            min-height        144px
-            width             100%
-            box-shadow        inset 0 1px 2px rgba(0,0,0,0.10)
-            borderBox()
-      .opinion-body
-        width                 100%
-        min-height            144px
-  .opinion-body-with-markup
-    margin-top                12px
-    padding-bottom            12px
-  .item-content-opinion-comments
+  margin-top          10px
+  margin-bottom 20px
+  padding             10px
+  border              1px solid #e0e0df
+  borderBox()
+  rounded(4px)
+  font-size                           12px
+  width                 auto
+  height auto
+  .opinion-form
+    width               auto
+    height              auto
+    position            relative
+
+  span.supports-markdown
+    position          absolute
+    right             -3px
+    top               7px
+    color             #fff
+    padding           3px 12px 4px 12px
+    bg                color,#ff9200
+    font-size         10px
+    line-height       10px
+    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.35)
+    text-transform    uppercase
+    shadow            0 1px 1px rgba(0, 0, 0, 0.54)
+    z-index           10
+
+  .opinion-form-headline
+      margin-left       5px
+  textarea.opinion-body
+      height auto
+      max-height 500px
+      outline            none
+      height            144px
+      min-height        144px
+
+      width             100%
+      box-shadow        inset 0 1px 2px rgba(0,0,0,0.10)
+      borderBox()
+  .opinion-body
+      width                 100%
+      min-height            144px
+
+.opinion-body-with-markup
+    // margin-top                12px
+    // padding-bottom            12px
+
+.item-content-opinion-comments
     padding                   0
     margin                    0 0 20px 75px
     .opinion-comment
       margin-bottom           5px
-
       .comment-container
         width                 auto
 
+.opinion-form-footer
+      h3
+        margin-top      35px
+        margin-bottom   20px
 div.discussion-contents
+  font-weight                         300
   a.count
     font-style                        normal
     display                           inline-block
@@ -460,21 +497,32 @@ div.discussion-contents
       color                           linkColor1
       noTextDeco()
     span
-      font-weight                     400
-      font-size                       12px
+      font-weight                     300
+      font-size                       14px
   time
-    line-height                       11px
+    line-height                       130%
     color                             #aaa
 
   .opinion-form-footer
     margin-top                        35px
   .discussion-footer
-    font-size                         11px
-    float                             right
+    font-size                         12px
     padding-bottom                    10px
+    color #a5a5a5
+    display inline
+    font-weight 300
+    a
+      font-size 12px
+      noTextDeco()
+    a.count
+        font-size 10px
+
   .discussion-main-opinion
     h3
-      margin-bottom                   10px
+      font-size                       14px
+      line-height                     130%
+      margin-bottom                   1em
+      color                           #FF9200
     &:hover
       > .edit-link
         opacity                       .5
@@ -497,7 +545,7 @@ div.discussion-contents
   display                             block
   size                                20px, 20px
   position                            absolute
-  top                                 5px
+  top                                 0px
   right                               5px
   bg                                  position, -80px -520px
   opacity                             0
@@ -508,18 +556,43 @@ div.discussion-contents
   display                             block
   size                                20px, 20px
   position                            absolute
-  top                                 5px
+  top                                 0px
   right                               20px
   bg                                  position, -120px -400px
   opacity                             0
   vendor                              transition, opacity .15s linear
   sprite()
 
-// Markdown related
 
-.data
+.discussion-body .data,
+.opinion-body-with-markup .data
+  font-size                           14px
+  line-height                         130%
+  margin-bottom                       5px
+  font-weight                         300
   p
-    margin-bottom                     5px
+    margin-bottom                     1em
+    word-wrap                         break-word
+    code
+      display                         inline-block
   ul
-    margin-bottom                     5px
+    margin-left                       30px
+    margin-bottom                     1em
     list-style                        disc
+    li
+      margin-bottom                   0.5em
+  h1,h2,h3,h4,h5,h6
+    font-size                         14px
+    font-weight                       300
+    line-height                       130%
+    margin-bottom                     1em
+    margin-top                        2em
+  ol
+    margin-left                       30px
+    list-style                        decimal
+    margin-bottom                     1em
+  a
+    font-weight                       400
+    text-decoration                   none
+    font-size                         14px
+

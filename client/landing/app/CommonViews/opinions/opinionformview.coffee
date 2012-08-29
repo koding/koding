@@ -80,14 +80,11 @@ class OpinionFormView extends KDFormView
       """
       <div class="opinion-box">
         <div class="opinion-form">
-          <div class="opinion-form-headline">
-            <h3>Post your reply here, {{}}</h3>
-          </div>
           {{> @markdownSelect}}
-
+          <span class="supports-markdown">You can use markdown syntax here</span>
           {{> @opinionBody}}
         </div>
-        <div class="formline">
+        <div>
           {{> @labelAddTags}}
           <div>
             {{> @selectedItemWrapper}}

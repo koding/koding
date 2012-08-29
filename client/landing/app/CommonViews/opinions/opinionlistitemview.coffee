@@ -132,7 +132,7 @@ class OpinionListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-
+  #@utils.applyTextExpansions
   pistachio:->
     """
     <div class='item-content-opinion clearfix'>
@@ -142,7 +142,7 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body-with-markup'>
-          {{@utils.applyTextExpansions @utils.applyMarkdown #(body)}}
+          {{@utils.applyMarkdown #(body)}}
         </p>
         <footer class='opinion-footer clearfix'>
           <div class='type-and-time'>
