@@ -163,11 +163,13 @@ handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
     end;
 
 handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
-    [_Event, _Exchange, Payload, _Meta] = Data,
-    case broker:presence(Conn, Payload) of
+    [_Event, Where, Who, _Meta] = Data,
+    case broker:presence(Conn, Where, Who) of
         {error, _Error} -> Subs;
         {ok, Subscription} ->
-            Exchange = <<Payload/binary,"-presence">>,
+            % This only acts as a key so that it can be used to
+            % remove the subscription later from the dictionary.
+            Exchange = <<Who/binary,"-presence">>,
             dict:store(Exchange, Subscription, Subs)
     end;
 

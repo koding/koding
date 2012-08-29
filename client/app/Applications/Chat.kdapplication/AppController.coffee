@@ -17,14 +17,7 @@ class Chat12345 extends AppController
     @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
 
     @channels = {}
-    @broadcaster = mq.subscribe "private-KDPublicChat"
-
-    # Presence received has format [name, "bind" || "unbind"]
-    mq.presence @username, ([name, status]) =>
-      if status is "bind"
-        @addOnlineUser name, 'public'
-      else if status is "unbind"
-        @removeOfflineUser name, 'public'
+    @broadcaster = mq.subscribe "private-KDPublicChat"    
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
@@ -34,6 +27,14 @@ class Chat12345 extends AppController
 
   joinChannel: (name) ->
     view = @getOptions().view
+
+    # Presence received has format [key, "bind" || "unbind"]
+    mq.presence @username, name, ([presence, status]) =>
+      if status is "bind"
+        @addOnlineUser presence, name
+      else if status is "unbind"
+        @removeOfflineUser presence, name
+
     channelPaneInstance = view.addChannelTab name
     channelName = "client-#{name}"
 
@@ -59,11 +60,11 @@ class Chat12345 extends AppController
     channel = @channels[channelName]
     userItemViewInstance = channel.addOnlineUser name
     return if name is @username
-    userItemViewInstance.registerListener
-      KDEventTypes: 'click'
-      listener    : @
-      callback    : =>
-        @joinChannel name
+    # userItemViewInstance.registerListener
+    #   KDEventTypes: 'click'
+    #   listener    : @
+    #   callback    : =>
+    #     @joinChannel name
 
   removeOfflineUser: (name, channelName) ->
     channel = @channels[channelName]

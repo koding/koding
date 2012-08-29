@@ -92,11 +92,7 @@ init([Connection, Client, Conn, Exchange]) ->
                     client = Client,
                     sender = SendFun},
 
-    PresenceExchange = get_env(presence_channel, <<"KDPresence">>),
-    case Exchange of 
-        PresenceExchange -> Type = <<"x-presence">>;
-        _ -> Type = <<"topic">>
-    end,
+    Type = get_exchange_type(Exchange),
 
     try subscribe(SendFun, Channel, Exchange, Type) of
         ok -> {ok, State}
@@ -266,11 +262,9 @@ handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange},
     Self = term_to_binary(self()),
     case CorId of 
         Self -> 
-            io:format("Own message ~p~n", [Payload]),
             {noreply, State};
         _ -> 
             Sender([Event, Payload]),
-            io:format("Other's message ~p~n", [Payload]),
             {noreply, State}
     end;
 
@@ -322,6 +316,18 @@ is_private(Exchange) ->
     case re:run(Exchange, get_env(privateRegEx, ".private$")) of
         {match, _}  -> true;
         nomatch     -> false
+    end.
+
+%%--------------------------------------------------------------------
+%% Func: get_exchange_type(Exchange) -> binary()
+%% Description: Determines exchange type based on certain rules.
+%%--------------------------------------------------------------------
+get_exchange_type(Exchange) ->
+    Prefix = get_env(presence_prefix, <<"KDPresence-">>),
+    Size = bit_size(Prefix),
+    case Exchange of 
+         <<Prefix:Size/bitstring, _/bitstring>> -> <<"x-presence">>;
+        _ -> <<"topic">>
     end.
 
 %%--------------------------------------------------------------------
