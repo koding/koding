@@ -14,7 +14,7 @@ class KDFormViewWithFields extends KDFormView
     for key,option of options
       option.title or= key
       option
-  
+
   createFields:(fields)->
     @addSubView @createField fieldData for fieldData in fields
 
@@ -23,30 +23,41 @@ class KDFormViewWithFields extends KDFormView
     buttons.forEach (buttonOptions)=>
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.title] = button
-      
+
   createField:(data, field)->
-    {itemClass,title} = data
-    itemClass or= KDInputView
-    field or= new KDView cssClass : "formline #{data.name}"
+    {itemClass, title} = data
+    itemClass     or= KDInputView
+    data.cssClass or= ""
+    field or= new KDView cssClass : "formline #{data.name} #{data.cssClass}"
     field.addSubView label = data.label = @createLabel(data) if data.label
     field.addSubView input = @createInput itemClass,data
+    if data.hint
+      field.addSubView hint  = new KDCustomHTMLView
+        partial  : data.hint
+        tagName  : "cite"
+        cssClass : "hint"
     @fields[title] = field
     if data.nextElement
       for key, next of data.nextElement
         next.title or= key
         @createField next, field
-    
+
     return field
-  
+
   createLabel:(data)->
-    return new KDLabelView(title : data.label)
-  
+    return new KDLabelView
+      title    : data.label
+      cssClass : @utils.slugify data.label
+
   createInput:(itemClass,options)->
     @inputs[options.title] = input = new itemClass options
     return input
 
   createButton:(options)->
-    return button = new KDButtonView options
+    options.itemClass or= KDButtonView
+    o = $.extend {}, options
+    delete o.itemClass
+    button = new options.itemClass o
 
 
 # new KDFormViewWithFields
@@ -64,10 +75,10 @@ class KDFormViewWithFields extends KDFormView
 #       title           : "Reset"
 #       style           : "modal-clean-red"
 #       type            : "reset"
-#   callback            : (formOutput)-> 
+#   callback            : (formOutput)->
 #     log formOutput,"  ::::::"
 #   fields              :
-#     Title             :               
+#     Title             :
 #       label           : "Title:"
 #       type            : "text"
 #       name            : "title"
@@ -77,7 +88,7 @@ class KDFormViewWithFields extends KDFormView
 #           required    : yes
 #         messages      :
 #           required    : "topic name is required!"
-#     Zikkko            :             
+#     Zikkko            :
 #       label           : "Zikkko"
 #       type            : "textarea"
 #       name            : "zikko"
@@ -87,4 +98,3 @@ class KDFormViewWithFields extends KDFormView
 #           type        : "text"
 #           name        : "lulu"
 #           placeholder : "lulu..."
-    
