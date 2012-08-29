@@ -183,7 +183,7 @@ class ContentDisplayDiscussion extends KDView
         </footer>
         {{> @editDiscussionLink}}
         {{> @deleteDiscussionLink}}
-        <p class='context discussion-body'>{{@utils.applyMarkdown #(body)}}</p>
+        <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       </div>
     </div>
     {{> @opinionBox}}

@@ -150,7 +150,7 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body-with-markup'>
-          {{@utils.applyMarkdown #(body)}}
+          {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
         </p>
 
     </div>
