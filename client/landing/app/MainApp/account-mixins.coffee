@@ -41,7 +41,7 @@ AccountMixin = do ->
 
       listenerId = 0
 
-      request =(kiteName, method, args, onMethod='once')-> 
+      request =(kiteName, method, args, onMethod='on')-> 
         callbackId = listenerId++
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
