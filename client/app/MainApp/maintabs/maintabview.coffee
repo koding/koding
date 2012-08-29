@@ -4,7 +4,7 @@ class MainTabView extends KDTabView
     @totalSize      = 0
     @paneViewIndex  = {}
     super options,data
-    
+
     @listenTo
       KDEventTypes : 'ApplicationWantsToBeShown'
       callback     :(app, {options, data})->
@@ -18,7 +18,7 @@ class MainTabView extends KDTabView
     @listenTo
       KDEventTypes : 'FileChanged'
       callback     : @fileChanged
-    
+
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
     @handlesHidden = no
@@ -26,26 +26,26 @@ class MainTabView extends KDTabView
   hideHandleContainer:()->
     @tabHandleContainer.$().css top : 0
     @handlesHidden = yes
-  
+
   showPane:(pane)->
     super pane
     pane.getMainView().handleEvent type : "click"
     @handleEvent {type : "MainTabPaneShown", pane}
-      
+
     return pane
-      
+
   fileChanged: (appController, data) ->
     # file        = data.file
     # oldContent  = file.contents or ''
     # newContent  = data.newContent
-    # 
+    #
     # changed = no
     # if oldContent isnt newContent
     #   changed = yes
-    # 
+    #
     # view        = data.appView
     # pane        = @getPaneByView view
-    # 
+    #
     # newTitle    = (if changed then '*' else '') + file.name
     # pane.setTitle newTitle
 
@@ -71,8 +71,8 @@ class MainTabView extends KDTabView
         newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
         @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
 
-    @handleEvent type : "PaneRemoved"
-    
+    @emit "PaneRemoved"
+
   removePane:(pane)->
     pane.getData().handleEvent type: 'ViewClosed'
     # delete appManager.terminalIsOpen if pane.getData().$().hasClass('terminal-tab')
@@ -83,23 +83,23 @@ class MainTabView extends KDTabView
       @createTabPane options,view
     else
       @showPane @getPaneByView view
-  
+
   removePaneByView:(view)->
     return unless (pane = @getPaneByView view)
     @_removePane pane
-  
+
   getPaneByView:(view)->
     @paneViewIndex[view.id]
-  
+
   indexPaneByView:(pane,view)->
     @paneViewIndex[view.id] = pane
-  
+
   unindexPaneByView:(pane,view)->
     delete @paneViewIndex[view.id]
 
   createTabPane:(options,mainView)->
     @removePaneByView mainView if mainView?
-    
+
     options = $.extend
       cssClass     : "content-area-pane #{__utils.slugify(options?.name?.toLowerCase()) or ""} content-area-new-tab-pane"
       hiddenHandle : yes
@@ -109,7 +109,7 @@ class MainTabView extends KDTabView
     paneInstance = new MainTabPane options,mainView
     # debugger
     # log 'options', options
-    @listenTo 
+    @listenTo
       KDEventTypes        : "viewAppended"
       listenedToInstance  : paneInstance
       callback            : =>
@@ -119,9 +119,9 @@ class MainTabView extends KDTabView
 
     @addPane paneInstance
     @indexPaneByView paneInstance,mainView
-    
+
     return paneInstance
-    
+
   applicationPaneReady: (pane, mainView) ->
     # mainView.setDelegate pane
     mainView.setClass 'application-page' if pane.options.type is "application"
@@ -138,8 +138,8 @@ class MainTabView extends KDTabView
       type = "application"
     else
       pageClass = KD.getPageClass(pane.name) if KD.getPageClass(pane.name)
-    
-    pane.addSubView page = new pageClass 
+
+    pane.addSubView page = new pageClass
       delegate : pane
       cssClass : "#{type}-page"
 
@@ -149,9 +149,10 @@ class MainTabView extends KDTabView
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
-    
-  
-  resizeTabHandles:(pubInst,event)->
+
+
+  resizeTabHandles:(event)->
+
     return if event.type is "PaneAdded" and event.pane.hiddenHandle
     return if @handlesHidden
 
