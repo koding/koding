@@ -12,7 +12,7 @@
   {mod, { broker_app, []}},
   {env, [
     {verbose, true},
-    {privateRegEx, ".private$"}
+    {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>}
     ]}
  ]}.

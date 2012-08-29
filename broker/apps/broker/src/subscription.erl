@@ -304,7 +304,7 @@ channel(Connection) ->
 is_private(Exchange) ->
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
     %Options = [{capture, [1], list}],
-    case re:run(Exchange, get_env(privateRegEx, ".private$") of
+    case re:run(Exchange, get_env(privateRegEx, ".private$")) of
         {match, _}  -> true;
         nomatch     -> false
     end.
