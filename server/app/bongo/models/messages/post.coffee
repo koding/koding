@@ -308,9 +308,7 @@ class JPost extends jraphical.Message
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
-      log "thing to be posted:", comment
       comment = new replyType body: comment
-      log "it is now:",comment
       exempt = delegate.checkFlag('exempt')
       if exempt
         comment.isLowQuality = yes
@@ -337,18 +335,12 @@ class JPost extends jraphical.Message
                     'data.flags.isLowQuality'   : $ne: yes
                   }, (err, count)=>
                     if err
-                      log "Relationship.count failed"
                       callback err
                     else
-                      log "Relationship.count succeeded with ", count
                       @update $set: repliesCount: count, (err)=>
                         if err
-                          log "repliesCount not set"
                           callback err
                         else
-                          log "repliesCount set to ", count
-
-                          # this is where the post itself is done.
                           callback null, comment
                           @fetchActivityId (err, id)->
                             CActivity.update {_id: id}, {

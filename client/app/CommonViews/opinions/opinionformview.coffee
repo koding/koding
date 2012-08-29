@@ -46,7 +46,7 @@ class OpinionFormView extends KDFormView
 
               modal = new KDModalView
                 title       : "How to use the <em>markdown</em> syntax."
-                cssClass    : "what-you-should-know-modal"
+                cssClass    : "what-you-should-know-modal markdown-cheatsheet"
                 height      : "auto"
                 width       : 500
                 content     : response
