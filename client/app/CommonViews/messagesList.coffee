@@ -37,7 +37,7 @@ class MessagesListController extends KDListViewController
         unreadCount++ unless message.flags_?.read
 
       @emit "MessageCountDidChange", unreadCount
-      @propagateEvent KDEventType : 'LazyLoadComplete'
+      @hideLazyLoader()
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
@@ -59,7 +59,7 @@ class MessagesListController extends KDListViewController
         unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
         @emit 'NotificationCountDidChange', unglanced.length
         callback? items
-      @propagateEvent KDEventType : 'LazyLoadComplete'
+      @hideLazyLoader()
 
 class NotificationListItem extends KDListItemView
 

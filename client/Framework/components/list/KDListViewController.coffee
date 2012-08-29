@@ -47,7 +47,6 @@ class KDListViewController extends KDViewController
       if options.startWithLazyLoader
         @showLazyLoader no
       scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
-      @registerListener KDEventTypes : 'LazyLoadComplete', listener : @, callback : @hideLazyLoader
 
     @instantiateListItems(@getData().items or [])
     @listenTo

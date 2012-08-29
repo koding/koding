@@ -148,7 +148,7 @@ class Activity12345 extends AppController
       @activityListController.isLoading = yes
       @loadSomeTeasers =>
         @activityListController.isLoading = no
-        @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
+        @activityListController.hideLazyLoader()
 
   fetchTeasers:(selector,options,callback)->
     appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
@@ -250,7 +250,7 @@ class Activity12345 extends AppController
     controller.showLazyLoader no
     @loadSomeTeasers ->
       controller.isLoading = no
-      controller.propagateEvent KDEventType : 'LazyLoadComplete'
+      controller.hideLazyLoader()
       callback?()
 
   createContentDisplay:(activity)->

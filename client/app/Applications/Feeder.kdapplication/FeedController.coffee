@@ -112,7 +112,7 @@ class FeedController extends KDViewController
 
   emitLoadCompleted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
-    listController.propagateEvent KDEventType : 'LazyLoadComplete'
+    listController.hideLazyLoader()
     return listController
 
   loadFeed:(filter = @selection)->
