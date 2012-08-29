@@ -13,20 +13,20 @@ class KodingAppsController extends KDController
     {profile} = KD.whoami()
     path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}"
     else app.path
- 
+
     path += "/" unless path[path.length-1] is "/"
-    
+
     return path
 
   getManifestFromPath = (path, callback = noop)->
 
     folderName = (arr = path.split("/"))[arr.length-1]
     app        = null
-    
+
     for own name, manifest of KodingAppsController.manifests
       do ->
         app = manifest if manifest.path.search(folderName) > -1
-          
+
     return app
 
   # #
@@ -34,7 +34,7 @@ class KodingAppsController extends KDController
   # #
 
   fetchApps:(callback)->
-    
+
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
     else
@@ -48,14 +48,14 @@ class KodingAppsController extends KDController
           callback? err, apps
 
   fetchAppsFromFs:(callback)->
-    
+
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
     @getSingleton("kiteController").run
       withArgs  :
         command : "ls #{path} -lpva"
     , (err, response)=>
-      if err 
+      if err
         warn err
         callback err
       else
@@ -66,12 +66,12 @@ class KodingAppsController extends KDController
         files.forEach (file)->
           if /\.kdapp$/.test file.name
             apps.push file
-    
+
         apps.forEach (app)->
           manifest = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
           stack.push (cb)->
             manifest.fetchContents cb
-        
+
         manifests = @constructor.manifests
         async.parallel stack, (err, results)->
           if err
@@ -86,7 +86,7 @@ class KodingAppsController extends KDController
   fetchAppsFromDb:(callback)->
 
     appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-      if err 
+      if err
         warn err
         callback err
       else
@@ -100,7 +100,7 @@ class KodingAppsController extends KDController
   fetchCompiledApp:(name, callback)->
 
     @getSingleton("kiteController").run
-      withArgs  : 
+      withArgs  :
         command : "cat /Users/#{KD.whoami().profile.nickname}/Applications/#{name}.kdapp/index.js"
     , (err, response)=>
       if err then warn err
@@ -125,7 +125,7 @@ class KodingAppsController extends KDController
       }, => log arguments,"kodingAppsController storage updated"
 
   defineApp:(name, script)->
-    
+
     KDApps[name] = script
 
   getApp:(name, callback = noop)->
@@ -154,14 +154,14 @@ class KodingAppsController extends KDController
     callback?()
 
   addScript:(app, scriptInput, callback)->
-    
+
     if /^\.\//.test scriptInput
       @getSingleton("kiteController").run
-        withArgs  : 
+        withArgs  :
           command : "cat #{getAppPath app}/#{scriptInput}"
       , (err, response)=>
         if err then warn err
-        
+
         if /.coffee$/.test scriptInput
           require ["coffee-script"], (coffee)->
             js = coffee.compile response, { bare : yes }
@@ -170,10 +170,10 @@ class KodingAppsController extends KDController
           callback err, response
     else
       callback null, scriptInput
-  
-  
+
+
   saveCompiledApp:(app, script, callback)->
-    
+
     @getSingleton("kiteController").run
       toDo        : "uploadFile"
       withArgs    : {
@@ -184,12 +184,12 @@ class KodingAppsController extends KDController
       if err then warn err
       log response, "App saved!"
       callback?()
-  
+
   publishApp:(path, callback)->
 
     kiteController = @getSingleton('kiteController')
     appName        = getManifestFromPath(path).name
-    
+
     @getApp appName, (appScript)=>
 
       manifest    = @constructor.manifests[appName]
@@ -197,7 +197,7 @@ class KodingAppsController extends KDController
       publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
       userAppPath = if /~\//.test manifest.path
         manifest.path.replace("~/", "/Users/#{nickname}/")
-      else 
+      else
         "#{manifest.path}/"
       options     =
         toDo          : "publishApp"
@@ -228,12 +228,14 @@ class KodingAppsController extends KDController
   compileSource:(name, callback)->
 
     kallback = (app)=>
-      
+
       return warn "#{name}: No such app!" unless app
 
       {source} = app
-      {blocks} = source
-      
+      {blocks, stylesheets} = source
+      {nickname} = KD.whoami().profile
+
+
       orderedBlocks = []
       for blockName, blockOptions of blocks
         blockOptions.name = blockName
@@ -241,9 +243,9 @@ class KodingAppsController extends KDController
           orderedBlocks[order] = blockOptions
         else
           orderedBlocks.push blockOptions
-      
+
       blockStrings = []
-      
+
       asyncStack   = []
 
       orderedBlocks.forEach (block)=>
@@ -259,7 +261,7 @@ class KodingAppsController extends KDController
                 do =>
                   # log fileExtras.pre  if fileExtras.pre
                   if fileExtras.pre
-                    asyncStack.push (cb)=> @addScript app, fileExtras.pre, cb 
+                    asyncStack.push (cb)=> @addScript app, fileExtras.pre, cb
                   # log fileName
                   asyncStack.push (cb)=> @addScript app, fileName, cb
                   # log fileExtras.post if fileExtras.post
@@ -272,18 +274,28 @@ class KodingAppsController extends KDController
         if block.post
           asyncStack.push (cb)=> @addScript app, block.post, cb
 
+      if stylesheets
+        stylesheets.forEach (sheet)->
+          if /(http)|(:\/\/)/.test sheet
+            warn "external sheets cannot be used"
+          else
+            sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
+            $("head ##{__utils.slugify name}").remove()
+            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+
+
       async.parallel asyncStack, (error, result)=>
-        
+
         log "concatenating the app"
-        
-        _final = "(function() {\n\n/* KDAPP STARTS */" 
+
+        _final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
           _final += "\n\n/* BLOCK STARTS */\n\n"
           _final += "#{output}"
           _final += "\n\n/* BLOCK ENDS */\n\n"
         _final += "/* KDAPP ENDS */\n\n}).call();"
-        
-        
+
+
         _final = @defineApp app.name, _final
         @saveCompiledApp app, _final, =>
           callback?()
@@ -294,7 +306,7 @@ class KodingAppsController extends KDController
       kallback @constructor.manifests[name]
 
   installApp:(app, callback)->
-    
+
     @fetchApps (err, manifests = {})=>
       if err
         warn err
@@ -343,7 +355,7 @@ class KodingAppsController extends KDController
         manifest = getManifestFromPath path
         # debugger
         log "cloning the app: #{manifest.name}"
-        log "checking the repo: #{manifest.repo}" 
+        log "checking the repo: #{manifest.repo}"
         {repo} = manifest
 
         if /^git/.test repo      then repoType = "git"
