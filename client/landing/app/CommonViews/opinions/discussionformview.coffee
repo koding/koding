@@ -43,22 +43,28 @@ class DiscussionFormView extends KDFormView
         href      : '#'
         value     : "markdown syntax is enabled"
       cssClass    : 'markdown-link'
-      partial     : "markdown is enabled"
-      click       :->
-        modal = new KDModalView
-          title          : "What is markdown?"
-          content        : "Some markdown info"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Okay       :
-              style      : "modal-clean-gray"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                modal.buttons.Okay.hideLoader()
-                modal.destroy()
+      partial     : "markdown is enabled<span></span>"
+      click       : (pubInst, event)=>
+        if $(event.target).is 'span'
+          link.hide()
+        else
+          $.ajax
+            # url       : KD.apiUri+'https://api.koding.com/1.0/logout'
+            url       : "/markdown.txt"
+            success   : (response)=>
+
+              modal = new KDModalView
+                title       : "How to use the <em>markdown</em> syntax."
+                cssClass    : "what-you-should-know-modal"
+                height      : "auto"
+                width       : 500
+                content     : response
+                buttons     :
+                  Close     :
+                    title   : 'Close'
+                    style   : 'modal-clean-gray'
+                    callback: -> modal.destroy()
+
     @markdownSelect = new KDSelectBox
       type          : "select"
       name          : "markdown"
