@@ -1,7 +1,7 @@
 class MainView extends KDView
-  
+
   viewAppended:->
-    
+
     # @putLoader()
     @addHeader()
     @createMainPanels()
@@ -10,14 +10,14 @@ class MainView extends KDView
     # @removeLoader()
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
-  
+
     setTimeout =>
       @putWhatYouShouldKnowLink()
     ,5000
 
   addBook:->
     @addSubView new BookView
-  
+
   setViewState:(state)->
     if state is 'background'
       @contentPanel.setClass 'no-shadow'
@@ -48,7 +48,7 @@ class MainView extends KDView
       # delete KD.singletons.loadingScreen
       $loadingScreen.remove()
       $('body').removeClass 'loading'
-  
+
   createMainPanels:->
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -62,7 +62,7 @@ class MainView extends KDView
 
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
-  
+
   addHeader:()->
     @addSubView @header = new KDView
       tagName : "header"
@@ -71,7 +71,7 @@ class MainView extends KDView
       tagName   : "a"
       domId     : "koding-logo"
       # cssClass  : "hidden"
-      attributes: 
+      attributes:
         href    : "#"
       click     : (pubInst,event)=>
         if KD.isLoggedIn()
@@ -80,19 +80,19 @@ class MainView extends KDView
           appManager.openApplication "Home"
 
     @addLoginButtons()
-  
+
   addLoginButtons:->
     @header.addSubView @buttonHolder = new KDView
       cssClass  : "button-holder hidden"
 
     mainController = @getSingleton('mainController')
-    
+
     # @buttonHolder.addSubView new KDButtonView
     #   title     : "About Koding"
     #   domId     : "about-button"
     #   callback  : =>
     #     mainController.propagateEvent KDEventType : "AboutButtonClicked", globalEvent : yes
-    # 
+    #
     @buttonHolder.addSubView new KDButtonView
       title     : "Sign In"
       style     : "koding-blue"
@@ -112,7 +112,7 @@ class MainView extends KDView
       domId    : "main-tab-handle-holder"
       cssClass : "kdtabhandlecontainer"
       delegate : @
-      
+
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
       listenToFinder     : yes
@@ -128,7 +128,7 @@ class MainView extends KDView
     @sidebar = new Sidebar domId : "sidebar", delegate : @
     @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
-    
+
   changeHomeLayout:(isLoggedIn)->
 
   decorateLoginState:(isLoggedIn = no)->
@@ -147,14 +147,14 @@ class MainView extends KDView
 
     @changeHomeLayout isLoggedIn
     @utils.wait 300, => @notifyResizeListeners()
-  
+
   _windowDidResize:->
 
     {winHeight} = @windowController
     @panelWrapper.setHeight winHeight - 51
 
   putWhatYouShouldKnowLink:->
-    
+
     @header.addSubView link = new KDCustomHTMLView
       tagName     : "a"
       domId       : "what-you-should-know-link"
@@ -169,7 +169,7 @@ class MainView extends KDView
             # url       : KD.apiUri+'https://api.koding.com/1.0/logout'
             url       : "/beta.txt"
             success	  : (response)=>
-          
+
               modal = new KDModalView
                 title       : "Thanks for joining our beta."
                 cssClass    : "what-you-should-know-modal"
@@ -181,7 +181,7 @@ class MainView extends KDView
                     title   : 'Close'
                     style   : 'modal-clean-gray'
                     callback: -> modal.destroy()
-              
+
               {winHeight} = @getSingleton('windowController')
               modal.$('.kdmodal-content').css 'max-height', winHeight - 200
               modal.setY (winHeight - modal.getHeight())/2
