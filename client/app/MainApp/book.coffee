@@ -10,23 +10,23 @@
 class BookView extends JView
 
   @lastIndex = 0
-  
+
   constructor: (options = {},data) ->
-    
+
     options.domId    = "instruction-book"
     options.cssClass = "book"
 
     super options, data
-    
+
     @currentIndex = 0
-    
+
     @right = new KDView
       cssClass : "right-page right-overflow"
       click    : -> @setClass "flipped"
 
     @left = new KDView
       cssClass : "left-page fl"
-  
+
     @putOverlay cssClass : "", isRemovable : yes, animated : yes
     @once "OverlayAdded", =>
       @$overlay.css zIndex : 999
@@ -36,28 +36,28 @@ class BookView extends JView
 
     @once "OverlayRemoved", =>
       @destroy()
-    
+
     # @fillPage @getPage()
-    
+
     @setKeyView()
-    
+
   pistachio:->
-    
+
     """
     {{> @left}}
     {{> @right}}
     """
-  
+
   click:-> @setKeyView()
 
   keyDown:(event)->
-    
+
     switch event.which
       when 37 then do @fillPrevPage
       when 39 then do @fillNextPage
-  
+
   getPage:(index = 0)->
-    
+
     @currentIndex = index
     new BookPage {}, __bookPages[index]
 
@@ -68,13 +68,13 @@ class BookView extends JView
     @fillPage @currentIndex - 1
 
   fillNextPage:->
-    
+
     return if __bookPages.length is @currentIndex + 1
     BookView.lastIndex = @currentIndex + 1
     @fillPage @currentIndex + 1
-  
+
   fillPage:(index)->
-    
+
     index or= BookView.lastIndex
     page = @getPage index
     @right.setClass "out"
@@ -83,15 +83,15 @@ class BookView extends JView
       @right.destroySubViews()
       @right.addSubView page
       @right.unsetClass "out"
-      
-  
-  
+
+
+
 
 
 class BookPage extends JView
 
   constructor: (options = {},data) ->
-    
+
     data.cssClass  or= ""
     data.content   or= ""
     data.profile     = KD.whoami().profile
@@ -99,7 +99,7 @@ class BookPage extends JView
     options.tagName  = "section"
 
     super options, data
-    
+
     @header = new KDView
       tagName   : "header"
       partial   : "#{data.title}"
@@ -110,13 +110,13 @@ class BookPage extends JView
       cssClass  : "content-wrapper"
       pistachio : data.content
     , data
-    
+
     konstructor = if data.embed then data.embed else KDCustomHTMLView
 
     @embedded = new konstructor
-  
+
   pistachio:->
-    
+
     """
     {{> @header}}
     {{> @content}}
@@ -124,12 +124,12 @@ class BookPage extends JView
       {{> @embedded}}
     </div>
     """
-  
+
 
 class BookTableOfContents extends JView
-  
+
   pistachio:->
-    
+
     """
     table of contents
     """
@@ -137,13 +137,13 @@ class BookTableOfContents extends JView
 class BookUpdateWidget extends JView
 
   pistachio:->
-    
+
     """
     update widget
     """
-    
+
 class BookDevelopButton extends KDButtonViewWithMenu
-    
+
 
 __bookPages = [
 

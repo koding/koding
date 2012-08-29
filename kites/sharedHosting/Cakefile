@@ -2,7 +2,7 @@ option '-c', '--config', 'select a config file (default is prod)'
 
 
 processes = require 'processes'
-        
+
 
 task "install", 'install packages',(options)->
   processes.run
@@ -16,11 +16,11 @@ task "build",'builds sharedhosting client',(options)->
 task 'run','run sharedHosting',(options)->
 
   options.config ?= "config-dev"
-  
-  processes.run 
+
+  processes.run
     cmd     : "coffee index.coffee -c #{options.config} --sharedHosting"
     log     : yes       # or provide a path for log file
-    restart : no        # or provide a function 
+    restart : no        # or provide a function
 
 
-  
+
