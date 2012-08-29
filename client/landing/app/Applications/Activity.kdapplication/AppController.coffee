@@ -227,12 +227,18 @@ class Activity12345 extends AppController
       ), callback
 
   filter: (show, callback) ->
+
     controller = @activityListController
+    controller.noActivityItem.hide()
 
     if show is 'private'
+      _counter = 0
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
         item.hide() if not controller.isInFollowing(item.data)
+        _counter++
+      if _counter is controller.itemsOrdered.length
+        controller.noActivityItem.show()
       return no
 
     else if show is 'public'
@@ -297,8 +303,14 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
+    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity from your followings."
+    @noActivityItem.hide()
 
   loadView:(mainView)->
+    @noActivityItem.hide()
+
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -351,6 +363,7 @@ class ActivityListController extends KDListViewController
     return instance
 
   addItem:(activity, index, animation = null) ->
+    @noActivityItem.hide()
     # log "ADD:", activity
     if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
       @getListView().addItem activity, index, animation
