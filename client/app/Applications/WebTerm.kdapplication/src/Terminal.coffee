@@ -39,12 +39,12 @@ class WebTerm.Terminal
     @updateSizeTimer = null
     @updateSize()
     
-    @container.bind "mousedown", (event) =>
+    @container.on "mousedown", (event) =>
       @inputHandler.mouseDown event if @inSession
-    @container.bind "mouseup", (event) =>
+    @container.on "mouseup", (event) =>
       @inputHandler.mouseUp event if @inSession
   
-    $(document).bind "paste", (event) =>
+    $(document).on "paste", (event) =>
       @server.input event.clipboardData.getData("text/plain")
   
   createSession: (name) ->

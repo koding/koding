@@ -4,23 +4,6 @@ class WebTermView extends KDView
       cssClass : "console"
     @addSubView @container
     
-    @terminal = new WebTerm.Terminal @container.$(), (sessions) =>
-      keys = Object.keys sessions
-      keys.sort (a, b) ->
-        if sessions[a] < sessions[b]
-          -1
-        else if sessions[a] > sessions[b]
-          1
-        else
-          0
-      @sessionList.empty()
-      for key in keys
-        @sessionList.addItem
-          id: parseInt(key)
-          name: sessions[key]
-          mainView: this
-      @sessionBox.show()
-    
     @sessionBox = new KDView
       cssClass: "kddialogview"
       position:
@@ -61,6 +44,29 @@ class WebTermView extends KDView
     
     $(window).bind "blur", =>
       @terminal.setFocused false
+    
+    KD.whoami().tellKite
+      kiteName: 'webterm',
+      method: 'connectionInitializationDummy'
+    
+    window.setTimeout =>
+      @terminal = new WebTerm.Terminal @container.$(), (sessions) =>
+        keys = Object.keys sessions
+        keys.sort (a, b) ->
+          if sessions[a] < sessions[b]
+            -1
+          else if sessions[a] > sessions[b]
+            1
+          else
+            0
+        @sessionList.empty()
+        for key in keys
+          @sessionList.addItem
+            id: parseInt(key)
+            name: sessions[key]
+            mainView: this
+        @sessionBox.show()
+    , 3000
   
   click: ->
     @setKeyView()
