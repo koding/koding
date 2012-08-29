@@ -10,14 +10,14 @@ class StartTabMainView extends JView
     @listenWindowResize()
 
     mainView = @getSingleton('mainView')
-    
+
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
-    
+
     # mainView.sidebar.finderResizeHandle.on "DragFinished", =>
     #   @utils.wait 301, =>
     #     log "DragFinished", mainView.contentPanel.getWidth()
-    
+
     @loader = new KDLoaderView
       size          :
         width       : 128
@@ -29,10 +29,11 @@ class StartTabMainView extends JView
         color       : "#ff9200"
 
     @button = new KDButtonView
-      cssClass : "editor-button"
-      title    : "refresh apps"
-      loader   : yes
-      callback : =>
+      cssClass    : "editor-button"
+      title       : "refresh apps"
+      loader      :
+        diameter  : 16
+      callback    : =>
         @removeAppIcons()
         @loader.show()
         @getSingleton("kodingAppsController").refreshApps (err, apps)=>
@@ -50,7 +51,7 @@ class StartTabMainView extends JView
           storage.update $set : { "bucket.apps" : {} }, =>
             @loader.hide()
             log arguments, "kodingAppsController storage cleared"
-    
+
     @appItemContainer = new AppItemContainer
       cssClass : 'app-item-container'
       delegate : @
@@ -61,7 +62,7 @@ class StartTabMainView extends JView
 
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
-  
+
   viewAppended:->
 
     super
@@ -72,15 +73,15 @@ class StartTabMainView extends JView
 
   _windowDidResize:->
 
-    
+
 
   addApps:->
-    
+
     for app in apps
-      @appItemContainer.addSubView new StartTabOldAppView 
+      @appItemContainer.addSubView new StartTabOldAppView
         tab : @
       , app
-  
+
   pistachio:->
     """
     <h1 class="kdview start-tab-header">To start from a new file, select an editor <span>or open an existing file from your file tree</span></h1>
@@ -99,9 +100,9 @@ class StartTabMainView extends JView
       {{> @recentFilesWrapper}}
     </div>
     """
-  
+
   addRealApps:->
-    
+
     @removeAppIcons()
     @loader.show()
 
@@ -118,7 +119,7 @@ class StartTabMainView extends JView
       @noAppsWarning.show()
 
   removeAppIcons:->
-    
+
     @appItemContainer.destroySubViews()
     @appIcons = {}
 
@@ -172,7 +173,7 @@ class StartTabMainView extends JView
   addRecentFiles:->
 
     @recentFileViews = {}
-    
+
     appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       storage.on "update", => @updateRecentFileViews()
@@ -185,22 +186,22 @@ class StartTabMainView extends JView
         @getSingleton('mainController').on "NoSuchFile", (file)=>
           recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
           # log "updating storage", recentFilePaths.length
-          storage.update { 
+          storage.update {
             $set: 'bucket.recentFiles': recentFilePaths
           }, => log "storage updated"
-          
+
 
   updateRecentFileViews:()->
-    
+
     appManager.fetchStorage 'Finder', '1.0', (err, storage)=>
 
       recentFilePaths = storage.getAt('bucket.recentFiles')
       # log "updating views", recentFilePaths.length
-    
+
       for path, view of @recentFileViews
         @recentFileViews[path].destroy()
         delete @recentFileViews[path]
-    
+
       if recentFilePaths?.length
         recentFilePaths.forEach (filePath)=>
           @recentFileViews[filePath] = new StartTabRecentFileView {}, filePath
@@ -265,25 +266,30 @@ class StartTabAppView extends JView
 
     options.tagName    = 'figure'
     options.attributes = href : '#'
-    
-    if data.disabled? 
+
+    if data.disabled?
       options.cssClass += ' disabled'
-    else if data.catalog? 
+    else if data.catalog?
       options.cssClass += ' appcatalog'
 
     super options, data
-    
-    {icns} = @getData()
+
+    {icns, name, version} = @getData()
+    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+    else
+      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+
     @imgHolder = new KDView
       tagName : "p"
-      partial : "<img src=\"#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'] else KD.apiUri + '/images/default.app.listthumb.png'}\" />"
+      partial : "<img src=\"#{thumb}\" />"
 
     @loader = new KDLoaderView
       size          :
         width       : 40
 
   showLoader:->
-  
+
     @loader.show()
     @imgHolder.$().css "opacity", "0.5"
 
@@ -301,7 +307,7 @@ class StartTabAppView extends JView
     """
 
 class StartTabOldAppView extends KDView
-  
+
   constructor:(options, data)->
     newClass = if data.disabled? then 'start-tab-item disabled' else if data.catalog? then 'start-tab-item appcatalog' else 'start-tab-item'
     options = $.extend
@@ -309,11 +315,11 @@ class StartTabOldAppView extends KDView
       cssClass    : newClass
     , options
     super options, data
-    
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    
+
   pistachio:->
     {image} = @getData()
     """
@@ -321,13 +327,13 @@ class StartTabOldAppView extends KDView
       <strong>{{ #(name)}}</strong>
       <span>{{ #(type)}}</span>
     """
-    
+
   click:(event)->
     {appToOpen, disabled} = @getData()
     {tab}                 = @getOptions()
     if appToOpen isnt "Apps"
       appManager.replaceStartTabWithApplication appToOpen, tab unless disabled
-    else 
+    else
       appManager.openApplication appToOpen
 
 
@@ -341,20 +347,20 @@ class StartTabRecentFileView extends JView
         template  : '<div class="twipsy-arrow"></div><div class="twipsy-inner twipsy-inner-wide"></div>'
     , options
     super options, data
-    
+
   pistachio:->
     path = @getData()
     name = (path.split '/')[(path.split '/').length - 1]
     extension = __utils.getFileExtension name
     fileType  = __utils.getFileType extension
-    
+
     """
       <div class='finder-item file clearfix'>
         <span class='icon #{fileType} #{extension}'></span>
         <span class='title'>#{name}</span>
       </div>
     """
-    
+
   click:(event)->
     # appManager.notify()
     file = FSHelper.createFileFromPath @getData()
@@ -370,5 +376,4 @@ class StartTabRecentFileView extends JView
       else
         file.contents = contents
         appManager.openFile file
-      
-      
+
