@@ -354,7 +354,7 @@ app.contentdisplays.styl
   border none
 
 .opinion-container
-  margin-top                          10px
+  margin-top                          0px
   a
     noTextDeco()
     font-size   inherit
@@ -388,7 +388,7 @@ app.contentdisplays.styl
       span.avatar
         border                        1px solid #E3E3E3
         padding                       1px
-        margin-right                  10px
+        margin-right                  20px
         width                         50px
         height                        50px
         bg(color,#fff)
@@ -490,9 +490,10 @@ app.contentdisplays.styl
 
 
 .opinion-form-footer
-      h3
-        margin-top                    35px
-        margin-bottom                 20px
+  margin-left                         75px
+  h3
+    margin-top                    35px
+    margin-bottom                 20px
 
 .opinion-form-footer
   margin-top                          35px
@@ -514,7 +515,16 @@ app.contentdisplays.styl
       text-decoration                 none
       font-size                       11px
 
+.opinion-box-header
+  font-size                           20px
+  font-weight                         500
+  margin-left                         75px
+  border-bottom                       1px solid #E0E0DF
 
+.opinion-sort
+  float                               right
+  font-size                           12px
+  line-height                         250%
 
 div.discussion-contents
   margin-bottom                       45px
@@ -529,7 +539,7 @@ div.discussion-contents
     line-height                       10px
     rounded                           3px
     noTextDeco()
-  padding                             0 10px 0 20px
+  padding                             0px 0px 0 20px
   width                               auto
   overflow                            hidden
   p.discussion-body
@@ -566,6 +576,8 @@ div.discussion-contents
       line-height                     130%
       margin-bottom                   1em
       color                           #444444
+      border-bottom                   1px solid #E0E0DF
+
     &:hover
       > .edit-link
         opacity                       .5

@@ -24,6 +24,11 @@ class ContentDisplayDiscussion extends KDView
 
     @opinionBox = new OpinionView null, data
 
+    @opinionBoxHeader = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "opinion-box-header"
+      partial : '<span class="opinion-count">'+data.repliesCount+' Answers</span><span class="opinion-sort">sorted by date</span>'
+
     @opinionForm = new OpinionFormView
       cssClass : "opinion-container"
       callback  : (data)=>
@@ -172,20 +177,22 @@ class ContentDisplayDiscussion extends KDView
     </span>
     <div class='discussion-contents'>
       <div class='discussion-main-opinion'>
+        {{> @actionLinks}}
         <h3>{{#(title)}}</h3>
+
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> posted by {{> @author}}
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
           </div>
-          {{> @actionLinks}}
         </footer>
         {{> @editDiscussionLink}}
         {{> @deleteDiscussionLink}}
         <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       </div>
     </div>
+    {{> @opinionBoxHeader}}
     {{> @opinionBox}}
     <div class="content-display-main-section opinion-form-footer">
         {{> @opinionForm}}
