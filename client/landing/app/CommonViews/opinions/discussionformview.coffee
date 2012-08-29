@@ -9,14 +9,14 @@ class DiscussionFormView extends KDFormView
     @submitDiscussionBtn = new KDButtonView
       title           : "Save your changes"
       type            : "submit"
-      cssClass        : "clean-gray opinion-submit"
+      cssClass        : "clean-gray discussion-submit-button"
 
     @discussionBody = new KDInputView
       cssClass        : "discussion-body"
       name            : "body"
       title           : "your Discussion Topic"
       type            : "textarea"
-      autogrow        : yes
+      # autogrow        : yes
       placeholder     : "What do you want to contribute to the discussion?"
 
     @discussionTitle = new KDInputView
@@ -24,7 +24,7 @@ class DiscussionFormView extends KDFormView
       name            : "title"
       title           : "your Opinion"
       type            : "text"
-      autogrow        : yes
+      # autogrow        : yes
       placeholder     : "What do you want to talk about?"
 
     @labelAddTags = new KDLabelView
@@ -34,6 +34,31 @@ class DiscussionFormView extends KDFormView
       tagName         : "div"
       cssClass        : "tags-selected-item-wrapper clearfix"
 
+    @markdownLink = new KDCustomHTMLView
+      tagName     : 'a'
+      name        : "markdownLink"
+      value       : "markdown is enabled"
+      attributes  :
+        title     : "markdown is enabled"
+        href      : '#'
+        value     : "markdown syntax is enabled"
+      cssClass    : 'markdown-link'
+      partial     : "markdown is enabled"
+      click       :->
+        modal = new KDModalView
+          title          : "What is markdown?"
+          content        : "Some markdown info"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Okay       :
+              style      : "modal-clean-gray"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : =>
+                modal.buttons.Okay.hideLoader()
+                modal.destroy()
     @markdownSelect = new KDSelectBox
       type          : "select"
       name          : "markdown"
@@ -90,22 +115,14 @@ class DiscussionFormView extends KDFormView
       """
       <div class="discussion-box">
         <div class="discussion-form">
-          <div class="discussion-form-headline">
-            <h3>Edit your discussion</h3>
-          </div>
-          {{> @markdownSelect}}
           {{> @discussionTitle}}
           {{> @discussionBody}}
         </div>
-        <div class="formline">
-          {{> @labelAddTags}}
-          <div>
-            {{> @selectedItemWrapper}}
-            {{> @tagAutoComplete}}
+        <div class="discussion-buttons">
+          <div class="discussion-submit">
+            {{> @markdownLink}}
+            {{> @submitDiscussionBtn}}
           </div>
-        </div>
-        <div>
-        {{> @submitDiscussionBtn}}
         </div>
       </div>
       """
