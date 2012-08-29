@@ -188,7 +188,7 @@ class AccountDatabaseList extends KDListView
       width                   : 500
       height                  : "auto"
       tabs                    :
-        navigateable          : yes
+        navigable          : yes
         goToNextFormOnSubmit  : no
         # callback              : (formOutput)-> log formOutput
         forms                 :
