@@ -94,19 +94,19 @@ __utils =
       pedantic: false
       sanitize: false
       highlight:(text)->
-        log "highlight callback called"
-        if hljs?
-          requirejs (['js/highlightjs/highlight.js']), ->
-            requirejs (["highlightjs/languages/javascript"]), ->
-              try
-                hljs.compileModes()
-                _text = hljs.highlightAuto text
-                log "hl",_text,text
-                return _text.value
-              catch err
-                log "Error applying highlightjs syntax", err
-        else
-          log "hljs not found"
+        # log "highlight callback called"
+        # if hljs?
+        #   requirejs (['js/highlightjs/highlight.js']), ->
+        #     requirejs (["highlightjs/languages/javascript"]), ->
+        #       try
+        #         hljs.compileModes()
+        #         _text = hljs.highlightAuto text
+        #         log "hl",_text,text
+        #         return _text.value
+        #       catch err
+        #         log "Error applying highlightjs syntax", err
+        # else
+        #   log "hljs not found"
           return text
 
     text = Encoder.htmlDecode text

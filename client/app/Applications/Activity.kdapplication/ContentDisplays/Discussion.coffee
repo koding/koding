@@ -44,9 +44,26 @@ class ContentDisplayDiscussion extends KDView
     , data
 
     @heartBox = new HelpBox
-      subtitle : "About Status Updates"
+      subtitle : "About Discussions"
       tooltip  :
-        title  : "This a public wall, here you can share anything with the Koding community."
+        title  : "Click me for additional information"
+      click :->
+        modal = new KDModalView
+          title          : "Additional information on Discussions"
+          content        : "<div class='modalformline'>Hi! My name is Arvid, i just recently started to work for Koding and I am responsible for the implementation of Discussions. Should you run into bugs, experience strange behaviour or have questions on how to use this feature, please don't hesitate to drop me a mail here.</div>"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Okay       :
+              style      : "modal-clean-gray"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : =>
+                modal.buttons.Okay.hideLoader()
+                modal.destroy()
+
+
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
@@ -171,7 +188,6 @@ class ContentDisplayDiscussion extends KDView
     </div>
     {{> @opinionBox}}
     <div class="content-display-main-section opinion-form-footer">
-        <h3>Post your opinion here</h3>
         {{> @opinionForm}}
         {{> @heartBox}}
     </div>
