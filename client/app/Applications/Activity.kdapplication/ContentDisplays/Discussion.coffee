@@ -158,7 +158,7 @@ class ContentDisplayDiscussion extends KDView
         <h3>{{#(title)}}</h3>
         {{> @editDiscussionLink}}
         {{> @deleteDiscussionLink}}
-        <p class='context discussion-body'>{{@utils.applyMarkdown @utils.applyTextExpansions #(body)}}</p>
+        <p class='context discussion-body'>{{@utils.applyMarkdown #(body)}}</p>
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}}
@@ -171,6 +171,7 @@ class ContentDisplayDiscussion extends KDView
     </div>
     {{> @opinionBox}}
     <div class="content-display-main-section opinion-form-footer">
+        <h3>Post your opinion here</h3>
         {{> @opinionForm}}
         {{> @heartBox}}
     </div>

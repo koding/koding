@@ -92,10 +92,22 @@ __utils =
     marked.setOptions
       gfm: true
       pedantic: false
-      sanitize: true
-      highlight:->
-        # highlight wants a callback to fetch syntax highlighting
-        null
+      sanitize: false
+      highlight:(text)->
+        log "highlight callback called"
+        if hljs?
+          requirejs (['js/highlightjs/highlight.js']), ->
+            requirejs (["highlightjs/languages/javascript"]), ->
+              try
+                hljs.compileModes()
+                _text = hljs.highlightAuto text
+                log "hl",_text,text
+                return _text.value
+              catch err
+                log "Error applying highlightjs syntax", err
+        else
+          log "hljs not found"
+          return text
 
     text = Encoder.htmlDecode text
 
