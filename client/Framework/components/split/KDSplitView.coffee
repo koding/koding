@@ -527,8 +527,8 @@ class KDSplitViewPanel extends KDScrollView
       size = 0 if size < 0
       if @isVertical then @setWidth size else @setHeight size
       @parent.sizes[@index] = @size = size
-      @parent.handleEvent type : "PanelDidResize", panel: @
-      @handleEvent type : "PanelDidResize", newSize : size
+      @parent.emit "PanelDidResize", panel: @
+      @emit "PanelDidResize", newSize : size
     else
       no
 
@@ -564,8 +564,8 @@ class KDSplitViewPanel extends KDScrollView
       # setTimeout do ->
       newSize = panel._getSize()
       panel.parent.sizes[panel.index] = panel.size = newSize
-      panel.parent.handleEvent  type : "PanelDidResize", panel: panel
-      panel.handleEvent         type : "PanelDidResize", newSize : newSize
+      panel.parent.emit "PanelDidResize", panel: panel
+      panel.emit "PanelDidResize", newSize : newSize
       callback.call panel
       # ,100
 

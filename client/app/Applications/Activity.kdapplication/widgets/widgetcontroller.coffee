@@ -59,10 +59,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
     mainView.showPane "update"
 
-    codeSnippetPane.registerListener
-      KDEventTypes : 'PaneDidShow'
-      listener     : @
-      callback     : -> codeWidget.widgetShown()
+    codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"

@@ -80,13 +80,11 @@ class PageInbox extends KDView
     messagesSplit._windowDidResize()
 
     messagesSplit.didResizeBefore = no
-    messagesSplit.listenTo
-      KDEventTypes       : "PanelDidResize"
-      listenedToInstance : @inboxSplitView
-      callback           : ->
-        messagesSplit._windowDidResize()
-        unless messagesSplit.didResizeBefore
-          messagesSplit.resizePanel "100%",0
+
+    @inboxSplitView.on "PanelDidResize", ->
+      messagesSplit._windowDidResize()
+      unless messagesSplit.didResizeBefore
+        messagesSplit.resizePanel "100%",0
 
     messagesSplit.listenTo
       KDEventTypes : "MessageSelectedFromOutside"

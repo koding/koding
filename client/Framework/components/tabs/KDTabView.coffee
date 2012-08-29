@@ -1,13 +1,13 @@
 class KDTabView extends KDTabViewController
 
   constructor:(options = {})->
-    
+
     super options
 
     @setClass "kdtabview"
-    
+
     @handlesHidden = no
-    
+
     @hideHandleCloseIcons() if options.hideHandleCloseIcons
     @hideHandleContainer()  if options.hideHandleContainer
 
@@ -34,8 +34,8 @@ class KDTabView extends KDTabViewController
     index = @getPaneIndex pane
     handle = @getHandleByIndex index
     handle.makeActive()
-    pane.handleEvent type : "PaneDidShow"
-    @handleEvent {type : "PaneDidShow", pane}
+    pane.emit "PaneDidShow"
+    @emit "PaneDidShow", pane
     pane
 
   hideAllPanes:()->
@@ -58,6 +58,6 @@ class KDTabView extends KDTabViewController
 
   hideHandleCloseIcons:()->
     @tabHandleContainer.$().addClass "hide-close-icons"
-  
+
   showHandleCloseIcons:()->
     @tabHandleContainer.$().removeClass "hide-close-icons"
