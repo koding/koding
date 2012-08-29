@@ -38,11 +38,9 @@ class OpinionView extends KDView
       listenedToInstance : @opinionList
       callback : @decorateActiveCommentState
 
-    @listenTo
-      KDEventTypes : "OpinionLinkReceivedClick"
-      listenedToInstance : @opinionList
-      callback : (pubInst, event) =>
-        @opinionForm.commentInput.setFocus()
+    @opinionList.on "OpinionLinkReceivedClick", =>
+      @parent?.opinionForm?.opinionBody?.setFocus()
+
 
     @opinionList.on "OpinionCountClicked", =>
       @opinionList.emit "AllOpinionsLinkWasClicked"

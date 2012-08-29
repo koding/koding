@@ -7,19 +7,22 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @opinionLink = new ActivityActionLink
       partial   : "Join this discussion"
       click     : (pubInst, event)=>
-
-        # as an item, in the activity feed, this should link to the ContenD
-        unless @parent instanceof ContentDisplayDiscussion
-          appManager.tell "Activity", "createContentDisplay", @getData()
+        @emit "DiscussionActivityLinkClicked"
 
     @opinionCount?.destroy()
 
     @opinionCount = new ActivityCommentCount
       tooltip     :
-        title     : "Show all"
-      click       :=>
-        @getDelegate().emit "OpinionCountClicked"
+        title     : "Take me there!"
+      click       : (pubInst, event)=>
+        @emit "DiscussionActivityLinkClicked"
     , activity
+
+    @on "DiscussionActivityLinkClicked", =>
+      unless @parent instanceof ContentDisplayDiscussion
+        appManager.tell "Activity", "createContentDisplay", @getData()
+      else
+        @getDelegate().emit "OpinionLinkReceivedClick"
 
   viewAppended:->
 
@@ -48,14 +51,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
               new KDNotificationView
                 title     : "You already liked this!"
                 duration  : 1300
-
-    @opinionLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : (pubInst, event) ->
-        opinionList.propagateEvent KDEventType : "OpinionLinkReceivedClick", event
-
-
 
   pistachio:->
 
