@@ -9,14 +9,14 @@ class OpinionFormView extends KDFormView
     @submitOpinionBtn = new KDButtonView
       title           : "Post your reply"
       type            : "submit"
-      cssClass        : "clean-gray opinion-submit"
+      cssClass        : "clean-gray opinion-submit-button"
 
     @opinionBody = new KDInputView
       cssClass        : "opinion-body"
       name            : "body"
       title           : "your Opinion"
       type            : "textarea"
-      autogrow        : yes
+      # autogrow        : yes
       placeholder     : "What do you want to contribute to the discussion?"
 
     @labelAddTags = new KDLabelView
@@ -25,6 +25,58 @@ class OpinionFormView extends KDFormView
     @selectedItemWrapper = new KDCustomHTMLView
       tagName         : "div"
       cssClass        : "tags-selected-item-wrapper clearfix"
+
+    @markdownLink = new KDCustomHTMLView
+      tagName     : 'a'
+      name        : "markdownLink"
+      value       : "markdown is enabled"
+      attributes  :
+        title     : "markdown is enabled"
+        href      : '#'
+        value     : "markdown syntax is enabled"
+      cssClass    : 'markdown-link'
+      partial     : "markdown is enabled"
+      click       :->
+        modal = new KDModalView
+          title          : "What is markdown?"
+          content        : "Some markdown info"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Okay       :
+              style      : "modal-clean-gray"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : =>
+                modal.buttons.Okay.hideLoader()
+                modal.destroy()
+
+    # @fullscreenLink = new KDCustomHTMLView
+    #   tagName     : 'a'
+    #   name        : "fullscreenLink"
+    #   value       : "go fullscreen"
+    #   attributes  :
+    #     title     : "go fullscreen"
+    #     href      : '#'
+    #     value     : "go fullscreen"
+    #   cssClass    : 'mfullscreen-link'
+    #   partial     : "go fullscreen"
+    #   click       :->
+    #     modal = new KDModalView
+    #       title          : "Your reply here"
+    #       content        :
+    #       height         : "auto"
+    #       overlay        : yes
+    #       buttons        :
+    #         Okay       :
+    #           style      : "modal-clean-gray"
+    #           loader     :
+    #             color    : "#ffffff"
+    #             diameter : 16
+    #           callback   : =>
+    #             modal.buttons.Okay.hideLoader()
+    #             modal.destroy()
 
     @markdownSelect = new KDSelectBox
       type          : "select"
@@ -75,24 +127,27 @@ class OpinionFormView extends KDFormView
     @once "FormValidationPassed", => @reset()
     super
 
+        #          <span class="supports-markdown">You can use markdown syntax here</span>
+        # <div>
+        #   {{> @labelAddTags}}
+        #   <div>
+        #     {{> @selectedItemWrapper}}
+        #     {{> @tagAutoComplete}}
+        #   </div>
+        # </div>
 
   pistachio:->
       """
       <div class="opinion-box">
         <div class="opinion-form">
           {{> @markdownSelect}}
-          <span class="supports-markdown">You can use markdown syntax here</span>
           {{> @opinionBody}}
         </div>
-        <div>
-          {{> @labelAddTags}}
-          <div>
-            {{> @selectedItemWrapper}}
-            {{> @tagAutoComplete}}
+        <div class="opinion-buttons">
+          <div class="opinion-submit">
+            {{> @markdownLink}}
+            {{> @submitOpinionBtn}}
           </div>
-        </div>
-        <div>
-        {{> @submitOpinionBtn}}
         </div>
       </div>
       """

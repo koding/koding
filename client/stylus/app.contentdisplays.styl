@@ -401,19 +401,25 @@ app.contentdisplays.styl
           bg(repeat,no-repeat)
       .opinion-contents
         padding-left                    75px
+        margin-top                      22px
 
-        .opinion-footer
-          margin                    12px 0 0 0
 
-          .type-and-time
-            font-weight               300
-            color                     #a5a5a5
-            display                   inline
+
+.opinion-footer
+  margin                    12px 0 0 0
+  display                   inline
+
+  .type-and-time
+    font-weight               300
+    color                     #a5a5a5
+    display                   inline
+
 .opinion-body-edit
   .formline
     border none
 
-.opinion-box
+.opinion-box,
+.discussion-box
   margin-top          10px
   margin-bottom 20px
   padding             10px
@@ -423,7 +429,8 @@ app.contentdisplays.styl
   font-size                           12px
   width                 auto
   height auto
-  .opinion-form
+  .opinion-form,
+  .discussion-form
     width               auto
     height              auto
     position            relative
@@ -444,7 +451,8 @@ app.contentdisplays.styl
 
   .opinion-form-headline
       margin-left       5px
-  textarea.opinion-body
+  textarea.opinion-body,
+  textarea.discussion-body
       height auto
       max-height 500px
       outline            none
@@ -454,9 +462,15 @@ app.contentdisplays.styl
       width             100%
       box-shadow        inset 0 1px 2px rgba(0,0,0,0.10)
       borderBox()
-  .opinion-body
+
+  .opinion-body,
+  .discussion-body
       width                 100%
-      min-height            144px
+      min-height            250px
+
+  .discussion-title
+    width                   100%
+    margin-bottom           10px
 
 .opinion-body-with-markup
     // margin-top                12px
@@ -469,11 +483,37 @@ app.contentdisplays.styl
       margin-bottom           5px
       .comment-container
         width                 auto
+        .comment-body
+          line-height         21px!important
+
 
 .opinion-form-footer
       h3
         margin-top      35px
         margin-bottom   20px
+
+.opinion-form-footer
+  margin-top                        35px
+
+.opinion-buttons,
+.discussion-buttons
+  height                              35px
+  .opinion-submit,
+  .discussion-submit
+    float                             right
+    display                           block
+    button
+      margin-top 12px
+    a.markdown-link
+      margin-top 19px
+      display inline-block
+      margin-right  9px
+      line-height 100%
+      text-decoration none
+      font-size 11px
+
+
+
 div.discussion-contents
   font-weight                         300
   a.count
@@ -491,38 +531,40 @@ div.discussion-contents
   overflow                            hidden
   p.discussion-body
     line-height                       150%
+    margin-top                        22px
     a.user-fullname
       font-size                       12px
       font-weight                     600
       color                           linkColor1
       noTextDeco()
-    span
-      font-weight                     300
-      font-size                       14px
+    // span
+    //   font-weight                     300
+    //   font-size                       14px
   time
     line-height                       130%
     color                             #aaa
 
-  .opinion-form-footer
-    margin-top                        35px
   .discussion-footer
     font-size                         12px
     padding-bottom                    10px
     color #a5a5a5
-    display inline
+    display                           inline
     font-weight 300
     a
       font-size 12px
       noTextDeco()
     a.count
-        font-size 10px
+      font-size 10px
+    .type-and-time
+      display                         inline
 
   .discussion-main-opinion
     h3
-      font-size                       14px
+      font-weight                     500!important
+      font-size                       20px
       line-height                     130%
       margin-bottom                   1em
-      color                           #FF9200
+      color                           #444444
     &:hover
       > .edit-link
         opacity                       .5
@@ -546,7 +588,7 @@ div.discussion-contents
   size                                20px, 20px
   position                            absolute
   top                                 0px
-  right                               5px
+  right                               0px
   bg                                  position, -80px -520px
   opacity                             0
   vendor                              transition, opacity .15s linear
@@ -557,7 +599,7 @@ div.discussion-contents
   size                                20px, 20px
   position                            absolute
   top                                 0px
-  right                               20px
+  right                               15px
   bg                                  position, -120px -400px
   opacity                             0
   vendor                              transition, opacity .15s linear
@@ -570,6 +612,7 @@ div.discussion-contents
   line-height                         130%
   margin-bottom                       5px
   font-weight                         300
+  color                               #5f5f5f
   p
     margin-bottom                     1em
     word-wrap                         break-word

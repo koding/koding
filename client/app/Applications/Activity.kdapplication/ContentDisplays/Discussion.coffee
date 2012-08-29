@@ -156,17 +156,17 @@ class ContentDisplayDiscussion extends KDView
     <div class='discussion-contents'>
       <div class='discussion-main-opinion'>
         <h3>{{#(title)}}</h3>
-        {{> @editDiscussionLink}}
-        {{> @deleteDiscussionLink}}
-        <p class='context discussion-body'>{{@utils.applyMarkdown #(body)}}</p>
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
-            <span class='type-icon'></span> by {{> @author}}
+            <span class='type-icon'></span> posted by {{> @author}}
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
           </div>
           {{> @actionLinks}}
         </footer>
+        {{> @editDiscussionLink}}
+        {{> @deleteDiscussionLink}}
+        <p class='context discussion-body'>{{@utils.applyMarkdown #(body)}}</p>
       </div>
     </div>
     {{> @opinionBox}}

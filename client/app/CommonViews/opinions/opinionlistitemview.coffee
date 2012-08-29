@@ -137,6 +137,14 @@ class OpinionListItemView extends KDListItemView
     """
     <div class='item-content-opinion clearfix'>
       <span class='avatar'>{{> @avatar}}</span>
+        <footer class='opinion-footer clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> answer written by {{> @author}}
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
       <div class='opinion-contents clearfix'>
         {{> @deleteLink}}
         {{> @editLink}}
@@ -144,14 +152,7 @@ class OpinionListItemView extends KDListItemView
         <p class='opinion-body-with-markup'>
           {{@utils.applyMarkdown #(body)}}
         </p>
-        <footer class='opinion-footer clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span> written by {{> @author}}
-            <time>{{$.timeago #(meta.createdAt)}}</time>
-            {{> @tags}}
-          </div>
-          {{> @actionLinks}}
-        </footer>
+
     </div>
     </div>
     <div class='item-content-opinion-comments clearfix'>
