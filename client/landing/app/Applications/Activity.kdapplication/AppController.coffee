@@ -247,6 +247,7 @@ class Activity12345 extends AppController
       ]
 
     controller.removeAllItems()
+    controller.showLazyLoader no
     @loadSomeTeasers ->
       controller.isLoading = no
       controller.propagateEvent KDEventType : 'LazyLoadComplete'
