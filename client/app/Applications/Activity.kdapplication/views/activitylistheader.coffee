@@ -25,6 +25,8 @@ class ActivityListHeader extends JView
       callback     : (state) =>
         @appStorage.setValue 'liveUpdates', state, =>
         @updateShowNewItemsLink()
+        @getSingleton('activityController').flags = liveUpdates : state
+        @getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
@@ -37,7 +39,9 @@ class ActivityListHeader extends JView
       @lowQualitySwitch = new KDCustomHTMLView
 
     @appStorage.fetchStorage (storage)=>
-      @liveUpdateButton.setValue @appStorage.getValue 'liveUpdates', off
+      state = @appStorage.getValue 'liveUpdates', off
+      @liveUpdateButton.setValue state
+      @getSingleton('activityController').flags = liveUpdates : state
       @lowQualitySwitch.setValue? @appStorage.getValue 'showLowQualityContent', off
 
   pistachio:(newCount)->
