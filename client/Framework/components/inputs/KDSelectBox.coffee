@@ -35,7 +35,7 @@ class KDSelectBox extends KDInputView
   setDefaultValue:(value)-> 
     @getDomElement().val value if value isnt ""
     @_$select.val value
-    @_$title.text @_$select.find("option[value=#{value}]").text()
+    @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
     @inputDefaultValue = value
   getDefaultValue:()-> @inputDefaultValue
 
@@ -67,11 +67,11 @@ class KDSelectBox extends KDInputView
     @_$select.val @getDefaultValue()
 
     value = @getDefaultValue() + "" # casting number to string
-    escapedDefault = value.replace /\//g, '\\/'
-    @_$title.text @_$select.find("option[value=#{escapedDefault}]").text()
+    # escapedDefault = value.replace /\//g, '\\/'
+    @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
 
   change:->
-    @_$title.text @_$select.find("option[value=#{@getValue()}]").text()
+    @_$title.text @_$select.find("option[value=\"#{@getValue()}\"]").text()
 
   focus:->
     @setClass 'focus'

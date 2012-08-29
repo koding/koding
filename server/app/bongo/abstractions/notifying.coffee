@@ -1,10 +1,10 @@
 class Notifying
-
+  
   {ObjectRef} = bongo
   {Relationship} = jraphical
-
+  
   @getNotificationEmail =-> 'hi@koding.com'
-
+  
   @getNotificationSubject =-> 'You have pending notifications.'
 
   @getNotificationTextBody =(event, contents)->
@@ -12,14 +12,14 @@ class Notifying
     event name: #{event};
     contents: #{JSON.stringify(contents)};
     """
-
+  
   setNotifiers:(events, listener)->
     events.forEach (event)=> @on event, listener.bind null, event
-
+  
   notifyAll:(receivers, event, contents)->
     receivers.forEach (receiver)=>
       @notify receiver, event, contents
-
+  
   notify:(receiver, event, contents)->
     actor = contents[contents.actorType]
     {origin} = contents

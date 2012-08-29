@@ -43,6 +43,12 @@ class JInvitation extends jraphical.Module
         targetType  : JAccount
         as          : 'redeemer'
   
+  @__grantInvitations =(options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options or= {}
+    {numInvitations} = options
+    numInvitations ?= 3
+    @grant {}, numInvitations, callback
   # @__attemptToFixChrisFuckup =(callback)->
   #   i = 0
   #   JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
@@ -60,6 +66,47 @@ class JInvitation extends jraphical.Module
   #             #   console.log 'finished', i++
   #             #   callback 'ok'
   # 
+  @__sendInvitationsAreGrantedEmail =do->
+    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+    # betaTestersEmails = 'chris123412341234@jraphical.com'
+    # betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+    invitationsAreGrantedEmail = fs.readFileSync 'email/invitations-are-granted.txt', 'utf-8'
+    protocol = 'https://'
+    (callback)->
+      i = 0
+      recipients = []
+      {host, port} = server
+      # host = 'localhost:3000'
+      # protocol = 'http://'
+      uniq(betaTestersEmails.split '\n').slice(2703, 6000).forEach (email)=>
+        recipients.push =>
+          @one {inviteeEmail: email}, (err, invite)=>
+            if err
+              console.log err
+            else if invite?
+              url = "#{protocol}#{host}/invitation/#{invite.code}"
+              # bitly.shorten url, (err, response)=>
+              #   shortenedUrl = response.data.url
+              #   if shortenedUrl?
+                  # shortenedUrl = url
+              personalizedMail = invitationsAreGrantedEmail.replace '#{url}', url#shortenedUrl
+              Emailer.send
+                From      : @getInviteEmail()
+                To        : email
+                Subject   : '[Koding] Koding has launched!'
+                TextBody  : personalizedMail
+              , (err)-> 
+                # console.log 'finished', i++, err
+                recipients.fin(err)
+                # else console.log email
+            else
+              console.log "no invitation was found for #{email}"
+              recipients.fin null
+      dash recipients, ->
+        console.log 'all done'
+        callback arguments...
+
+
   @__sendBetaInvites = bongo.secure do->
     betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
     # betaTestersEmails = 'chris123412341234@jraphical.com'
@@ -117,7 +164,6 @@ class JInvitation extends jraphical.Module
             .createHmac('sha1', 'kodingsecret')
             .update(email)
             .digest('hex')
-          # console.log email, code
           recipients.push ->
             invite = new JInvitation {
               code
@@ -131,13 +177,16 @@ class JInvitation extends jraphical.Module
         recipients.push -> callback(recipients)
         daisy recipients
   
-  @grant =(selector, quota, callback)->
+  @grant =(selector, quota, options, callback)->
+    [callback, options] = [options, callback] unless callback
     unless quota > 0
       callback new KodingError "Quota must be positive."
     else
       batch = []
-      JAccount.all selector, (err, accounts)->
-        for account in accounts
+      i = 0
+      console.log arguments
+      JAccount.all selector, options, (err, accounts)->
+        accounts.forEach (account)->
           batch.push ->
             account.fetchLimit 'invite', (err, limit)->
               if err then batch.fin(err)
@@ -149,7 +198,10 @@ class JInvitation extends jraphical.Module
                   if err
                     batch.fin(err)
                   else
-                    account.addLimit limit, 'invite', (err)-> batch.fin(err)
+                    account.addLimit limit, 'invite', (err)->
+                      console.log 'granted invites to one', ++i
+                      batch.fin(err)
+        # console.log batch.length
         dash batch, callback
   
   @getInviteEmail =-> "hello@koding.com"

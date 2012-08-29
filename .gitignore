@@ -15,6 +15,7 @@ v8.log
 node_modules/.bin
 *.swp
 *.swo
+sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json

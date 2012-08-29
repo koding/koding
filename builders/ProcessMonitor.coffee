@@ -99,6 +99,7 @@ class ProcessMonitor extends EventEmitter
     @nodeServer.stderr.on 'data', (data)-> 
       log.info "#{data}".replace /\n+$/, ''
     @nodeServer.on        'exit', (code)=>
+      log.warn "The nodejs server has crashed! #{code}"
       if @flags.forever?
         log.warn "Forever is on, I'm restarting in 1 sec."
         @flags.restart = yes

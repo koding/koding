@@ -5,8 +5,14 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  sockjs,
+                  cowboy
                  ]},
   {mod, { broker_app, []}},
-  {env, []}
+  {env, [
+    {verbose, true},
+    {privateRegEx, ".private$"},
+    {precondition_failed, <<"Request not allowed">>}
+    ]}
  ]}.

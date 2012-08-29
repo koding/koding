@@ -1,20 +1,20 @@
 class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
-
+  
   @mixin Followable
   @::mixin Followable::
   @mixin Filterable       # brings only static methods
   @::mixin Taggable::
   @::mixin Notifiable::
   @::mixin Flaggable::
-
+  
   @getFlagRole = 'content'
 
   {ObjectId,secure,race,dash} = bongo
   {Relationship} = jraphical
   @share()
-  Experience =
+  Experience = 
     company           : String
     website           : String
     position          : String
@@ -41,7 +41,7 @@ class JAccount extends jraphical.Module
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','getDefaultEnvironment'
+        'fetchFollowingWithRelationship',
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
@@ -53,7 +53,6 @@ class JAccount extends jraphical.Module
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
-        # defaultEnvironment  : JEnvironment
         defaultToLastUsedEnvironment :
           type              : Boolean
           default           : yes
@@ -83,7 +82,7 @@ class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
-        lastName            :
+        lastName            : 
           type              : String
           default           : ''
         description         : String
@@ -97,9 +96,6 @@ class JAccount extends jraphical.Module
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
-      environment   :
-        as          : 'owner'
-        targetType  : JEnvironment
 
       mount         :
         as          : 'owner'
@@ -120,11 +116,11 @@ class JAccount extends jraphical.Module
       # followee      :
       #   as          : 'followee'
       #   targetType  : JAccount
-
+      
       activity      :
         as          : 'activity'
         targetType  : CActivity
-
+      
       privateMessage:
         as          : ['recipient','sender']
         targetType  : JPrivateMessage
@@ -132,15 +128,15 @@ class JAccount extends jraphical.Module
       appStorage    :
         as          : 'appStorage'
         targetType  : JAppStorage
-
-      limit         :
+      
+      limit:
         as          : 'invite'
         targetType  : JLimit
-
-      tag           :
+      
+      tag:
         as          : 'skill'
         targetType  : JTag
-
+      
       content       :
         as          : 'creator'
         targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment]
@@ -150,7 +146,7 @@ class JAccount extends jraphical.Module
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
-
+    
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
@@ -175,7 +171,7 @@ class JAccount extends jraphical.Module
         for doc in docs
           results.push doc.profile.fullname
         callback err, results
-
+  
   setEmailPreferences: secure (client, prefs, callback)->
     JUser.fetchUser client, (err, user)->
       if err
@@ -184,9 +180,9 @@ class JAccount extends jraphical.Module
         Object.keys(prefs).forEach (granularity)->
           prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
         user.update {$set: emailFrequency: prefs}, callback
-
+  
   glanceMessages: secure (client, callback)->
-
+  
   glanceActivities: secure (client, callback)->
     @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
       if err
@@ -195,7 +191,7 @@ class JAccount extends jraphical.Module
         queue = activities.map (activity)->
           -> activity.mark client, 'glanced', -> queue.fin()
         dash queue, callback
-
+  
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
@@ -212,7 +208,7 @@ class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, nonces
-
+  
   fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
@@ -234,7 +230,7 @@ class JAccount extends jraphical.Module
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
-
+  
   unflagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
     JAccount.taint @getId()
@@ -247,22 +243,22 @@ class JAccount extends jraphical.Module
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
-
+  
   checkFlag:(flag)->
     flags = @getAt('globalFlags')
     flags and (flag in flags)
-
+  
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
-
+  
   @getFlagRole =-> 'owner'
-
+  
   can:(action, target)->
     switch action
       when 'delete','flag'
         @profile.nickname in dummyAdmins or target.originId?.equals @getId()
-
+  
   fetchRole: secure ({connection}, callback)->
-
+    
     if isDummyAdmin connection.delegate.profile.nickname
       callback null, "super-admin"
     else
@@ -285,22 +281,22 @@ class JAccount extends jraphical.Module
 
   fetchPrivateChannel:(callback)->
     bongo.fetchChannel @getPrivateChannelName(), callback
-
+  
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   addTags: secure (client, tags, callback)->
     Taggable::addTags.call @, client, tags, (err)->
       if err then callback err
       else callback null
-
+  
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all
-          targetName  : 'JPrivateMessage',
-          targetId    : message.getId(),
-          sourceId    :
+        jraphical.Relationship.all 
+          targetName  : 'JPrivateMessage', 
+          targetId    : message.getId(), 
+          sourceId    : 
             $ne       : delegate.getId()
         , (err, rels)->
           if err
@@ -311,14 +307,14 @@ class JAccount extends jraphical.Module
             fin()
       , callback
       fetchParticipants(message) for message in messages when message?
-
+    
     secure ({connection}, options, callback)->
       [callback, options] = [options, callback] unless callback
       unless @equals connection.delegate
         callback new KodingError 'Access denied.'
       else
         options or= {}
-        selector =
+        selector = 
           if options.as
             as: options.as
           else
@@ -335,23 +331,23 @@ class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, messages
-
+  
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
-
+  
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, callback
-
+  
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
-
+  
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
@@ -359,53 +355,31 @@ class JAccount extends jraphical.Module
     else
       callback new KodingError "access denied for guest."
 
-  oldFetchRepos = @::fetchRepos
+  oldFetchRepos = @::fetchRepos  
   fetchRepos: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchRepos.call @,callback
     else
-      callback new KodingError "access denied for guest."
+      callback new KodingError "access denied for guest."    
 
-  oldFetchDatabases = @::fetchDatabases
+  oldFetchDatabases = @::fetchDatabases  
   fetchDatabases: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchDatabases.call @,callback
     else
       callback new KodingError "access denied for guest."
 
-  createEnvironment:(options,callback)->
-    @fetchEnvironment "hosts.hostname":res.backend,(err,environment)=>
-      if err then callback err
-      else if environment
-        callback null,environment
-      else
-        environment = {hosts:[hostname:res.backend,port:0]}
-        environment.save (err)=>
-          if err then callback err
-          else
-            @addEnvironment environment,(err)=>
-              if err then callback err
-              else
-                callback null,environment
-
-  getDefaultEnvironment: secure (client, callback)->
-    unless @equals client.connection.delegate
-      return callback null, 'Not enough privileges'
-
-    defaultEnvironment = new JEnvironment environmentId : 'wikiwikiblueblue'
-    callback defaultEnvironment
-
   setClientId:(@clientId)->
-
+  
   getFullName:->
     {profile} = @data
     profile.firstName+' '+profile.lastName
-
+  
   fetchStorage: secure (client, options, callback)->
     account = @
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
-
+    
     {appId, version} = options
     @fetchAppStorage {}, {targetOptions:query:{appId}}, (error, storage)->
       if error then callback error
@@ -420,26 +394,26 @@ class JAccount extends jraphical.Module
                 callback err, newStorage
         else
           callback error, storage
-
+  
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: yes}, console.log
         item.emit 'ContentMarkedAsLowQuality', null
-
+  
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: no}, console.log
         item.emit 'ContentUnmarkedAsLowQuality', null
-
+  
   @taintedAccounts = {}
   @taint =(id)->
     @taintedAccounts[id] = yes
-
+  
   @untaint =(id)->
     delete @taintedAccounts[id]
-
+  
   @isTainted =(id)->
     isTainted = @taintedAccounts[id]
     isTainted
