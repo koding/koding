@@ -110,6 +110,11 @@ class FeedController extends KDViewController
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
 
+  emitLoadStarted:(filter)=>
+    listController = @resultsController.listControllers[filter.name]
+    listController.showLazyLoader no
+    return listController
+
   emitLoadCompleted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
     listController.hideLazyLoader()
@@ -120,6 +125,7 @@ class FeedController extends KDViewController
     options  = @getFeedOptions()
     selector = @getFeedSelector()
 
+    @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
     else
