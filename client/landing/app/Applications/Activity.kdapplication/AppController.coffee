@@ -249,6 +249,7 @@ class Activity12345 extends AppController
     controller.removeAllItems()
     @loadSomeTeasers ->
       controller.isLoading = no
+      controller.propagateEvent KDEventType : 'LazyLoadComplete'
       callback?()
 
   createContentDisplay:(activity)->
@@ -291,6 +292,7 @@ class ActivityListController extends KDListViewController
     viewOptions.comments      or= yes
     viewOptions.subItemClass  or= options.subItemClass
     options.view              or= new KDListView viewOptions, data
+    options.startWithLazyLoader = yes
     super
 
     @_state = 'public'
