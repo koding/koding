@@ -241,7 +241,7 @@ class MembersListViewController extends KDListViewController
         listController._windowDidResize()
         listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no
-        listController.propagateEvent KDEventType : 'LazyLoadComplete'
+        listController.hideLazyLoader()
 
   getTotalMemberCount:(callback)=>
     {currentDelegate} = @getSingleton('mainController').getVisitor()
