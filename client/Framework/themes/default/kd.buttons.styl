@@ -44,7 +44,7 @@
   &.loading
     color             transparent!important
     text-shadow       none!important
-      
+
 
 .kdbuttonwithmenu-wrapper
   position          relative
@@ -60,15 +60,15 @@
     right           20px
     border-left     1px solid #bbb
     size            0,100%
-    
+
   .chevron-arrow
     display         block
     position        absolute
     top             0
     right           0
-    size            20px,20px        
+    size            20px,20px
     sprite()
-    bg              position,-80px -280px    
+    bg              position,-80px -280px
 
 .kdview.kdcontextmenu.kdbuttonmenu
   width               auto
@@ -82,10 +82,10 @@
     border-width      1px 1px 0 1px
     bg                color,white
     overflow          hidden
-  
+
     .chevron-arrow-ghost
       display         block
-      size            20px,20px        
+      size            20px,20px
       sprite()
       bg              position,-80px -260px
   &.top-menu
@@ -117,7 +117,7 @@
         margin-top    3px
     &.top-menu
       .chevron-arrow-ghost-wrapper
-        rounded  0 0 0 3px    
+        rounded  0 0 0 3px
 
 
 /* disabled button styles
@@ -165,14 +165,14 @@ button.small-gray
     shadow          inset 0 0 5px 2px #aaa\, 0 1px 0 0 #eee
   &.icon-only
     padding         3px 5px 4px 6px
-  &.with-icon         
-    span.icon         
+  &.with-icon
+    span.icon
       padding       2px 2px 1px 3px
       border        none
       margin-right  2px
       bg            color,transparent
 
-button[disabled].small-gray, 
+button[disabled].small-gray,
 button[disabled].small-gray:hover,
 button[disabled].small-gray:active
   border            1px solid #c5c5c5
@@ -219,7 +219,7 @@ button.dark
       margin-right  2px
       bg            color,transparent
 
-button[disabled].dark, 
+button[disabled].dark,
 button[disabled].dark:hover,
 button[disabled].dark:active
   color             #8f8f8f
@@ -404,16 +404,15 @@ button.transparent
   height            auto!important
   bg(color,transparent)
   rounded(9px)
+  &.active
   &:hover
+  &:active
     cursor          pointer
     color           white
     text-shadow     0 1px 0 #000
     shadow(inset 0 0 1px 0 #000)
     gradient(#666,#888)
-  &:active
-    gradient(#444,#666)
-    shadow(inset 0 0 2px 1px #000)
-    
+
 
 
 

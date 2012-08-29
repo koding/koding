@@ -4,7 +4,7 @@
 @import "nib/vendor"
 
 @css {
-/*  
+/*
 KDFormView stylesheet
 kd.formview.styl
 */
@@ -20,11 +20,12 @@ kd.formview.styl
     &:last-child
       border-bottom     none
 
-    label 
+    label
       min-width         90px
       blockMid()
 
-    input,textarea
+    input
+    textarea
       min-width         160px
       border            1px solid #c9c9c9
       color             #282521 !important
@@ -46,11 +47,12 @@ kd.formview.styl
       color             #282521 !important
       line-height       14px
       blockMidTop()
-      
+
     div.kdselectbox
       span.title
         line-height     23px
         height          22px
+
     .linkholder
       padding           0 0 10px 0
       display           inline-block
@@ -59,16 +61,20 @@ kd.formview.styl
         display         block
         cursor          pointer
         margin-bottom   5px
+
+    >cite.hint
+      font-size         11px
+      color             #999
+
   .button-field
     height              auto
     background-color    #eee
     bottom              0
     rounded             0 0 5px 5px
-    
+
     .kdbutton
       padding-right   10px
       padding-left    10px
       margin-left     6px
       width           auto
       margin-right    0
-  
