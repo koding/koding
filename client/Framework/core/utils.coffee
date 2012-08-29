@@ -228,6 +228,33 @@ __utils =
     kallback
 
   ###
+  password-generator
+  Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
+  MIT Licensed
+  ###
+  generatePassword: do ->
+
+    letter = /[a-zA-Z]$/;
+    vowel = /[aeiouAEIOU]$/;
+    consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/;
+
+    (length = 10, memorable = yes, pattern = /\w/, prefix = '')->
+
+      return prefix if prefix.length >= length
+
+      if memorable
+        pattern = if prefix.match(consonant) then vowel else consonant
+
+      n = (Math.floor(Math.random() * 100) % 94) + 33
+      char = String.fromCharCode(n)
+      char = char.toLowerCase() if memorable
+      if !char.match pattern
+        return __utils.generatePassword length, memorable, pattern, prefix
+
+      return __utils.generatePassword length, memorable, pattern, "" + prefix + char
+
+
+  ###
   //     Underscore.js 1.3.1
   //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
   //     Underscore is freely distributable under the MIT license.
