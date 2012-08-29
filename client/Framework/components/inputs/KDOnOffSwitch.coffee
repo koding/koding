@@ -15,7 +15,8 @@ class KDOnOffSwitch extends KDInputView
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
   setDomElement:(cssClass)->
-    {title, labels} = @getOptions()
+    {title, labels, name} = @getOptions()
+    @inputName = name
     title or= ""
 
     @domElement = $ """

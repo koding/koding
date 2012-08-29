@@ -205,7 +205,7 @@ Includes =
         KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
-        KDRySwitch            : "./client/Framework/components/inputs/KDRySwitch.coffee"
+        KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
