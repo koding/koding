@@ -318,7 +318,9 @@ class JPost extends jraphical.Message
           if err
             callback err
           else
-            delegate.addContent comment, (err)-> console.log 'error adding content to delegate', err
+            delegate.addContent comment, (err)->
+              if err
+                log 'error adding content to delegate', err
             @addComment comment,
               flags:
                 isLowQuality    : exempt
