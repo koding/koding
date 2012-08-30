@@ -368,7 +368,6 @@ app.contentdisplays.styl
     line-height                       10px
     rounded                           3px
     noTextDeco()
-
   .kdlistview-opinions
     .kdview.kdlistitemview-opinion
       margin-top                      10px
@@ -403,12 +402,9 @@ app.contentdisplays.styl
         padding-left                  75px
         margin-top                    22px
 
-
-
 .opinion-footer
   margin                              12px 0 0 0
   display                             inline
-
   .type-and-time
     font-weight                       300
     color                             #a5a5a5
@@ -434,21 +430,19 @@ app.contentdisplays.styl
     width                             auto
     height                            auto
     position                          relative
-
   span.supports-markdown
-    position          absolute
-    right             -3px
-    top               7px
-    color             #fff
-    padding           3px 12px 4px 12px
-    bg                color,#ff9200
-    font-size         10px
-    line-height       10px
-    text-shadow       0 -1px 0 rgba(0, 0, 0, 0.35)
-    text-transform    uppercase
-    shadow            0 1px 1px rgba(0, 0, 0, 0.54)
-    z-index           10
-
+    position                          absolute
+    right                             -3px
+    top                               7px
+    color                             #fff
+    padding                           3px 12px 4px 12px
+    bg                                color,#ff9200
+    font-size                         10px
+    line-height                       10px
+    text-shadow                       0 -1px 0 rgba(0, 0, 0, 0.35)
+    text-transform                    uppercase
+    shadow                            0 1px 1px rgba(0, 0, 0, 0.54)
+    z-index                           10
   .opinion-form-headline
       margin-left                     5px
   textarea.opinion-body,
@@ -462,8 +456,6 @@ app.contentdisplays.styl
       width                           100%
       box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
       borderBox()
-
-
   .opinion-body,
   .discussion-body
       width                           100%
@@ -474,26 +466,23 @@ app.contentdisplays.styl
     margin-bottom                     10px
     padding                           5px 10px
 
-.opinion-body-with-markup
-    // margin-top                12px
-    // padding-bottom            12px
-
 .item-content-opinion-comments
     padding                           0
     margin                            0 0 20px 75px
     .opinion-comment
       margin-bottom                   5px
+      margin-top                      25px
       .comment-container
         width                         auto
         .comment-body
           line-height                 21px!important
-
+          color                       #5F5F5F
 
 .opinion-form-footer
   margin-left                         75px
   h3
-    margin-top                    35px
-    margin-bottom                 20px
+    margin-top                        35px
+    margin-bottom                     20px
 
 .opinion-form-footer
   margin-top                          35px
@@ -520,6 +509,7 @@ app.contentdisplays.styl
   font-weight                         500
   margin-left                         75px
   border-bottom                       1px solid #E0E0DF
+  color                               #5F5F5F
 
 .opinion-sort
   float                               right
@@ -550,11 +540,9 @@ div.discussion-contents
       font-weight                     600
       color                           linkColor1
       noTextDeco()
-
   time
     line-height                       130%
     color                             #aaa
-
   .discussion-footer
     font-size                         12px
     padding-bottom                    10px
@@ -568,16 +556,16 @@ div.discussion-contents
       font-size                       10px
     .type-and-time
       display                         inline
-
   .discussion-main-opinion
+    .activity-actions
+      margin-top                      7px
     h3
       font-weight                     500!important
       font-size                       20px
       line-height                     130%
       margin-bottom                   1em
-      color                           #444444
+      color                           #5F5F5F
       border-bottom                   1px solid #E0E0DF
-
     &:hover
       > .edit-link
         opacity                       .5
@@ -587,8 +575,6 @@ div.discussion-contents
         opacity                       .5
         &:hover
           opacity                     1
-
-
 
 .markdown-select
   float                               right
@@ -652,7 +638,6 @@ div.discussion-contents
     text-decoration                   none
     font-size                         14px
 
-
 .markdown-cheatsheet
   font-size                           14px
   font-weight                         300
@@ -662,7 +647,6 @@ div.discussion-contents
 .signature
   font-size                           14px
   font-weight                         300
-
   h3
     font-size                         130%
     margin-bottom                     15px
