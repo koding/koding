@@ -89,7 +89,7 @@ class PageInbox extends KDView
           messagesSplit.resizePanel "100%",0
 
     @on "MessageSelectedFromOutside", (item)=>
-      
+
         messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
         messagesSplit.didResizeBefore = yes
         @newMessageBar.enableMessageActionButtons()
