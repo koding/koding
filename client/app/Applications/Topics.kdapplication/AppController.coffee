@@ -11,7 +11,6 @@ class Topics12345 extends AppController
     @controllers = {}
 
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      # log arguments
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
   bringToFront:()->
@@ -83,13 +82,14 @@ class Topics12345 extends AppController
       if role is "super-admin"
         @listItemClass = TopicsListItemViewEditable
         if firstRun
-          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
-            @updateTopic topic
+          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+            @updateTopic topicItem
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
-  updateTopic:(topic)->
+  updateTopic:(topicItem)->
+    topic = topicItem.data
     # log "Update this: ", topic
     controller = @
     modal = new KDModalViewWithForms
@@ -105,11 +105,12 @@ class Topics12345 extends AppController
           update                  :
             title                 : "Update Topic Details"
             callback              : (formData) =>
-              @emit "UpdateTopic"
-              log "Update:: ", formData
-              topic.modify {}, log
-              modal.modalTabs.forms.update.buttons.Update.hideLoader()
-              modal.destroy()
+              formData.slug = @utils.slugify formData.slug.trim().toLowerCase()
+              topic.modify formData, (err)=>
+                new KDNotificationView
+                  title : if err then err.message else "Updated successfully"
+                modal.modalTabs.forms.update.buttons.Update.hideLoader()
+                modal.destroy()
             buttons               :
               Update              :
                 style             : "modal-clean-gray"
@@ -126,22 +127,25 @@ class Topics12345 extends AppController
                   topic.delete (err)=>
                     modal.modalTabs.forms.update.buttons.Delete.hideLoader()
                     modal.destroy()
-                    unless err then @emit 'TopicIsDeleted'
-                    else new KDNotificationView
-                      type      : "mini"
-                      cssClass  : "error editor"
-                      title     : err.message or "Error, please try again later!"
+                    new KDNotificationView
+                      title : if err then err.message else "Deleted!"
+                    topicItem.hide() unless err
             fields                :
               Title               :
                 label             : "Title"
                 itemClass         : KDInputView
                 name              : "title"
                 defaultValue      : topic.title
+              Slug                :
+                label             : "Slug"
+                itemClass         : KDInputView
+                name              : "slug"
+                defaultValue      : topic.slug
               Details             :
                 label             : "Details"
                 type              : "textarea"
                 itemClass         : KDInputView
-                name              : "details"
+                name              : "body"
                 defaultValue      : topic.body or ""
 
   fetchFeedForHomePage:(callback)->
