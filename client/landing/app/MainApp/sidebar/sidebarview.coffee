@@ -67,7 +67,7 @@ class Sidebar extends JView
 
     @adminNav = @adminNavController.getView()
 
-    @resetAdminNavController()
+    # @resetAdminNavController()
 
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
