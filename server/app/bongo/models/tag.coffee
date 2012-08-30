@@ -74,6 +74,7 @@ class JTag extends Followable
     [args..., callback] = arguments
     @fetchContents args..., (err, contents)->
       if err then callback err
+      else if contents.length is 0 then callback null, []
       else
         teasers = []
         collectTeasers = bongo.race (i, root, fin)->
@@ -84,7 +85,6 @@ class JTag extends Followable
               fin()
         , -> callback null, teasers
         collectTeasers node for node in contents
-
 
   @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
