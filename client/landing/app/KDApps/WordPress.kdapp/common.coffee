@@ -19,12 +19,24 @@ class WpApp extends JView
     #   title    : "Dashboard"
     #   callback : => @dashboardTabs.showPaneByIndex 0
 
+    @consoleToggle = new KDToggleButton
+      states        : [
+        "Console",(callback)->
+          @setClass "toggle"
+          split.resizePanel 250, 0
+          callback null
+        "Console &times;",(callback)->
+          @unsetClass "toggle"
+          split.resizePanel 0, 1
+          callback null
+      ]
     @buttonGroup = new KDButtonGroupView
       buttons       :
         "Dashboard" :
-          cssClass  : "active"
+          cssClass  : "clean-gray toggle"
           callback  : => @dashboardTabs.showPaneByIndex 0
         "Install a new Wordpress" :
+          cssClass  : "clean-gray"
           callback  : => @dashboardTabs.showPaneByIndex 1
 
     @dashboardTabs.on "PaneDidShow", (pane)=>
@@ -57,7 +69,7 @@ class WpApp extends JView
 
     @_windowDidResize()
 
-    split.on "PanelDidResize", => @_windowDidResize()
+    # split.on "PanelDidResize", => @_windowDidResize()
 
   _windowDidResize:->
 
@@ -76,6 +88,7 @@ class WpApp extends JView
       </article>
       <section>
       {{> @buttonGroup}}
+      {{> @consoleToggle}}
       </section>
     </header>
     {{> @dashboardTabs}}

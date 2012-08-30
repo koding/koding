@@ -2,7 +2,6 @@
 Wordpress-Installer styles
 */
 
-.wordpressinstaller .application-page{min-width:1024px;overflow:auto}
 .wordpressinstaller header{width:100%;height:250px;background:transparent url("wpbg.png") repeat 0 0;-webkit-box-shadow():inset 0 0 30px rgba(0,0,0,0.33);-moz-box-shadow():inset 0 0 30px rgba(0,0,0,0.33);-o-box-shadow():inset 0 0 30px rgba(0,0,0,0.33);-ms-box-shadow():inset 0 0 30px rgba(0,0,0,0.33);-webkit-box-shadow:inset 0 0 30px rgba(0,0,0,0.33);box-shadow:inset 0 0 30px rgba(0,0,0,0.33);overflow:hidden;}
 .wordpressinstaller header figure{width:250px;height:250px;background:transparent url("wp1.png") no-repeat 0 0;margin:0 auto;opacity:.4;-ms-filter:progid:DXImageTransform.Microsoft.Alpha(Opacity=40);filter:alpha(opacity=40);display:block;float:left}
 .wordpressinstaller header article{overflow:hidden;margin:0 0 15px 0;}

@@ -19,12 +19,12 @@ class InstallPane extends Pane
         #   style             : "transparent"
         #   states          : [
         #     "Advanced Options", (callback)=>
-        #       @form.buttons.advanced.setClass "active"
+        #       @form.buttons.advanced.setClass "toggle"
         #       darks = @form.$ '.formline.dark'
         #       darks.addClass "in"
         #       callback? null
         #     "&times; Advanced Options", (callback)=>
-        #       @form.buttons.advanced.unsetClass "active"
+        #       @form.buttons.advanced.unsetClass "toggle"
         #       darks = @form.$ '.formline.dark'
         #       darks.removeClass "in"
         #       callback? null
@@ -135,7 +135,7 @@ class InstallPane extends Pane
 
   submit:(formData)=>
 
-    split.resizePanel "50%", 1
+    split.resizePanel 250, 0
     {path, domain, name, db} = formData
     formData.timestamp = parseInt formData.timestamp, 10
     formData.fullPath = "#{domain}/website/#{path}"
