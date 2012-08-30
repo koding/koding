@@ -5,6 +5,10 @@ class Members12345 extends AppController
     ,options
     super options,data
 
+    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
+      if @_searchValue and itemClass is MembersListItemView and filterName is 'everything'
+        @setCurrentViewHeader count
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -18,7 +22,7 @@ class Members12345 extends AppController
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       subItemClass          : MembersListItemView
-      qlistControllerClass   : MembersListViewController
+      listControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
         subtitle            : "Learn About Members"
@@ -33,8 +37,6 @@ class Members12345 extends AppController
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               bongo.api.JAccount.byRelevance @_searchValue, options, (err, items)=>
-                @_currentItemCount += items.length
-                @setCurrentViewHeader(items.length, '+' if items.length >= 10)
                 callback err, items
             else
               bongo.api.JAccount.someWithRelationship selector, options, callback
@@ -63,7 +65,6 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-      @_currentItemCount = 0
       view.addSubView @_lastSubview = controller.getView()
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
@@ -155,17 +156,17 @@ class Members12345 extends AppController
     currentDelegate.count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
 
-  setCurrentViewHeader:(count, postfix='')->
+  setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
       return no
 
-    if count < 10 and @_currentItemCount isnt 0
-      count = @_currentItemCount
-
-    count  = 'No' if count is 0
-    result = "#{count}#{postfix} member" + if count isnt 1 then 's' else ''
-    title  = "#{result} found for <strong>#{@_searchValue}</strong>"
+    if count >= 10 then count = '10+'
+    # return if count % 10 is 0 and count isnt 20
+    # postfix = if count is 10 then '+' else ''
+    count   = 'No' if count is 0
+    result  = "#{count} member" + if count isnt 1 then 's' else ''
+    title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
