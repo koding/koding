@@ -1,6 +1,6 @@
 {
   "name"          : "WordpressInstaller",
-  "version"       : "0.1",
+  "version"       : "0.2",
   "author"        : "Sinan Yasar",
   "repo"          : "git://github.com/sinanyasar/WordpressInstaller.git",
   "description"   : "This is a Wordpress Installer for Koding",

@@ -88,7 +88,7 @@ class InstalledAppListItem extends KDListItemView
       tagName : "a"
       cssClass: "delete-link"
       click   : (pubInst, event)=>
-        split.resizePanel "50%", 1
+        split.resizePanel 250, 0
         blogs = appStorage.getValue "blogs"
         blogs.splice blogs.indexOf(@getData()), 1
         appStorage.setValue "blogs", blogs, =>
