@@ -68,22 +68,19 @@ class ProfileView extends KDView
     @skillTags = new SkillTagGroup {}, memberData
 
     if KD.checkFlag 'super-admin'
-      @trollSettings = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-context activity-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : [
-          type      : "contextmenu"
-          items     : [
-            { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll @getData() }
-            { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll @getData() }
-          ]
-        ]
-        callback    : (event)=> @settingsButton.contextMenu event
+
+      @trollSwitch = new KDCustomHTMLView
+        tagName      : "a"
+        partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'
+        cssClass     : "troll-switch"
+        click        :() =>
+          if KD.checkFlag('exempt', memberData)
+            @getSingleton('mainController').unmarkUserAsTroll @getData()
+          else
+            @getSingleton('mainController').markUserAsTroll @getData()
+
     else
-      @trollSettings = new KDCustomHTMLView
+      @trollSwitch = new KDCustomHTMLView
 
   viewAppended:->
     super
@@ -102,6 +99,8 @@ class ProfileView extends KDView
       {{> @followButton}}
       {cite{ @putNick #(profile.nickname)}}
     </div>
+
+      {{> @trollSwitch}}
 
     <section>
       <div class="profileinfo">
@@ -125,11 +124,9 @@ class ProfileView extends KDView
         </div>
 
         <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>
-
       </div>
     </section>
 
-    {{> @trollSettings}}
     """
 
 
