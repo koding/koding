@@ -155,7 +155,15 @@ class NFinderContextMenuController extends KDController
     else
       delete items.Collapse
 
-    if fileView.getData().getExtension() is "kdapp"
+    {nickname} = KD.whoami().profile
+
+    if fileData.path is "/Users/#{nickname}/Applications"
+      items.Refresh.separator         = yes
+      items["Make a new Application"] =
+        action : "makeNewApp"
+
+
+    if fileData.getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
         children                  :

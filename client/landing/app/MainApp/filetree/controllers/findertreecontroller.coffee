@@ -1,10 +1,3 @@
-###
-todo:
-
-  - fix dimmed/selected states
-
-###
-
 class NFinderTreeController extends JTreeViewController
 
   constructor:->
@@ -422,6 +415,14 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.publish.finished"
       @notify "App published!", "success"
 
+  makeNewApp:(nodeView)->
+
+    folder = nodeView.getData()
+
+    folder.emit "fs.newAppCreation.started"
+    @getSingleton('kodingAppsController').makeNewApp =>
+      folder.emit "fs.newAppCreation.finished"
+      @notify "App Created!", "success"
 
 
   ###
@@ -449,6 +450,7 @@ class NFinderTreeController extends JTreeViewController
   contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
   contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
   contextMenuOperationRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
+  contextMenuOperationMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
   contextMenuOperationCloneRepo:    (nodeView, contextMenuItem)-> @cloneAppRepo nodeView
   contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
 
