@@ -266,9 +266,11 @@ handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange},
     Self = term_to_binary(self()),
     case CorId of 
         Self -> 
+            io:format("Own message ~p~n", [Payload]),
             {noreply, State};
         _ -> 
             Sender([Event, Payload]),
+            io:format("Other's message ~p~n", [Payload]),
             {noreply, State}
     end;
 

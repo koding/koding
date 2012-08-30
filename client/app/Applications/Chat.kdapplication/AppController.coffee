@@ -58,6 +58,7 @@ class Chat12345 extends AppController
   addOnlineUser: (name, channelName) ->
     channel = @channels[channelName]
     userItemViewInstance = channel.addOnlineUser name
+    return if name is @username
     userItemViewInstance.registerListener
       KDEventTypes: 'click'
       listener    : @
@@ -172,7 +173,7 @@ class ChannelView extends KDTabPaneView
         @chatController.getView()
         @rosterController.getView()
       ]
-
+    splitView.setHeight 500
     @addSubView inputForm = new ChatInputForm delegate : @
 
   addRosterItem: (item) ->
@@ -182,7 +183,7 @@ class ChannelView extends KDTabPaneView
     @rosterController.getListView().removeItem itemInstance
 
   newMessage: (message) ->
-    @listView.addItem message
+    @chatController.getListView().addItem message
 
 class ChatListItemView extends KDListItemView
   viewAppended: ->
