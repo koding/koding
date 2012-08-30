@@ -235,8 +235,9 @@ class Activity12345 extends AppController
       _counter = 0
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
-        item.hide() if not controller.isInFollowing(item.data)
-        _counter++
+        if not controller.isInFollowing(item.data)
+          item.hide()
+          _counter++
       if _counter is controller.itemsOrdered.length
         controller.noActivityItem.show()
       return no
