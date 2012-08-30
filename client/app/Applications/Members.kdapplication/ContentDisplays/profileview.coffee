@@ -75,9 +75,9 @@ class ProfileView extends KDView
         cssClass     : "troll-switch"
         click        :() =>
           if KD.checkFlag('exempt', memberData)
-            @getSingleton('mainController').unmarkUserAsTroll @getData()
+            @getSingleton('mainController').unmarkUserAsTroll memberData
           else
-            @getSingleton('mainController').markUserAsTroll @getData()
+            @getSingleton('mainController').markUserAsTroll memberData
 
     else
       @trollSwitch = new KDCustomHTMLView
