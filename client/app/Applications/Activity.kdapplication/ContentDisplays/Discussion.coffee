@@ -68,8 +68,6 @@ class ContentDisplayDiscussion extends KDView
                 modal.buttons.Okay.hideLoader()
                 modal.destroy()
 
-
-
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
       subItemClass  : TagLinkView
@@ -89,15 +87,12 @@ class ContentDisplayDiscussion extends KDView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-
     # activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          # loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
-
-        # this is what only the author of the discussion (and admins) will see
 
         @listenTo
           KDEventTypes       : "click"
