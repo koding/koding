@@ -38,9 +38,8 @@ class ContentDisplayDiscussion extends KDView
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
-            @emit "OwnOpinionHasArrived", opinion
-            log "here it was submitted", @, @getData()
-            @opinionBox.opinionList.emit "AllOpinionsLinkWasClicked"
+            @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
+            # @opinionBox.opinionList.emit "AllOpinionsLinkWasClicked"
     , data
 
     @actionLinks = new DiscussionActivityActionsView

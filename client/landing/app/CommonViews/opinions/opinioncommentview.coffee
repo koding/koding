@@ -32,7 +32,7 @@ class OpinionCommentView extends KDView
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
 
-    @commentList.emit "AllCommentsLinkWasClicked"
+    # @commentList.emit "AllCommentsLinkWasClicked"
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->

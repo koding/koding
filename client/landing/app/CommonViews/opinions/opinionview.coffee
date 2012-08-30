@@ -19,11 +19,11 @@ class OpinionView extends KDView
       delegate      : @
     , data
 
-    @opinionController          = new OpinionListViewController view: @opinionList
+    @opinionController = new OpinionListViewController view: @opinionList
     @addSubView @opinionList
 
     @opinionList.on "OwnOpinionHasArrived", ->
-
+      # this would be used in the CommentHeader, if there was one
     @opinionList.on "OpinionIsDeleted", (data)->
 
     if data.replies
