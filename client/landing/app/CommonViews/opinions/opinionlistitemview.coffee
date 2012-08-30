@@ -18,7 +18,6 @@ class OpinionListItemView extends KDListItemView
       constructorName  : originType
       id               : originId
 
-
     @avatar = new AvatarView {
       size    :
         width: 50
@@ -59,6 +58,32 @@ class OpinionListItemView extends KDListItemView
       subItemClass  : TagLinkView
     , data.meta.tags
 
+    @smaller = new KDCustomHTMLView
+        tagName  : "a"
+        cssClass : "opinion-size-link hidden"
+        attributes :
+          href     : "#"
+          title    : "Show less"
+        partial    :  "show less"
+        click      :=>
+          @markup.css "max-height":"300px"
+          @larger.show()
+          @smaller.hide()
+
+    @larger = new KDCustomHTMLView
+        tagName  : "a"
+        cssClass : "opinion-size-link hidden"
+        attributes :
+          href     : "#"
+          title    : "Show more"
+        partial    :  "show more"
+        click      :=>
+          @markup.css maxHeight : @textMaxHeight
+          @smaller.show()
+          @larger.hide()
+
+    @textMaxHeight = 0
+
     activity = @getDelegate().getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
@@ -98,8 +123,21 @@ class OpinionListItemView extends KDListItemView
         @deleteLink.unsetClass "hidden"
 
   viewAppended:->
+
     @setTemplate @pistachio()
     @template.update()
+
+    @markup = @$("p.opinion-body-with-markup")
+
+    maxHeight = 300
+    if @$().height()>maxHeight
+      @textMaxHeight = @getHeight()
+      @markup.css {maxHeight}
+      @larger.show()
+
+
+
+
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
@@ -107,6 +145,7 @@ class OpinionListItemView extends KDListItemView
       bongo.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
+
 
   confirmDeleteOpinion:(data)->
     modal = new KDModalView
@@ -132,7 +171,7 @@ class OpinionListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-  #@utils.applyTextExpansions
+
   pistachio:->
     """
     <div class='item-content-opinion clearfix'>
@@ -152,8 +191,10 @@ class OpinionListItemView extends KDListItemView
         <p class='opinion-body-with-markup'>
           {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
         </p>
-
+        {{>@larger}}
+        {{>@smaller}}
     </div>
+
     </div>
     <div class='item-content-opinion-comments clearfix'>
       <div class='opinion-comment'>

@@ -653,3 +653,36 @@ div.discussion-contents
   p
     line-height                       130%
     margin-bottom                     12px
+
+span.more
+  .hideme
+    display           none
+  vendor              transition, font-size .2s linear
+  a.more-link
+  a.less-link
+    margin-left       5px
+    vendor            transition, font-size .2s linear
+  a.more-link
+    font-size         14px
+  a
+    font-size         0
+  &.show
+    .hideme
+      display         inline
+    font-size         14px
+    a.more-link
+      font-size       0
+      margin-left     0
+    a
+      font-size       14px
+
+.opinion-body-with-markup
+  vendor              transition, max-height .2s linear
+  overflow            hidden
+
+a.opinion-size-link
+  margin-top          10px
+  background-color    #ffffff
+  font-size           14px
+  font-weight         300
+  display             block
