@@ -1,16 +1,21 @@
 class AppsListItemView extends KDListItemView
-  
+
   constructor:(options = {},data)->
-    
+
     options.type = "appstore"
-    
+
     super options,data
-    
-    icns = data.manifest.icns or {}
+
+    {icns, name, version} = @getData().manifest
+    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+    else
+      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+
     thumbOptions =
       tagName     : 'img'
       attributes  :
-        src       : icns["160"] or icns["128"] or icns["256"] or icns["512"] or icns["64"] or icns["32"] or '/images/default.app.listthumb.png'
+        src       : thumb
 
     @thumbnail = new KDCustomHTMLView thumbOptions
     @removeButton = new KDButtonView
@@ -37,12 +42,12 @@ class AppsListItemView extends KDListItemView
       @alreadyInstalledText()
     else
       @createInstallButton()
-  
+
   createInstallButton:->
     {profile} = app = @getData()
-    
+
     @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView 
+    @installButton = new KDButtonView
       title : "Install"
       icon  : no
       callback: =>
@@ -53,14 +58,14 @@ class AppsListItemView extends KDListItemView
 
   alreadyInstalledText:->
     {profile} = app = @getData()
-    
+
     @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView 
+    @installButton = new KDButtonView
       title     : "Installed"
       icon      : no
       disabled  : yes
     @addSubView @installButton, '.button-container'
-  
+
   pistachio:->
     """
     <figure>
@@ -87,4 +92,3 @@ class AppsListItemView extends KDListItemView
       </div>
     </div>
     """
-  

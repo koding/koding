@@ -2,6 +2,29 @@
 
 class KodingAppsController extends KDController
 
+  deafultManifest = (type)->
+    {profile} = KD.whoami()
+    version       : "0.1"
+    name          : "#{type.capitalize()} Application"
+    path          : "~/Applications/#{type.capitalize()}.kdapp"
+    homepage      : "#{profile.nickname}.koding.com/#{type}"
+    author        : "#{profile.firstName} #{profile.lastName}"
+    repository    : "git://github.com/#{profile.nickname}/#{type.capitalize()}.kdapp.git"
+    description   : "a #{type} Koding application template."
+    source        :
+      blocks      :
+        app       :
+          files   : [ "./index.coffee" ]
+      stylesheets : [ "./resources/style.css" ]
+    options       :
+      type        : "tab"
+    icns          :
+      "64"        : "./resources/icon.64.png"
+      "128"       : "./resources/icon.128.png"
+      "160"       : "./resources/icon.160.png"
+      "256"       : "./resources/icon.256.png"
+      "512"       : "./resources/icon.512.png"
+
   @manifests = {}
 
   # #
@@ -336,6 +359,47 @@ class KodingAppsController extends KDController
                 else
                   appManager.openApplication "Develop"
                   callback?()
+  newAppModal = null
+
+  makeNewApp:(callback)->
+
+    return callback?() if newAppModal
+
+    newAppModal = new KDModalViewWithForms
+      title                       : "Create a new Application"
+      # content                   : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      overlay                     : yes
+      width                       : 500
+      height                      : "auto"
+      tabs                        :
+        navigable                 : yes
+        forms                     :
+          form                    :
+            buttons               :
+              "Blank Application" :
+                cssClass          : "modal-clean-gray"
+                callback          : ->
+                  newAppModal.destroy()
+                  callback? yes
+              "Sample Application":
+                cssClass          : "modal-clean-gray"
+                callback          : ->
+                  newAppModal.destroy()
+                  callback? yes
+            fields                :
+              name                :
+                label             : "Application Name:"
+                name              : "name"
+                placeholder       : "name your application..."
+                validate          :
+                  rules           :
+                    required      : yes
+                  messages        :
+                    required      : "application name is required!"
+
+    newAppModal.once "KDObjectWillBeDestroyed", ->
+      newAppModal = null
+      callback? null
 
   forkRepoCommandMap = ->
     git : "git clone"
