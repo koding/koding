@@ -413,7 +413,7 @@ unbind_queue(Channel, Exchange, Routing, Queue) ->
 broadcast(From, Channel, Exchange, Event, Data, Meta) ->
     Publish = #'basic.publish'{ exchange = Exchange, 
                                 routing_key = Event},
-    CorId = term_to_binary(From),
+    CorId = term_to_binary(self()),
 
     case lists:keyfind(<<"replyTo">>, 1, Meta) of 
         {_, ReplyTo} -> 
