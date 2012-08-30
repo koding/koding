@@ -26,8 +26,8 @@ class KDButtonGroupView extends KDView
 
   buttonReceivedClick:(button, event)->
     for title, otherButton of @buttons
-      otherButton.unsetClass "active"
-    button.setClass "active"
+      otherButton.unsetClass "toggle"
+    button.setClass "toggle"
 
 
 
