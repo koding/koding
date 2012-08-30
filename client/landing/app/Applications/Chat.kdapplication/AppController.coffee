@@ -19,33 +19,18 @@ class Chat12345 extends AppController
     @channels = {}
     @broadcaster = mq.subscribe "private-KDPublicChat"
 
-
-    ###
-    When this client connects to the chat, it emits its presence.
-    Assuming there is B is currently in the chat, B will receive
-    this client's presence, and sends back B's presence.
-    ###
-
-    @presence = mq.subscribe "KDPresence"
-    ###
-    On first bound, an initial summary is sent one by one.
-    ###
-    @presence.on "", (headers) ->
-      # TODO: extract the username from key header
-      @addOnlineUser name: username, status: "online"
-
-    ###
-    Binding to a key same as the username to let the presence exchange
-    know its presence. It will not receive any message.
-    ###
-    @presence.on @username, ->
+    # Presence received has format [name, "bind" || "unbind"]
+    mq.presence @username, ([name, status]) =>
+      if status is "bind"
+        @addOnlineUser name, 'public'
+      else if status is "unbind"
+        @removeOfflineUser name, 'public'
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
 
   loadView:(mainView)->
     @joinChannel 'public'
-    @addOnlineUser name: @username, status: "online"
 
   joinChannel: (name) ->
     view = @getOptions().view
@@ -70,14 +55,18 @@ class Chat12345 extends AppController
     @broadcaster.on channelName, (msg) ->
       channel.messageReceived msg
 
-  addOnlineUser: (user) ->
-    view = @getOptions().view
-    userItemViewInstance = view.addOnlineUser user
+  addOnlineUser: (name, channelName) ->
+    channel = @channels[channelName]
+    userItemViewInstance = channel.addOnlineUser name
     userItemViewInstance.registerListener
       KDEventTypes: 'click'
       listener    : @
       callback    : =>
-        @joinChannel user.name
+        @joinChannel name
+
+  removeOfflineUser: (name, channelName) ->
+    channel = @channels[channelName]
+    channel.removeOfflineUser name
 
 class Channel extends KDEventEmitter
   constructor: (options = {}, data) ->
@@ -86,10 +75,18 @@ class Channel extends KDEventEmitter
     @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
     @messages = []
     @participants = {}
-    @participants[@username] = @account
 
     @name = options.name
     @view = options.view
+
+  addOnlineUser: (name) ->
+    viewInstance = @view.addRosterItem {name:name, status: "online"}
+    @participants[name] = viewInstance
+    viewInstance
+
+  removeOfflineUser: (name) ->
+    viewInstance = @participants[name]
+    @view.removeRosterItem viewInstance
 
   messageReceived: (message) ->
     @messages.push message
@@ -97,11 +94,11 @@ class Channel extends KDEventEmitter
 
 class ChatView extends KDView
   viewAppended: ->
-    @chatTabView = new KDTabView
     @rosterTabView = new KDTabView
+    @chatTabView = new KDTabView
     
     @addSubView splitView = new KDSplitView
-      sizes: ["30%","70%"]
+      sizes: ["20%","80%"]
       views: [@rosterTabView, @chatTabView]
 
     @rosterTabView.addPane new TabPaneViewWithList 
@@ -114,11 +111,9 @@ class ChatView extends KDView
         {name: "python", status: "25 online"}
       ]
 
-    @rosterTabView.addPane new TabPaneViewWithList 
-      name: "people"
-      unclosable: true
-      subItemClass: ChannelListItemView
-
+  ###
+  # Called by ChatController to create a tab view for new channel
+  ###
   addChannelTab: (name) ->
     channelTabPane = @chatTabView.getPaneByName name
     if channelTabPane
@@ -128,10 +123,6 @@ class ChatView extends KDView
     tabPane = @chatTabView.addPane new ChannelView
       name: name
       listHeight: 500
-
-  addOnlineUser: (userItem) ->
-    userPane = @rosterTabView.getPaneByName 'people'
-    userPane.addItem userItem
 
 ###
 This is a view for a tab pane that has a list view in there.
@@ -162,14 +153,33 @@ class TabPaneViewWithList extends KDTabPaneView
   addItem: (item, index, animation) ->
     @listView.addItem item, index, animation
 
-class ChannelView extends TabPaneViewWithList
-  constructor: (options = {}, data) ->
-    options.subItemClass || (options.subItemClass = ChatListItemView)
+class ChannelView extends KDTabPaneView
+  constructor: (options = {}, data) ->  
     super options, data
 
+    @chatController = new KDListViewController
+      subItemClass: ChatListItemView
+    @rosterController = new KDListViewController
+      subItemClass: ChannelListItemView
+
+    @chatController.getView().setHeight options.listHeight || 500
+    @rosterController.getView().setHeight options.listHeight || 500
+
   viewAppended: ->
-    super()
+    @addSubView splitView = new KDSplitView
+      sizes: ["60%","40%"]
+      views: [
+        @chatController.getView()
+        @rosterController.getView()
+      ]
+
     @addSubView inputForm = new ChatInputForm delegate : @
+
+  addRosterItem: (item) ->
+    @rosterController.getListView().addItem item
+
+  removeRosterItem: (itemInstance) ->
+    @rosterController.getListView().removeItem itemInstance
 
   newMessage: (message) ->
     @listView.addItem message
