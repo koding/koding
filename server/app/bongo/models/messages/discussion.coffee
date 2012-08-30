@@ -259,7 +259,19 @@ class JDiscussion extends JPost
         limit         : 3
         sort          :
           timestamp   : -1
-      .reverse()
+      # .reverse()
+      # .edges
+      #   query         :
+      #     targetName  : 'JComment'
+      #     as          : 'comment'
+      #     'data.deletedAt':
+      #       $exists   : no
+      #     'data.flags.isLowQuality':
+      #       $ne       : yes
+      #   limit         : 3
+      #   sort          :
+      #     timestamp   : -1
+      # .reverse()
       .and()
       .edges
         query         :
@@ -322,7 +334,6 @@ class JDiscussion extends JPost
         callback null, comments
 
   fetchEntireMessage:(callback)->
-    log "discussion fetching entire message"
     @beginGraphlet()
       .edges
         query         :
