@@ -4,32 +4,25 @@ class InboxMessageListController extends KDListViewController
     super
     @selectedMessages = {}
 
-  continueLoadingMessages:(requester)->
-    requester?.updatePartial "Loading..."
-    KD.whoami().fetchMail
-      limit       : 10
-      skip        : @getItemCount()
-      sort        :
-        timestamp : -1
-    , (err, messages)=>
-      requester?.hide()
-      @instantiateListItems messages
+  loadMessages:(callback, continueLoading = no)->
+    @removeAllItems() if not continueLoading
 
-      if messages.length >= 10
-        @getListView().addItemView new LoadMoreMessagesItem
-          delegate : @
-
-  loadMessages:(callback)->
-    @removeAllItems()
-    KD.whoami().fetchMail
+    options =
       limit       : 10
       sort        :
         timestamp : -1
-    , (err, messages)=>
+    options.skip = @getItemCount() if continueLoading
+
+    KD.whoami().fetchMail options, (err, messages)=>
+      @loadMoreMessagesItem?.destroy()
       @instantiateListItems messages
 
       if messages.length >= 10
-        @getListView().addItemView new LoadMoreMessagesItem
-          delegate : @
+        @getListView().addItemView @loadMoreMessagesItem = new LoadMoreMessagesItem
+          click:=>
+            if not @loadMoreMessagesItem.isWorking?
+              @loadMoreMessagesItem.isWorking = yes
+              @loadMoreMessagesItem.updatePartial 'Loading...'
+              @loadMessages callback?, yes
 
       callback?()
