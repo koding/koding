@@ -162,6 +162,7 @@ Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ct
         eventType
         listener.call(ctx || self, eventObj.data);
     };
+// <<<<<<< HEAD
     brokerListener.orig = listener;
     boundBind = this.on.bind(this, eventType, listener);
     if (this.ws.readyState > 0) {
@@ -178,6 +179,13 @@ Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ct
         this.ws.addEventListener('open', boundBind);
     }
     return this;
+// =======
+// 
+//     performTask(self, function (channelName) {
+//       sendWsMessage(self.ws, "client-bind-event", channelName, eventType);
+//       self.ws.addEventListener(channelName+'.'+eventType, brokerListener);
+//     });
+// >>>>>>> 7d3e7c893a44a38915a62da0e2c6c9b9610dce62
 };
 
 Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
@@ -204,9 +212,11 @@ Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payloa
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
     if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
-    var channel = this.privateName || this.name;
-    sendWsMessage(this.ws, eventType, channel, payload, meta);
-    return true;
+    var self = this;
+    performTask(self, function (channelName) {
+      sendWsMessage(self.ws, eventType, channelName, payload, meta);
+      return true;
+    });
 };
 
 var sendWsMessage = function (ws, event_name, channel, payload, meta) {
@@ -215,7 +225,22 @@ var sendWsMessage = function (ws, event_name, channel, payload, meta) {
       subJSON.meta = meta;
     }
     ws.send(JSON.stringify(subJSON));
-}
+};
+
+var performTask = function(channel, readyCallback) {
+  if (channel.ws.readyState > 0) {
+    if (!channel.isPrivate || channel.privateName) {
+      var channelName = channel.privateName || channel.name;
+      readyCallback(channelName);
+    } else {
+      channel.state.on('authorized', 
+        performTask.bind(this, channel, readyCallback));
+    }
+  } else {
+    channel.ws.addEventListener('open', 
+      performTask.bind(this, channel, readyCallback));
+  }
+};
 
 
 // MICRO EVENT EMIITTER

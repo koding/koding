@@ -28,6 +28,13 @@ try
   bitly             = new (require "bitly")('kodingen','R_677549f555489f455f7ff77496446ffa')
   Broker            = require "broker"
   
+  bongo.mq = bongo.Base::mq = new Broker({host: "localhost"})
+  # bongo.mq = bongo.Base::mq = new Broker({
+  #   host: "web0.beta.system.aws.koding.com",
+  #   login: "guest",
+  #   password: "x1srTA7!%Vb}$n|S"
+  # });
+
 catch err
   console.log "Build failed!  Missing dependency! (You may have the wrong version!)"
   throw err

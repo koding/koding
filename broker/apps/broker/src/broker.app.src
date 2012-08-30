@@ -16,6 +16,8 @@
     {mq_user, <<"guest">>},
     {mq_pass, <<"guest">>},
     %{mq_pass, <<"x1srTA7!%Vb}$n|S">>},
-    {verbose, true}
+    {verbose, true},
+    {privateRegEx, ".private$"},
+    {precondition_failed, <<"Request not allowed">>}
     ]}
  ]}.

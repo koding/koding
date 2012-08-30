@@ -1,3 +1,8 @@
+###
+The main controller to keep track of channels the current client
+are in, handling the communication between the ChatView and each
+Channel instance.
+###
 class Chat12345 extends AppController
   {mq} = Bongo
 
@@ -13,6 +18,27 @@ class Chat12345 extends AppController
 
     @channels = {}
     @broadcaster = mq.subscribe "private-KDPublicChat"
+
+
+    ###
+    When this client connects to the chat, it emits its presence.
+    Assuming there is B is currently in the chat, B will receive
+    this client's presence, and sends back B's presence.
+    ###
+
+    @presence = mq.subscribe "KDPresence"
+    ###
+    On first bound, an initial summary is sent one by one.
+    ###
+    @presence.on "", (headers) ->
+      # TODO: extract the username from key header
+      @addOnlineUser name: username, status: "online"
+
+    ###
+    Binding to a key same as the username to let the presence exchange
+    know its presence. It will not receive any message.
+    ###
+    @presence.on @username, ->
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
@@ -30,15 +56,19 @@ class Chat12345 extends AppController
       name: name
       view: channelPaneInstance
 
-    channel.view.on "ChatMessageSent", (message) =>
-      console.log "what"
-      channel.messageReceived message
-      @broadcaster.emit channelName, JSON.stringify(message)
+    channel.view.on "ChatMessageSent", (messageBody) =>
+      chatItem = 
+        author: @username
+        body: messageBody
+        meta: {createdAt: new Date()}
+
+      @broadcaster.emit channelName, JSON.stringify(chatItem)
+      chatItem.author = "me"
+      channel.messageReceived chatItem
 
     @channels[name] = channel
     @broadcaster.on channelName, (msg) ->
-      console.log "received", msg
-      channel.messageReceived
+      channel.messageReceived msg
 
   addOnlineUser: (user) ->
     view = @getOptions().view
@@ -183,10 +213,7 @@ class ChatInputForm extends KDFormView
       cssClass: "fl"
       style: "clean-gray inside-button"
       callback: =>
-        chatMsg = 
-          author: "me"
-          body: @input.getValue()
-          meta: {createdAt: new Date()}
+        chatMsg = @input.getValue()
 
         @input.setValue ""
         @input.blur()

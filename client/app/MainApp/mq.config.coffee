@@ -1,10 +1,9 @@
-Broker.channel_auth_endpoint = 'http://localhost:3000/auth'
 koding = new Bongo
   mq: do->
 
     brokerOptions = {
       encrypted: yes
-      sockURL: 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+      sockURL: 'http://localhost:8008/subscribe'
       authEndPoint: 'http://localhost:3000/auth'
     }
     switch KD.env
