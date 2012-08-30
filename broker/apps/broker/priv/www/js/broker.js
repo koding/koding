@@ -83,6 +83,13 @@ Broker.prototype.subscribe = function (channelName) {
     return channel;
 };
 
+Broker.prototype.presence = function (who, listener) {
+  sendWsMessage(this.ws, "client-presence", "", who);
+  this.ws.addEventListener("broker:presence", function (e) {
+    listener(e.data);
+  });
+};
+
 Broker.prototype.authorize = function (channelName, callback) {
     $.get(this.channel_auth_endpoint, {channel: channelName}, callback);
 };
@@ -174,11 +181,16 @@ Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payloa
 };
 
 var sendWsMessage = function (ws, event_name, channel, payload, meta) {
-    var subJSON = {event:event_name,channel:channel,payload:payload};
-    if (typeof meta === 'object') {
-      subJSON.meta = meta;
-    }
-    ws.send(JSON.stringify(subJSON));
+    if (ws.readyState > 0) {
+      var subJSON = {event:event_name,channel:channel,payload:payload};
+      if (typeof meta === 'object') {
+        subJSON.meta = meta;
+      }
+      ws.send(JSON.stringify(subJSON));
+    } else {
+      ws.addEventListener('open', 
+        sendWsMessage.bind(this, ws, event_name, channel, payload, meta));
+    }    
 };
 
 var performTask = function(channel, readyCallback) {

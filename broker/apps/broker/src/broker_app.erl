@@ -141,6 +141,7 @@ handle_client(Conn, {recv, Data},
     {ok, State#client{subscriptions=NewSubs}};
 
 handle_client(_Conn, closed, #client{subscriptions=Subscriptions}) ->
+
     case dict:size(Subscriptions) of 
         0 -> ok;
         _ ->
@@ -156,8 +157,17 @@ handle_client(_Conn, Other, _) ->
 handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
     case broker:subscribe(Conn, Exchange) of
-        {error, Error} -> Subs;
+        {error, _Error} -> Subs;
         {ok, Subscription} ->
+            dict:store(Exchange, Subscription, Subs)
+    end;
+
+handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
+    [_Event, _Exchange, Payload, _Meta] = Data,
+    case broker:presence(Conn, Payload) of
+        {error, _Error} -> Subs;
+        {ok, Subscription} ->
+            Exchange = <<Payload/binary,"-presence">>,
             dict:store(Exchange, Subscription, Subs)
     end;
 

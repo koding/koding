@@ -64,6 +64,7 @@ rpc(Subscription, RoutingKey, Payload) ->
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
+
 %%--------------------------------------------------------------------
 %% Function: init(Args) -> {ok, State} |
 %% {ok, State, Timeout} |
@@ -91,7 +92,13 @@ init([Connection, Client, Conn, Exchange]) ->
                     client = Client,
                     sender = SendFun},
 
-    try subscribe(SendFun, Channel, Exchange) of
+    PresenceExchange = get_env(presence_channel, <<"KDPresence">>),
+    case Exchange of 
+        PresenceExchange -> Type = <<"x-presence">>;
+        _ -> Type = <<"topic">>
+    end,
+
+    try subscribe(SendFun, Channel, Exchange, Type) of
         ok -> {ok, State}
     catch
         error:precondition_failed ->
@@ -99,6 +106,7 @@ init([Connection, Client, Conn, Exchange]) ->
             SendFun([<<"broker:subscription_error">>, ErrMsg]),
             {stop, precondition_failed}
     end.
+    
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call({bind, Event}, From, State) 
@@ -168,7 +176,7 @@ handle_call({trigger, Event, Payload, Meta}, From,
     end;
 
 %%--------------------------------------------------------------------
-%% Function: %% handle_call({subscribe, Exchange}, From, State) 
+%% Function: %% handle_call({rpc, RoutingKey, Payload}, From, State) 
 %%                      -> {noreply, State}.
 %% Types:
 %%  Exchange = pid(),
@@ -226,14 +234,19 @@ handle_info(#'basic.consume_ok'{}, State) ->
 %%  Msg = #amqp_msg{props = Props},
 %%  Props = #'P_basic'{headers = Headers}.
 %%  Headers = proplist().
-%% Description: Presence announcement
+%% Description: Presence announcement. This makes an assumption that
+%% there is a proplist of headers and empty body (how presence type
+%% defines it.)
 %%--------------------------------------------------------------------
-handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
-            #amqp_msg{props=#'P_basic'{headers = Headers}}}, State) ->
-    [{<<"action">>, longstr, _Action}, % "bind" || "unbind"
-     {<<"exchange">>, longstr, _XName}, % same as this excchange
-     {<<"queue">>, longstr, _QName}, % name of queue
-     {<<"key">>, longstr, _BindingKey}] = Headers,
+handle_info({#'basic.deliver'{exchange = Exchange},
+            #amqp_msg{props=#'P_basic'{headers = [
+                {<<"action">>, longstr, Status}, % "bind" || "unbind"
+                {<<"exchange">>, longstr, Exchange}, % same as this excchange
+                {<<"queue">>, longstr, _QName}, % name of queue
+                {<<"key">>, longstr, Presence}
+            ]}, payload = <<>>}}, State=#state{sender=Sender}) ->
+
+    Sender([<<"broker:presence">>, [Presence, Status]]),
     {noreply, State};
 
 %%--------------------------------------------------------------------
@@ -248,7 +261,7 @@ handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
 %% Description: Echo to the client receiving message from bound events.
 %%--------------------------------------------------------------------
 handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange}, 
-            #amqp_msg{props =  #'P_basic'{correlation_id = CorId},
+            #amqp_msg{props = #'P_basic'{correlation_id = CorId},
                 payload = Payload}}, State=#state{sender=Sender}) ->
     Self = term_to_binary(self()),
     case CorId of 
@@ -328,16 +341,24 @@ notify_first(Sender, Channel, Exchange) ->
 
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue) -> void()
-%% Description: Declares the exchange and starts the receive loop
-%% process. This process is used to subscribe to queue later on.
-%% The exchange is marked durable so that it can survive server reset.
-%% This broker has to have a way to delete the exchange when done.
+%% Description: Declares a durable and auto-delete exchange of type
+%% "topic". Calls subscribe/6 internally.
 %%--------------------------------------------------------------------
-subscribe(Sender, Channel, Exchange) -> 
+subscribe(Sender, Channel, Exchange) ->
+    subscribe(Sender, Channel, Exchange, <<"topic">>).
+
+subscribe(Sender, Channel, Exchange, Type) ->
+    subscribe(Sender, Channel, Exchange, Type, true, true).
+
+%%--------------------------------------------------------------------
+%% Function: subscribe(Conn, Channel, Queue) -> void()
+%% Description: More configurable exchange declaration. 
+%%--------------------------------------------------------------------
+subscribe(Sender, Channel, Exchange, Type, Durable, AutoDelete) -> 
     Declare = #'exchange.declare'{  exchange = Exchange, 
-                                    type = <<"topic">>,
-                                    durable = true,
-                                    auto_delete = true},
+                                    type = Type,
+                                    durable = Durable,
+                                    auto_delete = AutoDelete},
 
     try amqp_channel:call(Channel, Declare) of
         #'exchange.declare_ok'{} -> 

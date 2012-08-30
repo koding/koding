@@ -10,7 +10,7 @@
 -module(broker).
 -behaviour(gen_server).
 %% API
--export([start_link/0, subscribe/2, unsubscribe/1,
+-export([start_link/0, subscribe/2, presence/2, unsubscribe/1,
             bind/2, unbind/2, trigger/4, rpc/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
@@ -45,6 +45,9 @@ start_link() ->
 subscribe(Conn, Exchange) ->
     gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
 
+presence(Conn, Presenter) ->
+    gen_server:call(?SERVER, {presence, Conn, Presenter}).
+
 %%====================================================================
 %% Wrappers for subscription gen_server
 %%====================================================================
@@ -78,8 +81,8 @@ init([Connection]) ->
     {ok, Connection}.
 
 %%--------------------------------------------------------------------
-%% Function: %% handle_call({subscribe, Exchange}, From, State) -> 
-%%                          {noreply, State} 
+%% Function: %% handle_call({subscribe, Conn, Exchange}, From, State) 
+%%                          -> {noreply, State} 
 %% Description: Handling subscription request. Subscription supervisor
 %% will create one under its supervision tree.
 %%--------------------------------------------------------------------
@@ -97,6 +100,26 @@ handle_call({subscribe, Conn, Exchange}, From, Connection) ->
 handle_call({unsubscribe, Subscription}, _From, Connection) ->
     ok = subscription_sup:stop_subscription(Subscription),
     {reply, ok, Connection};
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_call({presence, Conn, Exchange}, From, State) -> 
+%%                          {noreply, State} 
+%% Description: Handling presence. It will subscribe to an x-presence
+%% exchange, create a binding with an empty key, and another binding
+%% with the presenter key to announce the presenter's presence. 
+%%--------------------------------------------------------------------
+handle_call({presence, Conn, Presenter}, From, Connection) ->
+    Exchange = get_env(presence_channel, <<"KDPresence">>),
+    Type = <<"x-presence">>,
+    Result = subscription_sup:start_subscription(From, Conn, Exchange),
+    case Result of
+        {ok, SID} ->
+            subscription:bind(SID, <<>>),
+            subscription:bind(SID, Presenter),
+            {reply, Result, Connection};
+        {error, _Err} ->
+            {reply, Result, Connection}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |
