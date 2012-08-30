@@ -123,21 +123,15 @@ class OpinionListItemView extends KDListItemView
         @deleteLink.unsetClass "hidden"
 
   viewAppended:->
-
     @setTemplate @pistachio()
     @template.update()
 
     @markup = @$("p.opinion-body-with-markup")
-
     maxHeight = 300
     if @$().height()>maxHeight
       @textMaxHeight = @getHeight()
       @markup.css {maxHeight}
       @larger.show()
-
-
-
-
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
