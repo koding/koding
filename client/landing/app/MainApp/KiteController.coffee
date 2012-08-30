@@ -93,8 +93,8 @@ class KiteController extends KDController
 
     # notify "Talking to #{options.kiteName} asking #{options.method}"
     # debugger
-    @account.tellKite options, (err, response)=>
-      @parseKiteResponse {err, response}, options, callback
+    ###@account.tellKite options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback###
   
   parseKiteResponse:({err, response}, options, callback)->
 
