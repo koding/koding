@@ -67,8 +67,18 @@ class JTag extends Followable
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
       #   as          : 'content'
+
   modify: secure (client, formData, callback)->
-    callback arguments
+    {delegate} = client.connection
+    if delegate.checkFlag 'super-admin'
+      modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
+      JTag.one modifiedTag, (err, tag)=>
+        if tag
+          callback new KodingError "Slug already exists!"
+        else
+          @update $set: formData, callback
+    else
+      callback new KodingError "Access denied"
 
   fetchContentTeasers:->
     [args..., callback] = arguments
@@ -174,7 +184,7 @@ class JTag extends Followable
                   if err
                     callback err
                   else
-                    @emit 'TagIsDeleted', 1
+                    @emit 'TagIsDeleted', yes
                     callback null
                     contents.forEach (content)->
                       content.flushSnapshot tagId, (err)->
