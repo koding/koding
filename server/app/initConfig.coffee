@@ -57,3 +57,4 @@ koding = new Bongo
       login     : "guest"
       password  : "x1srTA7!%Vb}$n|S"
   }
+koding.connect console.log
