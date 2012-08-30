@@ -30,7 +30,8 @@ class KDFormViewWithFields extends KDFormView
     data.cssClass or= ""
     field or= new KDView cssClass : "formline #{data.name} #{data.cssClass}"
     field.addSubView label = data.label = @createLabel(data) if data.label
-    field.addSubView input = @createInput itemClass,data
+    field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
+    inputWrapper.addSubView input = @createInput itemClass,data
     if data.hint
       field.addSubView hint  = new KDCustomHTMLView
         partial  : data.hint
