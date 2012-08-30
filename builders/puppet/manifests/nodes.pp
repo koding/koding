@@ -52,7 +52,8 @@ node base {
                 "python-boto.noarch",
                 "python-argparse.noarch",
                 ]:
-            ensure => present
+            ensure => present,
+            require => Class["yumrepos::epel"],
             }
             
 
