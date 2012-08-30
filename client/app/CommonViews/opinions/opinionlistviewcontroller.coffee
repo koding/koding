@@ -39,6 +39,9 @@ class OpinionListViewController extends KDListViewController
       view.on "OpinionIsDeleted", (data)->
         listView.emit "OpinionIsDeleted", data
 
+    listView.on "OwnOpinionHasArrived",(data)->
+      listView.addItem data, null, {type : "slideDown", duration : 100}
+
     listView.on "AllOpinionsLinkWasClicked", (opinionHeader)=>
 
       return if @_hasBackgrounActivity
