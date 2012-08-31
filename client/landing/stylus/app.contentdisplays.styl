@@ -473,6 +473,8 @@ app.contentdisplays.styl
       margin-top                      25px
       .comment-container
         width                         auto
+        &.commented
+          display                     none
         .comment-body
           line-height                 21px!important
           color                       #5F5F5F
@@ -555,6 +557,9 @@ div.discussion-contents
       font-size                       10px
     .type-and-time
       display                         inline
+      .link-group
+        font-size                     12px
+        font-weight                   300
   .discussion-main-opinion
     .activity-actions
       margin-top                      7px
@@ -685,3 +690,12 @@ a.opinion-size-link
   font-size           14px
   font-weight         300
   display             block
+
+.show-more-opinions
+  width               100%
+  color               #444
+  line-height         150%
+  margin-left         75px
+  a
+    width             100%
+    height            100%
