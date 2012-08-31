@@ -229,7 +229,15 @@ handle_info(#'basic.consume_ok'{}, State) ->
 %%  Exchange = <<"KDPresence">>,
 %%  Msg = #amqp_msg{props = Props},
 %%  Props = #'P_basic'{headers = Headers}.
-%%  Headers = proplist().
+%%  Headers = [Prop],
+%%  Prop =  {<<"action">>, longstr, Status} |
+%%          {<<"exchange">>, longstr, Exchange} |
+%%          {<<"queue">>, longstr, Queue} |
+%%          {<<"key">>, longstr, Presence},
+%%  Status = "bind" | "unbind"
+%%  Exchange = binary()
+%%  Queue = binary()
+%%  Presence = binary()
 %% Description: Presence announcement. This makes an assumption that
 %% there is a proplist of headers and empty body (how presence type
 %% defines it.)

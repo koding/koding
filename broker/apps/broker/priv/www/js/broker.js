@@ -85,8 +85,12 @@ Broker.prototype.subscribe = function (channelName) {
 
 Broker.prototype.presence = function (who, where, listener) {
   sendWsMessage(this.ws, "client-presence", where, who);
-  this.ws.addEventListener("broker:presence", function (e) {
-    listener(e.data);
+  this.ws.addEventListener("message", function (e) {
+    var data = JSON.parse(e.data);
+    if (!data.event || !data.channel) return;
+    if (data.channel !== "KDPresence-"+where) return;
+    if (data.event !== "broker:presence") return;
+    listener(data.payload);
   });
 };
 

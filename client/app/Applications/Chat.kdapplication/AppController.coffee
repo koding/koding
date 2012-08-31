@@ -26,15 +26,9 @@ class Chat12345 extends AppController
     @joinChannel 'public'
 
   joinChannel: (name) ->
+    return @channels[name] if @channels[name]
+
     view = @getOptions().view
-
-    # Presence received has format [key, "bind" || "unbind"]
-    mq.presence @username, name, ([presence, status]) =>
-      if status is "bind"
-        @addOnlineUser presence, name
-      else if status is "unbind"
-        @removeOfflineUser presence, name
-
     channelPaneInstance = view.addChannelTab name
     channelName = "client-#{name}"
 
@@ -42,42 +36,44 @@ class Chat12345 extends AppController
       name: name
       view: channelPaneInstance
 
+    # Presence received has format [key, "bind" || "unbind"]
+    mq.presence @username, name, ([presence, status]) =>
+      if status is "bind"
+        channel.addOnlineUser presence
+      else if status is "unbind"
+        channel.removeOfflineUser presence    
+
     channel.view.on "ChatMessageSent", (messageBody) =>
-      chatItem = 
-        author: @username
-        body: messageBody
-        meta: {createdAt: new Date()}
+      @parseMessageForChannels messageBody
+      @broadcastOwnMessage channel, messageBody
 
-      @broadcaster.emit channelName, JSON.stringify(chatItem)
-      chatItem.author = "me"
-      channel.messageReceived chatItem
-
-    @channels[name] = channel
     @broadcaster.on channelName, (msg) ->
       channel.messageReceived msg
 
-  addOnlineUser: (name, channelName) ->
-    channel = @channels[channelName]
-    userItemViewInstance = channel.addOnlineUser name
-    return if name is @username
-    # userItemViewInstance.registerListener
-    #   KDEventTypes: 'click'
-    #   listener    : @
-    #   callback    : =>
-    #     @joinChannel name
+    @channels[name] = channel
 
-  removeOfflineUser: (name, channelName) ->
-    channel = @channels[channelName]
-    channel.removeOfflineUser name
+  parseMessageForChannels: (message) ->
+    topicExp = /#([\w]+)/g
+    while match = topicExp.exec message
+      channelName = match[1]
+      channel = @joinChannel channelName
+      @broadcastOwnMessage channel, message
+
+  broadcastOwnMessage: (channel, messageBody) ->
+    chatItem = 
+      author: @username
+      body: messageBody
+      meta: {createdAt: new Date()}
+
+    channelMQName = "client-#{channel.name}"
+    @broadcaster.emit channelMQName, JSON.stringify(chatItem)
+    chatItem.author = "me"
+    channel.messageReceived chatItem
 
 class Channel extends KDEventEmitter
   constructor: (options = {}, data) ->
-    @account = KD.whoami()
-    @username = @account?.profile?.nickname
-    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
     @messages = []
     @participants = {}
-
     @name = options.name
     @view = options.view
 
@@ -107,11 +103,6 @@ class ChatView extends KDView
       name: "topics"
       unclosable: true
       subItemClass: ChannelListItemView
-      items: [
-        {name: "erlang", status: "99 online"}
-        {name: "nodejs", status: "10 online"}
-        {name: "python", status: "25 online"}
-      ]
 
   ###
   # Called by ChatController to create a tab view for new channel
@@ -193,11 +184,11 @@ class ChatListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class='meta'>
-      <span class="author-wrapper">{{#(author)}}</span>
-      <span class='time'>{{$.timeago #(meta.createdAt)}}</span>
+    <div class='meta'>      
+      <span class='time'>[{{#(meta.createdAt)}}] </span>
+      <span class="author-wrapper">[{{#(author)}}]: </span>
+      <span>{{#(body)}}</span>
     </div>
-    <div>{{#(body)}}</div>
     """
 
 class ChannelListItemView extends KDListItemView

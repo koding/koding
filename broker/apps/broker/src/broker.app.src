@@ -13,6 +13,7 @@
   {env, [
     {verbose, true},
     {privateRegEx, ".private$"},
-    {precondition_failed, <<"Request not allowed">>}
+    {precondition_failed, <<"Request not allowed">>},
+    {presence_prefix, <<"KDPresence-">>}
     ]}
  ]}.
