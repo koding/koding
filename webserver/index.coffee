@@ -38,7 +38,7 @@ app.get '/auth', do ->
       else
         [priv, type, pubName] = channel.split '-'
         if /^bongo\./.test type
-          privName = 'secret-bongo-'+hat()
+          privName = 'secret-bongo-'+hat()+'.private'
           koding.mq.emit('bongo', 'join', privName)
           res.send privName
         else unless session?

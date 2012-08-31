@@ -64,9 +64,7 @@ initConnectionEvents = _.once (conn)->
                   duration : 999999999
     ,500
 
-koding.connect ->
-  koding.fetchApi (api)->
-    console.log api
+koding.connect -> console.log 'koding is now connected to the backend'
 
 
   #initConnectionEvents conn
