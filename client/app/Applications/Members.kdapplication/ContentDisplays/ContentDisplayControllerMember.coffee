@@ -21,7 +21,27 @@ class ContentDisplayControllerMember extends KDViewController
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
-        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden", mainView
+
+    # FIX THIS GG
+
+    # @updateWidget = new ActivityUpdateWidget
+    #   cssClass: 'activity-update-widget-wrapper-folded'
+
+    # @updateWidgetController = new ActivityUpdateWidgetController
+    #   view : @updateWidget
+
+    # mainView.addSubView @updateWidget
+
+    # if not contentDisplayController._updateController
+    #   contentDisplayController._updateController = {}
+    #   contentDisplayController._updateController.updateWidget = new ActivityUpdateWidget
+    #     cssClass: 'activity-update-widget-wrapper-folded'
+
+    #   contentDisplayController._updateController.updateWidgetController = new ActivityUpdateWidgetController
+    #     view : contentDisplayController._updateController.updateWidget
+
+    # mainView.addSubView contentDisplayController._updateController.updateWidget
 
     memberProfile = @addProfileView member
     memberStream  = @addActivityView member
