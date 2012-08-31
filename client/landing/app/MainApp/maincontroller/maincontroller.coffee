@@ -11,7 +11,6 @@ class MainController extends KDController
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
-    KD.registerSingleton "kodingAppsController", new KodingAppsController
     KD.registerSingleton "notificationController", new NotificationController
     @appReady ->
       KD.registerSingleton "activityController", new ActivityController
@@ -71,6 +70,7 @@ class MainController extends KDController
       fail() unless connectedState.connected
     ->
       KD.registerSingleton "kiteController", new KiteController
+      KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
       setTimeout connectionFails.bind(null, connectedState), 5000
       @on "RemoveModal", =>

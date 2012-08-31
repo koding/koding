@@ -2,28 +2,33 @@
 
 class KodingAppsController extends KDController
 
-  deafultManifest = (type)->
+  defaultManifest = (type, name)->
     {profile} = KD.whoami()
-    version       : "0.1"
-    name          : "#{type.capitalize()} Application"
-    path          : "~/Applications/#{type.capitalize()}.kdapp"
-    homepage      : "#{profile.nickname}.koding.com/#{type}"
-    author        : "#{profile.firstName} #{profile.lastName}"
-    repository    : "git://github.com/#{profile.nickname}/#{type.capitalize()}.kdapp.git"
-    description   : "a #{type} Koding application template."
-    source        :
-      blocks      :
-        app       :
-          files   : [ "./index.coffee" ]
-      stylesheets : [ "./resources/style.css" ]
-    options       :
-      type        : "tab"
-    icns          :
-      "64"        : "./resources/icon.64.png"
-      "128"       : "./resources/icon.128.png"
-      "160"       : "./resources/icon.160.png"
-      "256"       : "./resources/icon.256.png"
-      "512"       : "./resources/icon.512.png"
+    raw =
+      devMode       : yes
+      version       : "0.1"
+      name          : "#{name or type.capitalize()}"
+      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
+      homepage      : "#{profile.nickname}.koding.com/#{name or type}"
+      author        : "#{profile.firstName} #{profile.lastName}"
+      repository    : "git://github.com/#{profile.nickname}/#{name or type.capitalize()}.kdapp.git"
+      description   : "#{name or type} : a Koding application created with the #{type} template."
+      source        :
+        blocks      :
+          app       :
+            # pre     : ""
+            files   : [ "./index.coffee" ]
+            # post    : ""
+        stylesheets : [ "./resources/style.css" ]
+      options       :
+        type        : "tab"
+      icns          :
+        "64"        : "./resources/icon.64.png"
+        "128"       : "./resources/icon.128.png"
+        "160"       : "./resources/icon.160.png"
+        "256"       : "./resources/icon.256.png"
+        "512"       : "./resources/icon.512.png"
+    json = JSON.stringify raw, null, 2
 
   @manifests = {}
 
@@ -34,12 +39,8 @@ class KodingAppsController extends KDController
   getAppPath = (app)->
 
     {profile} = KD.whoami()
-    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}"
-    else app.path
-
-    path += "/" unless path[path.length-1] is "/"
-
-    return path
+    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}" else app.path
+    return path.replace /(\/+)$/, ""
 
   getManifestFromPath = (path, callback = noop)->
 
@@ -51,6 +52,12 @@ class KodingAppsController extends KDController
         app = manifest if manifest.path.search(folderName) > -1
 
     return app
+
+  constructor:->
+
+    super
+
+    @kiteController = @getSingleton('kiteController')
 
   # #
   # FETCHERS
@@ -74,10 +81,7 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    @getSingleton("kiteController").run
-      withArgs  :
-        command : "ls #{path} -lpva"
-    , (err, response)=>
+    @kiteController.run "ls #{FSHelper.escapeFilePath path} -lpva", (err, response)=>
       if err
         warn err
         callback err
@@ -122,10 +126,7 @@ class KodingAppsController extends KDController
 
   fetchCompiledApp:(name, callback)->
 
-    @getSingleton("kiteController").run
-      withArgs  :
-        command : "cat /Users/#{KD.whoami().profile.nickname}/Applications/#{name}.kdapp/index.js"
-    , (err, response)=>
+    @kiteController.run "cat /Users/#{KD.whoami().profile.nickname}/Applications/#{FSHelper.escapeFilePath name}.kdapp/index.js", (err, response)=>
       if err then warn err
       callback err, response
 
@@ -171,6 +172,7 @@ class KodingAppsController extends KDController
   # #
   # KITE INTERACTIONS
   # #
+
   runApp:(name, callback)->
 
     log "app to run:", name
@@ -179,10 +181,7 @@ class KodingAppsController extends KDController
   addScript:(app, scriptInput, callback)->
 
     if /^\.\//.test scriptInput
-      @getSingleton("kiteController").run
-        withArgs  :
-          command : "cat #{getAppPath app}/#{scriptInput}"
-      , (err, response)=>
+      @kiteController.run "cat #{FSHelper.escapeFilePath getAppPath(app) + '/' + scriptInput}", (err, response)=>
         if err then warn err
 
         if /.coffee$/.test scriptInput
@@ -194,13 +193,12 @@ class KodingAppsController extends KDController
     else
       callback null, scriptInput
 
-
   saveCompiledApp:(app, script, callback)->
 
-    @getSingleton("kiteController").run
+    @kiteController.run
       toDo        : "uploadFile"
       withArgs    : {
-        path      : FSHelper.escapeFilePath "#{getAppPath app}index.js"
+        path      : FSHelper.escapeFilePath "#{getAppPath app}/index.js"
         contents  : script
       }
     , (err, response)=>
@@ -210,8 +208,7 @@ class KodingAppsController extends KDController
 
   publishApp:(path, callback)->
 
-    kiteController = @getSingleton('kiteController')
-    appName        = getManifestFromPath(path).name
+    appName = getManifestFromPath(path).name
 
     @getApp appName, (appScript)=>
 
@@ -229,7 +226,7 @@ class KodingAppsController extends KDController
           appName     : manifest.name
           userAppPath : userAppPath
 
-      kiteController.run options, (err, res)=>
+      @kiteController.run options, (err, res)=>
         log "app is being published"
         if err then warn err
         else
@@ -242,6 +239,7 @@ class KodingAppsController extends KDController
             appManager.openApplication "Apps", yes, (instance)=>
               # instance.feedController.changeActiveSort "meta.modifiedAt"
               callback?()
+
   compileApp:(path, callback)->
 
     manifest = getManifestFromPath path
@@ -346,19 +344,19 @@ class KodingAppsController extends KDController
             if err
               callback? err
             else
-              kiteController = @getSingleton("kiteController")
-              options        =
+              options =
                 toDo          : "installApp"
                 withArgs      :
                   owner       : acc.profile.nickname
                   username    : KD.whoami().profile.nickname
                   appName     : app.manifest.name
 
-              kiteController.run options, (err, res)=>
+              @kiteController.run options, (err, res)=>
                 if err then warn err
                 else
                   appManager.openApplication "Develop"
                   callback?()
+
   newAppModal = null
 
   makeNewApp:(callback)->
@@ -378,14 +376,18 @@ class KodingAppsController extends KDController
             buttons               :
               "Blank Application" :
                 cssClass          : "modal-clean-gray"
-                callback          : ->
+                callback          : =>
+                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
+                  @prepareApplication {isBlank : yes, name}, (err, response)->
+                    callback? err
                   newAppModal.destroy()
-                  callback? yes
               "Sample Application":
                 cssClass          : "modal-clean-gray"
-                callback          : ->
+                callback          : =>
+                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
+                  @prepareApplication {isBlank : no, name}, (err, response)->
+                    callback? err
                   newAppModal.destroy()
-                  callback? yes
             fields                :
               name                :
                 label             : "Application Name:"
@@ -401,14 +403,49 @@ class KodingAppsController extends KDController
       newAppModal = null
       callback? null
 
+  prepareApplication:({isBlank, name}, callback)->
+
+    type        = if isBlank then "blank" else "sample"
+    name        = if name is "" then null else name
+    manifestStr = defaultManifest type, name
+    manifest    = JSON.parse manifestStr
+    appPath     = getAppPath manifest
+    log manifestStr
+
+
+    FSItem.create appPath, "folder", (err, fsFolder)=>
+      if err then warn err
+      else
+        stack = []
+
+        stack.push (cb)=>
+          @kiteController.run
+            toDo        : "uploadFile"
+            withArgs    :
+              path      : FSHelper.escapeFilePath "#{fsFolder.path}/.manifest"
+              contents  : manifestStr
+          , cb
+
+        stack.push (cb)=>
+          @kiteController.run
+            toDo        : "uploadFile"
+            withArgs    :
+              path      : FSHelper.escapeFilePath "#{fsFolder.path}/index.coffee"
+              contents  : "do ->"
+          , cb
+
+        async.parallel stack, (error, result) =>
+          if err then warn err
+          log err, result, ">>>>>>>>>"
+          callback? err, result
+
   forkRepoCommandMap = ->
+
     git : "git clone"
     svn : "svn checkout"
     hg  : "hg clone"
 
   cloneApp:(path, callback)->
-
-    kiteController = @getSingleton('kiteController')
 
     @fetchApps (err, manifests = {})=>
       if err
@@ -433,15 +470,10 @@ class KodingAppsController extends KDController
           return no
 
         appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
-        kiteController.run
-          withArgs    :
-            command   : "mv #{appPath} #{appPath}.old#{@utils.getRandomNumber 9999}"
-        , (err, response)->
+
+        @kiteController.run "mv #{FSHelper.escapeFilePath appPath} #{FSHelper.escapeFilePath appPath}.old#{@utils.getRandomNumber 9999}" , (err, response)->
           if err then warn err
-          kiteController.run
-            withArgs    :
-              command   : "#{forkRepoCommandMap()[repoType]} #{repo} /Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp/"
-          , (err, response)->
+          @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} /Users/#{KD.whoami().profile.nickname}/Applications/#{FSHelper.escapeFilePath manifest.name}.kdapp/", (err, response)->
             if err then warn err
             else
               log response, "App cloned!"

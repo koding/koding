@@ -13,7 +13,7 @@ class FSFile extends FSItem
     @emit "fs.fetchContents.started"
     @kiteController.run
       withArgs  :
-        command : "cat #{@path}"
+        command : "cat #{FSHelper.escapeFilePath @path}"
     , (err, response)=>
       if err then warn err
       callback.call @, err, response
@@ -25,7 +25,7 @@ class FSFile extends FSItem
     oldPath = @path
     newPath = "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
-    FSItem.getSafePath "#{newPath}", (err, response)=>
+    FSItem.getSafePath "#{FSHelper.escapeFilePath newPath}", (err, response)=>
       if err
         callback? err, response
         warn err
