@@ -39,7 +39,6 @@ class ContentDisplayDiscussion extends KDView
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
-            # @opinionBox.opinionList.emit "AllOpinionsLinkWasClicked"
     , data
 
     @actionLinks = new DiscussionActivityActionsView
@@ -150,7 +149,6 @@ class ContentDisplayDiscussion extends KDView
                 title     : "Error, please try again later!"
 
   viewAppended:()->
-    # return if @getData().constructor is bongo.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
@@ -159,9 +157,10 @@ class ContentDisplayDiscussion extends KDView
     # take this bit to comment view
     if @getData().repliesCount? and @getData().repliesCount > 0
       opinionController = @opinionBox.opinionController
-      opinionController.fetchAllOpinions 0, (err, opinions)->
-        opinionController.removeAllItems()
-        opinionController.instantiateListItems opinions
+      opinionController.fetchRelativeOpinions 5, 0, (err, opinions)=>
+        for opinion in opinions
+          @opinionBox.opinionList.addItem opinion, null, {type: "slideDown", duration : 100}
+        @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
   pistachio:->
     """

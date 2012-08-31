@@ -259,7 +259,7 @@ class JDiscussion extends JPost
         limit         : 3
         sort          :
           timestamp   : -1
-      # .reverse()
+      .reverse()
       # .edges
       #   query         :
       #     targetName  : 'JComment'
@@ -281,7 +281,6 @@ class JDiscussion extends JPost
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-    #log "discussion teaser was fetched for ", @data.title
 
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
@@ -310,8 +309,7 @@ class JDiscussion extends JPost
       if to
         queryOptions.limit = to - from
     selector['data.flags.isLowQuality'] = $ne: yes
-    queryOptions.sort = timestamp: -1
-    console.log queryOptions
+    queryOptions.sort = timestamp: 1
     @fetchOpinions selector, queryOptions, callback
 
   restComments:(skipCount, callback)->

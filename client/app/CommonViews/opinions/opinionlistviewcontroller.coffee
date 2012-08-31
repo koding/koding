@@ -55,8 +55,10 @@ class OpinionListViewController extends KDListViewController
       @_hasBackgrounActivity = yes
       @_removedBefore = no
 
-      @fetchRelativeOpinions 10, meta.createdAt
-
+      @fetchRelativeOpinions 5, listView.items.length,(err, opinions)->
+        for opinion in opinions
+          listView.addItem opinion, null, {type: "slideDown", duration : 100}
+        listView.emit "RelativeOpinionsWereAdded"
 
   fetchOpinionsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
@@ -73,30 +75,19 @@ class OpinionListViewController extends KDListViewController
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
     message.restComments skipCount, (err, opinions)=>
-
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllOpinionsWereAdded"
       callback err, opinions
 
-  fetchRelativeOpinions:(_limit = 10, _after)=>
+  fetchRelativeOpinions:(_limit = 10, _from, callback = noop)=>
     listView = @getListView()
-    message = @getListView().getData()
+    message = @getListView().getData()from
 
-    message.fetchRelativeComments limit:_limit, after:_after, (err, opinions)=>
-
-      if not @_removedBefore
-        @removeAllItems()
-        @_removedBefore = yes
-      @instantiateListItems opinions[_limit-10...], yes
-
-      if opinions.length is _limit
-        startTime = opinions[opinions.length-1].meta.createdAt
-        @fetchRelativeOpinions 11, startTime
-      else
-        listView = @getListView()
-        listView.emit "BackgroundActivityFinished"
-        listView.emit "AllOpinionsWereAdded"
-        @_hasBackgrounActivity = no
+    message.commentsByRange to:_limit+_from, from:_from, (err, opinions)=>
+      listView = @getListView()
+      listView.emit "BackgroundActivityFinished"
+      @_hasBackgrounActivity = no
+      callback err, opinions if callback?
 
   replaceAllOpinions:(opinions)->
     @removeAllItems()
