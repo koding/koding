@@ -33,9 +33,7 @@ class KDListViewController extends KDViewController
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
-      # log "hev hev", @
       listView.on 'KeyDownOnList', (event)=>
-        # log "alo"
         @keyDownPerformed listView, event
 
   loadView:(mainView)->
