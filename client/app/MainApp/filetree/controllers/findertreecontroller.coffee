@@ -232,11 +232,11 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     async.parallel stack, (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} deleted!", "success"
@@ -292,12 +292,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeMoved.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.move sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} moved!", "success"
@@ -315,12 +315,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeCopied.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} copied!", "success"
@@ -332,13 +332,13 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         targetItem = @nodes[sourceItem.parentPath].getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} duplicated!", "success"
@@ -422,6 +422,7 @@ class NFinderTreeController extends JTreeViewController
     folder.emit "fs.newAppCreation.started"
     @getSingleton('kodingAppsController').makeNewApp =>
       folder.emit "fs.newAppCreation.finished"
+      @refreshFolder @nodes[folder.path]
       @notify "App Created!", "success"
 
 
