@@ -146,7 +146,7 @@ class Topics12345 extends AppController
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                defaultValue      : topic.body or ""
+                defaultValue      : Encoder.htmlDecode topic.body or ""
 
   fetchFeedForHomePage:(callback)->
     options =
