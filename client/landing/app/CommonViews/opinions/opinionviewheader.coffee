@@ -45,10 +45,7 @@ class OpinionViewHeader extends JView
           else
             @loader.destroy()
             @allItemsLink.destroy()
-
     , data
-
-
 
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
