@@ -81,7 +81,7 @@ class OpinionListViewController extends KDListViewController
 
   fetchRelativeOpinions:(_limit = 10, _from, callback = noop)=>
     listView = @getListView()
-    message = @getListView().getData()from
+    message = @getListView().getData()
 
     message.commentsByRange to:_limit+_from, from:_from, (err, opinions)=>
       listView = @getListView()
