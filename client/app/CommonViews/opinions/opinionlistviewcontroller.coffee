@@ -57,7 +57,7 @@ class OpinionListViewController extends KDListViewController
 
       @fetchRelativeOpinions 5, listView.items.length,(err, opinions)->
         for opinion in opinions
-          listView.addItem opinion, null, {type: "slideDown", duration : 100}
+          listView.addItem opinion, null
         listView.emit "RelativeOpinionsWereAdded"
 
   fetchOpinionsByRange:(from,to,callback)=>

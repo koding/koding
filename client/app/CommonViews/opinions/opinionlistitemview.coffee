@@ -128,7 +128,8 @@ class OpinionListItemView extends KDListItemView
 
     @markup = @$("p.opinion-body-with-markup")
     maxHeight = 300
-    if @$().height()>maxHeight
+
+    if @markup.height()>maxHeight
       @textMaxHeight = @getHeight()
       @markup.css {maxHeight}
       @larger.show()
