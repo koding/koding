@@ -127,19 +127,8 @@ class Members12345 extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
 
-  showVisitorContentDisplay:(pubInst, event)=>
-    {content} = event
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerVisitor null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
   createContentDisplay:(account, doShow = yes)->
-    if account.equals @getSingleton('mainController').getVisitor().currentDelegate
-      controllerClass = ContentDisplayControllerVisitor
-    else
-      controllerClass = ContentDisplayControllerMember
-
+    controllerClass = ContentDisplayControllerMember
     controller = new controllerClass null, account
     contentDisplay = controller.getView()
     if doShow
@@ -225,7 +214,7 @@ class MembersListViewController extends KDListViewController
       controller.instantiateListItems members
       if (myItem = controller.itemForId controller.getSingleton('mainController').getVisitor().currentDelegate.getId())?
         myItem.isMyItem()
-        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showVisitorContentDisplay
+        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showMemberContentDisplay
       controller._windowDidResize()
 
   pageDown:()->
@@ -238,7 +227,7 @@ class MembersListViewController extends KDListViewController
         listController.addItem member for member in members
         if (myItem = listController.itemForId listController.getSingleton('mainController').getVisitor().currentDelegate.getId())?
           myItem.isMyItem()
-          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showVisitorContentDisplay
+          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showMemberContentDisplay
         listController._windowDidResize()
         listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no

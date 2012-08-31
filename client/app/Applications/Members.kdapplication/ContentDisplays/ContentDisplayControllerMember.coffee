@@ -1,4 +1,5 @@
 class ContentDisplayControllerMember extends KDViewController
+
   constructor:(options={}, data)->
     options = $.extend
       view : mainView = new KDView
@@ -36,11 +37,17 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
 
-    return @getView().addSubView memberProfile = new ProfileView
-      cssClass : "profilearea clearfix"
-      bind     : "mouseenter"
-      delegate : @getView()
-    , member
+    if KD.isMine member
+
+      @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
+      return memberProfile
+
+    else
+      return @getView().addSubView memberProfile = new ProfileView
+        cssClass : "profilearea clearfix"
+        bind     : "mouseenter"
+        delegate : @getView()
+      , member
 
   # mouseEnterOnFeed:->
   #

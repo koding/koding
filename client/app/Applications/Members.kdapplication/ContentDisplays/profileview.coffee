@@ -129,7 +129,6 @@ class ProfileView extends KDView
 
     """
 
-
   putSkillTags:()->
     memberData = @getData()
 
@@ -186,9 +185,3 @@ class ProfileView extends KDView
 
   sendMessage:(messageDetails, callback)->
     bongo.api.JPrivateMessage.create messageDetails, callback
-
-# get rid of this Sinan - 06/2012
-class ContentDisplayControllerVisitor extends ContentDisplayControllerMember
-  addProfileView:(member)->
-    @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
-    memberProfile
