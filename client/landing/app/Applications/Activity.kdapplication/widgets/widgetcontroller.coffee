@@ -76,7 +76,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
 
-
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
