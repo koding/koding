@@ -505,6 +505,8 @@ Includes =
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
         OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
+        DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"
+        DiscussionActivityOpinionLI   : "./client/app/CommonViews/opinions/discussionactivityopinionlistitemview.coffee"
         OpinionViewHeader             : "./client/app/CommonViews/opinions/opinionviewheader.coffee"
         OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
         OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"

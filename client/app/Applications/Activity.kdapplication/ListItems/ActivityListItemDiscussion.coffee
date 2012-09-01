@@ -18,13 +18,35 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    @commentBox.destroy()
+    #@commentBox.destroy()
+
+    @opinionBox = new DiscussionActivityOpinionView
+      cssClass : "activity-opinion-list"
+    , data
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussion
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    if @getData().repliesCount? and @getData().repliesCount > 0
+      opinionController = @opinionBox.opinionController
+      opinionController.fetchRelativeOpinions 3, 0, (err, opinions)=>
+        for opinion in opinions
+          @opinionBox.opinionList.addItem opinion, null
+        @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
+
+    if @getData().repliesCount > 3
+      @opinionBox.addSubView test = new KDCustomHTMLView
+        title : "show more"
+        tagName : "a"
+        cssClass : "activity-opinion-more"
+        attributes :
+          href: "#"
+        partial : "View all the opinions ("+(@getData().repliesCount-3)+" more)"
+        click:->
+          log "pew"
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]")
@@ -50,6 +72,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
       <p>{{@applyTextExpansions #(title)}}</p>
+      {{> @opinionBox}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
