@@ -5,6 +5,7 @@ Channel instance.
 ###
 class Chat12345 extends AppController
   {mq} = bongo
+  PUBLIC = 'public'
 
   constructor:(options = {}, data)->
     options.view = new ChatView
@@ -23,7 +24,7 @@ class Chat12345 extends AppController
     super name : 'Chat'#, type : 'background'
 
   loadView:(mainView)->
-    @joinChannel 'public'
+    @joinChannel PUBLIC
 
   joinChannel: (name) ->
     return @channels[name] if @channels[name]
@@ -46,6 +47,8 @@ class Chat12345 extends AppController
     channel.view.on "ChatMessageSent", (messageBody) =>
       @parseMessageForChannels messageBody
       @broadcastOwnMessage channel, messageBody
+      if name isnt PUBLIC
+        @broadcastOwnMessage @channels[PUBLIC], messageBody
 
     @broadcaster.on channelName, (msg) ->
       channel.messageReceived msg
