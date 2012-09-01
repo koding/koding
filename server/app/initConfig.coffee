@@ -50,11 +50,13 @@ dbUrl = switch process.argv[3] or 'local'
 koding = new Bongo
   mongo   : dbUrl
   mq      : new Broker {
-      host      : "localhost"
-      login     : "guest"
-      password  : "guest"
-      #host      : "web0.beta.system.aws.koding.com"
-      #login     : "guest"
-      #password  : "x1srTA7!%Vb}$n|S"
+    host      : "localhost"
+    login     : "guest"
+    password  : "guest"
+    #host      : "web0.beta.system.aws.koding.com"
+    #login     : "guest"
+    #password  : "x1srTA7!%Vb}$n|S"
   }
+koding.on 'auth', (client)->
+  JVisitor.authenticateClient client, console.log.bind(console, client)
 koding.connect console.log

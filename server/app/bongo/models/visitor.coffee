@@ -52,6 +52,24 @@ class JVisitor extends Model
             else
               visitor.emit ['change','logout'], guest
 
+  @authenticateClient:(client, callback=->)->
+    JSession.one {clientId: client.sessionToken}, (err, session)->
+      if err or not session?
+        callback new KodingError 'Authentication failed!'
+      else
+        {username} = session
+        JUser.one {username}, (err, user)->
+          if err
+            callback? err
+          else
+            user.fetchOwnAccount (err, account)->
+              if err
+                callback? err
+              else
+                client.connection = delegate: account
+                #visitor.emit ['change','login'], account
+                callback null
+
   start: secure ({connection}, callback)->
     visitor = @
     {constructor} = visitor
@@ -65,13 +83,6 @@ class JVisitor extends Model
             visitor.createGuest connection
           else if session.username
             {username} = session
-            # user = constructor.users[username]
-            # if user
-            #   user.fetchOwnAccount (err, account)->
-            #     if err
-            #       callback? err
-            #     visitor.emit ['change', 'login'], account
-            # else
             JUser.one {username}, (err, user)->
               if err
                 callback? err

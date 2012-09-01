@@ -5,7 +5,7 @@ mainController = new MainController
 
 # Pistachio.MODE = if KD.env is 'dev' then 'development' else 'production'
 
-koding.use (remote, connection)->
+KD.remote.use (remote, connection)->
   clientId = localStorage.clientId or= bongo.createId()
   connection.clientId = clientId
   $.cookie 'clientId', clientId
@@ -64,7 +64,7 @@ initConnectionEvents = _.once (conn)->
                   duration : 999999999
     ,500
 
-koding.connect -> console.log 'koding is now connected to the backend'
+KD.remote.connect -> console.log 'koding is now connected to the backend'
 
 
   #initConnectionEvents conn

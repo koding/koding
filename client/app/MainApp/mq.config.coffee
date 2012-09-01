@@ -1,4 +1,4 @@
-koding = new Bongo
+KD.remote = new Bongo
   mq: do->
 
     brokerOptions = {
