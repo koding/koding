@@ -17,7 +17,8 @@ class KDView extends KDObject
     drop|
     contextmenu|
     scroll|
-    paste
+    paste|
+    error
     )$
     ///
   overrideAndMergeObjects = (objects)->
@@ -510,12 +511,17 @@ class KDView extends KDObject
       when "blur"       then @blur event
       when "change"     then @change event
       when "focus"      then @focus event
+      when "error"      then @error event
       else yes
     @propagateEvent (KDEventType:event.type.capitalize()),event if @notifiesOthers event
     @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event if @notifiesOthers event
     willPropagateToDOM = thisEvent
 
   scroll:(event)->
+    # log "override keyDown in your subclass to do something useful"
+    yes
+
+  error:(event)->
     # log "override keyDown in your subclass to do something useful"
     yes
 

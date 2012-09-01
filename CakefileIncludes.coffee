@@ -364,6 +364,11 @@ Includes =
 
         # START TAB VIEWS
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
+        startTabAppThumbView          : "./client/app/Applications/StartTab.kdapplication/views/appthumbview.coffee"
+        startTabAppThumbViewOld       : "./client/app/Applications/StartTab.kdapplication/views/appthumbview.old.coffee"
+        startTabRecentFileView        : "./client/app/Applications/StartTab.kdapplication/views/recentfileview.coffee"
+        startTabAppThumbContainer     : "./client/app/Applications/StartTab.kdapplication/views/appcontainer.coffee"
+
 
         # INBOX CONTROLLERS
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
