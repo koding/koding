@@ -1,0 +1,96 @@
+class StartTabAppThumbView extends JView
+
+  constructor:(options, data)->
+
+    options.tagName    = 'figure'
+    options.attributes = href : '#'
+
+    if data.disabled?
+      options.cssClass += ' disabled'
+    else if data.catalog?
+      options.cssClass += ' appcatalog'
+
+    super options, data
+
+    {icns, name, version, author, description} = manifest = @getData()
+    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+    else
+      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+
+    @img = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : =>
+        log "anytime here"
+        # @img.$().attr "src", "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+        @img.$().attr "src", "/images/default.app.thumb.png"
+      attributes  :
+        src       : thumb
+
+    @loader = new KDLoaderView
+      size          :
+        width       : 40
+
+    @compile = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon compile"
+      tooltip  :
+        title  : "Click to compile"
+      click    : =>
+        @showLoader()
+        delete KDApps[manifest.name]
+        @getSingleton("kodingAppsController").getApp manifest.name, =>
+          @hideLoader()
+          new KDNotificationView type : "mini", title : "App Compiled"
+        no
+
+    @info = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon info"
+      tooltip  :
+        title  : """
+          <div class='app-tip'>
+            <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
+            <p class='app-desc'>#{description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+          <div>
+          """
+      click    : -> no
+
+    # @delete = new KDCustomHTMLView
+    #   tagName  : "span"
+    #   cssClass : "icon delete"
+    #   tooltip  :
+    #     title  : "Click to delete"
+    #   click    : -> no
+
+  click : (event)->
+
+    return if $(event.target).closest('.icon-container').length > 0
+    manifest = @getData()
+    @showLoader()
+    @getDelegate().runApp manifest, => @hideLoader()
+
+
+  showLoader:->
+
+    @loader.show()
+    @img.$().css "opacity", "0.5"
+
+  hideLoader:->
+
+    @loader.hide()
+    @img.$().css "opacity", "1"
+
+  pistachio:->
+    # {{> @delete}}
+    """
+      <div class='icon-container'>
+        {{> @info}}
+        {{> @compile}}
+      </div>
+      {{> @loader}}
+      <p>{{> @img}}</p>
+      <cite>{{ #(name)}} {{ #(version)}}</cite>
+      <span>{{ #(type)}}</span>
+    """

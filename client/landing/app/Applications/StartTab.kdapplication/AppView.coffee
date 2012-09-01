@@ -19,14 +19,8 @@ class StartTabMainView extends JView
     #     log "DragFinished", mainView.contentPanel.getWidth()
 
     @loader = new KDLoaderView
-      size          :
-        width       : 128
-        height      : 128
-      loaderOptions :
-        diameter    : 128
-        # speed       : 1
-        density     : 70
-        color       : "#ff9200"
+      size    :
+        width : 16
 
     @button = new KDButtonView
       cssClass    : "editor-button"
@@ -35,9 +29,9 @@ class StartTabMainView extends JView
         diameter  : 16
       callback    : =>
         @removeAppIcons()
-        @loader.show()
+        @showLoader()
         @getSingleton("kodingAppsController").refreshApps (err, apps)=>
-          @loader.hide()
+          @hideLoader()
           @button.hideLoader()
           @decorateApps apps
 
@@ -45,14 +39,14 @@ class StartTabMainView extends JView
       cssClass : "editor-button"
       title    : "clear appstorage"
       callback : =>
-        @loader.show()
+        @showLoader()
         @removeAppIcons()
         appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
           storage.update $set : { "bucket.apps" : {} }, =>
-            @loader.hide()
+            @hideLoader()
             log arguments, "kodingAppsController storage cleared"
 
-    @appItemContainer = new AppItemContainer
+    @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
       delegate : @
 
@@ -62,6 +56,18 @@ class StartTabMainView extends JView
 
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
+
+  showLoader:->
+
+    @loader.show()
+    @$('h1.loaded, h2.loaded').addClass "hidden"
+    @$('h2.loader').removeClass "hidden"
+
+  hideLoader:->
+
+    @loader.hide()
+    @$('h2.loader').addClass "hidden"
+    @$('h1.loaded, h2.loaded').removeClass "hidden"
 
   viewAppended:->
 
@@ -78,18 +84,21 @@ class StartTabMainView extends JView
   addApps:->
 
     for app in apps
-      @appItemContainer.addSubView new StartTabOldAppView
+      @appItemContainer.addSubView new StartTabOldAppThumbView
         tab : @
       , app
 
   pistachio:->
     """
-    <h1 class="kdview start-tab-header">To start from a new file, select an editor <span>or open an existing file from your file tree</span></h1>
-    <div class='hidden1'>{{> @loader}}</div>
     <div class='app-button-holder hidden1'>
       {{> @button}}
       {{> @clear}}
     </div>
+    <header>
+      <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
+      <h2 class="loaded hidden">or open an existing file from your file tree</h2>
+      <h2 class="loader">{{> @loader}} Loading applications...</h1>
+    </header>
     {{> @appItemContainer}}
     {{> @noAppsWarning}}
     <div class='start-tab-split-options expanded'>
@@ -104,10 +113,9 @@ class StartTabMainView extends JView
   addRealApps:->
 
     @removeAppIcons()
-    @loader.show()
-
+    @showLoader()
     @getSingleton("kodingAppsController").fetchApps (err, apps)=>
-      @loader.hide()
+      @hideLoader()
       @decorateApps apps
 
   decorateApps:(apps)->
@@ -126,20 +134,11 @@ class StartTabMainView extends JView
   putAppIcons:(apps)->
 
     @button.show()
-    @loader.hide()
+    @hideLoader()
     for app, manifest of apps
       do (app, manifest)=>
-        @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppView
-          click   : (pubInst, event)=>
-            if event.metaKey
-              pubInst.showLoader()
-              delete KDApps[manifest.name]
-              @getSingleton("kodingAppsController").getApp manifest.name, =>
-                pubInst.hideLoader()
-            else
-              pubInst.showLoader()
-              @runApp manifest, =>
-                pubInst.hideLoader()
+        @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView
+          delegate : @
         , manifest
 
   runApp:(manifest, callback)->
@@ -204,7 +203,7 @@ class StartTabMainView extends JView
 
       if recentFilePaths?.length
         recentFilePaths.forEach (filePath)=>
-          @recentFileViews[filePath] = new StartTabRecentFileView {}, filePath
+          @recentFileViews[filePath] = new StartTabRecentFileItemView {}, filePath
           @recentFilesWrapper.addSubView @recentFileViews[filePath]
       else
         @recentFilesWrapper.hide()
@@ -255,125 +254,3 @@ class StartTabMainView extends JView
         splits                : [2,2]
       },
     ]
-
-class AppItemContainer extends KDView
-  parentDidResize:->
-    # log @getDelegate().getHeight()
-
-class StartTabAppView extends JView
-
-  constructor:(options, data)->
-
-    options.tagName    = 'figure'
-    options.attributes = href : '#'
-
-    if data.disabled?
-      options.cssClass += ' disabled'
-    else if data.catalog?
-      options.cssClass += ' appcatalog'
-
-    super options, data
-
-    {icns, name, version} = @getData()
-    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-    else
-      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
-
-    @imgHolder = new KDView
-      tagName : "p"
-      partial : "<img src=\"#{thumb}\" />"
-
-    @loader = new KDLoaderView
-      size          :
-        width       : 40
-
-  showLoader:->
-
-    @loader.show()
-    @imgHolder.$().css "opacity", "0.5"
-
-  hideLoader:->
-
-    @loader.hide()
-    @imgHolder.$().css "opacity", "1"
-
-  pistachio:->
-    """
-      {{> @loader}}
-      {{> @imgHolder}}
-      <strong>{{ #(name)}} {{ #(version)}}</strong>
-      <span>{{ #(type)}}</span>
-    """
-
-class StartTabOldAppView extends KDView
-
-  constructor:(options, data)->
-    newClass = if data.disabled? then 'start-tab-item disabled' else if data.catalog? then 'start-tab-item appcatalog' else 'start-tab-item'
-    options = $.extend
-      tagName     : 'figure'
-      cssClass    : newClass
-    , options
-    super options, data
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    {image} = @getData()
-    """
-      <img src="#{image}" />
-      <strong>{{ #(name)}}</strong>
-      <span>{{ #(type)}}</span>
-    """
-
-  click:(event)->
-    {appToOpen, disabled} = @getData()
-    {tab}                 = @getOptions()
-    if appToOpen isnt "Apps"
-      appManager.replaceStartTabWithApplication appToOpen, tab unless disabled
-    else
-      appManager.openApplication appToOpen
-
-
-class StartTabRecentFileView extends JView
-  constructor:(options, data)->
-    options = $.extend
-      tagName     : 'a'
-      cssClass    : 'start-tab-recent-file'
-      tooltip     :
-        title     : "<p class='file-path'>#{data}</p>"
-        template  : '<div class="twipsy-arrow"></div><div class="twipsy-inner twipsy-inner-wide"></div>'
-    , options
-    super options, data
-
-  pistachio:->
-    path = @getData()
-    name = (path.split '/')[(path.split '/').length - 1]
-    extension = __utils.getFileExtension name
-    fileType  = __utils.getFileType extension
-
-    """
-      <div class='finder-item file clearfix'>
-        <span class='icon #{fileType} #{extension}'></span>
-        <span class='title'>#{name}</span>
-      </div>
-    """
-
-  click:(event)->
-    # appManager.notify()
-    file = FSHelper.createFileFromPath @getData()
-    file.fetchContents (err, contents)=>
-      if err
-        if /No such file or directory/.test err
-          @getSingleton('mainController').emit "NoSuchFile", file
-          new KDNotificationView
-            title     : "This file is deleted in server!"
-            type      : "mini"
-            container : @parent
-            cssClass  : "error"
-      else
-        file.contents = contents
-        appManager.openFile file
-
