@@ -327,7 +327,7 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-        title : "Launch Terminal",    icon : "terminal",    path : "Shell"
+        title : "Launch Terminal",    icon : "terminal",    path : "WebTerm"
       ,
         title : "Add Resources",      icon : "resources"
       ,

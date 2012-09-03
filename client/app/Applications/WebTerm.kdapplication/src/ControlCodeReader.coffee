@@ -14,6 +14,12 @@ class WebTerm.ControlCodeReader
     @pos += 1
     c
   
+  readRegexp: (regexp) ->
+    result = @data.substring(@pos).match(regexp)
+    return null if not result?
+    @pos += result[0].length
+    result
+  
   readUntil: (regexp) ->
     endPos = @data.substring(@pos).search regexp
     return null if endPos == -1
@@ -94,12 +100,11 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       return reader.incompleteControlCode() if not c?
       handler c 
   
-  catchParameters = (endRegexp, map) ->
+  catchParameters = (regexp, map) ->
     (reader) ->
-      paramString = reader.readUntil endRegexp
-      return reader.incompleteControlCode() if not paramString?
-      command = RegExp.$1
-      reader.skip command.length
+      result = reader.readRegexp regexp
+      return reader.incompleteControlCode() if not result?
+      [_, prefix, paramString, command] = result
       rawParams = if paramString.lenght is 0
         []
       else
@@ -113,7 +118,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
         map params, reader
         return
       
-      handler = map[command]
+      handler = map[prefix + command]
       return reader.unsupportedControlCode() if not handler?
       handler params, reader
   
@@ -126,17 +131,6 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
   switchRawParameter = (index, map) ->
     (params, reader) ->
       handler = map[params.raw[index]]
-      return reader.unsupportedControlCode() if not handler?
-      handler params
-  
-  switchParameterWithPrefix = (index, prefixRegexp, map) ->
-    (params, reader) ->
-      value = params.raw[index]
-      prefix = value.match(prefixRegexp)[1]
-      return reader.unsupportedControlCode() if not prefix?
-      prefixMap = map[prefix]
-      return reader.unsupportedControlCode() if not prefixMap?
-      handler = prefixMap[parseInt value.substring(prefix.length)]
       return reader.unsupportedControlCode() if not handler?
       handler params
   
@@ -187,7 +181,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
         "D": -> terminal.lineFeed()
         "E": -> terminal.lineFeed(); terminal.cursor.moveTo 0, terminal.cursor.y
         "M": -> terminal.reverseLineFeed()
-        "P": catchParameters(/(\x1B\\)/, {}) # DCS
+        "P": catchParameters(/^()(.*?)(\x1B\\)/, {}) # DCS
         "#": switchCharacter
           "8": ->
             terminal.screenBuffer.clear()
@@ -205,7 +199,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
         "8": -> terminal.cursor.restorePosition()
         "=": -> terminal.inputHandler.useApplicationKeypad true
         ">": -> terminal.inputHandler.useApplicationKeypad false
-        "[": catchParameters /([a-zA-Z@`{|])/ # CSI
+        "[": catchParameters /^(\??)(.*?)([a-zA-Z@`{|])/ # CSI
           "@": (params) -> terminal.writeEmptyText (params[0] ? 1), insert: true
           "A": (params) -> terminal.cursor.move 0, -(params[0] ? 1)
           "B": (params) -> terminal.cursor.move 0, (params[0] ? 1)
@@ -232,55 +226,59 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "T": (params) -> terminal.screenBuffer.scroll -(params[0] ? 1)
           "X": (params) -> terminal.writeEmptyText params[0] ? 1
           "c": switchRawParameter 0
-            0:   -> terminal.server.input "\x1B[>?1;2c"
-            ">": -> terminal.server.input "\x1B[>0;261;0c"
-            ">0": -> terminal.server.input "\x1B[>0;261;0c"
+            0:   -> terminal.server.controlSequence "\x1B[>?1;2c"
+            ">": -> terminal.server.controlSequence "\x1B[>0;261;0c"
+            ">0": -> terminal.server.controlSequence "\x1B[>0;261;0c"
           "d": (params) -> terminal.cursor.moveTo terminal.cursor.x, getOrigin() + (params[0] ? 1) - 1
           "f": (params) -> terminal.cursor.moveTo (params[1] ? 1) - 1, getOrigin() + (params[0] ? 1) - 1
-          "h": switchParameterWithPrefix(0, /^(\?|)/
-            "":
-              4:    ignored "insert mode"
-              20:   ignored "automatic newline"
-            "?":
-              1:    -> terminal.inputHandler.useApplicationKeypad true
-              3:    -> terminal.screenBuffer.clear(); terminal.setSize 132, terminal.sizeY; terminal.cursor.moveTo 0, 0
-              4:    ignored "smooth scroll"
-              5:    ignored "reverse video"
-              6:    -> originMode = true
-              7:    ignored "wraparound mode"
-              8:    ignored "auto-repeat keys"
-              12:   ignored "start blinking cursor"
-              25:   -> terminal.cursor.setVisibility true
-              40:   ignored "allow 80 to 132 mode"
-              42:   ignored "enable nation replacement character sets"
-              45:   ignored "reverse-wraparound mode"
-              1000: -> terminal.inputHandler.useMouseClickTracking true
-              1047: -> terminal.changeScreenBuffer 1
-              1048: -> terminal.cursor.savePosition()
-              1049: -> terminal.cursor.savePosition(); terminal.changeScreenBuffer 1
-          )
-          "l": switchParameterWithPrefix(0, /^(\?|)/
-            "":
-              4:    ignored "replace mode"
-              20:   ignored "normal linefeed"
-            "?":
-              1:    -> terminal.inputHandler.useApplicationKeypad false
-              3:    -> terminal.screenBuffer.clear(); terminal.setSize 80, terminal.sizeY; terminal.cursor.moveTo 0, 0
-              4:    ignored "jump scroll"
-              5:    ignored "normal video"
-              6:    -> originMode = false
-              7:    ignored "no wraparound mode"
-              8:    ignored "no auto-repeat keys"
-              12:   ignored "stop blinking cursor"
-              25:   -> terminal.cursor.setVisibility false
-              40:   ignored "disallow 80 to 132 mode"
-              42:   ignored "disable nation replacement character sets"
-              45:   ignored "no reverse-wraparound mode"
-              1000: -> terminal.inputHandler.useMouseClickTracking false
-              1047: -> terminal.changeScreenBuffer 0
-              1048: -> terminal.cursor.restorePosition()
-              1049: -> terminal.changeScreenBuffer 0; terminal.cursor.moveTo 0, terminal.sizeY - 1
-          )
+          "h": eachParameter
+            4:    ignored "insert mode"
+            20:   ignored "automatic newline"
+          "?h": eachParameter
+            1:    -> terminal.inputHandler.useApplicationKeypad true
+            3:    -> terminal.screenBuffer.clear(); terminal.setSize 132, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            4:    ignored "smooth scroll"
+            5:    ignored "reverse video"
+            6:    -> originMode = true
+            7:    ignored "wraparound mode"
+            8:    ignored "auto-repeat keys"
+            9:    -> terminal.inputHandler.setMouseMode true, false, false
+            12:   ignored "start blinking cursor"
+            25:   -> terminal.cursor.setVisibility true
+            40:   ignored "allow 80 to 132 mode"
+            42:   ignored "enable nation replacement character sets"
+            45:   ignored "reverse-wraparound mode"
+            1000: -> terminal.inputHandler.setMouseMode true, true, false
+            1001: -> terminal.inputHandler.setMouseMode true, true, false
+            1002: -> terminal.inputHandler.setMouseMode true, true, true
+            1003: -> terminal.inputHandler.setMouseMode true, true, true
+            1047: -> terminal.changeScreenBuffer 1
+            1048: -> terminal.cursor.savePosition()
+            1049: -> terminal.cursor.savePosition(); terminal.changeScreenBuffer 1
+          "l": eachParameter
+            4:    ignored "replace mode"
+            20:   ignored "normal linefeed"
+          "?l": eachParameter
+            1:    -> terminal.inputHandler.useApplicationKeypad false
+            3:    -> terminal.screenBuffer.clear(); terminal.setSize 80, terminal.sizeY; terminal.cursor.moveTo 0, 0
+            4:    ignored "jump scroll"
+            5:    ignored "normal video"
+            6:    -> originMode = false
+            7:    ignored "no wraparound mode"
+            8:    ignored "no auto-repeat keys"
+            9:    -> terminal.inputHandler.setMouseMode false, false, false
+            12:   ignored "stop blinking cursor"
+            25:   -> terminal.cursor.setVisibility false
+            40:   ignored "disallow 80 to 132 mode"
+            42:   ignored "disable nation replacement character sets"
+            45:   ignored "no reverse-wraparound mode"
+            1000: -> terminal.inputHandler.setMouseMode false, false, false
+            1001: -> terminal.inputHandler.setMouseMode false, false, false
+            1002: -> terminal.inputHandler.setMouseMode false, false, false
+            1003: -> terminal.inputHandler.setMouseMode false, false, false
+            1047: -> terminal.changeScreenBuffer 0
+            1048: -> terminal.cursor.restorePosition()
+            1049: -> terminal.changeScreenBuffer 0; terminal.cursor.moveTo 0, terminal.sizeY - 1
           "m": eachParameter
             0:  -> terminal.resetStyle()
             1:  -> terminal.setStyle "bold", true
@@ -300,8 +298,16 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           .addRange(90, 97, (params) -> terminal.setStyle "textColor", params[0] - 90 + 8)
           .addRange(100, 107, (params) -> terminal.setStyle "backgroundColor", params[0] - 100 + 8)
           "r": (params) -> terminal.screenBuffer.scrollingRegion = [(params[0] ? 1) - 1, (params[1] ? terminal.sizeY) - 1]
-        "]": catchParameters /(\x07|\x1B\\)/, switchParameter 0 # OSC
+          "p": switchRawParameter 0
+            "!": -> # soft reset
+              terminal.cursor.setVisibility true
+              originMode = false
+              terminal.changeScreenBuffer 0
+              terminal.inputHandler.useApplicationKeypad false
+        "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0 # OSC
           0: (params) -> document.title = params.raw[1]
+          1: ignored "icon name"
+          2: (params) -> document.title = params.raw[1]
           4: (params) ->
             parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
             terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
