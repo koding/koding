@@ -53,7 +53,7 @@ class WebTerm.ScreenBuffer
         scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
         div = $(document.createElement("div"))
         div.text "\xA0"
-        @terminal.container.append div
+        @terminal.outputbox.append div
         @terminal.scrollToBottom() if scrolledToBottom
         @lineDivs.push div
 

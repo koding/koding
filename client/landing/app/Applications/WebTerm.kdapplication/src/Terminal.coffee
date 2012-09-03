@@ -30,7 +30,10 @@ class WebTerm.Terminal
     @inputHandler = new WebTerm.InputHandler(this)
     @screenBuffer = new WebTerm.ScreenBuffer(this)
     @cursor = new WebTerm.Cursor(this)
-    @connection = new WebTerm.Connection(this)
+    
+    @outputbox = $(document.createElement("div"))
+    @outputbox.css "cursor", "text"
+    @container.append @outputbox
     
     @measurebox = $(document.createElement("div"))
     @measurebox.css "position", "fixed"
@@ -39,13 +42,44 @@ class WebTerm.Terminal
     @updateSizeTimer = null
     @updateSize()
     
-    @container.on "mousedown", (event) =>
-      @inputHandler.mouseDown event if @inSession
-    @container.on "mouseup", (event) =>
-      @inputHandler.mouseUp event if @inSession
-  
+    @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
+      @inputHandler.mouseEvent event if @inSession
+    
     $(document).on "paste", (event) =>
       @server.input event.clipboardData.getData("text/plain")
+    
+    @clientInterface =
+      sessionStarted: () =>
+        @inSession = true
+        @scrollToBottom()
+        @cursor.resetBlink()
+        @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
+      
+      sessionEnded: () =>
+        @inSession = false
+        @showSessions()
+      
+      output: (data) =>
+        console.log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
+        @controlCodeReader.addData data
+        if localStorage?["WebTerm.slowDrawing"] is "true"
+          @controlCodeInterval ?= window.setInterval =>
+            atEnd = @controlCodeReader.process()
+            if localStorage?["WebTerm.slowDrawing"] isnt "true"
+              atEnd = @controlCodeReader.process() until atEnd
+            @screenBuffer.flush()
+            if atEnd
+              window.clearInterval @controlCodeInterval
+              @controlCodeInterval = null
+          , 20
+        else
+          atEnd = false
+          atEnd = @controlCodeReader.process() until atEnd
+          @screenBuffer.flush()
+  
+  showSessions: ->
+    @server.getSessions (sessions) =>
+      @showSessionsCallback sessions
   
   createSession: (name) ->
     @server.createSession name, @sizeX, @sizeY

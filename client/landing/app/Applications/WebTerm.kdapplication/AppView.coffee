@@ -66,6 +66,14 @@ class WebTermView extends KDView
             name: sessions[key]
             mainView: this
         @sessionBox.show()
+      
+      KD.whoami().tellKite
+        kiteName: 'webterm',
+        method: 'createServer',
+        withArgs: @terminal.clientInterface
+      , (remote) =>
+        @terminal.server = remote
+        @terminal.showSessions()
     , 3000
   
   click: ->

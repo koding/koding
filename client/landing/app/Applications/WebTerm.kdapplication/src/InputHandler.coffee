@@ -33,7 +33,11 @@ class WebTerm.InputHandler
   
   constructor: (@terminal) ->
     @applicationKeypad = false
-    @mouseClickTracking = false
+    @trackMouseDown = false
+    @trackMouseUp = false
+    @trackMouseHold = false
+    @previousMouseX = -1
+    @previousMouseY = -1
     
   keyDown: (event) ->
     @terminal.scrollToBottom()
@@ -41,7 +45,7 @@ class WebTerm.InputHandler
     
     if event.ctrlKey
       unless event.shiftKey or event.keyCode < 64
-        @terminal.server.input String.fromCharCode(event.keyCode - 64)
+        @terminal.server.controlSequence String.fromCharCode(event.keyCode - 64)
         event.preventDefault()
       return
     
@@ -50,7 +54,7 @@ class WebTerm.InputHandler
       seq = seq[if @applicationKeypad then 1 else 0]
     
     if seq?
-      @terminal.server.input seq
+      @terminal.server.controlSequence seq
       event.preventDefault()
   
   keyPress: (event) ->
@@ -60,25 +64,42 @@ class WebTerm.InputHandler
   
   keyUp: (event) ->
     # nothing to do
-  
-  mouseDown: (event) ->
-    @mouseEvent event
-  
-  mouseUp: (event) ->
-    @mouseEvent event
+
+  setMouseMode: (@trackMouseDown, @trackMouseUp, @trackMouseHold) ->
+    @terminal.outputbox.css "cursor", if @trackMouseDown then "pointer" else "text"
   
   mouseEvent: (event) ->
+    return if not @terminal.inSession
     offset = @terminal.container.offset()
-    x = Math.floor((event.clientX - offset.left + @terminal.container.scrollLeft()) * @terminal.sizeX / @terminal.container.prop("scrollWidth"))
-    y = Math.floor((event.clientY - offset.top + @terminal.container.scrollTop()) * @terminal.screenBuffer.lineDivs.length / @terminal.container.prop("scrollHeight") - @terminal.screenBuffer.lineDivs.length + @terminal.sizeY)
+    x = Math.floor((event.originalEvent.clientX - offset.left + @terminal.container.scrollLeft()) * @terminal.sizeX / @terminal.container.prop("scrollWidth"))
+    y = Math.floor((event.originalEvent.clientY - offset.top + @terminal.container.scrollTop()) * @terminal.screenBuffer.lineDivs.length / @terminal.container.prop("scrollHeight") - @terminal.screenBuffer.lineDivs.length + @terminal.sizeY)
     return if x < 0 or x >= @terminal.sizeX or y < 0 or y >= @terminal.sizeY
-    return if not @terminal.inSession or not @mouseClickTracking
-    type = if event.type is "mousedown" then " " else "#"
-    @terminal.server.input CSI + "M" + type + String.fromCharCode(x + 33) + String.fromCharCode(y + 33)
+    eventCode = 0
+    eventCode |= 4 if event.shiftKey
+    eventCode |= 8 if event.altKey
+    eventCode |= 16 if event.ctrlKey
+    switch event.type
+      when "mousedown"
+        return if not @trackMouseDown
+        eventCode |= event.which - 1
+      when "mouseup"
+        return if not @trackMouseUp
+        eventCode |= 3
+      when "mousemove"
+        return if not @trackMouseHold or event.which is 0 or (x is @previousMouseX and y is @previousMouseY)
+        eventCode |= event.which - 1
+        eventCode += 32
+      when "mousewheel"
+        return not @trackMouseDown
+        eventCode |= if event.originalEvent.wheelDelta > 0 then 0 else 1
+        eventCode += 64
+      when "contextmenu"
+        return not @trackMouseDown
+    @previousMouseX = x
+    @previousMouseY = y
+    @terminal.server.controlSequence CSI + "M" + String.fromCharCode(eventCode + 32) + String.fromCharCode(x + 33) + String.fromCharCode(y + 33)
+    event.preventDefault()
   
   useApplicationKeypad: (value) ->
     @applicationKeypad = value
 
-  useMouseClickTracking: (value) ->
-    @mouseClickTracking = value
-    @terminal.container.css "cursor", if value then "pointer" else "text"
