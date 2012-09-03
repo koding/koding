@@ -4,12 +4,24 @@ class DiscussionActivityOpinionView extends KDView
 
     super
 
-    @setClass "activity-opinion-container opinion-container"
+    @setClass "activity-opinion-container opinion-container kdlistview-comments"
+
+    @addSubView header = new KDView
+      cssClass : "show-more-comments in"
+
+    header.addSubView linkToContentDisplay = new KDCustomHTMLView
+      tagName : "a"
+      partial : "Show all "+data.repliesCount+" replies to this discussion"
+      attributes:
+        href: "#"
+      click :->
+        appManager.tell "Activity", "createContentDisplay", data
+
     @createSubViews data
 
   createSubViews:(data)->
     @opinionList = new KDListView
-      type          : "opinions"
+      type          : "comments"
       subItemClass  : DiscussionActivityOpinionListItemView
       delegate      : @
     , data

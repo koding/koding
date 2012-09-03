@@ -3,7 +3,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
   constructor:(options,data)->
     options = $.extend
       type      : "opinion"
-      cssClass  : "kdlistitemview kdlistitemview-activity-opinion"
+      cssClass  : "kdview kdlistitemview kdlistitemview-activity-opinion"
     ,options
 
     super options,data
@@ -42,11 +42,11 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
 
   pistachio:->
     """
-
-
-      <div class='activity-opinion'>
-          {{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}
-          {{> @author}},
-            <time>{{$.timeago #(meta.createdAt)}}</time>:
+      <div class='activity-opinion item-content-comment'>
+        <div class="comment-contents">
+        <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+        {{> @author}},
+        <time>{{$.timeago #(meta.createdAt)}}</time>
+      </div>
     </div>
     """

@@ -21,7 +21,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     #@commentBox.destroy()
 
     @opinionBox = new DiscussionActivityOpinionView
-      cssClass : "activity-opinion-list"
+      cssClass : "activity-opinion-list comment-container"
     , data
 
   viewAppended:()->
