@@ -4,7 +4,7 @@ class DiscussionActivityOpinionView extends KDView
 
     super
 
-    @setClass "activity-opinion-container opinion-container kdlistview-comments"
+    @setClass "activity-opinion-container opinion-container kdlistview-activity-opinions"
 
     @addSubView header = new KDView
       cssClass : "show-more-comments in"

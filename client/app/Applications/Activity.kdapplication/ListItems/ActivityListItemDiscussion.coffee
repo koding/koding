@@ -18,7 +18,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    #@commentBox.destroy()
+    @commentBox.destroy()
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass : "activity-opinion-list comment-container"
@@ -37,16 +37,16 @@ class DiscussionActivityItemView extends ActivityItemChild
           @opinionBox.opinionList.addItem opinion, null
         @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
-    if @getData().repliesCount > 3
-      @opinionBox.addSubView test = new KDCustomHTMLView
-        title : "show more"
-        tagName : "a"
-        cssClass : "activity-opinion-more"
-        attributes :
-          href: "#"
-        partial : "View all the opinions ("+(@getData().repliesCount-3)+" more)"
-        click:->
-          log "pew"
+    # if @getData().repliesCount > 3
+    #   @opinionBox.addSubView test = new KDCustomHTMLView
+    #     title : "show more"
+    #     tagName : "a"
+    #     cssClass : "activity-opinion-more"
+    #     attributes :
+    #       href: "#"
+    #     partial : "View all the opinions ("+(@getData().repliesCount-3)+" more)"
+    #     click:->
+    #       log "pew"
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]")

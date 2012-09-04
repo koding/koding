@@ -706,17 +706,18 @@ a.opinion-size-link
   .help-box
     margin-top        11px
 
-.opinion-container:last-child
-  > div.kdlistitemview-opinion
-    border-bottom 1px dotted blue
+.opinion-container div.kdlistitemview-opinion:last-child
+  .opinion-body-with-markup
+    border-bottom 1px solid #5F5F5F
 
 // this looks weird on page load, will be fixed once comments are loaded
-// to the teaser / snapshot
+// to the teaser / snapshot --arvid
 .item-content-opinion-comments
   .opinion-comment
     .comment-container
       &.no-comment
         display block
+        border none
         .item-add-comment-box
           display none
       &.commented
@@ -732,6 +733,5 @@ a.opinion-size-link
   a.activity-opinion-more
     margin-top 10px
 
-.activity-opinion-container
-  .kdlistitemview-opinions
-    margin-bottom 10px
+.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
+  border-bottom none
