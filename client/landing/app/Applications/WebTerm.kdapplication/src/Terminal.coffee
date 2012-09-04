@@ -31,16 +31,16 @@ class WebTerm.Terminal
     @screenBuffer = new WebTerm.ScreenBuffer(this)
     @cursor = new WebTerm.Cursor(this)
     
-    @outputbox = $(document.createElement("div"))
-    @outputbox.css "cursor", "text"
-    @container.append @outputbox
-    
     @measurebox = $(document.createElement("div"))
     @measurebox.css "position", "fixed"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
     @updateSizeTimer = null
     @updateSize()
+    
+    @outputbox = $(document.createElement("div"))
+    @outputbox.css "cursor", "text"
+    @container.append @outputbox
     
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event if @inSession
