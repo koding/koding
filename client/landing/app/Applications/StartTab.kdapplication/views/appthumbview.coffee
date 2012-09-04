@@ -1,9 +1,8 @@
-class StartTabAppThumbView extends JView
+class StartTabAppThumbView extends KDCustomHTMLView
 
   constructor:(options, data)->
 
     options.tagName    = 'figure'
-    options.attributes = href : '#'
 
     if data.disabled?
       options.cssClass += ' disabled'
@@ -63,6 +62,11 @@ class StartTabAppThumbView extends JView
     #   tooltip  :
     #     title  : "Click to delete"
     #   click    : -> no
+
+  viewAppended:->
+
+    @setTemplate @pistachio()
+    @template.update()
 
   click : (event)->
 

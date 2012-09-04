@@ -6,10 +6,11 @@ class StartTabMainView extends JView
 
     super
 
-    @appIcons = {}
     @listenWindowResize()
-
-    mainView = @getSingleton('mainView')
+    
+    @appIcons      = {}
+    mainView       = @getSingleton('mainView')
+    appsController = @getSingleton("kodingAppsController")
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
@@ -22,29 +23,34 @@ class StartTabMainView extends JView
       size    :
         width : 16
 
-    @button = new KDButtonView
+    @refreshButton = new KDButtonView
       cssClass    : "editor-button"
-      title       : "refresh apps"
+      title       : "Refresh Apps"
       loader      :
         diameter  : 16
       callback    : =>
         @removeAppIcons()
         @showLoader()
-        @getSingleton("kodingAppsController").refreshApps (err, apps)=>
+        appsController.refreshApps (err, apps)=>
           @hideLoader()
-          @button.hideLoader()
+          @refreshButton.hideLoader()
           @decorateApps apps
 
-    @clear = new KDButtonView
-      cssClass : "editor-button"
-      title    : "clear appstorage"
-      callback : =>
-        @showLoader()
-        @removeAppIcons()
-        appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-          storage.update $set : { "bucket.apps" : {} }, =>
-            @hideLoader()
-            log arguments, "kodingAppsController storage cleared"
+    @addAnAppButton = new KDButtonView
+      cssClass    : "editor-button"
+      # icon        : yes
+      # iconClass   : "make-an-app"
+      title       : "Make a new App"
+      callback    : =>
+        appsController.makeNewApp ->
+          new KDNotificationView
+            type  : "mini"
+            title : "App is created! Check your Applications folder!"
+
+    # appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
+    #   storage.update $set : { "bucket.apps" : {} }, =>
+    #     @hideLoader()
+    #     log arguments, "kodingAppsController storage cleared"
 
     @appItemContainer = new StartTabAppItemContainer
       cssClass : 'app-item-container'
@@ -90,17 +96,19 @@ class StartTabMainView extends JView
 
   pistachio:->
     """
-    <div class='app-button-holder hidden1'>
-      {{> @button}}
-      {{> @clear}}
+    <div class='app-list-wrapper'>
+      <div class='app-button-holder hidden1'>
+        {{> @addAnAppButton}}
+        {{> @refreshButton}}
+      </div>
+      <header>
+        <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
+        <h2 class="loaded hidden">or open an existing file from your file tree</h2>
+        <h2 class="loader">{{> @loader}} Loading applications...</h1>
+      </header>
+      {{> @appItemContainer}}
+      {{> @noAppsWarning}}
     </div>
-    <header>
-      <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
-      <h2 class="loaded hidden">or open an existing file from your file tree</h2>
-      <h2 class="loader">{{> @loader}} Loading applications...</h1>
-    </header>
-    {{> @appItemContainer}}
-    {{> @noAppsWarning}}
     <div class='start-tab-split-options expanded'>
       <h3>Start with a workspace</h3>
     </div>
@@ -133,7 +141,7 @@ class StartTabMainView extends JView
 
   putAppIcons:(apps)->
 
-    @button.show()
+    @refreshButton.show()
     @hideLoader()
     for app, manifest of apps
       do (app, manifest)=>

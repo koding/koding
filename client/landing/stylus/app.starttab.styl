@@ -12,33 +12,30 @@ app.starttab.styl
 
 /* StartTab */
 .start-tab
-  text-align              center
-  background              #ffffff /* Old browsers */
-  background              -moz-radial-gradient(center, ellipse cover,  #ffffff 0%, #d9d9d9 100%) /* FF3.6+ */
-  background              -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9)) /* Chrome,Safari4+ */
-  background              -webkit-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Chrome10+,Safari5.1+ */
-  background              -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Opera 12+ */
-  background              -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* IE10+ */
-  background              radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* W3C */
-  position                relative
-  border                  6px solid white
-  shadow                  inset 0 0 2px rgba(0,0,0,0.25)
-  borderBox()
-
-  .kdview
-    height                auto
+  .app-list-wrapper
+    text-align            center
+    background            #ffffff /* Old browsers */
+    background            -moz-radial-gradient(center, ellipse cover,  #ffffff 0%, #d9d9d9 100%) /* FF3.6+ */
+    background            -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%,#ffffff), color-stop(100%,#d9d9d9)) /* Chrome,Safari4+ */
+    background            -webkit-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Chrome10+,Safari5.1+ */
+    background            -o-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* Opera 12+ */
+    background            -ms-radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* IE10+ */
+    background            radial-gradient(center, ellipse cover,  #ffffff 0%,#d9d9d9 100%) /* W3C */
+    shadow                inset 0 0 2px rgba(0,0,0,0.25)
+    size                  100%, 100%
+    overflow              auto
 
   .app-button-holder
     position              absolute
     top                   10px
-    right                 10px
+    right                 24px
 
 // .start-tab-app-container
 //   overflow-y      visible
 //   padding-bottom  30px
 //   text-shadow     0 1px 0 white
 
-.start-tab > header
+.app-list-wrapper > header
   height                  auto
   margin-bottom           20px
   padding-top             50px
@@ -54,29 +51,30 @@ app.starttab.styl
     padding-top           5px
 
 .app-item-container
-  padding                 20px 0
+  height                  auto
+  padding                 20px 0 48px 0
   width                   100%
   overflow                visible
 
   figure
     display               inline-block
+    position              relative
+    size                  19%, auto
+    margin                0 1% 1% 0
     min-width             120px
     max-width             200px
-    overflow              hidden
     padding               20px
+    overflow              hidden
     text-align            center
     vertical-align        top
-    width                 19%
-    margin                0 1% 1% 0
     cursor                pointer
     rounded               4px
     vendor                transition, all .2s ease-out
     shadow                0 1px 2px rgba(0,0,0,0.15)
-    background            rgba(255, 255, 255, 0.2)
+    bg                    color, rgba(255, 255, 255, 0.2)
     borderBox()
-    noTextDeco()
     &:hover
-      background          rgba(255, 255, 255, 0.5)
+      bg                  color, rgba(255, 255, 255, 0.5)
       shadow              0 2px 10px rgba(0,0,0,0.15)
       .icon-container
         margin-top        0
@@ -177,13 +175,17 @@ app.starttab.styl
 
 .start-tab-recent-container
   position                absolute
-  background-color        white
   border                  1px solid rgba(0, 0, 0, 0.07)
-  bottom                  0
+  bottom                  5px
   left                    0
   padding                 0
-  size                    100%, 120px
+  bg                      color, white
+  size                    100%, 28px
+  vendor                  transition, height .2s ease-in .1s
+  shadow                  0 0 6px rgba(0,0,0,0.3)
   borderBox()
+  &:hover
+    height                120px
   .file-container
     shadow                inset 0 0 2px rgba(0,0,0,0.25)
   h3
@@ -237,6 +239,7 @@ app.starttab.styl
     padding-top           30px
 
 .start-tab-split-options
+  hidden()
   height                  80px
   position                absolute
   width                   100%
