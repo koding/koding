@@ -14,6 +14,7 @@
     {verbose, true},
     {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>},
-    {presence_prefix, <<"KDPresence-">>}
+    {presence_prefix, <<"KDPresence-">>},
+    {system_exchange, <<"private-broker">>}
     ]}
  ]}.

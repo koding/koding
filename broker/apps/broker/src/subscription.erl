@@ -17,7 +17,7 @@
         handle_call/3, handle_cast/2, handle_info/2]).
 
 -record(state, {connection, channel, 
-        exchange, client, private,
+        exchange, client, broadcastable,
         bindings = dict:new(), sender}).
 
 -define (SERVER, ?MODULE).
@@ -82,13 +82,14 @@ init([Connection, Client, Conn, Exchange]) ->
     SendFun = fun (Data) -> send(Conn, Exchange, Data) end,
 
     {ok, Channel} = channel(Connection),
-    Private = is_private(Exchange),
+    Broadcastable = broadcastable(Exchange),
+    
     spawn(?MODULE, notify_first, [SendFun, channel(Connection), Exchange]),
 
     State = #state{ connection = Connection,
                     channel = Channel,
                     exchange = Exchange,
-                    private = Private,
+                    broadcastable = Broadcastable,
                     client = Client,
                     sender = SendFun},
 
@@ -163,8 +164,8 @@ handle_call({unbind, Event}, _From, State=#state{channel=Channel,
 handle_call({trigger, Event, Payload, Meta}, From, 
             State=#state{channel=Channel,
                         exchange=Exchange,
-                        private=Private}) ->
-    case Private of 
+                        broadcastable=Broadcastable}) ->
+    case Broadcastable of 
         true -> 
             broadcast(From, Channel, Exchange, Event, Payload, Meta),
             {reply, ok, State};
@@ -315,15 +316,18 @@ channel(Connection) ->
     amqp_connection:open_channel(Connection).
 
 %%--------------------------------------------------------------------
-%% Func: is_private(Exchange) -> boolean()
+%% Func: broadcastable(Exchange) -> boolean()
 %% Description: Detect whether the exchange is private.
 %%--------------------------------------------------------------------
-is_private(Exchange) ->
+broadcastable(Exchange) ->
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
     %Options = [{capture, [1], list}],
-    case re:run(Exchange, get_env(privateRegEx, ".private$")) of
-        {match, _}  -> true;
-        nomatch     -> false
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    System = Exchange =:= SystemExchange,
+    Private = re:run(Exchange, get_env(privateRegEx, ".private$")),
+    case {System, Private} of
+        {false, nomatch} -> false;
+        {_, _} -> true % either system or not system but private.
     end.
 
 %%--------------------------------------------------------------------

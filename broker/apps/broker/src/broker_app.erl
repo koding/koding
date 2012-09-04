@@ -128,9 +128,16 @@ terminate(_Req, _State) ->
 
 handle_client(Conn, init, _State) ->
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
-    Event = {<<"event">>, <<"connected">>},
+    Event = <<"connected">>,
+    EventProp = {<<"event">>, Event},
     Payload = {<<"socket_id">>, SocketId},
-    Conn:send(jsx:encode([Event, Payload])),
+    Conn:send(jsx:encode([EventProp, Payload])),
+
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    broker:trigger(Subscription, Event, jsx:encode([Payload]), []),
+    broker:unsubscribe(Subscription),
+
     {ok, #client{socket_id=SocketId}};
 
 handle_client(Conn, {recv, Data}, 
@@ -140,7 +147,16 @@ handle_client(Conn, {recv, Data},
     NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
     {ok, State#client{subscriptions=NewSubs}};
 
-handle_client(_Conn, closed, #client{subscriptions=Subscriptions}) ->
+handle_client(Conn, closed, #client{socket_id=SocketId,
+                                    subscriptions=Subscriptions}) ->
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, SystemSubscription} = broker:subscribe(Conn, SystemExchange),
+    Event = <<"disconnected">>,
+    Sid = {<<"socket_id">>, SocketId},
+    Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
+    Payload = jsx:encode([Sid, Exchanges]),
+    broker:trigger(SystemSubscription, Event, Payload, []),
+    broker:unsubscribe(SystemSubscription),
 
     case dict:size(Subscriptions) of 
         0 -> ok;
@@ -193,9 +209,14 @@ handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
 
 handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
     [Event, Exchange, Payload, Meta] = Data,
-    Subscription = dict:fetch(Exchange, Subs),
-    broker:trigger(Subscription, Event, Payload, Meta),
-    Subs;
+    RegExp = "^secret-",
+    case re:run(Exchange, RegExp) of
+        nomatch -> Subs;
+        {match, _} ->
+            Subscription = dict:fetch(Exchange, Subs),
+            broker:trigger(Subscription, Event, Payload, Meta),
+            Subs
+    end;
 
 handle_event(_Conn, _Else, _Data, Subs) ->
     Subs.
@@ -242,4 +263,10 @@ bin_key_find(BinKey, List, ReturnEmptyList) ->
         {_, Val} -> Val;
         false when ReturnEmptyList -> [];
         false -> <<>>
+    end.
+
+get_env(Param, DefaultValue) ->
+    case application:get_env(broker, Param) of
+        {ok, Val} -> Val;
+        undefined -> DefaultValue
     end.
