@@ -367,7 +367,7 @@ class KodingAppsController extends KDController
       title                       : "Create a new Application"
       # content                   : "<div class='modalformline'>Please select the application type you want to start with.</div>"
       overlay                     : yes
-      width                       : 500
+      width                       : 400
       height                      : "auto"
       tabs                        :
         navigable                 : yes
@@ -390,7 +390,7 @@ class KodingAppsController extends KDController
                   newAppModal.destroy()
             fields                :
               name                :
-                label             : "Application Name:"
+                label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
                 validate          :
@@ -436,7 +436,6 @@ class KodingAppsController extends KDController
 
         async.parallel stack, (error, result) =>
           if err then warn err
-          log err, result, ">>>>>>>>>"
           callback? err, result
 
   forkRepoCommandMap = ->
