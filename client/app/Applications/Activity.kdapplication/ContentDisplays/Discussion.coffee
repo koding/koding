@@ -27,7 +27,13 @@ class ContentDisplayDiscussion extends KDView
     @opinionBoxHeader = new KDCustomHTMLView
       tagName : "div"
       cssClass : "opinion-box-header"
-      partial : '<span class="opinion-count">'+data.repliesCount+' Answers</span><span class="opinion-sort">sorted by date</span>'
+      partial : @opinionHeaderCountString data.repliesCount
+
+    @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+    @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     @opinionForm = new OpinionFormView
       cssClass : "opinion-container"
@@ -103,7 +109,8 @@ class ContentDisplayDiscussion extends KDView
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
 
-
+  opinionHeaderCountString:(count)=>
+    '<span class="opinion-count">'+count+' Answers</span><span class="opinion-sort">sorted by date</span>'
 
   confirmDeleteDiscussion:(data)->
 
