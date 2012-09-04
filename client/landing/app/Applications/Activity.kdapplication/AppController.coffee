@@ -13,6 +13,7 @@ class Activity12345 extends AppController
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       'COpinionActivity'
+      'CCodeBinActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -189,6 +190,7 @@ class Activity12345 extends AppController
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           'COpinionActivity'
+          'CCodeBinActivity'
         ]
 
     options =
@@ -249,6 +251,7 @@ class Activity12345 extends AppController
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         'COpinionActivity'
+        'CCodeBinActivity'
       ]
 
     controller.removeAllItems()
@@ -261,6 +264,8 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JCodeBin"     then @createCodeBinContentDisplay activity
+
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -282,6 +287,15 @@ class Activity12345 extends AppController
       title       : "Code Snippet"
       type        : "codesnip"
       contentView : new ContentDisplayCodeSnippet {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
+
+  createCodeBinContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Code Bin"
+      type        : "codebin"
+      contentView : new ContentDisplayCodeBin {},activity
     , activity
     contentDisplay = controller.getView()
     @showContentDisplay contentDisplay
