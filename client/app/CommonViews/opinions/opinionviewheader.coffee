@@ -36,16 +36,17 @@ class OpinionViewHeader extends JView
       click     : =>
         @loader.show()
         list.emit "AllOpinionsLinkWasClicked", @
-        list.on "RelativeOpinionsWereAdded",=>
-          remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-          if (remainingOpinions)<@maxCommentToShow
-            @allItemsLink.updatePartial "View last #{remainingOpinions} more #{@getOptions().itemTypeString}"
-          if @getDelegate().items.length<@getData().repliesCount
-            @loader.hide()
-          else
-            @loader.destroy()
-            @allItemsLink.destroy()
     , data
+
+    list.on "RelativeOpinionsWereAdded",  =>
+      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      if (remainingOpinions)<@maxCommentToShow
+        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
+      if @getDelegate().items.length<@getData().repliesCount
+        @loader.hide()
+      else
+        @loader.destroy()
+        @allItemsLink.destroy()
 
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"

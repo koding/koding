@@ -152,15 +152,6 @@ class OpinionFormView extends KDFormView
     @once "FormValidationPassed", => @reset()
     super
 
-        #          <span class="supports-markdown">You can use markdown syntax here</span>
-        # <div>
-        #   {{> @labelAddTags}}
-        #   <div>
-        #     {{> @selectedItemWrapper}}
-        #     {{> @tagAutoComplete}}
-        #   </div>
-        # </div>
-
   pistachio:->
       """
       <div class="opinion-box">
