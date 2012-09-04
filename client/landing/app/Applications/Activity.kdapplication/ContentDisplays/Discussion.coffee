@@ -141,7 +141,7 @@ class ContentDisplayDiscussion extends KDView
       opinionController = @opinionBox.opinionController
       opinionController.fetchRelativeOpinions 5, 0, (err, opinions)=>
         for opinion in opinions
-          @opinionBox.opinionList.addItem opinion, null
+          @opinionBox.opinionList.addItem opinion, null, {type : "slideDown", duration : 100}
         @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
   pistachio:->
