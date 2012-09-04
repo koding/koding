@@ -100,6 +100,7 @@ class OpinionListItemView extends KDListItemView
               delete @editForm
             else
               @editForm = new OpinionFormView
+                submitButtonTitle: "Save your changes"
                 title : "edit-opinion"
                 cssClass : "edit-opinion-form opinion-container"
                 callback : (data)=>

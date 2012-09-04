@@ -7,7 +7,7 @@ class OpinionFormView extends KDFormView
     {profile} = KD.whoami()
 
     @submitOpinionBtn = new KDButtonView
-      title           : "Post your reply"
+      title           : options.submitButtonTitle or "Post your reply"
       type            : "submit"
       cssClass        : "clean-gray opinion-submit-button"
 
