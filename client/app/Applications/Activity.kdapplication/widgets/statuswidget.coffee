@@ -86,8 +86,11 @@ class ActivityStatusUpdateWidget extends KDFormView
       @largeInput.setHeight 72
 
     # Do we really need this? Without that it works great.
-    # tabView = @parent.getDelegate()
-    # @getSingleton("windowController").addLayer tabView
+    # yes we need this but with an improved implementation
+    # it shouldn't reset non-submitted inputs
+    # check widgetview.coffee:23-27-33
+    tabView = @parent.getDelegate()
+    @getSingleton("windowController").addLayer tabView
 
   switchToEditView:(activity)->
     {tags, body} = activity
