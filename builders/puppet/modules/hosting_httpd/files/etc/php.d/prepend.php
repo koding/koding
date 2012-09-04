@@ -7,4 +7,5 @@ if ($domain_array[1] == 'beta' ) {
 }
     $replace = '~'. $username . '/' . $_SERVER['SERVER_NAME'] . "/website/";
     $_SERVER["PHP_SELF"] = $_SERVER['SCRIPT_NAME'] = str_replace($replace,"",$_SERVER["SCRIPT_NAME"]);
+    $_SERVER["DOCUMENT_ROOT"] = '/Users/'. $username . '/Sites/' . $_SERVER['SERVER_NAME'] . "/website/";
 ?>
