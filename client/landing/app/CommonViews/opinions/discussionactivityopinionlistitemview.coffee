@@ -22,6 +22,12 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       origin
     }
 
+    @avatar = new AvatarStaticView
+      tagName : "span"
+      size    : {width: 30, height: 30}
+      origin  : origin
+
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -34,6 +40,9 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
         unless err
           appManager.tell "Members", "createContentDisplay", origin
 
+    else
+      appManager.tell "Activity", "createContentDisplay", @parent.getData()
+
   shortenedText: (text)->
     if text.length>200
       return text.substr(0,200)+" ..."
@@ -43,10 +52,13 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
   pistachio:->
     """
       <div class='activity-opinion item-content-comment'>
+        <span class="avatar">{{> @avatar}}</span>
         <div class="comment-contents">
         <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+        <footer class="activity-opinion-item-footer">
         {{> @author}},
         <time>{{$.timeago #(meta.createdAt)}}</time>
+        </footer>
       </div>
     </div>
     """

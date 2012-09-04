@@ -726,7 +726,14 @@ a.opinion-size-link
         display block
 
 .activity-opinion
-  // margin-left 25px
+  &:hover
+    cursor pointer
+  .comment-contents
+    margin-left 25px
+
+.activity-opinion .comment-contents p.comment-body span p
+  font-size 12px
+  font-weight 300
 
 .activity-opinion-list
   margin-top 15px
@@ -735,3 +742,10 @@ a.opinion-size-link
 
 .comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
   border-bottom none
+
+.first-reply-link
+  text-decoration none
+  line-height 150%
+
+.comment-contents .activity-opinion-item-footer
+  margin-top 8px
