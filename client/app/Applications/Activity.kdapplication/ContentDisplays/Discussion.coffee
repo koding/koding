@@ -110,7 +110,13 @@ class ContentDisplayDiscussion extends KDView
         @deleteDiscussionLink.unsetClass "hidden"
 
   opinionHeaderCountString:(count)=>
-    '<span class="opinion-count">'+count+' Answers</span><span class="opinion-sort">sorted by date</span>'
+    if count is 0
+      countString = "No Answers yet"
+    else if count is 1
+      countString = "One Answer"
+    else
+      countString = count+ " Answers"
+    '<span class="opinion-count">'+countString+'</span><span class="opinion-sort">sorted by date</span>'
 
   confirmDeleteDiscussion:(data)->
 
