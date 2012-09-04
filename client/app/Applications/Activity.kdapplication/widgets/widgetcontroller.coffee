@@ -42,6 +42,17 @@ class ActivityUpdateWidgetController extends KDViewController
             @codeSnippetWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
+    codeBinPane = mainView.addWidgetPane
+      paneName    : "codebin"
+      mainContent : codeBinWidget = new ActivityCodeBinWidget
+        delegate  : mainView
+        callback  : (data)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @codeBinWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
+
     mainView.addWidgetPane
       paneName    : "link"
       mainContent : linkWidget = new ActivityLinkWidget
@@ -72,10 +83,13 @@ class ActivityUpdateWidgetController extends KDViewController
       listener     : @
       callback     : -> codeWidget.widgetShown()
 
+    codeBinPane.registerListener
+      KDEventTypes : 'PaneDidShow'
+      listener     : @
+      callback     : -> codeBinWidget.widgetShown()
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
-
-      log "activity constructor", activity.bongo_.constructorName
 
       switch activity.bongo_.constructorName
         when "JStatusUpdate"
@@ -87,6 +101,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           codeWidget.switchToEditView activity
+        when "JCodeBin"
+          mainView.showPane "codebin"
+          codeBinWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
 
@@ -112,8 +129,6 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
-
-
     if data.activity
       {activity} = data
       delete data.activity
@@ -133,6 +148,28 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
+
+  codeBinWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+      bongo.api.JCodeBin.create data, (err, codebin) =>
+        callback? err, codebin
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codebin
+
 
   questionWidgetSubmit:(data)->
     log 'creating question', data

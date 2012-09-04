@@ -8,6 +8,7 @@ class ActivityListItemView extends KDListItemView
     JQuestionActivity   : QuestionActivityItemView
     JDiscussion         : DiscussionActivityItemView
     JLinkActivity       : LinkActivityItemView
+    JCodeBin            : CodeBinActivityItemView
 
   getActivityChildCssClass = ->
 
