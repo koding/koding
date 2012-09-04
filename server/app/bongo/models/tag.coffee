@@ -67,13 +67,24 @@ class JTag extends Followable
       # content       :
       #   targetType  : [JCodeSnip, JAccount]
       #   as          : 'content'
+
   modify: secure (client, formData, callback)->
-    callback arguments
+    {delegate} = client.connection
+    if delegate.checkFlag 'super-admin'
+      modifiedTag = {slug: formData.slug.trim(), _id: $ne: @getId()}
+      JTag.one modifiedTag, (err, tag)=>
+        if tag
+          callback new KodingError "Slug already exists!"
+        else
+          @update $set: formData, callback
+    else
+      callback new KodingError "Access denied"
 
   fetchContentTeasers:->
     [args..., callback] = arguments
     @fetchContents args..., (err, contents)->
       if err then callback err
+      else if contents.length is 0 then callback null, []
       else
         teasers = []
         collectTeasers = bongo.race (i, root, fin)->
@@ -84,7 +95,6 @@ class JTag extends Followable
               fin()
         , -> callback null, teasers
         collectTeasers node for node in contents
-
 
   @handleFreetags = secure (client, tagRefs, callbackForEach=->)->
     existingTagIds = []
@@ -133,13 +143,14 @@ class JTag extends Followable
             callback null, tag
 
   @findSuggestions = (seed, options, callback)->
-    {limit, blacklist}  = options
+    {limit, blacklist, skip}  = options
 
     @some {
       title   : seed
       _id     :
         $nin  : blacklist
     },{
+      skip
       limit
       sort    : 'title' : 1
     }, callback
@@ -173,7 +184,7 @@ class JTag extends Followable
                   if err
                     callback err
                   else
-                    @emit 'TagIsDeleted', 1
+                    @emit 'TagIsDeleted', yes
                     callback null
                     contents.forEach (content)->
                       content.flushSnapshot tagId, (err)->

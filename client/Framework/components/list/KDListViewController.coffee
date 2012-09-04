@@ -2,12 +2,12 @@ class KDListViewController extends KDViewController
 
   constructor:(options = {}, data)->
 
-    options.wrapper           ?= yes
-    options.scrollView        ?= yes
-    options.keyNav            ?= no
-    options.multipleSelection ?= no
-    options.selection         ?= yes
-    options.lastToFirst       ?= no
+    options.wrapper             ?= yes
+    options.scrollView          ?= yes
+    options.keyNav              ?= no
+    options.multipleSelection   ?= no
+    options.selection           ?= yes
+    options.startWithLazyLoader ?= no
     @itemsOrdered             = [] unless @itemsOrdered
     @itemsIndexed             = {}
     @selectedItems            = []
@@ -43,9 +43,9 @@ class KDListViewController extends KDViewController
       scrollView = @scrollView
       mainView.addSubView scrollView
       scrollView.addSubView @getListView()
-      # @showLazyLoader()
+      if options.startWithLazyLoader
+        @showLazyLoader no
       scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
-      @registerListener KDEventTypes : 'LazyLoadComplete', listener : @, callback : @hideLazyLoader
 
     @instantiateListItems(@getData().items or [])
     @listenTo
@@ -306,7 +306,7 @@ class KDListViewController extends KDViewController
   LAZY LOADER
   ###
 
-  showLazyLoader:->
+  showLazyLoader:(emitWhenReached = yes)->
 
     unless @lazyLoader
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
@@ -322,7 +322,8 @@ class KDListViewController extends KDViewController
           FPS         : 24
 
       @lazyLoader.canvas.show()
-      @propagateEvent KDEventType : 'LazyLoadThresholdReached'
+      if emitWhenReached
+        @propagateEvent KDEventType : 'LazyLoadThresholdReached'
 
   hideLazyLoader:->
     if @lazyLoader

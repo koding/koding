@@ -77,7 +77,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   switchToLargeView:->
 
-    @parent.unsetClass "no-shadow"
+    @parent.unsetClass "no-shadow" if @parent # monkeypatch when loggedout this was giving an error
     @smallInput.hide()
     @$('>div.large-input, >div.formline').show()
 
@@ -85,6 +85,10 @@ class ActivityStatusUpdateWidget extends KDFormView
       @largeInput.$().trigger "focus"
       @largeInput.setHeight 72
 
+    # Do we really need this? Without that it works great.
+    # yes we need this but with an improved implementation
+    # it shouldn't reset non-submitted inputs
+    # check widgetview.coffee:23-27-33
     tabView = @parent.getDelegate()
     @getSingleton("windowController").addLayer tabView
 
@@ -109,7 +113,6 @@ class ActivityStatusUpdateWidget extends KDFormView
     super
 
   viewAppended:->
-
     @setTemplate @pistachio()
     @template.update()
     @switchToSmallView()

@@ -62,6 +62,8 @@ class ActivityUpdateWidgetController extends KDViewController
     codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+      # Remove this if can fix the ActivityStatusUpdateWidget's bug
+      appManager.openApplication "Activity"
       mainView.setClass "edit-mode"
       switch activity.bongo_.constructorName
         when "JStatusUpdate"
@@ -72,7 +74,6 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
-
 
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'

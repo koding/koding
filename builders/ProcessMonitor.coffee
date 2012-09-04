@@ -86,19 +86,19 @@ class ProcessMonitor extends EventEmitter
   startProcess : _.throttle ()->
     cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
     log.info "Starting the process $>#{cmd}"
-    @nodeServer = exec cmd
+    cmdArr = cmd.split " "
+    @nodeServer         = spawn cmdArr[0],cmdArr[1...]
     @nodeServer.stdout.on 'data', (data)=>
-      if ~(''+data).indexOf "Error"
+      data = data + ''
+      if data.match "Error"
         data = @pickUpTheErrorLine(data)
       
-      # data = @hideAnnoyingEventEmitterLog data
       log.info "#{data}".replace /\n+$/, ''
 
         
     @nodeServer.stderr.on 'data', (data)-> 
       log.info "#{data}".replace /\n+$/, ''
     @nodeServer.on        'exit', (code)=>
-      log.warn "The nodejs server has crashed! #{code}"
       if @flags.forever?
         log.warn "Forever is on, I'm restarting in 1 sec."
         @flags.restart = yes
