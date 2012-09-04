@@ -550,6 +550,7 @@ div.discussion-contents
     color                             #a5a5a5
     display                           inline
     font-weight                       300
+    margin-left                       -2px
     a
       font-size                       12px
       noTextDeco()
@@ -608,7 +609,7 @@ div.discussion-contents
   vendor                              transition, opacity .15s linear
   sprite()
 
-
+.activity-opinion .comment-body .data,
 .discussion-body .data,
 .opinion-body-with-markup .data
   font-size                           14px
@@ -641,6 +642,17 @@ div.discussion-contents
     font-weight                       400
     text-decoration                   none
     font-size                         14px
+  pre
+    margin-bottom                     15px
+    padding                           2px
+    borderBox()
+    rounded(4px)
+    box-shadow                        inset 0 1px 2px rgba(0,0,0,0.10)
+
+    code
+      padding                         10px
+      rounded(3px)
+
 
 .markdown-cheatsheet
   font-size                           14px
@@ -707,7 +719,8 @@ a.opinion-size-link
     margin-top        11px
 
 .opinion-container div.kdlistitemview-opinion:last-child
-  .opinion-body-with-markup
+  .item-content-opinion-comments
+    margin-bottom 15px
     border-bottom 1px solid #E0E0DF
 
 // this looks weird on page load, will be fixed once comments are loaded

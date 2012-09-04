@@ -9,7 +9,7 @@ class CommentViewHeader extends JView
 
     data = @getData()
 
-    @maxCommentToShow = 3
+    @maxCommentToShow = options.maxCommentToShow or 3
     @oldCount         = data.repliesCount
     @newCount         = 0
     @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
