@@ -233,7 +233,6 @@ class ActivityCodeBinWidget extends KDFormView
       @emit "codeBin.aceLoaded"
 
   refreshEditorView:->
-    log @HTMLace, @CSSace
     lines = @HTMLace.editor.selection.doc.$lines
     lineAmount = if lines.length > 15 then 15 else if lines.length < 5 then 5 else lines.length
     @setAceHeightByLines lineAmount
