@@ -131,7 +131,7 @@ class OpinionListItemView extends KDListItemView
     maxHeight = 300
 
     if @markup.height()>maxHeight
-      @textMaxHeight = @getHeight()
+      @textMaxHeight = @markup.height()
       @markup.css {maxHeight}
       @larger.show()
 
