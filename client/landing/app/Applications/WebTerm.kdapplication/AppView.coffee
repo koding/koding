@@ -39,11 +39,15 @@ class WebTermView extends KDView
     
     @listenWindowResize()
     
-    $(window).bind "focus", =>
-      @terminal.setFocused true
-    
-    $(window).bind "blur", =>
+    @on "ReceivedClickElsewhere", =>
       @terminal.setFocused false
+      @getSingleton('windowController').removeLayer @
+
+    # $(window).bind "focus", =>
+    #   @terminal.setFocused true
+    
+    # $(window).bind "blur", =>
+    #   @terminal.setFocused false
     
     KD.whoami().tellKite
       kiteName: 'webterm',
@@ -66,7 +70,7 @@ class WebTermView extends KDView
             name: sessions[key]
             mainView: this
         @sessionBox.show()
-      
+
       KD.whoami().tellKite
         kiteName: 'webterm',
         method: 'createServer',
@@ -76,6 +80,13 @@ class WebTermView extends KDView
         @terminal.showSessions()
     , 3000
   
+  setKeyView:->
+    @getSingleton('windowController').addLayer @
+    # checking existence of terminal because of the initial timeout
+    # this may run before it is created
+    @terminal.setFocused true if @terminal
+    super
+
   click: ->
     @setKeyView()
     
