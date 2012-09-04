@@ -83,26 +83,53 @@ class JOpinion extends JPost
     else
       id = @getId()
       {getDeleteHelper} = Relationship
+      rel = null
+      message = null
+
       queue = [
+        ->
+          Relationship.one {
+            targetId    : id
+            as          : "opinion"
+          }, (err, rel_)->
+            if err
+              callback err
+            else
+              rel = rel_
+              queue.next(err)
+        ->
+          rel.fetchSource (err, message_)->
+            if err
+              callback err
+            else
+              message = message_
+              queue.next(err)
+        ->
+          message.removeReply rel, (err)-> queue.next(err)
+
         getDeleteHelper {
           targetId    : id
           sourceName  : /Activity$/
-        }, 'source', -> queue.fin()
+        }, 'source', (err)-> queue.next(err)
+
         getDeleteHelper {
           targetName  : {$ne : 'JAccount'}
           sourceId    : id
           sourceName  : 'JOpinion'
-        }, 'target', -> queue.fin()
+        }, 'target', (err)-> queue.next(err)
+
         ->
           Relationship.remove {
             targetId  : id
             as        : 'opinion'
-          }, -> queue.fin()
-        => @remove -> queue.fin()
+          }, (err)-> queue.next(err)
+        =>
+          @remove -> queue.next()
+        =>
+          @emit "OpinionIsDeleted", 1
+          callback null
       ]
-      dash queue, =>
-        @emit 'OpinionIsDeleted', 1
-        callback null
+      daisy queue
 
   modify: secure (client, data, callback)->
     opinion =
@@ -178,6 +205,22 @@ class JDiscussion extends JPost
       meta        : data.meta
     JPost::modify.call @, client, discussion, callback
 
+  removeReply:(rel, callback)->
+    log "in removeReply"
+    id = @getId()
+    teaser = null
+    activityId = null
+    repliesCount = @getAt 'repliesCount'
+    queue = [
+      ->
+        rel.update $set: 'data.deletedAt': new Date, -> queue.next()
+      =>
+        @update $inc: repliesCount: -1, -> queue.next()
+      =>
+        @flushSnapshot rel.getAt('targetId'), -> queue.next()
+      callback
+    ]
+    daisy queue
 
   reply: secure (client, comment, callback)->
 
