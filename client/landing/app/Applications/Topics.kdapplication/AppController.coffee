@@ -10,6 +10,9 @@ class Topics12345 extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
+    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
+      if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -35,10 +38,12 @@ class Topics12345 extends AppController
       filter                :
         everything          :
           title             : "All topics"
-          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all topics" else null
+          optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
-              bongo.api.JTag.byRelevance @_searchValue, options, callback
+              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
+              bongo.api.JTag.byRelevance @_searchValue, options, (err, items)=>
+                callback err, items
             else
               bongo.api.JTag.someWithRelationship selector, options, callback
         followed            :
@@ -77,13 +82,14 @@ class Topics12345 extends AppController
       if role is "super-admin"
         @listItemClass = TopicsListItemViewEditable
         if firstRun
-          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topic)=>
-            @updateTopic topic
+          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+            @updateTopic topicItem
 
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
-  updateTopic:(topic)->
+  updateTopic:(topicItem)->
+    topic = topicItem.data
     # log "Update this: ", topic
     controller = @
     modal = new KDModalViewWithForms
@@ -99,11 +105,12 @@ class Topics12345 extends AppController
           update                  :
             title                 : "Update Topic Details"
             callback              : (formData) =>
-              @emit "UpdateTopic"
-              log "Update:: ", formData
-              topic.modify {}, log
-              modal.modalTabs.forms.update.buttons.Update.hideLoader()
-              modal.destroy()
+              formData.slug = @utils.slugify formData.slug.trim().toLowerCase()
+              topic.modify formData, (err)=>
+                new KDNotificationView
+                  title : if err then err.message else "Updated successfully"
+                modal.modalTabs.forms.update.buttons.Update.hideLoader()
+                modal.destroy()
             buttons               :
               Update              :
                 style             : "modal-clean-gray"
@@ -120,23 +127,26 @@ class Topics12345 extends AppController
                   topic.delete (err)=>
                     modal.modalTabs.forms.update.buttons.Delete.hideLoader()
                     modal.destroy()
-                    unless err then @emit 'TopicIsDeleted'
-                    else new KDNotificationView
-                      type      : "mini"
-                      cssClass  : "error editor"
-                      title     : err.message or "Error, please try again later!"
+                    new KDNotificationView
+                      title : if err then err.message else "Deleted!"
+                    topicItem.hide() unless err
             fields                :
               Title               :
                 label             : "Title"
                 itemClass         : KDInputView
                 name              : "title"
                 defaultValue      : topic.title
+              Slug                :
+                label             : "Slug"
+                itemClass         : KDInputView
+                name              : "slug"
+                defaultValue      : topic.slug
               Details             :
                 label             : "Details"
                 type              : "textarea"
                 itemClass         : KDInputView
-                name              : "details"
-                defaultValue      : topic.body or ""
+                name              : "body"
+                defaultValue      : Encoder.htmlDecode topic.body or ""
 
   fetchFeedForHomePage:(callback)->
     options =
@@ -158,6 +168,18 @@ class Topics12345 extends AppController
 
   createContentDisplay:(tag,doShow = yes)->
     @showContentDisplay tag
+
+  setCurrentViewHeader:(count)->
+    if typeof 1 isnt typeof count
+      @getView().$(".activityhead span.optional_title").html count
+      return no
+    if count >= 20 then count = '20+'
+    # return if count % 20 is 0 and count isnt 20
+    # postfix = if count is 20 then '+' else ''
+    count   = 'No' if count is 0
+    result  = "#{count} result" + if count isnt 1 then 's' else ''
+    title   = "#{result} found for <strong>#{@_searchValue}</strong>"
+    @getView().$(".activityhead").html title
 
   showContentDisplay:(content)->
     contentDisplayController = @getSingleton "contentDisplayController"
