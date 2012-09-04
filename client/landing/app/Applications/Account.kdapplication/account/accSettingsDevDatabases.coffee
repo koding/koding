@@ -64,17 +64,24 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
 
+    @_loaderCount = 2
+    @showLazyLoader no
+
+    hideLoaderWhenFinished = =>
+      @_loaderCount--
+      @hideLazyLoader() if @_loaderCount is 0
+
     for dbtype in ['mysql', 'mongo']
       @talkToKite
         toDo      : @commands[dbtype].fetch
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
-        # log "RESPONSE: ", response
         if err then warn err
         else
           @instantiateListItems response
           callback?()
+          hideLoaderWhenFinished()
 
   deleteDatabase:(listItem)->
     data     = listItem.getData()
@@ -186,7 +193,7 @@ class AccountDatabaseList extends KDListView
       width                   : 500
       height                  : "auto"
       tabs                    :
-        navigable          : yes
+        navigateable          : yes
         goToNextFormOnSubmit  : no
         # callback              : (formOutput)-> log formOutput
         forms                 :
