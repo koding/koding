@@ -20,9 +20,21 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     @commentBox.destroy()
 
-    @opinionBox = new DiscussionActivityOpinionView
-      cssClass : "activity-opinion-list comment-container"
-    , data
+    if data.repliesCount > 0
+      @opinionBox = new DiscussionActivityOpinionView
+        cssClass : "activity-opinion-list comment-container"
+      , data
+    else
+      @opinionBox = new KDCustomHTMLView
+        tagName:"a"
+        cssClass:"first-reply-link"
+        attributes:
+          title:"Be the first to reply"
+          href:"#"
+        partial:"Be the first to reply!"
+        click:->
+          appManager.tell "Activity", "createContentDisplay", data
+
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussion
