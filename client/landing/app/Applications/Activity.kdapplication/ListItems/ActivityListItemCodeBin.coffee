@@ -25,7 +25,7 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinResultView = new CodeBinResultView
       tagName: "iframe"
       attributes:
-        src:"http://codepen.io/"
+        srcdoc:"<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style><script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"</body></html>"
 
     ,data
 
