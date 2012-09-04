@@ -3,7 +3,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
   constructor:(options,data)->
     options = $.extend
       type      : "opinion"
-      cssClass  : "kdview kdlistitemview kdlistitemview-activity-opinion"
+      cssClass  : "kdlistitemview-activity-opinion"
     ,options
 
     super options,data
