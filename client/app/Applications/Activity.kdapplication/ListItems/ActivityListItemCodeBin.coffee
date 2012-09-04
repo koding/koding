@@ -2,7 +2,7 @@ class CodeBinActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
     options = $.extend
-      cssClass    : "activity-item codesnip"
+      cssClass    : "activity-item codebin"
       tooltip     :
         title     : "Code Bin"
         offset    : 3
@@ -21,6 +21,13 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinHTMLView = new CodeSnippetView {}, codeBinHTMLData
     @codeBinCSSView = new CodeSnippetView {}, codeBinCSSData
     @codeBinJSView = new CodeSnippetView {}, codeBinJSData
+
+    @codeBinResultView = new CodeBinResultView
+      tagName: "iframe"
+      attributes:
+        src:"http://codepen.io/"
+
+    ,data
 
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
@@ -60,6 +67,15 @@ class CodeBinActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
+    maxHeight = 30
+    views = [@codeBinJSView,@codeBinCSSView,@codeBinHTMLView]
+
+    for view in views
+      if view.getHeight()>maxHeight
+        maxHeight = view.getHeight()
+
+    @$("pre.subview").css height:maxHeight
+
 
   pistachio:->
 
@@ -69,9 +85,12 @@ class CodeBinActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       {h3{#(title)}}
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
+      <div class="code-bin-source">
       {{> @codeBinHTMLView}}
       {{> @codeBinCSSView}}
       {{> @codeBinJSView}}
+      </div>
+      {{> @codeBinResultView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
@@ -84,7 +103,29 @@ class CodeBinActivityItemView extends ActivityItemChild
     </div>
     """
 
+class CodeBinResultView extends KDCustomHTMLView
+  constructor:(options,data)->
+    options.cssClass = "result-container"
+    super options, data
+    data = @getData()
 
+    @codeView = new KDCustomHTMLView
+      tagName  : "code"
+      pistachio : '{{#(content)}}'
+    , data
+
+  viewAppended: ->
+
+    @setTemplate @pistachio()
+    @template.update()
+
+
+  pistachio:->
+    """
+    <div class='kdview'>
+      {pre{> @codeView}}
+    </div>
+    """
 
 class CodeSnippetView extends KDCustomHTMLView
 
