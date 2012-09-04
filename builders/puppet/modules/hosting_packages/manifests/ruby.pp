@@ -72,7 +72,7 @@ class hosting_packages::ruby {
     package { $ruby_gems:
         ensure => installed,
         provider => 'gem',
-        require => [ Package[$ruby18],Package[$devel_pkgs] ],
+        require => [ Package[$ruby18],Package[$devel_pkgs],Class["yumrepos::epel"] ],
         notify => Class["cloudlinux::cagefs_update"]
     }
 }
