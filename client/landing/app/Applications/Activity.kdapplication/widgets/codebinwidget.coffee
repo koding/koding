@@ -67,9 +67,6 @@ class ActivityCodeBinWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-
-
-
     @labelHTMLContent = new KDLabelView
       title : "HTML:"
 
@@ -168,10 +165,13 @@ class ActivityCodeBinWidget extends KDFormView
     @tagController.reset()
 
   switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit code snippet"
+    @submitBtn.setTitle "Edit code bin"
     @addCustomData "activity", activity
     {title, body, tags} = activity
-    {syntax, content} = activity.attachments[0]
+
+    HTMLcontent = activity.attachments[0]?.content
+    CSScontent = activity.attachments[1]?.content
+    JScontent = activity.attachments[2]?.content
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -179,9 +179,9 @@ class ActivityCodeBinWidget extends KDFormView
     fillForm = =>
       @title.setValue Encoder.htmlDecode title
       @description.setValue Encoder.htmlDecode body
-      @HTMLace.setContents Encoder.htmlDecode content
-      @CSSace.setContents Encoder.htmlDecode content
-      @JSace.setContents Encoder.htmlDecode content
+      @HTMLace.setContents Encoder.htmlDecode HTMLcontent
+      @CSSace.setContents Encoder.htmlDecode CSScontent
+      @JSace.setContents Encoder.htmlDecode JScontent
 
     if @HTMLace?.editor and @CSSace?.editor and @JSace?.editor
       fillForm()
