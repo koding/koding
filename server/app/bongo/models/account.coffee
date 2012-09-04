@@ -149,7 +149,7 @@ class JAccount extends jraphical.Module
     callback x+" foo"
 
   @findSuggestions = (seed, options, callback)->
-    {limit,blacklist}  = options
+    {limit, blacklist, skip}  = options
 
     @some {
       $or : [
@@ -160,6 +160,7 @@ class JAccount extends jraphical.Module
       _id     :
         $nin  : blacklist
     },{
+      skip
       limit
       sort    : 'profile.firstName' : 1
     }, callback
