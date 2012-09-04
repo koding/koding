@@ -21,7 +21,10 @@ class OpinionCommentView extends KDView
     , data
 
     @commentController        = new CommentListViewController view: @commentList
-    @addSubView showMore      = new CommentViewHeader delegate: @commentList, data
+    @addSubView showMore      = new CommentViewHeader
+      delegate : @commentList
+      maxCommentToShow :0
+    , data
     @addSubView @commentList
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
 
