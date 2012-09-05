@@ -21,6 +21,8 @@ ebin
 .project
 /kites/go/pkg
 /kites/go/bin
+/kites/go/src/code.google.com
+/kites/go/src/github.com
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
