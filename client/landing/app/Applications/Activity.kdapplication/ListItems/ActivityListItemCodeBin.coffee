@@ -124,7 +124,7 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @on "CodeBinSourceHasChanges",->
       log "yeah!"
-      @$(".result-frame").attr  srcdoc : "<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style><script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"</body></html>"
+      @$(".result-frame").attr  srcdoc : "<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
 
 
   viewAppended: ->
