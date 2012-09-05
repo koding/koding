@@ -4,6 +4,8 @@ are in, handling the communication between the ChatView and each
 Channel instance.
 ###
 TOPICREGEX = /#([\w-]+)/g
+MENTIONREGEX = /@([\w-]+)/g
+
 class Chat12345 extends AppController
   {mq} = bongo
   PUBLIC = 'public'
@@ -26,12 +28,16 @@ class Chat12345 extends AppController
 
   loadView:(mainView)->
     @joinChannel PUBLIC
+    @joinChannel "@#{@username}"
 
   joinChannel: (name) ->
     return @channels[name] if @channels[name]
 
     view = @getOptions().view
     channelPaneInstance = view.addChannelTab name
+
+    # When the tab is closed, remove the channel reference
+    # and sign the user off from the channel
     channelPaneInstance.on "KDObjectWillBeDestroyed", =>
       delete @channels[name]
       mq.presenceOff @username, name
@@ -49,30 +55,49 @@ class Chat12345 extends AppController
       else if status is "unbind"
         channel.removeOfflineUser presence    
 
+    # When the channel's view receives chat input, parse the body
+    # and broadcast it to corresponding channels.
     channel.view.on "ChatMessageSent", (messageBody) =>
-      @parseMessageForChannels messageBody, channel
+      @parseMessage messageBody, channel
       @broadcastOwnMessage messageBody, channel 
+      # Also broadcast to public channel
       if name isnt PUBLIC
         @broadcastOwnMessage messageBody, @channels[PUBLIC], channel
 
+    # Delegates to the channel to handle received message
     @broadcaster.on channelName, (msg) ->
       channel.messageReceived msg
 
     @channels[name] = channel
 
-  parseMessageForChannels: (message, fromChannel) ->
+  ###
+  # Parses the message body for any reference to a channel, then
+  # joins the user to that channel. It will then broadcast the 
+  # message body to the newly joined channel.
+  ###
+  parseMessage: (message, fromChannel) ->
     while match = TOPICREGEX.exec message
-      channelName = match[1]
+      channelName = match[0]
       channel = @joinChannel channelName
       @broadcastOwnMessage message, channel, fromChannel
 
+    while match = MENTIONREGEX.exec message
+      mention = match[1]
+      channel = @joinChannel "@#{mention}"
+      @broadcastOwnMessage message, channel, fromChannel
+
+  ###
+  # Broadcasts the message to channel toChannel. If fromChannel
+  # is provided, will set a property on the chat item so that
+  # channel reference will be rendered from the view.
+  ###
   broadcastOwnMessage: (messageBody, toChannel, fromChannel) ->
     chatItem = 
       author: @username
       body: messageBody
       meta: {createdAt: new Date().toISOString()}
 
-    chatItem.channel = "#"+fromChannel.name if fromChannel
+    chatItem.channel = fromChannel.name if fromChannel
 
     channelMQName = "client-#{toChannel.name}"
     @broadcaster.emit channelMQName, JSON.stringify(chatItem)
