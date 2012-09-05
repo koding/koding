@@ -23,12 +23,21 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       title: "Run this"
       cssClass:"clean-gray result-button"
       click:=>
+        @codeBinResultResetButton.show()
         @codeBinResultView.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges"
+
+    @codeBinResultResetButton = new KDButtonView
+      title: "Reset"
+      cssClass:"clean-gray result-reset-button hidden"
+      click:=>
+        @codeBinResultView.hide()
+        @codeBinResultView.emit "CodeBinResultShouldReset"
 
     @codeBinForkButton = new KDButtonView
       title: "Fork this"
       cssClass:"clean-gray fork-button"
+
       click:=>
 
   viewAppended: ->
@@ -61,6 +70,7 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       {{> @codeBinJSView}}
       </div>
       {{> @codeBinResultButton}}
+      {{> @codeBinResultResetButton}}
       {{> @codeBinForkButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>

@@ -29,9 +29,21 @@ class CodeBinActivityItemView extends ActivityItemChild
       title: "Run this"
       cssClass:"clean-gray result-button"
       click:=>
+        @codeBinResultResetButton.show()
         @codeBinResultView.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges"
 
+    @codeBinResultResetButton = new KDButtonView
+      title: "Reset"
+      cssClass:"clean-gray result-reset-button hidden"
+      click:=>
+        @codeBinResultView.hide()
+        @codeBinResultView.emit "CodeBinResultShouldReset"
+
+    @codeBinForkButton = new KDButtonView
+      title: "Fork this"
+      cssClass:"clean-gray fork-button"
+      click:=>
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
@@ -94,6 +106,8 @@ class CodeBinActivityItemView extends ActivityItemChild
       {{> @codeBinJSView}}
       </div>
       {{> @codeBinResultButton}}
+      {{> @codeBinResultResetButton}}
+      {{> @codeBinForkButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
@@ -121,8 +135,10 @@ class CodeBinResultView extends KDCustomHTMLView
         srcdoc:"<html><head></head><body></body></html>"
     , data
 
+    @on "CodeBinResultShouldReset",->
+      @$(".result-frame").attr srcdoc : "<html><head></head><body></body></html>"
+
     @on "CodeBinSourceHasChanges",->
-      log "yeah!"
       @$(".result-frame").attr  srcdoc : "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
 
 
