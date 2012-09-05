@@ -144,13 +144,14 @@ class ActivityCodeBinWidget extends KDFormView
   #     @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
 
   submit:=>
-    @addCustomData "codeHTML", @HTMLace.getContents()
-    @addCustomData "codeCSS", @CSSace.getContents()
-    @addCustomData "codeJS", @JSace.getContents()
+    @addCustomData "codeHTML", Encoder.htmlEncode @HTMLace.getContents()
+    @addCustomData "codeCSS", Encoder.htmlEncode @CSSace.getContents()
+    @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
     @once "FormValidationPassed", => @reset()
     super
 
   reset:=>
+    log "reseting widget"
     @submitBtn.setTitle "Share your Code Snippet"
     @removeCustomData "activity"
     @title.setValue ''
@@ -190,15 +191,23 @@ class ActivityCodeBinWidget extends KDFormView
 
   widgetShown:->
 
-    unless @HTMLace and @CSSace and @JSace
+    snippetCount = 0
+
+    log "showing widget", @HTMLace, @CSSace, @JSace
+    unless @HTMLace? and @CSSace? and @JSace?
+      log "loading ace"
       @loadAce()
-    else @refreshEditorView()
+    else
+      log "refreshing"
+      @refreshEditorView()
 
   snippetCount = 0
 
   loadAce:->
 
     @HTMLloader.show()
+    @CSSloader.show()
+    @JSloader.show()
 
     @aceHTMLWrapper.addSubView @HTMLace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceCSSWrapper.addSubView @CSSace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
@@ -248,7 +257,7 @@ class ActivityCodeBinWidget extends KDFormView
 
   viewAppended:()->
 
-    @setClass "update-options codesnip"
+    @setClass "update-options codebin"
     @setTemplate @pistachio()
     @template.update()
 

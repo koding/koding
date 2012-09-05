@@ -604,7 +604,7 @@ Includes =
         canvasLoader      : "./client/libs/canvas-loader.js"
 
         marked            : "./client/libs/marked.js"
-        prefixfree         : "./client/libs/prefixfree.min.js"
+        # prefixfree         : "./client/libs/prefixfree.min.js"
 
         # bootstrapPopover  : "./client/libs/bootstrap-popover.js"
         # xml2json          : "./client/libs/xml2json.js"
