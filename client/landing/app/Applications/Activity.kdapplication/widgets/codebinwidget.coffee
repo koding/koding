@@ -184,7 +184,7 @@ class ActivityCodeBinWidget extends KDFormView
       @CSSace.setContents Encoder.htmlDecode CSScontent
       @JSace.setContents Encoder.htmlDecode JScontent
 
-    if @HTMLace?.editor and @CSSace?.editor and @JSace?.editor
+    if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
     else
       @once "codeBin.aceLoaded", => fillForm()
