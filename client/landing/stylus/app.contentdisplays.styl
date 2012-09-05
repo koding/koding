@@ -780,6 +780,7 @@ a.opinion-size-link
     margin-right 11px
 
   pre code
+    min-height 288px
     max-height 288px
 .code-bin-source
 
@@ -787,6 +788,8 @@ a.opinion-size-link
     padding 8px 10px
     min-height 150px
     max-height 300px
+
+    scrollbars()
 
   pre.subview span
     font-size 10px
@@ -806,46 +809,3 @@ a.opinion-size-link
     width 100%
     padding
     rounded(4px)
-
-::-webkit-scrollbar
-  width: 10px
-  height: 10px
-
-::-webkit-scrollbar-button:start:decrement,
-::-webkit-scrollbar-button:end:increment
-  height: 1px
-  width: 1px
-  display: none
-  background: #242424
-  background-repeat: no-repeat
-
-::-webkit-scrollbar-track-piece
-  background-color: #242424
-
-::-webkit-scrollbar-corner
-  background-color: #242424
-
-::-webkit-scrollbar-thumb:vertical
-  height: 50px
-  background: -webkit-gradient(linear, left top, right top, color-stop(0%, #4d4d4d), color-stop(100%, #333333))
-  border: 1px solid #0d0d0d
-  border-top: 1px solid #666666
-  border-left: 1px solid #666666
-  &:hover
-    background: -webkit-gradient(linear, left top, right top, color-stop(0%, #696969), color-stop(100%, #4d4d4d))
-    border: 1px solid #2b2b2b
-    border-top: 1px solid #848484
-    border-left: 1px solid #848484
-
-
-::-webkit-scrollbar-thumb:horizontal
-  width: 50px
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #4d4d4d), color-stop(100%, #333333))
-  border: 1px solid #1f1f1f
-  border-top: 1px solid #666666
-  border-left: 1px solid #666666
-  &:hover
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #696969), color-stop(100%, #4d4d4d))
-    border: 1px solid #2b2b2b
-    border-top: 1px solid #848484
-    border-left: 1px solid #848484
