@@ -18,6 +18,9 @@ sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json
+.project
+/kites/go/pkg
+/kites/go/bin
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
