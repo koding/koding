@@ -109,7 +109,6 @@ class CodeBinActivityItemView extends ActivityItemChild
 
 class CodeBinResultView extends KDCustomHTMLView
   constructor:(options,data)->
-    log "Result VIew data is ",data
     options.cssClass = "result-container"
     super options, data
     data = @getData()
@@ -124,7 +123,7 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @on "CodeBinSourceHasChanges",->
       log "yeah!"
-      @$(".result-frame").attr  srcdoc : "<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
+      @$(".result-frame").attr  srcdoc : "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
 
 
   viewAppended: ->
