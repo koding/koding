@@ -50,9 +50,9 @@ class Chat12345 extends AppController
 
     channel.view.on "ChatMessageSent", (messageBody) =>
       @parseMessageForChannels messageBody
-      @broadcastOwnMessage channel, messageBody
+      @broadcastOwnMessage messageBody, channel 
       if name isnt PUBLIC
-        @broadcastOwnMessage @channels[PUBLIC], messageBody
+        @broadcastOwnMessage messageBody, @channels[PUBLIC], channel
 
     @broadcaster.on channelName, (msg) ->
       channel.messageReceived msg
@@ -64,18 +64,20 @@ class Chat12345 extends AppController
     while match = topicExp.exec message
       channelName = match[1]
       channel = @joinChannel channelName
-      @broadcastOwnMessage channel, message
+      @broadcastOwnMessage message, channel
 
-  broadcastOwnMessage: (channel, messageBody) ->
+  broadcastOwnMessage: (messageBody, toChannel, fromChannel) ->
     chatItem = 
       author: @username
       body: messageBody
-      meta: {createdAt: new Date()}
+      meta: {createdAt: new Date().toISOString()}
 
-    channelMQName = "client-#{channel.name}"
+    chatItem.channel = "#"+fromChannel.name if fromChannel
+
+    channelMQName = "client-#{toChannel.name}"
     @broadcaster.emit channelMQName, JSON.stringify(chatItem)
     chatItem.author = "me"
-    channel.messageReceived chatItem
+    toChannel.messageReceived chatItem
 
 class Channel extends KDEventEmitter
   constructor: (options = {}, data) ->
@@ -95,7 +97,6 @@ class Channel extends KDEventEmitter
 
   messageReceived: (message) ->
     @messages.push message
-    message.channel = @name
     @view.newMessage message
 
 class ChatView extends KDView
@@ -194,7 +195,8 @@ class ChatListItemView extends KDListItemView
     """
     <div class='meta'>      
       <span class='time'>[{{#(meta.createdAt)}}] </span>
-      <span class="author-wrapper">[{{#(author)}}]: </span>
+      #{if @getData().channel? then "<span>[{{#(channel)}}]</span>" else ''}
+      <span class="author-wrapper">{{#(author)}}: </span>
       <span>{{#(body)}}</span>
     </div>
     """
