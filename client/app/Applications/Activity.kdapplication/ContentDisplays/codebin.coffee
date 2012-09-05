@@ -26,6 +26,11 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
         @codeBinResultView.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges"
 
+    @codeBinForkButton = new KDButtonView
+      title: "Fork this"
+      cssClass:"clean-gray fork-button"
+      click:=>
+
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeBinActivity
     super()
@@ -56,6 +61,7 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       {{> @codeBinJSView}}
       </div>
       {{> @codeBinResultButton}}
+      {{> @codeBinForkButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
