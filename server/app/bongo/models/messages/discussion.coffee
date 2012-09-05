@@ -266,43 +266,45 @@ class JDiscussion extends JPost
                         if err
                           callback err
                         else
-                          callback null, comment
-                          @fetchActivityId (err, id)->
-                            CActivity.update {_id: id}, {
-                              $set: 'sorts.repliesCount': count
-                            }, log
-                          @fetchOrigin (err, origin)=>
-                            if err
-                              log "Couldn't fetch the origin"
-                            else
-                              unless exempt
-                                @emit 'ReplyIsAdded', {
-                                  origin
-                                  subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'reply'
-                                  replier       : ObjectRef(delegate).data
-                                  reply         : ObjectRef(comment).data
-                                  repliesCount  : count
-                                  relationship  : docs[0]
-                                }
-                              @follow client, emitActivity: no, (err)->
-                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                              callback null, comment
+                              @fetchActivityId (err, id)->
+                                log "REPLY activityId is", id
+                                CActivity.update {_id: id}, {
+                                  $set:
+                                    'sorts.repliesCount'  : count
+
+                                }, log
+                              @fetchOrigin (err, origin)=>
+                                if err
+                                  log "Couldn't fetch the origin"
+                                else
+                                  unless exempt
+                                    @emit 'ReplyIsAdded', {
+                                      origin
+                                      subject       : ObjectRef(@).data
+                                      actorType     : 'replier'
+                                      actionType    : 'reply'
+                                      replier       : ObjectRef(delegate).data
+                                      reply         : ObjectRef(comment).data
+                                      repliesCount  : count
+                                      relationship  : docs[0]
+                                    }
+                                  @follow client, emitActivity: no, (err)->
+                                  @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   fetchTeaser:(callback)->
     @beginGraphlet()
       .edges
         query         :
           targetName  : 'JOpinion'
-          as          : 'reply'
+          as          : 'opinion'
           'data.deletedAt':
             $exists   : no
           'data.flags.isLowQuality':
             $ne       : yes
-        limit         : 3
+        limit         : 5
         sort          :
-          timestamp   : -1
-      .reverse()
+          timestamp   : 1
       # .edges
       #   query         :
       #     targetName  : 'JComment'

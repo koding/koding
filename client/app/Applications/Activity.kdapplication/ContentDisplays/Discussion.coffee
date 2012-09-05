@@ -150,12 +150,13 @@ class ContentDisplayDiscussion extends KDView
 
     # temp for beta
     # take this bit to comment view
-    if @getData().repliesCount? and @getData().repliesCount > 0
-      opinionController = @opinionBox.opinionController
-      opinionController.fetchRelativeOpinions 5, 0, (err, opinions)=>
-        for opinion in opinions
-          @opinionBox.opinionList.addItem opinion, null, {type : "slideDown", duration : 100}
-        @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
+    # this is useful when the snaphots don't work
+    # if @getData().repliesCount? and @getData().repliesCount > 0
+    #   opinionController = @opinionBox.opinionController
+    #   opinionController.fetchRelativeOpinions 5, 0, (err, opinions)=>
+    #     for opinion in opinions
+    #       @opinionBox.opinionList.addItem opinion, null, {type : "slideDown", duration : 100}
+    #     @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
   pistachio:->
     """
