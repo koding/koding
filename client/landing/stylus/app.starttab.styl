@@ -52,9 +52,10 @@ app.starttab.styl
 
 .app-item-container
   height                  auto
-  padding                 20px 0 48px 0
+  padding                 20px 0% 48px 1%
   width                   100%
   overflow                visible
+  borderBox()
 
   figure
     display               inline-block
@@ -176,13 +177,13 @@ app.starttab.styl
 .start-tab-recent-container
   position                absolute
   border                  1px solid rgba(0, 0, 0, 0.07)
-  bottom                  5px
+  bottom                  0
   left                    0
   padding                 0
   bg                      color, white
   size                    100%, 28px
   vendor                  transition, height .2s ease-in .1s
-  shadow                  0 0 6px rgba(0,0,0,0.3)
+  shadow                  0 0 3px rgba(0,0,0,0.3)
   borderBox()
   &:hover
     height                120px
