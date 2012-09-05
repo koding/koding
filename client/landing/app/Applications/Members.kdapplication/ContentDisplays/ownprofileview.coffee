@@ -92,7 +92,7 @@ class OwnProfileView extends KDView
         @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-    koding.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
+    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
       unless err
         callback? tags
       else

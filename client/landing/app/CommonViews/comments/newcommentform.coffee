@@ -10,7 +10,7 @@ class NewCommentForm extends KDView
     super options,data
 
   viewAppended:()->
-    {profile} = @getSingleton('mainController').getVisitor().currentDelegate
+    {profile} = KD.whoami()
     host = "http://#{location.host}/"
     fallbackUrl = "url(http://www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
 

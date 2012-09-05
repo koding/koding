@@ -88,6 +88,8 @@ class MainController extends KDController
 
     @emit "AccountChanged", account
 
+    @userAccount = account
+
     KDRouter.init()
     unless @mainViewController
       @loginScreen = new LoginView
@@ -166,7 +168,7 @@ class MainController extends KDController
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
-        koding.api.JUser.logout ->
+        KD.remote.api.JUser.logout ->
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
@@ -184,9 +186,9 @@ class MainController extends KDController
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
-  getAccount: -> @getVisitor().currentDelegate
+  getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof koding.api.JAccount
+  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
 
   unmarkUserAsTroll:(data)->
 

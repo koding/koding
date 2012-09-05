@@ -145,7 +145,7 @@ class NotificationListItem extends KDListItemView
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
     else
-      koding.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
+      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
         if post
           appManager.tell "Activity", "createContentDisplay", post
         else

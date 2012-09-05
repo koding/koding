@@ -36,7 +36,7 @@ class ContentDisplayStatusUpdate extends KDView
 
   viewAppended:()->
 
-    # return if @getData().constructor is koding.api.CStatusActivity
+    # return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()

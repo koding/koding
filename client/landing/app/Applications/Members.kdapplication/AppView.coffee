@@ -152,9 +152,9 @@ class MembersListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
     {profile} = @getData()
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
+    #{currentDelegate} = @getSingleton('mainController').getVisitor()
 
-    @isMyItem() if profile.nickname is currentDelegate.profile.nickname
+    @isMyItem() if profile.nickname is KD.whoami().profile.nickname
 
   pistachio:->
     """

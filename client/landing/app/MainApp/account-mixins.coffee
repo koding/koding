@@ -67,7 +67,7 @@ AccountMixin = do ->
       getChannelName =(kiteName)-> "private-kite-#{kiteName}"
 
       fetchChannel =(kiteName, callback)->  
-        koding.mq.fetchChannel getChannelName(kiteName), callback
+        KD.remote.fetchChannel getChannelName(kiteName), callback
 
       (options, callback=->)->
         scrubber = new Scrubber localStore

@@ -5,7 +5,7 @@ class InboxNotificationController extends KDListViewController
     @selectedMessages = {}
   
   loadNotifications:->
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
+    #{currentDelegate} = KD.getSingleton('mainController').getVisitor()
     
     # currentDelegate.fetchNotificationsTimeline {}, {
     #   options:
