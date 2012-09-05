@@ -83,7 +83,7 @@ Broker.prototype.subscribe = function (channelName) {
     return channel;
 };
 
-Broker.prototype.presence = function (who, where, listener) {
+Broker.prototype.presenceOn = function (who, where, listener) {
   sendWsMessage(this.ws, "client-presence", where, who);
   this.ws.addEventListener("message", function (e) {
     var data = JSON.parse(e.data);
@@ -92,6 +92,10 @@ Broker.prototype.presence = function (who, where, listener) {
     if (data.event !== "broker:presence") return;
     listener(data.payload);
   });
+};
+
+Broker.prototype.presenceOff = function(who, where, listener) {
+  sendWsMessage(this.ws, "client-presence", where, who);
 };
 
 Broker.prototype.authorize = function (channelName, callback) {

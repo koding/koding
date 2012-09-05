@@ -107,7 +107,7 @@ handle(Req, State) ->
         [<<"auth">>] ->
             {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
             %PrivateChannel = uuid:to_string(uuid:uuid4()),
-            PrivateChannel = <<Channel/binary, ".private">>,
+            PrivateChannel = <<"secret-", Channel/binary, ".private">>,
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
@@ -182,13 +182,19 @@ handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
 
 handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
     [_Event, Where, Who, _Meta] = Data,
-    case broker:presence(Conn, Where, Who) of
-        {error, _Error} -> Subs;
+    % This only acts as a key so that it can be used to
+    % remove the subscription later from the dictionary.
+    Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
+    case dict:find(Exchange, Subs) of
         {ok, Subscription} ->
-            % This only acts as a key so that it can be used to
-            % remove the subscription later from the dictionary.
-            Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
-            dict:store(Exchange, Subscription, Subs)
+            broker:unsubscribe(Subscription),
+            dict:erase(Exchange, Subs);
+        error ->
+            case broker:presence(Conn, Where, Who) of
+                {error, _Error} -> Subs;
+                {ok, Subscription} ->            
+                    dict:store(Exchange, Subscription, Subs)
+            end
     end;
 
 handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
