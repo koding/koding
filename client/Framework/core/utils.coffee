@@ -243,12 +243,13 @@ __utils =
       return prefix if prefix.length >= length
 
       if memorable
-        pattern = if prefix.match(consonant) then vowel else consonant
+        pattern = if consonant.test(prefix) then vowel else consonant
 
-      n = (Math.floor(Math.random() * 100) % 94) + 33
+      n    = (Math.floor(Math.random() * 100) % 94) + 33
       char = String.fromCharCode(n)
       char = char.toLowerCase() if memorable
-      if !char.match pattern
+
+      unless pattern.test char
         return __utils.generatePassword length, memorable, pattern, prefix
 
       return __utils.generatePassword length, memorable, pattern, "" + prefix + char
