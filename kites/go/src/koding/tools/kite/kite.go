@@ -3,8 +3,8 @@ package kite
 import (
 	"github.com/streadway/amqp"
 	"io"
-	"koding/dnode"
-	"koding/log"
+	"koding/tools/dnode"
+	"koding/tools/log"
 	"strings"
 	"time"
 )
