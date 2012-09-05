@@ -22,12 +22,15 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinCSSView = new CodeSnippetView {}, codeBinCSSData
     @codeBinJSView = new CodeSnippetView {}, codeBinJSData
 
-    @codeBinResultView = new CodeBinResultView
-      tagName: "iframe"
-      attributes:
-        srcdoc:"<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style><script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"</body></html>"
+    @codeBinResultView = new CodeBinResultView {}, data
+    @codeBinResultView.hide()
 
-    ,data
+    @codeBinResultButton = new KDButtonView
+      title: "Run this"
+      cssClass:"clean-gray result-button"
+      click:=>
+        @codeBinResultView.show()
+        @codeBinResultView.emit "CodeBinSourceHasChanges"
 
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
@@ -90,6 +93,7 @@ class CodeBinActivityItemView extends ActivityItemChild
       {{> @codeBinCSSView}}
       {{> @codeBinJSView}}
       </div>
+      {{> @codeBinResultButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
@@ -105,14 +109,23 @@ class CodeBinActivityItemView extends ActivityItemChild
 
 class CodeBinResultView extends KDCustomHTMLView
   constructor:(options,data)->
+    log "Result VIew data is ",data
     options.cssClass = "result-container"
     super options, data
     data = @getData()
 
     @codeView = new KDCustomHTMLView
-      tagName  : "code"
+      tagName  : "iframe"
+      cssClass : "result-frame"
       pistachio : '{{#(content)}}'
+      attributes:
+        srcdoc:"<html><head></head><body></body></html>"
     , data
+
+    @on "CodeBinSourceHasChanges",->
+      log "yeah!"
+      @$(".result-frame").attr  srcdoc : "<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style><script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"</body></html>"
+
 
   viewAppended: ->
 
@@ -123,7 +136,7 @@ class CodeBinResultView extends KDCustomHTMLView
   pistachio:->
     """
     <div class='kdview'>
-      {pre{> @codeView}}
+      {{> @codeView}}
     </div>
     """
 

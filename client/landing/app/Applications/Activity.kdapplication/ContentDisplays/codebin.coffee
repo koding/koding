@@ -12,22 +12,25 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
     @unsetClass 'status'
     @setClass 'codebin'
 
-    @codeBinHTMLView = new CodeSnippetView {},@getData().attachments[0]
-    @codeBinCSSView = new CodeSnippetView {},@getData().attachments[1]
-    @codeBinJSView = new CodeSnippetView {},@getData().attachments[2]
+    @codeBinHTMLView = new CodeSnippetView {},data.attachments[0]
+    @codeBinCSSView = new CodeSnippetView {},data.attachments[1]
+    @codeBinJSView = new CodeSnippetView {},data.attachments[2]
 
-    @codeBinResultView = new CodeBinResultView
-      tagName: "iframe"
-      attributes:
-        srcdoc:"<html><head><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style><script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"</body></html>"
+    @codeBinResultView = new CodeBinResultView {} ,data
+    @codeBinResultView.hide()
 
-    ,data
+    @codeBinResultButton = new KDButtonView
+      title: "Run this"
+      cssClass:"clean-gray result-button"
+      click:=>
+        @codeBinResultView.show()
+        @codeBinResultView.emit "CodeBinSourceHasChanges"
 
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeBinActivity
     super()
-    @setTemplate @pistachio()
-    @template.update()
+    # @setTemplate @pistachio()
+    # @template.update()
 
     maxHeight = 30
     views = [@codeBinJSView,@codeBinCSSView,@codeBinHTMLView]
@@ -37,8 +40,8 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
         maxHeight = view.getHeight()
 
     @$("pre.subview").css height:maxHeight
-  pistachio:->
 
+  pistachio:->
     """
     <span>
       {{> @avatar}}
@@ -52,6 +55,7 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       {{> @codeBinCSSView}}
       {{> @codeBinJSView}}
       </div>
+      {{> @codeBinResultButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
