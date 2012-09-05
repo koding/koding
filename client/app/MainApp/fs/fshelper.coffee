@@ -112,13 +112,11 @@ class FSHelper
 
   @isValidFileName = (name) ->
 
-    /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name)
+    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 
   @escapeFilePath = (name) ->
 
-    name  = name.replace /\'/g, '\\\''
-    name  = name.replace /\"/g, '\\"'
-    ' "' + name + '" '
+    return " \"#{name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"')}\" "
 
   @fileTypes =
 

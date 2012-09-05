@@ -7,7 +7,7 @@ class StartTabMainView extends JView
     super
 
     @listenWindowResize()
-    
+
     @appIcons      = {}
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")

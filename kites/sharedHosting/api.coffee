@@ -153,6 +153,7 @@ module.exports = new Kite 'sharedHosting'
 
     latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
     versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+    escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\ ')
 
     cb = (err)->
       if err then console.error err
@@ -161,9 +162,10 @@ module.exports = new Kite 'sharedHosting'
     mkdirp versionedPath, (err)->
       if err then cb err
       else
-        exec "cp -r #{userAppPath}/* #{versionedPath}/ && rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
-          if err or stderr then cb err
-          else cb null
+        exec "rm '#{escapePath latestPath}'", ->
+          exec "cp -r #{escapePath userAppPath}/* '#{escapePath versionedPath}/' && ln -s '#{escapePath versionedPath}' '#{escapePath latestPath}'", (err, stdout, stderr)->
+            if err or stderr then cb err
+            else cb null
 
 
     # mkdirp versionedPath, (err)->
