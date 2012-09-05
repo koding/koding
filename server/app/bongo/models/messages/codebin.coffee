@@ -22,6 +22,7 @@ class JCodeBin extends JPost
 
   @create = secure (client, data, callback)->
     codeBin=
+      meta        : data.meta
       title       : data.title
       body        : data.body
       attachments : [{
@@ -39,11 +40,11 @@ class JCodeBin extends JPost
         content   : data.codeJS
         syntax    : 'javascript'
       }]
-      meta        : data.meta
     JPost.create.call @, client, codeBin, callback
 
   modify: secure (client, data, callback)->
     codeBin =
+      meta        : data.meta
       title       : data.title
       body        : data.body
       attachments : [{
@@ -61,7 +62,7 @@ class JCodeBin extends JPost
         content   : data.codeJS
         syntax    : 'javascript'
       }]
-      meta        : data.meta
+
     JPost::modify.call @, client, codeBin, callback
 
   reply: secure (client, comment, callback)->
