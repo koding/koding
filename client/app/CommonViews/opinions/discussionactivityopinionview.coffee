@@ -30,6 +30,6 @@ class DiscussionActivityOpinionView extends KDView
     @opinionController = new OpinionListViewController view: @opinionList
 
     @addSubView @opinionList
-    if data.replies
-      for reply, i in data.replies when reply? and 'object' is typeof reply
+    if data.opinions
+      for reply, i in data.opinions when reply? and 'object' is typeof reply
         @opinionList.addItem reply

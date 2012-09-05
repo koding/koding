@@ -42,12 +42,12 @@ class DiscussionActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    if @getData().repliesCount? and @getData().repliesCount > 0
-      opinionController = @opinionBox.opinionController
-      opinionController.fetchRelativeOpinions 3, 0, (err, opinions)=>
-        for opinion in opinions
-          @opinionBox.opinionList.addItem opinion, null
-        @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
+    # if @getData().repliesCount? and @getData().repliesCount > 0
+    #   opinionController = @opinionBox.opinionController
+    #   opinionController.fetchRelativeOpinions 3, 0, (err, opinions)=>
+    #     for opinion in opinions
+    #       @opinionBox.opinionList.addItem opinion, null
+    #     @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
     # if @getData().repliesCount > 3
     #   @opinionBox.addSubView test = new KDCustomHTMLView
