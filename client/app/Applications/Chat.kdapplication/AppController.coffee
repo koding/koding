@@ -3,6 +3,7 @@ The main controller to keep track of channels the current client
 are in, handling the communication between the ChatView and each
 Channel instance.
 ###
+TOPICREGEX = /#([\w-]+)/g
 class Chat12345 extends AppController
   {mq} = bongo
   PUBLIC = 'public'
@@ -49,7 +50,7 @@ class Chat12345 extends AppController
         channel.removeOfflineUser presence    
 
     channel.view.on "ChatMessageSent", (messageBody) =>
-      @parseMessageForChannels messageBody
+      @parseMessageForChannels messageBody, channel
       @broadcastOwnMessage messageBody, channel 
       if name isnt PUBLIC
         @broadcastOwnMessage messageBody, @channels[PUBLIC], channel
@@ -59,12 +60,11 @@ class Chat12345 extends AppController
 
     @channels[name] = channel
 
-  parseMessageForChannels: (message) ->
-    topicExp = /#([\w-]+)/g
-    while match = topicExp.exec message
+  parseMessageForChannels: (message, fromChannel) ->
+    while match = TOPICREGEX.exec message
       channelName = match[1]
       channel = @joinChannel channelName
-      @broadcastOwnMessage message, channel
+      @broadcastOwnMessage message, channel, fromChannel
 
   broadcastOwnMessage: (messageBody, toChannel, fromChannel) ->
     chatItem = 
@@ -192,12 +192,15 @@ class ChatListItemView extends KDListItemView
     @template.update()
 
   pistachio:->
+    parsedBody = @getData().body.replace(TOPICREGEX, "<a href='#'>$&</a>")
+    parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a href='#'>$&</a>")
+
     """
     <div class='meta'>      
       <span class='time'>[{{#(meta.createdAt)}}] </span>
-      #{if @getData().channel? then "<span>[{{#(channel)}}]</span>" else ''}
+      #{if @getData().channel? then "<span>[#{parsedChannel}]</span>" else ''}
       <span class="author-wrapper">{{#(author)}}: </span>
-      <span>{{#(body)}}</span>
+      <span>#{parsedBody}</span>
     </div>
     """
 
