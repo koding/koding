@@ -22,6 +22,7 @@ class hosting_packages::ruby {
         "readline-devel",
         "zlib-devel",
         "fcgi-devel",
+        "augeas-devel",
     ]
 
     $ruby_gems = [
@@ -59,6 +60,7 @@ class hosting_packages::ruby {
         'actionmailer',
         'activeresource',
         'rails',
+        'ruby-augeas',
     ]
     
     package { $ruby18:
