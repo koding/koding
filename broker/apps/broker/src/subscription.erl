@@ -83,7 +83,7 @@ init([Connection, Client, Conn, Exchange]) ->
 
     {ok, Channel} = channel(Connection),
     Broadcastable = broadcastable(Exchange),
-    
+
     spawn(?MODULE, notify_first, [SendFun, channel(Connection), Exchange]),
 
     State = #state{ connection = Connection,

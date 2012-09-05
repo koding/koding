@@ -51,6 +51,8 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
+    error_logger:tty(get_env(verbose, true)),
+
     % This will start the Broker gen_server and the subscription_sup
     broker:start_link(),
     
@@ -185,7 +187,7 @@ handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
         {ok, Subscription} ->
             % This only acts as a key so that it can be used to
             % remove the subscription later from the dictionary.
-            Exchange = <<Who/binary,"-presence">>,
+            Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
             dict:store(Exchange, Subscription, Subs)
     end;
 

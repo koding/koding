@@ -31,6 +31,9 @@ class Chat12345 extends AppController
 
     view = @getOptions().view
     channelPaneInstance = view.addChannelTab name
+    channelPaneInstance.on "KDObjectWillBeDestroyed", =>
+      delete @channels[name]
+
     channelName = "client-#{name}"
 
     channel = new Channel 
@@ -56,7 +59,7 @@ class Chat12345 extends AppController
     @channels[name] = channel
 
   parseMessageForChannels: (message) ->
-    topicExp = /#([\w]+)/g
+    topicExp = /#([\w-]+)/g
     while match = topicExp.exec message
       channelName = match[1]
       channel = @joinChannel channelName
@@ -91,6 +94,7 @@ class Channel extends KDEventEmitter
 
   messageReceived: (message) ->
     @messages.push message
+    message.channel = @name
     @view.newMessage message
 
 class ChatView extends KDView
