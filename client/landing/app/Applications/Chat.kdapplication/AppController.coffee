@@ -33,6 +33,7 @@ class Chat12345 extends AppController
     channelPaneInstance = view.addChannelTab name
     channelPaneInstance.on "KDObjectWillBeDestroyed", =>
       delete @channels[name]
+      mq.presenceOff @username, name
 
     channelName = "client-#{name}"
 
@@ -41,7 +42,7 @@ class Chat12345 extends AppController
       view: channelPaneInstance
 
     # Presence received has format [key, "bind" || "unbind"]
-    mq.presence @username, name, ([presence, status]) =>
+    mq.presenceOn @username, name, ([presence, status]) =>
       if status is "bind"
         channel.addOnlineUser presence
       else if status is "unbind"
