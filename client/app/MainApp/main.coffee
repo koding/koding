@@ -3,12 +3,13 @@
 
 mainController = new MainController
 
+
+KD.remote.on 'loggedInStateChanged', (account)->
+  mainController.accountChanged account, {connected: no}
+
 # Pistachio.MODE = if KD.env is 'dev' then 'development' else 'production'
 
-KD.remote.use (remote, connection)->
-  clientId = localStorage.clientId or= bongo.createId()
-  connection.clientId = clientId
-  $.cookie 'clientId', clientId
+$.cookie 'clientId', localStorage.clientId
 
 # Cacheable = new Cacheable
 
@@ -151,10 +152,10 @@ KD.remote.connect -> console.log 'koding is now connected to the backend'
 #    mainController.setVisitor new api.JVisitor startListening: yes
 #
 #    cyclePrivateChannel =(delegate)->
-#      koding.api.JChannel.fetch delegate.getId()+'_private', (err, channelId)->
-#        channel = koding.mq?.subscribe channelId
+#      KD.remote.api.JChannel.fetch delegate.getId()+'_private', (err, channelId)->
+#        channel = KD.remote.mq?.subscribe channelId
 #        channel.bind 'change.channel', ->
-#          koding.mq.unsubscribe channelId
+#          KD.remote.mq.unsubscribe channelId
 #          cyclePrivateChannel delegate
 #        ###channel.bind 'message', (msg)->
 #          console.log msg###
@@ -170,7 +171,7 @@ KD.remote.connect -> console.log 'koding is now connected to the backend'
 #    firstLoad = no
 #
 #  updateModalActive = no
-#  koding.api.JVisitor.getVersion (err, version)->
+#  KD.remote.api.JVisitor.getVersion (err, version)->
 #    return if KD.version is version or updateModalActive
 #    updateModalActive = yes
 #

@@ -35,9 +35,9 @@ class FollowedModalView extends KDModalView
 
     participants = data
 
-    if participants[0] instanceof koding.api.JAccount
+    if participants[0] instanceof KD.remote.api.JAccount
       @type = "account"
-    else if participants[0] instanceof koding.api.JTag
+    else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
 
     options.title    or= titleMap()[@type]
@@ -94,7 +94,7 @@ class FollowedModalView extends KDModalView
         if err then warn err
         else @putList participants
         ###
-          koding.api.JTag.markFollowing participants, (err, result)=>
+          KD.remote.api.JTag.markFollowing participants, (err, result)=>
             if err then warn err
             else @putList result
         ###

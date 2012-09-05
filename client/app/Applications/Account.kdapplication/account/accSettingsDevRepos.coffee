@@ -1,7 +1,7 @@
 class AccountRepoListController extends KDListViewController
   constructor:->
     super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
     list = @getListView()
 
   loadView:->
@@ -32,7 +32,7 @@ class AccountRepoListController extends KDListViewController
 
 class AccountRepoList extends KDListView
   constructor:(options,data)->
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate    
+    @account = KD.whoami()    
     options = $.extend
       subItemClass : AccountRepoListItem
     ,options
@@ -168,7 +168,7 @@ class AccountRepoList extends KDListView
     switch f.operation
       
       when "add"
-        jr = new koding.api[f.type]
+        jr = new KD.remote.api[f.type]
           title : f.title
           url   : f.url
           color : f.color

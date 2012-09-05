@@ -56,7 +56,7 @@ class LinkGroup extends KDCustomHTMLView
         new FollowedModalView {group}, @getData()
 
     sep = ' '
-    if participants[0] instanceof koding.api.JAccount
+    if participants[0] instanceof KD.remote.api.JAccount
       sep = ', '
     switch totalCount
       when 0 then ""

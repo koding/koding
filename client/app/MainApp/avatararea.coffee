@@ -157,7 +157,7 @@ class AvatarPopupShareStatus extends AvatarPopup
     super()
 
     if (visitor = KD.getSingleton('mainController').getVisitor())
-      {profile} = visitor.currentDelegate
+      {profile} = KD.whoami()
       if @statusField.getOptions().placeholder is ""
         @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
 
@@ -174,7 +174,7 @@ class AvatarPopupShareStatus extends AvatarPopup
 
   updateStatus:(status)->
 
-    koding.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView

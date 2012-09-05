@@ -79,7 +79,7 @@ class NavigationInviteLink extends NavigationLink
   
   sendInvite:(formData, modal)->
 
-    koding.api.JInvitation.create
+    KD.remote.api.JInvitation.create
       emails        : [formData.recipient]
       customMessage :
         # subject     : formData.subject

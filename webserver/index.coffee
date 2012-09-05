@@ -32,6 +32,7 @@ app.get '/auth', do ->
     channel = req.query?.channel
     return res.send 'user error', 400 unless channel
     clientId = req.cookies.clientid
+    console.log clientId
     JSession.one {clientId}, (err, session)->
       if err
         authenticationFailed(res, err)

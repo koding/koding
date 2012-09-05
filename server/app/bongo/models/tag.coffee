@@ -9,7 +9,7 @@ class JTag extends Followable
   # @::mixin Followable::   # brings only prototype methods
   # @::mixin Filterable::   # brings only prototype methods
 
-  {ObjectId, ObjectRef, Inflector, secure, daisy} = require 'bongo'
+  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
 
   @share()
 
@@ -76,7 +76,7 @@ class JTag extends Followable
       if err then callback err
       else
         teasers = []
-        collectTeasers = bongo.race (i, root, fin)->
+        collectTeasers = race (i, root, fin)->
           root.fetchTeaser (err, teaser)->
             if err then callback err
             else

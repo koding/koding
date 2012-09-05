@@ -365,7 +365,7 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super
 
   putDefaultValues:(stringTags)->
-    koding.api.JTag.some
+    KD.remote.api.JTag.some
       title     :
         $in     : stringTags
     ,

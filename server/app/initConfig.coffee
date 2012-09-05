@@ -58,5 +58,6 @@ koding = new Bongo
     #password  : "x1srTA7!%Vb}$n|S"
   }
 koding.on 'auth', (client)->
-  JVisitor.authenticateClient client, console.log.bind(console, client)
+  JVisitor.authenticateClient client, (err, account)->
+    koding.handleResponse client.secretName, 'changeLoggedInState', [account]
 koding.connect console.log

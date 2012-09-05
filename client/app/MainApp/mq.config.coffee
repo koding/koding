@@ -1,4 +1,6 @@
 KD.remote = new Bongo
+  getSessionToken:->
+    localStorage.clientId or $.cookie('clientId')
   mq: do->
 
     brokerOptions = {

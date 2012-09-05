@@ -47,9 +47,9 @@ KD = @KD or {}
     else
       'https://dev-api.koding.com'
   
-  whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
+  whoami:-> KD.getSingleton('mainController').userAccount
   
-  isLoggedIn:-> @whoami() instanceof koding.api.JAccount
+  isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
   
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
 
@@ -59,8 +59,7 @@ KD = @KD or {}
 
   requireLogin:(errMsg, callback)->
     [callback, errMsg] = [errMsg, callback] unless callback
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    if currentDelegate instanceof koding.api.JGuest
+    if KD.whoami() instanceof KD.remote.api.JGuest
       # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'

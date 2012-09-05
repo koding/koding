@@ -208,7 +208,7 @@ class Shell12345 extends KDViewController
 
   welcomeUser:(isTerminalNew)->
     if isTerminalNew
-      username = KD.getSingleton('mainController').getVisitor().currentDelegate.profile.nickname
+      username = KD.whoami().profile.nickname
       welcomeText = "cowsay mooOOooOOoo what up #{username}! welcome to your terminal... check my w"
       @send "#{welcomeText}\n"
 

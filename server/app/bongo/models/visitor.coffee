@@ -67,8 +67,7 @@ class JVisitor extends Model
                 callback? err
               else
                 client.connection = delegate: account
-                #visitor.emit ['change','login'], account
-                callback null
+                callback null, account
 
   start: secure ({connection}, callback)->
     visitor = @

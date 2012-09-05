@@ -24,18 +24,18 @@ class Inbox12345 extends AppController
 
   fetchMessages:(options, callback)->
     # log "FETCH MESSAGES INTERNAL"
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
+    #{currentDelegate} = KD.getSingleton('mainController').getVisitor()
     #currentDelegate.fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    koding.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   loadView:(mainView)->
     mainView.createCommons()
     mainView.createTabs()
 
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
+    #{currentDelegate} = KD.getSingleton('mainController').getVisitor()
 
     # currentDelegate.fetchPrivateChannel (err, channel)->
     #   console.log channel
@@ -178,7 +178,7 @@ class Inbox12345 extends AppController
 
   sendMessage:(messageDetails, callback)->
     # log "I just send a new message: ", messageDetails
-    koding.api.JPrivateMessage.create messageDetails, callback
+    KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback)=>
     {body, subject, recipients} = formOutput

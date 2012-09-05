@@ -50,7 +50,7 @@ class RegisterInlineForm extends LoginViewInlineForm
               email = input.getValue()
               if input.valid
                 @email.loader.show()
-                koding.api.JUser.emailAvailable email, (err, response)=>
+                KD.remote.api.JUser.emailAvailable email, (err, response)=>
                   @email.loader.hide()
                   if err then warn err
                   else
@@ -212,7 +212,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     if input.valid
       usernameCheckTimer = setTimeout =>
         @username.loader.show()
-        koding.api.JUser.usernameAvailable name, (err, response)=>
+        KD.remote.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
           {kodingUser, kodingenUser, forbidden} = response
           if err
@@ -302,7 +302,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         {origin} = invite
         @invitationCode.input.setValue invite.code
         @email.input.setValue invite.inviteeEmail
-        if origin instanceof koding.api.JAccount
+        if origin instanceof KD.remote.api.JAccount
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, origin), '.invited-by .wrapper'
           @addSubView new ProfileTextView({}, origin), '.invited-by .wrapper'
         else

@@ -21,7 +21,7 @@ class NotificationController extends KDObject
     nickname = account.getAt('profile.nickname')
     if nickname
       channelName = 'private-'+nickname+'-private'
-      koding.mq.fetchChannel channelName, (channel)=>
+      KD.remote.fetchChannel channelName, (channel)=>
         channel.on 'notification', (notification)=>
           @emit "NotificationHasArrived", notification
           @prepareNotification notification if notification.contents
@@ -80,7 +80,7 @@ class NotificationController extends KDObject
           appManager.openApplication "Inbox"
         else
           # ask chris if Bongo.cacheable is good for this
-          koding.api[subject.constructorName].one _id : subject.id, (err, post)->
+          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
             appManager.tell "Activity", "createContentDisplay", post
             view.destroy()
       options.type  = actionType or ''

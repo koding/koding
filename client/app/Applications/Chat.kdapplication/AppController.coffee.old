@@ -1,5 +1,4 @@
 class KDChannel extends KDEventEmitter
-  {mq} = Bongo
   
   constructor:()->
     @account = KD.whoami()

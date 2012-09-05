@@ -4,13 +4,14 @@ are in, handling the communication between the ChatView and each
 Channel instance.
 ###
 class Chat12345 extends AppController
-  {mq} = Bongo
 
   constructor:(options = {}, data)->
     options.view = new ChatView
       cssClass : "content-page chat"
 
     super options, data
+    
+    {mq} = KD.remote
 
     @account = KD.whoami()
     @username = @account?.profile?.nickname
