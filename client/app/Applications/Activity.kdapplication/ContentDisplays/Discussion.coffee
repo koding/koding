@@ -116,7 +116,7 @@ class ContentDisplayDiscussion extends KDView
       countString = "One Answer"
     else
       countString = count+ " Answers"
-    '<span class="opinion-count">'+countString+'</span><span class="opinion-sort">sorted by date</span>'
+    '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteDiscussion:(data)->
 
@@ -160,18 +160,19 @@ class ContentDisplayDiscussion extends KDView
 
   pistachio:->
     """
-    <span>
-      {{> @avatar}}
-      <span class="author">AUTHOR</span>
-    </span>
     <div class='discussion-contents'>
+    <div class="discussion-content">
+      <span>
+        {{> @avatar}}
+        <span class="author">AUTHOR</span>
+      </span>
       <div class='discussion-main-opinion'>
         {{> @actionLinks}}
         <h3>{{#(title)}}</h3>
 
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
-            <span class='type-icon'></span> posted by {{> @author}}
+            <span class='type-icon'></span> by {{> @author}} •
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
           </div>
@@ -181,10 +182,13 @@ class ContentDisplayDiscussion extends KDView
         <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       </div>
     </div>
+    </div>
+    <div class="opinion-content">
     {{> @opinionBoxHeader}}
     {{> @opinionBox}}
     <div class="content-display-main-section opinion-form-footer">
         {{> @opinionForm}}
+    </div>
     </div>
 
     """
