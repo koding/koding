@@ -21,15 +21,21 @@ class AppView extends KDView
 
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
-      dataPath        : "followee"
       states          : [
         "Like", (callback)->
           app.like (err)->
             callback? err
         "Unlike", (callback)->
-          callback? null
+          app.like (err)->
+            callback? err
       ]
     , app
+
+    app.checkIfLikedBefore (err, likedBefore)=>
+      if likedBefore
+        @likeButton.setState "Unlike"
+      else
+        @likeButton.setState "Like"
 
     appsController = @getSingleton("kodingAppsController")
 
@@ -85,7 +91,7 @@ class AppView extends KDView
         <div class="versionstats updateddate">Version {{ #(manifest.version) or "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) or 0}}<p>INSTALLS</p></div>
-          <div class="versionstats">{{#(counts.likes) or 0}}<p>Likes</p></div>
+          <div class="versionstats">{{#(meta.likes) or 0}}<p>Likes</p></div>
           <div class="versionstats">{{#(counts.followers) or 0}}<p>Followers</p></div>
         </div>
         <div class="appfollowlike">
