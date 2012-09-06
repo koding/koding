@@ -5,10 +5,10 @@ class JGitBranch extends jraphical.Module
   @setSchema
     repoPath : String
     branch : String
-    
+
 class JApplication extends jraphical.Module
   {exec} = require 'child_process'
-  
+
   @share()
 
   @set
@@ -16,7 +16,7 @@ class JApplication extends jraphical.Module
       static      : ['some']
       instance    : ['initNewLocalAppDirectory', 'cloneRemoteAppDirectory', 'initNewAdminAppDirectory', 'on', 'save']
     schema:
-      name            : 
+      name            :
         type          : String
         required      : yes
       appSubmoduleRepo: JGitBranch
@@ -26,45 +26,45 @@ class JApplication extends jraphical.Module
       creator       :
         targetType  : Account
         as          : 'creator'
-      installer     : 
+      installer     :
         targetType  : Account
         as          : 'installer'
 
   constructor:(data)->
     super data # use super instead of @Uber
-  
+
   _createAdminAppDir:(client, callback)->
     application = @
-    
+
     Path.exists (repoPath = "/shared/kdapplications/#{(application.appSubmoduleRepo.repoPath.replace /.*:\/\//, '')}/#{application.appSubmoduleRepo.branch}"), (exists)->
       if exists then callback null, 'application directory already exists'
       else
         application._newSaveStatus 'Ready to create new application'
-  
+
         # app folder path is /shared/kdapplications/clone url path (for uniqueness)/branch name (again for uniqueness)/app name with /s removed.kdapplication
         appPath = "#{repoPath}/#{application.name.replace /\//g, '_'}.kdapplication"
-        
+
         application._newSaveStatus "Creating application directory (#{appPath})"
-        
+
         fs.createPath appPath, (err)->
           if err then callback null, "creating application directory: #{appPath} failed with error #{err}"
           else callback appPath
-  
+
   _createAccountAppDir:(client, callback)->
     {account} = client.connection
     application = @
-    
+
     Path.makeSafe (account.getRootedPath "KDApplications/#{application.name.replace /\//g, '_'}.kdapplication"), (safePath)->
       application._newSaveStatus 'Creating local application directory'
-      
+
       fs.createPath safePath, (err)->
         if err then callback null, "creating application directory: #{safePath} failed with error #{err}"
         else
           callback safePath
-  
+
   cloneRemoteAppDirectory: bongo.secure (client, callback)->
     application = @
-    
+
     application._createAccountAppDir client, (safePath, err)->
       if err? then application._errorCleanup err, callback
       else
@@ -76,10 +76,10 @@ class JApplication extends jraphical.Module
             # FIXME: after account migration to bongo, relationship should be with account as source, application as installed, I believe
             application.addInstaller client.connection.account, ->
               callback()
-  
+
   initNewAdminAppDirectory: bongo.secure (client, callback)->
     application = @
-    
+
     application._createAdminAppDir client, (appPath, err)->
       if err? then application._errorCleanup err, callback
       else
@@ -105,10 +105,10 @@ class JApplication extends jraphical.Module
                         # github stuff
                         application.addCreator client.connection.account, ->
                           callback()
-    
+
   initNewLocalAppDirectory: bongo.secure (client, callback)->
     application = @
-    
+
     application._createAccountAppDir client, (safePath, err)->
       if err? then application._errorCleanup err, callback
       else
@@ -133,7 +133,7 @@ class JApplication extends jraphical.Module
                         # FIXME: after account migration to bongo, relationship should be with account as source, application as installed, I believe
                         application.addInstaller client.connection.account, ->
                           callback()
-    
+
   _newSaveStatus:(status)=>
     @emit 'newSaveStatus', {status}
 

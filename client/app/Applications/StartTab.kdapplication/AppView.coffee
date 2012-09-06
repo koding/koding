@@ -150,23 +150,8 @@ class StartTabMainView extends JView
         , manifest
 
   runApp:(manifest, callback)->
-    {options} = manifest
-    @getSingleton("kodingAppsController").getApp manifest.name, (appScript)=>
-      if options and options.type is "tab"
-        mainView = @getSingleton('mainView')
-        mainView.mainTabView.showPaneByView
-          name         : manifest.name
-          hiddenHandle : no
-          type         : "application"
-        , (appView = new KDView)
-        callback?()
-        # security please!
-        eval appScript
-        return appView
-      else
-        eval appScript
-        callback?()
-        return null
+
+    @getSingleton("kodingAppsController").runApp manifest
 
   addSplitOptions:->
     for splitOption in getSplitOptions()

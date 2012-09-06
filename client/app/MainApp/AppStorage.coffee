@@ -37,10 +37,10 @@ class AppStorage # extends KDObject
 
   setValue: (key, value, callback, group = 'bucket')->
 
-    # FIXME: i think this was to avoid unnecessary writes but 
-    #        it is problematic because it's a reference if you update 
+    # FIXME: i think this was to avoid unnecessary writes but
+    #        it is problematic because it's a reference if you update
     #        the ref you can not write it to db
-    
+
     # return if @getValue(key) is value
 
     pack = @zip key, group, value

@@ -16,7 +16,7 @@ createTmpDir = require './createtmpdir'
 
 console.log "new sharedhosting api."
 
-
+escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
 
 module.exports = new Kite 'sharedHosting'
 
@@ -151,84 +151,53 @@ module.exports = new Kite 'sharedHosting'
 
     {username, version, appName, userAppPath} = options
 
-    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
-    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
-    escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\ ')
+    appRootPath   = "/opt/Apps/#{username}/#{appName}"
+    latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
 
     cb = (err)->
       if err then console.error err
       else callback? null
 
-    mkdirp versionedPath, (err)->
+    mkdirp appRootPath, (err)->
       if err then cb err
       else
-        exec "rm '#{escapePath latestPath}'", ->
-          exec "cp -r #{escapePath userAppPath}/* '#{escapePath versionedPath}/' && ln -s '#{escapePath versionedPath}' '#{escapePath latestPath}'", (err, stdout, stderr)->
-            if err or stderr then cb err
-            else cb null
-
-
-    # mkdirp versionedPath, (err)->
-    #   if err then cb err
-    #   else
-    #     fs.readFile "#{userAppPath}/index.js", (err, appScript)->
-    #       if err then cb err
-    #       else
-    #         fs.readFile "#{userAppPath}/.manifest", (err, manifest)->
-    #           if err then cb err
-    #           else
-    #             fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
-    #               if err then cb err
-    #               else
-    #                 fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
-    #                   if err then cb err
-    #                   else
-    #                     fs.stat latestPath, (err, statObj)->
-    #                       if err
-    #                         exec "ln -s #{versionedPath} #{latestPath}", cb
-    #                       else
-    #                         if statObj.isSymbolicLink() or statObj.isFile()
-    #                           exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-    #                         else if statObj.isDirectory() and appName.length?
-    #                           exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-    #                         else
-    #                           cb new KodingError "Something went wrong"
+        exec "stat #{versionedPath}", (err, stdout, stderr)->
+          unless err or stderr.length
+            console.log "version is already published"
+            cb new KodingError "Version is already published, change version and try again!"
+          else
+            exec "rm '#{latestPath}'", ->
+              exec "cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+                if err or stderr then cb err
+                else cb null
 
   installApp: (options, callback)->
 
-    {username, owner, appName} = options
-
-    kpmAppPath  = "/opt/Apps/#{owner}/#{appName}/latest"
-    userAppPath = "/Users/#{username}/Applications/#{appName}.kdapp"
+    {username, owner, appPath, appName} = options
 
     cb = (err)->
       if err then console.error err
       else callback? null
 
-    mkdirp userAppPath, (err)->
+    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/latest"
+    appPath    = escapePath appPath
+
+    # console.log kpmAppPath
+    # console.log appPath
+
+    mkdirp appPath, (err)->
       if err then cb err
       else
-        exec "cp #{kpmAppPath}/index.js #{userAppPath}/index.js && cp #{kpmAppPath}/.manifest #{userAppPath}/.manifest", (err, stdout, stderr)->
+        exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
           if err or stderr.length
             cb err or new KodingError "stderr: #{stderr}"
           else
-            exec "chown -R #{username}:#{username} #{userAppPath}", (err, stdout, stderr)->
+            exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
               if err or stderr.length
                 cb err or new KodingError "stderr : #{stderr}"
               else
                 cb null
-
-        #fs.chown userAppPath, username, username, (err)->
-        #  if err then cb err
-        #  else
-        #    targetStream = fs.createWriteStream("#{userAppPath}/index.js")
-        #    targetStream.on "error", cb
-        #    targetStream.on "end", -> cb null
-        #    sourceStream = fs.createReadStream("#{kpmAppPath}/index.js")
-        #    sourceStream.on "error", cb
-        #    sourceStream.pipe targetStream
-
-
 
   createSystemUser : (options,callback)->
     #

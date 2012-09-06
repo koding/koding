@@ -1,5 +1,5 @@
 {
-  "name"          : "WordpressInstaller",
+  "name"          : "Wordpress Installer",
   "version"       : "0.2",
   "author"        : "Sinan Yasar",
   "repo"          : "git://github.com/sinanyasar/WordpressInstaller.git",
