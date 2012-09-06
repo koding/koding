@@ -27,7 +27,7 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow', 'remove', 'like', 'fetchLikedByes',
+        "update",'follow', 'unfollow', 'remove', 'like', 'fetchLikedByes', 'checkIfLikedBefore',
         'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator'
       ]
       static        : [
@@ -103,6 +103,19 @@ class JApp extends jraphical.Module
           else
             callback null, app
 
+  checkIfLikedBefore: secure ({connection}, callback)->
+    {delegate} = connection
+    {constructor} = @
+    Relationship.one
+      sourceId: @getId()
+      targetId: delegate.getId()
+      as: 'like'
+    , (err, likedBy)=>
+      if likedBy
+        callback null, yes
+      else
+        callback err, no
+
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
@@ -124,16 +137,12 @@ class JApp extends jraphical.Module
               else
                 @update ($set: 'meta.likes': count), callback
           else
-            callback new KodingError 'You already like this.'
-            ###
-            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+            @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err
                 callback err
                 console.log err
               else
-                count ?= 1
                 @update ($set: 'meta.likes': count), callback
-            ###
 
 
   # @create = secure (client, data, callback)->
