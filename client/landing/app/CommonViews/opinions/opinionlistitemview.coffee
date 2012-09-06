@@ -50,7 +50,7 @@ class OpinionListItemView extends KDListItemView
 
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
-      cssClass : "comment-header"
+      cssClass : "opinion-comment-header"
     , data
 
     @tags = new ActivityChildViewTagGroup
@@ -64,7 +64,7 @@ class OpinionListItemView extends KDListItemView
         attributes :
           href     : "#"
           title    : "Show less"
-        partial    :  "show less"
+        partial    :  "See less…"
         click      :=>
           @markup.css "max-height":"300px"
           @larger.show()
@@ -76,7 +76,7 @@ class OpinionListItemView extends KDListItemView
         attributes :
           href     : "#"
           title    : "Show more"
-        partial    :  "show more"
+        partial    :  "See more…"
         click      :=>
           @markup.css maxHeight : @textMaxHeight
           @smaller.show()
@@ -174,11 +174,11 @@ class OpinionListItemView extends KDListItemView
       <span class='avatar'>{{> @avatar}}</span>
         <footer class='opinion-footer clearfix'>
           <div class='type-and-time'>
-            <span class='type-icon'></span> answer written by {{> @author}}
+            <span class='type-icon'></span> answer by {{> @author}} •
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
           </div>
-          {{> @actionLinks}}
+
         </footer>
       <div class='opinion-contents clearfix'>
         {{> @deleteLink}}
@@ -190,7 +190,7 @@ class OpinionListItemView extends KDListItemView
         {{>@larger}}
         {{>@smaller}}
     </div>
-
+          {{> @actionLinks}}
     </div>
     <div class='item-content-opinion-comments clearfix'>
       <div class='opinion-comment'>

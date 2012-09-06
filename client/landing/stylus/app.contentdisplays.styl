@@ -373,12 +373,17 @@ app.contentdisplays.styl
     rounded                           3px
     noTextDeco()
   .kdlistview-opinions
+    margin-top                        5px
+    .kdview.kdlistitemview-opinion:nth-child(even)
+      background-color                #F7F7F7
     .kdview.kdlistitemview-opinion
-      margin-top                      10px
+      border-bottom                   1px solid #ECECEC // #D1D1D1
+    .kdview.kdlistitemview-opinion:first-child .item-content-opinion
+      margin-top 14px
+
     .item-content-opinion
-      padding-top                     0px
-      padding-bottom                  0px
-      margin-top                      18px
+      margin-top 5px
+      padding 15px 20px 0px 20px
       &:hover
         .edit-link
           opacity                     .5
@@ -404,13 +409,15 @@ app.contentdisplays.styl
           bg(repeat,no-repeat)
       .opinion-contents
         padding-left                  75px
-        margin-top                    22px
+        margin-top                    11px
 
 .opinion-footer
-  margin                              12px 0 0 0
-  display                             inline
+  margin                              3px 0 0 0
+  display                             inline-block
+
   .type-and-time
     font-weight                       300
+    font-size                         11px
     color                             #a5a5a5
     display                           inline
 
@@ -465,24 +472,62 @@ app.contentdisplays.styl
       width                           100%
       min-height                      250px
 
+.opinion-comment-header
+  margin-left 75px
+  float left
+  > a.action-link
+    margin 1px 2px 0 0
+
 .discussion-title
     width                             100%
     margin-bottom                     10px
     padding                           5px 10px
 
 .item-content-opinion-comments
+    background-color                  #ffffff
     padding                           0
-    margin                            0 0 20px 75px
+    margin                            0 0 0px 0px
     .opinion-comment
-      margin-bottom                   5px
       margin-top                      25px
       .comment-container
+        borderBox()
+        rounded(0px)
+        border none
+        border-top                    1px solid #e0e0df
         width                         auto
+
+        .show-more-comments.in
+          border                      none
+          padding-left                95px
+
+        .item-add-comment-box
+          padding-left                95px
+          border none
+
+        .kdlistview-comments
+          border-top                  1px solid #ececec
+          .kdlistitemview-comment
+            border                    none
+        &.no-comment
+          .kdlistview-comments
+            border-top                none
+            .kdlistitemview-comment
+              border                  none
+
         &.commented
-          display                     none
+          border                      none
         .comment-body
           line-height                 21px!important
           color                       #5F5F5F
+          margin-top                  5px
+        .item-content-comment
+          margin-left                 90px
+          time
+            float                     right
+            font-size                 11px
+            font-weight               300
+            color                     #a5a5a5
+
 
 .opinion-form-footer
   margin-left                         75px
@@ -517,9 +562,9 @@ app.contentdisplays.styl
   width                               auto
   margin-top                          -7px
   span
-    color                               #ffffff
-    background-color                    #fd7e09
-    padding                             5px 10px
+    color                              #ffffff
+    background-color                   #fd7e09
+    padding                            5px 12px
     text-shadow                        #888 0px -1px 01px
 
 .opinion-sort
@@ -543,9 +588,9 @@ div.discussion-contents
   width                               auto
   overflow                            hidden
   p.discussion-body
-    font-size 14px
+    font-size                         14px
     line-height                       150%
-    margin-top                        22px
+    margin-top                        10px
     a.user-fullname
       font-size                       12px
       font-weight                     600
@@ -576,9 +621,9 @@ div.discussion-contents
           margin-top -1
           font-size 10px
   .discussion-main-opinion
-    margin-left 75px
-    .activity-actions
-      margin-top                      7px
+    margin-left                       75px
+    .activity-actions a
+      font-weight                     bold
     h3
       font-weight                     300!important
       font-size                       15px
@@ -619,7 +664,7 @@ div.discussion-contents
       padding             3px 0px
       border-top          1px solid white
 
-  padding 20px
+  padding                             20px
 
 .markdown-select
   float                               right
@@ -744,30 +789,42 @@ span.more
 
 a.opinion-size-link
   margin-top          10px
-  margin-bottom       10px
-  background-color    #ffffff
-  font-size           14px
-  font-weight         300
-  display             block
+  margin-bottom       20px
+  display             inline-block
+  background-color    #e8e9e9
+  font-size           11px
+  font-weight         600
+  rounded(3px)
+  padding 4px 10px
+  width auto
+  color               #0896BD
 
 .show-more-opinions
   width               100%
-  color               #444
+  color               white
   line-height         150%
-  margin-left         75px
+  margin              20px 0 0 95px
+
   a
+    font-size 10px
+    color white
     width             100%
     height            100%
+    background-color    #FF9200
+    padding 5px 12px
+  a:hover
+    color white
+
 
 .opinion-heart-box
   float               left
   .help-box
     margin-top        11px
 
-.opinion-container div.kdlistitemview-opinion:last-child
-  .item-content-opinion-comments
-    margin-bottom 15px
-    border-bottom 1px solid #D1D1D1
+// .opinion-container div.kdlistitemview-opinion:last-child
+//   .item-content-opinion-comments
+//     margin-bottom 15px
+//     border-bottom 1px solid #D1D1D1
 
 // this looks weird on page load, will be fixed once comments are loaded
 // to the teaser / snapshot --arvid

@@ -32,7 +32,7 @@ class OpinionViewHeader extends JView
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
-      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}"
+      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}»"
       click     : =>
         @loader.show()
         list.emit "AllOpinionsLinkWasClicked", @
