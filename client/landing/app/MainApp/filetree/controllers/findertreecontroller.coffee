@@ -411,20 +411,25 @@ class NFinderTreeController extends JTreeViewController
     folder = nodeView.getData()
 
     folder.emit "fs.publish.started"
-    @getSingleton('kodingAppsController').publishApp folder.path, =>
+    @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
       folder.emit "fs.publish.finished"
-      @notify "App published!", "success"
+      unless err
+        @notify "App published!", "success"
+      else
+        @notify "Publish failed!", "error", err
 
   makeNewApp:(nodeView)->
 
     folder = nodeView.getData()
 
     folder.emit "fs.newAppCreation.started"
-    @getSingleton('kodingAppsController').makeNewApp =>
+    @getSingleton('kodingAppsController').makeNewApp (err)=>
       folder.emit "fs.newAppCreation.finished"
       @refreshFolder @nodes[folder.path]
-      @notify "App Created!", "success"
-
+      unless err
+        @notify "App created!", "success"
+      else
+        @notify "App creation failed!", "error", err
 
   ###
   CONTEXT MENU OPERATIONS

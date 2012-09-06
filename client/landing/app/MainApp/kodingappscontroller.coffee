@@ -273,7 +273,9 @@ class KodingAppsController extends KDController
 
       @kiteController.run options, (err, res)=>
         log "app is being published"
-        if err then warn err
+        if err
+          warn err
+          callback? err
         else
           jAppData   =
             title    : manifest.name        or "Application Title"
@@ -281,10 +283,14 @@ class KodingAppsController extends KDController
             manifest : manifest
 
           appManager.tell "Apps", "createApp", jAppData, (err, app)=>
-            log app, "app published"
-            appManager.openApplication "Apps", yes, (instance)=>
-              # instance.feedController.changeActiveSort "meta.modifiedAt"
-              callback?()
+            if err
+              warn err
+              callback? err
+            else
+              log app, "app published"
+              appManager.openApplication "Apps", yes, (instance)=>
+                @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
+                callback?()
 
   compileApp:(path, callback)->
 
