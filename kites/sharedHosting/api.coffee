@@ -156,29 +156,42 @@ module.exports = new Kite 'sharedHosting'
     versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
 
     cb = (err)->
-      if err then console.error err
-      else callback? null
+      console.error err if err
+      callback? err, null
 
     mkdirp appRootPath, (err)->
       if err then cb err
       else
         exec "stat #{versionedPath}", (err, stdout, stderr)->
           unless err or stderr.length
-            console.log "version is already published"
-            cb new KodingError "Version is already published, change version and try again!"
+            cb "[ERROR] Version is already published, change version and try again!"
           else
             exec "rm '#{latestPath}'", ->
               exec "cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
                 if err or stderr then cb err
-                else cb null
+                else
+                  manifestPath = "#{versionedPath}/.manifest"
+                  exec "cat #{manifestPath}", (err, stdout, stderr)->
+                    if err or stderr then cb err
+                    else
+                      try
+                        manifest = JSON.parse stdout
+                        manifest.authorNick = username
+                        @uploadFile
+                          contents : JSON.stringify manifest
+                          path     : manifestPath
+                        , cb
+                      catch e
+                        cb e
+
 
   installApp: (options, callback)->
 
     {username, owner, appPath, appName} = options
 
     cb = (err)->
-      if err then console.error err
-      else callback? null
+      console.error err if err
+      callback? err, null
 
     kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/latest"
     appPath    = escapePath appPath
@@ -191,11 +204,11 @@ module.exports = new Kite 'sharedHosting'
       else
         exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
           if err or stderr.length
-            cb err or new KodingError "stderr: #{stderr}"
+            cb err or "[ERROR] #{stderr}"
           else
             exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
               if err or stderr.length
-                cb err or new KodingError "stderr : #{stderr}"
+                cb err or "[ERROR] #{stderr}"
               else
                 cb null
 
