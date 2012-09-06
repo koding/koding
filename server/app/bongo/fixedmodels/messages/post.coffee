@@ -13,12 +13,10 @@ CRepliesActivity = require '../activity/repliesactivity'
 
 module.exports = class JPost extends jraphical.Message
 
-  @mixin Followable
-  @::mixin Followable::
-  @::mixin Taggable::
-  @::mixin Notifying::
-  @mixin Flaggable
-  @::mixin Flaggable::
+  @trait Followable
+  @trait Taggable
+  @trait Notifying
+  @trait Flaggable
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical

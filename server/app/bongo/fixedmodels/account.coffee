@@ -12,12 +12,11 @@ module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
 
-  @mixin Followable
-  @::mixin Followable::
-  @mixin Filterable       # brings only static methods
-  @::mixin Taggable::
-  @::mixin Notifiable::
-  @::mixin Flaggable::
+  @trait Followable
+  @trait Filterable
+  @trait Taggable
+  @trait Notifiable
+  @trait Flaggable
   
   @getFlagRole = 'content'
 
