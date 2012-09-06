@@ -29,7 +29,7 @@ class Chat12345 extends AppController
   loadView:(mainView)->
     @joinChannel "@#{@username}"
     @joinChannel PUBLIC
-    @joinChannel "#koding"
+    #@joinChannel "#koding"
 
   joinChannel: (name) ->
     return @channels[name] if @channels[name]
@@ -73,8 +73,8 @@ class Chat12345 extends AppController
         @broadcastOwnMessage messageBody, PUBLIC, name
 
     # Delegates to the channel to handle received message
-    @broadcaster.on channelName, (msg) ->
-      channel.messageReceived msg
+    @broadcaster.on channelName, (msg) =>
+      @deliverMessageToChannel channel, msg
 
     @channels[name] = channel
 
@@ -105,7 +105,17 @@ class Chat12345 extends AppController
     @broadcaster.emit channelMQName, JSON.stringify(chatItem)
     return unless @channels[toChannel]
     #chatItem.author = "me"
-    @channels[toChannel].messageReceived chatItem
+    @deliverMessageToChannel @channels[toChannel], chatItem
+
+  deliverMessageToChannel: (channel, message) ->
+    itemInstance = channel.messageReceived message
+    itemInstance.registerListener
+      KDEventTypes: 'click'
+      listener    : @
+      callback    : (pubInst, event) =>
+        return unless $(event.target).is('a.open-new-chat')
+        channelName = $(event.target).text()
+        @joinChannel channelName
 
   fetchAutoCompleteForMentionField:(inputValue,blacklist,callback)->
     bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
@@ -225,7 +235,7 @@ class ChatListItemView extends KDListItemView
     @template.update()
 
   pistachio:->
-    parsedBody = @getData().body.replace(TOPICREGEX, "<a class='ttag' href='#'>$&</a>")
+    parsedBody = @getData().body.replace(TOPICREGEX, "<a class='open-new-chat' href='#'>$&</a>")
     parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a href='#'>$&</a>")
 
     """
@@ -362,3 +372,18 @@ class MentionAutoCompleteController extends KDAutoCompleteController
     @getView().setValue inputValue
 
     @dropdownPrefix = ""
+
+class ChannelLinkView extends KDCustomHTMLView
+  constructor: (options = {}, data) ->
+    options.tagName or= 'a'
+    super options, data
+
+  viewAppended:->    
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
+
+  click: (event) ->
+    alert "clicked"
