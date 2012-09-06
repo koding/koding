@@ -11,11 +11,14 @@ class AppView extends KDView
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
+      defaultState    : if app.followee then "Unfollow" else "Follow"
       states          : [
         "Follow", (callback)->
-          callback? null
+          app.follow (err)->
+            callback? err
         "Unfollow", (callback)->
-          callback? null
+          app.unfollow (err)->
+            callback? err
       ]
     , app
 
