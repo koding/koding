@@ -1,4 +1,4 @@
-class Flaggable
+module.exports = class Flaggable
   {secure} = require 'bongo'
   
   @getFlagRole =-> 'content'

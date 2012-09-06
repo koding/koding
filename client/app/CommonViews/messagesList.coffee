@@ -157,5 +157,5 @@ class NotificationListItem extends KDListItemView
     # contentDisplayController = @getSingleton('contentDisplayController')
     # list = @getDelegate()
     # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    # Bongo.cacheable sourceName, sourceId, (err, source)=>
+    # KD.remote.cacheable sourceName, sourceId, (err, source)=>
     #   appManager.tell "Activity", "createContentDisplay", source

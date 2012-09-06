@@ -1,7 +1,19 @@
-class JAccount extends jraphical.Module
+jraphical = require 'jraphical'
+abstraction =(name)->
+  require '../abstractions/'+name
+
+Followable  = abstraction 'followable'
+Filterable  = abstraction 'filterable'
+Flaggable   = abstraction 'flaggable'
+Taggable    = abstraction 'taggable'
+Notifiable  = abstraction 'notifiable'
+
+KodingError = require '../../error'
+
+module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
-  
+
   @mixin Followable
   @::mixin Followable::
   @mixin Filterable       # brings only static methods
@@ -82,6 +94,7 @@ class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
+          
         lastName            : 
           type              : String
           default           : ''
@@ -417,19 +430,19 @@ class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  koding.pre 'methodIsInvoked', (client, callback)=>
-    delegate = client?.connection?.delegate
-    id = delegate?.getId()
-    unless id
-      callback client
-    else if @isTainted id
-      JAccount.one _id: id, (err, account)=>
-        if err
-          console.log 'there was an error'
-        else
-          @untaint id
-          client.connection.delegate = account
-          console.log 'delegate is force-loaded from db'
-          callback client
-    else
-      callback client
+  # koding.pre 'methodIsInvoked', (client, callback)=>
+  #   delegate = client?.connection?.delegate
+  #   id = delegate?.getId()
+  #   unless id
+  #     callback client
+  #   else if @isTainted id
+  #     JAccount.one _id: id, (err, account)=>
+  #       if err
+  #         console.log 'there was an error'
+  #       else
+  #         @untaint id
+  #         client.connection.delegate = account
+  #         console.log 'delegate is force-loaded from db'
+  #         callback client
+  #   else
+  #     callback client

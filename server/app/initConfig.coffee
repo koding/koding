@@ -49,6 +49,7 @@ dbUrl = switch process.argv[3] or 'local'
 
 koding = new Bongo
   mongo   : dbUrl
+  models  : require('path').join __dirname, './server/app/bongo/fixedmodels'
   mq      : new Broker {
     host      : "localhost"
     login     : "guest"
@@ -58,6 +59,6 @@ koding = new Bongo
     #password  : "x1srTA7!%Vb}$n|S"
   }
 koding.on 'auth', (client)->
-  JVisitor.authenticateClient client, (err, account)->
+  koding.models.JVisitor.authenticateClient client, (err, account)->
     koding.handleResponse client.secretName, 'changeLoggedInState', [account]
 koding.connect console.log

@@ -1,4 +1,6 @@
-class Followable extends jraphical.Module
+jraphical = require 'jraphical'
+
+module.exports = class Followable extends jraphical.Module
 
   {Model, dash, secure} = require 'bongo'
   {Relationship, Module} = jraphical

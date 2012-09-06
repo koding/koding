@@ -1,7 +1,7 @@
-class Taggable
+module.exports = class Taggable
 
   {ObjectRef, daisy, secure} = require 'bongo'
-  {Relationship} = jraphical
+  {Relationship} = require 'jraphical'
 
   getTaggedContentRole  :-> @constructor.taggedContentRole or 'tagged'
   getTagRole            :-> @constructor.tagRole           or 'tag'

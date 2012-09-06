@@ -156,7 +156,7 @@ class Activity12345 extends AppController
         log '>> error fetching app storage', err
       else
         options.collection = 'activities'
-        flags = KD.whoami().data.globalFlags
+        flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
         $.ajax KD.apiUri+'/1.0'
@@ -166,7 +166,7 @@ class Activity12345 extends AppController
             env     : KD.env
           dataType  : 'jsonp'
           success   : (data)->
-            Bongo.reviveFromJSONP data, (err, instances)->
+            KD.remote.reviveFromSnapshots data, (err, instances)->
               callback instances
     #
     # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
@@ -220,7 +220,7 @@ class Activity12345 extends AppController
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
-      Bongo.cacheable rels.map((rel)->
+      KD.remote.cacheable rels.map((rel)->
         constructorName : rel.targetName
         id              : rel.targetId
       ), callback

@@ -4,7 +4,7 @@
 class KDAccount extends Bongo.EventEmitter
   @fromId = (_id)->
     account = new KDAccount
-    Bongo.cacheable 'JAccount', _id, (err, accountData)->
+    KD.remote.cacheable 'JAccount', _id, (err, accountData)->
       for own prop, val of accountData
         account[prop] = val
       setTimeout ->
@@ -90,7 +90,7 @@ class FollowedModalView extends KDModalView
     {group} = @getOptions()
 
     if group
-      Bongo.cacheable group, (err, participants)=>
+      KD.remote.cacheable group, (err, participants)=>
         if err then warn err
         else @putList participants
         ###

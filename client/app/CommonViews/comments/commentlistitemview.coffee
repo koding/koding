@@ -49,7 +49,7 @@ class CommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
-    Bongo.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner
@@ -74,7 +74,7 @@ class CommentListItemView extends KDListItemView
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
-      Bongo.cacheable originType, originId, (err, origin)->
+      KD.remote.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
 

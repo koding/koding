@@ -1,4 +1,4 @@
-class Notifiable
+module.exports = class Notifiable
   
   hat = require 'hat'
   

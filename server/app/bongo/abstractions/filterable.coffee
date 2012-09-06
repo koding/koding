@@ -1,4 +1,4 @@
-class Filterable
+module.exports = class Filterable
   {secure, ObjectId} = require 'bongo'
   
   @findSuggestions = ()->

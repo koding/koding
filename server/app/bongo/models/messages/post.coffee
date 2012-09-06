@@ -1,4 +1,13 @@
-class JPost extends jraphical.Message
+
+jraphical = require 'jraphical'
+
+Followable  = require '../abstractions/followable'
+Filterable  = require '../abstractions/filterable'
+Flaggable   = require '../abstractions/flaggable'
+Taggable    = require '../abstractions/taggable'
+Notifiable  = require '../abstractions/notifiable'
+
+module.exports = class JPost extends jraphical.Message
 
   @mixin Followable
   @::mixin Followable::
@@ -9,10 +18,11 @@ class JPost extends jraphical.Message
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
+  {extend} = require 'underscore'
 
   {log} = console
 
-  schema = _.extend {}, jraphical.Message.schema, {
+  schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     counts        :
       followers   :

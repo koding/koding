@@ -1,4 +1,6 @@
-class Notifying
+jraphical = require 'jraphical'
+
+module.exports = class Notifying
   
   {ObjectRef} = require 'bongo'
   {Relationship} = jraphical

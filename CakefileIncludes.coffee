@@ -31,7 +31,7 @@ Includes =
         # Irc             : "./server/app/irc.coffee"
 
 
-        KiteController  : "./server/app/core/KiteController.coffee"
+        #KiteController  : "./server/app/core/KiteController.coffee"
         # archiver        : "./server/app/core/archiver.coffee"
         # limit           : "./server/app/core/limit.coffee"
         # allocation      : "./server/app/core/allocation.coffee"
@@ -59,11 +59,11 @@ Includes =
         # metadataExperiencepoints    : "./server/app/metadata/metadata.experiencepoints.coffee"
 
 
-      Models :
-        jchannel                  : "./server/app/bongo/models/channel.coffee"
-        jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
-        jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
-        # bongo models:
+      #Models :
+        # jchannel                  : "./server/app/bongo/models/channel.coffee"
+        # jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
+        # jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
+        # # bongo models:
         # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
         # jreplyactivity            : "./server/app/bongo/models/activity/reply.coffee"
         # jabstractActivity         : "./server/app/bongo/models/activity/abstract.coffee"
@@ -76,52 +76,52 @@ Includes =
         # activity redo:
 
 
-        # abstractions
-        followable                : "./server/app/bongo/abstractions/followable.coffee"
-        filterable                : "./server/app/bongo/abstractions/filterable.coffee"
-        taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
-        notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
-        notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
-        flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
+        # # abstractions
+        # followable                : "./server/app/bongo/abstractions/followable.coffee"
+        # filterable                : "./server/app/bongo/abstractions/filterable.coffee"
+        # taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        # notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
+        # notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
+        # flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
         
         
-        cactivity                 : "./server/app/bongo/models/activity.coffee"
-        cbucket                   : "./server/app/bongo/models/bucket.coffee"
+        # cactivity                 : "./server/app/bongo/models/activity.coffee"
+        # cbucket                   : "./server/app/bongo/models/bucket.coffee"
         
-        jlimit                    : "./server/app/bongo/models/limit.coffee"
-        jmount                    : "./server/app/bongo/models/mount.coffee"
-        jrepo                     : "./server/app/bongo/models/repo.coffee"
-        jdatabase                 : "./server/app/bongo/models/database.coffee"
-        jappstorage               : "./server/app/bongo/models/appStorage.coffee"
-        jaccount                  : "./server/app/bongo/models/account.coffee"
-        jsession                  : "./server/app/bongo/models/session.coffee"
-        juser                     : "./server/app/bongo/models/user.coffee"
-        jguest                    : "./server/app/bongo/models/guest.coffee"
-        jvisitor                  : "./server/app/bongo/models/visitor.coffee"
-        jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
+        # jlimit                    : "./server/app/bongo/models/limit.coffee"
+        # jmount                    : "./server/app/bongo/models/mount.coffee"
+        # jrepo                     : "./server/app/bongo/models/repo.coffee"
+        # jdatabase                 : "./server/app/bongo/models/database.coffee"
+        # jappstorage               : "./server/app/bongo/models/appStorage.coffee"
+        # jaccount                  : "./server/app/bongo/models/account.coffee"
+        # jsession                  : "./server/app/bongo/models/session.coffee"
+        # juser                     : "./server/app/bongo/models/user.coffee"
+        # jguest                    : "./server/app/bongo/models/guest.coffee"
+        # jvisitor                  : "./server/app/bongo/models/visitor.coffee"
+        # jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
         
-        jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
+        # jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
         
-        # jterminal                  : "./server/app/bongo/models/terminal.coffee"
+        # # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
-        fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
+        # fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
 
-        jtag                      : "./server/app/bongo/models/tag.coffee"
+        # jtag                      : "./server/app/bongo/models/tag.coffee"
 
-        jcomment                  : "./server/app/bongo/models/messages/comment.coffee"
-        jpost                     : "./server/app/bongo/models/messages/post.coffee"
-        jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
-        jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
-        janswer                   : "./server/app/bongo/models/messages/answer.coffee"
-        jquestion                 : "./server/app/bongo/models/messages/question.coffee"
-        jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
-        japp                      : "./server/app/bongo/models/app.coffee"
+        # jcomment                  : "./server/app/bongo/models/messages/comment.coffee"
+        # jpost                     : "./server/app/bongo/models/messages/post.coffee"
+        # jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
+        # jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
+        # janswer                   : "./server/app/bongo/models/messages/answer.coffee"
+        # jquestion                 : "./server/app/bongo/models/messages/question.coffee"
+        # jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
+        # japp                      : "./server/app/bongo/models/app.coffee"
 
-        jinvitation               : "./server/app/bongo/models/invitation.coffee"
-        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
-        jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
-        jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
+        # jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        # jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
+        # jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
+        # jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
+        # jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
 
       OtherStuff :
