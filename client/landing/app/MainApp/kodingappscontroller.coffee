@@ -38,10 +38,10 @@ class KodingAppsController extends KDController
   # HELPERS
   # #
 
-  getAppPath = (app)->
+  getAppPath = (manifest)->
 
     {profile} = KD.whoami()
-    path = if /^~/.test app.path then "/Users/#{profile.nickname}#{app.path.substr(1)}" else app.path
+    path = if /^~/.test manifest.path then "/Users/#{profile.nickname}#{manifest.path.substr(1)}" else manifest.path
     return path.replace /(\/+)$/, ""
 
   getManifestFromPath = (path, callback = noop)->
@@ -126,8 +126,10 @@ class KodingAppsController extends KDController
         else
           callback new Error "There are no apps in the app storage."
 
-  fetchCompiledApp:(name, callback)->
-    indexJsPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{name}.kdapp/index.js"
+  fetchCompiledApp:(manifest, callback)->
+    {name} = manifest
+    appPath = getAppPath manifest
+    indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
       if err then warn err
       callback err, response
@@ -154,12 +156,14 @@ class KodingAppsController extends KDController
 
     KDApps[name] = script
 
-  getApp:(name, callback = noop)->
+  getAppScript:(manifest, callback = noop)->
+
+    {name} = manifest
 
     if KDApps[name]
       callback KDApps[name]
     else
-      @fetchCompiledApp name, (err, script)=>
+      @fetchCompiledApp manifest, (err, script)=>
         if err
           @compileSource name, (err)=>
             if err
@@ -175,7 +179,49 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  runApp:(name, callback)->
+  runApp:(manifest, callback)->
+
+
+
+    # AUTHOR NICKNAME SHOULD BE IN MANIFEST WHEN PUBLISHING PUT APP REMOTE PATH IN MANIFEST
+
+
+
+    {options, stylesheets, name} = manifest
+
+    if stylesheets
+      stylesheets.forEach (sheet)->
+        if /(http)|(:\/\/)/.test sheet
+          warn "external sheets cannot be used"
+        else
+          sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
+          $("head ##{__utils.slugify name}").remove()
+          $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+
+    if options and options.type is "tab"
+      mainView = @getSingleton('mainView')
+      mainView.mainTabView.showPaneByView
+        name         : manifest.name
+        hiddenHandle : no
+        type         : "application"
+      , (appView = new KDView)
+      try
+        # security please!
+        do (appView)->
+          eval appScript
+      catch e
+        warn "App caused some problems:", e
+      callback?()
+      return appView
+    else
+      try
+        # security please!
+        do ->
+          eval appScript
+      catch e
+        warn "App caused some problems:", e
+      callback?()
+      return null
 
     log "app to run:", name
     callback?()
@@ -211,9 +257,10 @@ class KodingAppsController extends KDController
 
   publishApp:(path, callback)->
 
-    appName = getManifestFromPath(path).name
+    manifest = getManifestFromPath(path)
+    appName  = manifest.name
 
-    @getApp appName, (appScript)=>
+    @getAppScript manifest, (appScript)=>
 
       manifest        = @constructor.manifests[appName]
       userAppPath     = getAppPath manifest
@@ -252,7 +299,7 @@ class KodingAppsController extends KDController
       return warn "#{name}: No such app!" unless app
 
       {source} = app
-      {blocks, stylesheets} = source
+      {blocks} = source
       {nickname} = KD.whoami().profile
 
 
@@ -294,16 +341,6 @@ class KodingAppsController extends KDController
         if block.post
           asyncStack.push (cb)=> @addScript app, block.post, cb
 
-      if stylesheets
-        stylesheets.forEach (sheet)->
-          if /(http)|(:\/\/)/.test sheet
-            warn "external sheets cannot be used"
-          else
-            sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head ##{__utils.slugify name}").remove()
-            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
-
-
       async.parallel asyncStack, (error, result)=>
 
         log "concatenating the app"
@@ -340,6 +377,7 @@ class KodingAppsController extends KDController
         else
           log "installing the app: #{app.title}"
           app.fetchCreator (err, acc)=>
+            # log err, acc, ">>>>"
             if err
               callback? err
             else
@@ -347,10 +385,11 @@ class KodingAppsController extends KDController
                 toDo          : "installApp"
                 withArgs      :
                   owner       : acc.profile.nickname
-                  username    : KD.whoami().profile.nickname
+                  appPath     : getAppPath app.manifest
                   appName     : app.manifest.name
-
+              log "asking kite to install", options
               @kiteController.run options, (err, res)=>
+                log "kite response", err, res
                 if err then warn err
                 else
                   appManager.openApplication "Develop"

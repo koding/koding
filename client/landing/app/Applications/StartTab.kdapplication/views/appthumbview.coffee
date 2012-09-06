@@ -39,7 +39,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @showLoader()
         delete KDApps[manifest.name]
-        @getSingleton("kodingAppsController").getApp manifest.name, =>
+        @getSingleton("kodingAppsController").getAppScript manifest, =>
           @hideLoader()
           new KDNotificationView type : "mini", title : "App Compiled"
         no
