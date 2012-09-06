@@ -511,11 +511,16 @@ app.contentdisplays.styl
       font-size                       11px
 
 .opinion-box-header
-  font-size                           20px
+  font-size                           10px
   font-weight                         500
-  margin-left                         75px
-  border-bottom                       1px solid #E0E0DF
-  color                               #5F5F5F
+  margin-left                         95px
+  width                               auto
+  margin-top                          -7px
+  span
+    color                               #ffffff
+    background-color                    #fd7e09
+    padding                             5px 10px
+    text-shadow                        #888 0px -1px 01px
 
 .opinion-sort
   float                               right
@@ -523,8 +528,6 @@ app.contentdisplays.styl
   line-height                         250%
 
 div.discussion-contents
-  margin-bottom                       45px
-  font-weight                         300
   a.count
     font-style                        normal
     display                           inline-block
@@ -535,10 +538,12 @@ div.discussion-contents
     line-height                       10px
     rounded                           3px
     noTextDeco()
-  padding                             0px 0px 0 20px
+  border-bottom                       1px solid #D1D1D1
+  background-color                    #F7F7F7
   width                               auto
   overflow                            hidden
   p.discussion-body
+    font-size 14px
     line-height                       150%
     margin-top                        22px
     a.user-fullname
@@ -550,32 +555,36 @@ div.discussion-contents
     line-height                       130%
     color                             #aaa
   .discussion-footer
-    font-size                         12px
+    font-size                         11px
     padding-bottom                    10px
     color                             #a5a5a5
     display                           inline
     font-weight                       300
     margin-left                       -2px
     a
-      font-size                       12px
+      font-size                       11px
+      font-weight                     400
       noTextDeco()
     a.count
       font-size                       10px
     .type-and-time
       display                         inline
       .link-group
-        font-size                     12px
+        font-size                     11px
         font-weight                   300
+        a
+          margin-top -1
+          font-size 10px
   .discussion-main-opinion
+    margin-left 75px
     .activity-actions
       margin-top                      7px
     h3
-      font-weight                     500!important
-      font-size                       20px
+      font-weight                     300!important
+      font-size                       15px
       line-height                     130%
       margin-bottom                   1em
       color                           #5F5F5F
-      border-bottom                   1px solid #E0E0DF
     &:hover
       > .edit-link
         opacity                       .5
@@ -585,6 +594,32 @@ div.discussion-contents
         opacity                       .5
         &:hover
           opacity                     1
+
+.discussion-content
+  > span
+    padding               1px
+    border                1px solid #E3E3E3
+    width                 50px
+    display               block
+    float                 left
+    size                  50px,66px
+    span
+      background-size     cover
+      width               50px
+      height              50px
+      display             block
+    .author
+      font-size           9px
+      display             block
+      height              9px
+      color               white
+      background          #0896BD
+      text-align          center
+      line-height         9px
+      padding             3px 0px
+      border-top          1px solid white
+
+  padding 20px
 
 .markdown-select
   float                               right
@@ -617,10 +652,10 @@ div.discussion-contents
 .activity-opinion .comment-body .data,
 .discussion-body .data,
 .opinion-body-with-markup .data
-  font-size                           14px
-  line-height                         130%
+  font-size                           12px
+  font-weight                         400
+  line-height                         170%
   margin-bottom                       5px
-  font-weight                         300
   color                               #5f5f5f
   p
     margin-bottom                     1em
@@ -701,6 +736,12 @@ span.more
   vendor              transition, max-height .2s linear
   overflow            hidden
 
+.content-display-main-section.activity-item.discussion
+  max-width 100%
+  padding 0
+
+// .activity-related .activity-item.discussion
+
 a.opinion-size-link
   margin-top          10px
   margin-bottom       10px
@@ -726,7 +767,7 @@ a.opinion-size-link
 .opinion-container div.kdlistitemview-opinion:last-child
   .item-content-opinion-comments
     margin-bottom 15px
-    border-bottom 1px solid #E0E0DF
+    border-bottom 1px solid #D1D1D1
 
 // this looks weird on page load, will be fixed once comments are loaded
 // to the teaser / snapshot --arvid
