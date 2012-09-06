@@ -305,18 +305,7 @@ class JDiscussion extends JPost
         limit         : 5
         sort          :
           timestamp   : 1
-      # .edges
-      #   query         :
-      #     targetName  : 'JComment'
-      #     as          : 'comment'
-      #     'data.deletedAt':
-      #       $exists   : no
-      #     'data.flags.isLowQuality':
-      #       $ne       : yes
-      #   limit         : 3
-      #   sort          :
-      #     timestamp   : -1
-      # .reverse()
+      .reverse()
       .and()
       .edges
         query         :
