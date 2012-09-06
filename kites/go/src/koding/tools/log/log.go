@@ -28,7 +28,7 @@ type GELF struct {
 var Facility string
 var MaxLevel int = 6
 var Hostname string
-var Server string = "127.0.0.1:12201"
+var Server string = "gl.koding.com:12201"
 var conn net.Conn
 
 type chunkWriter struct {
