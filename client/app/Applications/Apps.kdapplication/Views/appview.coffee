@@ -6,6 +6,8 @@ class AppView extends KDView
 
     app = @getData()
 
+    log app
+
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
@@ -22,7 +24,8 @@ class AppView extends KDView
       dataPath        : "followee"
       states          : [
         "Like", (callback)->
-          callback? null
+          app.like (err)->
+            callback? err
         "Unlike", (callback)->
           callback? null
       ]
@@ -51,11 +54,11 @@ class AppView extends KDView
     #   callback  : ->
     #     appsController.forkApp app, (err)=>
     #       @hideLoader()
-    
-    unless app.manifest.repo
-      @forkButton.setTooltip
-        title   : "No repository specified for the app!"
-        gravity : "w"
+
+    # unless app.manifest.repo
+    #   @forkButton.setTooltip
+    #     title   : "No repository specified for the app!"
+    #     gravity : "w"
 
   viewAppended:->
     @setTemplate @pistachio()
