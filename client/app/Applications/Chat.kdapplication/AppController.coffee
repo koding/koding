@@ -119,9 +119,10 @@ class Channel extends KDEventEmitter
     @view = options.view
 
   addOnlineUser: (name) ->
-    viewInstance = @view.addRosterItem {name:name, status: "online"}
-    @participants[name] = viewInstance
-    viewInstance
+    bongo.api.JAccount.one "profile.nickname" : name, (err, account)=>
+      viewInstance = @view.addRosterItem account
+      @participants[name] = viewInstance
+      viewInstance
 
   removeOfflineUser: (name) ->
     viewInstance = @participants[name]
@@ -237,19 +238,30 @@ class ChatListItemView extends KDListItemView
     """
 
 class ChannelListItemView extends KDListItemView
+  constructor: (options, data)->
+    options.cssClass = "clearfix member-suggestion-item"
+    super
+    @avatar = new AvatarView {size : width : 16, height : 16},data
+    @profileText = new ProfileTextView {shouldShowNick: yes},data
+
   viewAppended: ->
     @setTemplate @pistachio()
     @template.update()
 
   pistachio: ->
-    "<p>{{#(name)}} - {{#(status)}} </p>"
+    """
+      <span class='avatar'>{{> @avatar}}</span>
+      {{> @profileText}} (@#{@getData().profile.nickname})
+    """
 
 class ChatInputForm extends KDFormView
   constructor: ->
     super
-    @input = new KDInputView
+    @input = new KDAutoComplete
       placeholder: "Click here to reply"
       name: "chatInput"
+      label: new KDLabelView
+        title: "chatInput"
       cssClass: "fl"
       validate      :
         rules       :
@@ -261,7 +273,7 @@ class ChatInputForm extends KDFormView
       title: "Send"
       style: "clean-gray inside-button"
       callback: =>
-        input = @recipient.getView()
+        input = @mentionController.getView()
         chatMsg = input.getValue()
 
         input.setValue ""
@@ -270,8 +282,8 @@ class ChatInputForm extends KDFormView
 
         @getDelegate().emit 'ChatMessageSent', chatMsg
 
-    @recipient = new MentionAutoCompleteController
-      name                : "recipient"
+    @mentionController = new MentionAutoCompleteController
+      view                : @input
       itemClass           : MemberAutoCompleteItemView
       form                : @
       itemDataPath        : "profile.nickname"
@@ -279,10 +291,10 @@ class ChatInputForm extends KDFormView
       submitValuesAsText  : yes
       dataSource          : (args, callback)=>
         {inputValue} = args
-        blacklist = (data.getId() for data in @recipient.getSelectedItemData())
+        blacklist = (data.getId() for data in @mentionController.getSelectedItemData())
         @getDelegate().propagateEvent KDEventType : "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
 
-    @recipientAutoComplete = @recipient.getView()
+    @mentionAutoCompleteView = @mentionController.getView()
 
   viewAppended: ->
     @setTemplate @pistachio()
@@ -292,7 +304,7 @@ class ChatInputForm extends KDFormView
     """
     <div class="formline">
       <div>
-        {{> @recipientAutoComplete}}
+        {{> @mentionAutoCompleteView}}
         {{> @sendButton}}
       </div>
     </div>
