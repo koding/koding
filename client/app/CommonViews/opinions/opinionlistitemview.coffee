@@ -98,6 +98,9 @@ class OpinionListItemView extends KDListItemView
             if @editForm?
               @editForm?.destroy()
               delete @editForm
+              @$("p.opinion-body-with-markup").show()
+
+              @$("p.opinion-body-with-markup").show()
             else
               @editForm = new OpinionFormView
                 submitButtonTitle: "Save your changes"
@@ -105,15 +108,18 @@ class OpinionListItemView extends KDListItemView
                 cssClass : "edit-opinion-form opinion-container"
                 callback : (data)=>
                   @getData().modify data, (err, opinion) =>
+                    @$("p.opinion-body-with-markup").show()
                     callback? err, opinion
                     if err
                       new KDNotificationView title : "Your changes weren't saved.", type :"mini"
                     else
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
+
               , data
 
               @addSubView @editForm, "p.opinion-body-edit", yes
+              @$("p.opinion-body-with-markup").hide()
 
         @listenTo
           KDEventTypes       : "click"
