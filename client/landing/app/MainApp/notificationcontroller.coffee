@@ -43,7 +43,7 @@ class NotificationController extends KDObject
     isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
     actor  = replier or liker or sender
 
-    Bongo.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
+    KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
 
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
 
@@ -79,7 +79,7 @@ class NotificationController extends KDObject
         if subject.constructorName is "JPrivateMessage"
           appManager.openApplication "Inbox"
         else
-          # ask chris if Bongo.cacheable is good for this
+          # ask chris if KD.remote.cacheable is good for this
           KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
             appManager.tell "Activity", "createContentDisplay", post
             view.destroy()

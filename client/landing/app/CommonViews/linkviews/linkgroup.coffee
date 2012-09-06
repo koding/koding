@@ -25,7 +25,7 @@ class LinkGroup extends KDCustomHTMLView
 
     if group[0]?.constructorName
       lastFour = group.slice -4
-      Bongo.cacheable lastFour, (err, bucketContents)=>
+      KD.remote.cacheable lastFour, (err, bucketContents)=>
         callback bucketContents
     else
       callback group

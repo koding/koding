@@ -200,7 +200,7 @@ class MainController extends KDController
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
     if data.originId
-      Bongo.cacheable "JAccount", data.originId, (err, account)->
+      KD.remote.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
     else if data._bongo.constructorName is 'JAccount'
       kallback data
@@ -236,7 +236,7 @@ class MainController extends KDController
                     title : "@#{acc.profile.nickname} marked as a troll!"
 
             if data.originId
-              Bongo.cacheable "JAccount", data.originId, (err, account)->
+              KD.remote.cacheable "JAccount", data.originId, (err, account)->
                 kallback account if account
             else if data._bongo.constructorName is 'JAccount'
               kallback data
