@@ -3,7 +3,7 @@ The main controller to keep track of channels the current client
 are in, handling the communication between the ChatView and each
 Channel instance.
 ###
-TOPICREGEX = /#([\w-]+)/g
+TOPICREGEX = /[#|@]([\w-]+)/g
 MENTIONREGEX = /@([\w-]+)/g
 
 class Chat12345 extends AppController
@@ -21,14 +21,15 @@ class Chat12345 extends AppController
     @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
 
     @channels = {}
-    @broadcaster = mq.subscribe "private-KDPublicChat"    
+    @broadcaster = mq.subscribe "private-KDPublicChat"
 
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
 
   loadView:(mainView)->
-    @joinChannel PUBLIC
     @joinChannel "@#{@username}"
+    @joinChannel PUBLIC
+    @joinChannel "#koding"
 
   joinChannel: (name) ->
     return @channels[name] if @channels[name]
@@ -53,16 +54,23 @@ class Chat12345 extends AppController
       if status is "bind"
         channel.addOnlineUser presence
       else if status is "unbind"
-        channel.removeOfflineUser presence    
+        channel.removeOfflineUser presence
+
+    channel.view.registerListener
+      KDEventTypes  : "AutoCompleteNeedsMemberData"
+      listener      : @
+      callback      : (pubInst,event)=>
+        {callback,inputValue,blacklist} = event
+        @fetchAutoCompleteForMentionField inputValue,blacklist,callback 
 
     # When the channel's view receives chat input, parse the body
     # and broadcast it to corresponding channels.
     channel.view.on "ChatMessageSent", (messageBody) =>
-      @parseMessage messageBody, channel
-      @broadcastOwnMessage messageBody, channel 
+      @parseMessage messageBody, name
+      @broadcastOwnMessage messageBody, name 
       # Also broadcast to public channel
       if name isnt PUBLIC
-        @broadcastOwnMessage messageBody, @channels[PUBLIC], channel
+        @broadcastOwnMessage messageBody, PUBLIC, name
 
     # Delegates to the channel to handle received message
     @broadcaster.on channelName, (msg) ->
@@ -77,14 +85,8 @@ class Chat12345 extends AppController
   ###
   parseMessage: (message, fromChannel) ->
     while match = TOPICREGEX.exec message
-      channelName = match[0]
-      channel = @joinChannel channelName
-      @broadcastOwnMessage message, channel, fromChannel
-
-    while match = MENTIONREGEX.exec message
-      mention = match[1]
-      channel = @joinChannel "@#{mention}"
-      @broadcastOwnMessage message, channel, fromChannel
+      toChannel = match[0]
+      @broadcastOwnMessage message, toChannel, fromChannel
 
   ###
   # Broadcasts the message to channel toChannel. If fromChannel
@@ -97,12 +99,17 @@ class Chat12345 extends AppController
       body: messageBody
       meta: {createdAt: new Date().toISOString()}
 
-    chatItem.channel = fromChannel.name if fromChannel
+    chatItem.channel = fromChannel if fromChannel?.match(TOPICREGEX)
 
-    channelMQName = "client-#{toChannel.name}"
+    channelMQName = "client-#{toChannel}"
     @broadcaster.emit channelMQName, JSON.stringify(chatItem)
-    chatItem.author = "me"
-    toChannel.messageReceived chatItem
+    return unless @channels[toChannel]
+    #chatItem.author = "me"
+    @channels[toChannel].messageReceived chatItem
+
+  fetchAutoCompleteForMentionField:(inputValue,blacklist,callback)->
+    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+      callback accounts
 
 class Channel extends KDEventEmitter
   constructor: (options = {}, data) ->
@@ -217,7 +224,7 @@ class ChatListItemView extends KDListItemView
     @template.update()
 
   pistachio:->
-    parsedBody = @getData().body.replace(TOPICREGEX, "<a href='#'>$&</a>")
+    parsedBody = @getData().body.replace(TOPICREGEX, "<a class='ttag' href='#'>$&</a>")
     parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a href='#'>$&</a>")
 
     """
@@ -238,8 +245,9 @@ class ChannelListItemView extends KDListItemView
     "<p>{{#(name)}} - {{#(status)}} </p>"
 
 class ChatInputForm extends KDFormView
-  viewAppended: ->
-    @addSubView @input = new KDInputView
+  constructor: ->
+    super
+    @input = new KDInputView
       placeholder: "Click here to reply"
       name: "chatInput"
       cssClass: "fl"
@@ -249,15 +257,96 @@ class ChatInputForm extends KDFormView
         messages    :
           required  : "Reply field is empty..."
 
-    @addSubView @sendButton = new KDButtonView
+    @sendButton = new KDButtonView
       title: "Send"
-      cssClass: "fl"
       style: "clean-gray inside-button"
       callback: =>
-        chatMsg = @input.getValue()
+        input = @recipient.getView()
+        chatMsg = input.getValue()
 
-        @input.setValue ""
-        @input.blur()
-        @input.$().blur()
+        input.setValue ""
+        input.blur()
+        input.$().blur()
 
         @getDelegate().emit 'ChatMessageSent', chatMsg
+
+    @recipient = new MentionAutoCompleteController
+      name                : "recipient"
+      itemClass           : MemberAutoCompleteItemView
+      form                : @
+      itemDataPath        : "profile.nickname"
+      listWrapperCssClass : "users"
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        blacklist = (data.getId() for data in @recipient.getSelectedItemData())
+        @getDelegate().propagateEvent KDEventType : "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
+
+    @recipientAutoComplete = @recipient.getView()
+
+  viewAppended: ->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio: ->
+    """
+    <div class="formline">
+      <div>
+        {{> @recipientAutoComplete}}
+        {{> @sendButton}}
+      </div>
+    </div>
+    """
+
+class MentionAutoCompleteController extends KDAutoCompleteController
+  getLastInputWord: () ->
+    inputValue = @getView().getValue()
+    inputValue.split(/\s/).pop()
+
+  keyUpOnInputView:(inputView, event)=>
+    return if event.keyCode in [9,38,40] #tab
+    #if event.shiftKey and event.which is 50 # Shift+2 = @
+
+    lastWord = @getLastInputWord()
+    if lastWord.length > 1 and lastWord[0] is '@'
+      @updateDropdownContents()
+    no
+
+  fetch:(callback)->
+    lastWord = @getLastInputWord()
+    return if lastWord.length <= 1 or lastWord[0] isnt '@'
+    @dropdownPrefix = lastWord.match(/^@(.*)/)[1]
+
+    args = {}
+    if @getOptions().fetchInputName
+      args[@getOptions().fetchInputName] = @getView().getValue()
+    else
+      args = inputValue : @dropdownPrefix
+
+    source = @getOptions().dataSource
+    source args, callback
+
+  # Overriden to prevent clearing the input.
+  appendAutoCompletedItem: ->
+
+  addItemToSubmitQueue:(item,data)->
+    data or= item.getData()
+    {itemDataPath, submitValuesAsText} = @getOptions()
+    if data
+      itemValue = if submitValuesAsText then JsPath.getAt data, itemDataPath else data
+    else
+      itemValue = item.getOptions().userInput
+      data = JsPath itemDataPath, itemValue
+
+    lastWord = @getLastInputWord()
+    inputValue = @getView().getValue()
+
+    if @isItemAlreadySelected data
+      #inputValue = inputValue.replace lastWord, "@"
+    else
+      inputValue = inputValue.replace(new RegExp(lastWord+"$"), "@#{itemValue} ")
+      @addSelectedItemData data
+    
+    @getView().setValue inputValue
+
+    @dropdownPrefix = ""

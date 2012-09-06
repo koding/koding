@@ -180,7 +180,7 @@ Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payloa
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
-    if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
+    if (!eventType.match(/^(client-[\w-@#]*)/)) return false;
     var self = this;
     performTask(self, function (channelName) {
       sendWsMessage(self.ws, eventType, channelName, payload, meta);
