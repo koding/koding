@@ -2,6 +2,9 @@ class ContentDisplayDiscussion extends KDView
 
   constructor:(options = {}, data)->
 
+
+    log "Discussion data",data
+
     options.tooltip or=
       title     : "Discussion"
       offset    : 3
@@ -167,7 +170,7 @@ class ContentDisplayDiscussion extends KDView
         <span class="author">AUTHOR</span>
       </span>
       <div class='discussion-main-opinion'>
-        {{> @actionLinks}}
+
         <h3>{{#(title)}}</h3>
 
         <footer class='discussion-footer clearfix'>
@@ -175,6 +178,7 @@ class ContentDisplayDiscussion extends KDView
             <span class='type-icon'></span> by {{> @author}} •
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
+                  {{> @actionLinks}}
           </div>
         </footer>
         {{> @editDiscussionLink}}

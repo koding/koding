@@ -514,6 +514,7 @@ Includes =
         OpinionViewHeader             : "./client/app/CommonViews/opinions/opinionviewheader.coffee"
         OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
         OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"
+        OpinionCommentListItemView    : "./client/app/CommonViews/opinions/opinioncommentlistitemview.coffee"
         OpinionFormView               : "./client/app/CommonViews/opinions/opinionformview.coffee"
         OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
         DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
