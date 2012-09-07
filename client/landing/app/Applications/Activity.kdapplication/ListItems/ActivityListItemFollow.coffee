@@ -62,7 +62,6 @@ class NewMemberBucketItemView extends KDView
     <span class='action'>became a member.</span>
     """
 
-
 class AccountFollowBucketItemView extends FollowBucketItemView
 
   constructor:(options, data)->
@@ -75,4 +74,11 @@ class TagFollowBucketItemView extends FollowBucketItemView
   constructor:(options, data)->
     options.subItemLinkClass or= TagLinkView
     options.subItemCssClass or= 'topic'
+    super
+
+class AppFollowBucketItemView extends FollowBucketItemView
+
+  constructor:(options, data)->
+    options.subItemLinkClass or= AppLinkView
+    options.subItemCssClass or= 'profile'
     super
