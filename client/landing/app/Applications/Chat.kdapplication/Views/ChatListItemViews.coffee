@@ -21,6 +21,7 @@ class ChatListItemView extends KDListItemView
 class ChannelListItemView extends KDListItemView
   constructor: (options, data)->
     options.cssClass = "clearfix member-suggestion-item"
+    options.bind     = "contextmenu"
     super
     @avatar = new AvatarView {size : width : 16, height : 16},data
     @profileText = new ProfileTextView {shouldShowNick: yes},data

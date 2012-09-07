@@ -30,14 +30,16 @@ class Chat12345 extends AppController
     @joinChannel PUBLIC
 
   joinChannel: (name) ->
+    view = @getOptions().view
+    # Need to declare in here so that it will switch to the tab
+    channelPaneInstance = view.addChannelTab name
+
     if channel = @channels[name]      
       return channel
 
-    view = @getOptions().view
-
     channel = new ChannelController 
       name: name
-      view: view.addChannelTab name
+      view: channelPaneInstance
 
     @handlePresence channel
     @handleChannelViewEvents channel
