@@ -5,7 +5,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   
   createId = require 'hat'
   
-  Emailer = require '../../emailer'
+  Emailer = require '../emailer'
   
   @share()
   

@@ -5,7 +5,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   crypto      = require 'crypto'
   createSalt  = require 'hat'
   
-  Emailer = require '../../emailer'
+  Emailer = require '../emailer'
   
   @share()
   

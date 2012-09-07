@@ -1,1 +1,0 @@
-{JsPath} = require 'bongo'

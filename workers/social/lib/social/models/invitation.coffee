@@ -6,7 +6,7 @@ module.exports = class JInvitation extends jraphical.Module
   crypto = require 'crypto'
   {uniq} = require 'underscore'
   
-  Emailer = require '../../emailer'
+  Emailer = require '../emailer'
   
   @isEnabledGlobally = yes
   
@@ -21,7 +21,7 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','__sendBetaInvites'] # ,'__createBetaInvites'
+      static        : ['create','byCode'] # ,'__sendBetaInvites','__createBetaInvites'
     schema          :
       code          : String
       inviteeEmail  : String
@@ -74,116 +74,116 @@ module.exports = class JInvitation extends jraphical.Module
   #             #   console.log 'finished', i++
   #             #   callback 'ok'
   # 
-  @__sendInvitationsAreGrantedEmail =do->
-    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
-    # betaTestersEmails = 'chris123412341234@jraphical.com'
-    # betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
-    invitationsAreGrantedEmail = fs.readFileSync 'email/invitations-are-granted.txt', 'utf-8'
-    protocol = 'https://'
-    (callback)->
-      i = 0
-      recipients = []
-      {host, port} = server
-      # host = 'localhost:3000'
-      # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(2703, 6000).forEach (email)=>
-        recipients.push =>
-          @one {inviteeEmail: email}, (err, invite)=>
-            if err
-              console.log err
-            else if invite?
-              url = "#{protocol}#{host}/invitation/#{invite.code}"
-              # bitly.shorten url, (err, response)=>
-              #   shortenedUrl = response.data.url
-              #   if shortenedUrl?
-                  # shortenedUrl = url
-              personalizedMail = invitationsAreGrantedEmail.replace '#{url}', url#shortenedUrl
-              Emailer.send
-                From      : @getInviteEmail()
-                To        : email
-                Subject   : '[Koding] Koding has launched!'
-                TextBody  : personalizedMail
-              , (err)-> 
-                # console.log 'finished', i++, err
-                recipients.fin(err)
-                # else console.log email
-            else
-              console.log "no invitation was found for #{email}"
-              recipients.fin null
-      dash recipients, ->
-        console.log 'all done'
-        callback arguments...
+#  @__sendInvitationsAreGrantedEmail =do->
+##    betaTestersEmails = fs.readFileSync 'invitee-emails.txt', 'utf-8'
+#    # betaTestersEmails = 'chris123412341234@jraphical.com'
+#    # betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+#    invitationsAreGrantedEmail = fs.readFileSync 'email/invitations-are-granted.txt', 'utf-8'
+#    protocol = 'https://'
+#    (callback)->
+#      i = 0
+#      recipients = []
+#      {host, port} = server
+#      # host = 'localhost:3000'
+#      # protocol = 'http://'
+#      uniq(betaTestersEmails.split '\n').slice(2703, 6000).forEach (email)=>
+#        recipients.push =>
+#          @one {inviteeEmail: email}, (err, invite)=>
+#            if err
+#              console.log err
+#            else if invite?
+#              url = "#{protocol}#{host}/invitation/#{invite.code}"
+#              # bitly.shorten url, (err, response)=>
+#              #   shortenedUrl = response.data.url
+#              #   if shortenedUrl?
+#                  # shortenedUrl = url
+#              personalizedMail = invitationsAreGrantedEmail.replace '#{url}', url#shortenedUrl
+#              Emailer.send
+#                From      : @getInviteEmail()
+#                To        : email
+#                Subject   : '[Koding] Koding has launched!'
+#                TextBody  : personalizedMail
+#              , (err)-> 
+#                # console.log 'finished', i++, err
+#                recipients.fin(err)
+#                # else console.log email
+#            else
+#              console.log "no invitation was found for #{email}"
+#              recipients.fin null
+#      dash recipients, ->
+#        console.log 'all done'
+#        callback arguments...
 
 
-  @__sendBetaInvites = secure do->
-    betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
-    # betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
-    protocol = 'https://'
-    (client,callback)->
-      i = 0
-      recipients = []
-      {host, port} = server
-      account = client.connection.delegate
-      unless 'super-admin' in account.globalFlags 
-        return callback new KodingError "not authorized"
+  # @__sendBetaInvites = secure do->
+  #   betaTestersEmails = fs.readFileSync 'invitee-emails2.txt', 'utf-8'
+  #   # betaTestersEmails = 'chris123412341234@jraphical.com'
+  #   betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+  #   protocol = 'https://'
+  #   (client,callback)->
+  #     i = 0
+  #     recipients = []
+  #     {host, port} = server
+  #     account = client.connection.delegate
+  #     unless 'super-admin' in account.globalFlags 
+  #       return callback new KodingError "not authorized"
 
-      # host = 'localhost:3000'
-      # protocol = 'http://'
-      uniq(betaTestersEmails.split '\n').slice(1000, 1999).forEach (email)=>
-        recipients.push =>
-          @one {inviteeEmail: email}, (err, invite)=>
-            if err
-              console.log err
-            else if invite?
-              url = "#{protocol}#{host}/invitation/#{invite.code}"
-              # bitly.shorten url, (err, response)=>
-              #   shortenedUrl = response.data.url
-              #   if shortenedUrl?
-                  # shortenedUrl = url
-              personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
+  #     # host = 'localhost:3000'
+  #     # protocol = 'http://'
+  #     uniq(betaTestersEmails.split '\n').slice(1000, 1999).forEach (email)=>
+  #       recipients.push =>
+  #         @one {inviteeEmail: email}, (err, invite)=>
+  #           if err
+  #             console.log err
+  #           else if invite?
+  #             url = "#{protocol}#{host}/invitation/#{invite.code}"
+  #             # bitly.shorten url, (err, response)=>
+  #             #   shortenedUrl = response.data.url
+  #             #   if shortenedUrl?
+  #                 # shortenedUrl = url
+  #             personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
               
-              Emailer.send
-                From      : @getInviteEmail()
-                To        : email
-                Subject   : '[Koding] Here is your beta invite!'
-                TextBody  : personalizedMail
-              , (err)-> 
-                # console.log 'finished', i++, err
-                recipients.next(err)
-                # else console.log email
-            else
-              console.log "no invitation was found for #{email}"              
-              recipients.next null
-      recipients.push callback
-      daisy recipients
+  #             Emailer.send
+  #               From      : @getInviteEmail()
+  #               To        : email
+  #               Subject   : '[Koding] Here is your beta invite!'
+  #               TextBody  : personalizedMail
+  #             , (err)-> 
+  #               # console.log 'finished', i++, err
+  #               recipients.next(err)
+  #               # else console.log email
+  #           else
+  #             console.log "no invitation was found for #{email}"              
+  #             recipients.next null
+  #     recipients.push callback
+  #     daisy recipients
         
   
-  @__createBetaInvites =do ->
-    #betaTestersEmails = 'chris123412341234@jraphical.com'
-    betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
-    #betaTestersEmails = 'chris123123@jraphical.com'
-    (callback)->
-      JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
-        i = 0
-        recipients = []
-        uniq(betaTestersEmails.split '\n').forEach (email)->
-          code = crypto
-            .createHmac('sha1', 'kodingsecret')
-            .update(email)
-            .digest('hex')
-          recipients.push ->
-            invite = new JInvitation {
-              code
-              inviteeEmail  : email
-              maxUses       : 1
-              origin        : ObjectRef(devrim)
-              type          : 'launchrock'
-            }
-            invite.save (err)-> 
-              recipients.next(err)
-        recipients.push -> callback(recipients)
-        daisy recipients
+  # @__createBetaInvites =do ->
+  #   #betaTestersEmails = 'chris123412341234@jraphical.com'
+  #   betaTestersEmails = fs.readFileSync('./invitee-emails2.txt', 'utf-8')
+  #   #betaTestersEmails = 'chris123123@jraphical.com'
+  #   (callback)->
+  #     JAccount.one {'profile.nickname': 'devrim'}, (err, devrim)=>
+  #       i = 0
+  #       recipients = []
+  #       uniq(betaTestersEmails.split '\n').forEach (email)->
+  #         code = crypto
+  #           .createHmac('sha1', 'kodingsecret')
+  #           .update(email)
+  #           .digest('hex')
+  #         recipients.push ->
+  #           invite = new JInvitation {
+  #             code
+  #             inviteeEmail  : email
+  #             maxUses       : 1
+  #             origin        : ObjectRef(devrim)
+  #             type          : 'launchrock'
+  #           }
+  #           invite.save (err)-> 
+  #             recipients.next(err)
+  #       recipients.push -> callback(recipients)
+  #       daisy recipients
 
   @grant =(selector, quota, options, callback)->
     [callback, options] = [options, callback] unless callback

@@ -7,13 +7,13 @@ Includes =
     Server:
       Stuff:
         config          : "./config.coffee"
-        dependencies    : "./server/dependencies.coffee"
-        errors          : "./server/app/errors.coffee"
-        initConfig      : "./server/app/initConfig.coffee"
-        emailer         : "./server/app/emailer.coffee"
+        # dependencies    : "./server/dependencies.coffee"
+        # errors          : "./server/app/errors.coffee"
+        # initConfig      : "./server/app/initConfig.coffee"
+        # emailer         : "./server/app/emailer.coffee"
         # base            : "./server/app/base.coffee"
-        utils           : "./server/app/utils.coffee"
-        jspath          : "./server/app/jspath.coffee"
+        # utils           : "./server/app/utils.coffee"
+        #jspath          : "./server/app/jspath.coffee"
         # access_control  : "./server/app/access_control.coffee"
         # output_filters  : "./server/app/output_filters.coffee"
         # api             : "./server/app/api.coffee"
@@ -22,8 +22,8 @@ Includes =
         # ftp             : "./server/app/ftp.coffee"
         # job             : "./server/app/job.coffee"
         # jobq            : "./server/app/jobq.coffee"
-        resource        : "./server/app/resource.coffee"
-        server          : "./server/app/server.coffee"
+        # resource        : "./server/app/resource.coffee"
+        # server          : "./server/app/server.coffee"
         # foreign_auth    : "./server/app/foreign_auth.coffee"
         # shell           : "./server/app/shell.coffee"
         # status          : "./server/app/status.coffee"
@@ -35,7 +35,7 @@ Includes =
         # archiver        : "./server/app/core/archiver.coffee"
         # limit           : "./server/app/core/limit.coffee"
         # allocation      : "./server/app/core/allocation.coffee"
-        register        : "./server/app/core/register.coffee"
+        # register        : "./server/app/core/register.coffee"
         #localization    : "./server/app/core/localization.coffee"
         # relationship    : "./server/app/core/relationship.coffee"
         # permission      : "./server/app/core/permission.coffee"
@@ -124,7 +124,7 @@ Includes =
         # jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
 
-      OtherStuff :
+      # OtherStuff :
         # moduledata            : "./server/app/core/moduledata.coffee"
         # moduledata_deprecated : "./server/app/core/moduledata_deprecated.coffee"
         # defaultAllocations    : "./server/app/defaults/defaultallocations.coffee"
@@ -136,7 +136,7 @@ Includes =
         # groupsDump            : "./server/migrate/migrants/groupsdump.coffee"
         # postsDump             : "./server/migrate/migrants/postsdump.coffee"
         # unwrapper             : "./server/migrate/migrants/unwrapper.coffee"
-        main                  : "./server/app/main.coffee"
+        # main                  : "./server/app/main.coffee"
 
     Client:
       Framework :

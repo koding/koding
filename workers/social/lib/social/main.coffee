@@ -1,18 +1,12 @@
 log = -> logger.info arguments...
 
-# Core Nodejs libraries:
-{spawn, exec}   = require 'child_process'
-# crypto          = require 'crypto'
-# sys             = require 'sys'
-fs              = require 'fs'
-Path            = require 'path'
-{EventEmitter}  = require 'events'
+{argv} = require 'optimist'
 
-slice         = Array::slice
-splice        = Array::splice
-noop          = Function()
+console.log argv
 
 # Error.stackTraceLimit = 100
+
+{exec} = require 'child_process'
 
 if process.argv[5] is "true"
   __runCronJobs   = yes
@@ -24,18 +18,18 @@ process.on 'uncaughtException', (err)->
   console.log err, err?.stack
 
 
-dbCallback= (err)->
-  if err
-    log err
-    log "database connection couldn't be established - abort."
-    process.exit()
+# dbCallback= (err)->
+#   if err
+#     log err
+#     log "database connection couldn't be established - abort."
+#     process.exit()
 
 if require("os").platform() is 'linux'
   require("fs").writeFile "/var/run/node/koding.pid",process.pid,(err)->
     if err?
       console.log "[WARN] Can't write pid to /var/run/node/kfmjs.pid. monit can't watch this process."
 
-dbUrl = switch process.argv[3] or 'local'
+dbUrl = switch argv.d or 'mongohq-dev'
   when "local"
     "mongodb://localhost:27017/koding?auto_reconnect"
   when "sinan"
@@ -51,9 +45,12 @@ dbUrl = switch process.argv[3] or 'local'
   when "mongohq-dev"
     "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
 
+Bongo = require 'bongo'
+Broker = require 'broker'
+
 koding = new Bongo
   mongo   : dbUrl
-  models  : require('path').join __dirname, './server/app/bongo/fixedmodels'
+  models  : require('path').join __dirname, './models'
   mq      : new Broker {
     host      : "localhost"
     login     : "guest"
