@@ -161,7 +161,7 @@ class KodingAppsController extends KDController
     {name} = manifest
 
     if KDApps[name]
-      callback KDApps[name]
+      callback null, KDApps[name]
     else
       @fetchCompiledApp manifest, (err, script)=>
         if err
@@ -170,10 +170,10 @@ class KodingAppsController extends KDController
               new KDNotificationView type : "mini", title : "There was an error, please try again later!"
               callback err
             else
-              callback KDApps[name]
+              callback err, KDApps[name]
         else
           @defineApp name, script
-          callback KDApps[name]
+          callback err, KDApps[name]
 
   # #
   # KITE INTERACTIONS
@@ -181,13 +181,8 @@ class KodingAppsController extends KDController
 
   runApp:(manifest, callback)->
 
-
-
-    # AUTHOR NICKNAME SHOULD BE IN MANIFEST WHEN PUBLISHING PUT APP REMOTE PATH IN MANIFEST
-
-
-
-    {options, stylesheets, name} = manifest
+    {options, name} = manifest
+    {stylesheets}   = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
@@ -196,35 +191,38 @@ class KodingAppsController extends KDController
         else
           sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
           $("head ##{__utils.slugify name}").remove()
-          $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+          $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
-    if options and options.type is "tab"
-      mainView = @getSingleton('mainView')
-      mainView.mainTabView.showPaneByView
-        name         : manifest.name
-        hiddenHandle : no
-        type         : "application"
-      , (appView = new KDView)
-      try
-        # security please!
-        do (appView)->
-          eval appScript
-      catch e
-        warn "App caused some problems:", e
-      callback?()
-      return appView
-    else
-      try
-        # security please!
-        do ->
-          eval appScript
-      catch e
-        warn "App caused some problems:", e
-      callback?()
-      return null
+    @getAppScript manifest, (err, appScript)=>
+      if err then warn err
+      else
+        if options and options.type is "tab"
+          mainView = @getSingleton('mainView')
+          mainView.mainTabView.showPaneByView
+            name         : manifest.name
+            hiddenHandle : no
+            type         : "application"
+          , (appView = new KDView)
+          try
+            # security please!
+            do (appView)->
+              eval appScript
+          catch e
+            warn "App caused some problems:", e
+          callback?()
+          return appView
+        else
+          try
+            # security please!
+            do ->
+              eval appScript
+          catch e
+            warn "App caused some problems:", e
+          callback?()
+          return null
 
-    log "app to run:", name
-    callback?()
+        log "app to run:", name
+        callback?()
 
   addScript:(app, scriptInput, callback)->
 
