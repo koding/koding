@@ -151,10 +151,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'creator'
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
 
-  setTimeout =>
-    console.log @relationships.content
-  , 5000
-
   @sonTest = (x,callback)->
     callback x+" foo"
 

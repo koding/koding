@@ -19,7 +19,11 @@ app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
-koding = new Bongo {mongo, mq: new Broker amqp}
+koding = new Bongo {
+  mongo
+  models: require('path').join __dirname, './models'
+  mq: new Broker amqp
+}
 
 JSession = require './models/session'
 
