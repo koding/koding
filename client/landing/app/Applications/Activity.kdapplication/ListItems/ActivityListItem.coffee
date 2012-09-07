@@ -21,6 +21,7 @@ class ActivityListItemView extends KDListItemView
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
     JTag      : TagFollowBucketItemView
+    JApp      : AppFollowBucketItemView
 
   constructor:(options = {},data)->
 
