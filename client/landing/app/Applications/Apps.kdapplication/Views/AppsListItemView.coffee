@@ -80,7 +80,7 @@ class AppsListItemView extends KDListItemView
         </p>
         <p class="followers">
           <span class="icon"></span>
-          <a href="#">{{#(counts.tagged) or 0}}</a> Followers
+          <a href="#">{{#(counts.followers) or 0}}</a> Followers
         </p>
       </div>
     </div>
