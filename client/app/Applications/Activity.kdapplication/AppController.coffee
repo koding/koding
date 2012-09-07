@@ -11,6 +11,7 @@ class Activity12345 extends AppController
       'CCodeSnipActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
+      'CInstalleeBucketActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -185,6 +186,7 @@ class Activity12345 extends AppController
           'CCodeSnipActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
+          'CInstalleeBucketActivity'
         ]
 
     options =
