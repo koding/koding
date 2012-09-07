@@ -164,7 +164,19 @@ class JApp extends jraphical.Module
               if err
                 callback err
               else
-                @update ($set: 'counts.installed': count), callback
+                @update ($set: 'counts.installed': count), (err)=>
+                  if err then callback err
+                  else
+                    Relationship.one
+                      sourceId: @getId()
+                      targetId: delegate.getId()
+                      as: 'user'
+                    , (err, relation)=>
+                      CBucket.addActivities relation, @, delegate, (err)=>
+                        if err
+                          callback err
+                        else
+                          callback null
           else
             callback new KodingError 'Relationship already exists, App already installed'
 
