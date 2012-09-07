@@ -22,6 +22,7 @@ class JApp extends jraphical.Module
   @share()
 
   @set
+    emitFollowingActivities: yes
     indexes         :
       title         : 'ascending'
 
