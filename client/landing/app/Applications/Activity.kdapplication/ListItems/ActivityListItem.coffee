@@ -14,9 +14,12 @@ class ActivityListItemView extends KDListItemView
     CFollowerBucket           : "system-message"
     CFolloweeBucket           : "system-message"
     CNewMemberBucket          : "system-message"
+    CInstalleeBucket          : "system-message"
+
     CFollowerBucketActivity   : "system-message"
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
+    CInstaleeBucketActivity   : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
@@ -30,6 +33,8 @@ class ActivityListItemView extends KDListItemView
     super options, data
 
     data = @getData()
+
+#    log data
 
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
