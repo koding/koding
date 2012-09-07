@@ -1,13 +1,10 @@
-{Module} = require 'jraphical'
+jraphical = require 'jraphical'
 
-Notifying = require '../../abstractions/notifying'
+module.exports = class CBucket extends jraphical.Module
 
-class CBucket extends jraphical.Module
+  {Base, Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
 
-  {Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
-  
-  @mixin Notifying
-  @::mixin Notifying::
+  @trait __dirname, '../../abstractions/notifying'
   
   @set
     broadcastable   : yes
@@ -37,6 +34,13 @@ class CBucket extends jraphical.Module
   fetchTeaser:(callback)-> callback null, @
   
   getBucketConstructor =(groupName, role)->
+    CFolloweeBucket   = require './followeebucket'
+    CFollowerBucket   = require './followerbucket'
+    CLikeeBucket      = require './likeebucket'
+    CLikerBucket      = require './likerbucket'
+    CReplieeBucket    = require './replieebucket'
+    CReplierBucket    = require './replierbucket'
+
     switch role
       when 'follower'
         switch groupName
@@ -67,7 +71,7 @@ class CBucket extends jraphical.Module
             if err
               callback err
             else if rel
-              konstructor = bongo.Base.constructors[rel.sourceName]
+              konstructor = Base.constructors[rel.sourceName]
               konstructor.one _id: rel.sourceId, (err, activity)->
                 if err
                   callback err
@@ -80,6 +84,7 @@ class CBucket extends jraphical.Module
                     else
                       callback null, bucket
             else
+              CBucketActivity = require '../activity/bucketactivity'
               activity = CBucketActivity.create bucket
               activity.save (err)->
                 if err

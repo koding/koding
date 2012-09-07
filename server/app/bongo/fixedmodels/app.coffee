@@ -1,10 +1,5 @@
 jraphical = require 'jraphical'
 
-Followable  = require '../abstractions/followable'
-Filterable  = require '../abstractions/filterable'
-Flaggable   = require '../abstractions/flaggable'
-Taggable    = require '../abstractions/taggable'
-
 class JAppScriptAttachment extends jraphical.Attachment
   @setSchema
     as          : String
@@ -18,10 +13,9 @@ module.exports = class JApp extends jraphical.Module
   CActivity = require './activity'
   JTag = require './tag'
 
-  @mixin Filterable       # brings only static methods
-  @mixin Followable       # brings only static methods
-  @::mixin Followable::   # brings only prototype methods
-  @::mixin Taggable::
+  @trait __dirname, '../abstractions/filterable'       # brings only static methods
+  @trait __dirname, '../abstractions/followable'
+  @trait __dirname, '../abstractions/taggable'
   # 
   {Inflector,JsPath,secure,daisy} = require 'bongo'
   

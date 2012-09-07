@@ -1,13 +1,10 @@
 jraphical = require 'jraphical'
 
-Flaggable = require '../../abstractions/flaggable'
-
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
 
-  @mixin Flaggable
-  @::mixin Flaggable::
+  @trait __dirname, '../../abstractions/followable'
 
   @getFlagRole =-> 'activity'
 

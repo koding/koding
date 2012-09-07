@@ -1,5 +1,5 @@
-CActivity = require '../../activity'
 CBucketActivity = require '../../activity/bucketactivity'
+CActivity = require '../../activity'
 
 module.exports = class CFollowerBucketActivity extends CBucketActivity
 

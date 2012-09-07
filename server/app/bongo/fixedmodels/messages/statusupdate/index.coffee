@@ -13,7 +13,7 @@ module.exports = class JStatusUpdate extends JPost
     schema            : JPost.schema
     relationships     : JPost.relationships
 
-  @getActivityType =-> CStatusActivity
+  @getActivityType =-> require './statusactivity'
 
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback

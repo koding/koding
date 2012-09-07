@@ -39,7 +39,7 @@ module.exports = class JUser extends jraphical.Module
   
   @share()
   
-  @::mixin Flaggable::
+  @trait __dirname, '../abstractions/flaggable'
   
   @getFlagRole =-> 'owner'
   

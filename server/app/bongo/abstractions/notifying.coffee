@@ -29,7 +29,6 @@ module.exports = class Notifying
       receiver?.sendNotification? event, contents
     relationship = new Relationship contents.relationship
     CBucket.addActivities relationship, origin, actor, (err)->
-      # console.log 'There was an error adding bucket activities'
       if receiver instanceof JAccount
         username = receiver.getAt('profile.nickname')
         JUser.someData {username}, {email: 1}, (err, cursor)->

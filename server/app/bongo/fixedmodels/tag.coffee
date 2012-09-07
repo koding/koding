@@ -1,22 +1,13 @@
 
 jraphical = require 'jraphical'
 
-Followable = require '../abstractions/followable'
-Filterable = require '../abstractions/filterable'
-Taggable = require '../abstractions/taggable'
-
 module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
-  @mixin Followable
-  @::mixin Followable::
-  @mixin Filterable         # brings only static methods
-  @::mixin Taggable::
-
-  # @mixin Followable       # brings only static methods
-  # @::mixin Followable::   # brings only prototype methods
-  # @::mixin Filterable::   # brings only prototype methods
+  @trait __dirname, '../abstractions/followable'
+  @trait __dirname, '../abstractions/filterable'
+  @trait __dirname, '../abstractions/taggable'
 
   {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
 

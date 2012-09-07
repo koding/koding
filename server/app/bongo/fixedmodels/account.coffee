@@ -1,10 +1,10 @@
 jraphical = require 'jraphical'
 
-Followable  = require '../abstractions/followable'
-Filterable  = require '../abstractions/filterable'
-Flaggable   = require '../abstractions/flaggable'
-Taggable    = require '../abstractions/taggable'
-Notifiable  = require '../abstractions/notifiable'
+# Followable  = require '../abstractions/followable'
+# Filterable  = require '../abstractions/filterable'
+# Flaggable   = require '../abstractions/flaggable'
+# Taggable    = require '../abstractions/taggable'
+# Notifiable  = require '../abstractions/notifiable'
 
 KodingError = require '../../error'
 
@@ -12,11 +12,11 @@ module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
 
-  @trait Followable
-  @trait Filterable
-  @trait Taggable
-  @trait Notifiable
-  @trait Flaggable
+  @trait __dirname, '../abstractions/followable'
+  @trait __dirname, '../abstractions/filterable'
+  @trait __dirname, '../abstractions/taggable'
+  @trait __dirname, '../abstractions/notifiable'
+  @trait __dirname, '../abstractions/flaggable'
   
   @getFlagRole = 'content'
 
@@ -82,7 +82,7 @@ module.exports = class JAccount extends jraphical.Module
         nickname            :
           type              : String
           validate          : (value)->
-            3 < value.length < 26 and /^[^-][a-z0-9-]+$/.test value
+            3 < value.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test value
           set               : (value)-> value.toLowerCase()
         hash                :
           type              : String
@@ -105,27 +105,15 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           : ->
-      # other models
-      JMount = require './mount'
-      JRepo = require './repo'
-      #JDatabase = require './database'
-      CActivity = require './activity'
-      JAppStorage = require './appstorage'
-      JLimit = require './limit'
-      JTag = require './tag'
-      #JPrivateMessage = require './messages/privatemessage'
-      JStatusUpdate = require './messages/statusupdate'
-      JCodeSnip = require './messages/codesnip'
-      JComment = require './messages/comment'
+    relationships           : 
 
       mount         :
         as          : 'owner'
-        targetType  : JMount
+        targetType  : "JMount"
 
       repo          :
         as          : 'owner'
-        targetType  : JRepo
+        targetType  : "JRepo"
 
       # database      :
       #   as          : 'owner'
@@ -133,7 +121,7 @@ module.exports = class JAccount extends jraphical.Module
 
       follower      :
         as          : 'follower'
-        targetType  : JAccount
+        targetType  : "JAccount"
 
       # followee      :
       #   as          : 'followee'
@@ -141,7 +129,7 @@ module.exports = class JAccount extends jraphical.Module
       
       activity      :
         as          : 'activity'
-        targetType  : CActivity
+        targetType  : "CActivity"
       
       # privateMessage:
       #   as          : ['recipient','sender']
@@ -149,19 +137,23 @@ module.exports = class JAccount extends jraphical.Module
 
       appStorage    :
         as          : 'appStorage'
-        targetType  : JAppStorage
+        targetType  : "JAppStorage"
       
       limit:
         as          : 'invite'
-        targetType  : JLimit
+        targetType  : "JLimit"
       
       tag:
         as          : 'skill'
-        targetType  : JTag
+        targetType  : "JTag"
       
       content       :
         as          : 'creator'
-        targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
+
+  setTimeout =>
+    console.log @relationships.content
+  , 5000
 
   @sonTest = (x,callback)->
     callback x+" foo"

@@ -4,6 +4,7 @@ module.exports = class Followable extends jraphical.Module
 
   {Model, dash, secure} = require 'bongo'
   {Relationship, Module} = jraphical
+  {extend} = require 'underscore'
 
   @schema =
     counts        :
@@ -113,7 +114,9 @@ module.exports = class Followable extends jraphical.Module
         follower.updateFollowingCount()
 
   fetchFollowing: (query, page, callback)->
-    _.extend query,
+    JAccount = require '../fixedmodels/account'
+
+    extend query,
       targetId  : @getId()
       as        : 'follower'
     # log query, page
@@ -125,7 +128,9 @@ module.exports = class Followable extends jraphical.Module
           callback err, accounts
 
   fetchFollowers: (query, page, callback)->
-    _.extend query,
+    JAccount = require '../fixedmodels/account'
+
+    extend query,
       targetId  : @getId()
       as        : 'follower'
     Relationship.some query, page, (err, docs)->
@@ -136,15 +141,17 @@ module.exports = class Followable extends jraphical.Module
           callback err, accounts
 
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
+    JAccount = require '../fixedmodels/account'
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
   fetchFollowingWithRelationship: secure (client, query, page, callback)->
+    JAccount = require '../fixedmodels/account'
     @fetchFollowing query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
   fetchFollowedTopics: secure (client, query, page, callback)->
-    _.extend query,
+    extend query,
       targetId  : @getId()
       as        : 'follower'
     Relationship.some query, page, (err, docs)->

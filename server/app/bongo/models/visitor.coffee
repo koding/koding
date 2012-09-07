@@ -1,5 +1,8 @@
 {Model} = require 'bongo'
 
+JSession = require './session'
+JUser = require './user'
+
 class JVisitor extends Model
   {secure} = require 'bongo'
 

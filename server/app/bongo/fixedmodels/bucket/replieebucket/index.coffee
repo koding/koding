@@ -1,6 +1,6 @@
 CBucket = require '../index'
 
-class CReplieeBucket extends CBucket
+module.exports = class CReplieeBucket extends CBucket
 
   @share()
   
