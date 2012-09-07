@@ -40,7 +40,7 @@ class ActivityActionsView extends KDView
       , activity
 
     @likeCount.on "countChanged", (count) =>
-      @updateLikeState(yes)
+      @updateLikeState yes
 
     @likeLink     = new ActivityActionLink
     @loader       = new KDLoaderView size : width : 14
@@ -48,7 +48,10 @@ class ActivityActionsView extends KDView
   updateLikeState:(checkIfILiked = no)->
 
     activity = @likeCount.getData()
-    return if activity.meta.likes is 0
+
+    if activity.meta.likes is 0
+      @likeLink.updatePartial "Like"
+      return
 
     activity.fetchLikedByes {},
       limit : if checkIfILiked then activity.meta.likes else 3
@@ -69,13 +72,6 @@ class ActivityActionsView extends KDView
               peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
             else return
 
-          # switch activity.meta.likes
-          #   when 0 then tooltip = ""
-          #   when 1 then tooltip = "{{> @peopleWhoLiked0}}"
-          #   when 2 then tooltip = "{{> @peopleWhoLiked0}} and {{> @peopleWhoLiked1}}"
-          #   when 3 then tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}} and {{> @peopleWhoLiked2}}"
-          #   else        tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}}, {{> @peopleWhoLiked2}} and {{activity.meta.likes - 3}} more."
-
           if activity.meta.likes is 1
             tooltip = peopleWhoLiked[0]
           else if activity.meta.likes is 2
@@ -87,8 +83,8 @@ class ActivityActionsView extends KDView
 
           @likeCount.updateTooltip {title: tooltip }
 
-          # if checkIfILiked
-          #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
+          if checkIfILiked
+            @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
 
@@ -127,6 +123,8 @@ class ActivityActionsView extends KDView
               new KDNotificationView
                 title     : "You already liked this!"
                 duration  : 1300
+            else
+              @updateLikeState yes
 
     @commentLink.registerListener
       KDEventTypes  : "Click"

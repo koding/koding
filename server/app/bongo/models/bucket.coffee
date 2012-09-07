@@ -98,11 +98,11 @@ class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
-                          anchor.sendNotification? 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err
                             else
+                              anchor.sendNotification? 'ActivityIsAdded'
                               callback null, bucket
 
     (groupName, relationship, item, anchor, callback)->

@@ -291,16 +291,12 @@ class JPost extends jraphical.Message
                     relationship  : docs[0]
                   }
           else
-            callback new KodingError 'You already like this.'
-            ###
-            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+            @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err
                 callback err
                 console.log err
               else
-                count ?= 1
                 @update ($set: 'meta.likes': count), callback
-            ###
 
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
