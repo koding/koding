@@ -135,7 +135,7 @@ class JAccount extends jraphical.Module
       tag           :
         as          : 'skill'
         targetType  : JTag
-      
+
       kiteSubscription  :
         as              : 'owner'
         targetType      : JKiteSubscription
@@ -267,14 +267,14 @@ class JAccount extends jraphical.Module
       callback null, "super-admin"
     else
       callback null, "regular"
-  
+
   setKiteConnection: secure ({connection}, kiteName, kiteUri, callback=->)->
     username = connection.delegate.getAt 'profile.nickname'
     if isDummyAdmin username
       JKiteConnection.update {username, kiteName}, $set: {kiteUri}, callback
     else
       callback new KodingError "Permission denied!"
-  
+
   fetchAllKiteClusters: secure ({connection}, callback)->
     username = connection.delegate.getAt 'profile.nickname'
     if isDummyAdmin username

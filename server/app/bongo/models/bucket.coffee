@@ -1,10 +1,10 @@
 class CBucket extends jraphical.Module
 
   {Model, ObjectRef, ObjectId, dash, daisy} = bongo
-  
+
   @mixin Notifying
   @::mixin Notifying::
-  
+
   @set
     broadcastable   : yes
     schema          :
@@ -16,9 +16,9 @@ class CBucket extends jraphical.Module
       snapshotIds   : [ObjectId]
       migrant       : Boolean
       meta          : require "bongo/bundles/meta"
-  
+
   fetchTeaser:(callback)-> callback null, @
-  
+
   add:(item, callback)->
     member = ObjectRef(item)
     @update {
@@ -31,7 +31,7 @@ class CBucket extends jraphical.Module
       callback err
 
   fetchTeaser:(callback)-> callback null, @
-  
+
   getBucketConstructor =(groupName, role)->
     switch role
       when 'follower'
@@ -46,7 +46,7 @@ class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
-  
+
   addToBucket =do ->
     # @helper
     addIt = (bucket, anchor, item, callback)->
@@ -131,11 +131,11 @@ class CBucket extends jraphical.Module
           bucket.save (err)->
             if err then callback err
             else addIt bucket, anchor, item, callback
-  
+
   getPopulator =(items..., callback)->
     -> ObjectRef.populate items, (err, populated)-> callback err, populated
-  
-  # @implementation  
+
+  # @implementation
   @addActivities =(relationship, source, target, callback)->
     queue = []
     next = -> queue.next()
@@ -155,16 +155,16 @@ class CBucket extends jraphical.Module
     daisy queue
 
 class CNewMemberBucket extends CBucket
-  
+
   @share()
-  
+
   @set
     schema          : CBucket.schema
 
 class CFollowerBucket extends CBucket
-  
+
   @share()
-  
+
   @set
     schema          : CBucket.schema
 
@@ -172,40 +172,40 @@ class CFollowerBucket extends CBucket
 class CFolloweeBucket extends CBucket
 
   @share()
-  
+
   @set
     schema          : CBucket.schema
 
 class CReplierBucket extends CBucket
 
   @share()
-  
+
   @set
     schema          : CBucket.schema
-  
+
 class CReplieeBucket extends CBucket
 
   @share()
-  
+
   @set
     schema          : CBucket.schema
-  
+
 class CLikerBucket extends CBucket
 
   @share()
-  
+
   @set
     schema          : CBucket.schema
-  
+
 class CLikeeBucket extends CBucket
 
   @share()
-  
+
   @set
     schema          : CBucket.schema
 
 class CBucketActivity extends CActivity
-  
+
   @setRelationships
     subject       :
       targetType  : [
