@@ -4,7 +4,6 @@ are in, handling the communication between the ChatView and each
 Channel instance.
 ###
 TOPICREGEX = /[#|@]([\w-]+)/g
-MENTIONREGEX = /@([\w-]+)/g
 
 class Chat12345 extends AppController
   {mq} = bongo
@@ -29,13 +28,13 @@ class Chat12345 extends AppController
   loadView:(mainView)->
     @joinChannel "@#{@username}"
     @joinChannel PUBLIC
-    #@joinChannel "#koding"
 
   joinChannel: (name) ->
-    return @channels[name] if @channels[name]
-
     view = @getOptions().view
     channelPaneInstance = view.addChannelTab name
+
+    if channel = @channels[name]      
+      return channel
 
     # When the tab is closed, remove the channel reference
     # and sign the user off from the channel
@@ -73,8 +72,8 @@ class Chat12345 extends AppController
         @broadcastOwnMessage messageBody, PUBLIC, name
 
     # Delegates to the channel to handle received message
-    @broadcaster.on channelName, (msg) =>
-      @deliverMessageToChannel channel, msg
+    @broadcaster.on channelName, (msg) =>      
+      @deliverMessageToChannel channel, msg      
 
     @channels[name] = channel
 
@@ -86,7 +85,8 @@ class Chat12345 extends AppController
   parseMessage: (message, fromChannel) ->
     while match = TOPICREGEX.exec message
       toChannel = match[0]
-      @broadcastOwnMessage message, toChannel, fromChannel
+      if toChannel isnt fromChannel
+        @broadcastOwnMessage message, toChannel, fromChannel
 
   ###
   # Broadcasts the message to channel toChannel. If fromChannel
@@ -124,9 +124,18 @@ class Chat12345 extends AppController
 class Channel extends KDEventEmitter
   constructor: (options = {}, data) ->
     @messages = []
+    @unreadCount = 0
     @participants = {}
     @name = options.name
     @view = options.view
+
+    # Remove unread count when the tab is active
+    @view.listenTo
+      KDEventTypes: [ eventType: "KDTabPaneActive" ]
+      listenedToInstance: @view
+      callback: => 
+        @unreadCount = 0
+        @view.setUnreadCount @unreadCount
 
   addOnlineUser: (name) ->
     bongo.api.JAccount.one "profile.nickname" : name, (err, account)=>
@@ -140,6 +149,9 @@ class Channel extends KDEventEmitter
 
   messageReceived: (message) ->
     @messages.push message
+    unless @view.isActive()
+      @unreadCount++ 
+      @view.setUnreadCount @unreadCount
     @view.newMessage message
 
 class ChatView extends KDView
@@ -229,6 +241,17 @@ class ChannelView extends KDTabPaneView
   newMessage: (message) ->
     @chatController.getListView().addItem message
 
+  isActive: ->
+    @getDomElement().hasClass "active"
+
+  setUnreadCount: (count) ->
+    if count > 0
+      title = "#{@name} (<span class='unread'>#{count}</span>)"
+    else
+      title = "#{@name}"
+
+    @tabHandle.getDomElement().find("b").html title
+
 class ChatListItemView extends KDListItemView
   viewAppended: ->
     @setTemplate @pistachio()
@@ -236,7 +259,7 @@ class ChatListItemView extends KDListItemView
 
   pistachio:->
     parsedBody = @getData().body.replace(TOPICREGEX, "<a class='open-new-chat' href='#'>$&</a>")
-    parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a href='#'>$&</a>")
+    parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a class='open-new-chat' href='#'>$&</a>")
 
     """
     <div class='meta'>      
