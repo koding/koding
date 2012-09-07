@@ -479,6 +479,7 @@ Includes =
         profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"
         profileTextGroup            : "./client/app/CommonViews/linkviews/profiletextgroup.coffee"
         tagLinkView                 : "./client/app/CommonViews/linkviews/taglinkview.coffee"
+        appLinkView                 : "./client/app/CommonViews/linkviews/applinkview.coffee"
         activityTagGroup            : "./client/app/CommonViews/linkviews/activitychildviewtaggroup.coffee"
         autoCompleteProfileTextView : "./client/app/CommonViews/linkviews/autocompleteprofiletextview.coffee"
 
