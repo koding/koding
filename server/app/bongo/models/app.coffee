@@ -28,7 +28,7 @@ class JApp extends jraphical.Module
     sharedMethods   :
       instance      : [
         "update",'follow', 'unfollow', 'remove', 'like', 'fetchLikedByes', 'checkIfLikedBefore',
-        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator'
+        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator', 'install'
       ]
       static        : [
         "one","on","some","create"
@@ -144,6 +144,28 @@ class JApp extends jraphical.Module
               else
                 @update ($set: 'meta.likes': count), callback
 
+  install: secure ({connection}, callback)->
+    {delegate} = connection
+    {constructor} = @
+    unless delegate instanceof constructor.getAuthorType()
+      callback new Error 'Only instances of JAccount can install apps.'
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'user'
+      , (err, installedBefore)=>
+        if err
+          callback err
+        else
+          unless installedBefore
+            @addUser delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+              else
+                @update ($set: 'counts.installed': count), callback
+          else
+            callback new KodingError 'Relationship already exists, App already installed'
 
   # @create = secure (client, data, callback)->
 

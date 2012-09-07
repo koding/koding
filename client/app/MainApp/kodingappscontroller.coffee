@@ -396,8 +396,11 @@ class KodingAppsController extends KDController
                 log "kite response", err, res
                 if err then warn err
                 else
-                  appManager.openApplication "Develop"
-                  callback?()
+                  app.install (err)->
+                    log err if err
+                    # This doesnt work :#
+                    appManager.openApplication "Develop"
+                    callback?()
 
   # #
   # MAKE NEW APP
