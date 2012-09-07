@@ -50,3 +50,6 @@ class MentionAutoCompleteController extends KDAutoCompleteController
     @getView().setValue inputValue
 
     @dropdownPrefix = ""
+
+  clearSelectedItemData: ->
+    @getSelectedItemData().length = 0

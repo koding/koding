@@ -30,52 +30,58 @@ class Chat12345 extends AppController
     @joinChannel PUBLIC
 
   joinChannel: (name) ->
-    view = @getOptions().view
-    channelPaneInstance = view.addChannelTab name
-
     if channel = @channels[name]      
       return channel
 
-    # When the tab is closed, remove the channel reference
-    # and sign the user off from the channel
-    channelPaneInstance.on "KDObjectWillBeDestroyed", =>
-      delete @channels[name]
-      mq.presenceOff @username, name
-
-    channelName = "client-#{name}"
+    view = @getOptions().view
 
     channel = new ChannelController 
       name: name
-      view: channelPaneInstance
+      view: view.addChannelTab name
 
+    @handlePresence channel
+    @handleChannelViewEvents channel
+
+    # Delegates to the channel to handle received message
+    channelName = "client-#{name}"
+    @broadcaster.on channelName, (msg) =>      
+      @deliverMessageToChannel channel, msg      
+
+    @channels[name] = channel
+
+  handlePresence: (channel) ->
     # Presence received has format [key, "bind" || "unbind"]
-    mq.presenceOn @username, name, ([presence, status]) =>
+    mq.presenceOn @username, channel.name, ([presence, status]) =>
       if status is "bind"
         channel.addOnlineUser presence
       else if status is "unbind"
         channel.removeOfflineUser presence
 
-    channel.view.registerListener
-      KDEventTypes  : "AutoCompleteNeedsMemberData"
-      listener      : @
-      callback      : (pubInst,event)=>
-        {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteForMentionField inputValue,blacklist,callback 
+  handleChannelViewEvents: (channel) ->
+    {name, view} = channel
+
+    # When the tab is closed, remove the channel reference
+    # and sign the user off from the channel
+    view.on "KDObjectWillBeDestroyed", =>
+      delete @channels[name]
+      mq.presenceOff @username, name
 
     # When the channel's view receives chat input, parse the body
     # and broadcast it to corresponding channels.
-    channel.view.on "ChatMessageSent", (messageBody) =>
+    view.on "ChatMessageSent", (messageBody) =>
       @parseMessage messageBody, name
       @broadcastOwnMessage messageBody, name 
       # Also broadcast to public channel
       if name isnt PUBLIC
         @broadcastOwnMessage messageBody, PUBLIC, name
 
-    # Delegates to the channel to handle received message
-    @broadcaster.on channelName, (msg) =>      
-      @deliverMessageToChannel channel, msg      
-
-    @channels[name] = channel
+    # Supports fetching users for mention autocompletion
+    view.registerListener
+      KDEventTypes  : "AutoCompleteNeedsMemberData"
+      listener      : @
+      callback      : (pubInst,event)=>
+        {callback,inputValue,blacklist} = event
+        @fetchAutoCompleteForMentionField inputValue,blacklist,callback 
 
   ###
   # Parses the message body for any reference to a channel, then
