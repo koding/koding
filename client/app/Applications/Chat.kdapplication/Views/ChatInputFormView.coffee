@@ -54,3 +54,9 @@ class ChatInputFormView extends KDFormView
       </div>
     </div>
     """
+
+  appendChat: (content) ->
+    input = @mentionController.getView()
+    currentValue = input.getValue()
+    input.setValue "#{currentValue} #{content} "
+    input.focus()
