@@ -209,9 +209,18 @@ class PersonalAboutView extends JView
     {profile} = @getData()
     profile.about or= options.defaultPlaceHolder
 
+  click:(event)->
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
+
   pistachio:->
     """
-      <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
+      <p>{{ @utils.applyTextExpansions #(profile.about), yes }}</p>
     """
 
 class PersonalFormLocationView extends AbstractPersonalFormView
