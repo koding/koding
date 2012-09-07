@@ -73,7 +73,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     return if $(event.target).closest('.icon-container').length > 0
     manifest = @getData()
     @showLoader()
-    @getDelegate().runApp manifest, => @hideLoader()
+    @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
 
 
   showLoader:->

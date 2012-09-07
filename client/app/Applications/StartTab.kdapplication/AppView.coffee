@@ -149,10 +149,6 @@ class StartTabMainView extends JView
           delegate : @
         , manifest
 
-  runApp:(manifest, callback)->
-
-    @getSingleton("kodingAppsController").runApp manifest
-
   addSplitOptions:->
     for splitOption in getSplitOptions()
       option = new KDCustomHTMLView

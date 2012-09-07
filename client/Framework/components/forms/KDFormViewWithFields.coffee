@@ -33,7 +33,7 @@ class KDFormViewWithFields extends KDFormView
     field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
     inputWrapper.addSubView input = @createInput itemClass,data
     if data.hint
-      field.addSubView hint  = new KDCustomHTMLView
+      inputWrapper.addSubView hint  = new KDCustomHTMLView
         partial  : data.hint
         tagName  : "cite"
         cssClass : "hint"
@@ -41,7 +41,7 @@ class KDFormViewWithFields extends KDFormView
     if data.nextElement
       for key, next of data.nextElement
         next.title or= key
-        @createField next, field
+        @createField next, inputWrapper
 
     return field
 

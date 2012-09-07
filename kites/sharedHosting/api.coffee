@@ -166,23 +166,18 @@ module.exports = new Kite 'sharedHosting'
           unless err or stderr.length
             cb "[ERROR] Version is already published, change version and try again!"
           else
-            exec "rm '#{latestPath}'", ->
-              exec "cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
-                if err or stderr then cb err
-                else
-                  manifestPath = "#{versionedPath}/.manifest"
-                  exec "cat #{manifestPath}", (err, stdout, stderr)->
-                    if err or stderr then cb err
-                    else
-                      try
-                        manifest = JSON.parse stdout
-                        manifest.authorNick = username
-                        @uploadFile
-                          contents : JSON.stringify manifest
-                          path     : manifestPath
-                        , cb
-                      catch e
-                        cb e
+            exec "rm -f #{latestPath} && cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+              if err or stderr then cb err
+              else
+                manifestPath = "#{versionedPath}/.manifest"
+                exec "cat #{manifestPath}", (err, stdout, stderr)->
+                  if err or stderr then cb err
+                  else
+                    exec "rm -f #{manifestPath}", ->
+                      manifest = JSON.parse stdout
+                      manifest.authorNick = username
+                      unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
+                      fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 
 
   installApp: (options, callback)->
