@@ -19,6 +19,7 @@ class ChatInputFormView extends KDFormView
       callback: =>
         input = @mentionController.getView()
         chatMsg = input.getValue()
+        @mentionController.clearSelectedItemData()
 
         input.setValue ""
         input.blur()

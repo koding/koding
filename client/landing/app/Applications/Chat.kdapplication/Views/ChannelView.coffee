@@ -33,9 +33,7 @@ class ChannelView extends KDTabPaneView
     @getDomElement().hasClass "active"
 
   setUnreadCount: (count) ->
-    if count > 0
-      title = "#{@name} (<span class='unread'>#{count}</span>)"
-    else
-      title = "#{@name}"
+    title = "#{@name}"
+    title += " (<span class='unread'>#{count}</span>)" if count
 
     @tabHandle.getDomElement().find("b").html title
