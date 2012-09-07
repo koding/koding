@@ -361,7 +361,7 @@ app.contentdisplays.styl
   margin-top                          0px
   a
     noTextDeco()
-    font-size   inherit
+    font-size                         inherit
   a.count
     font-style                        normal
     display                           inline-block
@@ -379,11 +379,11 @@ app.contentdisplays.styl
     .kdview.kdlistitemview-opinion
       border-bottom                   1px solid #ECECEC // #D1D1D1
     .kdview.kdlistitemview-opinion:first-child .item-content-opinion
-      margin-top 14px
+      margin-top                      14px
 
     .item-content-opinion
-      margin-top 5px
-      padding 15px 20px 0px 20px
+      margin-top                      5px
+      padding                         15px 20px 0px 20px
       &:hover
         .edit-link
           opacity                     .5
@@ -470,22 +470,22 @@ app.contentdisplays.styl
       min-height                      250px
 
 .opinion-container .opinion-box
-  margin 0
-  padding 0 20px 50px 20px
-  border none
+  margin                              0
+  padding                             0 20px 50px 20px
+  border                              none
   rounded(0px)
 
 .edit-opinion-form.opinion-container .opinion-box
-  margin 0
-  padding 0 0px 10px 0px
-  border none
+  margin                              0
+  padding                             0 0px 10px 0px
+  border                              none
   rounded(0px)
 
 .opinion-comment-header
-  margin-left 75px
-  float left
+  margin-left                         75px
+  float                               left
   > a.action-link
-    margin 1px 2px 0 0
+    margin                            1px 2px 0 0
 
 .discussion-title
     width                             100%
@@ -771,71 +771,71 @@ div.discussion-contents
 
 span.more
   .hideme
-    display           none
-  vendor              transition, font-size .2s linear
+    display                           none
+  vendor                              transition, font-size .2s linear
   a.more-link
   a.less-link
-    margin-left       5px
-    vendor            transition, font-size .2s linear
+    margin-left                       5px
+    vendor                            transition, font-size .2s linear
   a.more-link
-    font-size         14px
+    font-size                         14px
   a
-    font-size         0
+    font-size                         0
   &.show
     .hideme
-      display         inline
-    font-size         14px
+      display                         inline
+    font-size                         14px
     a.more-link
-      font-size       0
-      margin-left     0
+      font-size                       0
+      margin-left                     0
     a
-      font-size       14px
+      font-size                       14px
 
 .opinion-body-with-markup
-  vendor              transition, max-height .2s linear
-  overflow            hidden
+  vendor                              transition, max-height .2s linear
+  overflow                            hidden
 
 .content-display-main-section.activity-item.discussion
-  max-width 100%
-  padding 0
+  max-width                           100%
+  padding                             0
 
 // .activity-related .activity-item.discussion
 
 a.opinion-size-link
-  margin-top          10px
-  margin-bottom       20px
-  display             inline-block
-  background-color    #e8e9e9
-  font-size           11px
-  font-weight         600
+  margin-top                          10px
+  margin-bottom                       20px
+  display                             inline-block
+  background-color                    #e8e9e9
+  font-size                           11px
+  font-weight                         600
   rounded(3px)
-  padding 4px 10px
+  padding                             4px 10px
   width auto
-  color               #0896BD
+  color                               #0896BD
 
 .show-more-opinions
-  width               100%
-  color               white
-  line-height         150%
-  margin              20px 0 0 95px
+  width                               100%
+  color                               white
+  line-height                         150%
+  margin                              20px 0 0 95px
 
   a
-    font-size 10px
-    text-shadow                        #888 0px -1px 01px
+    font-size                         10px
+    text-shadow                       #888 0px -1px 01px
 
-    color white
-    width             100%
-    height            100%
-    background-color    #FF9200
-    padding 5px 12px
+    color                             white
+    width                             100%
+    height                            100%
+    background-color                  #FD7E09
+    padding                           5px 12px
   a:hover
-    color white
+    color                             white
 
 
 .opinion-heart-box
-  float               left
+  float                               left
   .help-box
-    margin-top        11px
+    margin-top                        11px
 
 // .opinion-container div.kdlistitemview-opinion:last-child
 //   .item-content-opinion-comments
@@ -848,81 +848,81 @@ a.opinion-size-link
   .opinion-comment
     .comment-container
       &.no-comment
-        display block
-        border none
+        display                       block
+        border                        none
         .item-add-comment-box
-          display none
+          display                     none
       &.commented
-        display block
+        display                       block
       &.active-comment
-        display block
+        display                       block
 
 .activity-opinion
   &:hover
-    cursor pointer
+    cursor                            pointer
   .comment-contents
-    margin-left 25px
+    margin-left                       25px
 
 .activity-opinion .comment-contents p.comment-body span p
-  font-size 12px
-  font-weight 300
+  font-size                           12px
+  font-weight                         300
 
 .activity-opinion-list
-  margin-top 15px
+  margin-top                          15px
   a.activity-opinion-more
-    margin-top 10px
+    margin-top                        10px
 
 .comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
-  border-bottom none
+  border-bottom                       none
 
 .first-reply-link
-  text-decoration none
-  line-height 150%
+  text-decoration                     none
+  line-height                         150%
 
 .comment-contents .activity-opinion-item-footer
-  margin-top 8px
+  margin-top                          8px
 
 .activity-item.codebin .activity-item-right-col .code-bin-source figure.code-container
   // max-width -webkit-calc(32%-22px)
   // width -webkit-calc(32%-22px)
-  width 32%
-  display inline-block
-  vertical-align top
+  width                               32%
+  display                             inline-block
+  vertical-align                      top
   &:last-child
-    margin-left 11px
+    margin-left                       11px
   &:first-child
-    margin-right 11px
+    margin-right                      11px
 
   pre code
-    min-height 288px
-    max-height 288px
+    min-height                        288px
+    max-height                        288px
 .code-bin-source
 
   pre.subview
-    padding 8px 10px
-    min-height 150px
-    max-height 300px
+    padding                           8px 10px
+    min-height                        150px
+    max-height                        300px
 
     scrollbars()
 
   pre.subview span
-    font-size 10px
-    font-weight 300
+    font-size                         10px
+    font-weight                       300
 
 .result-button
-  margin-bottom 10px
+  margin-bottom                       10px
 
 .result-container
   borderBox()
-  width 100%
+  width                               100%
 
   rounded(4px)
-  box-shadow                        inset 0 1px 2px rgba(0,0,0,0.10)
-  background-color                  #E0E0DF
+  box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
+  background-color                    #E0E0DF
 
   .result-frame
-    width 100%
-    min-height 200px
-    max-height 400px
-    padding
+    width                             100%
+    min-height                        200px
+    max-height                        400px
+    padding                           0
     rounded(4px)
