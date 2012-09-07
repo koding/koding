@@ -6,14 +6,19 @@ class JAppScriptAttachment extends jraphical.Attachment
     syntax      : String
 
 class JApp extends jraphical.Module
-  
+
   @mixin Filterable       # brings only static methods
   @mixin Followable       # brings only static methods
   @::mixin Followable::   # brings only prototype methods
   @::mixin Taggable::
 
   {Inflector,JsPath,secure,daisy} = bongo
-  
+  {Relationship} = jraphical
+
+  {log} = console
+
+  @getAuthorType =-> JAccount
+
   @share()
 
   @set
@@ -22,7 +27,7 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow', 'remove'
+        "update",'follow', 'unfollow', 'remove', 'like', 'fetchLikedByes', 'checkIfLikedBefore',
         'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator'
       ]
       static        : [
@@ -31,7 +36,7 @@ class JApp extends jraphical.Module
       ]
 
     schema          :
-      title         : 
+      title         :
         type        : String
         set         : (value)-> value.trim()
         required    : yes
@@ -55,7 +60,7 @@ class JApp extends jraphical.Module
 
     relationships   :
       creator       : JAccount
-      review        : 
+      review        :
         targetType  : jraphical.Module
         as          : 'review'
       activity      :
@@ -64,15 +69,18 @@ class JApp extends jraphical.Module
       follower      :
         targetType  : JAccount
         as          : 'follower'
+      likedBy       :
+        targetType  : JAccount
+        as          : 'like'
       user          :
         targetType  : JAccount
         as          : 'user'
       tag           :
         targetType  : JTag
         as          : 'tag'
-  
+
     # TODO: this should be a race not a daisy
-  
+
   @create = secure (client, data, callback)->
 
     console.log "creating the JApp"
@@ -94,6 +102,48 @@ class JApp extends jraphical.Module
             callback err
           else
             callback null, app
+
+  checkIfLikedBefore: secure ({connection}, callback)->
+    {delegate} = connection
+    {constructor} = @
+    Relationship.one
+      sourceId: @getId()
+      targetId: delegate.getId()
+      as: 'like'
+    , (err, likedBy)=>
+      if likedBy
+        callback null, yes
+      else
+        callback err, no
+
+  like: secure ({connection}, callback)->
+    {delegate} = connection
+    {constructor} = @
+    unless delegate instanceof constructor.getAuthorType()
+      callback new Error 'Only instances of JAccount can like things.'
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'like'
+      , (err, likedBy)=>
+        if err
+          callback err
+        else
+          unless likedBy
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+              else
+                @update ($set: 'meta.likes': count), callback
+          else
+            @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
+              if err
+                callback err
+                console.log err
+              else
+                @update ($set: 'meta.likes': count), callback
+
 
   # @create = secure (client, data, callback)->
 
@@ -126,7 +176,7 @@ class JApp extends jraphical.Module
   #                 content     : data.scriptCode
   #                 description : data.scriptDescription
   #                 syntax      : data.scriptSyntax
-  #               },{           
+  #               },{
   #                 as          : 'requirements'
   #                 content     : data.requirementsCode
   #                 syntax      : data.requirementsSyntax
@@ -147,7 +197,7 @@ class JApp extends jraphical.Module
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options
-    
+
     @some {
       title   : seed
       _id     :

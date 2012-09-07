@@ -6,27 +6,39 @@ class AppView extends KDView
 
     app = @getData()
 
+    log app
+
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
+      defaultState    : if app.followee then "Unfollow" else "Follow"
       states          : [
         "Follow", (callback)->
-          callback? null
+          app.follow (err)->
+            callback? err
         "Unfollow", (callback)->
-          callback? null
+          app.unfollow (err)->
+            callback? err
       ]
     , app
 
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
-      dataPath        : "followee"
       states          : [
         "Like", (callback)->
-          callback? null
+          app.like (err)->
+            callback? err
         "Unlike", (callback)->
-          callback? null
+          app.like (err)->
+            callback? err
       ]
     , app
+
+    app.checkIfLikedBefore (err, likedBefore)=>
+      if likedBefore
+        @likeButton.setState "Unlike"
+      else
+        @likeButton.setState "Like"
 
     appsController = @getSingleton("kodingAppsController")
 
@@ -51,11 +63,11 @@ class AppView extends KDView
     #   callback  : ->
     #     appsController.forkApp app, (err)=>
     #       @hideLoader()
-    
-    unless app.manifest.repo
-      @forkButton.setTooltip
-        title   : "No repository specified for the app!"
-        gravity : "w"
+
+    # unless app.manifest.repo
+    #   @forkButton.setTooltip
+    #     title   : "No repository specified for the app!"
+    #     gravity : "w"
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -82,7 +94,7 @@ class AppView extends KDView
         <div class="versionstats updateddate">Version {{ #(manifest.version) or "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) or 0}}<p>INSTALLS</p></div>
-          <div class="versionstats">{{#(counts.likes) or 0}}<p>Likes</p></div>
+          <div class="versionstats">{{#(meta.likes) or 0}}<p>Likes</p></div>
           <div class="versionstats">{{#(counts.followers) or 0}}<p>Followers</p></div>
         </div>
         <div class="appfollowlike">
