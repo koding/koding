@@ -35,30 +35,12 @@ class DiscussionActivityItemView extends ActivityItemChild
         click:->
           appManager.tell "Activity", "createContentDisplay", data
 
-
   viewAppended:()->
-    return if @getData().constructor is bongo.api.CDiscussion
+    return if @getData().constructor is bongo.api.CDiscussionActivity
     super()
     @setTemplate @pistachio()
     @template.update()
 
-    # if @getData().repliesCount? and @getData().repliesCount > 0
-    #   opinionController = @opinionBox.opinionController
-    #   opinionController.fetchRelativeOpinions 3, 0, (err, opinions)=>
-    #     for opinion in opinions
-    #       @opinionBox.opinionList.addItem opinion, null
-    #     @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
-
-    # if @getData().repliesCount > 3
-    #   @opinionBox.addSubView test = new KDCustomHTMLView
-    #     title : "show more"
-    #     tagName : "a"
-    #     cssClass : "activity-opinion-more"
-    #     attributes :
-    #       href: "#"
-    #     partial : "View all the opinions ("+(@getData().repliesCount-3)+" more)"
-    #     click:->
-    #       log "pew"
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]")
