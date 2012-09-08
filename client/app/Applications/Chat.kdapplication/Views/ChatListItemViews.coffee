@@ -1,6 +1,12 @@
 TOPICREGEX = /[#|@]([\w-]+)/g
 
 class ChatListItemView extends KDListItemView
+  constructor: (options, data) ->
+    super
+    {author} = data
+    @avatar = new AvatarView {},author
+    @profileText = new ProfileLinkView {shouldShowNick: yes},author
+
   viewAppended: ->
     @setTemplate @pistachio()
     @template.update()
@@ -10,11 +16,13 @@ class ChatListItemView extends KDListItemView
     parsedChannel = @getData().channel?.replace(TOPICREGEX, "<a class='open-new-chat' href='#'>$&</a>")
 
     """
-    <div class='meta'>      
-      <span class='time'>[{{#(meta.createdAt)}}] </span>
+    <div class='meta'>
       #{if @getData().channel? then "<span>[#{parsedChannel}]</span>" else ''}
-      <span class="author-wrapper">{{#(author)}}: </span>
+      <span class='avatar'>{{> @avatar}}</span>
+      <span class="author-wrapper fl">{{> @profileText}}</span>
+      <span class='time fr'>[{{#(meta.createdAt)}}] </span><br />
       <span>#{parsedBody}</span>
+      <hr>
     </div>
     """
 
