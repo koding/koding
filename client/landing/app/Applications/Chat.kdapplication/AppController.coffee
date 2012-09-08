@@ -116,14 +116,17 @@ class Chat12345 extends AppController
     @deliverMessageToChannel @channels[toChannel], chatItem
 
   deliverMessageToChannel: (channel, message) ->
-    itemInstance = channel.messageReceived message
-    itemInstance.registerListener
-      KDEventTypes: 'click'
-      listener    : @
-      callback    : (pubInst, event) =>
-        return unless $(event.target).is('a.open-new-chat')
-        channelName = $(event.target).text()
-        @joinChannel channelName
+    {author} = message
+    bongo.api.JAccount.one "profile.nickname" : author, (err, account)=>
+      message.author = account
+      itemInstance = channel.messageReceived message
+      itemInstance.registerListener
+        KDEventTypes: 'click'
+        listener    : @
+        callback    : (pubInst, event) =>
+          return unless $(event.target).is('a.open-new-chat')
+          channelName = $(event.target).text()
+          @joinChannel channelName
 
   fetchAutoCompleteForMentionField:(inputValue,blacklist,callback)->
     bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
