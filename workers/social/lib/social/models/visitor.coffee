@@ -2,7 +2,7 @@
 
 JSession = require './session'
 JUser = require './user'
-KodingError = require '../../error'
+KodingError = require '../error'
 
 module.exports = class JVisitor extends Model
   {secure} = require 'bongo'

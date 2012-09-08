@@ -51,6 +51,7 @@ Broker = require 'broker'
 koding = new Bongo
   mongo   : dbUrl
   models  : require('path').join __dirname, './models'
+  queueName: 'koding-social'
   mq      : new Broker {
     host      : "localhost"
     login     : "guest"

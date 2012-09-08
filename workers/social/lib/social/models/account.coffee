@@ -11,6 +11,8 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
+
+  JAppStorage = require './appstorage'
   
   @getFlagRole = 'content'
 
@@ -99,7 +101,7 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           : 
+    relationships           :
 
       mount         :
         as          : 'owner'

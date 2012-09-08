@@ -10,6 +10,7 @@ option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
+option '-k', '--runClient', "run the client code"
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -144,6 +145,19 @@ targetPaths =
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
+task 'runNew', (options)->
+  broker = spawn './broker/start.sh'
+  server = spawn 'node', ['server/index.js', '-c', './config.coffee']
+  social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
+  procs = [broker, server, social]
+  if options.runClient
+    client = spawn 'cake', ['build']
+    procs.push client
+  for proc in procs
+    proc.stdout.pipe(process.stdout)
+    proc.stderr.pipe(process.stderr)
+
+
 task 'buildAll',"build chris's modules", ->
 
   buildables = ["processes","pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
@@ -254,7 +268,7 @@ task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in .
 
 task 'build', 'optimized version for deployment', (options)->  
   invoke 'checkModules'
-  require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
+  # require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
   options.port      or= 3000
   options.host      or= "localhost"
   options.watch     or= 1000

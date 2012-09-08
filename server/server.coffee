@@ -1,4 +1,6 @@
-{webPort, mongo, amqp} = require './config'
+{argv} = require 'optimist'
+
+{webPort, mongo, amqp} = require argv.c
 
 path = __dirname+'/..'
 
@@ -23,6 +25,7 @@ koding = new Bongo {
   mongo
   models: require('path').join __dirname, './models'
   mq: new Broker amqp
+  queueName: 'koding-social'
 }
 
 JSession = require './models/session'
@@ -44,7 +47,7 @@ app.get '/auth', do ->
         [priv, type, pubName] = channel.split '-'
         if /^bongo\./.test type
           privName = 'secret-bongo-'+hat()+'.private'
-          koding.mq.emit('bongo', 'join', privName)
+          koding.mq.funnel privName, koding.queueName
           res.send privName
         else unless session?
           authenticationFailed(res)

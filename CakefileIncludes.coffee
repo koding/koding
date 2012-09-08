@@ -6,7 +6,7 @@ Includes =
         includes        : "./CakefileIncludes.coffee"
     Server:
       Stuff:
-        config          : "./config.coffee"
+        config          : "./empty.coffee"
         # dependencies    : "./server/dependencies.coffee"
         # errors          : "./server/app/errors.coffee"
         # initConfig      : "./server/app/initConfig.coffee"
