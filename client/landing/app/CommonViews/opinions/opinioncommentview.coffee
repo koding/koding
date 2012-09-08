@@ -31,8 +31,6 @@ class OpinionCommentView extends KDView
     @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
 
-    log "Comment data is", data
-
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
@@ -64,7 +62,6 @@ class OpinionCommentView extends KDView
 
   resetDecoration:->
     post = @getData()
-    log "Post data",post,@,@commentList
     if @commentList.items.length is 0
       @decorateNoCommentState()
     else
