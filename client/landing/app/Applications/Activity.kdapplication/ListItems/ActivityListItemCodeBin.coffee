@@ -130,16 +130,60 @@ class CodeBinResultView extends KDCustomHTMLView
     @codeView = new KDCustomHTMLView
       tagName  : "iframe"
       cssClass : "result-frame"
-      pistachio : '{{#(content)}}'
+      name : "result-frame"
       attributes:
-        srcdoc:"<html><head></head><body></body></html>"
+        src: "/unsupported.html"
+        # sandbox : "allow-scripts allow-same-origin"
+        # srcdoc:"<html><head></head><body></body></html>"
     , data
 
     @on "CodeBinResultShouldReset",->
-      @$(".result-frame").attr srcdoc : "<html><head></head><body></body></html>"
+      # TODO reload the iframe
 
     @on "CodeBinSourceHasChanges",->
-      @$(".result-frame").attr  srcdoc : "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
+
+      if KD.isLoggedIn()
+
+        {nickname}    = KD.whoami().profile
+
+        @tempFileTimestamp = new Date().getTime()
+
+        @tempFilePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/tempResult#{@tempFileTimestamp}.html"
+
+        @tempFile     = FSHelper.createFile
+          name        : nickname
+          path        : @tempFilePath
+          type        : "file"
+
+        @tempFileContents = "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
+
+        @tempFile.save @tempFileContents,->
+          # @codeView.attributes.src = "/beta.txt" #insert path here!
+          log "Iframe Done."
+
+      # @codeView.$().contents().find("head").html "<style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style>"
+      # @codeView.$().contents().find("body").html Encoder.htmlDecode(@getData().attachments[0].content)
+      # @codeView.$().contents().find("head").append unescape "<p>Oh!</p>%3Cscr"+"ipt type='text/javascript' src='js/prefixfree.min.js'%3E%3C/scr"+"ipt%3E%3Cscr"+"ipt src='//code.jquery.com/jquery-latest.js'%3E%3C/scr"+"ipt%3E"
+      # scripts = [
+      #   "/js/prefixfree.min.js",
+      #   "//code.jquery.com/jquery-latest.js"
+      # ]
+      # # scr = @codeView.$()[0].contentWindow.document.createElement "script"
+      # # scr.type = "text/javascript"
+      # # scr.innerHTML = Encoder.htmlDecode(@getData().attachments[2].content)
+      # # @codeView.$()[0].contentWindow.document.body.appendChild scr
+      # # @codeView.$().contents().find("body").append Encoder.htmlDecode(@getData().attachments[0].content)
+      # # @codeView.$().contents().find("head").append "<style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style>"
+      # for script in scripts
+      #   # scr = @codeView.$()[0].contentWindow.document.createElement "script"
+      #   # scr.type = "text/javascript"
+      #   # scr.src = script
+      #   # @codeView.$()[0].contentWindow.document.body.appendChild scr
+      #   @codeView.$()[0].contentWindow.document.write "<scr"+"ipt type='text/javascript' src='"+script+"'></sc"+"ript>"
+      # @codeView.$()[0].contentWindow.document.write "<scr"+"ipt type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</sc"+"ript>"
+      # log @codeView.$()[0].contentWindow.document
+      # @codeView.$().contents().find("html").html "<html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
+      # @$(".result-frame").attr  srcdoc : "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
 
 
   viewAppended: ->
