@@ -60,6 +60,15 @@ class OpinionListViewController extends KDListViewController
           listView.addItem opinion, null, {type : "slideDown", duration : 100}
         listView.emit "RelativeOpinionsWereAdded"
 
+  fetchTeaser:=>
+    log "Fetching teaser in OLVC"
+    listView = @getListView()
+    listView.emit "BackgroundActivityStarted"
+    message = @getListView().getData()
+    message.fetchTeaser (err, teaser)=>
+      log err if err
+      listView.emit "BackgroundActivityFinished"
+
   fetchOpinionsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
     query = {from,to}
@@ -70,7 +79,6 @@ class OpinionListViewController extends KDListViewController
       callback err,opinions
 
   fetchAllOpinions:(skipCount=3, callback = noop)=>
-
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()

@@ -48,6 +48,12 @@ class OpinionListItemView extends KDListItemView
 
     @commentBox = new OpinionCommentView null, data
 
+    @commentBox.on "DiscussionTeaserShouldRefresh",=>
+      @parent.emit "DiscussionTeaserShouldRefresh"
+
+    @on "DiscussionTeaserShouldRefresh",=>
+      @getDelegate().emit "DiscussionTeaserShouldRefresh"
+
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
       cssClass : "opinion-comment-header"
