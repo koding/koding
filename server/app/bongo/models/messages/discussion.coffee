@@ -174,7 +174,8 @@ class JDiscussion extends JPost
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments','fetchTeaser'
+        'delete','modify','fetchRelativeComments'
+        'updateTeaser'
       ]
     schema        : JPost.schema
     relationships     :
@@ -212,7 +213,6 @@ class JDiscussion extends JPost
     JPost::modify.call @, client, discussion, callback
 
   removeReply:(rel, callback)->
-    log "in removeReply"
     id = @getId()
     teaser = null
     activityId = null
@@ -274,11 +274,9 @@ class JDiscussion extends JPost
                         else
                               callback null, comment
                               @fetchActivityId (err, id)->
-                                log "REPLY activityId is", id
                                 CActivity.update {_id: id}, {
                                   $set:
                                     'sorts.repliesCount'  : count
-
                                 }, log
                               @fetchOrigin (err, origin)=>
                                 if err
@@ -297,6 +295,28 @@ class JDiscussion extends JPost
                                     }
                                   @follow client, emitActivity: no, (err)->
                                   @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+
+  updateTeaser:(callback)->
+    activity = null
+    teaser_ = null
+    id_ = @getId()
+    daisy queue = [
+      =>
+        @fetchActivity (err, id)->
+          activity = id
+          queue.next()
+      =>
+        @fetchTeaser (err, teaser)->
+          teaser_ = teaser
+          activity.update
+            $set:
+              snapshot: JSON.stringify teaser_
+            $addToSet:
+              snapshotIds: id_
+          ,(err, result)->
+            if err
+              log "update err", err, result
+    ]
 
   fetchTeaser:(callback)->
     @beginGraphlet()
