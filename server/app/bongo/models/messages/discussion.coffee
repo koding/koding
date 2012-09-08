@@ -305,7 +305,7 @@ class JDiscussion extends JPost
         limit         : 5
         sort          :
           timestamp   : 1
-      .nodes()
+      # .nodes()
       .edges
         query         :
           sourceName  : 'JOpinion'
@@ -318,7 +318,7 @@ class JDiscussion extends JPost
         limit         : 3
         sort          :
           timestamp   : 1
-      .nodes()
+      # .nodes()
       .and()
       .edges
         query         :
