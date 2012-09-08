@@ -61,11 +61,10 @@ class OpinionListViewController extends KDListViewController
         listView.emit "RelativeOpinionsWereAdded"
 
   fetchTeaser:=>
-    log "Fetching teaser in OLVC"
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
-    message.fetchTeaser (err, teaser)=>
+    message.updateTeaser (err, teaser)=>
       log err if err
       listView.emit "BackgroundActivityFinished"
 

@@ -30,7 +30,7 @@ class OpinionView extends KDView
     @opinionList.on "OpinionIsDeleted", (data)->
 
     @opinionList.on "DiscussionTeaserShouldRefresh", =>
-      @opinionController.fetchTeaser
+      @opinionController.fetchTeaser ->
 
     if data.opinions
       for reply, i in data.opinions when reply? and 'object' is typeof reply
