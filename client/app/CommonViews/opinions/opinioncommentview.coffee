@@ -23,19 +23,20 @@ class OpinionCommentView extends KDView
     @commentController        = new CommentListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader
       delegate : @commentList
-      maxCommentToShow :0
+      maxCommentToShow : 10000
     , data
     @addSubView @commentList
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
 
-    @commentList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
+    @commentList.on "OwnCommentHasArrived", ->
+      showMore.ownCommentArrived()
+      @getDelegate().emit "DiscussionTeaserShouldRefresh"
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
 
     if data.replies
       for reply in data.replies when reply? and 'object' is typeof reply
         @commentList.addItem reply
 
-    # @commentList.emit "AllCommentsLinkWasClicked"
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->

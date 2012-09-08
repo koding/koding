@@ -169,7 +169,13 @@ class JDiscussion extends JPost
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
-    sharedMethods : JPost.sharedMethods
+    sharedMethods     :
+      static          : ['create','on','one']
+      instance        : [
+        'on','reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','fetchTeaser'
+      ]
     schema        : JPost.schema
     relationships     :
       opinion         :
@@ -305,7 +311,7 @@ class JDiscussion extends JPost
         limit         : 5
         sort          :
           timestamp   : 1
-      # .nodes()
+      .nodes()
       .edges
         query         :
           sourceName  : 'JOpinion'
@@ -315,7 +321,7 @@ class JDiscussion extends JPost
             $exists   : no
           'data.flags.isLowQuality':
             $ne       : yes
-        limit         : 3
+        # limit         : 3
         sort          :
           timestamp   : 1
       # .nodes()
