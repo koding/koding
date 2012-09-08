@@ -29,6 +29,8 @@ class OpinionView extends KDView
       # this would be used in the CommentHeader, if there was one
     @opinionList.on "OpinionIsDeleted", (data)->
 
+    log "data is",data
+
     if data.opinions
       for reply, i in data.opinions when reply? and 'object' is typeof reply
         @opinionList.addItem reply
