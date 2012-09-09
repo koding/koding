@@ -84,6 +84,7 @@ class ContentDisplayDiscussion extends KDView
             if @editDiscussionForm?
               @editDiscussionForm?.destroy()
               delete @editDiscussionForm
+              @$(".discussion-body .data").show()
             else
               @editDiscussionForm = new DiscussionFormView
                 title : "edit-discussion"
@@ -98,7 +99,9 @@ class ContentDisplayDiscussion extends KDView
                       @editDiscussionForm.setClass "hidden"
               , data
 
+
               @addSubView @editDiscussionForm, "p.discussion-body", yes
+              @$(".discussion-body .data").hide()
 
         @listenTo
           KDEventTypes       : "click"
