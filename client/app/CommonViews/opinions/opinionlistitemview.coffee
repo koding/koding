@@ -119,6 +119,7 @@ class OpinionListItemView extends KDListItemView
                     if err
                       new KDNotificationView title : "Your changes weren't saved.", type :"mini"
                     else
+                      @getDelegate().emit "DiscussionTeaserShouldRefresh", ->
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
 
