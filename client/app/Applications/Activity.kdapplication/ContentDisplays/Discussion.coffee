@@ -97,6 +97,8 @@ class ContentDisplayDiscussion extends KDView
                     else
                       @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
+                      @$(".discussion-body .data").show()
+
               , data
 
 
@@ -144,11 +146,22 @@ class ContentDisplayDiscussion extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+  render:->
+    super()
+    @$("code").addClass "prettyprint"
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
 
   viewAppended:()->
     super()
     @setTemplate @pistachio()
     @template.update()
+
+
+    log "PrettyPrintin"
+    @$("code").addClass "prettyprint"
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
 
     # temp for beta
     # take this bit to comment view

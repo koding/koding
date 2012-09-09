@@ -92,7 +92,7 @@ __utils =
     marked.setOptions
       gfm: true
       pedantic: false
-      sanitize: false
+      sanitize: true
       highlight:(text)->
         # log "highlight callback called"
         # if hljs?
@@ -110,7 +110,8 @@ __utils =
           return text
 
     text = Encoder.htmlDecode text
-    marked Encoder.XSSEncode text
+
+    text = marked text
 
   applyLineBreaks: (text)->
     return null unless text

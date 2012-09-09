@@ -608,6 +608,8 @@ Includes =
 
         marked            : "./client/libs/marked.js"
         # prefixfree         : "./client/libs/prefixfree.min.js"
+        google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
+
 
         # bootstrapPopover  : "./client/libs/bootstrap-popover.js"
         # xml2json          : "./client/libs/xml2json.js"
@@ -694,6 +696,7 @@ Includes =
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
+        prettify            : "./client/css/prettify.css"
         # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
         # deprecated!
         # buttons       : "./client/css/buttons.css"

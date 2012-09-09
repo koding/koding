@@ -18,6 +18,8 @@ class OpinionListItemView extends KDListItemView
       constructorName  : originType
       id               : originId
 
+    @needsToResize = no
+
     @avatar = new AvatarView {
       size    :
         width: 50
@@ -105,6 +107,7 @@ class OpinionListItemView extends KDListItemView
               @editForm?.destroy()
               delete @editForm
               @$("p.opinion-body-with-markup").show()
+              @$(".opinion-size-link").show() if @needsToResize
             else
               @editForm = new OpinionFormView
                 submitButtonTitle: "Save your changes"
@@ -120,11 +123,14 @@ class OpinionListItemView extends KDListItemView
                       @getDelegate().emit "DiscussionTeaserShouldRefresh", ->
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
-
+                      @$("p.opinion-body-with-markup").show()
+                      @$(".opinion-size-link").show() if @needsToResize
               , data
 
               @addSubView @editForm, "p.opinion-body-edit", yes
               @$("p.opinion-body-with-markup").hide()
+              @$(".opinion-size-link").hide() if @needsToResize
+
 
         @listenTo
           KDEventTypes       : "click"
@@ -134,6 +140,12 @@ class OpinionListItemView extends KDListItemView
         @editLink.unsetClass "hidden"
         @deleteLink.unsetClass "hidden"
 
+  render:->
+    super()
+    @$("code").addClass "prettyprint"
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
@@ -142,9 +154,15 @@ class OpinionListItemView extends KDListItemView
     maxHeight = 300
 
     if @markup.height()>maxHeight
+      @needsToResize = yes
       @textMaxHeight = @markup.height()
       @markup.css {maxHeight}
       @larger.show()
+
+
+    @$("code").addClass "prettyprint"
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
