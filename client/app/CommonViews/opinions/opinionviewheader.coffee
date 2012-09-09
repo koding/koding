@@ -18,7 +18,7 @@ class OpinionViewHeader extends JView
       @onListCount = data.repliesCount
       @hide()
 
-    @hide() if data.repliesCount is 0
+    @hide() if data.repliesCount < @maxCommentToShow
 
     list = @getDelegate()
 
@@ -48,6 +48,8 @@ class OpinionViewHeader extends JView
         @loader.destroy()
         @allItemsLink.destroy()
 
+
+
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
       size          :
@@ -74,6 +76,14 @@ class OpinionViewHeader extends JView
   show:->
     @setClass "in"
     super
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+    remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+    if (remainingOpinions)<@maxCommentToShow
+        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
 
   pistachio:->
     """
