@@ -12,8 +12,6 @@ class DiscussionFormView extends KDFormView
       cssClass        : "clean-gray discussion-submit-button"
       loader          :
         diameter      : 12
-      click:->
-        @showLoader()
 
     @discussionBody = new KDInputView
       cssClass        : "discussion-body"
