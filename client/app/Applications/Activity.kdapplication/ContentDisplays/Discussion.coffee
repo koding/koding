@@ -157,8 +157,6 @@ class ContentDisplayDiscussion extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-
-    log "PrettyPrintin"
     @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
