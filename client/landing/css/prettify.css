@@ -30,6 +30,9 @@ pre.prettyprint {
     white-space: pre-wrap;
 }
 
+p > code.prettyprint {
+  background-color: #666;
+}
 
 /* Specify class=linenums on a pre to get line numbering */
 ol.linenums { margin-top: 0; margin-bottom: 0; color: #AEAEAE; } /* IE indents via margin-left */
