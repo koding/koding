@@ -519,6 +519,8 @@ Includes =
         OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
         DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
 
+        MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
+
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"

@@ -105,8 +105,6 @@ class OpinionListItemView extends KDListItemView
               @editForm?.destroy()
               delete @editForm
               @$("p.opinion-body-with-markup").show()
-
-              @$("p.opinion-body-with-markup").show()
             else
               @editForm = new OpinionFormView
                 submitButtonTitle: "Save your changes"

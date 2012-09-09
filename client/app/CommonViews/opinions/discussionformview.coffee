@@ -48,22 +48,18 @@ class DiscussionFormView extends KDFormView
         if $(event.target).is 'span'
           link.hide()
         else
-          $.ajax
-            # url       : KD.apiUri+'https://api.koding.com/1.0/logout'
-            url       : "/markdown.txt"
-            success   : (response)=>
-
-              modal = new KDModalView
-                title       : "How to use the <em>markdown</em> syntax."
-                cssClass    : "what-you-should-know-modal markdown-cheatsheet"
-                height      : "auto"
-                width       : 500
-                content     : response
-                buttons     :
-                  Close     :
-                    title   : 'Close'
-                    style   : 'modal-clean-gray'
-                    callback: -> modal.destroy()
+          markdownText = new KDMarkdownModalText
+          modal = new KDModalView
+            title       : "How to use the <em>markdown</em> syntax."
+            cssClass    : "what-you-should-know-modal markdown-cheatsheet"
+            height      : "auto"
+            width       : 500
+            content     : markdownText.markdownText()
+            buttons     :
+              Close     :
+                title   : 'Close'
+                style   : 'modal-clean-gray'
+                callback: -> modal.destroy()
 
     @markdownSelect = new KDSelectBox
       type          : "select"
