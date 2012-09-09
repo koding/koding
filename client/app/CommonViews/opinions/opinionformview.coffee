@@ -10,6 +10,10 @@ class OpinionFormView extends KDFormView
       title           : options.submitButtonTitle or "Post your reply"
       type            : "submit"
       cssClass        : "clean-gray opinion-submit-button"
+      loader          :
+        diameter      : 12
+      click:->
+        @showLoader()
 
     @opinionBody = new KDInputView
       cssClass        : "opinion-body"

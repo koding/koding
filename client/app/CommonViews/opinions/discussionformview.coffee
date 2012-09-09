@@ -10,6 +10,10 @@ class DiscussionFormView extends KDFormView
       title           : "Save your changes"
       type            : "submit"
       cssClass        : "clean-gray discussion-submit-button"
+      loader          :
+        diameter      : 12
+      click:->
+        @showLoader()
 
     @discussionBody = new KDInputView
       cssClass        : "discussion-body"
