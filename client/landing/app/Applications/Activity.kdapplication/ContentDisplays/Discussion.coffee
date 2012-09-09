@@ -2,9 +2,6 @@ class ContentDisplayDiscussion extends KDView
 
   constructor:(options = {}, data)->
 
-
-    log "Discussion data",data
-
     options.tooltip or=
       title     : "Discussion"
       offset    : 3
@@ -41,7 +38,6 @@ class ContentDisplayDiscussion extends KDView
     @opinionForm = new OpinionFormView
       cssClass : "opinion-container"
       callback  : (data)=>
-        # do not use JDiscussion::reply here
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
           if err
