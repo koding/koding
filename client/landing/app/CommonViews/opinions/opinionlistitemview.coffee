@@ -107,7 +107,7 @@ class OpinionListItemView extends KDListItemView
               @editForm?.destroy()
               delete @editForm
               @$("p.opinion-body-with-markup").show()
-              @$(".opinion-size-link").show() if @needsToResize
+              @$(".opinion-size-links").show() if @needsToResize
             else
               @editForm = new OpinionFormView
                 submitButtonTitle: "Save your changes"
@@ -124,12 +124,12 @@ class OpinionListItemView extends KDListItemView
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
                       @$("p.opinion-body-with-markup").show()
-                      @$(".opinion-size-link").show() if @needsToResize
+                      @$(".opinion-size-links").show() if @needsToResize
               , data
 
               @addSubView @editForm, "p.opinion-body-edit", yes
               @$("p.opinion-body-with-markup").hide()
-              @$(".opinion-size-link").hide() if @needsToResize
+              @$(".opinion-size-links").hide() if @needsToResize
 
 
         @listenTo
@@ -158,7 +158,6 @@ class OpinionListItemView extends KDListItemView
       @textMaxHeight = @markup.height()
       @markup.css {maxHeight}
       @larger.show()
-
 
     @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
@@ -216,8 +215,10 @@ class OpinionListItemView extends KDListItemView
         <p class='opinion-body-with-markup'>
           {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
         </p>
+        <div class="opinion-size-links">
         {{>@larger}}
         {{>@smaller}}
+        </div>
     </div>
           {{> @actionLinks}}
     </div>
