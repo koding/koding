@@ -110,8 +110,7 @@ __utils =
           return text
 
     text = Encoder.htmlDecode text
-
-    marked text
+    marked Encoder.XSSEncode text
 
   applyLineBreaks: (text)->
     return null unless text
