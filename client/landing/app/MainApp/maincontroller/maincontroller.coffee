@@ -31,25 +31,25 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue = []
 
-  authorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+"/1.0/login"
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
+  # authorizeServices:(callback)->
+  #   KD.whoami().fetchNonce (nonce)->
+  #     $.ajax
+  #       url       : KD.apiUri+"/1.0/login"
+  #       data      :
+  #         n       : nonce
+  #         env     : KD.env
+  #       xhrFields :
+  #         withCredentials: yes
 
-  deauthorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+'/1.0/logout'
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
+  # deauthorizeServices:(callback)->
+  #   KD.whoami().fetchNonce (nonce)->
+  #     $.ajax
+  #       url       : KD.apiUri+'/1.0/logout'
+  #       data      :
+  #         n       : nonce
+  #         env     : KD.env
+  #       xhrFields :
+  #         withCredentials: yes
 
   initiateApplication:do->
     modal = null
@@ -106,24 +106,23 @@ class MainController extends KDController
     if @isUserLoggedIn()
       appManager.quitAll =>
         @createLoggedInState account
-      @authorizeServices =>
-        account = KD.whoami()
-        unless account.getAt('isEnvironmentCreated')
-          @getSingleton('kiteController').createSystemUser (err)=>
-            if err
-              new KDNotificationView
-                title   : 'Fail!'
-                duration: 1000
-            else
-              account.modify isEnvironmentCreated: yes, (err)->
-                if err
-                  console.log err
-                else
-                  console.log "environment is created for #{account.getAt('profile.nickname')}"
+
+      # account = KD.whoami()
+      # unless account.getAt('isEnvironmentCreated')
+      #   @getSingleton('kiteController').createSystemUser (err)=>
+      #     if err
+      #       new KDNotificationView
+      #         title   : 'Fail!'
+      #         duration: 1000
+      #     else
+      #       account.modify isEnvironmentCreated: yes, (err)->
+      #         if err
+      #           console.log err
+      #         else
+      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
 
     else
       @createLoggedOutState account
-      @deauthorizeServices()
     # @getView().removeLoader()
 
   createLoggedOutState:(account)->
