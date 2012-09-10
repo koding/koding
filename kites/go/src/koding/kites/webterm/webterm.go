@@ -31,6 +31,10 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.Facility = "webterm kite"
 
+	if os.Getuid() != 0 {
+		panic("Must be run as root.")
+	}
+
 	profile := "default"
 	if len(os.Args) >= 2 {
 		profile = os.Args[1]
