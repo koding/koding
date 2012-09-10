@@ -1,5 +1,13 @@
+###
+The main controller to keep track of channels the current client
+are in, handling the communication between the ChatView and each
+Channel instance.
+###
+TOPICREGEX = /[#|@]([\w-]+)/g
+
 class Chat12345 extends AppController
   {mq} = bongo
+  PUBLIC = 'public'
 
   constructor:(options = {}, data)->
     options.view = new ChatView
@@ -18,90 +26,111 @@ class Chat12345 extends AppController
     super name : 'Chat'#, type : 'background'
 
   loadView:(mainView)->
-    @joinChannel 'public'
-    @addOnlineUser name: @username, status: "online"
+    @joinChannel "@#{@username}"
+    @joinChannel PUBLIC
 
   joinChannel: (name) ->
     view = @getOptions().view
+    # Need to declare in here so that it will switch to the tab
     channelPaneInstance = view.addChannelTab name
-    channelName = "client-#{name}"
 
-    channel = new Channel 
+    if channel = @channels[name]      
+      return channel
+
+    channel = new ChannelController 
       name: name
       view: channelPaneInstance
 
-    channel.view.on "ChatMessageSent", (message) =>
-      console.log "what"
-      channel.messageReceived message
-      @broadcaster.emit channelName, JSON.stringify(message)
+    @handlePresence channel
+    @handleChannelViewEvents channel
+
+    # Delegates to the channel to handle received message
+    channelName = "client-#{name}"
+    @broadcaster.on channelName, (msg) =>      
+      @deliverMessageToChannel channel, msg      
 
     @channels[name] = channel
-    @broadcaster.on channelName, (msg) ->
-      console.log "received", msg
-      channel.messageReceived
 
-  addOnlineUser: (user) ->
-    view = @getOptions().view
-    userItemViewInstance = view.addOnlineUser user
-    userItemViewInstance.registerListener
-      KDEventTypes: 'click'
-      listener    : @
-      callback    : =>
-        @joinChannel user.name
+  handlePresence: (channel) ->
+    # Presence received has format [key, "bind" || "unbind"]
+    mq.presenceOn @username, channel.name, ([presence, status]) =>
+      if status is "bind"
+        channel.addOnlineUser presence
+      else if status is "unbind"
+        channel.removeOfflineUser presence
 
-class Channel extends KDEventEmitter
-  constructor: (options = {}, data) ->
-    @account = KD.whoami()
-    @username = @account?.profile?.nickname
-    @username = "Guest"+__utils.getRandomNumber() if @username is "Guest"
-    @messages = []
-    @participants = {}
-    @participants[@username] = @account
+  handleChannelViewEvents: (channel) ->
+    {name, view} = channel
 
-    @name = options.name
-    @view = options.view
+    # When the tab is closed, remove the channel reference
+    # and sign the user off from the channel
+    view.on "KDObjectWillBeDestroyed", =>
+      delete @channels[name]
+      mq.presenceOff @username, name
 
-  messageReceived: (message) ->
-    @messages.push message
-    @view.newMessage message
+    # When the channel's view receives chat input, parse the body
+    # and broadcast it to corresponding channels.
+    view.on "ChatMessageSent", (messageBody) =>
+      @parseMessage messageBody, name
+      @broadcastOwnMessage messageBody, name 
+      # Also broadcast to public channel
+      if name isnt PUBLIC
+        @broadcastOwnMessage messageBody, PUBLIC, name
 
-class ChatView extends KDView
-  viewAppended: ->
-    @chatTabView = new KDTabView
-    @rosterTabView = new KDTabView
-    
-    @addSubView splitView = new KDSplitView
-      sizes: ["30%","70%"]
-      views: [@rosterTabView, @chatTabView]
+    # Supports fetching users for mention autocompletion
+    view.registerListener
+      KDEventTypes  : "AutoCompleteNeedsMemberData"
+      listener      : @
+      callback      : (pubInst,event)=>
+        {callback,inputValue,blacklist} = event
+        @fetchAutoCompleteForMentionField inputValue,blacklist,callback 
 
-    @rosterTabView.addPane new TabPaneViewWithList 
-      name: "topics"
-      unclosable: true
-      subItemClass: ChannelListItemView
-      items: [
-        {name: "erlang", status: "99 online"}
-        {name: "nodejs", status: "10 online"}
-        {name: "python", status: "25 online"}
-      ]
+  ###
+  # Parses the message body for any reference to a channel, then
+  # joins the user to that channel. It will then broadcast the 
+  # message body to the newly joined channel.
+  ###
+  parseMessage: (message, fromChannel) ->
+    while match = TOPICREGEX.exec message
+      toChannel = match[0]
+      if toChannel isnt fromChannel
+        @broadcastOwnMessage message, toChannel, fromChannel
 
-    @rosterTabView.addPane new TabPaneViewWithList 
-      name: "people"
-      unclosable: true
-      subItemClass: ChannelListItemView
+  ###
+  # Broadcasts the message to channel toChannel. If fromChannel
+  # is provided, will set a property on the chat item so that
+  # channel reference will be rendered from the view.
+  ###
+  broadcastOwnMessage: (messageBody, toChannel, fromChannel) ->
+    chatItem = 
+      author: @username
+      body: messageBody
+      meta: {createdAt: new Date().toISOString()}
 
-  addChannelTab: (name) ->
-    channelTabPane = @chatTabView.getPaneByName name
-    if channelTabPane
-      @chatTabView.showPaneByName name
-      return channelTabPane
+    chatItem.channel = fromChannel if fromChannel?.match(TOPICREGEX)
 
-    tabPane = @chatTabView.addPane new ChannelView
-      name: name
-      listHeight: 500
+    channelMQName = "client-#{toChannel}"
+    @broadcaster.emit channelMQName, JSON.stringify(chatItem)
+    return unless @channels[toChannel]
+    #chatItem.author = "me"
+    @deliverMessageToChannel @channels[toChannel], chatItem
 
-  addOnlineUser: (userItem) ->
-    userPane = @rosterTabView.getPaneByName 'people'
-    userPane.addItem userItem
+  deliverMessageToChannel: (channel, message) ->
+    {author} = message
+    bongo.api.JAccount.one "profile.nickname" : author, (err, account)=>
+      message.author = account
+      itemInstance = channel.messageReceived message
+      itemInstance.registerListener
+        KDEventTypes: 'click'
+        listener    : @
+        callback    : (pubInst, event) =>
+          return unless $(event.target).is('a.open-new-chat')
+          channelName = $(event.target).text()
+          @joinChannel channelName
+
+  fetchAutoCompleteForMentionField:(inputValue,blacklist,callback)->
+    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+      callback accounts
 
 ###
 This is a view for a tab pane that has a list view in there.
@@ -132,64 +161,17 @@ class TabPaneViewWithList extends KDTabPaneView
   addItem: (item, index, animation) ->
     @listView.addItem item, index, animation
 
-class ChannelView extends TabPaneViewWithList
+class ChannelLinkView extends KDCustomHTMLView
   constructor: (options = {}, data) ->
-    options.subItemClass || (options.subItemClass = ChatListItemView)
+    options.tagName or= 'a'
     super options, data
 
-  viewAppended: ->
-    super()
-    @addSubView inputForm = new ChatInputForm delegate : @
-
-  newMessage: (message) ->
-    @listView.addItem message
-
-class ChatListItemView extends KDListItemView
-  viewAppended: ->
+  viewAppended:->    
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-    """
-    <div class='meta'>
-      <span class="author-wrapper">{{#(author)}}</span>
-      <span class='time'>{{$.timeago #(meta.createdAt)}}</span>
-    </div>
-    <div>{{#(body)}}</div>
-    """
+    super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
 
-class ChannelListItemView extends KDListItemView
-  viewAppended: ->
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio: ->
-    "<p>{{#(name)}} - {{#(status)}} </p>"
-
-class ChatInputForm extends KDFormView
-  viewAppended: ->
-    @addSubView @input = new KDInputView
-      placeholder: "Click here to reply"
-      name: "chatInput"
-      cssClass: "fl"
-      validate      :
-        rules       :
-          required  : yes
-        messages    :
-          required  : "Reply field is empty..."
-
-    @addSubView @sendButton = new KDButtonView
-      title: "Send"
-      cssClass: "fl"
-      style: "clean-gray inside-button"
-      callback: =>
-        chatMsg = 
-          author: "me"
-          body: @input.getValue()
-          meta: {createdAt: new Date()}
-
-        @input.setValue ""
-        @input.blur()
-        @input.$().blur()
-
-        @getDelegate().emit 'ChatMessageSent', chatMsg
+  click: (event) ->
+    alert "clicked"

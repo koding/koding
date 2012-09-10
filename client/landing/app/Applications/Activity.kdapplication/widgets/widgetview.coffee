@@ -5,7 +5,7 @@ class ActivityUpdateWidget extends KDView
     super
     @windowController = @getSingleton('windowController')
     @listenWindowResize()
-    
+
   setMainSections:->
 
     @addSubView widgetWrapper = new KDView
@@ -38,9 +38,9 @@ class ActivityUpdateWidget extends KDView
   addWidgetPane:(options)->
 
     {paneName,mainContent} = options
-    
+
     @mainInputTabs.addPane main = new KDTabPaneView
-      name : paneName 
+      name : paneName
     main.addSubView mainContent if mainContent?
     return main
 
@@ -54,11 +54,11 @@ class ActivityUpdateWidget extends KDView
   showPane:(paneName)->
 
     @mainInputTabs.showPane @mainInputTabs.getPaneByName paneName
-  
+
   viewAppended:->
     @setMainSections()
     super
-  
+
   _windowDidResize:->
 
     width = @getWidth()
@@ -83,25 +83,25 @@ class ActivityUpdateWidget extends KDView
           type        : "default question disabledForBeta"
           disabled    : yes
           callback    : (treeItem, event)=> @changeTab "question", treeItem.getData().title
-        }             
-        {             
+        }
+        {
           title       : "Code Snip"
           type        : "default codesnip"
           callback    : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
-        }             
-        {             
+        }
+        {
           title       : "Start a Discussion"
           type        : "default discussion disabledForBeta"
           disabled    : yes
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
-        }             
-        {             
+        }
+        {
           title       : "Link"
           disabled    : yes
           type        : "default link disabledForBeta"
           callback    : (treeItem, event)=> @changeTab "link", treeItem.getData().title
-        }             
-        {             
+        }
+        {
           title       : "Tutorial"
           type        : "default tutorial disabledForBeta"
           disabled    : yes
