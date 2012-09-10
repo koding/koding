@@ -3,10 +3,11 @@ class NewCommentForm extends KDView
   constructor:(options, data)->
 
     options = $.extend
-      type      : "new-comment"
-      cssClass  : "item-add-comment-box"
+      type        : "new-comment"
+      cssClass    : "item-add-comment-box"
     ,options
 
+    options.itemTypeString or= 'comment'
     super options,data
 
   viewAppended:()->
@@ -21,17 +22,19 @@ class NewCommentForm extends KDView
     @addSubView commentFormWrapper = new KDView
       cssClass    : "item-add-comment-form"
 
+    {itemTypeString} = @getOptions()
+
     commentFormWrapper.addSubView @commentInput   = new KDHitEnterInputView
       type        : "textarea"
       delegate    : @
-      placeholder : "Type your comment and hit enter..."
+      placeholder : "Type your #{itemTypeString} and hit enter..."
       autogrow    : yes
       validate    :
         # event       : "keyup"
         rules       :
           required    : yes
         messages    :
-          required    : "Please type a comment..."
+          required    : "Please type a #{itemTypeString}..."
       callback    : @commentInputReceivedEnter
 
     @attachListeners()
