@@ -142,7 +142,7 @@ class OpinionListItemView extends KDListItemView
 
   render:->
     super()
-    @$("code").addClass "prettyprint"
+    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -159,7 +159,7 @@ class OpinionListItemView extends KDListItemView
       @markup.css {maxHeight}
       @larger.show()
 
-    @$("code").addClass "prettyprint"
+    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 

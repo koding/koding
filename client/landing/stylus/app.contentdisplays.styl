@@ -720,6 +720,10 @@ div.discussion-contents
     word-wrap                         break-word
     code
       display                         inline-block
+      background-color                #e6e6e6
+      rounded(3px)
+      padding                         1px 3px
+      font-weight                     bold
   ul
     margin-left                       30px
     margin-bottom                     1em
@@ -849,32 +853,6 @@ a.opinion-size-link
       &.active-comment
         display                       block
 
-.activity-opinion
-  &:hover
-    cursor                            pointer
-  .comment-contents
-    margin-left                       25px
-
-.activity-opinion .comment-contents p.comment-body span p
-  font-size                           12px
-  font-weight                         300
-
-.activity-opinion-list
-  margin-top                          15px
-  a.activity-opinion-more
-    margin-top                        10px
-.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion
-  border none
-.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
-  border-bottom                       none
-
-.first-reply-link
-  text-decoration                     none
-  line-height                         150%
-
-.comment-contents .activity-opinion-item-footer
-  margin-top                          8px
-
 .activity-item.codebin .activity-item-right-col .code-bin-source figure.code-container
   // max-width -webkit-calc(32%-22px)
   // width -webkit-calc(32%-22px)
@@ -941,3 +919,33 @@ a.opinion-size-link
 
   a
     text-decoration                   none
+
+.modal-fullscreen
+  borderBox()
+  .kdmodal-shadow
+    width 100%
+    height 100%
+    borderBox()
+    .kdmodal-inner
+      width 100%
+      height 100%!important
+      borderBox()
+      .kdmodal-content
+        width 100%
+        height 100%
+        borderBox()
+        .modal-fullscreen-text
+          width 100%
+          height 100%
+          borderBox()
+          textarea
+
+            width auto
+            height auto
+            padding 10px
+            margin 10px
+            borderBox()
+
+.fullscreen-button
+  float right
+  margin-top 5px

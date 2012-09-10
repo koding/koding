@@ -4,6 +4,10 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
     options = $.extend
       type      : "opinion"
       cssClass  : "kdlistitemview-activity-opinion"
+      tooltip     :
+        title     : "Answer"
+        offset    : 3
+        selector  : "span.type-icon"
     ,options
 
     super options,data
@@ -53,12 +57,12 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
     """
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
-        <div class="comment-contents">
-        <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
         <footer class="activity-opinion-item-footer">
-        {{> @author}},
+        <span class='type-icon'></span> answer by {{> @author}} •
         <time>{{$.timeago #(meta.createdAt)}}</time>
         </footer>
+        <div class="comment-contents">
+        <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
       </div>
     </div>
     """
