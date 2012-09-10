@@ -29,8 +29,11 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        'update', 'follow', 'unfollow', 'remove', 'like', 'checkIfLikedBefore', 'fetchLikedByes',
-        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator', 'install'
+        'update', 'follow', 'unfollow', 'remove', 'review',
+        'like', 'checkIfLikedBefore', 'fetchLikedByes',
+        'fetchFollowersWithRelationship', 'install',
+        'fetchFollowingWithRelationship', 'fetchCreator',
+        'fetchRelativeReviews'
       ]
       static        : [
         "one","on","some","create"
