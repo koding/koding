@@ -16,7 +16,7 @@ function handle_vacated_channel ($type, $event, $ms) {
   $kite_uri = $kite_controller->get_kite_uri($kite_id, $requester_id);
   trace(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
-    'toDo' => '_disconnect',
+    'method' => '_disconnect',
     'secretChannelId' => $event->channel,
   ); 
   $uri = $kite_uri."?username={$requester_id}&data=".urlencode(json_encode($query));

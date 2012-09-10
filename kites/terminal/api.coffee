@@ -1,5 +1,5 @@
 config          = require './config'
-Kite            = require 'kite'
+Kite            = require 'kite-amqp'
 _               = require 'underscore'
 {exec}          = require 'child_process'
 
@@ -19,12 +19,10 @@ module.exports = new Kite 'terminaljs'
     if requesterId then username = requesterId
     
     if requesterId is "undefined" or username is "undefined" then console.log "_disconnect : ignoring 'undefined'"
-      
-    
 
     exec "killall -9 -u #{username}",(err,stdout,stderr)->
-      console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
-
+          console.log "[_disconnect][killing everything that belongs to #{username}]",arguments
+    
   create  : (options,callback)  =>
     console.log "creating new terminal for #{options.username}"
     {username,rows,cols,callbacks} = options
@@ -35,12 +33,13 @@ module.exports = new Kite 'terminaljs'
       # create a fake one, use this to detect network lags, errors etc.
       # return callback null, FakeController.createTerminal options
 
-      #create a real one.
+      #create a real one.      # 
       terminal = new Terminal "su -l #{username}",rows,cols
+            
+      # terminal = new Terminal "bash echo fuck you",rows,cols
 
       nr = 0
       terminal.on "data", (screen)-> 
-
         patch = terminal.getHtml()
         callbacks.data patch, nr++
 
@@ -49,18 +48,20 @@ module.exports = new Kite 'terminaljs'
         type               : "anyterm.js"
         isNew              : yes
         totalSessions      : 1
-        write              : (data) ->        
-          terminal.write d[3] for d in data
+        write              : (data) ->
+          for d in data
+            #callbacks.data 'foo', nr++
+            terminal.write d[3]
 
         resize             : (rows, cols) -> terminal.setScreenSize rows, cols
         close              : ()->
           console.log "close is called"
           terminal.kill terminal.id
-          delete terminal
+          #delete terminal
         kill               : ()->
           console.log "kill is called"
           terminal.kill terminal.id
-          delete terminal
+          #delete terminal
         closeOtherSessions : ()->
           #just to be compatible with other terminaljs
         ping:()->

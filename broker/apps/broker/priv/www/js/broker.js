@@ -114,6 +114,7 @@ var Channel = function(ws, name) {
     this.name = name;
     this.state = new EventEmitter;
     this.ws = ws;
+    this.events = {};
     var self = this;
 
     var onopen = function() {
@@ -158,22 +159,50 @@ var Channel = function(ws, name) {
     self.state.on('authorized', onopen);
 };
 
+Channel.prototype.once = function(eventType, listener, ctx) {
+  var self, wrapper;
+  self = this;
+  wrapper = function () {
+    listener.apply(ctx || self, [].slice.call(arguments));
+    self.off(eventType, wrapper);
+  };
+  self.on(eventType, wrapper);
+  return this;
+};
+
 Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ctx) {
-    var self = this;
-    var brokerListener = function (eventObj) {
+    var brokerListener, boundBind, self, channel;
+    self = this;
+    brokerListener = function (eventObj) {
         listener.call(ctx || self, eventObj.data);
     };
-
+    brokerListener.orig = listener;
     performTask(self, function (channelName) {
       sendWsMessage(self.ws, "client-bind-event", channelName, eventType);
       self.ws.addEventListener(channelName+'.'+eventType, brokerListener);
+      self.events[eventType] || (self.events[eventType] = []);
+      self.events[eventType].push(brokerListener);
     });
+    return this;
 };
 
 Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
-    var channel = this.privateName || this.name;
+    var brokerListener, channel, i, self;
+    self = this;
+    channel = this.privateName || this.name;
     sendWsMessage(this.ws, "client-unbind-event", channel, eventType);
-    this.ws.removeEventListener(channel+'.'+eventType, listener);
+    listeners = this.events[eventType] || [];
+    for (i=0; i < listeners.length; i++) {
+      brokerListener = listeners[i];
+      if (brokerListener.orig === listener) {
+        setTimeout(function () {
+          self.ws.removeEventListener(channel+'.'+eventType, brokerListener);
+          listeners.splice(i, 1);
+        }), 0;
+        break;
+      }
+    }
+    return this;
 };
 
 Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payload, meta) {

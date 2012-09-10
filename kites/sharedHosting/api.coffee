@@ -9,7 +9,7 @@ fs        = require 'fs'
 hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
-Kite      = require 'kite'
+Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 
 createTmpDir = require './createtmpdir'

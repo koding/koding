@@ -8,6 +8,7 @@ mainController = new MainController
 bongo.use (remote, connection)->
   clientId = localStorage.clientId or= bongo.createId()
   connection.clientId = clientId
+  $.cookie 'clientId', clientId
 
 # Cacheable = new Cacheable
 

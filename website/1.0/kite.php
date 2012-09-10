@@ -17,7 +17,7 @@ class Kite {
       $username = isset($session['username']) ? $session['username'] : 'kc';
       $args = array(
         'data' => json_encode(array(
-          'toDo'      => $method,
+          'method'      => $method,
           'withArgs'  => $arguments[0],
           'username'  => $username,          
         )),
