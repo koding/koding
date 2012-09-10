@@ -117,7 +117,6 @@ class OpinionFormView extends KDFormView
                 modal.buttons.Okay.hideLoader()
                 modal.destroy()
 
-
     if data instanceof bongo.api.JOpinion
       @opinionBody.setValue Encoder.htmlDecode data.body
 
@@ -153,7 +152,7 @@ class OpinionFormView extends KDFormView
 
   pistachio:->
       """
-      <div class="opinion-box">
+      <div class="opinion-box" id="opinion-form-box">
         <div class="opinion-form">
           {{> @markdownSelect}}
           {{> @opinionBody}}

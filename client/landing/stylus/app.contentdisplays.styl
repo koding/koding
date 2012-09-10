@@ -919,3 +919,25 @@ a.opinion-size-link
     max-height                        400px
     padding                           0
     rounded(4px)
+
+
+.discussion-nav
+  z-index                             100
+  position                            fixed
+  top                                 55px
+  right                               20px
+  height                              30px
+  // width                               100%
+  border                         1px solid #D1D1D1
+  background-color                    #fff
+  padding                             5px 10px
+  borderBox()
+  rounded(5px)
+  opacity                             0.5
+  vendor                              transition, opacity 0.2s linear
+
+  &:hover
+    opacity                           1
+
+  a
+    text-decoration                   none

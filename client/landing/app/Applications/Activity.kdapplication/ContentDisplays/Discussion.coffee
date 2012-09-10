@@ -47,6 +47,14 @@ class ContentDisplayDiscussion extends KDView
             @opinionForm.submitOpinionBtn.hideLoader()
     , data
 
+    @jumpToReplyLink = new KDCustomHTMLView
+      tagName : "a"
+      partial: "Scroll to Reply Box"
+      attributes:
+        href:"#"
+      click:->
+        $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
+
     @actionLinks = new DiscussionActivityActionsView
       delegate : @opinionBox.opinionList
       cssClass : "comment-header"
@@ -205,5 +213,6 @@ class ContentDisplayDiscussion extends KDView
         {{> @opinionForm}}
     </div>
     </div>
+    <div class="discussion-nav">{{> @jumpToReplyLink}}</div>
 
     """
