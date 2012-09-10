@@ -5,12 +5,13 @@ class WebTermController extends AppController
     super options, data
 
   bringToFront: ->
-    result = super
+    mainView = @getSingleton('mainView')
+    terminalView = new WebTermView
+    terminalView.tabPane = mainView.mainTabView.createTabPane
       name: "Terminal"
       type: "application"
       cssClass: "webterm"
       hiddenHandle: no
-    for entry in result
-      @getView().tabPane = entry if entry instanceof KDTabPaneView
+    , terminalView
 
 WebTerm = {}
