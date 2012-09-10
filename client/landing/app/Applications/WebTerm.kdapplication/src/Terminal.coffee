@@ -10,12 +10,14 @@ class WebTerm.Terminal
     '\\': '\\\\'
     '\u001b': '\\e'
   
-  constructor: (@container, @showSessionsCallback) ->
+  constructor: (@container) ->
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
     @inSession = false
     @server = null
+    @showSessionsCallback = null
+    @setTitleCallback = null
     
     @pixelWidth = 0
     @pixelHeight = 0
@@ -46,7 +48,8 @@ class WebTerm.Terminal
       @inputHandler.mouseEvent event if @inSession
     
     $(document).on "paste", (event) =>
-      @server.input event.clipboardData.getData("text/plain")
+      console.log event
+      @server.input event.originalEvent.clipboardData.getData("text/plain")
     
     @clientInterface =
       sessionStarted: () =>

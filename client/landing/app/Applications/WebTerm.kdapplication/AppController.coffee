@@ -1,15 +1,16 @@
 class WebTermController extends AppController
   constructor: (options = {}, data) ->
     options.view = new WebTermView
-    @tabHandle = new KDView
-    @tabHandle.domElement = $("<b>Terminal</b><span class='terminal icon'></span>")
+    options.cssClass = "webterm"
     super options, data
 
   bringToFront: ->
-    super
-      name: 'WebTerm'
-      type: 'application'
-      tabHandleView: @tabHandle
+    result = super
+      name: "Terminal"
+      type: "application"
+      cssClass: "webterm"
       hiddenHandle: no
+    for entry in result
+      @getView().tabPane = entry if entry instanceof KDTabPaneView
 
 WebTerm = {}

@@ -305,9 +305,9 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
               terminal.changeScreenBuffer 0
               terminal.inputHandler.useApplicationKeypad false
         "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0 # OSC
-          0: (params) -> document.title = params.raw[1]
+          0: (params) -> terminal.setTitleCallback? params.raw[1]
           1: ignored "icon name"
-          2: (params) -> document.title = params.raw[1]
+          2: (params) -> terminal.setTitleCallback? params.raw[1]
           4: (params) ->
             parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
             terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
