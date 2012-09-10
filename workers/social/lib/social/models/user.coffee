@@ -105,6 +105,29 @@ module.exports = class JUser extends jraphical.Module
   #     else
   #       constructor.one {username}, callback
   
+  @authenticateClient:(client, callback=->)->
+    console.log 'hey'
+    JSession.one {clientId: client.sessionToken}, (err, session)->
+      if err
+        console.log 'there was an err.'
+        callback err
+      else unless session?
+        console.log 'auth failed'
+        callback new KodingError 'Authentication failed!'
+      else
+        {username} = session
+        JUser.one {username}, (err, user)->
+          if err
+            callback? err
+          else
+            user.fetchOwnAccount (err, account)->
+              if err
+                callback? err
+              else
+                client.connection = delegate: account
+                callback null, account
+
+
   createNewMemberActivity =(account, callback=->)->
     bucket = new CNewMemberBucket
       anchor      : account

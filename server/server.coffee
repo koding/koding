@@ -23,12 +23,16 @@ app.use (req, res, next)->
 
 koding = new Bongo {
   mongo
-  models: require('path').join __dirname, './models'
+  root: __dirname
+  models: [
+    '../workers/social/lib/social/models/session.coffee'
+    '../workers/social/lib/social/models/guest.coffee'
+  ]
   mq: new Broker amqp
   queueName: 'koding-social'
 }
 
-JSession = require './models/session'
+# JSession = require './models/session'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -36,16 +40,18 @@ authenticationFailed = (res, err)->
 app.get '/auth', do ->
   crypto = require 'crypto'
   (req, res)->
+    {JSession, JGuest} = koding.models
     channel = req.query?.channel
     return res.send 'user error', 400 unless channel
     clientId = req.cookies.clientid
     console.log clientId
-    JSession.one {clientId}, (err, session)->
+    JSession.fetchSession {clientId}, (err, session)->
       if err
         authenticationFailed(res, err)
       else
         [priv, type, pubName] = channel.split '-'
         if /^bongo\./.test type
+          console.log 'in here'
           privName = 'secret-bongo-'+hat()+'.private'
           koding.mq.funnel privName, koding.queueName
           res.send privName

@@ -149,13 +149,15 @@ task 'runNew', (options)->
   broker = spawn './broker/start.sh'
   server = spawn 'node', ['server/index.js', '-c', './config.coffee']
   social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  procs = [broker, server, social]
+  logPath = options.logPath ? '/tmp'
+  procs = {broker, server, social}
   if options.runClient
     client = spawn 'cake', ['build']
     procs.push client
-  for proc in procs
-    proc.stdout.pipe(process.stdout)
-    proc.stderr.pipe(process.stderr)
+  for own name, proc of procs
+    logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
+    proc.stdout.pipe(logFile)
+    proc.stderr.pipe(logFile)
 
 
 task 'buildAll',"build chris's modules", ->
