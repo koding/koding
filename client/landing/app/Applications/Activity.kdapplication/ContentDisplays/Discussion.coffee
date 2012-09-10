@@ -44,6 +44,7 @@ class ContentDisplayDiscussion extends KDView
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
+            @opinionForm.submitOpinionBtn.hideLoader()
     , data
 
     @actionLinks = new DiscussionActivityActionsView
