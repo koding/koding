@@ -80,6 +80,7 @@ Includes =
         followable                : "./server/app/bongo/abstractions/followable.coffee"
         filterable                : "./server/app/bongo/abstractions/filterable.coffee"
         taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        likeable                  : "./server/app/bongo/abstractions/likeable.coffee"
         notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
