@@ -22,17 +22,20 @@ class DiscussionActivityOpinionView extends KDView
     @addSubView @opinionList
     if data.opinions
       for reply, i in data.opinions when reply? and 'object' is typeof reply
-        @opinionList.addItem reply
+        @opinionList.addItem reply unless i > 1
 
 
     @addSubView header = new KDView
-      cssClass : "show-more-comments in"
+      cssClass : "show-more-discussion"
 
     if data.repliesCount > 0
       header.addSubView linkToContentDisplay = new KDCustomHTMLView
         tagName : "a"
-        partial : "View all replies to this discussion ("+data.repliesCount+")"
+        cssClass : "discussion-view-more"
+        partial : "View "+data.repliesCount+" answers"
         attributes:
           href: "#"
         click :->
           appManager.tell "Activity", "createContentDisplay", data
+    @addSubView spacer = new KDCustomHTMLView
+      cssClass : "discussion-spacer"
