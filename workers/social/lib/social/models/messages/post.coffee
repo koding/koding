@@ -1,22 +1,18 @@
 jraphical = require 'jraphical'
 
-Followable  = require '../../traits/followable'
-Filterable  = require '../../traits/filterable'
-Flaggable   = require '../../traits/flaggable'
-Taggable    = require '../../traits/taggable'
-Notifying   = require '../../traits/notifying'
-
 JAccount = require '../account'
 JComment = require './comment'
 JTag = require '../tag'
 CRepliesActivity = require '../activity/repliesactivity'
 
+KodingError = require '../../error'
+
 module.exports = class JPost extends jraphical.Message
 
-  @trait Followable
-  @trait Taggable
-  @trait Notifying
-  @trait Flaggable
+  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/taggable'
+  @trait __dirname, '../../traits/notifying'
+  @trait __dirname, '../../traits/flaggable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -73,7 +69,7 @@ module.exports = class JPost extends jraphical.Message
   @getFlagRole =-> ['sender', 'recipient']
 
   createKodingError =(err)->
-    kodingErr = new KodingError(err.message)
+    kodingErr = message: err.message
     for own prop of err
       kodingErr[prop] = err[prop]
     kodingErr
@@ -175,12 +171,12 @@ module.exports = class JPost extends jraphical.Message
           @update $set: formData, callback
       ]
     else
-      callback new KodingError "Access denied"
+      callback createKodingError "Access denied"
 
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
     unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
+      callback createKodingError 'Access denied!'
     else
       id = @getId()
       {getDeleteHelper} = Relationship
@@ -212,7 +208,7 @@ module.exports = class JPost extends jraphical.Message
       if err
         callback err
       else unless rel
-        callback new KodingError 'No activity found'
+        callback createKodingError 'No activity found'
       else
         callback null, rel.getAt 'sourceId'
 
@@ -303,7 +299,7 @@ module.exports = class JPost extends jraphical.Message
                     relationship  : docs[0]
                   }
           else
-            callback new KodingError 'You already like this.'
+            callback createKodingError 'You already like this.'
             ###
             @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
               if err
@@ -404,7 +400,7 @@ module.exports = class JPost extends jraphical.Message
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
     if before? and after?
-      callback new KodingError "Don't use before and after together."
+      callback createKodingError "Don't use before and after together."
     selector = timestamp:
       if before? then  $lt: before
       else if after? then $gt: after

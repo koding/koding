@@ -6,6 +6,7 @@ module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
   
   JAccount = require './account'
+  JSession = require './session'
   JEmailConfirmation = require './emailconfirmation'
 
   @bannedUserList = ['abrt','amykhailov','apache','about','visa',
@@ -164,7 +165,7 @@ module.exports = class JUser extends jraphical.Module
         callback null, body
   
   @setDefaultHash =->
-    JUser.all {}, (err, users)->
+    @all {}, (err, users)->
       users.forEach (user)->
         user.fetchOwnAccount (err, account)->
           account.profile.hash = getHash user.email

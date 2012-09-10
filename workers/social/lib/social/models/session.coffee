@@ -49,7 +49,6 @@ module.exports = class JSession extends Model
             callback null, session
 
   @fetchSession =(clientId, callback)->
-    console.log 'sfdfs'
     @one {clientId}, (err, session)=>
       if err
         callback err

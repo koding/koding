@@ -2,8 +2,6 @@ log = -> logger.info arguments...
 
 {argv} = require 'optimist'
 
-console.log argv
-
 # Error.stackTraceLimit = 100
 
 {exec} = require 'child_process'
@@ -62,6 +60,5 @@ koding = new Bongo
   }
 koding.on 'auth', (client)->
   koding.models.JUser.authenticateClient client, (err, account)->
-    console.log 'oin here'
     koding.handleResponse client.secretName, 'changeLoggedInState', [account]
 koding.connect console.log
