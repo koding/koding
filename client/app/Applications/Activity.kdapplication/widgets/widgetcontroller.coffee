@@ -68,8 +68,6 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : discussionWidget = new ActivityDiscussionWidget
         delegate  : mainView
         callback  : (data)=>
-          msg = new KDNotificationView
-            title : "You started a discussion!"
           if submissionStopped
             return notifySubmissionStopped()
           else
@@ -100,7 +98,7 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
         when "JDiscussion"
           mainView.showPane "discussion"
-          codeWidget.switchToEditView activity
+          discussionWidget.switchToEditView activity
         when "JCodeBin"
           mainView.showPane "codebin"
           codeBinWidget.switchToEditView activity

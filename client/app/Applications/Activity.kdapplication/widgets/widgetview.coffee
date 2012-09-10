@@ -26,7 +26,11 @@ class ActivityUpdateWidget extends KDView
 
     @mainInputTabs.on 'ReceivedClickElsewhere', (event)=>
       unless $(event.target).closest('.activity-status-context').length > 0
-        @resetWidgets()
+
+        # if there is a modal present, it MIGHT be used to enter
+        # large amounts of text   --arvid
+        unless $(event.target).closest('.kdmodal').length > 0
+          @resetWidgets()
 
   resetWidgets:->
 
@@ -95,7 +99,7 @@ class ActivityUpdateWidget extends KDView
           callback    : (treeItem, event)=> @changeTab "codebin", treeItem.getData().title
         }
         {
-          title       : "Start discussing"
+          title       : "Discussion"
           type        : "default discussion"
           callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
         }

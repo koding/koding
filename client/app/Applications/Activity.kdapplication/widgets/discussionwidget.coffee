@@ -49,6 +49,41 @@ class ActivityDiscussionWidget extends KDFormView
       title : "Start your discussion"
       type  : 'submit'
 
+    @fullScreenBtn = new KDButtonView
+      style           : "clean-gray"
+      cssClass        : "fullscreen-button"
+      # icon            : yes
+      # iconClass       : "main-nav-icon screen"
+      title           : "Fullscreen Edit"
+      callback: =>
+        modal = new KDModalView
+          title       : "What do you want to discuss?"
+          cssClass    : "modal-fullscreen"
+          height      : $(window).height()-110
+          width       : $(window).width()-110
+          position:
+            top       : 55
+            left      : 55
+          overlay     : yes
+          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
+          buttons     :
+            Cancel    :
+              title   : "Discard changes"
+              style   : "modal-cancel"
+              callback:=>
+                modal.destroy()
+            Apply     :
+              title   : "Apply changes"
+              style    : "modal-clean-gray"
+              callback:=>
+                @inputContent.setValue $("#fullscreen-data").val()
+                modal.destroy()
+
+        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
+        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
+        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+
+
     @heartBox = new HelpBox
       subtitle    : "About Code Sharing"
       tooltip     :
@@ -93,6 +128,22 @@ class ActivityDiscussionWidget extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
+  switchToEditView:(activity)->
+    @submitBtn.setTitle "Edit discussion"
+    @addCustomData "activity", activity
+    {title, body, tags} = activity
+
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
+
+    fillForm = =>
+      @inputDiscussionTitle.setValue Encoder.htmlDecode title
+      @inputContent.setValue Encoder.htmlDecode body
+
+    fillForm()
+
+
+
   pistachio:->
     """
     <div class="form-actions-mask">
@@ -107,6 +158,7 @@ class ActivityDiscussionWidget extends KDFormView
           {{> @labelContent}}
           <div>
             {{> @inputContent}}
+            {{> @fullScreenBtn}}
           </div>
         </div>
         <div class="formline">

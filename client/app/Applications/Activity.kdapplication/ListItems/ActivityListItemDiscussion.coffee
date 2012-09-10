@@ -61,12 +61,13 @@ class DiscussionActivityItemView extends ActivityItemChild
     return str
   pistachio:->
     """
+  <div class="activity-discussion-container">
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
       <p>{{@applyTextExpansions #(title)}}</p>
-      {{> @opinionBox}}
+
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
@@ -76,5 +77,8 @@ class DiscussionActivityItemView extends ActivityItemChild
         {{> @actionLinks}}
       </footer>
     </div>
+  </div>
+{{> @opinionBox}}
+
     """
 

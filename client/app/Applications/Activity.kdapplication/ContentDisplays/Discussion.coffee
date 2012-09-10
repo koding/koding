@@ -157,7 +157,7 @@ class ContentDisplayDiscussion extends KDView
                 title     : "Error, please try again later!"
   render:->
     super()
-    @$("code").addClass "prettyprint"
+    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -166,7 +166,7 @@ class ContentDisplayDiscussion extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-    @$("code").addClass "prettyprint"
+    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 

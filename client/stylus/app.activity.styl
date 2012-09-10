@@ -903,3 +903,47 @@ button.activity-status-context
       &:hover
         border-top  1px solid #666
         gradient(#777,#aaa)
+
+.kdview.activity-item.discussion
+  padding 0px
+  .activity-discussion-container
+    padding 22px 0 0px 20px
+  .activity-opinion-list
+    border none!important
+    .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
+      border-top 1px solid #f2f2f2
+      padding 0px 0px 0px 20px
+      .activity-opinion.item-content-comment span.avatar
+        margin-right 20px
+
+.activity-opinion
+  &:hover
+    cursor                            pointer
+  .comment-contents
+    margin-left                       25px
+    margin-right                      25px
+
+.activity-opinion .comment-contents p.comment-body span p
+  font-size                           12px
+  font-weight                         300
+
+.activity-opinion-list
+  margin-top                          15px
+  a.activity-opinion-more
+    margin-top                        10px
+.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion
+  border none
+.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
+  border-bottom                       none
+
+.first-reply-link
+  text-decoration                     none
+  line-height                         150%
+
+.activity-opinion-item-footer
+  margin-top                          6px
+  margin-bottom                       10px
+  color                               #a5a5a5
+
+.activity-opinion.item-content-comment .comment-contents .comment-body .data p
+  margin-bottom 1px
