@@ -13,7 +13,7 @@ class JApp extends jraphical.Module
   @::mixin Taggable::
   @::mixin Likeable::
 
-  {Inflector,JsPath,secure,daisy} = bongo
+  {ObjectRef,Inflector,JsPath,secure,daisy} = bongo
   {Relationship} = jraphical
 
   {log} = console
