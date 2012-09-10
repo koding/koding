@@ -899,22 +899,34 @@ button.activity-status-context
   .kdcontextmenutreeview
     .kdview.kdtreeitemview-default.disabledForBeta
     .kdview.kdtreeitemview-default.disabled
-      opacity .5
+      opacity                         .5
       &:hover
-        border-top  1px solid #666
+        border-top                    1px solid #666
         gradient(#777,#aaa)
 
 .kdview.activity-item.discussion
-  padding 0px
+  padding                             0px
+
   .activity-discussion-container
-    padding 22px 0 0px 20px
+    padding                           22px 0 0px 20px
+    .comment-body
+      margin-top 10px
+      margin-bottom 10px
+      .data p
+        font-weight 400
+        font-size 12px
+
   .activity-opinion-list
-    border none!important
+    border                            none!important
     .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
-      border-top 1px solid #f2f2f2
-      padding 0px 0px 0px 20px
+      border-top                      1px solid #f2f2f2
+      border-bottom                   none
+      &:last-child
+        border-bottom                 1px solid #f2f2f2
+      padding                         0px 0px 0px 20px
+      max-height                      200px
       .activity-opinion.item-content-comment span.avatar
-        margin-right 20px
+        margin-right                  20px
 
 .activity-opinion
   &:hover
@@ -923,9 +935,10 @@ button.activity-status-context
     margin-left                       25px
     margin-right                      25px
 
+
 .activity-opinion .comment-contents p.comment-body span p
   font-size                           12px
-  font-weight                         300
+  font-weight                         400
 
 .activity-opinion-list
   margin-top                          15px
@@ -947,3 +960,23 @@ button.activity-status-context
 
 .activity-opinion.item-content-comment .comment-contents .comment-body .data p
   margin-bottom 1px
+
+.activity-opinion-container .show-more-discussion
+  background-color none
+  margin-top -10px
+
+a.discussion-view-more
+  background-color #FD7E09
+  padding 3px 5px
+  line-height 16px
+  margin-left 85px
+
+  color #fff
+  font-weight 400
+  &:hover
+    color #fff
+
+.discussion-spacer
+  height 20px
+  display block
+  width 100%

@@ -40,6 +40,8 @@ class DiscussionActivityItemView extends ActivityItemChild
     super()
     @setTemplate @pistachio()
     @template.update()
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
 
 
   click:(event)->
@@ -59,6 +61,16 @@ class DiscussionActivityItemView extends ActivityItemChild
       str = visiblePart + morePart
 
     return str
+
+  shortenedText: (text)->
+
+    log text
+
+    if text.length>400
+      return text.substr(0,400)+" ..."
+    else
+      return text
+
   pistachio:->
     """
   <div class="activity-discussion-container">
@@ -76,6 +88,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
+    <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
     </div>
   </div>
 {{> @opinionBox}}
