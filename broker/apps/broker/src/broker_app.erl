@@ -49,7 +49,7 @@ start() ->
 
 start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
-    Port = 8008,
+    Port = get_env(port, 8008),
 
     error_logger:tty(get_env(verbose, true)),
 
