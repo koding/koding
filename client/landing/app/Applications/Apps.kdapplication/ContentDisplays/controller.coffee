@@ -1,6 +1,6 @@
 class ContentDisplayControllerApps extends KDViewController
   constructor:(options = {}, data)->
-    
+
     options.view or= mainView = new KDView cssClass : 'apps content-display'
 
     super options, data
@@ -27,7 +27,7 @@ class ContentDisplayControllerApps extends KDViewController
       delegate : mainView
     , app
 
-    mainView.addSubView appView = new AppDetailsView 
+    mainView.addSubView appView = new AppDetailsView
       cssClass : "info-wrapper"
       delegate : mainView
     , app
