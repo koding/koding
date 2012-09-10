@@ -1,12 +1,8 @@
 Pusher.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
 
-# Encoder.htmlEncode = do ->
-
-#   htmlMap =
-#     '&': '&amp;'
-#     '<': '&lt;'
-#   # (str)-> str.replace /(&(?!\w\w+;)|'|<|>|"|'|`|!|@|\$|%|(|)|=|\+|{|}|[|])/g, (match)-> htmlMap[match]
-#   (str)-> str.replace /(&(?!\w\w+;)|<)/g, (match)-> htmlMap[match]
+# THIS OVERRIDE NEEDS TO WAIT
+# NOT YET TOTALLY INTEROPERABLE
+# WITH Encoder.htmlDecode
 
 # Encoder.htmlEncode = do->
 
