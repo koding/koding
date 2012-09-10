@@ -2,7 +2,6 @@ package main
 
 import (
 	"code.google.com/p/go.net/websocket"
-	"flag"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -26,20 +25,24 @@ type WebtermServer struct {
 	process *os.Process
 }
 
-var homePrefix string
+var config Config
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	log.Facility = "webterm kite"
 
-	flagUser := flag.String("user", os.Getenv("USER"), "")
-	flagKite := flag.String("kite", "", "")
-	flag.StringVar(&homePrefix, "homeprefix", "/home/", "")
-	flag.Parse()
+	profile := "default"
+	if len(os.Args) >= 2 {
+		profile = os.Args[1]
+	}
+	config, ok := configs[profile]
+	if !ok {
+		panic("Configuration not found.")
+	}
 
-	if len(*flagKite) != 0 {
+	if !config.useWebsockets {
 
-		kite.Start(*flagKite, "webterm", func(user, method string, args interface{}) interface{} {
+		kite.Start(config.amqpUrl, "webterm", func(user, method string, args interface{}) interface{} {
 			if method == "createServer" {
 				server := &WebtermServer{user: user}
 				server.remote = args.(map[string]interface{})
@@ -56,7 +59,7 @@ func main() {
 		http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
 			fmt.Printf("WebSocket opened: %p\n", ws)
 
-			server := &WebtermServer{user: *flagUser}
+			server := &WebtermServer{user: config.user}
 			defer func() {
 				if server.process != nil {
 					server.process.Signal(syscall.SIGHUP)
@@ -130,8 +133,8 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
 
-	command := []string{"/usr/bin/screen"}
-	command = append(command, args...)
+	command := config.shellCommand
+	// command = append(command, args...)
 
 	pty := pty.New(uid)
 	server.pty = pty
@@ -140,11 +143,11 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	process, err := server.pty.StartProcess(
 		command,
 		&os.ProcAttr{
-			Dir: homePrefix + server.user,
+			Dir: config.homePrefix + server.user,
 			Env: []string{
 				"USER=" + server.user,
 				"LOGNAME=" + server.user,
-				"HOME=" + homePrefix + server.user,
+				"HOME=" + config.homePrefix + server.user,
 				"SHELL=/bin/bash",
 				"TERM=xterm",
 				"LANG=en_US.UTF-8",

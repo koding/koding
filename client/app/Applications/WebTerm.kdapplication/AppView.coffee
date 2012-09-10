@@ -77,7 +77,9 @@ class WebTermView extends KDView
         withArgs: @terminal.clientInterface
       , (remote) =>
         @terminal.server = remote
-        @terminal.showSessions()
+        #@terminal.showSessions()
+        @terminal.createSession ""
+        @setKeyView()
     , 3000
   
   setKeyView:->
