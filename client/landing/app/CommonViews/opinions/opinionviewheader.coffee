@@ -53,7 +53,7 @@ class OpinionViewHeader extends JView
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
       size          :
-        width       : 18
+        width       : 20
       loaderOptions :
         color       : "#FD7E09"
         shape       : "spiral"
