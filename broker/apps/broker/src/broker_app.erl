@@ -27,16 +27,11 @@
 -behaviour(cowboy_http_handler). %% To handle the default route
 
 %% Application callbacks
--export([start/0, start/2, stop/1, loop/2, notify_first/3]).
+-export([start/0, start/2, stop/1]).
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
--record (subscription, {   broker, 
-                        channel, 
-                        exchange,
-                        private,
-                        consumer,
-                        routing_keys = dict:new()}).
+-record (client, {id, socket_id, subscriptions=dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 %% ===================================================================
@@ -56,28 +51,13 @@ start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
     Port = 8008,
 
-    MqHost = get_env(mq_host, "localhost"),
-    MqUser = get_env(mq_user, <<"guest">>),
-    MqPass = get_env(mq_pass, <<"guest">>),
+    error_logger:tty(get_env(verbose, true)),
 
-    {ok, Broker} = amqp_connection:start(#amqp_params_network{
-        host = MqHost, username = MqUser, password = MqPass
-        }),
-
-    debug_log("Connected to MQ ~p@~p~n", [MqUser, MqHost]),
-
-    ConnectionFun = fun () -> 
-        {ok, Channel} = amqp_connection:open_channel(Broker),
-        Channel
-    end,
-
-    MultiplexState = sockjs_mq:init_state(ConnectionFun, fun handle_subscription/3),
-
-    %% sockjs_handler:init_state(Prefix, Callback, State, Options)
-    %% Callback is a sockjs_service behavior module.
+    % This will start the Broker gen_server and the subscription_sup
+    broker:start_link(),
+    
     SockjsState = sockjs_handler:init_state(
-                    <<"/subscribe">>, sockjs_mq, MultiplexState, [{disconnect_delay, 10000}]),
-
+                    <<"/subscribe">>, fun handle_client/3, {}, []),
     VhostRoutes = [
         {
             [<<"subscribe">>, '...'], 
@@ -127,7 +107,7 @@ handle(Req, State) ->
         [<<"auth">>] ->
             {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
             %PrivateChannel = uuid:to_string(uuid:uuid4()),
-            PrivateChannel = <<Channel/binary, ".private">>,
+            PrivateChannel = <<"secret-", Channel/binary, ".private">>,
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
@@ -148,243 +128,110 @@ terminate(_Req, _State) ->
 %% SockJS_MQ Handlers
 %% ===================================================================
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {init, From}, _State) -> 
-%%              {ok, NewState}
-%% Description: Set up RabbitMQ connection and channel, then spawn the 
-%% receiving loop. This process also declares the Exchange.
-%%--------------------------------------------------------------------
-handle_subscription(Conn, {init, From, _Channel, Func}, _State) ->
-    Channel = Func(),
-    {topic, Exchange} = lists:last(Conn:info()),
+handle_client(Conn, init, _State) ->
+    SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
+    Event = <<"connected">>,
+    EventProp = {<<"event">>, Event},
+    Payload = {<<"socket_id">>, SocketId},
+    Conn:send(jsx:encode([EventProp, Payload])),
 
-    %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
-    RegExp = ".private$",
-    %Options = [{capture, [1], list}],
+    send_system_event(Conn, Event, [Payload]),
 
-    case re:run(Exchange, RegExp) of
-        {match, _}  -> Private = true;
-        nomatch     -> Private = false
+    {ok, #client{socket_id=SocketId}};
+
+handle_client(Conn, {recv, Data}, 
+                    State=#client{subscriptions=Subscriptions}) ->
+    [Event, Exchange, _Payload, _Meta] = Decoded = decode(Data),
+    Check = {Event, dict:is_key(Exchange, Subscriptions)},
+    NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
+    {ok, State#client{subscriptions=NewSubs}};
+
+handle_client(Conn, closed, #client{socket_id=SocketId,
+                                    subscriptions=Subscriptions}) ->
+    Event = <<"disconnected">>,
+    Sid = {<<"socket_id">>, SocketId},
+    Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
+    send_system_event(Conn, Event, [Sid, Exchanges]),
+
+    case dict:size(Subscriptions) of 
+        0 -> ok;
+        _ ->
+            List = dict:to_list(Subscriptions),
+            [broker:unsubscribe(Subscription) 
+                || {_Exchange, Subscription} <- List]
     end,
+    {ok, #client{}};
 
-    spawn(?MODULE, notify_first, [Conn, Func(), Exchange]),
+handle_client(_Conn, Other, State) ->
+    io:format("Other data ~p~n", [Other]),
+    {ok, State}.
 
-    State = #subscription{ exchange = Exchange, 
-                            private = Private,
-                            channel = Channel},
-
-    try subscribe(Conn, Channel, Exchange, From) of
-        Consumer ->
-            {ok, State#subscription{consumer = Consumer}}
-    catch
-        error:precondition_failed ->
-            NewChannel = Func(),
-            ErrMsg = get_env(precondition_failed, <<"Unknow error">>),
-            debug_log("Subscription error: ~p~n", [ErrMsg]),
-            Conn:send(<<"broker:subscription_error">>, ErrMsg),
-            {error, State#subscription{channel = NewChannel}}
+handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    case broker:subscribe(Conn, Exchange) of
+        {error, _Error} -> Subs;
+        {ok, Subscription} ->
+            dict:store(Exchange, Subscription, Subs)
     end;
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {bind, Event, _From}, State) -> 
-%%              {ok, NewState}
-%% Description: When the client binds on certain event, this function
-%% declare a queue and bind to an routing key with the same name as
-%% the event name. This allows client to only receive messages from
-%% that event.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {bind, Event, _From},
-                State = #subscription{  channel = Channel,
-                                        exchange = Exchange,
-                                        consumer = Consumer,
-                                        routing_keys = Keys}) ->
-    % Ensure one queue per key per exchange
-    case dict:find(Event, Keys) of
-        {ok, _Queue} -> {ok, State};
+handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
+    [_Event, Where, Who, _Meta] = Data,
+    % This only acts as a key so that it can be used to
+    % remove the subscription later from the dictionary.
+    Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
+    case dict:find(Exchange, Subs) of
+        {ok, Subscription} ->
+            broker:unsubscribe(Subscription),
+            dict:erase(Exchange, Subs);
         error ->
-            Queue = bind_queue(Channel, Exchange, Event, Consumer),
-            NewKeys = dict:store(Event, Queue, Keys),
-            {ok, State#subscription{routing_keys = NewKeys}}
+            case broker:presence(Conn, Where, Who) of
+                {error, _Error} -> Subs;
+                {ok, Subscription} ->            
+                    dict:store(Exchange, Subscription, Subs)
+            end
     end;
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {unbind, Event, _From}, State)
-%%              -> {ok, NewState}.
-%% Description: When the client unbinds certain event, this function
-%% unbinds the associated queue.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {unbind, Event, _From}, 
-                    State = #subscription{  channel = Channel,
-                                            exchange = Exchange,
-                                            routing_keys = Keys}) ->
-    case dict:find(Event, Keys) of 
-        {ok, Queue} ->
-            unbind_queue(Channel, Exchange, Event, Queue),
-            % Remove from the dictionary
-            NewKeys = dict:erase(Event, Keys),
-            {ok, State#subscription{routing_keys = NewKeys}};
-        error ->
-            {ok, State}
+handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:bind(Subscription, Payload),
+    Subs;
+
+handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unbind(Subscription, Payload),
+    Subs;
+
+handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unsubscribe(Subscription),
+    dict:erease(Exchange, Subs);
+
+handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
+    [Event, Exchange, Payload, Meta] = Data,
+    RegExp = "^secret-",
+    case re:run(Exchange, RegExp) of
+        nomatch -> Subs;
+        {match, _} ->
+            Subscription = dict:fetch(Exchange, Subs),
+            broker:trigger(Subscription, Event, Payload, Meta),
+            Subs
     end;
 
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(Conn, {trigger, Event, Payload, From}
-%%              , State) -> {ok, NewState}.
-%% Description: Allows client to trigger certain event in an exchange.
-%% The payload of the event will be broadcasted to the exchange under
-%% the routing key the same as the event name.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, {trigger, Event, Payload, From, Meta},
-                    State = #subscription{channel = Channel,
-                                            exchange = Exchange,
-                                            private = Private}) ->
-    case Private of 
-        true -> 
-            broadcast(From, Channel, Exchange, Event, Payload, Meta),
-            {ok, State};
-        false -> {ok, State}
-    end;
-
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(_Conn, closed, State) -> {ok, State}.
-%% Description: When the client unsubscribes from the exchange, unbind
-%% all the bound queues from the exchange.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, closed, 
-                    #subscription{channel = Channel,
-                                    exchange = Exchange,
-                                    routing_keys = Keys}) ->
-    [unbind_queue(Channel, Exchange, Binding, Queue) || 
-        {Binding, Queue} <- dict:to_list(Keys)],
-    {ok, #subscription{}};
-
-%%--------------------------------------------------------------------
-%% Function: handle_subscription(_Conn, ended, Channel) -> {ok, State}.
-%% Description: When the connection terminates, close the channel.
-%%--------------------------------------------------------------------
-handle_subscription(_Conn, ended, Channel) ->
-    amqp_channel:close(Channel),
-    {ok, #subscription{}}.
+handle_event(_Conn, _Else, _Data, Subs) ->
+    Subs.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
 
-%%--------------------------------------------------------------------
-%% Function: broadcast(From, Channel, Exchange, Event, Data) -> void()
-%% Description: Set up the correlation id, then publish the Data to 
-%% the Exchange on the routing key the same as the Event.
-%%--------------------------------------------------------------------
-broadcast(From, Channel, Exchange, Event, Data, Meta) ->
-    Publish = #'basic.publish'{ exchange = Exchange, 
-                                routing_key = Event},
-
-    case lists:keyfind(<<"replyTo">>, 1, Meta) of 
-        {_, ReplyTo} -> 
-            Props = #'P_basic'{correlation_id = From,
-                                reply_to = ReplyTo},
-            Msg = #amqp_msg{props = Props, payload = Data},
-            amqp_channel:cast(Channel, Publish, Msg);
-        false ->        
-            Props = #'P_basic'{correlation_id = From},
-            Msg = #amqp_msg{props = Props, payload = Data},
-            amqp_channel:cast(Channel, Publish, Msg)
-    end.
-
-%%--------------------------------------------------------------------
-%% Function: notify_first(Conn, Channel, Exchange) -> void()
-%% Description: Perform a check for existence against an exchange and 
-%% notify the Conn if the exchange does not exist.
-%% This is a one-off function to be run in a separate process and exit
-%% normally to avoid blocking the current process.
-%%--------------------------------------------------------------------
-notify_first(Conn, Channel, Exchange) ->
-    Check = #'exchange.declare'{ exchange = Exchange,
-                                    passive = true},
-    try amqp_channel:call(Channel, Check) of
-        #'exchange.declare_ok'{} -> exit(normal)
-    catch exit:_Ex1 -> 
-            Conn:send(<<"broker:first_connection">>, Exchange),
-            exit(normal)
-    end.
-
-%%--------------------------------------------------------------------
-%% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
-%% Description: Declares the exchange and starts the receive loop
-%% process. This process is used to subscribe to queue later on.
-%% The exchange is marked durable so that it can survive server reset.
-%% This broker has to have a way to delete the exchange when done.
-%%--------------------------------------------------------------------
-subscribe(Conn, Channel, Exchange, Subscriber) -> 
-    Declare = #'exchange.declare'{  exchange = Exchange, 
-                                    type = <<"topic">>,
-                                    durable = true,
-                                    auto_delete = true},
-
-    try amqp_channel:call(Channel, Declare) of
-        #'exchange.declare_ok'{} -> 
-            Conn:send(<<"broker:subscription_succeeded">>, <<>>),
-            spawn(?MODULE, loop, [Conn, Subscriber])
-    catch
-        exit:Error ->
-            handle_amqp_error(Error)
-    end.
-
-%%--------------------------------------------------------------------
-%% Function: bind_queue(Channel, Exchange, Routing, Consumer) -> pid()
-%% Description: Declares a queue and bind to the routing key. Also
-%% starts the subscription on that queue.
-%%--------------------------------------------------------------------
-bind_queue(Channel, Exchange, Routing, Consumer) ->
-    % Ensure the client has time to consume the message
-    Args = [{<<"x-message-ttl">>, long, 1000}],
-    #'queue.declare_ok'{queue = Queue} =
-        amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true,
-                                                    arguments = Args}),
-
-    Binding = #'queue.bind'{exchange = Exchange,
-                            routing_key = Routing,
-                            queue = Queue},
-    #'queue.bind_ok'{} = amqp_channel:call(Channel, Binding),
-    Sub = #'basic.consume'{queue = Queue, no_ack = true},
-    amqp_channel:subscribe(Channel, Sub, Consumer),
-    Queue.
-
-%%--------------------------------------------------------------------
-%% Function: unbind_queue(Channel, Exchange, Routing, Queue) -> pid()
-%% Description: Unbinds the queue from the routing key in the exchange
-%% and deletes it.
-%%--------------------------------------------------------------------
-unbind_queue(Channel, Exchange, Routing, Queue) ->
-    % Unbind the queue from the routing key
-    Binding = #'queue.unbind'{  exchange    = Exchange,
-                                routing_key = Routing,
-                                queue       = Queue},
-    #'queue.unbind_ok'{} = amqp_channel:call(Channel, Binding),
-    % Delete the queue
-    Delete = #'queue.delete'{queue = Queue},
-    #'queue.delete_ok'{} = amqp_channel:call(Channel, Delete).
-
-%%--------------------------------------------------------------------
-%% Function: loop(Conn) -> void()
-%% Description: The receive loop to send broadcast message to client.
-%%--------------------------------------------------------------------
-loop(Conn, Subscriber) ->
-    receive
-        #'basic.consume_ok'{} ->
-            loop(Conn, Subscriber);
-        % Own message is ignored
-        {#'basic.deliver'{}, 
-        #amqp_msg{props = #'P_basic'{correlation_id = Subscriber}}} ->
-            loop(Conn, Subscriber);
-        % Only send message from the bound event
-        {#'basic.deliver'{routing_key = Event, exchange = Exchange}, 
-            #amqp_msg{payload = Body}} ->
-            debug_log(" [x] ~p:~p:~p~n", [Exchange, Event, Body]),
-            Conn:send(Event, Body),
-            loop(Conn, Subscriber)
-    end.
+send_system_event(Conn, Event, Payload) ->
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    broker:trigger(Subscription, Event, jsx:encode(Payload), []),
+    broker:unsubscribe(Subscription).
 
 debug_log(Text, Args) ->
     case application:get_env(broker, verbose) of
@@ -393,11 +240,41 @@ debug_log(Text, Args) ->
         _ -> true
     end.
 
+%%--------------------------------------------------------------------
+%% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
+%% Types:
+%%  Data = binary()
+%%  Event = binary()
+%%  Exchange = binary()
+%%  Payload = binary()
+%%  Meta = binary()
+%% Description:  Decode a binary data from the websocket connection
+%% into a list of data that the handler expects
+%%--------------------------------------------------------------------
+decode(Data) ->
+    [{<<"event">>, Event}, 
+        {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+
+    Payload = bin_key_find(<<"payload">>, Rest, false),
+    Meta = bin_key_find(<<"meta">>, Rest, true),
+    [Event, Exchange, Payload, Meta].
+
+%%--------------------------------------------------------------------
+%% Function: bin_key_find(BinKey, List, ReturnsEmptyList) -> Val || false
+%% Description:  A helper to find a binary key in a binary proplist.
+%% The third boolean argument specifies to return an empty list or empty
+%% binary when the BinKey not found.
+%%--------------------------------------------------------------------
+bin_key_find(BinKey, List, ReturnEmptyList) ->
+    case lists:keyfind(BinKey, 1, List) of
+        {_, Val} when is_integer(Val) -> list_to_binary(integer_to_list(Val));
+        {_, Val} -> Val;
+        false when ReturnEmptyList -> [];
+        false -> <<>>
+    end.
+
 get_env(Param, DefaultValue) ->
     case application:get_env(broker, Param) of
         {ok, Val} -> Val;
         undefined -> DefaultValue
     end.
-
-handle_amqp_error({{shutdown, {_Reason, 406, _Msg}}, _Who}) ->
-    error(precondition_failed).

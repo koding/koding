@@ -21,7 +21,7 @@ class cloudlinux::lvestats {
         hasstatus => true,
         hasrestart => true,
         enable => true,
-        require => [Package['lve-stats'],File['/etc/sysconfig/lvestats']]
+        require => [Package['lve-stats'],File['/etc/sysconfig/lvestats'],Class["hosting_packages::python"]]
     }
  
 }
