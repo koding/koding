@@ -47,10 +47,6 @@ class WebTerm.Terminal
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event if @inSession
     
-    $(document).on "paste", (event) =>
-      console.log event
-      @server.input event.originalEvent.clipboardData.getData("text/plain")
-    
     @clientInterface =
       sessionStarted: () =>
         @inSession = true

@@ -43,7 +43,7 @@ class WebTermView extends KDView
     
     @on "ReceivedClickElsewhere", =>
       @focused = false
-      @terminal.setFocused false
+      @terminal.setFocused false if @terminal?
       @getSingleton('windowController').removeLayer @
     
     $(window).bind "blur", =>
@@ -51,7 +51,10 @@ class WebTermView extends KDView
     
     $(window).bind "focus", =>
       @terminal.setFocused @focused
-        
+    
+    $(document).on "paste", (event) =>
+      @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
+    
     KD.whoami().tellKite
       kiteName: 'webterm',
       method: 'connectionInitializationDummy'
@@ -94,7 +97,7 @@ class WebTermView extends KDView
     # checking existence of terminal because of the initial timeout
     # this may run before it is created
     @focused = true
-    @terminal.setFocused true if @terminal
+    @terminal.setFocused true if @terminal?
     super
 
   click: ->
