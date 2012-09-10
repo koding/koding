@@ -36,6 +36,40 @@ class DiscussionFormView extends KDFormView
       tagName         : "div"
       cssClass        : "tags-selected-item-wrapper clearfix"
 
+    @fullScreenBtn = new KDButtonView
+      style           : "clean-gray"
+      cssClass        : "fullscreen-button"
+      # icon            : yes
+      # iconClass       : "main-nav-icon screen"
+      title           : "Fullscreen Edit"
+      callback: =>
+        modal = new KDModalView
+          title       : "What do you want to discuss?"
+          cssClass    : "modal-fullscreen"
+          height      : $(window).height()-110
+          width       : $(window).width()-110
+          position:
+            top       : 55
+            left      : 55
+          overlay     : yes
+          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@discussionBody.getValue()+"</textarea></div>"
+          buttons     :
+            Cancel    :
+              title   : "Discard changes"
+              style   : "modal-cancel"
+              callback:=>
+                modal.destroy()
+            Apply     :
+              title   : "Apply changes"
+              style    : "modal-clean-gray"
+              callback:=>
+                @discussionBody.setValue $("#fullscreen-data").val()
+                modal.destroy()
+
+        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
+        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
+        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
       name        : "markdownLink"
@@ -125,6 +159,7 @@ class DiscussionFormView extends KDFormView
         <div class="discussion-buttons">
           <div class="discussion-submit">
             {{> @markdownLink}}
+            {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}
           </div>
         </div>
