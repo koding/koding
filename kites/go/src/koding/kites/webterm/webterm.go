@@ -156,6 +156,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 				"USER=" + server.user,
 				"LOGNAME=" + server.user,
 				"HOME=" + config.homePrefix + server.user,
+				"PWD=" + config.homePrefix + server.user,
 				"SHELL=/bin/bash",
 				"TERM=xterm",
 				"LANG=en_US.UTF-8",
