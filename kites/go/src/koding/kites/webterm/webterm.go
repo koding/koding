@@ -27,7 +27,7 @@ type WebtermServer struct {
 
 var config Config
 
-func main() {
+func init() {
 	rand.Seed(time.Now().UnixNano())
 	log.Facility = "webterm kite"
 
@@ -39,11 +39,15 @@ func main() {
 	if len(os.Args) >= 2 {
 		profile = os.Args[1]
 	}
-	config, ok := configs[profile]
+	
+	var ok bool
+	config, ok = configs[profile]
 	if !ok {
 		panic("Configuration not found.")
 	}
+}
 
+func main() {
 	if !config.useWebsockets {
 
 		kite.Start(config.amqpUrl, "webterm", func(user, method string, args interface{}) interface{} {

@@ -31,6 +31,10 @@ var Hostname string
 var Server string = "gl.koding.com:12201"
 var conn net.Conn
 
+func init() {
+	Hostname, _ = os.Hostname()
+}
+
 type chunkWriter struct {
 	target io.Writer
 	data   []byte
@@ -81,9 +85,6 @@ func Send(gelf *GELF) {
 func Log(level int, file string, line int, message ...interface{}) {
 	if level > MaxLevel {
 		return
-	}
-	if Hostname == "" {
-		Hostname, _ = os.Hostname()
 	}
 
 	messageStrings := make([]string, len(message))
