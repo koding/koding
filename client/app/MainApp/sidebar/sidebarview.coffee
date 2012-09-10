@@ -69,6 +69,16 @@ class Sidebar extends JView
 
     @resetAdminNavController()
 
+    @chatController = new NavigationController
+      view          : new NavigationList
+        type        : "navigation"
+        subItemClass: NavigationLink
+      wrapper       : no
+      scrollView    : no
+    , chatItems
+
+    @chat = @chatController.getView()
+
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
@@ -194,6 +204,7 @@ class Sidebar extends JView
       <hr>
       {{> @accNav}}
       {{> @adminNav}}
+      {{> @chat}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
@@ -343,6 +354,13 @@ class Sidebar extends JView
         title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
       ,
         title : "Admin"        , loggedIn : yes, callback : -> new AdminModal
+    ]
+
+  chatItems =
+    id    : "chat-navigation"
+    title : "chat"
+    items : [
+        title : "Chat"
     ]
 
 class AdminModal extends KDModalView
