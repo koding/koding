@@ -1,8 +1,8 @@
 class JComment extends jraphical.Reply
-  
+
   {ObjectId,ObjectRef,dash,daisy} = require 'bongo'
   {Relationship}  = require 'jraphical'
-  
+
   @share()
 
   @set
@@ -22,7 +22,7 @@ class JComment extends jraphical.Reply
       deletedAt   : Date
       deletedBy   : ObjectRef
       meta        : require 'bongo/bundles/meta'
-  
+
   delete: bongo.secure (client, callback)->
     {delegate} = client.connection
     {getDeleteHelper} = Relationship
@@ -57,9 +57,9 @@ class JComment extends jraphical.Reply
     dash queue, callback
 
 class CCommentActivity extends CActivity
-  
+
   {Relationship} = jraphical
-  
+
   @share()
 
   @set
@@ -107,5 +107,5 @@ class CCommentActivity extends CActivity
                                   'commenter'
                               , (err)->
                                 if err
-                                  console.log "Couldn't add an activity", err 
+                                  console.log "Couldn't add an activity", err
   @init()
