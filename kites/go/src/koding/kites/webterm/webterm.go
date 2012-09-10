@@ -159,6 +159,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 				"SHELL=/bin/bash",
 				"TERM=xterm",
 				"LANG=en_US.UTF-8",
+				"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + config.homePrefix + server.user + "/bin",
 			},
 			Sys: &syscall.SysProcAttr{
 				Setsid: true,
