@@ -135,10 +135,7 @@ handle_client(Conn, init, _State) ->
     Payload = {<<"socket_id">>, SocketId},
     Conn:send(jsx:encode([EventProp, Payload])),
 
-    SystemExchange = get_env(system_exchange, <<"private-broker">>),
-    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
-    broker:trigger(Subscription, Event, jsx:encode([Payload]), []),
-    broker:unsubscribe(Subscription),
+    send_system_event(Conn, Event, [Payload]),
 
     {ok, #client{socket_id=SocketId}};
 
@@ -151,14 +148,10 @@ handle_client(Conn, {recv, Data},
 
 handle_client(Conn, closed, #client{socket_id=SocketId,
                                     subscriptions=Subscriptions}) ->
-    SystemExchange = get_env(system_exchange, <<"private-broker">>),
-    {ok, SystemSubscription} = broker:subscribe(Conn, SystemExchange),
     Event = <<"disconnected">>,
     Sid = {<<"socket_id">>, SocketId},
     Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
-    Payload = jsx:encode([Sid, Exchanges]),
-    broker:trigger(SystemSubscription, Event, Payload, []),
-    broker:unsubscribe(SystemSubscription),
+    send_system_event(Conn, Event, [Sid, Exchanges]),
 
     case dict:size(Subscriptions) of 
         0 -> ok;
@@ -169,8 +162,9 @@ handle_client(Conn, closed, #client{socket_id=SocketId,
     end,
     {ok, #client{}};
 
-handle_client(_Conn, Other, _) ->
-    io:format("Other data ~p~n", [Other]).
+handle_client(_Conn, Other, State) ->
+    io:format("Other data ~p~n", [Other]),
+    {ok, State}.
 
 handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
@@ -232,6 +226,12 @@ handle_event(_Conn, _Else, _Data, Subs) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+
+send_system_event(Conn, Event, Payload) ->
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    broker:trigger(Subscription, Event, jsx:encode(Payload), []),
+    broker:unsubscribe(Subscription).
 
 debug_log(Text, Args) ->
     case application:get_env(broker, verbose) of

@@ -72,7 +72,10 @@ class Sidebar extends JView
     @chatController = new NavigationController
       view          : new NavigationList
         type        : "navigation"
-        subItemClass: NavigationLink
+        subItemClass: NavigationLink        
+        bind         : "mouseenter mouseleave"
+        mouseenter   : => @animateLeftNavIn()
+        mouseleave   : => @animateLeftNavOut()
       wrapper       : no
       scrollView    : no
     , chatItems
