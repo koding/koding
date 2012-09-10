@@ -252,6 +252,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             1001: -> terminal.inputHandler.setMouseMode true, true, false
             1002: -> terminal.inputHandler.setMouseMode true, true, true
             1003: -> terminal.inputHandler.setMouseMode true, true, true
+            1034: ignored "interpret meta key"
             1047: -> terminal.changeScreenBuffer 1
             1048: -> terminal.cursor.savePosition()
             1049: -> terminal.cursor.savePosition(); terminal.changeScreenBuffer 1
@@ -276,6 +277,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             1001: -> terminal.inputHandler.setMouseMode false, false, false
             1002: -> terminal.inputHandler.setMouseMode false, false, false
             1003: -> terminal.inputHandler.setMouseMode false, false, false
+            1034: ignored "don't interpret meta key"
             1047: -> terminal.changeScreenBuffer 0
             1048: -> terminal.cursor.restorePosition()
             1049: -> terminal.changeScreenBuffer 0; terminal.cursor.moveTo 0, terminal.sizeY - 1
