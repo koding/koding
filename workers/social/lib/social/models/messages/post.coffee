@@ -69,9 +69,12 @@ module.exports = class JPost extends jraphical.Message
   @getFlagRole =-> ['sender', 'recipient']
 
   createKodingError =(err)->
-    kodingErr = message: err.message
-    for own prop of err
-      kodingErr[prop] = err[prop]
+    if 'string' is typeof err
+      kodingErr = message: err
+    else
+      kodingErr = message: err.message
+      for own prop of err
+        kodingErr[prop] = err[prop]
     kodingErr
 
   @create = secure (client, data, callback)->
@@ -138,6 +141,7 @@ module.exports = class JPost extends jraphical.Message
             callback null, teaser
             queue.next()
         ->
+          console.log 'hello'
           status.addParticipant delegate, 'author'
       ]
 
