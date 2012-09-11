@@ -1,16 +1,16 @@
-class ProfileView extends KDView
+class ProfileView extends JView
   constructor:->
-    
+
     super
-    
+
     memberData = @getData()
-    
+
     @avatar = new AvatarStaticView
       size     :
         width  : 90
         height : 90
       click    : =>
-        pos = 
+        pos =
           top  : @avatar.getBounds().y - 8
           left : @avatar.getBounds().x - 8
         modal = new KDModalView
@@ -101,10 +101,15 @@ class ProfileView extends KDView
     else
       @trollSwitch = new KDCustomHTMLView
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
+  click:(event)->
+
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
 
   putNick:(nick)-> "@#{nick}"
 
@@ -139,7 +144,7 @@ class ProfileView extends KDView
         </div>
 
         <div class="profilebio">
-          <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+          <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
         </div>
 
         <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>

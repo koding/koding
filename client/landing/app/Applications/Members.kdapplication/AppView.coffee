@@ -132,6 +132,13 @@ class MembersListItemView extends KDListItemView
     @profileLink = new ProfileLinkView {}, memberData
 
   click:(event)->
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
     member = @getData()
     targetATag = $(event.target).closest('a')
     if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
@@ -167,7 +174,7 @@ class MembersListItemView extends KDListItemView
           <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
 
-        <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+        <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
 
         <footer>
           <span class='button-container'>{{> @followButton}}</span>
