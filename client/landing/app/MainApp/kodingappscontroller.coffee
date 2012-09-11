@@ -83,34 +83,39 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-      if err
-        warn err
-        callback err
-      else
-        files = FSHelper.parseLsOutput [path], response
-        apps  = []
-        stack = []
+    require ["coffee-script"], (coffee)=>
+      @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
+        if err
+          warn err
+          callback err
+        else
+          files = FSHelper.parseLsOutput [path], response
+          apps  = []
+          stack = []
 
-        files.forEach (file)->
-          if /\.kdapp$/.test file.name
-            apps.push file
+          files.forEach (file)->
+            if /\.kdapp$/.test file.name
+              apps.push file
 
-        apps.forEach (app)->
-          manifest = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-          stack.push (cb)->
-            manifest.fetchContents cb
+          apps.forEach (app)->
+            manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
+            stack.push (cb)->
+              manifestFile.fetchContents cb
 
-        manifests = @constructor.manifests
-        async.parallel stack, (err, results)->
-          if err
-            warn err
-            callback? err
-          else
-            results.forEach (app)->
-              app = JSON.parse app
-              manifests["#{app.name}"] = app
-            callback? err, manifests
+          manifests = @constructor.manifests
+          async.parallel stack, (err, results)->
+            if err
+              warn err
+              callback? err
+            else
+              results.forEach (rawManifest)->
+                if rawManifest.substr(0,1) is '{'
+                  manifest = JSON.parse rawManifest
+                else
+                  manifest = coffee.compile rawManifest, { bare : yes }
+                  log manifest, ">>>>"
+                manifests["#{manifest.name}"] = manifest
+              callback? err, manifests
 
   fetchAppsFromDb:(callback)->
 
