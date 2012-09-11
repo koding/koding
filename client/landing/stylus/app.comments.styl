@@ -150,7 +150,7 @@ app.comments.styl
 
   .show-more-comments
     size                  auto, 0
-    bg                    color,#F8F8F8        
+    bg                    color,#F8F8F8
     padding               0 10px
     rounded               4px 4px 0 0
     line-height           27px
@@ -163,7 +163,7 @@ app.comments.styl
     &.has-new-items
       a.new-count
         display           inline
-    
+
     a
       line-height         14px
       color               #299FC6
@@ -244,25 +244,16 @@ app.comments.styl
 .comment-actions
   color               #ccc
   size                auto,auto
-  fr()
+  a
+    color             #FF9200
+    font-size         11px
 
   a.action-link
     margin            0 2px
-    color             #FF9200
-    font-weight       700 //ryan's 600 but weirdly it seems lighter here with 600
     text-decoration   none
-    font-size         11px
     &:hover
       text-decoration none
       color           #27a3c9
 
   a.count
-    font-style      normal
-    display         inline-block
-    bg              color, #0A92BA
-    color           #fff
-    font-size       10px
-    padding         1px 4px
-    line-height     10px
-    rounded         3px
     noTextDeco()
