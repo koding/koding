@@ -53,7 +53,7 @@ class CBucket extends jraphical.Module
 
   addToBucket =do ->
     # @helper
-    addIt = (bucket, anchor, item, callback)->
+    addIt = (bucket, anchor, item, groupName, callback)->
       isOwn = anchor.equals item
       bucket.add item, (err)->
         if err
@@ -102,11 +102,12 @@ class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
-                          anchor.sendNotification? 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err
                             else
+                              if groupName is 'source'
+                                anchor.sendNotification? 'ActivityIsAdded'
                               callback null, bucket
 
     (groupName, relationship, item, anchor, callback)->
@@ -123,7 +124,7 @@ class CBucket extends jraphical.Module
       bucketConstructor.one existingBucketSelector, (err, bucket)->
         if err then callback err
         else if bucket
-          addIt bucket, anchor, item, callback
+          addIt bucket, anchor, item, groupName, callback
         else
           bucket = new bucketConstructor
             groupedBy         : groupName
@@ -134,7 +135,7 @@ class CBucket extends jraphical.Module
 
           bucket.save (err)->
             if err then callback err
-            else addIt bucket, anchor, item, callback
+            else addIt bucket, anchor, item, groupName, callback
 
   getPopulator =(items..., callback)->
     -> ObjectRef.populate items, (err, populated)-> callback err, populated

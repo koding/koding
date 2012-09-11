@@ -14,6 +14,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       validate      :
         rules       :
           required  : yes
+          maxLength : 140
         messages    :
           required  : "Code snippet title is required!"
 

@@ -55,9 +55,9 @@ class LinkGroup extends KDCustomHTMLView
       click       : =>
         new FollowedModalView {group}, @getData()
 
-    sep = ' '
-    if participants[0] instanceof bongo.api.JAccount
-      sep = ', '
+    sep = ', '
+    if participants[0] instanceof bongo.api.JTag
+      sep = ' '
     switch totalCount
       when 0 then ""
       when 1 then "{{> @participant0}}"
