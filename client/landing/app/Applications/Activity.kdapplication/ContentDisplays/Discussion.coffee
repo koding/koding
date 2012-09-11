@@ -45,6 +45,14 @@ class ContentDisplayDiscussion extends KDView
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
             @opinionForm.submitOpinionBtn.hideLoader()
+
+            # this needs to inform the activity item of the new opinion
+
+            # log "updating teaser"
+            # @getData().updateTeaser (err, teaser) =>
+            #   log "err,teaser", err, teaser
+            #   @setData teaser
+
     , data
 
     @jumpToReplyLink = new KDCustomHTMLView
