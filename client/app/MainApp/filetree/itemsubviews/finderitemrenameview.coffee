@@ -27,6 +27,7 @@ class NFinderItemRenameView extends JView
     {{> @input}}
     {{> @cancel}}
     """
+
 class NFinderRenameInput extends KDHitEnterInputView
 
   click    : -> no
