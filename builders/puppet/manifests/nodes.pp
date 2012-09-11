@@ -1,5 +1,8 @@
 
 node base {
+    yumrepos { 'zabbixzone':
+        repo => 'zabbixzone',
+    }
 
     yumrepos { 'epel':
         repo => 'epel',
