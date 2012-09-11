@@ -79,9 +79,6 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 					node := dnode.New(&connection{messageStream, publishChannel, "reply-" + secretName, make([]byte, 0)})
 					node.OnRootMethod = func(method string, args []interface{}) {
-						if method == "connectionInitializationDummy" {
-							return
-						}
 						result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
 						if result != nil {
 							args[1].(dnode.Callback)(result)

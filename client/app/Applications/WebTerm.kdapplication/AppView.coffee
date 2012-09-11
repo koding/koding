@@ -37,65 +37,59 @@ class WebTermView extends KDView
         @setKeyView()
     @sessionBox.addSubView createSessionButton
     
+    @terminal = new WebTerm.Terminal @container.$()
+    @terminal.showSessionsCallback = (sessions) =>
+      return
+      keys = Object.keys sessions
+      keys.sort (a, b) ->
+        if sessions[a] < sessions[b]
+          -1
+        else if sessions[a] > sessions[b]
+          1
+        else
+          0
+      @sessionList.empty()
+      for key in keys
+        @sessionList.addItem
+          id: parseInt(key)
+          name: sessions[key]
+          mainView: this
+      @sessionBox.show()
+    @terminal.setTitleCallback = (title) =>
+      @tabPane.setTitle title
+
     @listenWindowResize()
 
     @focused = true
     
     @on "ReceivedClickElsewhere", =>
       @focused = false
-      @terminal?.setFocused false
+      @terminal.setFocused false
       @getSingleton('windowController').removeLayer @
     
     $(window).bind "blur", =>
-      @terminal?.setFocused false
+      @terminal.setFocused false
     
     $(window).bind "focus", =>
-      @terminal?.setFocused @focused
+      @terminal.setFocused @focused
     
     $(document).on "paste", (event) =>
-      @terminal?.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
-    
+      @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
+
     KD.whoami().tellKite
       kiteName: 'webterm',
-      method: 'connectionInitializationDummy'
-    
-    window.setTimeout =>
-      @terminal = new WebTerm.Terminal @container.$()
-      @terminal.showSessionsCallback = (sessions) =>
-        return
-        keys = Object.keys sessions
-        keys.sort (a, b) ->
-          if sessions[a] < sessions[b]
-            -1
-          else if sessions[a] > sessions[b]
-            1
-          else
-            0
-        @sessionList.empty()
-        for key in keys
-          @sessionList.addItem
-            id: parseInt(key)
-            name: sessions[key]
-            mainView: this
-        @sessionBox.show()
-      @terminal.setTitleCallback = (title) =>
-        @tabPane.setTitle title
-
-      KD.whoami().tellKite
-        kiteName: 'webterm',
-        method: 'createServer',
-        withArgs: @terminal.clientInterface
-      , (remote) =>
-        @terminal.server = remote
-        #@terminal.showSessions()
-        @terminal.createSession ""
-        @setKeyView()
-    , 3000
+      method: 'createServer',
+      withArgs: @terminal.clientInterface
+    , (remote) =>
+      @terminal.server = remote
+      #@terminal.showSessions()
+      @terminal.createSession ""
+      @setKeyView()
   
   setKeyView:->
     @getSingleton('windowController').addLayer @
     @focused = true
-    @terminal?.setFocused true
+    @terminal.setFocused true
     super
 
   click: ->
