@@ -920,6 +920,7 @@ button.activity-status-context
     border                            none!important
     .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
       border-top                      1px solid #f2f2f2
+      border-right 1px solid black
       border-bottom                   none
       &:last-child
         border-bottom                 1px solid #f2f2f2
@@ -949,9 +950,7 @@ button.activity-status-context
 .comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
   border-bottom                       none
 
-.first-reply-link
-  text-decoration                     none
-  line-height                         150%
+
 
 .activity-opinion-item-footer
   margin-top                          6px
@@ -980,3 +979,27 @@ a.discussion-view-more
   height                              20px
   display                             block
   width                               100%
+
+.opinion-first-box
+  height 30px
+  margin-top 10px
+  .first-reply-link
+    text-decoration                     none
+    line-height                         16px
+    color #fff
+    background-color #FD7E09
+    padding 1px 4px
+    font-weight 400
+    margin-left 85px
+    &:hover
+      color white
+
+// fix for the  discussion activity opinion width design issue
+// - border-top/bottom needs to go to the right while width has to be
+//   restrained
+.activity-item.discussion
+  max-width 100%
+  .activity-discussion-container
+    max-width 820px
+.activity-opinion.item-content-comment .comment-contents
+  max-width 735px

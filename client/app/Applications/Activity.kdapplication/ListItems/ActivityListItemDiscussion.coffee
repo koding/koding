@@ -26,6 +26,10 @@ class DiscussionActivityItemView extends ActivityItemChild
       , data
     else
       @opinionBox = new KDCustomHTMLView
+        tagName:"div"
+        cssClass:"opinion-first-box"
+
+      @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
         tagName:"a"
         cssClass:"first-reply-link"
         attributes:
@@ -74,9 +78,9 @@ class DiscussionActivityItemView extends ActivityItemChild
   pistachio:->
     """
   <div class="activity-discussion-container">
-    {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
+      {{> @settingsButton}}
       <h3 class='hidden'></h3>
       <p>{{@applyTextExpansions #(title)}}</p>
 
