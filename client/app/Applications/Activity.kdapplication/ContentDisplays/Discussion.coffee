@@ -224,7 +224,6 @@ class ContentDisplayDiscussion extends KDView
       </div>
     </div>
     <div class="discussion-nav">
-      {{> @staticLinkBox}}
       {{> @jumpToTopLink}}
       {{> @jumpToReplyLink}}
     </div>
