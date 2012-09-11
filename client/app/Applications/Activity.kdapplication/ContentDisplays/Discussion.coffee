@@ -63,6 +63,12 @@ class ContentDisplayDiscussion extends KDView
       click:->
         $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
 
+    @staticLinkBox = new KDCustomHTMLView
+      tagName: "a"
+      partial: "Static Link"
+      attributes:
+        href:"/discussion/"+@utils.slugify data.title
+
     @actionLinks = new DiscussionActivityActionsView
       delegate : @opinionBox.opinionList
       cssClass : "comment-header"
@@ -221,6 +227,9 @@ class ContentDisplayDiscussion extends KDView
         {{> @opinionForm}}
     </div>
     </div>
-    <div class="discussion-nav">{{> @jumpToReplyLink}}</div>
+    <div class="discussion-nav">
+      {{> @jumpToReplyLink}}
+      {{> @staticLinkBox}}
+    </div>
 
     """
