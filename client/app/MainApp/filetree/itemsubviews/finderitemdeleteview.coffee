@@ -20,7 +20,7 @@ class NFinderItemDeleteView extends JView
     @label = new KDLabelView
       title     : 'Are you sure?'
 
-  show:->
+  viewAppended:->
 
     super
     @button.$().focus()
