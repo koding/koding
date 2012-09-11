@@ -398,9 +398,10 @@ class KodingAppsController extends KDController
                 else
                   app.install (err)->
                     log err if err
+                    log callback
                     # This doesnt work :#
-                    appManager.openApplication "Develop"
-                    callback?()
+                    appManager.openApplication "StartTab"
+                    # callback?()
 
   # #
   # MAKE NEW APP
