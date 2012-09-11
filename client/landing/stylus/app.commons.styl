@@ -9,6 +9,29 @@ COMMONS stylesheet
 app.commons.styl
 */
 }
+
+
+span.collapsedtext
+  vendor              transition, font-size .2s linear
+  a.more-link
+  a.less-link
+    font-size         14px
+    margin-left       5px
+    vendor            transition, font-size .2s linear
+  &.hide
+    font-size         0!important
+    *
+      visibility      hidden
+      display         none
+    a.more-link
+      font-size       14px!important
+      visibility      visible
+      display         inline
+  &.show
+    a.more-link
+      font-size       0
+      margin-left     0
+
 p.warning
   padding               8px 35px 8px 14px
   margin-bottom         10px
@@ -1262,7 +1285,7 @@ figure.code-container
     font-size         12px
     line-height       20px
 
-  
+
   .kdnotification-content
     line-height       20px
 
