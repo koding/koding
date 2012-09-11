@@ -75,7 +75,7 @@ class CommentListItemView extends KDListItemView
             sort  : timestamp : -1
             , (err, likes) =>
               new FollowedModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
-      , data
+    , data
 
     @likeCount.on "countChanged", (count) =>
       @updateLikeState yes
@@ -199,8 +199,8 @@ class CommentListItemView extends KDListItemView
             {{@utils.applyTextExpansions #(body), yes}}
           </p>
           {{> @deleteLink}}
-          <span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>
           <time>{{$.timeago #(meta.createdAt)}}</time>
+          <span class='comment-actions'>{{> @likeLink}}#{if @getData().meta.likes then ' · ' else ''}{{> @likeCount}}</span>
         </div>
       </div>
       """
