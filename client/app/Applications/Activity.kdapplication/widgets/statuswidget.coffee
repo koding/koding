@@ -9,9 +9,12 @@ class ActivityStatusUpdateWidget extends KDFormView
     @smallInput = new KDInputView
       cssClass      : "status-update-input"
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
-      name          : 'body'
+      name          : 'dummy'
       style         : 'input-with-extras'
       focus         : => @switchToLargeView()
+      validate      :
+        rules       :
+          maxLength : 2000
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -23,6 +26,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       validate      :
         rules       :
           required  : yes
+          maxLength : 3000
         messages    :
           required  : "Please type a message..."
 

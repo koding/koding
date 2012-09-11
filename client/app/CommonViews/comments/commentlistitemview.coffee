@@ -72,13 +72,11 @@ class CommentListItemView extends KDListItemView
     # super unless @_partialUpdated
 
   click:(event)->
-    if $(event.target).is("span.collapsedtext a.more-link")
-      @$("span.collapsedtext").addClass "show"
-      @$("span.collapsedtext").removeClass "hide"
-
-    if $(event.target).is("span.collapsedtext a.less-link")
-      @$("span.collapsedtext").removeClass "show"
-      @$("span.collapsedtext").addClass "hide"
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()

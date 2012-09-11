@@ -83,11 +83,11 @@ Includes =
         notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-        
-        
+
+
         cactivity                 : "./server/app/bongo/models/activity.coffee"
         cbucket                   : "./server/app/bongo/models/bucket.coffee"
-        
+
         jlimit                    : "./server/app/bongo/models/limit.coffee"
         jmount                    : "./server/app/bongo/models/mount.coffee"
         jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -100,9 +100,9 @@ Includes =
         jguest                    : "./server/app/bongo/models/guest.coffee"
         jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-        
+
         jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-        
+
         # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -121,7 +121,7 @@ Includes =
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
         jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        
+
 
 
       OtherStuff :
@@ -308,8 +308,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
-        
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
+
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
@@ -627,17 +627,17 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        appabout            : "./client/stylus/app.about.styl"
+        # appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
         appaceeditor        : "./client/stylus/app.aceeditor.styl"
         activity            : "./client/stylus/app.activity.styl"
         appcontextmenu      : "./client/stylus/app.contextmenu.styl"
-        appchat             : "./client/stylus/app.chat.styl"
+        # appchat             : "./client/stylus/app.chat.styl"
         appsettings         : "./client/stylus/app.settings.styl"
         appinbox            : "./client/stylus/app.inbox.styl"
-        appenvsettings      : "./client/stylus/app.envsettings.styl"
+        # appenvsettings      : "./client/stylus/app.envsettings.styl"
         appmembers          : "./client/stylus/app.members.styl"
         comments            : "./client/stylus/app.comments.styl"
         bootstrap           : "./client/stylus/app.bootstrap.styl"
@@ -645,13 +645,13 @@ Includes =
         appkeyboard         : "./client/stylus/app.keyboard.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
-        apphome             : "./client/stylus/app.home.styl"
+        # apphome             : "./client/stylus/app.home.styl"
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        book                : "./client/stylus/app.book.styl"
+        # book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"
@@ -665,7 +665,7 @@ Includes =
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
 
-        toolsdemos          : "./client/stylus/tools.demos.styl"
+        # toolsdemos          : "./client/stylus/tools.demos.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
