@@ -56,7 +56,7 @@ class DiscussionFormView extends KDFormView
           buttons     :
             Cancel    :
               title   : "Discard changes"
-              style   : "modal-cancel"
+              style   : "modal-clean-gray"
               callback:=>
                 modal.destroy()
             Apply     :
