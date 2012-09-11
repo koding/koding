@@ -63,6 +63,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
     #     title  : "Click to delete"
     #   click    : -> no
 
+    @setClass "dev-mode" if @getData().devMode
+
   viewAppended:->
 
     @setTemplate @pistachio()
@@ -96,5 +98,4 @@ class StartTabAppThumbView extends KDCustomHTMLView
       {{> @loader}}
       <p>{{> @img}}</p>
       <cite>{{ #(name)}} {{ #(version)}}</cite>
-      <span>{{ #(type)}}</span>
     """

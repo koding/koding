@@ -34,6 +34,15 @@ class FSItem extends KDObject
         filePath  : path
     , callback
 
+  @doesExist:(path, callback) ->
+
+    KD.getSingleton('kiteController').run "stat #{escapeFilePath path}", (err, stderr, stdout)=>
+      if err then callback err, null
+      else if stderr
+        callback null, no
+      else if stdout
+        callback null, yes
+
   @copy:(sourceItem, targetItem, callback)->
 
     sourceItem.emit "fs.copy.started"

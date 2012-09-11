@@ -83,39 +83,50 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    require ["coffee-script"], (coffee)=>
-      @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-        if err
-          warn err
-          callback err
-        else
-          files = FSHelper.parseLsOutput [path], response
-          apps  = []
-          stack = []
+    # require ["coffee-script"], (coffee)=>
+    @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
+      if err
+        warn err
+        callback err
+      else
+        files = FSHelper.parseLsOutput [path], response
+        apps  = []
+        stack = []
 
-          files.forEach (file)->
-            if /\.kdapp$/.test file.name
-              apps.push file
+        files.forEach (file)->
+          if /\.kdapp$/.test file.name
+            apps.push file
 
-          apps.forEach (app)->
+        apps.forEach (app)=>
+          stack.push (cb)=>
             manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-            stack.push (cb)->
-              manifestFile.fetchContents cb
+            manifestFile.fetchContents (err, response)->
+              cb null, response # shadowing the error is intentional here to not to break the results of the stack
 
-          manifests = @constructor.manifests
-          async.parallel stack, (err, results)->
-            if err
-              warn err
-              callback? err
-            else
-              results.forEach (rawManifest)->
-                if rawManifest.substr(0,1) is '{'
-                  manifest = JSON.parse rawManifest
-                else
-                  manifest = coffee.compile rawManifest, { bare : yes }
-                  log manifest, ">>>>"
-                manifests["#{manifest.name}"] = manifest
-              callback? err, manifests
+            # @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
+
+            # FSItem.doesExist "#{app.path}/.manifest", (err, result)=>
+            #   if result
+            #     manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
+            #     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
+            #       manifestFile.fetchContents cb
+            #   else
+            #     cb null, "no manifest"
+
+        manifests = @constructor.manifests
+        async.parallel stack, (err, results)->
+          warn err if err
+          results.forEach (rawManifest)->
+            # if rawManifest.substr(0,1) is '{'
+            #   manifest = JSON.parse rawManifest
+            # else
+            #   manifest = eval coffee.compile rawManifest, { bare : yes }
+            #   # debugger
+            if rawManifest
+              manifest = JSON.parse rawManifest
+              manifests["#{manifest.name}"] = manifest
+
+          callback? null, manifests
 
   fetchAppsFromDb:(callback)->
 
@@ -186,17 +197,21 @@ class KodingAppsController extends KDController
 
   runApp:(manifest, callback)->
 
-    {options, name} = manifest
+    {options, name, devMode} = manifest
     {stylesheets}   = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
-        if /(http)|(:\/\/)/.test sheet
-          warn "external sheets cannot be used"
-        else
-          sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
+        if devMode
           $("head ##{__utils.slugify name}").remove()
-          $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+          $('head').append "<link id='#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+        else
+          if /(http)|(:\/\/)/.test sheet
+            warn "external sheets cannot be used"
+          else
+            sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
+            $("head ##{__utils.slugify name}").remove()
+            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
@@ -298,8 +313,18 @@ class KodingAppsController extends KDController
   compileApp:(path, callback)->
 
     manifest = getManifestFromPath path
+    {name, source} = manifest
 
-    @compileSource manifest.name, => callback?()
+    kallback = (err)=>
+      @compileSource name, => callback?()
+    debugger
+    if source.stylesheets
+      appDevModePath = "#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}"
+      log "ln -s #{escapeFilePath path} #{escapeFilePath appDevModePath}"
+      @kiteController.run "ln -s #{escapeFilePath path} #{escapeFilePath appDevModePath}", kallback
+    else
+      kallback()
+
 
   compileSource:(name, callback)->
 
