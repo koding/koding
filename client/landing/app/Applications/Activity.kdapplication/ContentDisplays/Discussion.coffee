@@ -199,7 +199,7 @@ class ContentDisplayDiscussion extends KDView
       </span>
       <div class='discussion-main-opinion'>
 
-        <h3>{{#(title)}}</h3>
+        <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
 
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
