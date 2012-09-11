@@ -42,7 +42,7 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance','sonTest'
+        'byRelevance'
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -146,9 +146,6 @@ module.exports = class JAccount extends jraphical.Module
       content       :
         as          : 'creator'
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
-
-  @sonTest = (x,callback)->
-    callback x+" foo"
 
   @findSuggestions = (seed, options, callback)->
     {limit,blacklist}  = options

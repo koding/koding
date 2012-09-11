@@ -4,9 +4,5 @@ module.exports = class Notifiable
   
   getPrivateChannelName:-> "private-notifiable-#{@constructor.name}-#{hat()}"
   
-  fetchPrivateChannel:(callback)->
-    require('bongo').fetchChannel @getPrivateChannelName(), callback
-  
   sendNotification:(event, contents)->
-    @fetchPrivateChannel? (channel)=>
-      channel.emit 'notification', {event, contents}
+    @emit 'notificationArrived', {event, contents} 
