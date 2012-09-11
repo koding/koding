@@ -240,3 +240,29 @@ app.comments.styl
       rounded         3px
   span.small-loader
     margin-right      5px
+
+.comment-actions
+  color               #ccc
+  size                auto,auto
+  fr()
+
+  a.action-link
+    margin            0 2px
+    color             #FF9200
+    font-weight       700 //ryan's 600 but weirdly it seems lighter here with 600
+    text-decoration   none
+    font-size         11px
+    &:hover
+      text-decoration none
+      color           #27a3c9
+
+  a.count
+    font-style      normal
+    display         inline-block
+    bg              color, #0A92BA
+    color           #fff
+    font-size       10px
+    padding         1px 4px
+    line-height     10px
+    rounded         3px
+    noTextDeco()
