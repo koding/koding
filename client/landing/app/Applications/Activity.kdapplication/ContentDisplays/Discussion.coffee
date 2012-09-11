@@ -63,6 +63,14 @@ class ContentDisplayDiscussion extends KDView
       click:->
         $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
 
+    @jumpToTopLink = new KDCustomHTMLView
+      tagName : "a"
+      partial: "Scroll to Top"
+      attributes:
+        href:"#"
+      click:->
+        $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
+
     @staticLinkBox = new KDCustomHTMLView
       tagName: "a"
       partial: "Static Link"
@@ -216,6 +224,7 @@ class ContentDisplayDiscussion extends KDView
     </div>
     <div class="discussion-nav">
       {{> @staticLinkBox}}
+      {{> @jumpToTopLink}}
       {{> @jumpToReplyLink}}
     </div>
 
