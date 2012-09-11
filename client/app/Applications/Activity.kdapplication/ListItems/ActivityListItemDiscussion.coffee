@@ -2,7 +2,6 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
-    # in case of Discussions, the comments can go beyond one level. we need another view for that
     options = $.extend
       cssClass    : "activity-item discussion"
       tooltip     :
@@ -18,25 +17,23 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    @commentBox.destroy()
-
     if data.repliesCount > 0
       @opinionBox = new DiscussionActivityOpinionView
-        cssClass : "activity-opinion-list comment-container"
+        cssClass    : "activity-opinion-list comment-container"
       , data
     else
       @opinionBox = new KDCustomHTMLView
-        tagName:"div"
-        cssClass:"opinion-first-box"
+        tagName     : "div"
+        cssClass    : "opinion-first-box"
 
       @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
-        tagName:"a"
-        cssClass:"first-reply-link"
-        attributes:
-          title:"Be the first to reply"
-          href:"#"
-        partial:"Be the first to reply!"
-        click:->
+        tagName     : "a"
+        cssClass    : "first-reply-link"
+        attributes  :
+          title     : "Be the first to reply"
+          href      : "#"
+        partial     : "Be the first to reply!"
+        click       :->
           appManager.tell "Activity", "createContentDisplay", data
 
   viewAppended:()->
@@ -44,27 +41,22 @@ class DiscussionActivityItemView extends ActivityItemChild
     super()
     @setTemplate @pistachio()
     @template.update()
+
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
   render:->
     super()
+
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title], [data-paths~=body]")
+    if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames @utils.applyMarkdown str
-
-    # FIXME: 500 chars is a naive separation, check if it is in a tag (<a> etc) and
-    # make the separation after or before the tag in plain text.
-
-    @shortenedText str
-
-  shortenedText: (str)->
 
     if str.length > 500
       visiblePart = str.substr 0, 500
@@ -91,10 +83,9 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
-    <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+    <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
     </div>
   </div>
-{{> @opinionBox}}
-
+  {{> @opinionBox}}
     """
 

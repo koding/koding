@@ -67,8 +67,8 @@ class OpinionListItemView extends KDListItemView
     , data.meta.tags
 
     @smaller = new KDCustomHTMLView
-        tagName  : "a"
-        cssClass : "opinion-size-link hidden"
+        tagName    : "a"
+        cssClass   : "opinion-size-link hidden"
         attributes :
           href     : "#"
           title    : "Show less"
@@ -79,8 +79,8 @@ class OpinionListItemView extends KDListItemView
           @smaller.hide()
 
     @larger = new KDCustomHTMLView
-        tagName  : "a"
-        cssClass : "opinion-size-link hidden"
+        tagName    : "a"
+        cssClass   : "opinion-size-link hidden"
         attributes :
           href     : "#"
           title    : "Show more"
@@ -110,10 +110,10 @@ class OpinionListItemView extends KDListItemView
               @$(".opinion-size-links").show() if @needsToResize
             else
               @editForm = new OpinionFormView
-                submitButtonTitle: "Save your changes"
-                title : "edit-opinion"
-                cssClass : "edit-opinion-form opinion-container"
-                callback : (data)=>
+                submitButtonTitle : "Save your changes"
+                title             : "edit-opinion"
+                cssClass          : "edit-opinion-form opinion-container"
+                callback          : (data)=>
                   @getData().modify data, (err, opinion) =>
                     @$("p.opinion-body-with-markup").show()
                     callback? err, opinion
@@ -142,7 +142,7 @@ class OpinionListItemView extends KDListItemView
 
   render:->
     super()
-    # @$("code").addClass "prettyprint"
+
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -159,7 +159,6 @@ class OpinionListItemView extends KDListItemView
       @markup.css {maxHeight}
       @larger.show()
 
-    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -194,7 +193,7 @@ class OpinionListItemView extends KDListItemView
               if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
 
   pistachio:->
     """
@@ -216,11 +215,11 @@ class OpinionListItemView extends KDListItemView
           {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
         </p>
         <div class="opinion-size-links">
-        {{>@larger}}
-        {{>@smaller}}
+          {{>@larger}}
+          {{>@smaller}}
         </div>
     </div>
-          {{> @actionLinks}}
+      {{> @actionLinks}}
     </div>
     <div class='item-content-opinion-comments clearfix'>
       <div class='opinion-comment'>

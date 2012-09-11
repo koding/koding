@@ -1,4 +1,5 @@
 class DiscussionActivityActionsView extends ActivityActionsView
+
   constructor :->
     super
 
@@ -25,7 +26,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
         @getDelegate().emit "OpinionLinkReceivedClick"
 
   viewAppended:->
-
     @setClass "activity-actions"
     @setTemplate @pistachio()
     @template.update()
@@ -33,7 +33,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @loader.hide()
 
   attachListeners:->
-
     activity    = @getData()
     opinionList = @getDelegate()
 
@@ -53,7 +52,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
                 duration  : 1300
 
   pistachio:->
-
     """
     {{> @loader}}
     {{> @opinionLink}}{{> @opinionCount}} ·

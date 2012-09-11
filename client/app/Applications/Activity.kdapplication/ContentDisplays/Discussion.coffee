@@ -25,9 +25,9 @@ class ContentDisplayDiscussion extends KDView
     @opinionBox = new OpinionView null, data
 
     @opinionBoxHeader = new KDCustomHTMLView
-      tagName : "div"
+      tagName  : "div"
       cssClass : "opinion-box-header"
-      partial : @opinionHeaderCountString data.repliesCount
+      partial  : @opinionHeaderCountString data.repliesCount
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
@@ -36,7 +36,7 @@ class ContentDisplayDiscussion extends KDView
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     @opinionForm = new OpinionFormView
-      cssClass : "opinion-container"
+      cssClass  : "opinion-container"
       callback  : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
@@ -56,30 +56,30 @@ class ContentDisplayDiscussion extends KDView
     , data
 
     @jumpToReplyLink = new KDCustomHTMLView
-      tagName : "a"
-      partial: "Scroll to Reply Box"
-      attributes:
-        href:"#"
+      tagName     : "a"
+      partial     : "Scroll to Reply Box"
+      attributes  :
+        href      : "#"
       click:->
         $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
 
     @jumpToTopLink = new KDCustomHTMLView
-      tagName : "a"
-      partial: "Scroll to Top"
-      attributes:
-        href:"#"
+      tagName     : "a"
+      partial     : "Scroll to Top"
+      attributes  :
+        href      : "#"
       click:->
         $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
 
     @staticLinkBox = new KDCustomHTMLView
-      tagName: "a"
-      partial: "Static Link"
-      attributes:
-        href:"/discussion/"+@utils.slugify data.title
+      tagName     : "a"
+      partial     : "Static Link"
+      attributes  :
+        href      : "/discussion/"+@utils.slugify data.title
 
     @actionLinks = new DiscussionActivityActionsView
-      delegate : @opinionBox.opinionList
-      cssClass : "comment-header"
+      delegate    : @opinionBox.opinionList
+      cssClass    : "comment-header"
     , data
 
     @tags = new ActivityChildViewTagGroup
@@ -109,22 +109,24 @@ class ContentDisplayDiscussion extends KDView
          KD.checkFlag "super-admin", account  # if super-admin
 
         @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @editDiscussionLink
-          callback           : =>
+          KDEventTypes        : "click"
+          listenedToInstance  : @editDiscussionLink
+          callback            : =>
             if @editDiscussionForm?
               @editDiscussionForm?.destroy()
               delete @editDiscussionForm
               @$(".discussion-body .data").show()
             else
               @editDiscussionForm = new DiscussionFormView
-                title : "edit-discussion"
-                cssClass : "edit-discussion-form"
-                callback : (data)=>
+                title         : "edit-discussion"
+                cssClass      : "edit-discussion-form"
+                callback      : (data)=>
                   @getData().modify data, (err, discussion) =>
                     callback? err, opinion
                     if err
-                      new KDNotificationView title : "Your changes weren't saved.", type :"mini"
+                      new KDNotificationView
+                        title : "Your changes weren't saved."
+                        type  : "mini"
                     else
                       @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
@@ -174,10 +176,11 @@ class ContentDisplayDiscussion extends KDView
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
 
   render:->
     super()
+
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -198,15 +201,13 @@ class ContentDisplayDiscussion extends KDView
         <span class="author">AUTHOR</span>
       </span>
       <div class='discussion-main-opinion'>
-
         <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
-
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}} •
             <time>{{$.timeago #(meta.createdAt)}}</time>
             {{> @tags}}
-                  {{> @actionLinks}}
+            {{> @actionLinks}}
           </div>
         </footer>
         {{> @editDiscussionLink}}
@@ -216,16 +217,15 @@ class ContentDisplayDiscussion extends KDView
     </div>
     </div>
     <div class="opinion-content">
-    {{> @opinionBoxHeader}}
-    {{> @opinionBox}}
-    <div class="content-display-main-section opinion-form-footer">
+      {{> @opinionBoxHeader}}
+      {{> @opinionBox}}
+      <div class="content-display-main-section opinion-form-footer">
         {{> @opinionForm}}
-    </div>
+      </div>
     </div>
     <div class="discussion-nav">
       {{> @staticLinkBox}}
       {{> @jumpToTopLink}}
       {{> @jumpToReplyLink}}
     </div>
-
     """

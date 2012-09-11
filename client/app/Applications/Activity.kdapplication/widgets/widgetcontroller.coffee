@@ -105,7 +105,6 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
 
-
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -185,9 +184,7 @@ class ActivityUpdateWidgetController extends KDViewController
       warn 'couldnt save tutorial', error if error
 
   discussionWidgetSubmit:(data, callback)->
-
     if data.activity
-
       {activity} = data
       delete data.activity
       activity.modify data, (err, res)=>
@@ -206,7 +203,4 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), discussion
-    # log 'starting discussion', data
-    # bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
-    #   warn 'couldnt save discussion', error if error
 

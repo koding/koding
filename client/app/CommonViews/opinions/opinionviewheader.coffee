@@ -48,8 +48,6 @@ class OpinionViewHeader extends JView
         @loader.destroy()
         @allItemsLink.destroy()
 
-
-
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
       size          :
