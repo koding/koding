@@ -65,6 +65,7 @@ class OpinionListViewController extends KDListViewController
     message = @getListView().getData()
     message.updateTeaser (err, teaser)=>
       log err if err
+      # callback? err, teaser
 
   fetchOpinionsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback

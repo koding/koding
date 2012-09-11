@@ -316,6 +316,9 @@ class JDiscussion extends JPost
           ,(err, result)->
             if err
               log "update err", err, result
+            queue.next()
+      =>
+        callback? null, teaser_
     ]
 
   fetchTeaser:(callback)->
