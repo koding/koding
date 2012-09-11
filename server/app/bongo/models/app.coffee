@@ -13,7 +13,7 @@ class JApp extends jraphical.Module
   @::mixin Taggable::
   @::mixin Likeable::
 
-  {Inflector,JsPath,secure,daisy} = bongo
+  {ObjectRef,Inflector,JsPath,secure,daisy} = bongo
   {Relationship} = jraphical
 
   {log} = console
@@ -29,8 +29,11 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        'update', 'follow', 'unfollow', 'remove', 'like', 'checkIfLikedBefore', 'fetchLikedByes',
-        'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship', 'fetchCreator', 'install'
+        'update', 'follow', 'unfollow', 'remove', 'review',
+        'like', 'checkIfLikedBefore', 'fetchLikedByes',
+        'fetchFollowersWithRelationship', 'install',
+        'fetchFollowingWithRelationship', 'fetchCreator',
+        'fetchRelativeReviews'
       ]
       static        : [
         "one","on","some","create"
@@ -62,9 +65,7 @@ class JApp extends jraphical.Module
 
     relationships   :
       creator       : JAccount
-      review        :
-        targetType  : jraphical.Module
-        as          : 'review'
+      review        : JReview
       activity      :
         targetType  : CActivity
         as          : 'activity'
@@ -74,9 +75,9 @@ class JApp extends jraphical.Module
       likedBy       :
         targetType  : JAccount
         as          : 'like'
-      user          :
+      participant   :
         targetType  : JAccount
-        as          : 'user'
+        as          : ['author','reviewer','user']
       tag           :
         targetType  : JTag
         as          : 'tag'
@@ -120,7 +121,7 @@ class JApp extends jraphical.Module
           callback err
         else
           unless installedBefore
-            @addUser delegate, respondWithCount: yes, (err, docs, count)=>
+            @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
               if err
                 callback err
               else
@@ -139,6 +140,77 @@ class JApp extends jraphical.Module
                           callback null
           else
             callback new KodingError 'Relationship already exists, App already installed'
+
+  review: secure (client, review, callback)->
+    {delegate} = client.connection
+    unless delegate instanceof JAccount
+      callback new Error 'Log in required!'
+    else
+      review = new JReview body: review
+      exempt = delegate.checkFlag('exempt')
+      if exempt
+        review.isLowQuality = yes
+      review
+        .sign(delegate)
+        .save (err)=>
+          if err
+            callback err
+          else
+            delegate.addContent review, (err)->
+              if err then console.log 'error adding content', err
+            @addReview review,
+              flags:
+                isLowQuality : exempt
+            , (err, docs)=>
+              if err
+                callback err
+              else
+                if exempt
+                  callback null, comment
+                else
+                  Relationship.count
+                    sourceId                  : @getId()
+                    as                        : 'review'
+                    'data.flags.isLowQuality' : $ne: yes
+                  , (err, count)=>
+                    if err
+                      callback err
+                    else
+                      @update $set: repliesCount: count, (err)=>
+                        if err
+                          callback err
+                        else
+                          callback null, review
+                          # @fetchActivityId (err, id)->
+                          #   CActivity.update {_id: id}, {
+                          #     $set: 'sorts.reviewsCount': count
+                          #   }, log
+                          @fetchCreator (err, origin)=>
+                            if err
+                              console.log "Couldn't fetch the origin"
+                            else
+                              @emit 'ReviewIsAdded', {
+                                origin
+                                subject       : ObjectRef(@).data
+                                actorType     : 'reviewer'
+                                actionType    : 'review'
+                                replier       : ObjectRef(delegate).data
+                                reply         : ObjectRef(review).data
+                                repliesCount  : count
+                                relationship  : docs[0]
+                              }
+                              @follow client, emitActivity: no, (err)->
+                              @addParticipant delegate, 'reviewer', (err)-> #TODO: what should we do with this error?
+
+  fetchRelativeReviews:({limit, before, after}, callback)->
+    limit ?= 10
+    if before? and after?
+      callback new KodingError "Don't use before and after together."
+    selector = timestamp:
+      if before? then  $lt: before
+      else if after? then $gt: after
+    options = {limit, sort: timestamp: 1}
+    @fetchReviews selector, options, callback
 
   # @create = secure (client, data, callback)->
 

@@ -1,30 +1,30 @@
-class CommentListViewController extends KDListViewController
+class ReviewListViewController extends KDListViewController
   constructor:->
     super
     @_hasBackgrounActivity = no
     @startListeners()
 
-  instantiateListItems:(items, keepDeletedComments = no)->
+  instantiateListItems:(items, keepDeletedReviews = no)->
 
     newItems = []
 
-    for comment, i in items
+    for review, i in items
 
-      nextComment = items[i+1]
+      nextReview = items[i+1]
 
-      skipComment = no
-      if nextComment? and comment.deletedAt
-        if Date.parse(nextComment.meta.createdAt) > Date.parse(comment.deletedAt)
-          skipComment = yes
+      skipReview = no
+      if nextReview? and review.deletedAt
+        if Date.parse(nextReview.meta.createdAt) > Date.parse(review.deletedAt)
+          skipReview = yes
 
-      if not nextComment and comment.deletedAt
-        skipComment = yes
+      if not nextReview and review.deletedAt
+        skipReview = yes
 
-      skipComment = no if keepDeletedComments
+      skipReview = no if keepDeletedReviews
 
-      unless skipComment
-        commentView = @getListView().addItem comment
-        newItems.push commentView
+      unless skipReview
+        reviewView = @getListView().addItem review
+        newItems.push reviewView
 
     return newItems
 
@@ -35,7 +35,7 @@ class CommentListViewController extends KDListViewController
       view.on 'CommentIsDeleted', ->
         listView.emit "CommentIsDeleted"
 
-    listView.on "AllCommentsLinkWasClicked", (commentHeader)=>
+    listView.on "AllCommentsLinkWasClicked", (reivewHeader)=>
 
       return if @_hasBackgrounActivity
 
@@ -47,51 +47,51 @@ class CommentListViewController extends KDListViewController
       listView.emit "BackgroundActivityStarted"
       @_hasBackgrounActivity = yes
       @_removedBefore = no
-      @fetchRelativeComments 10, meta.createdAt
+      @fetchRelativeReviews 10, meta.createdAt
 
     listView.registerListener
-      KDEventTypes  : "CommentSubmitted"
+      KDEventTypes  : "ReviewSubmitted"
       listener      : @
-      callback      : (pubInst, reply)->
+      callback      : (pubInst, review)->
         model = listView.getData()
         listView.emit "BackgroundActivityStarted"
-        model.reply reply, (err, reply)=>
+        model.review review, (err, review)=>
           # listView.emit "AllCommentsLinkWasClicked"
           if not @getSingleton('activityController').flags?.liveUpdates
-            listView.addItem reply
+            listView.addItem review
             listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
 
-  fetchAllComments:(skipCount=3, callback = noop)=>
+  fetchAllReviews:(skipCount=3, callback = noop)=>
 
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
-    message.restComments skipCount, (err, comments)=>
+    message.restReviews skipCount, (err, reivews)=>
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllCommentsWereAdded"
-      callback err, comments
+      callback err, reivews
 
-  fetchRelativeComments:(_limit = 10, _after)=>
+  fetchRelativeReviews:(_limit = 10, _after)=>
     listView = @getListView()
     message = @getListView().getData()
-    message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
+    message.fetchRelativeReviews limit:_limit, after:_after, (err, reivews)=>
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
 
-      @instantiateListItems comments[_limit-10...], yes
+      @instantiateListItems reivews[_limit-10...], yes
 
-      if comments.length is _limit
-        startTime = comments[comments.length-1].meta.createdAt
-        @fetchRelativeComments 11, startTime
+      if reivews.length is _limit
+        startTime = reivews[reivews.length-1].meta.createdAt
+        @fetchRelativeReviews 11, startTime
       else
         listView = @getListView()
         listView.emit "BackgroundActivityFinished"
         listView.emit "AllCommentsWereAdded"
         @_hasBackgrounActivity = no
 
-  replaceAllComments:(comments)->
+  replaceAllReviews:(reivews)->
     @removeAllItems()
-    @instantiateListItems comments
+    @instantiateListItems reivews

@@ -116,6 +116,7 @@ Includes =
         janswer                   : "./server/app/bongo/models/messages/answer.coffee"
         jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
+        jreview                   : "./server/app/bongo/models/messages/review.coffee"
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
@@ -512,6 +513,10 @@ Includes =
         CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
+
+        ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
+        ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
+        ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
