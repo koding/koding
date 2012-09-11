@@ -19,7 +19,7 @@ class FSItem extends KDObject
       else
         KD.getSingleton('kiteController').run
           withArgs  :
-            command : "#{if type is 'file' then 'touch' else 'mkdir'} #{escapeFilePath response}"
+            command : "#{if type is 'file' then 'touch' else 'mkdir -p'} #{escapeFilePath response}"
         , (err, res)->
           if err then warn err
           else
