@@ -87,9 +87,10 @@ class CommentListItemView extends KDListItemView
           appManager.tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
+    {type} = @getOptions()
     modal = new KDModalView
-      title          : "Delete comment"
-      content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
+      title          : "Delete #{type}"
+      content        : "<div class='modalformline'>Are you sure you want to delete this #{type}?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -113,12 +114,13 @@ class CommentListItemView extends KDListItemView
         #   callback   : => modal.destroy()
 
   pistachio:->
+    {type} = @getOptions()
     if @getData().getAt 'deletedAt'
       @setClass "deleted"
       if @deleter
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
       else
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
+        "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
     else
       """
       <div class='item-content-comment clearfix'>
