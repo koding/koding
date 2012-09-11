@@ -46,7 +46,7 @@ class CommentListItemView extends KDListItemView
           listenedToInstance : @deleteLink
           callback           : => @confirmDeleteComment data
 
-    @likeView = new LikeView {}, data
+    @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 
   render:->
     if @getData().getAt 'deletedAt'
@@ -119,8 +119,8 @@ class CommentListItemView extends KDListItemView
           {{@utils.applyTextExpansions #(body), yes}}
         </p>
         {{> @deleteLink}}
-        <span class='comment-actions'>{{> @likeView}}</span>
         <time>{{$.timeago #(meta.createdAt)}}</time>
+        {{> @likeView}}
       </div>
     </div>
     """
