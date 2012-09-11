@@ -93,11 +93,11 @@ class ContentDisplayDiscussion extends KDView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-    # activity = @getDelegate().getData()
+    activity = @getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
-         # loggedInId is activity.originId or   # if activity owner
+         loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
         @listenTo
@@ -121,9 +121,7 @@ class ContentDisplayDiscussion extends KDView
                       @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
                       @$(".discussion-body .data").show()
-
               , data
-
 
               @addSubView @editDiscussionForm, "p.discussion-body", yes
               @$(".discussion-body .data").hide()
@@ -169,9 +167,9 @@ class ContentDisplayDiscussion extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+
   render:->
     super()
-    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
@@ -180,19 +178,8 @@ class ContentDisplayDiscussion extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-    # @$("code").addClass "prettyprint"
     @$("pre").addClass "prettyprint"
     prettyPrint()
-
-    # temp for beta
-    # take this bit to comment view
-    # this is useful when the snaphots don't work
-    # if @getData().repliesCount? and @getData().repliesCount > 0
-    #   opinionController = @opinionBox.opinionController
-    #   opinionController.fetchRelativeOpinions 5, 0, (err, opinions)=>
-    #     for opinion in opinions
-    #       @opinionBox.opinionList.addItem opinion, null, {type : "slideDown", duration : 100}
-    #     @opinionBox.opinionList.emit "RelativeOpinionsWereAdded"
 
   pistachio:->
     """
@@ -228,8 +215,8 @@ class ContentDisplayDiscussion extends KDView
     </div>
     </div>
     <div class="discussion-nav">
-      {{> @jumpToReplyLink}}
       {{> @staticLinkBox}}
+      {{> @jumpToReplyLink}}
     </div>
 
     """
