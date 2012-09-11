@@ -150,11 +150,17 @@ handle_client(Conn, closed, #client{socket_id=SocketId,
     Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
     send_system_event(Conn, Event, [Sid, Exchanges]),
 
+    Handler = fun
+        (Sub) ->
+            broker:trigger(Sub, Event, jsx:encode([Sid]), [], true),
+            broker:unsubscribe(Sub)
+    end,
+
     case dict:size(Subscriptions) of 
         0 -> ok;
         _ ->
             List = dict:to_list(Subscriptions),
-            [broker:unsubscribe(Subscription) 
+            [Handler(Subscription) 
                 || {_Exchange, Subscription} <- List]
     end,
     {ok, #client{}};

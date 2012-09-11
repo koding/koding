@@ -11,7 +11,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/0, subscribe/2, presence/3, unsubscribe/1,
-            bind/2, unbind/2, trigger/4, rpc/3]).
+            bind/2, unbind/2, trigger/4, trigger/5, rpc/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
         handle_call/3, handle_cast/2, handle_info/2]).
@@ -61,7 +61,14 @@ unbind(Subscription, Event) ->
     subscription:unbind(Subscription, Event).
 
 trigger(Subscription, Event, Payload, Meta) ->
-    subscription:trigger(Subscription, Event, Payload, Meta).
+    trigger(Subscription, Event, Payload, Meta, false).
+
+trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
+    subscription:trigger(Subscription, 
+                        Event, 
+                        Payload, 
+                        Meta, 
+                        NoRestriction).
 
 rpc(Subscription, RoutingKey, Payload) ->
     gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
