@@ -132,9 +132,17 @@ class CommentListItemView extends KDListItemView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
+
     # super unless @_partialUpdated
 
   click:(event)->
+
+    if $(event.target).is("a.action-link")
+      if KD.isLoggedIn()
+        @getData().like (err)=>
+          if err
+            log "Something went wrong while like:", err
+
     if $(event.target).is("span.collapsedtext a.more-link")
       @$("span.collapsedtext").addClass "show"
       @$("span.collapsedtext").removeClass "hide"
@@ -189,11 +197,12 @@ class CommentListItemView extends KDListItemView
       <div class='item-content-comment clearfix'>
         <span class='avatar'>{{> @avatar}}</span>
         <div class='comment-contents clearfix'>
-          {{> @deleteLink}}
           <p class='comment-body'>
             {{> @author}}
             {{@utils.applyTextExpansions #(body), yes}}
           </p>
+          {{> @deleteLink}}
+          <span class='comment-actions'>{{> @likeLink}}{{> @likeCount}}</span>
           <time>{{$.timeago #(meta.createdAt)}}</time>
         </div>
       </div>
