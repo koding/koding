@@ -82,19 +82,16 @@ class JApp extends jraphical.Module
         targetType  : JTag
         as          : 'tag'
 
-    # TODO: this should be a race not a daisy
-
   @create = secure (client, data, callback)->
 
     console.log "creating the JApp"
 
     {connection:{delegate}} = client
 
-    app = new JApp {
+    app = new JApp
       title       : data.title
       body        : data.body
       manifest    : data.manifest
-    }
 
     app.save (err)->
       if err
@@ -133,11 +130,13 @@ class JApp extends jraphical.Module
                       targetId: delegate.getId()
                       as: 'user'
                     , (err, relation)=>
-                      CBucket.addActivities relation, @, delegate, (err)=>
-                        if err
-                          callback err
-                        else
-                          callback null
+                      if err then callback err
+                      else
+                        CBucket.addActivities relation, @, delegate, (err)=>
+                          if err
+                            callback err
+                          else
+                            callback null
           else
             callback new KodingError 'Relationship already exists, App already installed'
 
