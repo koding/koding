@@ -12,8 +12,7 @@ import (
 type connection struct {
 	messageStream   <-chan amqp.Delivery
 	publishChannel  *amqp.Channel
-	exchange        string
-	replyKey        string
+	replyExchange   string
 	bufferedMessage []byte
 }
 
@@ -23,7 +22,6 @@ func (conn *connection) Read(p []byte) (int, error) {
 		if !ok {
 			return 0, io.EOF
 		}
-		conn.replyKey = "reply-" + message.RoutingKey
 		conn.bufferedMessage = message.Body
 		log.Debug("Read", message.Body)
 	}
@@ -34,7 +32,7 @@ func (conn *connection) Read(p []byte) (int, error) {
 
 func (conn *connection) Write(p []byte) (int, error) {
 	log.Debug("Write", p)
-	err := conn.publishChannel.Publish(conn.exchange, conn.replyKey, false, false, amqp.Publishing{Body: p})
+	err := conn.publishChannel.Publish(conn.replyExchange, "reply-client-message", false, false, amqp.Publishing{Body: p})
 	if err != nil {
 		return 0, err
 	}
@@ -49,16 +47,10 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 			log.Info("Connecting to AMQP server...")
 
-			consumeConn, err := amqp.Dial(uri)
-			if err != nil {
-				panic(err)
-			}
+			consumeConn := createConn(uri)
 			defer consumeConn.Close()
 
-			publishConn, err := amqp.Dial(uri)
-			if err != nil {
-				panic(err)
-			}
+			publishConn := createConn(uri)
 			defer publishConn.Close()
 
 			log.Info("Successfully connected to AMQP server.")
@@ -70,21 +62,22 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 				go func() {
 					defer log.RecoverAndLog()
 
-					exchange := string(join.Body)
-					user := strings.Split(exchange, ".")[1]
+					secretName := string(join.Body)
+					user := strings.Split(secretName, ".")[1]
 
 					log.Info("Client connected: " + user)
 
-					messageStream, messageChannel := declareBindConsumeQueue(consumeConn, "", "client-message.*", exchange)
+					messageChannel := createChannel(consumeConn)
 					defer messageChannel.Close()
-
-					publishChannel, err := publishConn.Channel()
+					messageStream, err := messageChannel.Consume(secretName, "", true, false, false, false, nil)
 					if err != nil {
 						panic(err)
 					}
+
+					publishChannel := createChannel(consumeConn)
 					defer publishChannel.Close()
 
-					node := dnode.New(&connection{messageStream, publishChannel, exchange, "", make([]byte, 0)})
+					node := dnode.New(&connection{messageStream, publishChannel, "reply-" + secretName, make([]byte, 0)})
 					node.OnRootMethod = func(method string, args []interface{}) {
 						if method == "connectionInitializationDummy" {
 							return
@@ -103,13 +96,26 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 	}
 }
 
-func declareBindConsumeQueue(conn *amqp.Connection, queue, key, exchange string) (<-chan amqp.Delivery, *amqp.Channel) {
+func createConn(uri string) *amqp.Connection {
+	conn, err := amqp.Dial(uri)
+	if err != nil {
+		panic(err)
+	}
+	return conn
+}
+
+func createChannel(conn *amqp.Connection) *amqp.Channel {
 	channel, err := conn.Channel()
 	if err != nil {
 		panic(err)
 	}
+	return channel
+}
 
-	err = channel.ExchangeDeclare(exchange, "topic", true, true, false, false, nil)
+func declareBindConsumeQueue(conn *amqp.Connection, queue, key, exchange string) (<-chan amqp.Delivery, *amqp.Channel) {
+	channel := createChannel(conn)
+
+	err := channel.ExchangeDeclare(exchange, "topic", true, true, false, false, nil)
 	if err != nil {
 		panic(err)
 	}
