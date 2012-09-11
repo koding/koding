@@ -206,7 +206,6 @@ class CLikeeBucket extends CBucket
 
   @share()
 
-<<<<<<< HEAD
   @set
     schema          : CBucket.schema
 
@@ -221,8 +220,6 @@ class CInstalleeBucket extends CBucket
 
   @share()
 
-=======
->>>>>>> d34ab7c62cda6fb11dfdbb6000eb7c8a21587315
   @set
     schema          : CBucket.schema
 
