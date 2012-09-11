@@ -116,6 +116,7 @@ Includes =
         janswer                   : "./server/app/bongo/models/messages/answer.coffee"
         jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
+        jreview                   : "./server/app/bongo/models/messages/review.coffee"
         japp                      : "./server/app/bongo/models/app.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
