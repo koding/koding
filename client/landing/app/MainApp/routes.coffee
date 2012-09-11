@@ -80,9 +80,9 @@ do ->
           else if account
             appManager.tell "Members", "createContentDisplay", account
 
-    '/discussion/:staticLink':({staticLink})->
+    '/discussion/:title': ({title})->
 
-        bongo.api.JDiscussion.one "title": staticLink, (err, discussion)->
+        bongo.api.JDiscussion.one "title": title, (err, discussion)->
           if err then warn err
           else if discussion
             appManager.tell "Activity", "createContentDisplay", discussion
