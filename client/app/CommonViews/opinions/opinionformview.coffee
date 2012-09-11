@@ -89,32 +89,6 @@ class OpinionFormView extends KDFormView
                 style   : 'modal-clean-gray'
                 callback: -> modal.destroy()
 
-    # @fullscreenLink = new KDCustomHTMLView
-    #   tagName     : 'a'
-    #   name        : "fullscreenLink"
-    #   value       : "go fullscreen"
-    #   attributes  :
-    #     title     : "go fullscreen"
-    #     href      : '#'
-    #     value     : "go fullscreen"
-    #   cssClass    : 'mfullscreen-link'
-    #   partial     : "go fullscreen"
-    #   click       :->
-    #     modal = new KDModalView
-    #       title          : "Your reply here"
-    #       content        :
-    #       height         : "auto"
-    #       overlay        : yes
-    #       buttons        :
-    #         Okay       :
-    #           style      : "modal-clean-gray"
-    #           loader     :
-    #             color    : "#ffffff"
-    #             diameter : 16
-    #           callback   : =>
-    #             modal.buttons.Okay.hideLoader()
-    #             modal.destroy()
-
     @markdownSelect = new KDSelectBox
       type          : "select"
       name          : "markdown"
