@@ -32,3 +32,13 @@ class FSFolder extends FSFile
         files = FSHelper.parseLsOutput [@path], response
         @emit "fs.fetchContents.finished", files
         callback? files
+
+  # forkRepoCommandMap = ->
+
+  #   git : "git clone"
+  #   svn : "svn checkout"
+  #   hg  : "hg clone"
+
+  # cloneRepo:(options, callback)->
+
+  #   @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->

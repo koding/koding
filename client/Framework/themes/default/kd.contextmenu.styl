@@ -3,7 +3,7 @@
 @import "nib/gradients"
 @import "nib/vendor"
 
-/* 
+/*
 **  JContextMenu STYLES
 */
 .jcontextmenu
@@ -50,9 +50,11 @@
           border-color    finderSelectedColor2 transparent finderSelectedColor1 transparent
           color           white
           text-shadow     0 -1px 0 rgba(0,0,0,0.22)
-          background      linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%) 
+          // background      linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%)
+          bg              color, finderSelectedColor1
           &:hover
-            background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%) 
+            bg            color, finderSelectedColor1
+            // background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%)
 
         &:hover
           background      transparent
@@ -61,7 +63,7 @@
         opacity         .5
         &:hover
           background      transparent
-                          
+
       &.has-sub-items
         span.arrow
           position            absolute
@@ -74,7 +76,7 @@
         &.selected
           span.arrow
             border-left-color white
-      &.separator         
+      &.separator
         height            0
         margin            2px 0
         padding           0
@@ -86,7 +88,7 @@
 
 
 
-/* 
+/*
 **  KDContextMenu STYLES
 */
 
@@ -105,7 +107,7 @@
     overflow      visible
     margin        5px 0
     size          auto,auto
-    
+
     .sub-tree-wrapper
       padding     5px 0
       position    absolute
@@ -138,14 +140,15 @@
           border-color  finderSelectedColor2 transparent #ffffff transparent
           color         white
           text-shadow   0 -1px 0 rgba(0,0,0,0.22)
-          background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%) 
-      
+          // background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%)
+          bg            color, finderSelectedColor1
+
       &.divider
         &:hover
           border-color      transparent!important
           bg                color,transparent!important
           bg                image,none!important
-          
+
       &.has-subitems
         .context-menu-item
           .icon
@@ -160,7 +163,7 @@
           .context-menu-item
             .icon
               bg            position,-180px -340px
-        
+
 
       .context-menu-item
         margin 0 10px
@@ -169,20 +172,20 @@
           color inherit
           text-decoration none
 
-      
-  
+
+
   .context-menu-item-separator
     height auto
     margin 2px 0
     border-bottom 1px solid rgb(213,213,213)
-    
+
 
 .kdcontextmenulistview
   .kdview.kdlistitemview
     overflow    hidden
 
 
-/* 
+/*
 **  KDToolTipMenu STYLES
 */
 
@@ -212,7 +215,7 @@ tooltipColor = #6e9fd1
     text-shadow   0 1px 0 #444
     bg(color,#6e9fd1)
     size(auto,auto)
-    
+
   .kdtooltipmenutreeview
     margin 5px 0
     size(auto,auto)
@@ -242,13 +245,13 @@ tooltipColor = #6e9fd1
           color inherit
           text-decoration none
 
-      
-  
+
+
   .tooltip-menu-item-separator
     height auto
     margin 2px 0
     border-bottom 1px solid #eee
-    
+
 
 .kdtooltipmenulistview
   .kdview.kdlistitemview

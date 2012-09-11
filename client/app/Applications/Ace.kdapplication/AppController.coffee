@@ -1,25 +1,25 @@
 class Ace12345 extends KDController
-  
+
   constructor:->
-    
+
     super
     @aceViews  = {}
 
   bringToFront:(view)->
-    
+
     if view
       file = view.getData()
     else
       file = @getSingleton('docManager').createEmptyDocument()
       view = new AceView {}, file
-    
+
     options =
       name         : file.name || 'untitled'
       hiddenHandle : no
       type         : 'application'
 
     @aceViews[file.path] = view
-    
+
     @setViewListeners view
 
     data = view
@@ -34,7 +34,7 @@ class Ace12345 extends KDController
     callback()
 
   isFileOpen:(file)-> @aceViews[file.path]?
-  
+
   openFile:(file)->
 
     unless @isFileOpen file
@@ -53,11 +53,11 @@ class Ace12345 extends KDController
 
   setViewListeners:(view)->
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : 'ViewClosed',
       listenedToInstance : view
       callback           : (doc)=> @removeOpenDocument doc
-    
+
     @setFileListeners view.getData()
 
   setFileListeners:(file)->

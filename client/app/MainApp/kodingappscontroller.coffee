@@ -44,7 +44,7 @@ class KodingAppsController extends KDController
     path = if /^~/.test manifest.path then "/Users/#{profile.nickname}#{manifest.path.substr(1)}" else manifest.path
     return path.replace /(\/+)$/, ""
 
-  getManifestFromPath = (path, callback = noop)->
+  getManifestFromPath = (path)->
 
     folderName = (arr = path.split("/"))[arr.length-1]
     app        = null
@@ -491,11 +491,29 @@ class KodingAppsController extends KDController
   # FORK / CLONE APP
   # #
 
-  forkRepoCommandMap = ->
+  downloadAppSource:(path, callback)->
 
-    git : "git clone"
-    svn : "svn checkout"
-    hg  : "hg clone"
+    @fetchApps =>
+      manifest = getManifestFromPath path
+
+      unless manifest
+        callback new KDNotificationView type : "mini", title : "Please refresh your apps and try again!"
+        return
+
+      @kiteController.run
+        toDo        : "downloadApp"
+        withArgs    :
+          owner     : manifest.authorNick
+          appName   : manifest.name
+          appPath   : getAppPath manifest
+          version   : manifest.version
+      , (err, res)=>
+        if err
+          warn err
+          callback? err
+        else
+          callback? null
+
 
   cloneApp:(path, callback)->
 
@@ -506,16 +524,13 @@ class KodingAppsController extends KDController
         callback? err
       else
         manifest = getManifestFromPath path
-        # debugger
-        log "cloning the app: #{manifest.name}"
-        log "checking the repo: #{manifest.repo}"
+
         {repo} = manifest
 
         if /^git/.test repo      then repoType = "git"
         else if /^svn/.test repo then repoType = "svn"
         else if /^hg/.test repo  then repoType = "hg"
         else
-          log repoType,">>>>"
           err = "Unsupported repository specified, quitting!"
           new KDNotificationView type : "mini", title : err
           callback? err

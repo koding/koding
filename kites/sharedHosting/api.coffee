@@ -179,6 +179,30 @@ module.exports = new Kite 'sharedHosting'
                       unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
                       fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 
+  downloadApp: (options, callback)->
+
+    {username, owner, appName, version, appPath} = options
+
+    cb = (err)->
+      console.error err if err
+      callback? err, null
+
+    kpmAppPath  = escapePath if version then "/opt/Apps/#{owner}/#{appName}/latest" else "/opt/Apps/#{owner}/#{appName}/#{version}"
+    userAppPath = escapePath appPath
+    backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
+
+    console.log kpmAppPath
+    console.log userAppPath
+    console.log backupPath
+
+    # mkdirp backupPath, (err)->
+    #   if err then cb err
+    #   else
+    #     cb null
+    exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath}", (err, stdout, stderr)->
+      if err or stderr then cb err
+      else
+        cb null
 
   installApp: (options, callback)->
 
@@ -190,9 +214,6 @@ module.exports = new Kite 'sharedHosting'
 
     kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/latest"
     appPath    = escapePath appPath
-
-    # console.log kpmAppPath
-    # console.log appPath
 
     mkdirp appPath, (err)->
       if err then cb err

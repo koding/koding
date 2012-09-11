@@ -140,9 +140,8 @@ class NFinderContextMenuController extends KDController
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
-      'Clone from Github...'      :
-        disabled                  : yes
-        action                    : 'gitHubClone'
+      'Clone a repo here'         :
+        action                    : "cloneRepo"
       Download                    :
         disabled                  : yes
         action                    : "download"
@@ -173,7 +172,7 @@ class NFinderContextMenuController extends KDController
             action                : "runApp"
             separator             : yes
           "Download source files" :
-            action                : "cloneRepo"
+            action                : "downloadApp"
             separator             : yes
           "Publish to App Catalog":
             action                : "publish"
