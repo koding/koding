@@ -492,6 +492,7 @@ Includes =
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
 
+        LikeView                    : "./client/app/CommonViews/LikeView.coffee"
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"

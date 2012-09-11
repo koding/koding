@@ -764,6 +764,7 @@ class KDView extends KDObject
     o.selector or= null
     o.title    or= ""
     @$(o.selector)[0].setAttribute "original-title", o.title
+    @$(o.selector).tipsy "update"
 
   hideTooltip:(o = {})->
     o.selector or= null
