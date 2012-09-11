@@ -180,9 +180,6 @@ class CommentListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
 
   pistachio:->
     {type} = @getOptions()
