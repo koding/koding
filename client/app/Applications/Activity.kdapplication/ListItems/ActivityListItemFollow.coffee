@@ -11,18 +11,15 @@ class FollowBucketItemView extends KDView
     super options,data
 
     @action = "followed"
-    if data.anchor?.constructorName is "JApp"
-      @anchor = new ProfileLinkView
-        origin: data.group[0]
-      @group = new AppLinkView origin: data.anchor
+    if data.group[0]?.constructorName is "JApp"
       @action = "installed"
-    else
-      @anchor = new ProfileLinkView
-        origin: data.anchor
-      @group = new LinkGroup
-        group         : data.group
-        itemsToShow   : 3
-        subItemClass  : options.subItemLinkClass
+
+    @anchor = new ProfileLinkView
+      origin: data.anchor
+    @group = new LinkGroup
+      group         : data.group
+      itemsToShow   : 3
+      subItemClass  : options.subItemLinkClass
 
     #@getData().on 'ItemWasAdded', -> log 'heres the event, sinan', arguments
 
