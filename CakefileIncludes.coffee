@@ -514,6 +514,10 @@ Includes =
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
+        ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
+        ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
+        ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
+
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
