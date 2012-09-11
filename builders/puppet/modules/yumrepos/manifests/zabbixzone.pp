@@ -2,7 +2,7 @@ class yumrepos::zabbixzone {
     $gpg_key = "RPM-GPG-KEY-zabbixzone"
     
     yumrepo { "zabbixzone":
-        baseurl => "http://repo.zabbixzone.com/centos/$releasever/$basearch/",
+        baseurl => 'http://repo.zabbixzone.com/centos/$releasever/$basearch/',
         descr => "CentOS $releasever - ZabbixZone",
         enabled => "1",
         gpgcheck => "1",
