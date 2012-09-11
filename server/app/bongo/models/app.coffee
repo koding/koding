@@ -77,9 +77,9 @@ class JApp extends jraphical.Module
       likedBy       :
         targetType  : JAccount
         as          : 'like'
-      user          :
+      participant   :
         targetType  : JAccount
-        as          : 'user'
+        as          : ['author','reviewer','user']
       tag           :
         targetType  : JTag
         as          : 'tag'
@@ -123,7 +123,7 @@ class JApp extends jraphical.Module
           callback err
         else
           unless installedBefore
-            @addUser delegate, respondWithCount: yes, (err, docs, count)=>
+            @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
               if err
                 callback err
               else
