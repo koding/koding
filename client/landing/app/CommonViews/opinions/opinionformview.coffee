@@ -31,8 +31,6 @@ class OpinionFormView extends KDFormView
     @fullScreenBtn = new KDButtonView
       style           : "clean-gray"
       cssClass        : "fullscreen-button"
-      # icon            : yes
-      # iconClass       : "main-nav-icon screen"
       title           : "Fullscreen Edit"
       callback: =>
         modal = new KDModalView
@@ -53,7 +51,7 @@ class OpinionFormView extends KDFormView
                 modal.destroy()
             Apply     :
               title   : "Apply changes"
-              style    : "modal-clean-gray"
+              style   : "modal-clean-gray"
               callback:=>
                 @opinionBody.setValue $("#fullscreen-data").val()
                 modal.destroy()
@@ -95,11 +93,11 @@ class OpinionFormView extends KDFormView
       cssClass      : "select markdown-select hidden"
       selectOptions :
           [
-              title     : "enable markdown syntax"
-              value     : "markdown"
+              title : "enable markdown syntax"
+              value : "markdown"
             ,
-              title     : "disable markdown syntax"
-              value     : "nomarkdown"
+              title : "disable markdown syntax"
+              value : "nomarkdown"
           ]
       defaultValue  : "markdown"
       callback      : (value) =>
@@ -129,6 +127,7 @@ class OpinionFormView extends KDFormView
       @opinionBody.setValue Encoder.htmlDecode data.body
 
     @on "opinion.changeMarkdown", (value) ->
+      # markdown switch implementation here
 
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
@@ -149,7 +148,6 @@ class OpinionFormView extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   viewAppended:()->
-
     @setClass "update-options opinion"
     @setTemplate @pistachio()
     @template.update()

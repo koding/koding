@@ -31,11 +31,9 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       size    : {width: 30, height: 30}
       origin  : origin
 
-
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
@@ -43,7 +41,6 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       bongo.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
-
     else
       appManager.tell "Activity", "createContentDisplay", @parent.getData()
 
@@ -58,11 +55,11 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
         <footer class="activity-opinion-item-footer">
-        <span class='type-icon'></span> answer by {{> @author}} •
-        <time>{{$.timeago #(meta.createdAt)}}</time>
+          <span class='type-icon'></span> answer by {{> @author}} •
+         <time>{{$.timeago #(meta.createdAt)}}</time>
         </footer>
         <div class="comment-contents">
-        <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+          <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
       </div>
     </div>
     """

@@ -31,11 +31,11 @@ class ActivityDiscussionWidget extends KDFormView
       type        : "textarea"
       autogrow    : yes
       placeholder : "What do you want to talk about?"
-      validate  :
+      validate    :
         rules     :
           required: yes
         messages  :
-          required  : "discussion body is required!"
+          required: "discussion body is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
@@ -52,8 +52,6 @@ class ActivityDiscussionWidget extends KDFormView
     @fullScreenBtn = new KDButtonView
       style           : "clean-gray"
       cssClass        : "fullscreen-button"
-      # icon            : yes
-      # iconClass       : "main-nav-icon screen"
       title           : "Fullscreen Edit"
       callback: =>
         modal = new KDModalView
@@ -74,7 +72,7 @@ class ActivityDiscussionWidget extends KDFormView
                 modal.destroy()
             Apply     :
               title   : "Apply changes"
-              style    : "modal-clean-gray"
+              style   : "modal-clean-gray"
               callback:=>
                 @inputContent.setValue $("#fullscreen-data").val()
                 modal.destroy()
@@ -83,12 +81,10 @@ class ActivityDiscussionWidget extends KDFormView
         modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
         modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
 
-
     @heartBox = new HelpBox
       subtitle    : "About Code Sharing"
       tooltip     :
         title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
-
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -141,8 +137,6 @@ class ActivityDiscussionWidget extends KDFormView
       @inputContent.setValue Encoder.htmlDecode body
 
     fillForm()
-
-
 
   pistachio:->
     """

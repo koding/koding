@@ -1,7 +1,6 @@
 class OpinionView extends KDView
 
   constructor:(options, data)->
-
     super
 
     @setClass "opinion-container opinion-container-box"
@@ -26,23 +25,25 @@ class OpinionView extends KDView
     @addSubView @opinionHeader
 
     @opinionList.on "OwnOpinionHasArrived", ->
-      # this would be used in the CommentHeader, if there was one
     @opinionList.on "OpinionIsDeleted", (data)->
 
     @opinionList.on "DiscussionTeaserShouldRefresh", =>
       @opinionController.fetchTeaser ->
 
     if data.opinions
-      for reply, i in data.opinions when reply? and 'object' is typeof reply
-        @opinionList.addItem reply
+      for opinion, i in data.opinions when opinion? and 'object' is typeof opinion
+        @opinionList.addItem opinion
 
     @opinionList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-    @listenTo
-      KDEventTypes : "DecorateActiveOpinionView"
-      listenedToInstance : @opinionList
-      callback : @decorateActiveCommentState
+    # @listenTo
+    #   KDEventTypes : "DecorateActiveOpinionView"
+    #   listenedToInstance : @opinionList
+    #   callback : @decorateActiveCommentState
+    @opinionList.on "DecorateActiveOpinionView", =>
+      log "stuff"
+      @decorateActiveCommentState
 
     @opinionList.on "OpinionLinkReceivedClick", =>
       @parent?.opinionForm?.opinionBody?.setFocus()

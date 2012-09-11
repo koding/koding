@@ -1,7 +1,6 @@
 class OpinionCommentView extends KDView
 
   constructor:(options, data)->
-
     super
 
     @setClass "comment-container"
@@ -13,7 +12,6 @@ class OpinionCommentView extends KDView
     @resetDecoration()
 
   createSubViews:(data)->
-
     @commentList = new KDListView
       type          : "comments"
       subItemClass  : OpinionCommentListItemView
@@ -22,8 +20,8 @@ class OpinionCommentView extends KDView
 
     @commentController        = new CommentListViewController view: @commentList
     @addSubView showMore      = new CommentViewHeader
-      delegate : @commentList
-      maxCommentToShow : 10000
+      delegate          : @commentList
+      maxCommentToShow  : 10000
     , data
     @addSubView @commentList
     @addSubView @commentForm  = new NewCommentForm delegate : @commentList
@@ -31,6 +29,7 @@ class OpinionCommentView extends KDView
     @commentList.on "OwnCommentHasArrived", ->
       showMore.ownCommentArrived()
       @getDelegate().emit "DiscussionTeaserShouldRefresh"
+
     @commentList.on "CommentIsDeleted", -> showMore.ownCommentDeleted()
 
     if data.replies
@@ -40,7 +39,6 @@ class OpinionCommentView extends KDView
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-
     @listenTo
       KDEventTypes : "DecorateActiveCommentView"
       listenedToInstance : @commentList
@@ -78,6 +76,7 @@ class OpinionCommentView extends KDView
     @unsetClass "active-comment"
     @unsetClass "no-comment"
     @setClass "commented"
+
   decorateActiveCommentState:->
     @unsetClass "commented"
     @unsetClass "no-comment"

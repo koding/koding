@@ -28,22 +28,6 @@ class OpinionCommentListItemView extends KDListItemView
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
-    # if data.originId is KD.whoami().getId()
-    #   @settingsButton = new KDButtonViewWithMenu
-    #     style       : 'transparent activity-settings-context'
-    #     cssClass    : 'activity-settings-menu'
-    #     title       : ''
-    #     icon        : yes
-    #     delegate    : @
-    #     iconClass   : "cog"
-    #     menu        : [
-    #       type      : "contextmenu"
-    #       items     : [
-    #         { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
-    #       ]
-    #     ]
-    #     callback    : (event)=> @settingsButton.contextMenu event
-    # else
 
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -72,7 +56,6 @@ class OpinionCommentListItemView extends KDListItemView
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-    # super unless @_partialUpdated
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
@@ -103,9 +86,6 @@ class OpinionCommentListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
 
   pistachio:->
     if @getData().getAt 'deletedAt'
@@ -117,7 +97,6 @@ class OpinionCommentListItemView extends KDListItemView
     else
       """
       <div class='item-content-comment clearfix'>
-
         <span class='avatar'>{{> @avatar}}</span>
         <div class="comment-header">
           {{> @author}}

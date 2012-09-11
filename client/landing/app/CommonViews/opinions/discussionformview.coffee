@@ -26,7 +26,6 @@ class DiscussionFormView extends KDFormView
       name            : "title"
       title           : "your Opinion"
       type            : "text"
-      # autogrow        : yes
       placeholder     : "What do you want to talk about?"
 
     @labelAddTags = new KDLabelView
@@ -39,8 +38,6 @@ class DiscussionFormView extends KDFormView
     @fullScreenBtn = new KDButtonView
       style           : "clean-gray"
       cssClass        : "fullscreen-button"
-      # icon            : yes
-      # iconClass       : "main-nav-icon screen"
       title           : "Fullscreen Edit"
       callback: =>
         modal = new KDModalView
@@ -61,7 +58,7 @@ class DiscussionFormView extends KDFormView
                 modal.destroy()
             Apply     :
               title   : "Apply changes"
-              style    : "modal-clean-gray"
+              style   : "modal-clean-gray"
               callback:=>
                 @discussionBody.setValue $("#fullscreen-data").val()
                 modal.destroy()
@@ -103,11 +100,11 @@ class DiscussionFormView extends KDFormView
       cssClass      : "select markdown-select hidden"
       selectOptions :
           [
-              title     : "enable markdown syntax"
-              value     : "markdown"
+              title : "enable markdown syntax"
+              value : "markdown"
             ,
-              title     : "disable markdown syntax"
-              value     : "nomarkdown"
+              title : "disable markdown syntax"
+              value : "nomarkdown"
           ]
       defaultValue  : "markdown"
       callback      : (value) =>
@@ -118,8 +115,8 @@ class DiscussionFormView extends KDFormView
       @discussionTitle.setValue Encoder.htmlDecode data.title
 
     @on "discussion.changeMarkdown", (value) ->
+      # once markdown usage can be switched on and off, this will be used
 
-    # TODO keep tags on editing -arvid
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
       type                : "tags"
@@ -139,7 +136,6 @@ class DiscussionFormView extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   viewAppended:()->
-
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()
@@ -147,7 +143,6 @@ class DiscussionFormView extends KDFormView
   submit:=>
     @once "FormValidationPassed", => @reset()
     super
-
 
   pistachio:->
       """

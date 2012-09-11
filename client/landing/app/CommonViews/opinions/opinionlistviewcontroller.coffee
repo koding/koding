@@ -1,11 +1,11 @@
 class OpinionListViewController extends KDListViewController
+
   constructor:->
     super
     @_hasBackgrounActivity = no
     @startListeners()
 
   instantiateListItems:(items, keepDeletedOpinions = no)->
-
     newItems = []
 
     items.sort (a,b) =>
@@ -15,7 +15,6 @@ class OpinionListViewController extends KDListViewController
 
     for opinion, i in items
       nextOpinion = items[i+1]
-
       skipOpinion = no
       if nextOpinion? and opinion.deletedAt
         if Date.parse(nextOpinion.meta.createdAt) > Date.parse(opinion.deletedAt)
@@ -60,13 +59,15 @@ class OpinionListViewController extends KDListViewController
           listView.addItem opinion, null, {type : "slideDown", duration : 100}
         listView.emit "RelativeOpinionsWereAdded"
 
+  # this updates the JDiscussion teaser, because posting a comment will only
+  # update the JOpinion teaser, not the JDiscussion --arvid
   fetchTeaser:=>
     listView = @getListView()
     message = @getListView().getData()
     message.updateTeaser (err, teaser)=>
       log err if err
-      # callback? err, teaser
 
+  # will be used for pagination (soon) --arvid
   fetchOpinionsByRange:(from,to,callback)=>
     [to,callback] = [callback,to] unless callback
     query = {from,to}
@@ -74,12 +75,13 @@ class OpinionListViewController extends KDListViewController
 
     message.commentsByRange query,(err,opinions)=>
       @getListView().emit "BackgroundActivityFinished"
-      callback err,opinions
+      callback err, opinions
 
   fetchAllOpinions:(skipCount=3, callback = noop)=>
     listView = @getListView()
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
+
     message.restComments skipCount, (err, opinions)=>
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllOpinionsWereAdded"
