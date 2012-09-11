@@ -47,14 +47,17 @@ class DiscussionActivityItemView extends ActivityItemChild
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
+  render:->
+    super()
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
 
   click:(event)->
-    if $(event.target).is("[data-paths~=title]")
+    if $(event.target).closest("[data-paths~=title], [data-paths~=body]")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
-
-    str = @utils.applyTextExpansions str
+    str = @utils.expandUsernames @utils.applyMarkdown str
 
     # FIXME: 500 chars is a naive separation, check if it is in a tag (<a> etc) and
     # make the separation after or before the tag in plain text.
