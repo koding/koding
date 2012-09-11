@@ -1,7 +1,10 @@
 class JReview extends jraphical.Message
 
-  {ObjectId, ObjectRef, secure} = require 'bongo'
+  {ObjectId, ObjectRef, secure, dash} = require 'bongo'
+  {Relationship}  = require 'jraphical'
+
   {log} = console
+
   @::mixin Likeable::
 
   @share()
@@ -31,4 +34,35 @@ class JReview extends jraphical.Message
         as         : 'like'
 
   delete: secure (client, callback)->
-    log "Not implemented yet."
+    {delegate} = client.connection
+    {getDeleteHelper} = Relationship
+    id = @getId()
+    review = @
+    queue = [
+      ->
+        Relationship.one {
+          targetId  : id
+          as        : 'review'
+        }, (err, rel)->
+          if err
+            queue.fin err
+          else
+            rel.fetchSource (err, app)->
+              if err
+                queue.fin err
+              else if delegate.can('delete', review) or
+                      app.getAt('originId').equals delegate.getId()
+                app.removeReview rel, -> queue.fin()
+              else
+                callback new KodingError 'Access denied!'
+      =>
+        deleter = ObjectRef(delegate)
+        @update
+          $unset      :
+            body      : 1
+          $set        :
+            deletedAt : new Date
+            deletedBy : deleter
+        , -> queue.fin()
+    ]
+    dash queue, callback
