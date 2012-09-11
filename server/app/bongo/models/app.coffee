@@ -13,7 +13,7 @@ class JApp extends jraphical.Module
   @::mixin Taggable::
   @::mixin Likeable::
 
-  {ObjectRef,Inflector,JsPath,secure,daisy} = bongo
+  {ObjectRef, ObjectId, Inflector, JsPath, secure, daisy} = bongo
   {Relationship} = jraphical
 
   {log} = console
@@ -62,6 +62,8 @@ class JApp extends jraphical.Module
         type        : String
         enum        : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
         default     : "web-app"
+      originId      : ObjectId
+      originType    : String
 
     relationships   :
       creator       : JAccount
@@ -92,6 +94,8 @@ class JApp extends jraphical.Module
       title       : data.title
       body        : data.body
       manifest    : data.manifest
+      originId    : delegate.getId()
+      originType  : delegate.constructor.name
 
     app.save (err)->
       if err
