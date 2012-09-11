@@ -1,10 +1,10 @@
 AccountMixin = do ->
-  
+
   init:(api)->
     {JAccount, JGuest} = api
-    
+
     JGuest::fetchNonce = ->
-    
+
     nonces = []
 
     fetchNonces = (callback)->
@@ -15,14 +15,14 @@ AccountMixin = do ->
         else
           nonces = nonces.concat moreNonces
         callback nonces
-    
+
     fetchNonce = (callback)->
       nonce = nonces.shift()
       if nonce? then callback nonce
       else fetchNonces -> fetchNonce callback
-    
+
     JAccount::fetchNonce = fetchNonce
-    
+
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
       kiteChannelId = @_kiteChannels[kiteId]
@@ -33,29 +33,31 @@ AccountMixin = do ->
         else
           @_kiteChannels[kiteId] = kiteChannelId
           callback null, kiteChannelId
-    
+
     JAccount::tellKite = do->
       {Scrubber, Store} = bongo.dnodeProtocol
 
       localStore = new Store
       remoteStore = new Store
-      
+
       transports = {}
-      
+
       changeTransport = (channelId, {transport})->
         log 'CHANGING TRANSPORT: ', transport
         transports[channelId] = transport
-      
+
       resetTransport = (channelId)->
         delete transports[channelId]
-      
+
       getCommandFailover =(secretChannelId, options, callback)->
-        count = 0
+
+        options.callbackCount or= 0
+
         kallback = __utils.getCancellableCallback callback
         kanceller = __utils.getCancellableCallback =>
           kallback.cancel()
           resetTransport(secretChannelId)
-          if count++ < 10
+          if options.callbackCount++ < 10
             @tellKite options, callback
           else
             callback new Error "Couldn't connect to backend"
@@ -63,7 +65,7 @@ AccountMixin = do ->
         ->
           kanceller.cancel()
           kallback arguments...
-      
+
       sendScrubbedCommand =(channelId, url, options)->
         transport = transports[channelId]
         data =
@@ -84,16 +86,16 @@ AccountMixin = do ->
                 xhrFields :
                   withCredentials: yes
               }
-      
+
       getKiteUri =(kiteName)-> KD.apiUri+"/1.0/kite/#{kiteName}"
-      
+
       sendCommand =(channelId, kiteName, args, callbackId)->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
           scrubbed = scrubber.toDnodeProtocol()
           scrubbed.method or= callbackId
           sendScrubbedCommand channelId, getKiteUri(kiteName), scrubbed
-      
+
       request = (secretChannelId, callbackId, args)->
         kiteName = secretChannelId.split('-')[1]
         sendCommand secretChannelId, kiteName, [{
@@ -101,7 +103,7 @@ AccountMixin = do ->
           withArgs  : args
           secretChannelId
         }], callbackId
-      
+
       fetchChannel =do ->
         messageHandler =(secretChannelId, args) ->
           callback = localStore.get(args.method)
@@ -129,7 +131,7 @@ AccountMixin = do ->
                 channel.bind 'error', myMessageHandler
                 channel.bind 'changeTransport', changeTransport.bind null, secretChannelId
                 callback channel
-      
+
       (options, callback)->
         account = @
         @fetchKiteChannelName options.kiteName, (err, secretChannelId)->

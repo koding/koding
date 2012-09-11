@@ -248,7 +248,6 @@ class JPost extends jraphical.Message
     ]
     daisy queue
 
-
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount

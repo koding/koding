@@ -72,6 +72,14 @@ class CommentListItemView extends KDListItemView
     # super unless @_partialUpdated
 
   click:(event)->
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
+
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
       bongo.cacheable originType, originId, (err, origin)->
@@ -119,7 +127,7 @@ class CommentListItemView extends KDListItemView
           {{> @deleteLink}}
           <p class='comment-body'>
             {{> @author}}
-            {{@utils.applyTextExpansions #(body)}}
+            {{@utils.applyTextExpansions #(body), yes}}
           </p>
           <time>{{$.timeago #(meta.createdAt)}}</time>
         </div>
