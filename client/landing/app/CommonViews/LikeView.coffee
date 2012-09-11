@@ -89,10 +89,10 @@ class LikeView extends KDView
 
 class LikeViewClean extends LikeView
 
-  constructor:(options={ tooltipPosition : 'w' }, data)->
+  constructor:->
 
     @seperator = new KDCustomHTMLView "span"
-    super options, data
+    super
 
     @seperator.updatePartial if @getData().meta.likes then ' · ' else ''
 
