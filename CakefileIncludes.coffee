@@ -516,6 +516,7 @@ Includes =
 
         ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
         ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
+        ReviewListItemView          : "./client/app/CommonViews/reviews/reviewlistitemview.coffee"
         ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
