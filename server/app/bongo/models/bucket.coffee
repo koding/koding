@@ -135,11 +135,7 @@ class CBucket extends jraphical.Module
 
           bucket.save (err)->
             if err then callback err
-<<<<<<< HEAD
-            else addIt bucket, anchor, item, callback
-=======
             else addIt bucket, anchor, item, groupName, callback
->>>>>>> d34ab7c62cda6fb11dfdbb6000eb7c8a21587315
 
   getPopulator =(items..., callback)->
     -> ObjectRef.populate items, (err, populated)-> callback err, populated
