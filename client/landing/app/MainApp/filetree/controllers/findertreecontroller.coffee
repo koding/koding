@@ -393,18 +393,20 @@ class NFinderTreeController extends JTreeViewController
       callback?()
 
 
-  cloneAppRepo:(nodeView)->
+  cloneRepo:(nodeView)->
 
     folder = nodeView.getData()
 
-    folder.emit "fs.clone.started"
-    @getSingleton('kodingAppsController').cloneApp folder.path, =>
-      folder.emit "fs.clone.finished"
-      @refreshFolder @nodes[folder.parentPath], =>
-        @utils.wait 500, =>
-          @selectNode @nodes[folder.path]
-          @refreshFolder @nodes[folder.path]
-      @notify "App cloned!", "success"
+    @notify "not yet there!", "error"
+
+    # folder.emit "fs.clone.started"
+    # @getSingleton('kodingAppsController').cloneApp folder.path, =>
+    #   folder.emit "fs.clone.finished"
+    #   @refreshFolder @nodes[folder.parentPath], =>
+    #     @utils.wait 500, =>
+    #       @selectNode @nodes[folder.path]
+    #       @refreshFolder @nodes[folder.path]
+    #   @notify "App cloned!", "success"
 
   publishApp:(nodeView)->
 
@@ -431,34 +433,48 @@ class NFinderTreeController extends JTreeViewController
       else
         @notify "App creation failed!", "error", err
 
+  downloadAppSource:(nodeView)->
+
+    folder = nodeView.getData()
+
+    folder.emit "fs.sourceDownload.started"
+    @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+      folder.emit "fs.sourceDownload.finished"
+      @refreshFolder @nodes[folder.parentPath]
+      unless err
+        @notify "Source downloaded!", "success"
+      else
+        @notify "Download failed!", "error", err
+
+
   ###
   CONTEXT MENU OPERATIONS
   ###
 
-  contextMenuOperationExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  contextMenuOperationCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  contextMenuOperationRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  contextMenuOperationCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
-  contextMenuOperationCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  contextMenuOperationRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  contextMenuOperationDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  contextMenuOperationDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  contextMenuOperationExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
-  contextMenuOperationZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  contextMenuOperationTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  contextMenuOperationUpload:       (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationDownload:     (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
+  cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
+  cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
+  cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
+  cmDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
+  cmDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
+  cmExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
+  cmZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
+  cmTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
+  cmUpload:       (nodeView, contextMenuItem)-> appManager.notify()
+  cmDownload:     (nodeView, contextMenuItem)-> appManager.notify()
+  cmGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
+  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
+  cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
+  cmMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
+  cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
+  cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
 
-  contextMenuOperationOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
-
-  contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
-  contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
-  contextMenuOperationRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
-  contextMenuOperationMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  contextMenuOperationCloneRepo:    (nodeView, contextMenuItem)-> @cloneAppRepo nodeView
-  contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE
@@ -481,9 +497,9 @@ class NFinderTreeController extends JTreeViewController
 
     {action} = contextMenuItem.getData()
     if action
-      if @["contextMenuOperation#{action.capitalize()}"]?
+      if @["cm#{action.capitalize()}"]?
         @contextMenuController.destroyContextMenu()
-      @["contextMenuOperation#{action.capitalize()}"]? nodeView, contextMenuItem
+      @["cm#{action.capitalize()}"]? nodeView, contextMenuItem
 
   ###
   RESET STATES
