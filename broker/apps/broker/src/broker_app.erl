@@ -52,9 +52,6 @@ start(_StartType, _StartArgs) ->
     Port = get_env(port, 8008),
 
     error_logger:tty(get_env(verbose, true)),
-
-    % This will start the Broker gen_server and the subscription_sup
-    broker:start_link(),
     
     SockjsState = sockjs_handler:init_state(
                     <<"/subscribe">>, fun handle_client/3, {}, []),

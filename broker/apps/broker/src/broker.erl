@@ -35,7 +35,6 @@ start_link() ->
         host = MqHost, username = MqUser, password = MqPass
         }),
 
-    subscription_sup:start_link(Connection),
     gen_server:start_link({local, ?SERVER}, ?MODULE, [Connection], []).
 
 %%--------------------------------------------------------------------
@@ -87,7 +86,10 @@ init([Connection]) ->
 %% will create one under its supervision tree.
 %%--------------------------------------------------------------------
 handle_call({subscribe, Conn, Exchange}, From, Connection) ->
-    Result = subscription_sup:start_subscription(From, Conn, Exchange),
+    Result = subscription_sup:start_subscription(Connection,
+                                                From, 
+                                                Conn, 
+                                                Exchange),
     {reply, Result, Connection};
 
 %%--------------------------------------------------------------------
@@ -111,7 +113,10 @@ handle_call({unsubscribe, Subscription}, _From, Connection) ->
 handle_call({presence, Conn, Where, Presenter}, From, Connection) ->
     PresencePrefix = get_env(presence_prefix, <<"KDPresence-">>),
     Exchange = <<PresencePrefix/bitstring, Where/bitstring>>,
-    Result = subscription_sup:start_subscription(From, Conn, Exchange),
+    Result = subscription_sup:start_subscription(Connection,
+                                                From, 
+                                                Conn, 
+                                                Exchange),
     case Result of
         {ok, SID} ->
             subscription:bind(SID, <<>>),
