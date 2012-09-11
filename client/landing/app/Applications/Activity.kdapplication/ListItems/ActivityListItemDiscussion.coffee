@@ -59,21 +59,17 @@ class DiscussionActivityItemView extends ActivityItemChild
     # FIXME: 500 chars is a naive separation, check if it is in a tag (<a> etc) and
     # make the separation after or before the tag in plain text.
 
+    @shortenedText str
+
+  shortenedText: (str)->
+
     if str.length > 500
       visiblePart = str.substr 0, 500
-      morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"
-      str = visiblePart + morePart
+      # this breaks the markdown sanitizer
+      # morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"
+      str = visiblePart  + " ..." #+ morePart
 
     return str
-
-  shortenedText: (text)->
-
-    log text
-
-    if text.length>400
-      return text.substr(0,400)+" ..."
-    else
-      return text
 
   pistachio:->
     """
