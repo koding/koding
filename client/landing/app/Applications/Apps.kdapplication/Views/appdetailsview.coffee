@@ -9,19 +9,21 @@ class AppDetailsView extends KDScrollView
     @listenWindowResize()
 
     @slideShow = new KDCustomHTMLView
-      tagName   : "ul"  
+      tagName   : "ul"
       pistachio : do ->
         slides = app.manifest.screenshots or []
-        tmpl = '' 
+        tmpl = ''
         for slide in slides
           tmpl += "<li><img src=\"#{slide}\" /></li>"
         return tmpl
+
+    @reviewView = new ReviewView {}, app
 
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
-    
+
     @_windowDidResize()
 
   _windowDidResize:=>
@@ -38,8 +40,6 @@ class AppDetailsView extends KDScrollView
     else
       @parent.$('.profilearea').removeClass "cast-shadow"
 
-
-
   pistachio:->
     """
     <header><a href='#'>About {{#(title)}}</a></header>
@@ -48,4 +48,6 @@ class AppDetailsView extends KDScrollView
     <section class='screenshots'>{{> @slideShow}}</section>
     <header><a href='#'>Technical Stuff</a></header>
     <section><p><p></section>
+    <header><a href='#'>Reviews</a></header>
+    <section>{{> @reviewView}}</section>
     """
