@@ -2,8 +2,9 @@ class LikeView extends KDView
 
   constructor:(options={}, data)->
 
-    options.tagName  or= 'span'
-    options.cssClass or= 'like-view'
+    options.tagName         or= 'span'
+    options.cssClass        or= 'like-view'
+    options.tooltipPosition or= 'se'
 
     super options, data
 
@@ -12,7 +13,7 @@ class LikeView extends KDView
 
     @likeCount    = new ActivityLikeCount
       tooltip     :
-        gravity   : "se"
+        gravity   : options.tooltipPosition
         title     : ""
       bind        : "mouseenter"
       mouseenter  : => @fetchLikeInfo()
@@ -85,3 +86,19 @@ class LikeView extends KDView
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
+
+class LikeViewClean extends LikeView
+
+  constructor:(options={ tooltipPosition : 'w' }, data)->
+
+    @seperator = new KDCustomHTMLView "span"
+    super options, data
+
+    @seperator.updatePartial if @getData().meta.likes then ' · ' else ''
+
+    @likeCount.on "countChanged", (count) =>
+      @seperator.updatePartial if count then ' · ' else ''
+
+  pistachio:->
+    """<span class='comment-actions'>{{> @likeLink}}{{> @seperator}}{{> @likeCount}}</span>"""
+
