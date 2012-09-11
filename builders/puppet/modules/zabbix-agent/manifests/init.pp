@@ -12,7 +12,7 @@ class zabbix-agent {
     package {
         "zabbix-agent":
             ensure => installed,
-            require => Class["yumrepos::koding"]
+            require => Class["yumrepos::zabbixzone"]
     }
 
     user { "zabbix":
