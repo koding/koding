@@ -58,7 +58,7 @@ class zabbix-agent {
             require => Package["zabbix-agent"];
     }
     service {
-        "zabbix-agentd":
+        "zabbix-agent":
             enable => true,
             ensure => running,
             hasstatus => true,
