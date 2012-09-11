@@ -14,12 +14,12 @@ class ActivityListItemView extends KDListItemView
     CFollowerBucket           : "system-message"
     CFolloweeBucket           : "system-message"
     CNewMemberBucket          : "system-message"
-    CInstalleeBucket          : "system-message"
+    CInstallerBucket          : "system-message"
 
     CFollowerBucketActivity   : "system-message"
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
-    CInstaleeBucketActivity   : "system-message"
+    CInstallerBucketActivity  : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView

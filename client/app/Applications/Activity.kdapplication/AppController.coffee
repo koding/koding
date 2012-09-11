@@ -11,7 +11,7 @@ class Activity12345 extends AppController
       'CCodeSnipActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
-      'CInstalleeBucketActivity'
+      'CInstallerBucketActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -186,8 +186,8 @@ class Activity12345 extends AppController
           'CCodeSnipActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
-          'CInstalleeBucketActivity'
-        ]
+          'CInstallerBucketActivity'
+          ]
 
     options =
       limit         : 7
@@ -253,6 +253,7 @@ class Activity12345 extends AppController
         'CCodeSnipActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
+        'CInstallerBucketActivity'
       ]
 
     controller.removeAllItems()
