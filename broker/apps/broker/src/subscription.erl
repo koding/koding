@@ -156,7 +156,7 @@ handle_call({unbind, Event}, _From, State=#state{channel=Channel,
 %%  Event = binary(),
 %%  Payload = bitstring(),
 %%  Meta = [Props],
-%%  NoRestriction = boolean
+%%  NoRestriction = boolean(),
 %%  Props = {<<"replyTo">>, ReplyTo} || TBA
 %%  ReplyTo = binary(),
 %%  From = pid(),
@@ -399,11 +399,10 @@ subscribe(Sender, Channel, Exchange, Type, Durable, AutoDelete) ->
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing) ->
     % Ensure the client has time to consume the message
-    Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
+    % Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true,
-                                                    arguments = Args}),
+                                                    durable = true}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,
