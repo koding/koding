@@ -94,7 +94,7 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
         command << "--source" << "#{source}" << resource[:name]
       end
     else
-      command << "--no-rdoc" << "--no-ri" << resource[:name].sub("-19","")
+      command << "--no-rdoc" << "--no-ri" << "--format-executable" << resource[:name].sub("-19","")
     end
 
     output = execute(command)
