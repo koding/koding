@@ -18,9 +18,9 @@ class CodeBinActivityItemView extends ActivityItemChild
     codeBinCSSData.title = @getData().title
     codeBinJSData.title = @getData().title
 
-    @codeBinHTMLView = new CodeSnippetView {}, codeBinHTMLData
-    @codeBinCSSView = new CodeSnippetView {}, codeBinCSSData
-    @codeBinJSView = new CodeSnippetView {}, codeBinJSData
+    @codeBinHTMLView = new CodeBinSnippetView {}, codeBinHTMLData
+    @codeBinCSSView = new CodeBinSnippetView {}, codeBinCSSData
+    @codeBinJSView = new CodeBinSnippetView {}, codeBinJSData
 
     @codeBinResultView = new CodeBinResultView {}, data
     @codeBinResultView.hide()
@@ -132,7 +132,7 @@ class CodeBinResultView extends KDCustomHTMLView
       cssClass : "result-frame"
       name : "result-frame"
       attributes:
-        src: "/unsupported.html"
+        src: "/beta.txt"
         # sandbox : "allow-scripts allow-same-origin"
         # srcdoc:"<html><head></head><body></body></html>"
     , data
@@ -142,7 +142,18 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @on "CodeBinSourceHasChanges",->
 
-      if KD.isLoggedIn()
+      ###
+
+      !
+      !
+      !
+      !
+
+      !
+
+      ###
+      # this seemed to crash the server, switched off for safety --arvid
+      if KD.isLoggedIn() and false
 
         {nickname}    = KD.whoami().profile
 
@@ -158,33 +169,7 @@ class CodeBinResultView extends KDCustomHTMLView
         @tempFileContents = "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
 
         @tempFile.save @tempFileContents,->
-          # @codeView.attributes.src = "/beta.txt" #insert path here!
-          log "Iframe Done."
-
-      # @codeView.$().contents().find("head").html "<style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style>"
-      # @codeView.$().contents().find("body").html Encoder.htmlDecode(@getData().attachments[0].content)
-      # @codeView.$().contents().find("head").append unescape "<p>Oh!</p>%3Cscr"+"ipt type='text/javascript' src='js/prefixfree.min.js'%3E%3C/scr"+"ipt%3E%3Cscr"+"ipt src='//code.jquery.com/jquery-latest.js'%3E%3C/scr"+"ipt%3E"
-      # scripts = [
-      #   "/js/prefixfree.min.js",
-      #   "//code.jquery.com/jquery-latest.js"
-      # ]
-      # # scr = @codeView.$()[0].contentWindow.document.createElement "script"
-      # # scr.type = "text/javascript"
-      # # scr.innerHTML = Encoder.htmlDecode(@getData().attachments[2].content)
-      # # @codeView.$()[0].contentWindow.document.body.appendChild scr
-      # # @codeView.$().contents().find("body").append Encoder.htmlDecode(@getData().attachments[0].content)
-      # # @codeView.$().contents().find("head").append "<style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style>"
-      # for script in scripts
-      #   # scr = @codeView.$()[0].contentWindow.document.createElement "script"
-      #   # scr.type = "text/javascript"
-      #   # scr.src = script
-      #   # @codeView.$()[0].contentWindow.document.body.appendChild scr
-      #   @codeView.$()[0].contentWindow.document.write "<scr"+"ipt type='text/javascript' src='"+script+"'></sc"+"ript>"
-      # @codeView.$()[0].contentWindow.document.write "<scr"+"ipt type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</sc"+"ript>"
-      # log @codeView.$()[0].contentWindow.document
-      # @codeView.$().contents().find("html").html "<html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
-      # @$(".result-frame").attr  srcdoc : "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
-
+          @codeView.attributes.src = "//#{nickname}.koding.com/tempResult#{@tempFileTimestamp}.html"
 
   viewAppended: ->
 
@@ -199,7 +184,7 @@ class CodeBinResultView extends KDCustomHTMLView
     </div>
     """
 
-class CodeSnippetView extends KDCustomHTMLView
+class CodeBinSnippetView extends KDCustomHTMLView
 
   openFileIteration = 0
 
@@ -245,7 +230,7 @@ class CodeSnippetView extends KDCustomHTMLView
           type      : "mini"
           duration  : 2500
 
-        # CodeSnippetView.emit 'CodeSnippetWantsSave', data
+        # CodeBinSnippetView.emit 'CodeSnippetWantsSave', data
 
     @openButton = new KDButtonView
       title     : ""
