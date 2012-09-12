@@ -12,6 +12,11 @@ class hosting_packages::ruby {
         "rubygems",
         "ruby-irb",
     ]
+    $ruby19 = [
+        "ruby19",
+        "ruby19-libs",
+    ]
+
 
     $devel_pkgs = [
         "sqlite-devel",
@@ -66,9 +71,14 @@ class hosting_packages::ruby {
     package { $ruby18:
         ensure => installed,
     }
+    package { $ruby19:
+        ensure => installed,
+        require => Class["yumrepos::koding"],
+    }
+
 
     package { $devel_pkgs:
-	ensure => installed,
+	    ensure => installed,
     }
     
     package { $ruby_gems:
