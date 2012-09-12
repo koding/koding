@@ -10,8 +10,8 @@
 -module(broker).
 -behaviour(gen_server).
 %% API
--export([start_link/0, subscribe/2, unsubscribe/1,
-            bind/2, unbind/2, trigger/4, rpc/3]).
+-export([start_link/0, subscribe/2, presence/3, unsubscribe/1,
+            bind/2, unbind/2, trigger/4, trigger/5, rpc/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
         handle_call/3, handle_cast/2, handle_info/2]).
@@ -35,7 +35,6 @@ start_link() ->
         host = MqHost, username = MqUser, password = MqPass
         }),
 
-    subscription_sup:start_link(Connection),
     gen_server:start_link({local, ?SERVER}, ?MODULE, [Connection], []).
 
 %%--------------------------------------------------------------------
@@ -44,6 +43,9 @@ start_link() ->
 %%--------------------------------------------------------------------
 subscribe(Conn, Exchange) ->
     gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
+
+presence(Conn, Where, Presenter) ->
+    gen_server:call(?SERVER, {presence, Conn, Where, Presenter}).
 
 %%====================================================================
 %% Wrappers for subscription gen_server
@@ -59,7 +61,14 @@ unbind(Subscription, Event) ->
     subscription:unbind(Subscription, Event).
 
 trigger(Subscription, Event, Payload, Meta) ->
-    subscription:trigger(Subscription, Event, Payload, Meta).
+    trigger(Subscription, Event, Payload, Meta, false).
+
+trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
+    subscription:trigger(Subscription, 
+                        Event, 
+                        Payload, 
+                        Meta, 
+                        NoRestriction).
 
 rpc(Subscription, RoutingKey, Payload) ->
     gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
@@ -78,13 +87,16 @@ init([Connection]) ->
     {ok, Connection}.
 
 %%--------------------------------------------------------------------
-%% Function: %% handle_call({subscribe, Exchange}, From, State) -> 
-%%                          {noreply, State} 
+%% Function: %% handle_call({subscribe, Conn, Exchange}, From, State) 
+%%                          -> {noreply, State} 
 %% Description: Handling subscription request. Subscription supervisor
 %% will create one under its supervision tree.
 %%--------------------------------------------------------------------
 handle_call({subscribe, Conn, Exchange}, From, Connection) ->
-    Result = subscription_sup:start_subscription(From, Conn, Exchange),
+    Result = subscription_sup:start_subscription(Connection,
+                                                From, 
+                                                Conn, 
+                                                Exchange),
     {reply, Result, Connection};
 
 %%--------------------------------------------------------------------
@@ -97,6 +109,29 @@ handle_call({subscribe, Conn, Exchange}, From, Connection) ->
 handle_call({unsubscribe, Subscription}, _From, Connection) ->
     ok = subscription_sup:stop_subscription(Subscription),
     {reply, ok, Connection};
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_call({presence, Conn, Exchange}, From, State) -> 
+%%                          {noreply, State} 
+%% Description: Handling presence. It will subscribe to an x-presence
+%% exchange, create a binding with an empty key, and another binding
+%% with the presenter key to announce the presenter's presence. 
+%%--------------------------------------------------------------------
+handle_call({presence, Conn, Where, Presenter}, From, Connection) ->
+    PresencePrefix = get_env(presence_prefix, <<"KDPresence-">>),
+    Exchange = <<PresencePrefix/bitstring, Where/bitstring>>,
+    Result = subscription_sup:start_subscription(Connection,
+                                                From, 
+                                                Conn, 
+                                                Exchange),
+    case Result of
+        {ok, SID} ->
+            subscription:bind(SID, <<>>),
+            subscription:bind(SID, Presenter),
+            {reply, Result, Connection};
+        {error, _Err} ->
+            {reply, Result, Connection}
+    end;
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |

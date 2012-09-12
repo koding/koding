@@ -392,6 +392,17 @@ Includes =
         footerView                    : "./client/app/Applications/Home.kdapplication/Views/FooterBarContents.coffee"
 
         #ABOUT VIEWS
+        
+        # CHAT CONTROLLERS
+        ChannelController             : "./client/app/Applications/Chat.kdapplication/Controllers/ChannelController.coffee"
+        MentionAutoCompleteController : "./client/app/Applications/Chat.kdapplication/Controllers/MentionAutoCompleteController.coffee"
+
+        # CHAT VIEWS
+        ChatView                      : "./client/app/Applications/Chat.kdapplication/Views/ChatView.coffee"
+        ChannelView                   : "./client/app/Applications/Chat.kdapplication/Views/ChannelView.coffee"
+        ChatInputFormView             : "./client/app/Applications/Chat.kdapplication/Views/ChatInputFormView.coffee"
+        ChatListItemView              : "./client/app/Applications/Chat.kdapplication/Views/ChatListItemViews.coffee"
+        ChannelListItemView           : "./client/app/Applications/Chat.kdapplication/Views/ChatListItemViews.coffee"
 
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"

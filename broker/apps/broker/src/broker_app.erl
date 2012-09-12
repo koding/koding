@@ -49,10 +49,9 @@ start() ->
 
 start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
-    Port = 8008,
+    Port = get_env(port, 8008),
 
-    % This will start the Broker gen_server and the subscription_sup
-    broker:start_link(),
+    error_logger:tty(get_env(verbose, true)),
     
     SockjsState = sockjs_handler:init_state(
                     <<"/subscribe">>, fun handle_client/3, {}, []),
@@ -105,7 +104,7 @@ handle(Req, State) ->
         [<<"auth">>] ->
             {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
             %PrivateChannel = uuid:to_string(uuid:uuid4()),
-            PrivateChannel = <<Channel/binary, ".private">>,
+            PrivateChannel = <<"secret-", Channel/binary, ".private">>,
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
@@ -128,9 +127,13 @@ terminate(_Req, _State) ->
 
 handle_client(Conn, init, _State) ->
     SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
-    Event = {<<"event">>, <<"connected">>},
+    Event = <<"connected">>,
+    EventProp = {<<"event">>, Event},
     Payload = {<<"socket_id">>, SocketId},
-    Conn:send(jsx:encode([Event, Payload])),
+    Conn:send(jsx:encode([EventProp, Payload])),
+
+    send_system_event(Conn, Event, [Payload]),
+
     {ok, #client{socket_id=SocketId}};
 
 handle_client(Conn, {recv, Data}, 
@@ -140,25 +143,55 @@ handle_client(Conn, {recv, Data},
     NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
     {ok, State#client{subscriptions=NewSubs}};
 
-handle_client(_Conn, closed, #client{subscriptions=Subscriptions}) ->
+handle_client(Conn, closed, #client{socket_id=SocketId,
+                                    subscriptions=Subscriptions}) ->
+    Event = <<"disconnected">>,
+    Sid = {<<"socket_id">>, SocketId},
+    Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
+    send_system_event(Conn, Event, [Sid, Exchanges]),
+
+    Handler = fun
+        (Sub) ->
+            broker:trigger(Sub, Event, jsx:encode([Sid]), [], true),
+            broker:unsubscribe(Sub)
+    end,
+
     case dict:size(Subscriptions) of 
         0 -> ok;
         _ ->
             List = dict:to_list(Subscriptions),
-            [broker:unsubscribe(Subscription) 
+            [Handler(Subscription) 
                 || {_Exchange, Subscription} <- List]
     end,
     {ok, #client{}};
 
-handle_client(_Conn, Other, _) ->
-    io:format("Other data ~p~n", [Other]).
+handle_client(_Conn, Other, State) ->
+    io:format("Other data ~p~n", [Other]),
+    {ok, State}.
 
 handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
     case broker:subscribe(Conn, Exchange) of
-        {error, Error} -> Subs;
+        {error, _Error} -> Subs;
         {ok, Subscription} ->
             dict:store(Exchange, Subscription, Subs)
+    end;
+
+handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
+    [_Event, Where, Who, _Meta] = Data,
+    % This only acts as a key so that it can be used to
+    % remove the subscription later from the dictionary.
+    Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
+    case dict:find(Exchange, Subs) of
+        {ok, Subscription} ->
+            broker:unsubscribe(Subscription),
+            dict:erase(Exchange, Subs);
+        error ->
+            case broker:presence(Conn, Where, Who) of
+                {error, _Error} -> Subs;
+                {ok, Subscription} ->            
+                    dict:store(Exchange, Subscription, Subs)
+            end
     end;
 
 handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
@@ -181,9 +214,14 @@ handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
 
 handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
     [Event, Exchange, Payload, Meta] = Data,
-    Subscription = dict:fetch(Exchange, Subs),
-    broker:trigger(Subscription, Event, Payload, Meta),
-    Subs;
+    RegExp = "^secret-",
+    case re:run(Exchange, RegExp) of
+        nomatch -> Subs;
+        {match, _} ->
+            Subscription = dict:fetch(Exchange, Subs),
+            broker:trigger(Subscription, Event, Payload, Meta),
+            Subs
+    end;
 
 handle_event(_Conn, _Else, _Data, Subs) ->
     Subs.
@@ -191,6 +229,12 @@ handle_event(_Conn, _Else, _Data, Subs) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+
+send_system_event(Conn, Event, Payload) ->
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    broker:trigger(Subscription, Event, jsx:encode(Payload), []),
+    broker:unsubscribe(Subscription).
 
 debug_log(Text, Args) ->
     case application:get_env(broker, verbose) of
@@ -230,4 +274,10 @@ bin_key_find(BinKey, List, ReturnEmptyList) ->
         {_, Val} -> Val;
         false when ReturnEmptyList -> [];
         false -> <<>>
+    end.
+
+get_env(Param, DefaultValue) ->
+    case application:get_env(broker, Param) of
+        {ok, Val} -> Val;
+        undefined -> DefaultValue
     end.

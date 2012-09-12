@@ -83,6 +83,21 @@ Broker.prototype.subscribe = function (channelName) {
     return channel;
 };
 
+Broker.prototype.presenceOn = function (who, where, listener) {
+  sendWsMessage(this.ws, "client-presence", where, who);
+  this.ws.addEventListener("message", function (e) {
+    var data = JSON.parse(e.data);
+    if (!data.event || !data.channel) return;
+    if (data.channel !== "KDPresence-"+where) return;
+    if (data.event !== "broker:presence") return;
+    listener(data.payload);
+  });
+};
+
+Broker.prototype.presenceOff = function(who, where, listener) {
+  sendWsMessage(this.ws, "client-presence", where, who);
+};
+
 Broker.prototype.authorize = function (channelName, callback) {
     $.get(this.channel_auth_endpoint, {channel: channelName}, callback);
 };
@@ -159,33 +174,16 @@ Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ct
     var brokerListener, boundBind, self, channel;
     self = this;
     brokerListener = function (eventObj) {
-        eventType
         listener.call(ctx || self, eventObj.data);
     };
-// <<<<<<< HEAD
     brokerListener.orig = listener;
-    boundBind = this.on.bind(this, eventType, listener);
-    if (this.ws.readyState > 0) {
-        if (!this.isPrivate || this.privateName) {
-            channel = this.privateName || this.name;
-            sendWsMessage(this.ws, "client-bind-event", channel, eventType);
-            this.ws.addEventListener(channel+'.'+eventType, brokerListener);
-            this.events[eventType] || (this.events[eventType] = []);
-            this.events[eventType].push(brokerListener);
-        } else {
-            this.state.on('authorized', boundBind);
-        }
-    } else {
-        this.ws.addEventListener('open', boundBind);
-    }
+    performTask(self, function (channelName) {
+      sendWsMessage(self.ws, "client-bind-event", channelName, eventType);
+      self.ws.addEventListener(channelName+'.'+eventType, brokerListener);
+      self.events[eventType] || (self.events[eventType] = []);
+      self.events[eventType].push(brokerListener);
+    });
     return this;
-// =======
-// 
-//     performTask(self, function (channelName) {
-//       sendWsMessage(self.ws, "client-bind-event", channelName, eventType);
-//       self.ws.addEventListener(channelName+'.'+eventType, brokerListener);
-//     });
-// >>>>>>> 7d3e7c893a44a38915a62da0e2c6c9b9610dce62
 };
 
 Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
@@ -211,7 +209,7 @@ Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payloa
     // Requirement: Client cannot publish to public channel
     if (!this.isPrivate) return false;
     // Requirement: Event has to have client- prefix.
-    if (!eventType.match(/^(client-[a-z0-9]*)/)) return false;
+    if (!eventType.match(/^(client-[\w-@#]*)/)) return false;
     var self = this;
     performTask(self, function (channelName) {
       sendWsMessage(self.ws, eventType, channelName, payload, meta);
@@ -220,11 +218,16 @@ Channel.prototype.emit = Channel.prototype.trigger = function (eventType, payloa
 };
 
 var sendWsMessage = function (ws, event_name, channel, payload, meta) {
-    var subJSON = {event:event_name,channel:channel,payload:payload};
-    if (typeof meta === 'object') {
-      subJSON.meta = meta;
-    }
-    ws.send(JSON.stringify(subJSON));
+    if (ws.readyState > 0) {
+      var subJSON = {event:event_name,channel:channel,payload:payload};
+      if (typeof meta === 'object') {
+        subJSON.meta = meta;
+      }
+      ws.send(JSON.stringify(subJSON));
+    } else {
+      ws.addEventListener('open', 
+        sendWsMessage.bind(this, ws, event_name, channel, payload, meta));
+    }    
 };
 
 var performTask = function(channel, readyCallback) {

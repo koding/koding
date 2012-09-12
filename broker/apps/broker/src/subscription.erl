@@ -10,14 +10,14 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/4, stop/1, 
-        bind/2, unbind/2, trigger/4, rpc/3,
+        bind/2, unbind/2, trigger/5, rpc/3,
         notify_first/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
         handle_call/3, handle_cast/2, handle_info/2]).
 
 -record(state, {connection, channel, 
-        exchange, client, private,
+        exchange, client, broadcastable,
         bindings = dict:new(), sender}).
 
 -define (SERVER, ?MODULE).
@@ -51,8 +51,9 @@ bind(Subscription, Event) ->
 unbind(Subscription, Event) ->
     gen_server:call(Subscription, {unbind, Event}).
 
-trigger(Subscription, Event, Payload, Meta) ->
-    gen_server:call(Subscription, {trigger, Event, Payload, Meta}).
+trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
+    CallData = {trigger, Event, Payload, Meta, NoRestriction},
+    gen_server:call(Subscription, CallData).
 
 stop(Subscription) ->
     gen_server:cast(Subscription, stop).
@@ -64,6 +65,7 @@ rpc(Subscription, RoutingKey, Payload) ->
 %%====================================================================
 %% gen_server callbacks
 %%====================================================================
+
 %%--------------------------------------------------------------------
 %% Function: init(Args) -> {ok, State} |
 %% {ok, State, Timeout} |
@@ -81,17 +83,20 @@ init([Connection, Client, Conn, Exchange]) ->
     SendFun = fun (Data) -> send(Conn, Exchange, Data) end,
 
     {ok, Channel} = channel(Connection),
-    Private = is_private(Exchange),
+    Broadcastable = broadcastable(Exchange),
+
     spawn(?MODULE, notify_first, [SendFun, channel(Connection), Exchange]),
 
     State = #state{ connection = Connection,
                     channel = Channel,
                     exchange = Exchange,
-                    private = Private,
+                    broadcastable = Broadcastable,
                     client = Client,
                     sender = SendFun},
 
-    try subscribe(SendFun, Channel, Exchange) of
+    Type = get_exchange_type(Exchange),
+
+    try subscribe(SendFun, Channel, Exchange, Type) of
         ok -> {ok, State}
     catch
         error:precondition_failed ->
@@ -99,6 +104,7 @@ init([Connection, Client, Conn, Exchange]) ->
             SendFun([<<"broker:subscription_error">>, ErrMsg]),
             {stop, precondition_failed}
     end.
+    
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call({bind, Event}, From, State) 
@@ -150,25 +156,27 @@ handle_call({unbind, Event}, _From, State=#state{channel=Channel,
 %%  Event = binary(),
 %%  Payload = bitstring(),
 %%  Meta = [Props],
+%%  NoRestriction = boolean(),
 %%  Props = {<<"replyTo">>, ReplyTo} || TBA
 %%  ReplyTo = binary(),
 %%  From = pid(),
 %%  State = #state{}
 %% Description: Handling key unbinding from the exchange.
 %%--------------------------------------------------------------------
-handle_call({trigger, Event, Payload, Meta}, From, 
+handle_call({trigger, Event, Payload, Meta, NoRestriction}, From, 
             State=#state{channel=Channel,
                         exchange=Exchange,
-                        private=Private}) ->
-    case Private of 
-        true -> 
+                        broadcastable=Broadcastable}) ->
+
+    case {NoRestriction, Broadcastable} of 
+        {false, false} -> {reply, ok, State};
+        {_, _} ->  
             broadcast(From, Channel, Exchange, Event, Payload, Meta),
-            {reply, ok, State};
-        false -> {reply, ok, State}
+            {reply, ok, State}
     end;
 
 %%--------------------------------------------------------------------
-%% Function: %% handle_call({subscribe, Exchange}, From, State) 
+%% Function: %% handle_call({rpc, RoutingKey, Payload}, From, State) 
 %%                      -> {noreply, State}.
 %% Types:
 %%  Exchange = pid(),
@@ -225,15 +233,28 @@ handle_info(#'basic.consume_ok'{}, State) ->
 %%  Exchange = <<"KDPresence">>,
 %%  Msg = #amqp_msg{props = Props},
 %%  Props = #'P_basic'{headers = Headers}.
-%%  Headers = proplist().
-%% Description: Presence announcement
+%%  Headers = [Prop],
+%%  Prop =  {<<"action">>, longstr, Status} |
+%%          {<<"exchange">>, longstr, Exchange} |
+%%          {<<"queue">>, longstr, Queue} |
+%%          {<<"key">>, longstr, Presence},
+%%  Status = "bind" | "unbind"
+%%  Exchange = binary()
+%%  Queue = binary()
+%%  Presence = binary()
+%% Description: Presence announcement. This makes an assumption that
+%% there is a proplist of headers and empty body (how presence type
+%% defines it.)
 %%--------------------------------------------------------------------
-handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
-            #amqp_msg{props=#'P_basic'{headers = Headers}}}, State) ->
-    [{<<"action">>, longstr, _Action}, % "bind" || "unbind"
-     {<<"exchange">>, longstr, _XName}, % same as this excchange
-     {<<"queue">>, longstr, _QName}, % name of queue
-     {<<"key">>, longstr, _BindingKey}] = Headers,
+handle_info({#'basic.deliver'{exchange = Exchange},
+            #amqp_msg{props=#'P_basic'{headers = [
+                {<<"action">>, longstr, Status}, % "bind" || "unbind"
+                {<<"exchange">>, longstr, Exchange}, % same as this excchange
+                {<<"queue">>, longstr, _QName}, % name of queue
+                {<<"key">>, longstr, Presence}
+            ]}, payload = <<>>}}, State=#state{sender=Sender}) ->
+
+    Sender([<<"broker:presence">>, [Presence, Status]]),
     {noreply, State};
 
 %%--------------------------------------------------------------------
@@ -248,7 +269,7 @@ handle_info({#'basic.deliver'{exchange = <<"KDPresence">>},
 %% Description: Echo to the client receiving message from bound events.
 %%--------------------------------------------------------------------
 handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange}, 
-            #amqp_msg{props =  #'P_basic'{correlation_id = CorId},
+            #amqp_msg{props = #'P_basic'{correlation_id = CorId},
                 payload = Payload}}, State=#state{sender=Sender}) ->
     Self = term_to_binary(self()),
     case CorId of 
@@ -298,15 +319,30 @@ channel(Connection) ->
     amqp_connection:open_channel(Connection).
 
 %%--------------------------------------------------------------------
-%% Func: is_private(Exchange) -> boolean()
+%% Func: broadcastable(Exchange) -> boolean()
 %% Description: Detect whether the exchange is private.
 %%--------------------------------------------------------------------
-is_private(Exchange) ->
+broadcastable(Exchange) ->
     %RegExp = "^priv[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}",
     %Options = [{capture, [1], list}],
-    case re:run(Exchange, get_env(privateRegEx, ".private$")) of
-        {match, _}  -> true;
-        nomatch     -> false
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    System = Exchange =:= SystemExchange,
+    Private = re:run(Exchange, get_env(privateRegEx, ".private$")),
+    case {System, Private} of
+        {false, nomatch} -> false;
+        {_, _} -> true % either system or not system but private.
+    end.
+
+%%--------------------------------------------------------------------
+%% Func: get_exchange_type(Exchange) -> binary()
+%% Description: Determines exchange type based on certain rules.
+%%--------------------------------------------------------------------
+get_exchange_type(Exchange) ->
+    Prefix = get_env(presence_prefix, <<"KDPresence-">>),
+    Size = bit_size(Prefix),
+    case Exchange of 
+         <<Prefix:Size/bitstring, _/bitstring>> -> <<"x-presence">>;
+        _ -> <<"topic">>
     end.
 
 %%--------------------------------------------------------------------
@@ -328,16 +364,24 @@ notify_first(Sender, Channel, Exchange) ->
 
 %%--------------------------------------------------------------------
 %% Function: subscribe(Conn, Channel, Queue) -> void()
-%% Description: Declares the exchange and starts the receive loop
-%% process. This process is used to subscribe to queue later on.
-%% The exchange is marked durable so that it can survive server reset.
-%% This broker has to have a way to delete the exchange when done.
+%% Description: Declares a durable and auto-delete exchange of type
+%% "topic". Calls subscribe/6 internally.
 %%--------------------------------------------------------------------
-subscribe(Sender, Channel, Exchange) -> 
+subscribe(Sender, Channel, Exchange) ->
+    subscribe(Sender, Channel, Exchange, <<"topic">>).
+
+subscribe(Sender, Channel, Exchange, Type) ->
+    subscribe(Sender, Channel, Exchange, Type, true, true).
+
+%%--------------------------------------------------------------------
+%% Function: subscribe(Conn, Channel, Queue) -> void()
+%% Description: More configurable exchange declaration. 
+%%--------------------------------------------------------------------
+subscribe(Sender, Channel, Exchange, Type, Durable, AutoDelete) -> 
     Declare = #'exchange.declare'{  exchange = Exchange, 
-                                    type = <<"topic">>,
-                                    durable = true,
-                                    auto_delete = true},
+                                    type = Type,
+                                    durable = Durable,
+                                    auto_delete = AutoDelete},
 
     try amqp_channel:call(Channel, Declare) of
         #'exchange.declare_ok'{} -> 
@@ -355,11 +399,10 @@ subscribe(Sender, Channel, Exchange) ->
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing) ->
     % Ensure the client has time to consume the message
-    Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
+    % Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true,
-                                                    arguments = Args}),
+                                                    durable = true}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,
@@ -392,7 +435,7 @@ unbind_queue(Channel, Exchange, Routing, Queue) ->
 broadcast(From, Channel, Exchange, Event, Data, Meta) ->
     Publish = #'basic.publish'{ exchange = Exchange, 
                                 routing_key = Event},
-    CorId = term_to_binary(From),
+    CorId = term_to_binary(self()),
 
     case lists:keyfind(<<"replyTo">>, 1, Meta) of 
         {_, ReplyTo} -> 

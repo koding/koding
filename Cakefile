@@ -29,13 +29,14 @@ processes   = require "processes"
 #   debug : console.log
 #   warn  : console.log
 
-{spawn, exec}     = require 'child_process'
-fs          = require "fs"
+{spawn, exec} = require 'child_process'
+fs            = require "fs"
  
 # create required folders
 mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
- 
+fs.writeFileSync "./.revision","0.0.1"
+
 # get current version
 
 if process.argv[2] is 'buildForProduction'
@@ -122,7 +123,12 @@ targetPaths =
          
   useStaticFilesServer  : (options)-> !!options.useStatic
 
-  whichEnv : (options)-> options.database
+  whichEnv : (options)->
+    {database} = options
+    if database is "beta" or database is "beta-local"
+      return "beta"
+    else
+      return "dev"
 
   prodPostBuildSteps : (options,callback)->
     callback null
@@ -294,7 +300,7 @@ task 'build', 'optimized version for deployment', (options)->
 build = (options)->
   log.debug "building with following options, ctrl-c before too late:",options
 
-  debug = if options.debug? then "--debug --prof --prof-lazy" else "--max-stack-size=8073741824"
+  debug = if options.debug? then "--debug --prof --prof-lazy" else "--stack_size=2048"
   run = 
     command: ["node", [debug,options.target, process.cwd(), options.database, options.port, options.cron, options.host]]
 

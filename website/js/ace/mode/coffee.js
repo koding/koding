@@ -41,7 +41,7 @@ define(function(require, exports, module) {
 var Tokenizer = require("../tokenizer").Tokenizer;
 var Rules = require("./coffee_highlight_rules").CoffeeHighlightRules;
 var Outdent = require("./matching_brace_outdent").MatchingBraceOutdent;
-var PythonFoldMode = require("./folding/pythonic").FoldMode;
+var FoldMode = require("./folding/coffee").FoldMode;
 var Range = require("../range").Range;
 var TextMode = require("./text").Mode;
 var WorkerClient = require("../worker/worker_client").WorkerClient;
@@ -50,7 +50,7 @@ var oop = require("../lib/oop");
 function Mode() {
     this.$tokenizer = new Tokenizer(new Rules().getRules());
     this.$outdent   = new Outdent();
-    this.foldingRules = new PythonFoldMode("=|=>|->|\\s*class [^#]*");
+    this.foldingRules = new FoldMode();
 }
 
 oop.inherits(Mode, TextMode);
@@ -100,7 +100,7 @@ oop.inherits(Mode, TextMode);
     };
     
     this.createWorker = function(session) {
-        var worker = new WorkerClient(["ace"], "worker-coffee.js", "ace/mode/coffee_worker", "Worker");
+        var worker = new WorkerClient(["ace"], "ace/mode/coffee_worker", "Worker");
         worker.attachToDocument(session.getDocument());
         
         worker.on("error", function(e) {

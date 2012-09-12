@@ -115,7 +115,7 @@ module.exports = class CBucket extends jraphical.Module
                               callback null, bucket
 
     (groupName, relationship, item, anchor, callback)->
-      today = $gte: new Date Date.now() - 1000*60*60*12
+      today = $gte: new Date Date.now() - 1000*60*60*12 # 12 hours
       bucketConstructor = getBucketConstructor(
         groupName, relationship.getAt('as')
       )

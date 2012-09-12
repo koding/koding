@@ -23,7 +23,7 @@ class MessagesListController extends KDListViewController
 
   fetchMessages:(callback)->
     appManager.tell 'Inbox', 'fetchMessages',
-      as          : 'recipient'
+      # as          : 'recipient'
       limit       : 3
       sort        :
         timestamp : -1
@@ -42,6 +42,7 @@ class MessagesListController extends KDListViewController
   fetchNotificationTeasers:(callback)->
     KD.whoami().fetchActivityTeasers? {
       targetName: $in: [
+        # 'CActivity'
         'CReplieeBucketActivity'
         'CFolloweeBucketActivity'
         'CLikeeBucketActivity'

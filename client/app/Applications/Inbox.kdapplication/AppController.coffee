@@ -1,6 +1,6 @@
 class Inbox12345 extends AppController
 
-  {race} = Bongo
+  {race} = bongo
 
   constructor:(options, data)->
     view = new (KD.getPageClass 'Inbox') cssClass : "inbox-application"
@@ -23,25 +23,18 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    # log "FETCH MESSAGES INTERNAL"
-    #{currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    #currentDelegate.fetchMail? options, callback
+    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
+    currentDelegate.fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   loadView:(mainView)->
     mainView.createCommons()
     mainView.createTabs()
 
-    #{currentDelegate} = KD.getSingleton('mainController').getVisitor()
-
-    # currentDelegate.fetchPrivateChannel (err, channel)->
-    #   console.log channel
-
-    # mainView.inboxMessagesList.on 'ReceivedClickElsewhere', =>
-    #   @deselectMessages()
+    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
 
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
@@ -55,33 +48,24 @@ class Inbox12345 extends AppController
         else
           mainView.sort data.type
 
-    # @listenTo
-    #   KDEventTypes: 'ReplyShouldBeSent'
-    #   listenedToInstance: view
-    #   callback: (pubInst, options)->
-    #     {reply, message} = options
-    #     message.reply reply, (err)->
-    #       console.log err
-
     mainView.registerListener
       KDEventTypes      : 'NotificationIsSelected'
       listener          : @
       callback          :(pubInst, {notification, event, location})=>
         # nothing yet, coming soon
 
+    {newMessageBar} = mainView
 
     mainView.registerListener
       KDEventTypes: 'MessageIsSelected'
       listener    : @
       callback    :(pubInst,{item, event})=>
-        # log arguments,"::::"
         data = item.getData()
         data.mark 'read', (err)->
           item.unsetClass 'unread' unless err
         # unless event.shiftKey
         #   @deselectMessages()
         @deselectMessages()
-        mainView.messageInputElement.setData data
         if item.paneView?
           {paneView} = item
           mainView.inboxMessagesContainer.showPane item.paneView
@@ -101,10 +85,8 @@ class Inbox12345 extends AppController
           paneView.addSubView detail
           paneView.detail = detail
           item.paneView = paneView
-
+        newMessageBar.enableMessageActionButtons()
         @selectMessage data, item, paneView
-
-    {newMessageBar} = mainView
 
     newMessageBar.registerListener
       KDEventTypes  : "AutoCompleteNeedsMemberData"
@@ -117,7 +99,7 @@ class Inbox12345 extends AppController
       KDEventTypes  : 'MessageShouldBeSent'
       listener      : @
       callback      : (pubInst,{formOutput,callback})->
-        @prepareMessage formOutput,callback
+        @prepareMessage formOutput, callback, newMessageBar
 
     newMessageBar.registerListener
       KDEventTypes: 'MessageShouldBeDisowned'
@@ -137,9 +119,7 @@ class Inbox12345 extends AppController
           , callback
           disownItem item for own id, item of items
         (pubInst, modal) =>
-          # log modal
           disownAll @selection, =>
-            # log "2", modal
             for own id, {item, paneView} of @selection
               item.destroy()
               paneView.destroy()
@@ -152,10 +132,10 @@ class Inbox12345 extends AppController
       listener    : @
       callback    : =>
         for own id, {item, data} of @selection
-          # log 'marking unread'
           data.unmark 'read', (err)=>
             log err if err
             item.setClass 'unread' unless err
+            item.paneView?.hide()
             newMessageBar.disableMessageActionButtons()
 
   goToNotifications:(notification)->
@@ -164,7 +144,7 @@ class Inbox12345 extends AppController
 
   goToMessages:(message)->
     @getView().showTab "messages"
-    @mainView.propagateEvent KDEventType : "MessageIsSelected", {item: message, event} if message?
+    @mainView.propagateEvent KDEventType : 'MessageSelectedFromOutside', {item: message}
 
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
@@ -178,16 +158,17 @@ class Inbox12345 extends AppController
 
   sendMessage:(messageDetails, callback)->
     # log "I just send a new message: ", messageDetails
-    KD.remote.api.JPrivateMessage.create messageDetails, callback
+    bongo.api.JPrivateMessage.create messageDetails, callback
 
-  prepareMessage:(formOutput, callback)=>
+  prepareMessage:(formOutput, callback, newMessageBar)=>
     {body, subject, recipients} = formOutput
 
     to = recipients.join ' '
 
-    @sendMessage {to, body, subject}, (err, message)->
+    @sendMessage {to, body, subject}, (err, message)=>
       new KDNotificationView
         title     : if err then "There was an error sending your message - try again" else "Message Sent!"
         duration  : 1000
       message.mark 'read'
+      newMessageBar.emit 'RefreshButtonClicked'
       callback? err, message

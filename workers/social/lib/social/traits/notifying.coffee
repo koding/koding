@@ -8,8 +8,8 @@ module.exports = class Notifying
   @getNotificationEmail =-> 'hi@koding.com'
   
   @getNotificationSubject =-> 'You have pending notifications.'
-  
-  @getNotificationTextBody =(event, contents)-> 
+
+  @getNotificationTextBody =(event, contents)->
     """
     event name: #{event};
     contents: #{JSON.stringify(contents)};

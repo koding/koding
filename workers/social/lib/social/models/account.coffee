@@ -219,7 +219,7 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
 
-  dummyAdmins = ["sinan", "devrim", "aleksey", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -322,12 +322,13 @@ module.exports = class JAccount extends jraphical.Module
             as: options.as
           else
             {}
-        options.limit     = 8
+        # options.limit     = 8
         options.fetchMail = yes
         @fetchPrivateMessages selector, options, (err, messages)->
           if err
             callback err
           else
+            callback null, [] if messages.length is 0
             collectParticipants messages, connection.delegate, (err)->
               if err
                 callback err
