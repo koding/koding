@@ -39,7 +39,7 @@ func init() {
 	if len(os.Args) >= 2 {
 		profile = os.Args[1]
 	}
-	
+
 	var ok bool
 	config, ok = configs[profile]
 	if !ok {
@@ -210,13 +210,19 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 }
 
 func (server *WebtermServer) Input(data string) {
-	server.pty.Master.Write([]byte(data))
+	if server.pty != nil {
+		server.pty.Master.Write([]byte(data))
+	}
 }
 
 func (server *WebtermServer) ControlSequence(data string) {
-	server.pty.MasterEncoded.Write([]byte(data))
+	if server.pty != nil {
+		server.pty.MasterEncoded.Write([]byte(data))
+	}
 }
 
 func (server *WebtermServer) SetSize(x, y float64) {
-	server.pty.SetSize(uint16(x), uint16(y))
+	if server.pty != nil {
+		server.pty.SetSize(uint16(x), uint16(y))
+	}
 }
