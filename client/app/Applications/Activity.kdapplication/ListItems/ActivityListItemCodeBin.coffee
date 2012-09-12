@@ -29,27 +29,15 @@ class CodeBinActivityItemView extends ActivityItemChild
       title: "Run this"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultResetButton.show()
+        @codeBinResultButton.setTitle "Reset"
         @codeBinResultView.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges"
-
-    @codeBinResultResetButton = new KDButtonView
-      title: "Reset"
-      cssClass:"clean-gray result-reset-button hidden"
-      click:=>
-        @codeBinResultView.hide()
-        @codeBinResultView.emit "CodeBinResultShouldReset"
 
     @codeBinForkButton = new KDButtonView
       title: "Fork this"
       cssClass:"clean-gray fork-button"
+      disabled:yes
       click:=>
-    # log data.meta.tags
-    # @tagGroup = new LinkGroup {
-    #   group         : data.meta.tags
-    #   itemsToShow   : 3
-    #   subItemClass  : TagFollowBucketItemView
-    # }
 
   render:->
     super()
@@ -106,7 +94,6 @@ class CodeBinActivityItemView extends ActivityItemChild
       {{> @codeBinJSView}}
       </div>
       {{> @codeBinResultButton}}
-      {{> @codeBinResultResetButton}}
       {{> @codeBinForkButton}}
       {{> @codeBinResultView}}
       <footer class='clearfix'>
@@ -127,49 +114,91 @@ class CodeBinResultView extends KDCustomHTMLView
     super options, data
     data = @getData()
 
+    @codeViewContainer = new KDCustomHTMLView
+      cssClass : "result-frame-container"
+
+    @kiteController = @getSingleton('kiteController')
+
+    @on "CodeBinSourceHasChanges",=>
+
+      codebin = @getData()
+
+      @iframeContents = "<html><head>"
+
+      @iframeContents+= "<script src='//cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js'></script>"
+      @iframeContents+= "<script src='//code.jquery.com/jquery-latest.js'></script>"
+      @iframeContents+= "<style>"+Encoder.htmlDecode(codebin.attachments[1].content)+"</style>"
+
+      @iframeContents+= "</head><body>"
+
+      @iframeContents+= Encoder.htmlDecode(codebin.attachments[0].content)
+      @iframeContents+= "<script type='text/javascript'>"+Encoder.htmlDecode(codebin.attachments[2].content)+"</script>"
+
+      @iframeContents+= "</body></html>"
+
+      @iframeUsername = KD.whoami().profile.nickname
+      @iframeTimestamp = new Date().getTime()
+
+
+      # these are production paths and names! beware  --arvid
+      @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
+      @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
+
+      # remove this line when using on live servers --arvid
+      @appendResultFrame "//lampuki.de/iframe.html"
+
+      ###//////////////////////////////////////////////////////////////////////
+      #
+      # this block is also production logic. --arvid
+
+      @kiteController.run
+        withArgs  :
+          command : "stat #{FSHelper.escapeFilePath(@iframePath)}"
+      , (err, stderr, response)=>
+        if err or stderr
+          # log "temp directory not found, trying mkdir - response is",response
+          @kiteController.run
+            withArgs  :
+              command : "mkdir #{FSHelper.escapeFilePath(@iframePath)}"
+            ,(err, stderr, response)=>
+              if err or stderr
+                # log "Could not mkdir - response is",response
+              else
+                @uploadFileAndUpdateView()
+        else
+          @uploadFileAndUpdateView()
+
+
+  uploadFileAndUpdateView:->
+    @kiteController.run
+       toDo           :  "uploadFile"
+       withArgs       : {
+         path         : FSHelper.escapeFilePath @iframePath+"/"+@iframeFileName
+         contents     : @iframeContents
+         username     : @iframeUsername
+       }
+    , (err, res)=>
+      if err
+        warn err
+      else
+        appendResultFrame "//#{@iframeUsername}.koding.com/codeshare_temp/"+@iframeFileName
+      #
+      #
+      ///////////////////////////////////////////////////////////////////// ###
+
+
+  appendResultFrame:(url)=>
+
+    @codeView?.destroy()
+
     @codeView = new KDCustomHTMLView
       tagName  : "iframe"
       cssClass : "result-frame"
       name : "result-frame"
       attributes:
-        src: "/beta.txt"
-        # sandbox : "allow-scripts allow-same-origin"
-        # srcdoc:"<html><head></head><body></body></html>"
-    , data
-
-    @on "CodeBinResultShouldReset",->
-      # TODO reload the iframe
-
-    @on "CodeBinSourceHasChanges",->
-
-      ###
-
-      !
-      !
-      !
-      !
-
-      !
-
-      ###
-      # this seemed to crash the server, switched off for safety --arvid
-      if KD.isLoggedIn() and false
-
-        {nickname}    = KD.whoami().profile
-
-        @tempFileTimestamp = new Date().getTime()
-
-        @tempFilePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/tempResult#{@tempFileTimestamp}.html"
-
-        @tempFile     = FSHelper.createFile
-          name        : nickname
-          path        : @tempFilePath
-          type        : "file"
-
-        @tempFileContents = "<!DOCTYPE html><html><head><script src='js/prefixfree.min.js'></script><script src='//code.jquery.com/jquery-latest.js'></script><style>"+Encoder.htmlDecode(@getData().attachments[1].content)+"</style></head><body>"+Encoder.htmlDecode(@getData().attachments[0].content)+"<script type='text/javascript'>"+Encoder.htmlDecode(@getData().attachments[2].content)+"</script></body></html>"
-
-        @tempFile.save @tempFileContents,->
-          @codeView.attributes.src = "//#{nickname}.koding.com/tempResult#{@tempFileTimestamp}.html"
+        src: url
+        sandbox : "allow-scripts"
+    @codeViewContainer.addSubView @codeView
 
   viewAppended: ->
 
@@ -179,9 +208,7 @@ class CodeBinResultView extends KDCustomHTMLView
 
   pistachio:->
     """
-    <div class='kdview'>
-      {{> @codeView}}
-    </div>
+      {{> @codeViewContainer}}
     """
 
 class CodeBinSnippetView extends KDCustomHTMLView
@@ -195,14 +222,6 @@ class CodeBinSnippetView extends KDCustomHTMLView
     @unsetClass "kdcustomhtml"
 
     {content, syntax, title} = data = @getData()
-
-    # @codeView = new NonEditableAceField defaultValue: Encoder.htmlDecode(content), autoGrow: yes, afterOpen: =>
-    #   syntax or= 'javascript'
-    #   @codeView.setTheme 'merbivore'
-    #   @codeView.setSyntax syntax
-    #
-    # @codeView.on 'sizes.height.change', ({height}) =>
-    #   @$('.wrapper').height height
 
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
