@@ -1,10 +1,12 @@
 package kite
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
 	"io"
 	"koding/tools/dnode"
 	"koding/tools/log"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -14,6 +16,12 @@ type connection struct {
 	publishChannel  *amqp.Channel
 	replyExchange   string
 	bufferedMessage []byte
+}
+
+type statusMessage struct {
+	*log.GelfMessage
+	NumberOfClients    int `json:"_number_of_clients"`
+	NumberOfGoroutines int `json:"_number_of_goroutines"`
 }
 
 func (conn *connection) Read(p []byte) (int, error) {
@@ -39,7 +47,27 @@ func (conn *connection) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+var numClients int = 0
+var changeNumClients chan int = make(chan int)
+
 func Start(uri, name string, onRootMethod func(user, method string, args interface{}) interface{}) {
+	go func() {
+		for {
+			numClients += <-changeNumClients
+		}
+	}()
+
+	go func() {
+		for {
+			log.Send(&statusMessage{
+				log.NewGelfMessage(log.INFO, "", 0, fmt.Sprintf("Status: Serving %d clients.", numClients)),
+				numClients,
+				runtime.NumGoroutine(),
+			})
+			time.Sleep(60 * time.Second)
+		}
+	}()
+
 	for {
 		func() {
 			defer time.Sleep(10 * time.Second)
@@ -65,7 +93,13 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 					secretName := string(join.Body)
 					user := strings.Split(secretName, ".")[1]
 
-					log.Info("Client connected: " + user)
+					changeNumClients <- 1
+					log.Debug("Client connected: " + user)
+
+					defer func() {
+						changeNumClients <- -1
+						log.Debug("Client disconnected: " + user)
+					}()
 
 					messageChannel := createChannel(consumeConn)
 					defer messageChannel.Close()

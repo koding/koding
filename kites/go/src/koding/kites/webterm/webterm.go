@@ -29,7 +29,7 @@ var config Config
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
-	log.Facility = "webterm kite"
+	log.Facility = fmt.Sprintf("webterm kite %d", os.Getpid())
 
 	if os.Getuid() != 0 {
 		panic("Must be run as root.")

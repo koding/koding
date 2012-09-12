@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-type GELF struct {
+type GelfMessage struct {
 	Version      string  `json:"version"`
 	Host         string  `json:"host"`
 	ShortMessage string  `json:"short_message"`
@@ -69,7 +69,32 @@ func (writer *chunkWriter) Close() {
 	}
 }
 
-func Send(gelf *GELF) {
+func NewGelfMessage(level int, file string, line int, message ...interface{}) *GelfMessage {
+	messageStrings := make([]string, len(message))
+	for i, part := range message {
+		if bytes, ok := part.([]byte); ok {
+			messageStrings[i] = string(bytes)
+		} else {
+			messageStrings[i] = fmt.Sprint(part)
+		}
+	}
+	gelf := GelfMessage{
+		Version:      "1.0",
+		Host:         Hostname,
+		ShortMessage: messageStrings[0],
+		Timestamp:    float64(time.Now().UnixNano()) / 1e9,
+		Level:        level,
+		Facility:     Facility,
+		File:         file,
+		Line:         line,
+	}
+	if len(messageStrings) > 1 {
+		gelf.FullMessage = strings.Join(messageStrings, "\n")
+	}
+	return &gelf
+}
+
+func Send(gelf interface{}) {
 	if conn == nil {
 		conn, _ = net.Dial("udp", Server)
 	}
@@ -86,61 +111,50 @@ func Log(level int, file string, line int, message ...interface{}) {
 	if level > MaxLevel {
 		return
 	}
-
-	messageStrings := make([]string, len(message))
-	for i, part := range message {
-		if bytes, ok := part.([]byte); ok {
-			messageStrings[i] = string(bytes)
-		} else {
-			messageStrings[i] = fmt.Sprint(part)
-		}
-	}
-	gelf := GELF{
-		Version:      "1.0",
-		Host:         Hostname,
-		ShortMessage: messageStrings[0],
-		Timestamp:    float64(time.Now().UnixNano()) / 1e9,
-		Level:        level,
-		Facility:     Facility,
-		File:         file,
-		Line:         line,
-	}
-	if len(messageStrings) > 1 {
-		gelf.FullMessage = strings.Join(messageStrings, "\n")
-	}
-	Send(&gelf)
+	Send(NewGelfMessage(level, file, line, message...))
 }
 
+const (
+	EMERG  = 0
+	ALERT  = 1
+	CRIT   = 2
+	ERR    = 3
+	WARN   = 4
+	NOTICE = 5
+	INFO   = 6
+	DEBUG  = 7
+)
+
 func Emerg(message ...interface{}) {
-	Log(0, "", 0, message...)
+	Log(EMERG, "", 0, message...)
 }
 
 func Alert(message ...interface{}) {
-	Log(1, "", 0, message...)
+	Log(ALERT, "", 0, message...)
 }
 
 func Crit(message ...interface{}) {
-	Log(2, "", 0, message...)
+	Log(CRIT, "", 0, message...)
 }
 
 func Err(message ...interface{}) {
-	Log(3, "", 0, message...)
+	Log(ERR, "", 0, message...)
 }
 
 func Warn(message ...interface{}) {
-	Log(4, "", 0, message...)
+	Log(WARN, "", 0, message...)
 }
 
 func Notice(message ...interface{}) {
-	Log(5, "", 0, message...)
+	Log(NOTICE, "", 0, message...)
 }
 
 func Info(message ...interface{}) {
-	Log(6, "", 0, message...)
+	Log(INFO, "", 0, message...)
 }
 
 func Debug(message ...interface{}) {
-	Log(7, "", 0, message...)
+	Log(DEBUG, "", 0, message...)
 }
 
 func RecoverAndLog() {
@@ -163,6 +177,6 @@ func RecoverAndLog() {
 		}
 		message = message[0 : len(message)-2]
 		_, file, line, _ := runtime.Caller(2)
-		Log(3, file, line, message...)
+		Log(ERR, file, line, message...)
 	}
 }
