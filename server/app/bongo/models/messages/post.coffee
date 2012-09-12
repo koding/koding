@@ -6,6 +6,7 @@ class JPost extends jraphical.Message
   @::mixin Notifying::
   @mixin Flaggable
   @::mixin Flaggable::
+  @::mixin Likeable::
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -33,7 +34,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
     schema            : schema
     relationships     :
@@ -254,49 +255,6 @@ class JPost extends jraphical.Message
       callback
     ]
     daisy queue
-
-  like: secure ({connection}, callback)->
-    {delegate} = connection
-    {constructor} = @
-    unless delegate instanceof constructor.getAuthorType()
-      callback new Error 'Only instances of JAccount can like things.'
-    else
-      Relationship.one
-        sourceId: @getId()
-        targetId: delegate.getId()
-        as: 'like'
-      , (err, likedBy)=>
-        if err
-          callback err
-        else
-          unless likedBy
-            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
-              if err
-                callback err
-              else
-                @update ($set: 'meta.likes': count), callback
-                @fetchActivityId (err, id)->
-                  CActivity.update {_id: id}, {
-                    $set: 'sorts.likesCount': count
-                  }, log
-                @fetchOrigin (err, origin)=>
-                  if err then log "Couldn't fetch the origin"
-                  else @emit 'LikeIsAdded', {
-                    origin
-                    subject       : ObjectRef(@).data
-                    actorType     : 'liker'
-                    actionType    : 'like'
-                    liker    		  : ObjectRef(delegate).data
-                    likesCount	  : count
-                    relationship  : docs[0]
-                  }
-          else
-            @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
-              if err
-                callback err
-                console.log err
-              else
-                @update ($set: 'meta.likes': count), callback
 
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection
