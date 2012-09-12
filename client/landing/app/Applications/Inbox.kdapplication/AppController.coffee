@@ -1,6 +1,6 @@
 class Inbox12345 extends AppController
 
-  {race} = bongo
+  {race} = Bongo
 
   constructor:(options, data)->
     view = new (KD.getPageClass 'Inbox') cssClass : "inbox-application"
@@ -23,8 +23,7 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    currentDelegate.fetchMail? options, callback
+    #KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
