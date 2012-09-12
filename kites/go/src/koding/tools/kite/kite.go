@@ -1,72 +1,14 @@
 package kite
 
 import (
-	"fmt"
-	"github.com/streadway/amqp"
-	"io"
 	"koding/tools/dnode"
 	"koding/tools/log"
-	"runtime"
 	"strings"
 	"time"
 )
 
-type connection struct {
-	messageStream   <-chan amqp.Delivery
-	publishChannel  *amqp.Channel
-	replyExchange   string
-	bufferedMessage []byte
-}
-
-type statusMessage struct {
-	*log.GelfMessage
-	NumberOfClients    int `json:"_number_of_clients"`
-	NumberOfGoroutines int `json:"_number_of_goroutines"`
-}
-
-func (conn *connection) Read(p []byte) (int, error) {
-	if len(conn.bufferedMessage) == 0 {
-		message, ok := <-conn.messageStream
-		if !ok {
-			return 0, io.EOF
-		}
-		conn.bufferedMessage = message.Body
-		log.Debug("Read", message.Body)
-	}
-	n := copy(p, conn.bufferedMessage)
-	conn.bufferedMessage = conn.bufferedMessage[n:]
-	return n, nil
-}
-
-func (conn *connection) Write(p []byte) (int, error) {
-	log.Debug("Write", p)
-	err := conn.publishChannel.Publish(conn.replyExchange, "reply-client-message", false, false, amqp.Publishing{Body: p})
-	if err != nil {
-		return 0, err
-	}
-	return len(p), nil
-}
-
-var numClients int = 0
-var changeNumClients chan int = make(chan int)
-
 func Start(uri, name string, onRootMethod func(user, method string, args interface{}) interface{}) {
-	go func() {
-		for {
-			numClients += <-changeNumClients
-		}
-	}()
-
-	go func() {
-		for {
-			log.Send(&statusMessage{
-				log.NewGelfMessage(log.INFO, "", 0, fmt.Sprintf("Status: Serving %d clients.", numClients)),
-				numClients,
-				runtime.NumGoroutine(),
-			})
-			time.Sleep(60 * time.Second)
-		}
-	}()
+	RunStatusLogger()
 
 	for {
 		func() {
@@ -125,46 +67,4 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 			log.Warn("Connection to AMQP server lost.")
 		}()
 	}
-}
-
-func createConn(uri string) *amqp.Connection {
-	conn, err := amqp.Dial(uri)
-	if err != nil {
-		panic(err)
-	}
-	return conn
-}
-
-func createChannel(conn *amqp.Connection) *amqp.Channel {
-	channel, err := conn.Channel()
-	if err != nil {
-		panic(err)
-	}
-	return channel
-}
-
-func declareBindConsumeQueue(conn *amqp.Connection, queue, key, exchange string) (<-chan amqp.Delivery, *amqp.Channel) {
-	channel := createChannel(conn)
-
-	err := channel.ExchangeDeclare(exchange, "topic", true, true, false, false, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = channel.QueueDeclare(queue, false, true, false, false, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	err = channel.QueueBind(queue, key, exchange, false, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	stream, err := channel.Consume(queue, "", true, false, false, false, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	return stream, channel
 }
