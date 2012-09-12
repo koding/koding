@@ -21,6 +21,7 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
       gem_list_command << "--remote"
     end
 
+    options[:justme] = options[:justme]
     if name = options[:justme]
       gem_list_command << name + "$"
     end
@@ -53,7 +54,7 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
       {
         :name     => name,
         :ensure   => versions,
-        :provider => :gem
+        :provider => :gem19
       }
     else
       Puppet.warning "Could not match #{desc}"
@@ -71,7 +72,6 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
     command = [command(:gemcmd), "install"]
     command << "-v" << resource[:ensure] if (! resource[:ensure].is_a? Symbol) and useversion
     # Always include dependencies
-    command << "--include-dependencies"
 
     if source = resource[:source]
       begin
@@ -94,7 +94,7 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
         command << "--source" << "#{source}" << resource[:name]
       end
     else
-      command << "--no-rdoc" << "--no-ri" << resource[:name]
+      command << "--no-rdoc" << "--no-ri" << resource[:name].sub("-19","")
     end
 
     output = execute(command)
@@ -110,7 +110,7 @@ Puppet::Type.type(:package).provide :gem19, :parent => Puppet::Provider::Package
   end
 
   def query
-    self.class.gemlist(:justme => resource[:name], :local => true)
+    self.class.gemlist(:justme => resource[:name].sub("-19",""), :local => true)
   end
 
   def uninstall
