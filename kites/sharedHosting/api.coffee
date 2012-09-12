@@ -176,6 +176,7 @@ module.exports = new Kite 'sharedHosting'
                     exec "rm -f #{manifestPath}", ->
                       manifest = JSON.parse stdout
                       manifest.authorNick = username
+                      delete manifest.devMode if manifest.devMode
                       unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
                       fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 

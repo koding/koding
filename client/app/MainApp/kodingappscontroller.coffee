@@ -44,7 +44,7 @@ class KodingAppsController extends KDController
     path = if /^~/.test manifest.path then "/Users/#{profile.nickname}#{manifest.path.substr(1)}" else manifest.path
     return path.replace /(\/+)$/, ""
 
-  getManifestFromPath = (path)->
+  @getManifestFromPath = getManifestFromPath = (path)->
 
     folderName = (arr = path.split("/"))[arr.length-1]
     app        = null
@@ -181,7 +181,7 @@ class KodingAppsController extends KDController
     else
       @fetchCompiledApp manifest, (err, script)=>
         if err
-          @compileSource name, (err)=>
+          @compileApp name, (err)=>
             if err
               new KDNotificationView type : "mini", title : "There was an error, please try again later!"
               callback err
@@ -310,34 +310,19 @@ class KodingAppsController extends KDController
                 @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
                 callback?()
 
-  compileApp:(path, callback)->
-
-    manifest = getManifestFromPath path
-    {name, source} = manifest
-
-    kallback = (err)=>
-      @compileSource name, => callback?()
-    debugger
-    if source.stylesheets
-      appDevModePath = "#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}"
-      log "ln -s #{escapeFilePath path} #{escapeFilePath appDevModePath}"
-      @kiteController.run "ln -s #{escapeFilePath path} #{escapeFilePath appDevModePath}", kallback
-    else
-      kallback()
-
-
-  compileSource:(name, callback)->
+  compileApp:(name, callback)->
 
     kallback = (app)=>
 
       return warn "#{name}: No such app!" unless app
 
-      {source} = app
-      {blocks} = source
-      {nickname} = KD.whoami().profile
-
-
+      {source}      = app
+      {blocks}      = source
+      {nickname}    = KD.whoami().profile
       orderedBlocks = []
+      blockStrings  = []
+      asyncStack    = []
+
       for blockName, blockOptions of blocks
         blockOptions.name = blockName
         if blockOptions.order? and not isNaN(order = parseInt(blockOptions.order, 10))
@@ -345,9 +330,13 @@ class KodingAppsController extends KDController
         else
           orderedBlocks.push blockOptions
 
-      blockStrings = []
+      if source.stylesheets
+        appDevModePath = "/Users/sinan/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
 
-      asyncStack   = []
+        asyncStack.push (cb)=>
+          @kiteController.run "rm -rf #{escapeFilePath appDevModePath}", =>
+            @kiteController.run "mkdir /Users/sinan/Sites/#{nickname}.koding.com/website/.applications", =>
+              @kiteController.run "ln -s #{escapeFilePath getAppPath app} #{escapeFilePath appDevModePath}", -> cb()
 
       orderedBlocks.forEach (block)=>
 
