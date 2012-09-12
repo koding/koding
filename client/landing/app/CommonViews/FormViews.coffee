@@ -16,7 +16,7 @@ class AbstractPersonalFormView extends KDFormView
       @resetInputValue?()
       @unsetClass 'active'
     else if @$().hasClass(classToCheck) and e.which is 13
-      @submit event
+      @submit e
 
   mouseDown:(event)->
     @showForm()

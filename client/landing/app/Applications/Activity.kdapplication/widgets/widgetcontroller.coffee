@@ -1,5 +1,17 @@
 class ActivityUpdateWidgetController extends KDViewController
 
+  # WIP: stop submission if user wants to submit stuff too often
+
+  submissionStopped = no
+
+  notifySubmissionStopped = ->
+
+    # new KDNotificationView type : "mini", title : "Please take a little break!"
+
+  stopSubmission = ->
+    # submissionStopped = yes
+    # __utils.wait 20000, -> submissionStopped = no
+
   loadView:(mainView)->
 
     mainView.addWidgetPane
@@ -7,9 +19,12 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : updateWidget = new ActivityStatusUpdateWidget
         cssClass  : "status-widget"
         callback  : (formData)=>
-          @updateWidgetSubmit formData
-          updateWidget.switchToSmallView()
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @updateWidgetSubmit formData, stopSubmission
+            updateWidget.switchToSmallView()
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "question"
@@ -21,8 +36,11 @@ class ActivityUpdateWidgetController extends KDViewController
       mainContent : codeWidget = new ActivityCodeSnippetWidget
         delegate  : mainView
         callback  : (data)=>
-          @codeSnippetWidgetSubmit data
-          mainView.resetWidgets()
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @codeSnippetWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -58,6 +76,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
   updateWidgetSubmit:(data, callback)->
 
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
 
@@ -71,7 +90,7 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      KD.remote.api.JStatusUpdate.create data, (err, activity)=>
+      bongo.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
@@ -79,6 +98,7 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
+
 
     if data.activity
       {activity} = data
@@ -90,8 +110,11 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
+      if submissionStopped
+        return notifySubmissionStopped()
+      bongo.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
+        stopSubmission()
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
@@ -99,21 +122,21 @@ class ActivityUpdateWidgetController extends KDViewController
 
   questionWidgetSubmit:(data)->
     log 'creating question', data
-    KD.remote.api.JActivity.create {type: 'qa', activity: data}, (error) ->
+    bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
 
   linkWidgetSubmit:(data)->
     log 'sharing link', data
-    KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
+    bongo.api.JActivity.create {type: 'link', activity: data}, (error) ->
       warn 'couldnt save link', error if error
 
   tutorialWidgetSubmit:(data)->
     log 'sharing tutorial', data
-    KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
+    bongo.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
       warn 'couldnt save tutorial', error if error
 
   discussionWidgetSubmit:(data)->
     log 'starting discussion', data
-    KD.remote.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
+    bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
       warn 'couldnt save discussion', error if error
 

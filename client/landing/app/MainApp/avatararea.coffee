@@ -76,10 +76,12 @@ class AvatarAreaIconMenu extends KDView
 
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
+      if count > 0 then @avatarNotificationsPopup.noNotification.hide() else @avatarNotificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
     @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
       @utils.killWait @avatarMessagesPopup.loaderTimeout
+      if count > 0 then @avatarMessagesPopup.noMessage.hide() else @avatarMessagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
     @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
@@ -210,13 +212,13 @@ class AvatarPopupNotifications extends AvatarPopup
       listener      : @
       callback      : => @hide()
 
-    @avatarPopupContent.addSubView @listController.getView()
+    @avatarPopupContent.addSubView @noNotification = new KDView
+      height   : "auto"
+      cssClass : "sublink"
+      partial  : "You have no new notifications..."
+    @noNotification.hide()
 
-    if @listController.getItemCount() is 0
-      @avatarPopupContent.addSubView noNotification = new KDView
-        height   : "auto"
-        cssClass : "sublink"
-        partial  : "You have no new notifications..."
+    @avatarPopupContent.addSubView @listController.getView()
 
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"
@@ -260,18 +262,13 @@ class AvatarPopupMessages extends AvatarPopup
       listener      : @
       callback      : => @hide()
 
-    @listController.registerListener
-      KDEventTypes  : "AvatarPopupShouldBeHidden"
-      listener      : @
-      callback      : => @hide()
+    @avatarPopupContent.addSubView @noMessage = new KDView
+      height   : "auto"
+      cssClass : "sublink"
+      partial  : "You have no new messages..."
+    @noMessage.hide()
 
     @avatarPopupContent.addSubView @listController.getView()
-
-    if @listController.getItemCount() is 0
-      @avatarPopupContent.addSubView noNotification = new KDView
-        height   : "auto"
-        cssClass : "sublink"
-        partial  : "You have no new messages..."
 
     @avatarPopupContent.addSubView redirectLink = new KDView
       height   : "auto"

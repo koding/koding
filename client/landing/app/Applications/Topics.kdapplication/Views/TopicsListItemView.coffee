@@ -95,7 +95,7 @@ class TopicsListItemView extends KDListItemView
         <div class="topicstats">
           <p class="posts">
             <span class="icon"></span>
-            <a href="#">{{#(counts.tagged) or 0}}</a> Posts
+            <a href="#">{{#(counts.post) or 0}}</a> Posts
           </p>
           <p class="followers">
             <span class="icon"></span>
@@ -140,7 +140,6 @@ class ModalTopicsListItem extends TopicsListItemView
         @getDelegate().emit "CloseTopicsModal"
 
   pistachio:->
-    
     """
     <div class="topictext">
       <div class="topicmeta">
@@ -148,7 +147,7 @@ class ModalTopicsListItem extends TopicsListItemView
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
-            <span class="icon"></span>{{#(counts.tagged) or 0}} Posts
+            <span class="icon"></span>{{#(counts.post) or 0}} Posts
           </p>
           <p class="fers">
             <span class="icon"></span>{{#(counts.followers) or 0}} Followers
