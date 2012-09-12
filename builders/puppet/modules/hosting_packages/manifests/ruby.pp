@@ -70,7 +70,6 @@ class hosting_packages::ruby {
     $ruby19_gems = [
         'ruby-hmac-19',
         'addressable-19',
-        "shadow-19",
         'rake-19',
         'mysql2-19',
         'rake-compiler-19',
