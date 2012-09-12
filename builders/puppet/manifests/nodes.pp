@@ -9,6 +9,7 @@ node base {
     }
 
     include motd
+    include puppet
     include timezone
     # install and configure sudo
     include ntpd
