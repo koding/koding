@@ -18,6 +18,13 @@ console.log "new sharedhosting api."
 
 escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
 
+makedirp = (path, user, cb)->
+  exec "mkdir -p #{path} && chown #{user}: #{path}", cb
+
+createAppsDir = (user, cb)->
+  path = escapePath "/Users/#{user}/Applications"
+  makedirp path, user, cb
+
 module.exports = new Kite 'sharedHosting'
 
 
@@ -216,18 +223,19 @@ module.exports = new Kite 'sharedHosting'
     kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/latest"
     appPath    = escapePath appPath
 
-    mkdirp appPath, (err)->
-      if err then cb err
-      else
-        exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
-          if err or stderr.length
-            cb err or "[ERROR] #{stderr}"
-          else
-            exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
-              if err or stderr.length
-                cb err or "[ERROR] #{stderr}"
-              else
-                cb null
+    createAppsDir username, (err)->
+      makedirp appPath, username, (err)->
+        if err then cb err
+        else
+          exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
+            if err or stderr.length
+              cb err or "[ERROR] #{stderr}"
+            else
+              exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
+                if err or stderr.length
+                  cb err or "[ERROR] #{stderr}"
+                else
+                  cb null
 
   createSystemUser : (options,callback)->
     #
