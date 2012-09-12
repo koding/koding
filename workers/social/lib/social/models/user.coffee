@@ -9,6 +9,12 @@ module.exports = class JUser extends jraphical.Module
   JSession = require './session'
   JEmailConfirmation = require './emailconfirmation'
 
+  createKodingError =(err)->
+    if 'string' is typeof err
+      message: err
+    else
+      message: err.message
+
   @bannedUserList = ['abrt','amykhailov','apache','about','visa',
                      'cthorn','daemon','dbus','dyasar','ec2-user',
                      'games','ggoksel','gopher','haldaemon','halt','mail',
@@ -106,15 +112,14 @@ module.exports = class JUser extends jraphical.Module
   #     else
   #       constructor.one {username}, callback
   
-  @authenticateClient:(client, callback=->)->
-    console.log 'hey'
-    JSession.one {clientId: client.sessionToken}, (err, session)->
+  @authenticateClient:(clientId, callback=->)->
+    JSession.one {clientId}, (err, session)->
       if err
         console.log 'there was an err.'
         callback err
       else unless session?
         console.log 'auth failed'
-        callback new KodingError 'Authentication failed!'
+        callback createKodingError 'Authentication failed!'
       else
         {username} = session
         JUser.one {username}, (err, user)->
@@ -125,7 +130,6 @@ module.exports = class JUser extends jraphical.Module
               if err
                 callback? err
               else
-                client.connection = delegate: account
                 callback null, account
 
 
@@ -182,17 +186,17 @@ module.exports = class JUser extends jraphical.Module
         callback new KodingError 'No visitor instance was found.'
       JUser.one {username, status: $ne: 'blocked'}, (err, user)->
         if err
-          callback new KodingError err.message
+          callback createKodingError err.message
         else unless user?
-          callback new KodingError 'Unknown username!'
+          callback createKodingError 'Unknown username!'
         else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-          callback new KodingError 'Access denied!'
+          callback createKodingError 'Access denied!'
         else
           JSession.one {clientId}, (err, session)->
             if err
               callback err
             else unless session
-              callback new KodingError 'Could not restore your session!'
+              callback createKodingError 'Could not restore your session!'
             else
               session.update {
                 $set            :
@@ -251,7 +255,7 @@ module.exports = class JUser extends jraphical.Module
                   connection.delegate = guest
                   callback null, guest
                   visitor.emit ['change','logout'], guest
-        else callback new KodingError 'Could not restore your session!'
+        else callback createKodingError 'Could not restore your session!'
   
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences.one {}, (err, prefs)->
@@ -266,11 +270,11 @@ module.exports = class JUser extends jraphical.Module
         }, (err, invite)->
           # callback null, yes, invite
           if err or !invite? 
-            callback new KodingError 'Invalid invitation ID!'
+            callback createKodingError 'Invalid invitation ID!'
           else 
             callback null, yes, invite
       else
-        callback new KodingError 'Invitation code is required!'
+        callback createKodingError 'Invitation code is required!'
   
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
@@ -303,24 +307,24 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback err
       else if r.forbidden
-        callback new KodingError 'That username is forbidden!'
+        callback createKodingError 'That username is forbidden!'
       else if r.kodingUser
-        callback new KodingError 'That username is taken!'
+        callback createKodingError 'That username is taken!'
       else
         @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
           if err
-            callback new KodingError err.message
+            callback createKodingError err.message
           else
             if passwordConfirm isnt password
-              return callback new KodingError 'Passwords must be the same'
+              return callback createKodingError 'Passwords must be the same'
             else if agree isnt 'on'
-              return callback new KodingError 'You have to agree to the TOS'
+              return callback createKodingError 'You have to agree to the TOS'
             else if not username? or not email?
-              return callback new KodingError 'Username and email are required fields'
+              return callback createKodingError 'Username and email are required fields'
             
             @verifyKodingenPassword {username, password, kodingenUser}, (err)->
               if err
-                return callback new KodingError 'Wrong password'
+                return callback createKodingError 'Wrong password'
               else
                 nickname = username
                 connection.remote.fetchClientId (clientId)->
@@ -329,7 +333,7 @@ module.exports = class JUser extends jraphical.Module
                     if err
                       callback err
                     else unless session
-                      callback new KodingError 'Could not restore your session!'
+                      callback createKodingError 'Could not restore your session!'
                     else
                       salt = createSalt()
                       user = new JUser {

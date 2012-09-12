@@ -33,9 +33,9 @@ module.exports = class JSession extends Model
   @createSession =(callback)->
     clientId = createId()
     guest = new JGuest {clientId}
-    guest.save (err, docs)->
+    guest.save (err, docs)=>
       if err
-        visitor.emit 'error', err
+        @emit 'error', err
       else
         {guestId} = guest
         session = new JSession {

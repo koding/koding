@@ -44,16 +44,15 @@ app.get '/auth', do ->
     channel = req.query?.channel
     return res.send 'user error', 400 unless channel
     clientId = req.cookies.clientid
-    console.log clientId
     JSession.fetchSession {clientId}, (err, session)->
       if err
         authenticationFailed(res, err)
       else
         [priv, type, pubName] = channel.split '-'
         if /^bongo\./.test type
-          console.log 'in here'
           privName = 'secret-bongo-'+hat()+'.private'
           koding.mq.funnel privName, koding.queueName
+          koding.mq.on privName, 'disconnect', console.log
           res.send privName
         else unless session?
           authenticationFailed(res)

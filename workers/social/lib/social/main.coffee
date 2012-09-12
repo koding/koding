@@ -50,6 +50,12 @@ koding = new Bongo
   mongo   : dbUrl
   models  : require('path').join __dirname, './models'
   queueName: 'koding-social'
+  fetchClient:(sessionToken, callback)->
+    koding.models.JUser.authenticateClient sessionToken, (err, account)->
+      if err
+        koding.emit 'error', err
+      else
+        callback {connection:delegate:account}
   mq      : new Broker {
     host      : "localhost"
     login     : "guest"
@@ -58,7 +64,7 @@ koding = new Bongo
     #login     : "guest"
     #password  : "x1srTA7!%Vb}$n|S"
   }
-koding.on 'auth', (client)->
-  koding.models.JUser.authenticateClient client, (err, account)->
-    koding.handleResponse client.secretName, 'changeLoggedInState', [account]
+koding.on 'auth', (exchange, sessionToken)->
+  koding.fetchClient sessionToken, (client)->
+    koding.handleResponse exchange, 'changeLoggedInState', [client.connection.delegate]
 koding.connect console.log
