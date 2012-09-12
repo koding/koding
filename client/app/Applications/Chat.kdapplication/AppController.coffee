@@ -6,7 +6,7 @@ Channel instance.
 TOPICREGEX = /[#|@]([\w-]+)/g
 
 class Chat12345 extends AppController
-  {mq} = bongo
+  {mq} = KD.remote
   PUBLIC = 'public'
 
   constructor:(options = {}, data)->

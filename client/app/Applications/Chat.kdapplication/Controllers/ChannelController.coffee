@@ -15,7 +15,7 @@ class ChannelController extends KDEventEmitter #KDViewController
         @view.setUnreadCount @unreadCount
 
   addOnlineUser: (name) ->
-    bongo.api.JAccount.one "profile.nickname" : name, (err, account)=>
+    KD.remote.JAccount.one "profile.nickname" : name, (err, account)=>
       viewInstance = @view.addRosterItem account
       @participants[name] = viewInstance
       viewInstance
