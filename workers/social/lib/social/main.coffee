@@ -66,5 +66,10 @@ koding = new Bongo
   }
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
-    koding.handleResponse exchange, 'changeLoggedInState', [client.connection.delegate]
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+    ownExchange = "x#{nickname}"
+    koding.mq.bindQueue ownExchange, ownExchange, '#'
+
+    koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect console.log
