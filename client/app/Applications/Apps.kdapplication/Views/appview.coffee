@@ -6,8 +6,6 @@ class AppView extends KDView
 
     app = @getData()
 
-    log app
-
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
@@ -74,11 +72,14 @@ class AppView extends KDView
     @template.update()
 
   putThumb:(manifest)->
-    {icns} = manifest
-    if icns
-      thumb = "<img src='#{icns["128"] or icns["256"] or icns["512"] or icns["64"] or icns["32"] or '/images/default.app.listthumb.png'}'/>"
+
+    {icns, name, version, authorNick} = manifest
+    src = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
     else
-      ""
+      "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    return "<img src='#{src}'/>"
 
   pistachio:->
     """
