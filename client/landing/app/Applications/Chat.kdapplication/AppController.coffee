@@ -117,7 +117,7 @@ class Chat12345 extends AppController
 
   deliverMessageToChannel: (channel, message) ->
     {author} = message
-    bongo.api.JAccount.one "profile.nickname" : author, (err, account)=>
+    KD.remote.api.JAccount.one "profile.nickname" : author, (err, account)=>
       message.author = account
       itemInstance = channel.messageReceived message
       itemInstance.registerListener
@@ -129,7 +129,7 @@ class Chat12345 extends AppController
           @joinChannel channelName
 
   fetchAutoCompleteForMentionField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
 ###
