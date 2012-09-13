@@ -43,17 +43,13 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 						log.Debug("Client disconnected: " + user)
 					}()
 
-					messageChannel := createChannel(consumeConn)
+					messageStream, messageChannel := declareBindConsumeQueue(consumeConn, "", "client-message.*", secretName)
 					defer messageChannel.Close()
-					messageStream, err := messageChannel.Consume(secretName, "", true, false, false, false, nil)
-					if err != nil {
-						panic(err)
-					}
 
 					publishChannel := createChannel(consumeConn)
 					defer publishChannel.Close()
 
-					node := dnode.New(&connection{messageStream, publishChannel, "reply-" + secretName, make([]byte, 0)})
+					node := dnode.New(&connection{messageStream, publishChannel, secretName, "", make([]byte, 0)})
 					node.OnRootMethod = func(method string, args []interface{}) {
 						result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
 						if result != nil {

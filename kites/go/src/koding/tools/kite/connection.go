@@ -10,6 +10,7 @@ type connection struct {
 	messageStream   <-chan amqp.Delivery
 	publishChannel  *amqp.Channel
 	replyExchange   string
+	replyKey        string
 	bufferedMessage []byte
 }
 
@@ -19,6 +20,7 @@ func (conn *connection) Read(p []byte) (int, error) {
 		if !ok {
 			return 0, io.EOF
 		}
+		conn.replyKey = "reply-" + message.RoutingKey
 		conn.bufferedMessage = message.Body
 		log.Debug("Read", message.Body)
 	}
@@ -29,7 +31,7 @@ func (conn *connection) Read(p []byte) (int, error) {
 
 func (conn *connection) Write(p []byte) (int, error) {
 	log.Debug("Write", p)
-	err := conn.publishChannel.Publish(conn.replyExchange, "reply-client-message", false, false, amqp.Publishing{Body: p})
+	err := conn.publishChannel.Publish(conn.replyExchange, conn.replyKey, false, false, amqp.Publishing{Body: p})
 	if err != nil {
 		return 0, err
 	}
