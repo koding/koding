@@ -215,18 +215,22 @@ class NFinderTreeController extends JTreeViewController
 
   confirmDelete:(nodeView, event)->
 
+    extension = nodeView.data?.getExtension() or null
+
     if @selectedNodes.length > 1
       new NFinderDeleteDialog {},
         items     : @selectedNodes
         callback  : (confirmation)=>
           @deleteFiles @selectedNodes if confirmation
           @setKeyView()
+          @runPostActions 'delete', extension
     else
       @beingEdited = nodeView
       nodeView.confirmDelete (confirmation)=>
         @deleteFiles [nodeView] if confirmation
         @setKeyView()
         @beingEdited = null
+        @runPostActions 'delete', extension
 
   deleteFiles:(nodes, callback)->
 
