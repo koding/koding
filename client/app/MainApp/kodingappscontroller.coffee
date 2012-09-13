@@ -376,9 +376,10 @@ class KodingAppsController extends KDController
 
         _final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
-          _final += "\n\n/* BLOCK STARTS */\n\n"
-          _final += "#{output}"
-          _final += "\n\n/* BLOCK ENDS */\n\n"
+          if output
+            _final += "\n\n/* BLOCK STARTS */\n\n"
+            _final += "#{output}"
+            _final += "\n\n/* BLOCK ENDS */\n\n"
         _final += "/* KDAPP ENDS */\n\n}).call();"
 
 
