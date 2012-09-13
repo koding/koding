@@ -421,11 +421,12 @@ class KodingAppsController extends KDController
                 log "kite response", err, res
                 if err then warn err
                 else
-                  app.install (err)->
+                  app.install (err)=>
                     log err if err
                     log callback
                     # This doesnt work :#
                     appManager.openApplication "StartTab"
+                    @refreshApps()
                     # callback?()
 
   # #
