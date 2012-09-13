@@ -33,13 +33,13 @@ function receiveMessage(event)
     $("body").html(codeshare.html);
 
 
+    // Execute JS
+    try {
+            js = $.globalEval(codeshare.js), $(window).load()
+        } catch (err) {
+            typeof console != "undefined" && console.log(err.message)
+        }
 
-    // Inject JS
-    share_script      = document.createElement("script");
-    share_script.type = "text/javascript";
-    share_script.text = codeshare.js;
-    share_script.defer ="true"
-    document.body.appendChild(share_script);
 
 
 }
