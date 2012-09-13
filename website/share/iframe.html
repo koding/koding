@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src='//code.jquery.com/jquery-latest.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js'></script>
+<script src='/js/prefixfree.dynamic-dom.min.js'></script>
+<style type="text/css" id="codeshare_style"></style>
+
+<script type="text/javascript">
+
+
+$(window).load(function(){
+
+// Fetch the postMessage from the parent App
+window.addEventListener("message", receiveMessage, false);
+
+function receiveMessage(event)
+{
+    var codeshare, share_script;
+
+    if (event.data != null) codeshare = event.data;
+
+    // Prepare the CSS
+      if (codeshare.cssPrefix === true) {
+        codeshare.css = PrefixFree.prefixCSS(codeshare.css, true);
+      }
+
+
+    // Inject CSS
+    $("head style#codeshare_style").html(codeshare.css, true);
+
+    // Inject HTML
+    $("body").html(codeshare.html);
+
+
+
+    // Inject JS
+    share_script      = document.createElement("script");
+    share_script.type = "text/javascript";
+    share_script.text = codeshare.js;
+    share_script.defer ="true"
+    document.body.appendChild(share_script);
+
+
+}
+
+
+    });
+</script>
+</head>
+<body>
+<p>This page is currently loading your Code Share</p>
+
+
+</body>
+</html>
