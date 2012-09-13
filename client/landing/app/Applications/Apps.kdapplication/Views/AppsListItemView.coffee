@@ -6,9 +6,9 @@ class AppsListItemView extends KDListItemView
 
     super options,data
 
-    {icns, name, version} = @getData().manifest
+    {icns, name, version, authorNick} = @getData().manifest
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+      thumb = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['160'] or icns['128'] or icns['256'] or icns['512'] or icns['64']}"
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 

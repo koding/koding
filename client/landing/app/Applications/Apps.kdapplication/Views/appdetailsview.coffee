@@ -5,6 +5,7 @@ class AppDetailsView extends KDScrollView
     super
 
     app = @getData()
+    {icns, name, version, authorNick} = app.manifest
 
     @listenWindowResize()
 
@@ -14,7 +15,7 @@ class AppDetailsView extends KDScrollView
         slides = app.manifest.screenshots or []
         tmpl = ''
         for slide in slides
-          tmpl += "<li><img src=\"#{slide}\" /></li>"
+          tmpl += "<li><img src=\"#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{slide}\" /></li>"
         return tmpl
 
     @reviewView = new ReviewView {}, app
