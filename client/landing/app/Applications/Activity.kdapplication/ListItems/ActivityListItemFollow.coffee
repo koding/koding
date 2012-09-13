@@ -5,23 +5,24 @@ class FollowBucketItemView extends KDView
     JAccount  : "account"
     JApp      : "application" # We can use this in style
 
-  constructor:(options,data)->
-    options = $.extend options,
-      cssClass : "follow bucket #{cssClassMap()[data.sourceName]}"
+  constructor:(options = {}, data)->
+
+    options.cssClass or= "follow bucket #{cssClassMap()[data.sourceName]}"
+
     super options,data
 
     @action = "followed"
+
     if data.group[0]?.constructorName is "JApp"
       @action = "installed"
 
-    @anchor = new ProfileLinkView
-      origin: data.anchor
+    @anchor = new ProfileLinkView origin: data.anchor
+
     @group = new LinkGroup
       group         : data.group
       itemsToShow   : 3
       subItemClass  : options.subItemLinkClass
-
-    #@getData().on 'ItemWasAdded', -> log 'heres the event, sinan', arguments
+      separator     : if data.sourceName in ['JApp', 'JTag'] then ' ' else ', '
 
   pistachio:->
     """

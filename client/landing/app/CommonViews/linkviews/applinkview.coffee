@@ -1,6 +1,9 @@
 class AppLinkView extends LinkView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data)->
+
+    options.cssClass = 'app'
+
     super options, data
 
     # FIXME something wrong with setTooltip
@@ -17,8 +20,10 @@ class AppLinkView extends LinkView
         @destroy()
 
   pistachio:->
+
     super "{{#(title)}}"
 
   click:->
+
     app = @getData()
     appManager.tell "Apps", "createContentDisplay", app

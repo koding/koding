@@ -34,8 +34,6 @@ class ActivityListItemView extends KDListItemView
 
     data = @getData()
 
-#    log data
-
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
 
