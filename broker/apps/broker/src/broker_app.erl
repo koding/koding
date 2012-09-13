@@ -49,12 +49,9 @@ start() ->
 
 start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
-    Port = 8008,
+    Port = get_env(port, 8008),
 
     error_logger:tty(get_env(verbose, true)),
-
-    % This will start the Broker gen_server and the subscription_sup
-    broker:start_link(),
     
     SockjsState = sockjs_handler:init_state(
                     <<"/subscribe">>, fun handle_client/3, {}, []),
@@ -153,11 +150,17 @@ handle_client(Conn, closed, #client{socket_id=SocketId,
     Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
     send_system_event(Conn, Event, [Sid, Exchanges]),
 
+    Handler = fun
+        (Sub) ->
+            broker:trigger(Sub, Event, jsx:encode([Sid]), [], true),
+            broker:unsubscribe(Sub)
+    end,
+
     case dict:size(Subscriptions) of 
         0 -> ok;
         _ ->
             List = dict:to_list(Subscriptions),
-            [broker:unsubscribe(Subscription) 
+            [Handler(Subscription) 
                 || {_Exchange, Subscription} <- List]
     end,
     {ok, #client{}};

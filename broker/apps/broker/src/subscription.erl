@@ -10,7 +10,7 @@
 -behaviour(gen_server).
 %% API
 -export([start_link/4, stop/1, 
-        bind/2, unbind/2, trigger/4, rpc/3,
+        bind/2, unbind/2, trigger/5, rpc/3,
         notify_first/3]).
 %% gen_server callbacks
 -export([init/1, terminate/2, code_change/3,
@@ -51,8 +51,9 @@ bind(Subscription, Event) ->
 unbind(Subscription, Event) ->
     gen_server:call(Subscription, {unbind, Event}).
 
-trigger(Subscription, Event, Payload, Meta) ->
-    gen_server:call(Subscription, {trigger, Event, Payload, Meta}).
+trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
+    CallData = {trigger, Event, Payload, Meta, NoRestriction},
+    gen_server:call(Subscription, CallData).
 
 stop(Subscription) ->
     gen_server:cast(Subscription, stop).
@@ -155,21 +156,23 @@ handle_call({unbind, Event}, _From, State=#state{channel=Channel,
 %%  Event = binary(),
 %%  Payload = bitstring(),
 %%  Meta = [Props],
+%%  NoRestriction = boolean(),
 %%  Props = {<<"replyTo">>, ReplyTo} || TBA
 %%  ReplyTo = binary(),
 %%  From = pid(),
 %%  State = #state{}
 %% Description: Handling key unbinding from the exchange.
 %%--------------------------------------------------------------------
-handle_call({trigger, Event, Payload, Meta}, From, 
+handle_call({trigger, Event, Payload, Meta, NoRestriction}, From, 
             State=#state{channel=Channel,
                         exchange=Exchange,
                         broadcastable=Broadcastable}) ->
-    case Broadcastable of 
-        true -> 
+
+    case {NoRestriction, Broadcastable} of 
+        {false, false} -> {reply, ok, State};
+        {_, _} ->  
             broadcast(From, Channel, Exchange, Event, Payload, Meta),
-            {reply, ok, State};
-        false -> {reply, ok, State}
+            {reply, ok, State}
     end;
 
 %%--------------------------------------------------------------------
@@ -396,11 +399,10 @@ subscribe(Sender, Channel, Exchange, Type, Durable, AutoDelete) ->
 %%--------------------------------------------------------------------
 bind_queue(Channel, Exchange, Routing) ->
     % Ensure the client has time to consume the message
-    Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
+    % Args = [{<<"x-message-ttl">>, long, ?MESSAGE_TTL}],
     #'queue.declare_ok'{queue = Queue} =
         amqp_channel:call(Channel, #'queue.declare'{exclusive = true,
-                                                    durable = true,
-                                                    arguments = Args}),
+                                                    durable = true}),
 
     Binding = #'queue.bind'{exchange = Exchange,
                             routing_key = Routing,
