@@ -36,7 +36,6 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinForkButton = new KDButtonView
       title: "Fork this"
       cssClass:"clean-gray fork-button"
-      disabled:yes
       click:=>
 
   render:->
@@ -119,6 +118,9 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @kiteController = @getSingleton('kiteController')
 
+    @appendResultFrame "/share/iframe.html"
+    # @appendResultFrame "//lampuki.de/iframe.html"
+
     @on "CodeBinSourceHasChanges",=>
 
       codebin = @getData()
@@ -144,8 +146,21 @@ class CodeBinResultView extends KDCustomHTMLView
       @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
       @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
 
-      # remove this line when using on live servers --arvid
-      @appendResultFrame "//lampuki.de/iframe.html"
+      resultObject =
+        html          : Encoder.htmlDecode(codebin.attachments[0].content)
+        htmlType      : "html"
+
+        css           : Encoder.htmlDecode(codebin.attachments[1].content)
+        cssType       : "css"
+        cssPrefix     : yes
+
+        js            : Encoder.htmlDecode(codebin.attachments[2].content)
+        jsType        : "js"
+
+
+      @$(".result-frame")[0].contentWindow.postMessage(resultObject,"*")
+
+
 
       ###//////////////////////////////////////////////////////////////////////
       #
@@ -185,6 +200,8 @@ class CodeBinResultView extends KDCustomHTMLView
       #
       #
       ///////////////////////////////////////////////////////////////////// ###
+
+
 
 
   appendResultFrame:(url)=>

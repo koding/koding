@@ -84,6 +84,38 @@ class ActivityCodeBinWidget extends KDFormView
         speed       : 1
         FPS         : 24
 
+    @HTMLfullScreenBtn = new KDButtonView
+      style           : "clean-gray"
+      cssClass        : "fullscreen-button"
+      title           : "Fullscreen HTML Editor"
+      callback: =>
+        modal = new KDModalView
+          title       : "What do you want to discuss?"
+          cssClass    : "modal-fullscreen"
+          height      : $(window).height()-110
+          width       : $(window).width()-110
+          position:
+            top       : 55
+            left      : 55
+          overlay     : yes
+          content     : "" #"<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@HTMLace.getContents()+"</textarea></div>"
+          buttons     :
+            Cancel    :
+              title   : "Discard changes"
+              style   : "modal-clean-gray"
+              callback:=>
+                modal.destroy()
+            Apply     :
+              title   : "Apply changes"
+              style   : "modal-clean-gray"
+              callback:=>
+                @HTMLace.setContents $("#fullscreen-data").val()
+                modal.destroy()
+
+        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
+        # modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
+        # modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+
     @labelCSSContent = new KDLabelView
       title : "CSS:"
 
@@ -242,9 +274,9 @@ class ActivityCodeBinWidget extends KDFormView
       @emit "codeBin.aceLoaded"
 
   refreshEditorView:->
-    lines = @HTMLace.editor.selection.doc.$lines
-    lineAmount = if lines.length > 10 then 10 else if lines.length < 5 then 5 else lines.length
-    @setAceHeightByLines lineAmount
+    # lines = @HTMLace.editor.selection.doc.$lines
+    # lineAmount = if lines.length > 10 then 10 else if lines.length < 5 then 5 else lines.length
+    # @setAceHeightByLines lineAmount
 
   setAceHeightByLines: (lineAmount) ->
     lineHeight  = @HTMLace.editor.renderer.lineHeight
@@ -283,6 +315,7 @@ class ActivityCodeBinWidget extends KDFormView
             {{> @HTMLloader}}
             {{> @aceHTMLWrapper}}
           </div>
+          {{> @HTMLfullScreenBtn}}
         </div>
         <div class="formline">
           {{> @labelCSSContent}}
