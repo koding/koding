@@ -164,7 +164,9 @@ Includes =
         KDImage             : "./client/Framework/components/image/KDImage.coffee"
 
         # split
-        KDSplitView         : "./client/Framework/components/split/KDSplitView.coffee"
+        KDSplitView         : "./client/Framework/components/split/splitview.coffee"
+        KDSplitResizer      : "./client/Framework/components/split/splitresizer.coffee"
+        KDSplitPanel        : "./client/Framework/components/split/splitpanel.coffee"
 
         # header
         KDHeaderView        : "./client/Framework/components/header/KDHeaderView.coffee"

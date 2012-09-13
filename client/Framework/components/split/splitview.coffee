@@ -1,24 +1,25 @@
 class KDSplitView extends KDView
 
   constructor:(options = {},data)->
-    options = $.extend
-      type      : "vertical"    # "vertical" or "horizontal"
-      resizable : yes           # yes or no
-      sizes     : ["50%","50%"] # an Array of Strings such as ["50%","50%"] or ["500px","150px",null] and null for the available rest area
-      minimums  : null          # an Array of Strings
-      maximums  : null          # an Array of Strings
-      views     : null          # an Array of KDViews
-      duration  : 200           # a Number in miliseconds
-      separator : null          # a KDView instance or null for default separator
-      cssClass  : ""            # a String
-      colored   : no
-      animated  : yes           # a Boolean
-    ,options
+
+    options.type      or= "vertical"    # "vertical" or "horizontal"
+    options.resizable  ?= yes           # yes or no
+    options.sizes     or= ["50%","50%"] # an Array of Strings such as ["50%","50%"] or ["500px","150px",null] and null for the available rest area
+    options.minimums  or= null          # an Array of Strings
+    options.maximums  or= null          # an Array of Strings
+    options.views     or= null          # an Array of KDViews
+    options.duration  or= 200           # a Number in miliseconds
+    options.separator or= null          # a KDView instance or null for default separator
+    options.colored    ?= no
+    options.animated   ?= yes           # a Boolean
+
     super options,data
+
     @_setInstanceVariables()
 
 
   viewAppended:->
+
     @sizes = @_sanitizeSizes()
 
     @_putClassNames()
@@ -199,16 +200,17 @@ class KDSplitView extends KDView
     for size,index in @options.sizes
       panelsToBeResized.push index if size is null
 
-    occupiedSize = 0
+    if panelsToBeResized.length is 0
+      panelsToBeResized = (index for size,index in @options.sizes)
+
     for size,index in @sizes
-      if panelsToBeResized.indexOf index
+      if index in panelsToBeResized
         @options.sizes[index] = size
-        occupiedSize += size
 
 
   # EVENT HANDLING
   _windowDidResize:(event)=>
-
+    log "_windowDidResize"
     # this is a hack and should be removed
     # because we have an animation in contentpanel
     # i had to do this otherwise a big refactoring is necessary
@@ -449,144 +451,3 @@ class KDSplitView extends KDView
       warn "Either 'view' or 'index' is missing at KDSplitView::setView!"
       return
     @panels[index].addSubView view
-
-
-class KDSplitResizer extends KDView
-  constructor:->
-    super
-    {@panel0,@panel1} = @options
-    @isVertical = @options.type.toLowerCase() is "vertical"
-
-  _setOffset:(offset)->
-    offset = 0 if offset < 0
-    if @isVertical then @$().css left : offset-5 else @$().css top : offset-5
-
-  _getOffset:(offset)->
-    if @isVertical then @getRelativeX() else @getRelativeY()
-
-  _animateTo:(offset)->
-    offset -= @getWidth() / 2
-    d = @parent.options.duration
-    if @isVertical
-      @$().animate left : offset,d
-    else
-      @$().animate top : offset,d
-
-  mouseUp:(event)->
-    @parent._resizeDidStop event
-
-  mouseDown:(event)->
-    @parent._resizeDidStart event
-    rOffset = @_getOffset()
-    p0Size = @panel0._getSize()
-    p1Size = @panel1._getSize()
-    p1Offset = @panel1._getOffset()
-
-    @parent.$().bind "mousemove.resizeHandle",(dynamicEvent)=>
-      if @isVertical
-        # calculate moved mouse distance
-        deltaX = dynamicEvent.clientX - event.clientX
-        # check if views are fine with that
-        p0WouldResize = @panel0._wouldResize deltaX + p0Size
-        p1WouldResize = @panel1._wouldResize -deltaX + p1Size
-        # see if they resize
-        p0DidResize = if p0WouldResize and p1WouldResize then @panel0._setSize deltaX + p0Size else no
-        p1DidResize = if p0WouldResize and p1WouldResize then @panel1._setSize -deltaX + p1Size else no
-        # set the changed offset of second panel
-        @panel1._setOffset deltaX + p1Offset if p0DidResize and p1DidResize
-        # set the resizers offset
-        @_setOffset rOffset + deltaX + 5 if p0DidResize and p1DidResize
-      else
-        # calculate moved mouse distance
-        deltaY = dynamicEvent.clientY - event.clientY
-        # check if views are fine with that
-        p0WouldResize = @panel0._wouldResize deltaY + p0Size
-        p1WouldResize = @panel1._wouldResize -deltaY + p1Size
-        # see if they resize
-        p0DidResize = if p0WouldResize and p1WouldResize then @panel0._setSize deltaY + p0Size else no
-        p1DidResize = if p0WouldResize and p1WouldResize then @panel1._setSize -deltaY + p1Size else no
-        # set the changed offset of second panel
-        @panel1._setOffset deltaY + p1Offset if p0DidResize and p1DidResize
-        # set the resizers offset
-        @_setOffset rOffset + deltaY + 5 if p0DidResize and p1DidResize
-    yes
-
-class KDSplitViewPanel extends KDScrollView
-  constructor:(options,data)->
-    # options = $.extend
-    #   ownScrollBars : yes
-    # ,options
-    super options,data
-    @isVertical = @options.type.toLowerCase() is "vertical"
-    {@size,@minimum,@maximum,@index} = @options
-
-  _getSize:->if @isVertical then @getWidth() else @getHeight()
-
-  _setSize:(size)->
-    if @_wouldResize size
-      size = 0 if size < 0
-      if @isVertical then @setWidth size else @setHeight size
-      @parent.sizes[@index] = @size = size
-      @parent.emit "PanelDidResize", panel: @
-      @emit "PanelDidResize", newSize : size
-    else
-      no
-
-  _wouldResize:(size)->
-    @minimum ?= -1
-    @maximum ?= 99999
-    # log size,@minimum,@maximum if @parent.options.domId is "content-area-split-view"
-    if size > @minimum and size < @maximum
-      # log size,@parent.options.domId
-      yes
-    else
-      if size < @minimum
-        @parent._panelReachedMinimum @index
-      else if size > @maximum
-        @parent._panelReachedMaximum @index
-      no
-
-  _setOffset:(offset)->
-    offset = 0 if offset < 0
-    if @isVertical then @$().css(left : offset) else @$().css(top : offset)
-    @parent.panelsBounds[@index] = offset
-
-  _getOffset:->
-    if @isVertical then @getRelativeX() else @getRelativeY()
-
-  _animateTo:(size,offset,callback)=>
-    if "undefined" is typeof callback and "function" is typeof offset then callback = offset
-    callback or= noop
-
-    panel = @
-    d     = panel.parent.options.duration
-    cb    = ()->
-      # setTimeout do ->
-      newSize = panel._getSize()
-      panel.parent.sizes[panel.index] = panel.size = newSize
-      panel.parent.emit "PanelDidResize", panel: panel
-      panel.emit "PanelDidResize", newSize : newSize
-      callback.call panel
-      # ,100
-
-
-    properties = {}
-    size = 0 if size < 0
-    if panel.isVertical
-      properties.width  = size
-      properties.left   = offset if offset?
-    else
-      properties.height = size
-      properties.top    = offset if offset?
-
-    options =
-      duration : d
-      complete : cb
-      # step     : (newSize)-> panel.parent.handleEvent {
-      #   type : "PanelIsBeingResized"
-      #   panel
-      #   newSize
-      # }
-
-    panel.$().stop()
-    panel.$().animate properties,options
