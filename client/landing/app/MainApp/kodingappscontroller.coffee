@@ -159,7 +159,12 @@ class KodingAppsController extends KDController
 
     @constructor.manifests = {}
     KDApps = {}
-    @fetchAppsFromFs callback
+    @fetchAppsFromFs (err, apps)=>
+      if not err
+        @emit "AppsRefreshed", apps
+        callback? err, apps
+      else
+        callback err
 
   putAppsToAppStorage:(apps)->
 
