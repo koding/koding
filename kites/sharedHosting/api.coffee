@@ -166,26 +166,27 @@ module.exports = new Kite 'sharedHosting'
       console.error err if err
       callback? err, null
 
-    mkdirp appRootPath, (err)->
-      if err then cb err
-      else
-        exec "stat #{versionedPath}", (err, stdout, stderr)->
-          unless err or stderr.length
-            cb "[ERROR] Version is already published, change version and try again!"
-          else
-            exec "rm -f #{latestPath} && cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
-              if err or stderr then cb err
-              else
-                manifestPath = "#{versionedPath}/.manifest"
-                exec "cat #{manifestPath}", (err, stdout, stderr)->
-                  if err or stderr then cb err
-                  else
-                    exec "rm -f #{manifestPath}", ->
-                      manifest = JSON.parse stdout
-                      manifest.authorNick = username
-                      delete manifest.devMode if manifest.devMode
-                      unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
-                      fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
+    createAppsDir username, (err)->
+      makedirp appRootPath, username, (err)->
+        if err then cb err
+        else
+          exec "stat #{versionedPath}", (err, stdout, stderr)->
+            unless err or stderr.length
+              cb "[ERROR] Version is already published, change version and try again!"
+            else
+              exec "rm -f #{latestPath} && cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+                if err or stderr then cb err
+                else
+                  manifestPath = "#{versionedPath}/.manifest"
+                  exec "cat #{manifestPath}", (err, stdout, stderr)->
+                    if err or stderr then cb err
+                    else
+                      exec "rm -f #{manifestPath}", ->
+                        manifest = JSON.parse stdout
+                        manifest.authorNick = username
+                        delete manifest.devMode if manifest.devMode
+                        unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
+                        fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 
   downloadApp: (options, callback)->
 
