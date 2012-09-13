@@ -47,17 +47,56 @@ class CodeBinActivityItemView extends ActivityItemChild
       click:=>
         @codeBinResultButton.setTitle "Reset"
         @codeBinResultView.show()
+        @resultBanner.hide()
+        @codeBinCloseButton.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges"
+        @codeBinContainer.showPane @codeBinResultPane
+
+    @codeBinCloseButton = new KDButtonView
+      title: "Close"
+      cssClass:"clean-gray hidden"
+      click:=>
+        @codeBinResultView.hide()
+        @codeBinResultButton.setTitle "Run"
+        @resultBanner.show()
+        @codeBinCloseButton.hide()
+
 
     @codeBinForkButton = new KDButtonView
-      title: "Fork this"
+      title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
       click:=>
+
+
+    @resultBanner = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "result-banner"
+      partial : ""
+
+    @resultBannerButton = new KDCustomHTMLView
+      name : "resultBannerButton"
+      tagName:"a"
+      attributes:
+        href:"#"
+      partial : "Click here to see the Code Share!"
+      cssClass : "result-banner-button"
+      click:=>
+        @codeBinResultButton.setTitle "Reset"
+        @codeBinResultView.show()
+        @resultBanner.hide()
+        @codeBinCloseButton.show()
+        @codeBinResultView.emit "CodeBinSourceHasChanges"
+
+
+    @resultBanner.addSubView @resultBannerButton
+
+    @codeBinResultPane.addSubView @resultBanner
 
     @codeBinResultPane.addSubView @codeBinResultView
     @codeBinHTMLPane.addSubView @codeBinHTMLView
     @codeBinCSSPane.addSubView @codeBinCSSView
     @codeBinJSPane.addSubView @codeBinJSView
+
 
     @codeBinContainer.addPane @codeBinResultPane
     @codeBinContainer.addPane @codeBinHTMLPane
@@ -124,6 +163,7 @@ class CodeBinActivityItemView extends ActivityItemChild
 
       </div>
       {{> @codeBinResultButton}}
+      {{> @codeBinCloseButton}}
       {{> @codeBinForkButton}}
 
       <footer class='clearfix'>
@@ -189,7 +229,7 @@ class CodeBinResultView extends KDCustomHTMLView
         jsType        : "js"
 
 
-      @$(".result-frame")[0].contentWindow.postMessage(resultObject,"*")
+      @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),"*")
 
 
 
