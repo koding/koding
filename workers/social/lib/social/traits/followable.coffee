@@ -1,4 +1,6 @@
 jraphical = require 'jraphical'
+{KodingError} = require '../error.coffee'
+CBucket = require '../models/bucket'
 
 module.exports = class Followable extends jraphical.Module
 
@@ -81,7 +83,8 @@ module.exports = class Followable extends jraphical.Module
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
-              newFollower     : follower
+              follower        : follower
+              action          : "follow"
 
             follower.updateFollowingCount()
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
@@ -110,7 +113,8 @@ module.exports = class Followable extends jraphical.Module
         @emit 'FollowCountChanged'
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
-          oldFollower     : follower
+          follower        : follower
+          action          : "unfollow"
         follower.updateFollowingCount()
 
   fetchFollowing: (query, page, callback)->
