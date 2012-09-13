@@ -1,5 +1,5 @@
 
-class AppStorage # extends KDObject
+class AppStorage
 
   constructor: (appId, version)->
     @_applicationID = appId
@@ -17,20 +17,18 @@ class AppStorage # extends KDObject
     else
       callback @_storage
 
-  fetchValue: (key, defaultValue, callback, group = 'bucket')->
+  fetchValue: (key, callback, group = 'bucket')->
 
     @reset()
     @fetchStorage (storage)=>
-      callback if storage[group]?[key] then storage[group][key] else defaultValue
+      callback if storage[group]?[key] then storage[group][key]
 
-  getValue: (key, defaultValue, group = 'bucket')->
+  getValue: (key, group = 'bucket')->
 
-    return defaultValue unless @_storage
-    return if @_storage[group]?[key]? then @_storage[group][key] else defaultValue
+    return unless @_storage
+    return if @_storage[group]?[key]? then @_storage[group][key]
 
   setValue: (key, value, callback, group = 'bucket')->
-
-    return if @getValue(key) is value
 
     pack = @zip key, group, value
 
