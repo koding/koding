@@ -109,32 +109,32 @@ class Ace extends KDView
   getSyntax:-> @syntaxMode
 
   getUseSoftTabs:->
-    @appStorage.getValue 'useSoftTabs', @editor.getSession().getUseSoftTabs()
+    @appStorage.getValue('useSoftTabs') or @editor.getSession().getUseSoftTabs()
 
   getShowGutter:->
-    @appStorage.getValue 'showGutter', @editor.renderer.getShowGutter()
+    @appStorage.getValue('showGutter') or @editor.renderer.getShowGutter()
 
   getShowPrintMargin:->
-    @appStorage.getValue 'showPrintMargin', @editor.getShowPrintMargin()
+    @appStorage.getValue('showPrintMargin') or @editor.getShowPrintMargin()
 
   getHighlightActiveLine:->
-    @appStorage.getValue 'highlightActiveLine', @editor.getHighlightActiveLine()
+    @appStorage.getValue('highlightActiveLine') or @editor.getHighlightActiveLine()
 
   getShowInvisibles:->
-    @appStorage.getValue 'showInvisibles', @editor.getShowInvisibles()
+    @appStorage.getValue('showInvisibles') or @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue 'fontSize', parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
+    @appStorage.getValue('fontSize') or parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
 
   getTabSize:->
-    @appStorage.getValue 'tabSize', @editor.getSession().getTabSize()
+    @appStorage.getValue('tabSize') or @editor.getSession().getTabSize()
 
   getUseWordWrap:->
-    @appStorage.getValue 'useWordWrap', @editor.getSession().getUseWrapMode()
+    @appStorage.getValue('useWordWrap') or @editor.getSession().getUseWrapMode()
 
   getSoftWrap:->
 
-    limit = @appStorage.getValue 'softWrap', @editor.getSession().getWrapLimitRange().max
+    limit = @appStorage.getValue('softWrap') or @editor.getSession().getWrapLimitRange().max
     if limit then limit
     else
       if @getUseWordWrap() then "free" else "off"
@@ -159,7 +159,7 @@ class Ace extends KDView
   setContents:(contents)-> @editor.getSession().setValue contents
 
   setTheme:(themeName)->
-    themeName or= @appStorage.getValue 'theme', 'merbivore_soft'
+    themeName or= @appStorage.getValue('theme') or 'merbivore_soft'
     require ["ace/theme/#{themeName}"], (callback) =>
       @editor.setTheme "ace/theme/#{themeName}"
       @appStorage.setValue 'theme', themeName, =>

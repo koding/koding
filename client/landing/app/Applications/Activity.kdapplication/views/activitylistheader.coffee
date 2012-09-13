@@ -36,10 +36,10 @@ class ActivityListHeader extends JView
       @lowQualitySwitch = new KDCustomHTMLView
 
     @appStorage.fetchStorage (storage)=>
-      state = @appStorage.getValue 'liveUpdates', off
+      state = @appStorage.getValue('liveUpdates') or off
       @liveUpdateButton.setValue state
       @getSingleton('activityController').flags = liveUpdates : state
-      @lowQualitySwitch.setValue? @appStorage.getValue 'showLowQualityContent', off
+      @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->
     "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}}{{> @showNewItemsLink}}"
