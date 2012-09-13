@@ -26,7 +26,7 @@ class Inbox12345 extends AppController
     #KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   loadView:(mainView)->
@@ -157,7 +157,7 @@ class Inbox12345 extends AppController
 
   sendMessage:(messageDetails, callback)->
     # log "I just send a new message: ", messageDetails
-    bongo.api.JPrivateMessage.create messageDetails, callback
+    KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)=>
     {body, subject, recipients} = formOutput

@@ -141,12 +141,12 @@ module.exports = class JPost extends jraphical.Message
             callback null, teaser
             queue.next()
         ->
-          console.log 'hello'
           status.addParticipant delegate, 'author'
       ]
 
   constructor:->
     super
+    console.log 'how often this?', @constructor
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 
