@@ -34,16 +34,17 @@ class Ace extends KDView
 
     @setTheme()
     @setSyntax()
-    @setUseSoftTabs         @appStorage.getValue 'useSoftTabs',         yes
-    @setShowGutter          @appStorage.getValue 'showGutter',          yes
-    @setUseWordWrap         @appStorage.getValue 'useWordWrap',         no
-    @setShowPrintMargin     @appStorage.getValue 'showPrintMargin',     no
-    @setHighlightActiveLine @appStorage.getValue 'highlightActiveLine', yes
-    @setShowInvisibles      @appStorage.getValue 'showInvisibles',      no
-    @setSoftWrap            @appStorage.getValue 'softWrap',            'off'
-    @setFontSize            @appStorage.getValue 'fontSize',            12
-    @setTabSize             @appStorage.getValue 'tabSize',             4
     @setEditorListeners()
+    @appStorage.fetchStorage (storage)=>
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         or yes
+      @setShowGutter          @appStorage.getValue('showGutter')          or yes
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         or no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     or no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') or yes
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      or no
+      @setSoftWrap            @appStorage.getValue('softWrap')            or 'off'
+      @setFontSize            @appStorage.getValue('fontSize')            or 12
+      @setTabSize             @appStorage.getValue('tabSize')             or 4
 
   setEditorListeners:->
 
@@ -214,10 +215,10 @@ class Ace extends KDView
       @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
-    
+
     # FIXME: this causes ace to show weird 21s, 41s instead of tabs
     # temporarily disabled
-    
+
     # @editor.getSession().setTabSize value
     # @appStorage.setValue 'tabSize', value, =>
 
