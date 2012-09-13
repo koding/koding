@@ -21,13 +21,13 @@ class AppsMainView extends KDView
   #         <p>The Koding App catalog will contain the popular web apps, frameworks and goodies you are used to, along with the ability to create your own apps to share with the Koding community.</p>
   #     </div>
   #   """
-    
+
   showContentDisplay:(content,contentType)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown",contentDisplay
-  
+
   _windowDidResize:()=>
     # @appsSplitView.setRightColumnClass()
     # @appsSplitView.panels[1].$(".listview-wrapper").height @appsSplitView.getHeight() - 28
