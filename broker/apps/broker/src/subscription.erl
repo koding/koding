@@ -9,7 +9,7 @@
 -module(subscription).
 -behaviour(gen_server).
 %% API
--export([start_link/4, stop/1, 
+-export([start_link/4,
         bind/2, unbind/2, trigger/5, rpc/3,
         notify_first/3]).
 %% gen_server callbacks
@@ -54,9 +54,6 @@ unbind(Subscription, Event) ->
 trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
     CallData = {trigger, Event, Payload, Meta, NoRestriction},
     gen_server:call(Subscription, CallData).
-
-stop(Subscription) ->
-    gen_server:cast(Subscription, stop).
 
 rpc(Subscription, RoutingKey, Payload) ->
     gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
@@ -122,8 +119,8 @@ handle_call({bind, Event}, _From, State=#state{channel=Channel,
     case dict:find(Event, Bindings) of
         {ok, _Queue} -> {reply, ok, State};
         error ->
-            Queue = bind_queue(Channel, Exchange, Event),
-            NewBindings = dict:store(Event, Queue, Bindings),
+            {Queue, CTag} = bind_queue(Channel, Exchange, Event),
+            NewBindings = dict:store(Event, {Queue,CTag}, Bindings),
             {reply, ok, State#state{bindings = NewBindings}}
     end;
 
@@ -140,8 +137,8 @@ handle_call({unbind, Event}, _From, State=#state{channel=Channel,
                                                 exchange=Exchange,
                                                 bindings=Bindings}) ->
     case dict:find(Event, Bindings) of 
-        {ok, Queue} ->
-            unbind_queue(Channel, Exchange, Event, Queue),
+        {ok, {Queue, CTag}} ->
+            unbind_queue(Channel, Exchange, Event, Queue, CTag),
             % Remove from the dictionary
             NewBindings = dict:erase(Event, Bindings),
             {reply, ok, State#state{bindings = NewBindings}};
@@ -193,20 +190,6 @@ handle_call({rpc, RoutingKey, Payload}, _From, State) ->
 handle_call(_Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
-
-%%--------------------------------------------------------------------
-%% Function: %% handle_cast(stop, State) -> {noreply, State}.
-%% Types:
-%%  State = #state{}
-%% Description: Tell this gen_server to terminate normally.
-%%--------------------------------------------------------------------
-handle_cast(stop, State) ->    
-    % By replying with stop, this terminate function will be
-    % called. if any reason other than normal, shutdown or 
-    % {shutdown, Term} is used when terminate/2 is called, the
-    % OTP framework will see this as a failure and start 
-    % logging a bunch of stuff here and there for you.
-    {stop, normal, State};
     
 %%--------------------------------------------------------------------
 %% Function: handle_cast(Msg, State) -> {noreply, State} |
@@ -281,26 +264,37 @@ handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange},
     end;
 
 %%--------------------------------------------------------------------
+%% Function: handle_info(#'basic.cancel_ok'{}, State) -> 
+%%                                          {noreply, State}.
+%% Description: Ignores confirmation when cancelling subscription.
+%%--------------------------------------------------------------------
+handle_info(#'basic.cancel_ok'{}, State) ->
+    {noreply, State};
+
+%%--------------------------------------------------------------------
 %% Function: handle_info(Info, State) -> {noreply, State} |
 %% {noreply, State, Timeout} |
 %% {stop, Reason, State}
 %% Description: Handling all non call/cast messages
 %%--------------------------------------------------------------------
-handle_info(_Info, State) ->
-    io:format("Receive somehting else~n"),
+handle_info(Info, State) ->
+    io:format("Receive other message: ~p~n", [Info]),
     {noreply, State}.
     
 %%--------------------------------------------------------------------
 %% Function: terminate(Reason, State) -> void()
-%% Description: This function is called by a gen_server when it is about to
-%% terminate, or when the parent terminates. In here, we clean up all
-%% the bound queues, then closes the channel.
+%% Types:
+%%  Reason = shutdown | normal
+%% Description: This function is called by a gen_server when it is about
+%% to terminate ('normal' reason) or when the parent terminates it with
+%% 'shutdown' reason. Either reason, we unbind all queues and close
+%% the channel.
 %%--------------------------------------------------------------------
 terminate(_Reason, #state{channel = Channel,
                             exchange = Exchange,
                             bindings = Bindings}) ->
-    [unbind_queue(Channel, Exchange, Binding, Queue) || 
-        {Binding, Queue} <- dict:to_list(Bindings)],
+    [unbind_queue(Channel, Exchange, Binding, Queue, CTag) || 
+        {Binding, {Queue, CTag}} <- dict:to_list(Bindings)],
     amqp_channel:close(Channel),
     ok.
 
@@ -409,20 +403,23 @@ bind_queue(Channel, Exchange, Routing) ->
                             queue = Queue},
     #'queue.bind_ok'{} = amqp_channel:call(Channel, Binding),
     Sub = #'basic.consume'{queue = Queue, no_ack = true},
-    amqp_channel:subscribe(Channel, Sub, self()),
-    Queue.
+    #'basic.consume_ok'{consumer_tag = CTag} = 
+        amqp_channel:subscribe(Channel, Sub, self()),
+    {Queue, CTag}.
 
 %%--------------------------------------------------------------------
 %% Function: unbind_queue(Channel, Exchange, Routing, Queue) -> pid()
 %% Description: Unbinds the queue from the routing key in the exchange
 %% and deletes it.
 %%--------------------------------------------------------------------
-unbind_queue(Channel, Exchange, Routing, Queue) ->
+unbind_queue(Channel, Exchange, Routing, Queue, CTag) ->
     % Unbind the queue from the routing key
     Binding = #'queue.unbind'{  exchange    = Exchange,
                                 routing_key = Routing,
                                 queue       = Queue},
     #'queue.unbind_ok'{} = amqp_channel:call(Channel, Binding),
+    % Cancel the consumer
+    amqp_channel:call(Channel, #'basic.cancel'{consumer_tag = CTag}),
     % Delete the queue
     Delete = #'queue.delete'{queue = Queue},
     #'queue.delete_ok'{} = amqp_channel:call(Channel, Delete).

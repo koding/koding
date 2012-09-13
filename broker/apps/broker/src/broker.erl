@@ -44,16 +44,15 @@ start_link() ->
 subscribe(Conn, Exchange) ->
     gen_server:call(?SERVER, {subscribe, Conn, Exchange}).
 
+unsubscribe(Subscription) when is_pid(Subscription) ->
+    gen_server:call(?SERVER, {unsubscribe, Subscription}).
+
 presence(Conn, Where, Presenter) ->
     gen_server:call(?SERVER, {presence, Conn, Where, Presenter}).
 
 %%====================================================================
 %% Wrappers for subscription gen_server
 %%====================================================================
-unsubscribe(Subscription) when is_pid(Subscription) ->
-    subscription:stop(Subscription).
-    %gen_server:call(?SERVER, {close, Subscription}).
-
 bind(Subscription, Event) ->
     subscription:bind(Subscription, Event).
 
