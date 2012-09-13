@@ -10,6 +10,22 @@ class CodeBinActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
+    @codeBinContainer = new KDTabView
+      cssClass: "code-bin-container"
+
+    @codeBinResultPane = new KDTabPaneView
+      name:"Code Share"
+
+
+    @codeBinHTMLPane = new KDTabPaneView
+      name:"HTML"
+
+    @codeBinCSSPane = new KDTabPaneView
+      name:"CSS"
+
+    @codeBinJSPane = new KDTabPaneView
+      name:"JavaScript"
+
     codeBinHTMLData = @getData().attachments[0]
     codeBinCSSData = @getData().attachments[1]
     codeBinJSData = @getData().attachments[2]
@@ -37,6 +53,21 @@ class CodeBinActivityItemView extends ActivityItemChild
       title: "Fork this"
       cssClass:"clean-gray fork-button"
       click:=>
+
+    @codeBinResultPane.addSubView @codeBinResultView
+    @codeBinHTMLPane.addSubView @codeBinHTMLView
+    @codeBinCSSPane.addSubView @codeBinCSSView
+    @codeBinJSPane.addSubView @codeBinJSView
+
+    @codeBinContainer.addPane @codeBinResultPane
+    @codeBinContainer.addPane @codeBinHTMLPane
+    @codeBinContainer.addPane @codeBinCSSPane
+    @codeBinContainer.addPane @codeBinJSPane
+
+    @codeBinResultPane.hideTabCloseIcon()
+    @codeBinHTMLPane.hideTabCloseIcon()
+    @codeBinCSSPane.hideTabCloseIcon()
+    @codeBinJSPane.hideTabCloseIcon()
 
   render:->
     super()
@@ -88,13 +119,13 @@ class CodeBinActivityItemView extends ActivityItemChild
       {h3{#(title)}}
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
       <div class="code-bin-source">
-      {{> @codeBinHTMLView}}
-      {{> @codeBinCSSView}}
-      {{> @codeBinJSView}}
+
+      {{> @codeBinContainer}}
+
       </div>
       {{> @codeBinResultButton}}
       {{> @codeBinForkButton}}
-      {{> @codeBinResultView}}
+
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
