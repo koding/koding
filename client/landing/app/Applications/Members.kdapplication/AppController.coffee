@@ -179,13 +179,11 @@ class MembersListViewController extends KDListViewController
     data = item.getData()
 
     data.on 'FollowCountChanged', (followCounts)=>
-      {followerCount, followingCount, newFollower, oldFollower} = followCounts
+      {followerCount, followingCount, action} = followCounts
       data.counts.followers = followerCount
       data.counts.following = followingCount
       item.setFollowerCount followerCount
-      switch KD.whoami()
-        when newFollower, oldFollower
-          if newFollower then item.unfollowTheButton() else item.followTheButton()
+      if action is "follow" then item.unfollowTheButton() else item.followTheButton()
 
     item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
     item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount
