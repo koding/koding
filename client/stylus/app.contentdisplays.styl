@@ -858,19 +858,30 @@ a.opinion-size-link
         display                       block
 
 .activity-item.codebin .activity-item-right-col .code-bin-source figure.code-container
-  // max-width -webkit-calc(32%-22px)
-  // width -webkit-calc(32%-22px)
-  width                               32%
+
+  width                               100%
   display                             inline-block
   vertical-align                      top
-  &:last-child
-    margin-left                       11px
-  &:first-child
-    margin-right                      11px
 
-  pre code
+  pre code,
     min-height                        288px
     max-height                        288px
+
+.result-container
+    borderBox()
+    width                               100%
+
+    rounded(4px)
+    box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
+    background-color                    #E0E0DF
+
+    .result-frame
+      width                             100%
+      min-height                      288px
+      max-height                      288px
+      padding                           0
+      rounded(4px)
+
 .code-bin-source
 
   pre.subview
@@ -887,20 +898,7 @@ a.opinion-size-link
 .result-button
   margin-bottom                       10px
 
-.result-container
-  borderBox()
-  width                               100%
 
-  rounded(4px)
-  box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
-  background-color                    #E0E0DF
-
-  .result-frame
-    width                             100%
-    min-height                        200px
-    max-height                        400px
-    padding                           0
-    rounded(4px)
 
 
 .discussion-nav
