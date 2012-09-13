@@ -870,8 +870,8 @@ a.opinion-size-link
 .result-container
     borderBox()
     width                               100%
+    margin-bottom 10px
 
-    rounded(4px)
     box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
     background-color                    #E0E0DF
 
@@ -883,6 +883,16 @@ a.opinion-size-link
       rounded(4px)
 
 .code-bin-source
+  .kdview.kdtabhandlecontainer
+    padding 0
+    margin 0 10px
+    background-color white
+    border-bottom none
+    .kdtabhandle.active
+      vendor border-top-left-radius 4px
+      vendor border-top-right-radius 4px
+      height 30px
+
 
   pre.subview
     padding                           8px 10px
@@ -898,8 +908,20 @@ a.opinion-size-link
 .result-button
   margin-bottom                       10px
 
-
-
+.result-banner
+  width 100%
+  background-color #2E2E2E
+  opacity 1
+  a
+    text-decoration none
+    font-weight 300
+    font-size 32px
+  height 288px
+  position relative
+  margin-bottom 10px
+  borderBox()
+  rounded(4px)
+  padding 210px 50px 40px 50px
 
 .discussion-nav
   z-index                             100

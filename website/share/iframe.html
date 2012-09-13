@@ -18,7 +18,7 @@ function receiveMessage(event)
 {
     var codeshare, share_script;
 
-    if (event.data != null) codeshare = event.data;
+    if (event.data != null) codeshare = JSON.parse(event.data);
 
     // Prepare the CSS
       if (codeshare.cssPrefix === true) {
@@ -46,8 +46,5 @@ function receiveMessage(event)
 </script>
 </head>
 <body>
-<p>This page is currently loading your Code Share</p>
-
-
 </body>
 </html>
