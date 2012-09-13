@@ -26,7 +26,7 @@ var configs = map[string]Config{
 
 	"websockets": {
 		useWebsockets: true,
-		user:          "richard",
+		user:          "koding",
 		homePrefix:    "/home/",
 		shellCommand:  []string{"/bin/bash"},
 	},

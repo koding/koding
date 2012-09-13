@@ -248,10 +248,12 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             40:   ignored "allow 80 to 132 mode"
             42:   ignored "enable nation replacement character sets"
             45:   ignored "reverse-wraparound mode"
+            47:   -> terminal.changeScreenBuffer 1
             1000: -> terminal.inputHandler.setMouseMode true, true, false
             1001: -> terminal.inputHandler.setMouseMode true, true, false
             1002: -> terminal.inputHandler.setMouseMode true, true, true
             1003: -> terminal.inputHandler.setMouseMode true, true, true
+            1015: ignored "enable urxvt mouse mode"
             1034: ignored "interpret meta key"
             1047: -> terminal.changeScreenBuffer 1
             1048: -> terminal.cursor.savePosition()
@@ -273,10 +275,12 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
             40:   ignored "disallow 80 to 132 mode"
             42:   ignored "disable nation replacement character sets"
             45:   ignored "no reverse-wraparound mode"
+            47:   -> terminal.changeScreenBuffer 0
             1000: -> terminal.inputHandler.setMouseMode false, false, false
             1001: -> terminal.inputHandler.setMouseMode false, false, false
             1002: -> terminal.inputHandler.setMouseMode false, false, false
             1003: -> terminal.inputHandler.setMouseMode false, false, false
+            1015: ignored "disable urxvt mouse mode"
             1034: ignored "don't interpret meta key"
             1047: -> terminal.changeScreenBuffer 0
             1048: -> terminal.cursor.restorePosition()
@@ -300,12 +304,14 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           .addRange(90, 97, (params) -> terminal.setStyle "textColor", params[0] - 90 + 8)
           .addRange(100, 107, (params) -> terminal.setStyle "backgroundColor", params[0] - 100 + 8)
           "r": (params) -> terminal.screenBuffer.scrollingRegion = [(params[0] ? 1) - 1, (params[1] ? terminal.sizeY) - 1]
+          "?r": ignored "restore mode values"
           "p": switchRawParameter 0
             "!": -> # soft reset
               terminal.cursor.setVisibility true
               originMode = false
               terminal.changeScreenBuffer 0
               terminal.inputHandler.useApplicationKeypad false
+          "?s": ignored "save mode values"
         "]": catchParameters /()(.*?)(\x07|\x1B\\)/, switchParameter 0 # OSC
           0: (params) -> terminal.setTitleCallback? params.raw[1]
           1: ignored "icon name"
