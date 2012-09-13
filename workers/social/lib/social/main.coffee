@@ -66,5 +66,19 @@ koding = new Bongo
   }
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
-    koding.handleResponse exchange, 'changeLoggedInState', [client.connection.delegate]
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+    ownExchange = "x#{nickname}"
+    # When client logs in, create own queue to consume real-time updates
+    koding.mq.bindQueue ownExchange, ownExchange, '#'
+
+    delegate.on "FollowCountChanged", ({follower, action}) =>
+      return unless action is "follow" or "unfollow"
+      # Set up the exchange-to-exchange binding for followings.
+      followerNick = follower.profile.nickname
+      routingKey = "#{followerNick}.activity"
+      method = "#{action.replace 'follow', 'bind'}Exchange"
+      mq[method] ownExchange, "x#{followerNick}", routingKey
+
+    koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect console.log
