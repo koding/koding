@@ -146,7 +146,6 @@ module.exports = class JPost extends jraphical.Message
 
   constructor:->
     super
-    console.log 'how often this?', @constructor
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 

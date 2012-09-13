@@ -2,7 +2,7 @@ module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
-    "kite-amqp","amqp","broker"
+    "kite-amqp","amqp","broker","koding-eventemitter2"
   ]
   npm_modules :
     bitly           : '1.2.3'
@@ -10,7 +10,6 @@ module.exports =
     'coffee-script' : '1.1.2'
     dateformat      : '1.0.2-1.2.3'
     dropbox         : '0.3.3'
-    eventemitter2   : '0.4.1'
     everyauth       : '0.2.23'
     express         : '2.5.9'
 
