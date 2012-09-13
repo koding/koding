@@ -21,7 +21,7 @@ class AppStorage # extends KDObject
 
     @reset()
     @fetchStorage (storage)=>
-      if storage[group]?[key] then storage[group][key] else defaultValue
+      callback if storage[group]?[key] then storage[group][key] else defaultValue
 
   getValue: (key, defaultValue, group = 'bucket')->
 
