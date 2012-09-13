@@ -394,8 +394,11 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.run.started"
-    name = FSHelper.trimExtension folder.path
-    @getSingleton('kodingAppsController').runApp name, =>
+    kodingAppsController = @getSingleton('kodingAppsController')
+
+    manifest = KodingAppsController.getManifestFromPath folder.path
+
+    kodingAppsController.runApp manifest, =>
       folder.emit "fs.run.finished"
       callback?()
 
