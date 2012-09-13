@@ -12,7 +12,6 @@ class StartTabMainView extends JView
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")
     appsController.on "AppsRefreshed", (apps)=>
-      @removeAppIcons()
       @decorateApps apps
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
@@ -130,6 +129,7 @@ class StartTabMainView extends JView
 
   decorateApps:(apps)->
 
+    @removeAppIcons()
     if apps
       @noAppsWarning.hide()
       @putAppIcons apps
