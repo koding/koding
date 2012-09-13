@@ -11,6 +11,9 @@ class StartTabMainView extends JView
     @appIcons      = {}
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")
+    appsController.on "AppsRefreshed", (apps)=>
+      @removeAppIcons()
+      @decorateApps apps
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
@@ -34,7 +37,6 @@ class StartTabMainView extends JView
         appsController.refreshApps (err, apps)=>
           @hideLoader()
           @refreshButton.hideLoader()
-          @decorateApps apps
 
     @addAnAppButton = new KDButtonView
       cssClass    : "editor-button"
