@@ -33,7 +33,7 @@ class JPost extends jraphical.Message
       static          : ['create','on','one']
       instance        : [
         'on','reply','restComments','commentsByRange'
-        'like','fetchLikedByes', 'mark','unmark','fetchTags'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
     schema            : schema
