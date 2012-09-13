@@ -395,6 +395,13 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.run.finished"
       callback?()
 
+  runPostActions:(action, extension)->
+    actions   =
+      delete  :
+        kdapp :
+          => @getSingleton("kodingAppsController").refreshApps()
+
+    actions[action]?[extension]?()
 
   cloneRepo:(nodeView)->
 
