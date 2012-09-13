@@ -24,7 +24,9 @@ module.exports = class Notifying
   
   notify:(receiver, event, contents)->
     CBucket = require '../models/bucket'
+    JAccount = require '../models/account'
     JEmailNotification = require '../models/emailnotification'
+    JUser = require '../models/user'
     
     actor = contents[contents.actorType]
     {origin} = contents

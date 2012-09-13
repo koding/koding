@@ -216,6 +216,7 @@ module.exports = class JPost extends jraphical.Message
         callback null, rel.getAt 'sourceId'
 
   fetchActivity:(callback)->
+    CActivity = require '../../activity'
     @fetchActivityId (err, id)->
       if err
         callback err
@@ -223,6 +224,7 @@ module.exports = class JPost extends jraphical.Message
         CActivity.one _id: id, callback
 
   flushSnapshot:(removedSnapshotIds, callback)->
+    CActivity = require '../../activity'
     removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null
@@ -269,6 +271,7 @@ module.exports = class JPost extends jraphical.Message
   like: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
+    CActivity = require '../activity'
     unless delegate instanceof constructor.getAuthorType()
       callback new Error 'Only instances of JAccount can like things.'
     else
