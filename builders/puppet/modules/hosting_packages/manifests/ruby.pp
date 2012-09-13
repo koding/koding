@@ -130,4 +130,15 @@ class hosting_packages::ruby {
         notify => Class["cloudlinux::cagefs_update"]
     }
 
+    file { '/opt/ruby19/lib64/ruby/1.9.1/fcgi.so':
+       ensure => 'link',
+       target => '/opt/ruby19/lib64/ruby/gems/1.9.1/gems/fcgi-0.8.8/lib/fcgi.so',
+       require => Package[$ruby19_gems]
+    }
+    file { '/usr/bin/ruby1.9':
+       ensure => 'link',
+       target => '/opt/ruby19/bin/ruby1.9',
+       require => Package[$ruby19]
+    }
+
 }
