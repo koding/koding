@@ -379,7 +379,7 @@ class NFinderTreeController extends JTreeViewController
     folder.emit "fs.compile.started"
     kodingAppsController = @getSingleton('kodingAppsController')
 
-    manifest = KodingAppsController.getManifestFromPath path
+    manifest = KodingAppsController.getManifestFromPath folder.path
 
     kodingAppsController.compileApp manifest.name, =>
       folder.emit "fs.compile.finished"
