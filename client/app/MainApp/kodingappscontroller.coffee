@@ -295,6 +295,7 @@ class KodingAppsController extends KDController
           warn err
           callback? err
         else
+          manifest.authorNick = KD.whoami().profile.nickname
           jAppData   =
             title    : manifest.name        or "Application Title"
             body     : manifest.description or "Application description"
