@@ -66,7 +66,6 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinForkButton = new KDButtonView
       title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
-      # disabled:yes
       click:=>
         @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
@@ -110,6 +109,11 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinHTMLPane.hideTabCloseIcon()
     @codeBinCSSPane.hideTabCloseIcon()
     @codeBinJSPane.hideTabCloseIcon()
+
+    # hover switching enabled by default
+    @codeBinContainer.$(".kdtabhandle").hover (event)->
+      $(event.target).closest(".kdtabhandle").click()
+    , noop
 
     @codeBinContainer.showPane @codeBinResultPane
 

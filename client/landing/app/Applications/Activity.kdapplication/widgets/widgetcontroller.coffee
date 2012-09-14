@@ -107,15 +107,6 @@ class ActivityUpdateWidgetController extends KDViewController
       mainView.setClass "edit-mode"
 
       switch activity.bongo_.constructorName
-        # when "JStatusUpdate"
-        #   mainView.showPane "update"
-        #   updateWidget.switchToEditView activity
-        # when "JCodeSnip"
-        #   mainView.showPane "codesnip"
-        #   codeWidget.switchToEditView activity
-        # when "JDiscussion"
-        #   mainView.showPane "discussion"
-        #   discussionWidget.switchToEditView activity
         when "JCodeBin"
           mainView.showPane "codebin"
           codeBinWidget.switchToForkView activity
