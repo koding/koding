@@ -13,6 +13,7 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
+  @trait __dirname, '../../traits/likeable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -41,7 +42,7 @@ module.exports = class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
     schema            : schema
     relationships     :
@@ -177,10 +178,7 @@ module.exports = class JPost extends jraphical.Message
       callback createKodingError "Access denied"
 
   delete: secure ({connection:{delegate}}, callback)->
-    originId = @getAt 'originId'
-    unless delegate.getId().equals originId
-      callback createKodingError 'Access denied!'
-    else
+    if delegate.can 'delete', this
       id = @getId()
       {getDeleteHelper} = Relationship
       queue = [
@@ -202,6 +200,8 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         @emit 'PostIsDeleted', 1
         callback null
+    else
+      callback new KodingError 'Access denied!'
 
   fetchActivityId:(callback)->
     Relationship.one {
@@ -216,6 +216,7 @@ module.exports = class JPost extends jraphical.Message
         callback null, rel.getAt 'sourceId'
 
   fetchActivity:(callback)->
+    CActivity = require '../../activity'
     @fetchActivityId (err, id)->
       if err
         callback err
@@ -223,6 +224,7 @@ module.exports = class JPost extends jraphical.Message
         CActivity.one _id: id, callback
 
   flushSnapshot:(removedSnapshotIds, callback)->
+    CActivity = require '../../activity'
     removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null
@@ -265,53 +267,6 @@ module.exports = class JPost extends jraphical.Message
       callback
     ]
     daisy queue
-
-  like: secure ({connection}, callback)->
-    {delegate} = connection
-    {constructor} = @
-    unless delegate instanceof constructor.getAuthorType()
-      callback new Error 'Only instances of JAccount can like things.'
-    else
-      Relationship.one
-        sourceId: @getId()
-        targetId: delegate.getId()
-        as: 'like'
-      , (err, likedBy)=>
-        if err
-          callback err
-        else
-          unless likedBy
-            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
-              if err
-                callback err
-              else
-                @update ($set: 'meta.likes': count), callback
-                @fetchActivityId (err, id)->
-                  CActivity.update {_id: id}, {
-                    $set: 'sorts.likesCount': count
-                  }, log
-                @fetchOrigin (err, origin)=>
-                  if err then log "Couldn't fetch the origin"
-                  else @emit 'LikeIsAdded', {
-                    origin
-                    subject       : ObjectRef(@).data
-                    actorType     : 'liker'
-                    actionType    : 'like'
-                    liker         : ObjectRef(delegate).data
-                    likesCount    : count
-                    relationship  : docs[0]
-                  }
-          else
-            callback createKodingError 'You already like this.'
-            ###
-            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
-              if err
-                callback err
-                console.log err
-              else
-                count ?= 1
-                @update ($set: 'meta.likes': count), callback
-            ###
 
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection

@@ -32,12 +32,13 @@ class FeederResultsController extends KDViewController
     tabView = @getView()
 
     @listControllers[name] = listController = new listControllerClass
-      lazyLoadThreshold : .75
-      viewOptions       :
-        cssClass        : listCssClass
-        subItemClass    : subItemClass
-        type            : name
-
+      lazyLoadThreshold   : .75
+      startWithLazyLoader : yes
+      viewOptions         :
+        cssClass          : listCssClass
+        subItemClass      : subItemClass
+        type              : name
+        
     listController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
       listener      : @

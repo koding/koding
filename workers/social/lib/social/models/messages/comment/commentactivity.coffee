@@ -5,7 +5,7 @@ CActivity = require '../../activity'
 module.exports = class CCommentActivity extends CActivity
   
   {Relationship} = jraphical
-  
+
   @share()
 
   @set
@@ -53,5 +53,5 @@ module.exports = class CCommentActivity extends CActivity
                                   'commenter'
                               , (err)->
                                 if err
-                                  console.log "Couldn't add an activity", err 
+                                  console.log "Couldn't add an activity", err
   @init()

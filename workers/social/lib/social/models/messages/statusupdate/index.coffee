@@ -16,4 +16,5 @@ module.exports = class JStatusUpdate extends JPost
   @getActivityType =-> require './statusactivity'
 
   reply: secure (client, comment, callback)->
+    JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback

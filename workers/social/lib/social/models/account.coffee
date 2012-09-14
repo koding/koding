@@ -148,8 +148,7 @@ module.exports = class JAccount extends jraphical.Module
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
 
   @findSuggestions = (seed, options, callback)->
-    {limit,blacklist}  = options
-    
+    {limit, blacklist, skip}  = options
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
@@ -159,6 +158,7 @@ module.exports = class JAccount extends jraphical.Module
       _id     :
         $nin  : blacklist
     },{
+      skip
       limit
       sort    : 'profile.firstName' : 1
     }, callback

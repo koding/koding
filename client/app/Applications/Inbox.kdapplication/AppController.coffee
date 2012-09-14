@@ -33,8 +33,6 @@ class Inbox12345 extends AppController
     mainView.createCommons()
     mainView.createTabs()
 
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
       listener     : @
@@ -143,8 +141,8 @@ class Inbox12345 extends AppController
 
   goToMessages:(message)->
     @getView().showTab "messages"
-    @mainView.propagateEvent KDEventType : 'MessageSelectedFromOutside', {item: message}
-
+    @mainView.emit 'MessageSelectedFromOutside', message
+    
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
       data

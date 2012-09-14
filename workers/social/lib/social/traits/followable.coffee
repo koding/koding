@@ -2,7 +2,7 @@ jraphical = require 'jraphical'
 {KodingError} = require '../error.coffee'
 CBucket = require '../models/bucket'
 
-module.exports = class Followable extends jraphical.Module
+module.exports = class Followable #extends jraphical.Module
 
   {Model, dash, secure} = require 'bongo'
   {Relationship, Module} = jraphical
@@ -103,7 +103,7 @@ module.exports = class Followable extends jraphical.Module
 
   unfollow: secure (client,callback)->
     follower = client.connection.delegate
-    @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
+    @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err
       else
