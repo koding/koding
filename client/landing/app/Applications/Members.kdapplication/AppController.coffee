@@ -5,6 +5,10 @@ class Members12345 extends AppController
     ,options
     super options,data
 
+    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
+      if @_searchValue and itemClass is MembersListItemView and filterName is 'everything'
+        @setCurrentViewHeader count
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -28,9 +32,10 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
-          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all members" else null
+          optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
+              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               KD.remote.api.JAccount.byRelevance @_searchValue, options, callback
             else
               KD.remote.api.JAccount.someWithRelationship selector, options, callback
@@ -59,7 +64,6 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-
       view.addSubView @_lastSubview = controller.getView()
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
@@ -122,20 +126,8 @@ class Members12345 extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
 
-  showVisitorContentDisplay:(pubInst, event)=>
-    {content} = event
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerVisitor null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
   createContentDisplay:(account, doShow = yes)->
-    if account.equals KD.whoami()
-      controllerClass = ContentDisplayControllerVisitor
-    else
-      controllerClass = ContentDisplayControllerMember
-
-    controller = new controllerClass null, account
+    controller = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
     if doShow
       @showContentDisplay contentDisplay
@@ -147,10 +139,21 @@ class Members12345 extends AppController
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
 
   setCurrentViewNumber:(type)->
-    #{currentDelegate} = @getSingleton('mainController').getVisitor()
-    # typeClass =
     KD.whoami().count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
+
+  setCurrentViewHeader:(count)->
+    if typeof 1 isnt typeof count
+      @getView().$(".activityhead span.optional_title").html count
+      return no
+
+    if count >= 10 then count = '10+'
+    # return if count % 10 is 0 and count isnt 20
+    # postfix = if count is 10 then '+' else ''
+    count   = 'No' if count is 0
+    result  = "#{count} member" + if count isnt 1 then 's' else ''
+    title   = "#{result} found for <strong>#{@_searchValue}</strong>"
+    @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options =
@@ -206,7 +209,7 @@ class MembersListViewController extends KDListViewController
       controller.instantiateListItems members
       if (myItem = controller.itemForId KD.whoami().getId())?
         myItem.isMyItem()
-        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showVisitorContentDisplay
+        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showMemberContentDisplay
       controller._windowDidResize()
 
   pageDown:()->
@@ -219,11 +222,11 @@ class MembersListViewController extends KDListViewController
         listController.addItem member for member in members
         if (myItem = listController.itemForId KD.whoami().getId())?
           myItem.isMyItem()
-          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showVisitorContentDisplay
+          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showMemberContentDisplay
         listController._windowDidResize()
         listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no
-        listController.propagateEvent KDEventType : 'LazyLoadComplete'
+        listController.hideLazyLoader()
 
   getTotalMemberCount:(callback)=>
     KD.whoami().count? @getOptions().filterName, callback

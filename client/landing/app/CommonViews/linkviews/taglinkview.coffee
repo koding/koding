@@ -11,6 +11,9 @@ class TagLinkView extends LinkView
         offset    : 1
     super options, data
 
+    data.on? "TagIsDeleted", =>
+      @destroy()
+
     @setClass "ttag expandable"
     @unsetClass "expandable" unless options.expandable
 

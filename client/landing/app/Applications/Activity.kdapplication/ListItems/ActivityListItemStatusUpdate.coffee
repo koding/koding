@@ -1,12 +1,13 @@
 class StatusActivityItemView extends ActivityItemChild
-  constructor:(options, data)->
-    options = $.extend
-      cssClass    : "activity-item status"
-      tooltip     :
-        title     : "Status Update"
-        offset    : 3
-        selector  : "span.type-icon"
-    ,options
+
+  constructor:(options = {}, data)->
+
+    options.cssClass or= "activity-item status"
+    options.tooltip  or=
+      title            : "Status Update"
+      selector         : "span.type-icon"
+      offset           : 3
+
     super options,data
 
   viewAppended:()->
@@ -16,29 +17,13 @@ class StatusActivityItemView extends ActivityItemChild
     @template.update()
 
   click:(event)->
-    log "click", @
-    if $(event.target).is("p span.more a.more-link")
-      @$("p span.more").addClass "show"
 
-    if $(event.target).is("p span.more a.less-link")
-      @$("p span.more").removeClass "show"
+    super
 
     if $(event.target).is("[data-paths~=body]")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
-  applyTextExpansions:(str = "")->
-
-    str = @utils.applyTextExpansions str
-
-    # FIXME: 500 chars is a naive separation, check if it is in a tag (<a> etc) and
-    # make the separation after or before the tag in plain text.
-
-    if str.length > 500
-      visiblePart = str.substr 0, 500
-      morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"
-      str = visiblePart + morePart
-
-    return str
+  applyTextExpansions:(str = "")-> @utils.applyTextExpansions str, yes
 
   pistachio:->
     """

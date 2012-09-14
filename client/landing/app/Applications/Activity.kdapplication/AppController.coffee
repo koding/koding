@@ -111,7 +111,7 @@ class Activity12345 extends AppController
       KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
       listener      : @
       callback      : (pubInst, data)=>
-        @filter data.type
+        @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -148,7 +148,7 @@ class Activity12345 extends AppController
       @activityListController.isLoading = yes
       @loadSomeTeasers =>
         @activityListController.isLoading = no
-        @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
+        @activityListController.hideLazyLoader()
 
   fetchTeasers:(selector,options,callback)->
     appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
@@ -212,13 +212,14 @@ class Activity12345 extends AppController
       sort        :
         createdAt : -1
 
-    @fetchTeasers selector, options, (activities)=>
-      if activities
-        for activity in activities
-          @activityListController.addItem activity
-        callback? activities
-      else
-        callback?()
+    if not options.skip < options.limit
+      @fetchTeasers selector, options, (activities)=>
+        if activities
+          for activity in activities
+            @activityListController.addItem activity
+          callback? activities
+        else
+          callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
@@ -228,13 +229,20 @@ class Activity12345 extends AppController
       ), callback
 
   filter: (show, callback) ->
+
     controller = @activityListController
+    controller.noActivityItem.hide()
 
     if show is 'private'
+      _counter = 0
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
-        item.hide() if not controller.isInFollowing(item.data)
-      return
+        if not controller.isInFollowing(item.data)
+          item.hide()
+          _counter++
+      if _counter is controller.itemsOrdered.length
+        controller.noActivityItem.show()
+      return no
 
     else if show is 'public'
       controller._state = 'public'
@@ -248,8 +256,10 @@ class Activity12345 extends AppController
       ]
 
     controller.removeAllItems()
+    controller.showLazyLoader no
     @loadSomeTeasers ->
       controller.isLoading = no
+      controller.hideLazyLoader()
       callback?()
 
   createContentDisplay:(activity)->
@@ -292,11 +302,18 @@ class ActivityListController extends KDListViewController
     viewOptions.comments      or= yes
     viewOptions.subItemClass  or= options.subItemClass
     options.view              or= new KDListView viewOptions, data
+    options.startWithLazyLoader = yes
     super
 
     @_state = 'public'
+    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity from your followings."
+    @noActivityItem.hide()
 
   loadView:(mainView)->
+    @noActivityItem.hide()
+
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -349,6 +366,7 @@ class ActivityListController extends KDListViewController
     return instance
 
   addItem:(activity, index, animation = null) ->
+    @noActivityItem.hide()
     # log "ADD:", activity
     if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
       @getListView().addItem activity, index, animation

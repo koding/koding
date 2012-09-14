@@ -1,6 +1,34 @@
 #Broker.channel_auth_endpoint = KD.apiUri+'/1.0/channel/auth';
 #Broker.channel_auth_endpoint = 'http://localhost:8008/auth'
 
+# THIS OVERRIDE NEEDS TO WAIT
+# NOT YET TOTALLY INTEROPERABLE
+# WITH Encoder.htmlDecode
+
+# Encoder.htmlEncode = do->
+
+#    htmlMap =
+#      '&' : 'amp'
+#      '<' : 'lt'
+#      '"' : 'quot'
+#      '<' : 'lt'
+#      '>' : 'gt'
+#      "'" : '#39'
+#      '`' : '#96'
+#      '!' : '#33'
+#      '@' : '#36'
+#      '%' : '#37'
+#      '(' : '#40'
+#      ')' : '#41'
+#      '=' : '#61'
+#      '+' : '#43'
+#      '{' : '#123'
+#      '}' : '#125'
+#      '[' : '#91'
+#      ']' : '#93'
+
+#    (str)-> str.replace /(&(?!\w\w+;)|'|<|>|"|'|`|\!|\@|\$|\%|\(|\)|\=|\+|\{|\}|\[|\])/g, (match)-> "&#{htmlMap[match]};"
+
 mainController = new MainController
 
 

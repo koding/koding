@@ -291,24 +291,6 @@ app.activity.styl
       line-height         125%
       font-weight         300
       noTextDeco()
-    span.more
-      font-size           0
-      vendor              transition, font-size .2s linear
-      a.more-link
-      a.less-link
-        margin-left       5px
-        vendor            transition, font-size .2s linear
-      a.more-link
-        font-size         14px
-      a
-        font-size         0
-      &.show
-        font-size         14px
-        a.more-link
-          font-size       0
-          margin-left     0
-        a
-          font-size       14px
 
   p.context
     margin                0 0 18px 0
@@ -338,6 +320,7 @@ app.activity.styl
       size                auto,auto
       fr()
 
+      span.like-view
       a.action-link
         margin            0 2px
         color             #FF9200
@@ -758,6 +741,23 @@ button.activity-status-context
     //   bg                color, #ffd56e
     .first-label
       visible()
+
+// .activity-update-widget-wrapper-folded
+//   height                auto
+//   position              absolute
+//   overflow              visible
+//   z-index               100
+//   hidden()
+//   .first-label
+//     hidden()
+//   &.edit-mode
+//     visible()
+//     .kdbuttonwithmenu-wrapper.activity-status-context
+//       hidden()
+//     // .update-widget-tabs .kdtabpaneview
+//     //   bg                color, #ffd56e
+//     .first-label
+//       visible()
 
 .widget-holder
   overflow              visible
