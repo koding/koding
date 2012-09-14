@@ -16,7 +16,7 @@ module.exports = class JAccount extends jraphical.Module
   
   @getFlagRole = 'content'
 
-  {ObjectId,secure,race,dash} = require 'bongo'
+  {ObjectId, Register, secure, race, dash} = require 'bongo'
   {Relationship} = jraphical
   @share()
   Experience = 
@@ -119,17 +119,17 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'follower'
         targetType  : "JAccount"
 
-      # followee      :
-      #   as          : 'followee'
-      #   targetType  : JAccount
+      followee      :
+        as          : 'followee'
+        targetType  : JAccount
       
       activity      :
         as          : 'activity'
         targetType  : "CActivity"
       
-      # privateMessage:
-      #   as          : ['recipient','sender']
-      #   targetType  : JPrivateMessage
+      privateMessage:
+        as          : ['recipient','sender']
+        targetType  : 'JPrivateMessage'
 
       appStorage    :
         as          : 'appStorage'

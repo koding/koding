@@ -7,6 +7,7 @@ module.exports = class Taggable
   getTagRole            :-> @constructor.tagRole           or 'tag'
 
   addTags: secure (client, tags, options, callback)->
+    JTag = require '../models/tag'
     [callback, options] = [options, callback] unless callback
     options or= silent: no
     taggedContentRole = @getTaggedContentRole()

@@ -59,6 +59,7 @@ module.exports = class JPrivateMessage extends JPost
     secure (client, data, callback)->
       {delegate} = client.connection
       {to, subject, body} = data
+      JAccount = require '../account'
       if 'string' is typeof to
         to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.
       JAccount.all 'profile.nickname': $in: to, (err, recipients)->

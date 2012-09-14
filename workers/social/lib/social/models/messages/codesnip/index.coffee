@@ -15,9 +15,9 @@ module.exports = class JCodeSnip extends JPost
 
   @share()
 
-  @getActivityType =-> CCodeSnipActivity
+  @getActivityType =-> require './codesnipactivity'
 
-  @getAuthorType =-> JAccount
+  @getAuthorType =-> require '../../account'
 
   @set
     sharedMethods : JPost.sharedMethods
@@ -50,4 +50,5 @@ module.exports = class JCodeSnip extends JPost
     JPost::modify.call @, client, codeSnip, callback
 
   reply: secure (client, comment, callback)->
+    JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback
