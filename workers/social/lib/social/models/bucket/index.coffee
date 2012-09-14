@@ -17,9 +17,9 @@ module.exports = class CBucket extends jraphical.Module
       snapshotIds   : [ObjectId]
       migrant       : Boolean
       meta          : require "bongo/bundles/meta"
-  
+
   fetchTeaser:(callback)-> callback null, @
-  
+
   add:(item, callback)->
     member = ObjectRef(item)
     @update {
@@ -32,7 +32,7 @@ module.exports = class CBucket extends jraphical.Module
       callback err
 
   fetchTeaser:(callback)-> callback null, @
-  
+
   getBucketConstructor =(groupName, role)->
     CFolloweeBucket   = require './followeebucket'
     CFollowerBucket   = require './followerbucket'
@@ -54,10 +54,10 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
-  
+
   addToBucket =do ->
     # @helper
-    addIt = (bucket, anchor, item, callback)->
+    addIt = (bucket, anchor, item, groupName, callback)->
       isOwn = anchor.equals item
       bucket.add item, (err)->
         if err
@@ -107,11 +107,12 @@ module.exports = class CBucket extends jraphical.Module
                         else if isOwn
                           callback null, bucket
                         else
-                          anchor.sendNotification? 'ActivityIsAdded'
                           anchor.addActivity activity, (err)->
                             if err
                               callback err
                             else
+                              if groupName is 'source'
+                                anchor.sendNotification? 'ActivityIsAdded'
                               callback null, bucket
 
     (groupName, relationship, item, anchor, callback)->
@@ -128,7 +129,7 @@ module.exports = class CBucket extends jraphical.Module
       bucketConstructor.one existingBucketSelector, (err, bucket)->
         if err then callback err
         else if bucket
-          addIt bucket, anchor, item, callback
+          addIt bucket, anchor, item, groupName, callback
         else
           bucket = new bucketConstructor
             groupedBy         : groupName
@@ -139,12 +140,12 @@ module.exports = class CBucket extends jraphical.Module
 
           bucket.save (err)->
             if err then callback err
-            else addIt bucket, anchor, item, callback
-  
+            else addIt bucket, anchor, item, groupName, callback
+
   getPopulator =(items..., callback)->
     -> ObjectRef.populate items, (err, populated)-> callback err, populated
-  
-  # @implementation  
+
+  # @implementation
   @addActivities =(relationship, source, target, callback)->
     queue = []
     next = -> queue.next()
@@ -162,5 +163,4 @@ module.exports = class CBucket extends jraphical.Module
     queue.push -> addToBucket 'target', relationship, source, target, next
     queue.push -> callback null
     daisy queue
-
 

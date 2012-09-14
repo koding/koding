@@ -40,6 +40,11 @@ class CommentViewHeader extends JView
       cssClass  : "new-items"
       click     : => list.emit "AllCommentsLinkWasClicked", @
 
+    @liveUpdate = @getSingleton('activityController').flags?.liveUpdates or off
+    @getSingleton('activityController').on "LiveStatusUpdateStateChanged", (newstate)=>
+      # log "Live update state changed to", newstate
+      @liveUpdate = newstate
+
   ownCommentArrived:->
 
     # Get correct number of items in list from controller
@@ -95,9 +100,12 @@ class CommentViewHeader extends JView
 
     # If we have comments more than 0 we should show the new item link
     if @newCount > 0
-      @show()
-      @newItemsLink.updatePartial "#{@newCount} new"
-      @newItemsLink.setClass('in')
+      if @liveUpdate
+        @getDelegate().emit "AllCommentsLinkWasClicked"
+      else
+        @show()
+        @newItemsLink.updatePartial "#{@newCount} new"
+        @newItemsLink.setClass('in')
     else
       @newItemsLink.unsetClass('in')
 

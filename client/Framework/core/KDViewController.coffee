@@ -18,7 +18,7 @@ class KDViewController extends KDController
 
   bringToFront:(options = {}, view = @getView())->
     @propagateEvent
-      KDEventType                 : 'ApplicationWantsToBeShown'
+      KDEventType  : 'ApplicationWantsToBeShown'
       globalEvent  : yes
     ,
       options : options

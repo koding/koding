@@ -103,7 +103,7 @@ module.exports = class Followable extends jraphical.Module
 
   unfollow: secure (client,callback)->
     follower = client.connection.delegate
-    @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
+    @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err
       else

@@ -201,7 +201,7 @@ class MainController extends KDController
     if data.originId
       KD.remote.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
-    else if data._bongo.constructorName is 'JAccount'
+    else if data.bongo_.constructorName is 'JAccount'
       kallback data
 
   markUserAsTroll:(data)->
@@ -237,5 +237,5 @@ class MainController extends KDController
             if data.originId
               KD.remote.cacheable "JAccount", data.originId, (err, account)->
                 kallback account if account
-            else if data._bongo.constructorName is 'JAccount'
+            else if data.bongo_.constructorName is 'JAccount'
               kallback data

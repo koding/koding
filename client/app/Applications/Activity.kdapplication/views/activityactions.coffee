@@ -22,73 +22,8 @@ class ActivityActionsView extends KDView
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
 
-    @likeCount    = new ActivityLikeCount
-      tooltip     :
-        gravity   : "se"
-        title     : ""
-        engine    : "tipsy" # We should force to use tipsy because
-                            # for now only tipsy supports tooltip updates
-      attributes  :
-        href      : "#"
-        title     : "Click to view..."
-      click       : =>
-        if activity.meta.likes > 0 # 3
-          activity.fetchLikedByes {},
-            sort  : timestamp : -1
-            , (err, likes) =>
-              new FollowedModalView {title:"Members who liked <cite>#{activity.body}</cite>"}, likes
-      , activity
-
-    @likeCount.on "countChanged", (count) =>
-      @updateLikeState(yes)
-
-    @likeLink     = new ActivityActionLink
+    @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
-
-  updateLikeState:(checkIfILiked = no)->
-
-    activity = @likeCount.getData()
-    return if activity.meta.likes is 0
-
-    activity.fetchLikedByes {},
-      limit : if checkIfILiked then activity.meta.likes else 3
-      sort  : timestamp : -1
-
-      , (err, likes) =>
-
-        peopleWhoLiked   = []
-
-        if likes
-          if checkIfILiked
-            {_id}       = KD.whoami()
-            likedBefore = likes.filter((item)-> item._id is _id).length > 0
-
-          likes.forEach (item)=>
-            if peopleWhoLiked.length < 3
-              {firstName, lastName} = item.profile
-              peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
-            else return
-
-          # switch activity.meta.likes
-          #   when 0 then tooltip = ""
-          #   when 1 then tooltip = "{{> @peopleWhoLiked0}}"
-          #   when 2 then tooltip = "{{> @peopleWhoLiked0}} and {{> @peopleWhoLiked1}}"
-          #   when 3 then tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}} and {{> @peopleWhoLiked2}}"
-          #   else        tooltip = "{{> @peopleWhoLiked0}}, {{> @peopleWhoLiked1}}, {{> @peopleWhoLiked2}} and {{activity.meta.likes - 3}} more."
-
-          if activity.meta.likes is 1
-            tooltip = peopleWhoLiked[0]
-          else if activity.meta.likes is 2
-            tooltip = peopleWhoLiked[0] + " and " + peopleWhoLiked[1]
-          else if activity.meta.likes is 3
-            tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and " + peopleWhoLiked[2]
-          else
-            tooltip = peopleWhoLiked[0] + ", " + peopleWhoLiked[1] + " and <strong>" + (activity.meta.likes - 2) + " more.</strong>"
-
-          @likeCount.updateTooltip {title: tooltip }
-
-          # if checkIfILiked
-          #   @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
 
   viewAppended:->
 
@@ -106,7 +41,7 @@ class ActivityActionsView extends KDView
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
-    {{> @likeLink}}{{> @likeCount}}
+    {{> @likeView}}
     """
 
   attachListeners:->
@@ -116,17 +51,6 @@ class ActivityActionsView extends KDView
 
     commentList.on "BackgroundActivityStarted", => @loader.show()
     commentList.on "BackgroundActivityFinished", => @loader.hide()
-    @likeLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : =>
-        if KD.isLoggedIn()
-          activity.like (err)=>
-            if err
-              log "Something went wrong while like:", err
-              new KDNotificationView
-                title     : "You already liked this!"
-                duration  : 1300
 
     @commentLink.registerListener
       KDEventTypes  : "Click"
