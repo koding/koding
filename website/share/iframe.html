@@ -7,8 +7,6 @@
 <style type="text/css" id="codeshare_style"></style>
 
 <script type="text/javascript">
-
-
 $(window).load(function(){
 
 // Fetch the postMessage from the parent App
@@ -20,19 +18,20 @@ function receiveMessage(event)
 
     if (event.data != null) codeshare = JSON.parse(event.data);
 
+    if (codeshare.resetFrame === true) {
+        $("body").empty();
+        $("head style#codeshare_style").empty();
+    }
+
+    else {
     // Prepare the CSS
       if (codeshare.cssPrefix === true) {
         codeshare.css = PrefixFree.prefixCSS(codeshare.css, true);
       }
-
-
     // Inject CSS
     $("head style#codeshare_style").html(codeshare.css, true);
-
     // Inject HTML
     $("body").html(codeshare.html);
-
-
     // Execute JS
     try {
             js = $.globalEval(codeshare.js), $(window).load()
@@ -40,9 +39,8 @@ function receiveMessage(event)
             typeof console != "undefined" && console.log(err.message)
             }
         }
-
-
-    });
+    }
+});
 </script>
 </head>
 <body>
