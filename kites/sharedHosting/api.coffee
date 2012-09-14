@@ -158,7 +158,7 @@ module.exports = new Kite 'sharedHosting'
 
     {username, version, appName, userAppPath} = options
 
-    appRootPath   = "/opt/Apps/#{username}/#{appName}"
+    appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
     versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
 
