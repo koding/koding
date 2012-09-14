@@ -21,7 +21,7 @@ class LinkView extends KDCustomHTMLView
       @render()
 
     if origin.constructorName
-      bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
+      KD.remote.cacheable origin.constructorName, origin.id, (err, origin)=>
         callback origin
     else
       callback origin

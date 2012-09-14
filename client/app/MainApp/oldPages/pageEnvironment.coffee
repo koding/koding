@@ -42,7 +42,7 @@ class EnvironmentController extends KDViewController
   
 
   loadView:(mainView)->
-    {profile} = @getSingleton('mainController').getVisitor().currentDelegate    
+    {profile} = KD.whoami()    
     header = mainView.header = new EnvironmentHeader type : "big", title : profile.nickname
     menu = mainView.menu = new EnvironmentViewMenu null,@viewMenuItems
 

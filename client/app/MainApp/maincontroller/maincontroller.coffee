@@ -88,6 +88,8 @@ class MainController extends KDController
 
     @emit "AccountChanged", account
 
+    @userAccount = account
+
     KDRouter.init()
     unless @mainViewController
       @loginScreen = new LoginView
@@ -165,7 +167,7 @@ class MainController extends KDController
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
-        bongo.api.JUser.logout ->
+        KD.remote.api.JUser.logout ->
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
@@ -183,9 +185,9 @@ class MainController extends KDController
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
-  getAccount: -> @getVisitor().currentDelegate
+  getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof bongo.api.JAccount
+  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
 
   unmarkUserAsTroll:(data)->
 
@@ -197,9 +199,9 @@ class MainController extends KDController
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
     if data.originId
-      bongo.cacheable "JAccount", data.originId, (err, account)->
+      KD.remote.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
-    else if data._bongo.constructorName is 'JAccount'
+    else if data.bongo_.constructorName is 'JAccount'
       kallback data
 
   markUserAsTroll:(data)->
@@ -233,7 +235,7 @@ class MainController extends KDController
                     title : "@#{acc.profile.nickname} marked as a troll!"
 
             if data.originId
-              bongo.cacheable "JAccount", data.originId, (err, account)->
+              KD.remote.cacheable "JAccount", data.originId, (err, account)->
                 kallback account if account
-            else if data._bongo.constructorName is 'JAccount'
+            else if data.bongo_.constructorName is 'JAccount'
               kallback data

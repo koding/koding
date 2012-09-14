@@ -108,19 +108,26 @@ class FeedController extends KDViewController
     options.sort[sort.name] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
-    console.log options
     options
+
+  emitLoadStarted:(filter)=>
+    listController = @resultsController.listControllers[filter.name]
+    listController.showLazyLoader no
+    return listController
 
   emitLoadCompleted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
-    listController.propagateEvent KDEventType : 'LazyLoadComplete'
+    listController.hideLazyLoader()
     return listController
 
   loadFeed:(filter = @selection)->
 
-    options  = @getFeedOptions()
-    selector = @getFeedSelector()
+    options          = @getFeedOptions()
+    selector         = @getFeedSelector()
+    windowController = @getSingleton('windowController')
+    subItemClass     = @getOptions().subItemClass
 
+    @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
     else
@@ -128,6 +135,7 @@ class FeedController extends KDViewController
         listController = @emitLoadCompleted filter
         unless err
           listController.instantiateListItems items
+          windowController.emit "FeederListViewItemCountChanged", listController.itemsOrdered.length, subItemClass, filter.name
           if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
             @loadFeed filter
         else

@@ -23,7 +23,7 @@ class InboxMessagesListItem extends KDListItemView
       constructorName : participant.sourceName
       id              : participant.sourceId
     .filter (participant, i, arr)=>
-      if arr.length > 1 and @getSingleton('mainController').getVisitor().currentDelegate.getId() is participant.id
+      if arr.length > 1 and KD.whoami().getId() is participant.id
         return no
       else return yes
 

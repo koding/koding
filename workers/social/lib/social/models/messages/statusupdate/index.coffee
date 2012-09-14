@@ -1,0 +1,20 @@
+JPost = require '../post'
+
+module.exports = class JStatusUpdate extends JPost
+  {secure} = require 'bongo'
+  {Relationship} = require 'jraphical'
+
+  {once} = require 'underscore'
+
+  @share()
+
+  @set
+    sharedMethods     : JPost.sharedMethods
+    schema            : JPost.schema
+    relationships     : JPost.relationships
+
+  @getActivityType =-> require './statusactivity'
+
+  reply: secure (client, comment, callback)->
+    JComment = require '../comment'
+    JPost::reply.call @, client, JComment, comment, callback

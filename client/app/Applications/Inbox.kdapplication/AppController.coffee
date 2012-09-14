@@ -1,6 +1,6 @@
 class Inbox12345 extends AppController
 
-  {race} = bongo
+  {race} = Bongo
 
   constructor:(options, data)->
     view = new (KD.getPageClass 'Inbox') cssClass : "inbox-application"
@@ -23,18 +23,15 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    currentDelegate.fetchMail? options, callback
+    #KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   loadView:(mainView)->
     mainView.createCommons()
     mainView.createTabs()
-
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
 
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
@@ -144,8 +141,8 @@ class Inbox12345 extends AppController
 
   goToMessages:(message)->
     @getView().showTab "messages"
-    @mainView.propagateEvent KDEventType : 'MessageSelectedFromOutside', {item: message}
-
+    @mainView.emit 'MessageSelectedFromOutside', message
+    
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
       data
@@ -158,7 +155,7 @@ class Inbox12345 extends AppController
 
   sendMessage:(messageDetails, callback)->
     # log "I just send a new message: ", messageDetails
-    bongo.api.JPrivateMessage.create messageDetails, callback
+    KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)=>
     {body, subject, recipients} = formOutput

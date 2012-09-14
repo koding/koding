@@ -132,6 +132,11 @@ class MembersListItemView extends KDListItemView
     @profileLink = new ProfileLinkView {}, memberData
 
   click:(event)->
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
     member = @getData()
     targetATag = $(event.target).closest('a')
     if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
@@ -152,9 +157,9 @@ class MembersListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
     {profile} = @getData()
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
+    #{currentDelegate} = @getSingleton('mainController').getVisitor()
 
-    @isMyItem() if profile.nickname is currentDelegate.profile.nickname
+    @isMyItem() if profile.nickname is KD.whoami().profile.nickname
 
   pistachio:->
     """
@@ -167,7 +172,7 @@ class MembersListItemView extends KDListItemView
           <h3>{{> @profileLink}}</h3> <span>{{> @location}}</span>
         </header>
 
-        <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+        <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
 
         <footer>
           <span class='button-container'>{{> @followButton}}</span>

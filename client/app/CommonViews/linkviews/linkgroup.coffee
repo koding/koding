@@ -25,7 +25,7 @@ class LinkGroup extends KDCustomHTMLView
 
     if group[0]?.constructorName
       lastFour = group.slice -4
-      bongo.cacheable lastFour, (err, bucketContents)=>
+      KD.remote.cacheable lastFour, (err, bucketContents)=>
         callback bucketContents
     else
       callback group
@@ -56,7 +56,7 @@ class LinkGroup extends KDCustomHTMLView
         new FollowedModalView {group}, @getData()
 
     sep = ' '
-    if participants[0] instanceof bongo.api.JAccount
+    if participants[0] instanceof KD.remote.api.JAccount
       sep = ', '
     switch totalCount
       when 0 then ""

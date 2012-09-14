@@ -65,6 +65,8 @@ class ActivityUpdateWidgetController extends KDViewController
       callback     : -> codeWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+      # Remove this if can fix the ActivityStatusUpdateWidget's bug
+      appManager.openApplication "Activity"
       mainView.setClass "edit-mode"
       switch activity.bongo_.constructorName
         when "JStatusUpdate"
@@ -75,7 +77,6 @@ class ActivityUpdateWidgetController extends KDViewController
           codeWidget.switchToEditView activity
 
   updateWidgetSubmit:(data, callback)->
-
 
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
@@ -90,7 +91,7 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      bongo.api.JStatusUpdate.create data, (err, activity)=>
+      KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
@@ -112,7 +113,7 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
-      bongo.api.JCodeSnip.create data, (err, codesnip) =>
+      KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
         stopSubmission()
         if err
@@ -122,21 +123,21 @@ class ActivityUpdateWidgetController extends KDViewController
 
   questionWidgetSubmit:(data)->
     log 'creating question', data
-    bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
 
   linkWidgetSubmit:(data)->
     log 'sharing link', data
-    bongo.api.JActivity.create {type: 'link', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
       warn 'couldnt save link', error if error
 
   tutorialWidgetSubmit:(data)->
     log 'sharing tutorial', data
-    bongo.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
       warn 'couldnt save tutorial', error if error
 
   discussionWidgetSubmit:(data)->
     log 'starting discussion', data
-    bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
       warn 'couldnt save discussion', error if error
 

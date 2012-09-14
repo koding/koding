@@ -16,7 +16,7 @@ class AccountMountListController extends KDListViewController
 
   constructor:->
     super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
     list = @getListView()
 
     list.registerListener
@@ -86,26 +86,26 @@ class AccountMountListController extends KDListViewController
       when "add"
         switch f.type
           when "ftp"
-            jm = new bongo.api.JMountFTP
+            jm = new KD.remote.api.JMountFTP
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
               password      : f.password
               port          : f.port               
           when "sftp"
-            jm = new bongo.api.JMountSFTP
+            jm = new KD.remote.api.JMountSFTP
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
               password      : f.password
               port          : f.port               
           when "s3"
-            jm = new bongo.api.JMountS3
+            jm = new KD.remote.api.JMountS3
               title         : f.title ? f.hostname
               accessKeyId   : f.accessKey
               secret        : f.secret
           when "webdav"
-            jm = new bongo.api.JMountWebDav
+            jm = new KD.remote.api.JMountWebDav
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
@@ -152,7 +152,7 @@ class AccountMountList extends KDListView
       subItemClass  : AccountMountListItem
     ,options
     super options,data
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
     
     @on "mountAdded",(mount)=>
       log "mountAdded",mount
