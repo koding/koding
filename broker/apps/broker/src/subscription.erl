@@ -263,6 +263,9 @@ handle_info({#'basic.deliver'{routing_key = Event, exchange = _Exchange},
             {noreply, State}
     end;
 
+% handle_info(#'basic.cancel'{}, State) ->
+%     {noreply, State};
+
 %%--------------------------------------------------------------------
 %% Function: handle_info(#'basic.cancel_ok'{}, State) -> 
 %%                                          {noreply, State}.
@@ -310,7 +313,9 @@ code_change(_OldVsn, State, _Extra) ->
 %%--------------------------------------------------------------------
 
 channel(Connection) ->
-    amqp_connection:open_channel(Connection).
+    {ok, Channel} = amqp_connection:open_channel(Connection),
+    amqp_selective_consumer:register_default_consumer(Channel, self()),
+    {ok, Channel}.
 
 %%--------------------------------------------------------------------
 %% Func: broadcastable(Exchange) -> boolean()
