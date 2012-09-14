@@ -2,6 +2,56 @@ class DemosMainView extends KDScrollView
 
   viewAppended:()->
 
-    @addSubView new KDSplitView
-      colored : yes
-      sizes   : ['20%', null, null]
+    @addSubView split = new FocusableSplit
+      cssClass : "chat-split"
+      sizes    : [null]
+      keydown  : (pubInst, e)->
+
+        e.preventDefault()
+        e.stopPropagation()
+
+        focusedIndex = @getPanelIndex @focusedPanel
+        log e.which
+        if e.altKey and e.which in [37,39]
+          log "splitPanel"
+          split.splitPanel focusedIndex
+          return no
+
+        if e.altKey and e.which is 87
+          log "closePanel"
+          return if @panels.length is 1
+          split.removePanel focusedIndex
+          if @panels[focusedIndex-1] then @setFocusedPanel @panels[focusedIndex-1] else @panels[0]
+          return no
+
+        if e.metaKey and e.which in [37,39]
+          log "focusNeighbor"
+          if e.which is 37
+            @setFocusedPanel @panels[focusedIndex-1] if 0 < focusedIndex
+          if e.which is 39
+            @setFocusedPanel @panels[focusedIndex+1] if focusedIndex < @panels.length
+        else
+          @focusedPanel.setPartial "&##{event.which};"
+        no
+
+
+class FocusableSplit extends KDSplitView
+
+  setFocusedPanel:(panel)->
+
+    @focusedPanel = panel
+    p.unsetClass "focused" for p in @panels
+    panel.setClass "focused"
+    @setKeyView()
+
+  _createPanel:->
+
+    panel = super
+
+    @listenTo
+      KDEventTypes       : 'click'
+      listenedToInstance : panel
+      callback           : @setFocusedPanel
+
+    return panel
+

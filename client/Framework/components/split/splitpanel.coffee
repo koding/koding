@@ -1,11 +1,15 @@
 class KDSplitViewPanel extends KDScrollView
-  constructor:(options,data)->
-    # options = $.extend
-    #   ownScrollBars : yes
-    # ,options
+
+  constructor:(options = {}, data)->
+
+    options.fixed ?= no
+
     super options,data
-    @isVertical = @options.type.toLowerCase() is "vertical"
-    {@size,@minimum,@maximum,@index} = @options
+
+    @isVertical = @getOptions().type.toLowerCase() is "vertical"
+    @isFixed    = @getOptions().fixed
+
+    {@size, @minimum, @maximum, @index} = @options
 
   _getSize:->if @isVertical then @getWidth() else @getHeight()
 
@@ -48,14 +52,12 @@ class KDSplitViewPanel extends KDScrollView
 
     panel = @
     d     = panel.parent.options.duration
-    cb    = ()->
-      # setTimeout do ->
+    cb    = ->
       newSize = panel._getSize()
       panel.parent.sizes[panel.index] = panel.size = newSize
       panel.parent.emit "PanelDidResize", panel: panel
       panel.emit "PanelDidResize", newSize : newSize
       callback.call panel
-      # ,100
 
 
     properties = {}
@@ -70,8 +72,7 @@ class KDSplitViewPanel extends KDScrollView
     options =
       duration : d
       complete : cb
-      # step     : (newSize)-> panel.parent.handleEvent {
-      #   type : "PanelIsBeingResized"
+      # step     : (newSize)-> panel.parent.emit "PanelIsBeingResized", {
       #   panel
       #   newSize
       # }

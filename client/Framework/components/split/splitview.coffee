@@ -8,6 +8,7 @@ class KDSplitView extends KDView
     options.minimums  or= null          # an Array of Strings
     options.maximums  or= null          # an Array of Strings
     options.views     or= null          # an Array of KDViews
+    options.fixed     or= []            # an Array of Booleans
     options.duration  or= 200           # a Number in miliseconds
     options.separator or= null          # a KDView instance or null for default separator
     options.colored    ?= no
@@ -15,8 +16,9 @@ class KDSplitView extends KDView
 
     super options,data
 
-    @_setInstanceVariables()
-
+    @panels = []
+    @panelsBounds = []
+    @resizers = []
 
   viewAppended:->
 
@@ -36,11 +38,6 @@ class KDSplitView extends KDView
 
     @listenWindowResize()
 
-  _setInstanceVariables:->
-    @panels = []
-    @panelsBounds = []
-    @resizers = []
-
   _putClassNames:->
     @setClass "kdsplitview kdsplitview-#{@options.type} #{@options.cssClass}"
 
@@ -51,13 +48,16 @@ class KDSplitView extends KDView
       @_createPanel i
 
   _createPanel:(index)->
+
+    {type, fixed, minimums, maximums} = @getOptions()
     panel = new KDSplitViewPanel
       cssClass : "kdsplitview-panel panel-#{index}"
       index    : index
-      type     : @options.type
+      type     : type
       size     : @_sanitizeSize @sizes[index]
-      minimum  : @_sanitizeSize @options.minimums[index] if @options.minimums
-      maximum  : @_sanitizeSize @options.maximums[index] if @options.maximums
+      fixed    : yes                            if fixed[index]
+      minimum  : @_sanitizeSize minimums[index] if minimums
+      maximum  : @_sanitizeSize maximums[index] if maximums
 
 
   _calculatePanelBounds:()->
@@ -170,20 +170,21 @@ class KDSplitView extends KDView
       else
         size
 
-  _resetSizes:->
+  _resetSizeValues:->
+
     # THIS RESIZES ALL PANELS BY THEIR CURRENT PERCENTAGES <- BAD
 
     # for i in [0...@sizes.length]
     #   splitSize = @_getSize()
     #   panelSize = @panels[i].size = @panels[i]._getSize()
-    #
+
     #   newSizeInPercentage = Math.round panelSize * 100 / splitSize
-    #
+
     #   if newSizeInPercentage isnt Infinity and isNaN(newSizeInPercentage) isnt true
     #     @options.sizes[i] = "#{newSizeInPercentage}%"
     #   else
     #     @options.sizes[i] = null
-    #
+
     # total = 0
     # total += parseInt(size,10) for size in @options.sizes
     # lastPanelSize = parseInt(@options.sizes[@options.sizes.length-1])
@@ -195,29 +196,23 @@ class KDSplitView extends KDView
     #   @options.sizes[@options.sizes.length-1] = "#{lastPanelSize}%"
 
 
-    # ONLY RESIZE PANELS WHICH ARENT GIVEN ANY SIZE INFO WHEN INSTANTIATED
-    panelsToBeResized = []
-    for size,index in @options.sizes
-      panelsToBeResized.push index if size is null
-
-    if panelsToBeResized.length is 0
-      panelsToBeResized = (index for size,index in @options.sizes)
-
-    for size,index in @sizes
-      if index in panelsToBeResized
-        @options.sizes[index] = size
+    # for size,index in @getOptions().sizes
+    #   newSizeInPercentage = Math.round @panels[index]._getSize() * 100 / @_getSize()
+    #   @getOptions().sizes[index] = if newSizeInPercentage isnt Infinity and isNaN(newSizeInPercentage) isnt true
+    #     "#{newSizeInPercentage}%"
+    #   else null
 
 
   # EVENT HANDLING
   _windowDidResize:(event)=>
-    log "_windowDidResize"
+
     # this is a hack and should be removed
     # because we have an animation in contentpanel
     # i had to do this otherwise a big refactoring is necessary
     # sinan 6/2012
     @utils.wait 300, =>
       @_setSize @_getParentSize()
-      @_resetSizes()
+      @_resetSizeValues()
       @sizes = @_sanitizeSizes()
       @_calculatePanelBounds()
       @_setPanelPositions()
@@ -231,22 +226,21 @@ class KDSplitView extends KDView
     @_resizeDidStop event
 
   _panelReachedMinimum:(panelIndex)->
-    @panels[panelIndex].handleEvent type : "PanelReachedMinimum"
-    @handleEvent type : "PanelReachedMinimum", panel : @panels[panelIndex]
+    @panels[panelIndex].emit "PanelReachedMinimum"
+    @emit "PanelReachedMinimum", panel : @panels[panelIndex]
 
   _panelReachedMaximum:(panelIndex)->
-    @panels[panelIndex].handleEvent type : "PanelReachedMaximum"
-    @handleEvent type : "PanelReachedMaximum", panel : @panels[panelIndex]
+    @panels[panelIndex].emit "PanelReachedMaximum"
+    @emit "PanelReachedMaximum", panel : @panels[panelIndex]
 
   _resizeDidStart:(event)=>
     $('body').addClass "resize-in-action"
-    @handleEvent type : "ResizeDidStart", orgEvent : event
+    @emit "ResizeDidStart", orgEvent : event
 
   _resizeDidStop:(event)=>
-    @handleEvent type : "ResizeDidStop", orgEvent : event
-    setTimeout ->
+    @emit "ResizeDidStop", orgEvent : event
+    @utils.wait 300, ->
       $('body').removeClass "resize-in-action"
-    ,300
 
   ### PUBLIC METHODS ###
   resizePanel:(value = 0,panelIndex = 0,callback = noop)=>
@@ -334,6 +328,12 @@ class KDSplitView extends KDView
     @resizePanel newSize,panelIndex,()->
       callback.call @,(panel : panel, index : panelIndex )
 
+  getPanelIndex:(panel)->
+
+    for p,i in @panels
+      if p.getId() is panel.getId()
+        return i
+
   splitPanel:(index,options,callback = noop)->
 
     newPanelOptions = $.extend
@@ -360,6 +360,12 @@ class KDSplitView extends KDView
     o.views.splice index + 1, 0, newPanelOptions.view
     o.sizes = @sizes
 
+    # MIMIC @addSubView(newPanel)
+    @subViews.push newPanel
+    newPanel.setParent @
+    panelToBeSplitted.$().after newPanel.$()
+    newPanel.propagateEvent KDEventType: 'viewAppended'
+
     # POSITION NEW PANEL
     newSize = panelToBeSplitted._getSize() / 2
     panelToBeSplitted._setSize newSize
@@ -367,14 +373,9 @@ class KDSplitView extends KDView
     newPanel._setOffset panelToBeSplitted._getOffset() + newSize
     @_calculatePanelBounds()
 
-    # MIMIC @addSubView(newPanel)
-    @subViews.push newPanel
-    panelToBeSplitted.$().after newPanel.$()
-    newPanel.propagateEvent KDEventType: 'viewAppended'
-
     # COLORIZE PANELS
-    panelToBeSplitted.$().css backgroundColor : __utils.getRandomRGB()
-    newPanel.$().css backgroundColor : __utils.getRandomRGB()
+    # panelToBeSplitted.$().css backgroundColor : __utils.getRandomRGB()
+    # newPanel.$().css backgroundColor : __utils.getRandomRGB()
 
     # RE-ENUMERATE PANELS
     for panel,i in @panels[index+1...@panels.length]
