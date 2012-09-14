@@ -86,11 +86,15 @@ class WebTermView extends KDView
       @terminal.createSession ""
       @setKeyView()
   
-  setKeyView:->
+  destroy: ->
+    super
+    @terminal.server.close()
+  
+  setKeyView: ->
+    super
     @getSingleton('windowController').addLayer @
     @focused = true
     @terminal.setFocused true
-    super
 
   click: ->
     @setKeyView()
