@@ -1,7 +1,5 @@
 jraphical = require 'jraphical'
 
-console.log 'capsule', jraphical.Capsule.name
-
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
