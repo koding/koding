@@ -9,16 +9,16 @@ class ContentDisplayControllerActivity extends KDViewController
     ,options
     options.contentView.setData data
     super options, data
-  
+
   loadView:(mainView)->
     activity = @getData()
 
     mainView.addSubView header = new HeaderViewSection type : "big", title : @getOptions().title
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
-    
+
     contentDisplayController = @getSingleton "contentDisplayController"
-    
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
@@ -28,12 +28,15 @@ class ContentDisplayControllerActivity extends KDViewController
     contentView = @getOptions().contentView
     contentView.setDelegate @getView()
     contentView.setClass 'content-display-main-section'
-    
+
 
     @getView().setClass @getOptions().type
     @getView().addSubView contentView
-    
-    
+
+    contentView.on "ContentDisplayWantsToBeHidden", ->
+      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+
+
     # disabled for beta
     # @getView().addSubView metaSection = new KDView cssClass : "content-display-meta"
     # metaSection.addSubView meta = new ContentDisplayScoreBoard cssClass : "scoreboard",activity

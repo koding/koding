@@ -12,7 +12,7 @@ class Activity12345 extends AppController
       'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
-      'COpinionActivity'
+      # 'COpinionActivity'
       'CCodeBinActivity'
     ]
 
@@ -189,7 +189,7 @@ class Activity12345 extends AppController
           'CDiscussionActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
-          'COpinionActivity'
+          # 'COpinionActivity'
           'CCodeBinActivity'
         ]
 
@@ -250,7 +250,7 @@ class Activity12345 extends AppController
         'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
-        'COpinionActivity'
+        # 'COpinionActivity'
         'CCodeBinActivity'
       ]
 

@@ -103,6 +103,25 @@ class ActivityUpdateWidgetController extends KDViewController
           mainView.showPane "codebin"
           codeBinWidget.switchToEditView activity
 
+    @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
+      mainView.setClass "edit-mode"
+
+      log "activity is ",activity
+
+      switch activity.bongo_.constructorName
+        # when "JStatusUpdate"
+        #   mainView.showPane "update"
+        #   updateWidget.switchToEditView activity
+        # when "JCodeSnip"
+        #   mainView.showPane "codesnip"
+        #   codeWidget.switchToEditView activity
+        # when "JDiscussion"
+        #   mainView.showPane "discussion"
+        #   discussionWidget.switchToEditView activity
+        when "JCodeBin"
+          mainView.showPane "codebin"
+          codeBinWidget.switchToForkView activity
+
   updateWidgetSubmit:(data, callback)->
 
     # if troll clear the tag input

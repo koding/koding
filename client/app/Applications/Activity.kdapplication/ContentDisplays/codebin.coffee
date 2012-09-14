@@ -40,8 +40,9 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
     @codeBinForkButton = new KDButtonView
       title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
-      disabled: yes
       click:=>
+        @emit "ContentDisplayWantsToBeHidden"
+        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
 
   viewAppended: ->
