@@ -10,10 +10,11 @@ class KodingAppsController extends KDController
       devMode       : yes
       version       : "0.1"
       name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.koding.com/#{name or type}"
+      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
       author        : "#{profile.firstName} #{profile.lastName}"
-      repository    : "git://github.com/#{profile.nickname}/#{name or type.capitalize()}.kdapp.git"
+      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       source        :
         blocks      :
@@ -302,9 +303,10 @@ class KodingAppsController extends KDController
         else
           manifest.authorNick = KD.whoami().profile.nickname
           jAppData   =
-            title    : manifest.name        or "Application Title"
-            body     : manifest.description or "Application description"
-            manifest : manifest
+            title      : manifest.name        or "Application Title"
+            body       : manifest.description or "Application description"
+            identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
+            manifest   : manifest
 
           appManager.tell "Apps", "createApp", jAppData, (err, app)=>
             if err
