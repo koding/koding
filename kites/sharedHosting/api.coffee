@@ -161,6 +161,7 @@ module.exports = new Kite 'sharedHosting'
     appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
     versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
+    userAppPath   = escapePath userAppPath
 
     cb = (err)->
       console.error err if err
