@@ -71,14 +71,20 @@ koding.on 'auth', (exchange, sessionToken)->
     ownExchange = "x#{nickname}"
     # When client logs in, create own queue to consume real-time updates
     koding.mq.bindQueue ownExchange, ownExchange, '#'
+    # Bind to feed worker queue
+    koding.mq.bindQueue "koding-feeder", ownExchange, "#.activity"
 
-    delegate.on "FollowCountChanged", ({follower, action}) =>
+    delegate.on "FollowCountChanged", () ->
+      console.log "FollowCountChanged", arguments
+
+    delegate.on "Followed", ({followee, action}) =>
+      console.log arguments
       return unless action is "follow" or "unfollow"
       # Set up the exchange-to-exchange binding for followings.
       followerNick = follower.profile.nickname
       routingKey = "#{followerNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      mq[method] ownExchange, "x#{followerNick}", routingKey
+      koding.mq[method] ownExchange, "x#{followerNick}", routingKey
 
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect console.log
