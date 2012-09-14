@@ -95,22 +95,52 @@ class JApp extends jraphical.Module
 
     {connection:{delegate}} = client
 
-    app = new JApp
-      title       : data.title
-      body        : data.body
-      manifest    : data.manifest
-      originId    : delegate.getId()
-      originType  : delegate.constructor.name
-
-    app.save (err)->
+    JApp.one
+      identifier : data.identifier
+    , (err, app)=>
       if err
         callback err
+      else if app
+        console.log "alreadyPublished trying to update fields"
+
+        if not data.manifest.version
+          callback new KodingError 'Version is not provided.'
+        else
+          curVersions = app.data.versions
+          versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+
+        if versionExists
+          callback new KodingError 'Version already exists, update version to publish.'
+        else
+          app.update
+            $set:
+              title     : data.title
+              body      : data.body
+              manifest  : data.manifest
+            $addToSet   :
+              versions  : data.manifest.version
+          , (err)->
+            if err then callback err
+            else callback null, app
       else
-        app.addCreator delegate, (err)->
+        app = new JApp
+          title       : data.title
+          body        : data.body
+          manifest    : data.manifest
+          originId    : delegate.getId()
+          originType  : delegate.constructor.name
+          identifier  : data.identifier
+          versions    : [data.manifest.version]
+
+        app.save (err)->
           if err
             callback err
           else
-            callback null, app
+            app.addCreator delegate, (err)->
+              if err
+                callback err
+              else
+                callback null, app
 
   install: secure ({connection}, callback)->
     {delegate} = connection
