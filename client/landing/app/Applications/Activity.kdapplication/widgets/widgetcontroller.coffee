@@ -106,8 +106,6 @@ class ActivityUpdateWidgetController extends KDViewController
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
 
-      log "activity is ",activity
-
       switch activity.bongo_.constructorName
         # when "JStatusUpdate"
         #   mainView.showPane "update"
