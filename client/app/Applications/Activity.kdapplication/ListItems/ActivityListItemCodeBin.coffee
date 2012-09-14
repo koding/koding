@@ -190,34 +190,22 @@ class CodeBinResultView extends KDCustomHTMLView
     @codeViewContainer = new KDCustomHTMLView
       cssClass : "result-frame-container"
 
-    @kiteController = @getSingleton('kiteController')
+    # @kiteController = @getSingleton('kiteController')
 
     @appendResultFrame "/share/iframe.html"
-    # @appendResultFrame "//lampuki.de/iframe.html"
 
     @on "CodeBinSourceHasChanges",(data)=>
 
-      codebin = data #@getData()
+      codebin = data
 
-      # @iframeContents = "<html><head>"
-
-      # @iframeContents+= "<script src='//cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js'></script>"
-      # @iframeContents+= "<script src='//code.jquery.com/jquery-latest.js'></script>"
-      # @iframeContents+= "<style>"+Encoder.htmlDecode(codebin.attachments[1].content)+"</style>"
-
-      # @iframeContents+= "</head><body>"
-
-      # @iframeContents+= Encoder.htmlDecode(codebin.attachments[0].content)
-      # @iframeContents+= "<script type='text/javascript'>"+Encoder.htmlDecode(codebin.attachments[2].content)+"</script>"
-
-      # @iframeContents+= "</body></html>"
+      # these are production paths and names! beware  --arvid
+      # addendum: only to be used when writing stuff to vhosts tmp
 
       # @iframeUsername = KD.whoami().profile.nickname
       # @iframeTimestamp = new Date().getTime()
 
-      # these are production paths and names! beware  --arvid
-      @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
-      @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
+      # @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
+      # @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
 
       resultObject =
         html          : Encoder.htmlDecode(codebin.attachments[0].content)
@@ -237,7 +225,7 @@ class CodeBinResultView extends KDCustomHTMLView
 
       ###//////////////////////////////////////////////////////////////////////
       #
-      # this block is also production logic. --arvid
+      # this block is also vhost production logic. --arvid
 
       @kiteController.run
         withArgs  :
@@ -275,7 +263,8 @@ class CodeBinResultView extends KDCustomHTMLView
       ///////////////////////////////////////////////////////////////////// ###
 
 
-
+  resetResultFrame:=>
+    @codeView.options.attributes.src = @codeView.options.attributes.src
 
   appendResultFrame:(url)=>
 
