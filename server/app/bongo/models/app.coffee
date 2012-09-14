@@ -41,6 +41,10 @@ class JApp extends jraphical.Module
       ]
 
     schema          :
+      identifier    :
+        type        : String
+        set         : (value)-> value.trim()
+        required    : yes
       title         :
         type        : String
         set         : (value)-> value.trim()
@@ -56,6 +60,7 @@ class JApp extends jraphical.Module
           default   : 0
       thumbnails    : [Object]
       screenshots   : [Object]
+      versions      : [String]
       meta          : require "bongo/bundles/meta"
       manifest      : Object
       type          :
