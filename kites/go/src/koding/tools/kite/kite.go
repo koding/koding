@@ -31,13 +31,13 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 			log.Info("Successfully connected to AMQP server.")
 
-			controlChannel := createChannel(consumeConn)
-			defer controlChannel.Close()
+			joinChannel := createChannel(consumeConn)
+			defer joinChannel.Close()
 
-			controlStream := declareBindConsumeQueue(controlChannel, "kite-"+name, "join", "private-kite-"+name)
+			joinStream := declareBindConsumeQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 			for {
 				select {
-				case join, ok := <-controlStream:
+				case join, ok := <-joinStream:
 					if !ok {
 						if !shutdown {
 							log.Warn("Connection to AMQP server lost.")
@@ -60,7 +60,7 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 						messageChannel := createChannel(consumeConn)
 						defer messageChannel.Close()
-						messageStream := declareBindConsumeQueue(messageChannel, "", "client-message.*", secretName)
+						messageStream := declareBindConsumeQueue(messageChannel, "", "client-message.*", secretName, true)
 
 						publishChannel := createChannel(publishConn)
 						defer publishChannel.Close()
@@ -78,7 +78,7 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 				case <-sigtermChannel:
 					log.Info("Received TERM signal. Beginning shutdown...")
 					beginShutdown()
-					controlChannel.Close()
+					joinChannel.Close()
 				}
 			}
 		}()
