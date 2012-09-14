@@ -85,7 +85,6 @@ class CodeBinActivityItemView extends ActivityItemChild
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
-        log @getData()
         @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
 
 
