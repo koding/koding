@@ -2,6 +2,7 @@
 # -------------------------
 #
 # -------------------------
+
 __utils =
 
   idCounter : 0
@@ -87,7 +88,7 @@ __utils =
   applyTextExpansions: (text, shorten)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
-    text = text.replace '&#10;', ' '
+    text = text.replace /&#10;/g, ' '
     text = __utils.putShowMore text if shorten
     @expandWwwDotDomains @expandUrls @expandUsernames text
 
@@ -110,14 +111,14 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&\?\/.=]+/g, (url) ->
+    text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       "<a href='#{url}' target='_blank'>#{url}</a>"
 
   putShowMore: (text)->
     shortenedText = __utils.shortenText text,
       minLength : 500
       maxLength : 600
-      suffix    : ''
+      suffix    : ' '
 
     text = if text.length > 500
       morePart = "<span class='collapsedtext hide'><a href='#' class='more-link'>show more...</a>#{text.substr 500}<a href='#' class='less-link'>...show less</a></span>"
@@ -136,10 +137,12 @@ __utils =
       maxLength = options.maxLength or 600
       suffix    = options.suffix     ? '...'
 
-      longText  = Encoder.htmlDecode longText
+      longTextLength  = Encoder.htmlDecode(longText).length
+      # longTextLength  = longText.length
 
-      return longText if longText < minLength or longText < maxLength
+      return longText if longTextLength < minLength or longTextLength < maxLength
 
+      longText = Encoder.htmlDecode longText
       longText = longText.substr 0, maxLength
 
       # prefer to end the teaser at the end of a sentence (a period).
@@ -148,8 +151,10 @@ __utils =
 
       if candidate?.length > minLength
         Encoder.htmlEncode candidate
+        # candidate
       else
         Encoder.htmlEncode longText
+        # longText
 
   getMonthOptions : ()->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])

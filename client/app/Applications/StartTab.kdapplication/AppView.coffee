@@ -11,6 +11,8 @@ class StartTabMainView extends JView
     @appIcons      = {}
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")
+    appsController.on "AppsRefreshed", (apps)=>
+      @decorateApps apps
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
@@ -34,7 +36,6 @@ class StartTabMainView extends JView
         appsController.refreshApps (err, apps)=>
           @hideLoader()
           @refreshButton.hideLoader()
-          @decorateApps apps
 
     @addAnAppButton = new KDButtonView
       cssClass    : "editor-button"
@@ -42,10 +43,15 @@ class StartTabMainView extends JView
       # iconClass   : "make-an-app"
       title       : "Make a new App"
       callback    : =>
-        appsController.makeNewApp ->
+        appsController.makeNewApp =>
           new KDNotificationView
             type  : "mini"
             title : "App is created! Check your Applications folder!"
+
+          @removeAppIcons()
+          @showLoader()
+          appsController.refreshApps =>
+            @hideLoader()
 
     # appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
     #   storage.update $set : { "bucket.apps" : {} }, =>
@@ -128,6 +134,7 @@ class StartTabMainView extends JView
 
   decorateApps:(apps)->
 
+    @removeAppIcons()
     if apps
       @noAppsWarning.hide()
       @putAppIcons apps

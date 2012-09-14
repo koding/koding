@@ -9,7 +9,7 @@ class JComment extends jraphical.Reply
 
   @set
     sharedMethods  :
-      instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
+      instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
     schema         :
       isLowQuality : Boolean
       body         :

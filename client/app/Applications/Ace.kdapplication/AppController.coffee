@@ -46,10 +46,11 @@ class Ace12345 extends KDController
 
   removeOpenDocument:(doc)->
 
-    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
-    appManager.removeOpenTab doc
-    @clearFileRecords doc
-    doc.destroy()
+    if doc
+      @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : doc
+      appManager.removeOpenTab doc
+      @clearFileRecords doc
+      doc.destroy()
 
   setViewListeners:(view)->
 

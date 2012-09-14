@@ -125,7 +125,6 @@ Includes =
         jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
         jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
-
       OtherStuff :
         # moduledata            : "./server/app/core/moduledata.coffee"
         # moduledata_deprecated : "./server/app/core/moduledata_deprecated.coffee"
@@ -644,17 +643,17 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        appabout            : "./client/stylus/app.about.styl"
+        # appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
         appaceeditor        : "./client/stylus/app.aceeditor.styl"
         activity            : "./client/stylus/app.activity.styl"
         appcontextmenu      : "./client/stylus/app.contextmenu.styl"
-        appchat             : "./client/stylus/app.chat.styl"
+        # appchat             : "./client/stylus/app.chat.styl"
         appsettings         : "./client/stylus/app.settings.styl"
         appinbox            : "./client/stylus/app.inbox.styl"
-        appenvsettings      : "./client/stylus/app.envsettings.styl"
+        # appenvsettings      : "./client/stylus/app.envsettings.styl"
         appmembers          : "./client/stylus/app.members.styl"
         comments            : "./client/stylus/app.comments.styl"
         bootstrap           : "./client/stylus/app.bootstrap.styl"
@@ -662,13 +661,13 @@ Includes =
         appkeyboard         : "./client/stylus/app.keyboard.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
-        apphome             : "./client/stylus/app.home.styl"
+        # apphome             : "./client/stylus/app.home.styl"
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        book                : "./client/stylus/app.book.styl"
+        # book                : "./client/stylus/app.book.styl"
 
         temp             : "./client/stylus/temp.styl"
 

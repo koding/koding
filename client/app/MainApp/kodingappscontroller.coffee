@@ -159,7 +159,12 @@ class KodingAppsController extends KDController
 
     @constructor.manifests = {}
     KDApps = {}
-    @fetchAppsFromFs callback
+    @fetchAppsFromFs (err, apps)=>
+      if not err
+        @emit "AppsRefreshed", apps
+        callback? err, apps
+      else
+        callback err
 
   putAppsToAppStorage:(apps)->
 
@@ -332,11 +337,11 @@ class KodingAppsController extends KDController
           orderedBlocks.push blockOptions
 
       if source.stylesheets
-        appDevModePath = "/Users/sinan/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
+        appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
 
         asyncStack.push (cb)=>
           @kiteController.run "rm -rf #{escapeFilePath appDevModePath}", =>
-            @kiteController.run "mkdir /Users/sinan/Sites/#{nickname}.koding.com/website/.applications", =>
+            @kiteController.run "mkdir /Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications", =>
               @kiteController.run "ln -s #{escapeFilePath getAppPath app} #{escapeFilePath appDevModePath}", -> cb()
 
       orderedBlocks.forEach (block)=>
@@ -367,12 +372,10 @@ class KodingAppsController extends KDController
 
       async.parallel asyncStack, (error, result)=>
 
-        log "concatenating the app"
-
         _final = "(function() {\n\n/* KDAPP STARTS */"
         result.forEach (output)=>
           _final += "\n\n/* BLOCK STARTS */\n\n"
-          _final += "#{output}"
+          _final += "#{if output then output else '//couldn\'t compile the hunk!'}"
           _final += "\n\n/* BLOCK ENDS */\n\n"
         _final += "/* KDAPP ENDS */\n\n}).call();"
 
@@ -416,11 +419,12 @@ class KodingAppsController extends KDController
                 log "kite response", err, res
                 if err then warn err
                 else
-                  app.install (err)->
+                  app.install (err)=>
                     log err if err
                     log callback
                     # This doesnt work :#
                     appManager.openApplication "StartTab"
+                    @refreshApps()
                     # callback?()
 
   # #
