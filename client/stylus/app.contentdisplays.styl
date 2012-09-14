@@ -871,16 +871,17 @@ a.opinion-size-link
     borderBox()
     width                               100%
     margin-bottom 10px
-
+    rounded(4px)
     box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
     background-color                    #E0E0DF
-
-    .result-frame
-      width                             100%
-      min-height                      288px
-      max-height                      288px
-      padding                           0
+    .result-frame-container
       rounded(4px)
+      .result-frame
+        width                             100%
+        min-height                      288px
+        max-height                      288px
+        padding                           0
+        rounded(4px)
 
 .code-bin-source
   .kdview.kdtabhandlecontainer
