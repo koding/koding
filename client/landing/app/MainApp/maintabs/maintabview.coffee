@@ -89,7 +89,7 @@ class MainTabView extends KDTabView
     @_removePane pane
 
   getPaneByView:(view)->
-    @paneViewIndex[view.id]
+    if view then @paneViewIndex[view.id] else null
 
   indexPaneByView:(pane,view)->
     @paneViewIndex[view.id] = pane

@@ -22,9 +22,12 @@ class ActivityCodeSnippetWidget extends KDFormView
       title : "Description:"
 
     @description = new KDInputView
-      label       : @labelDescription
-      name        : "body"
-      placeholder : "What is your code about?"
+      label         : @labelDescription
+      name          : "body"
+      placeholder   : "What is your code about?"
+      validate      :
+        rules       :
+          maxLength : 3000
 
     @labelContent = new KDLabelView
       title : "Code Snip:"

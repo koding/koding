@@ -3,8 +3,8 @@ class NewCommentForm extends KDView
   constructor:(options, data)->
 
     options = $.extend
-      type        : "new-comment"
-      cssClass    : "item-add-comment-box"
+      type      : "new-comment"
+      cssClass  : "item-add-comment-box"
     ,options
 
     options.itemTypeString or= 'comment'
@@ -32,7 +32,8 @@ class NewCommentForm extends KDView
       validate    :
         # event       : "keyup"
         rules       :
-          required    : yes
+          required  : yes
+          maxLength : 2000
         messages    :
           required    : "Please type a #{itemTypeString}..."
       callback    : @commentInputReceivedEnter
