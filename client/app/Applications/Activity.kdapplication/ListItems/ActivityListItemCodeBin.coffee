@@ -49,7 +49,7 @@ class CodeBinActivityItemView extends ActivityItemChild
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges"
+        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
         @codeBinContainer.showPane @codeBinResultPane
 
     @codeBinCloseButton = new KDButtonView
@@ -78,14 +78,15 @@ class CodeBinActivityItemView extends ActivityItemChild
       tagName:"a"
       attributes:
         href:"#"
-      partial : "Click here to see the Code Share!"
+      partial : "Click here to see this Code Share!"
       cssClass : "result-banner-button"
       click:=>
         @codeBinResultButton.setTitle "Reset"
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges"
+        log @getData()
+        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
 
 
     @resultBanner.addSubView @resultBannerButton
@@ -107,6 +108,8 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinHTMLPane.hideTabCloseIcon()
     @codeBinCSSPane.hideTabCloseIcon()
     @codeBinJSPane.hideTabCloseIcon()
+
+    @codeBinContainer.showPane @codeBinResultPane
 
   render:->
     super()
@@ -192,26 +195,25 @@ class CodeBinResultView extends KDCustomHTMLView
     @appendResultFrame "/share/iframe.html"
     # @appendResultFrame "//lampuki.de/iframe.html"
 
-    @on "CodeBinSourceHasChanges",=>
+    @on "CodeBinSourceHasChanges",(data)=>
 
-      codebin = @getData()
+      codebin = data #@getData()
 
-      @iframeContents = "<html><head>"
+      # @iframeContents = "<html><head>"
 
-      @iframeContents+= "<script src='//cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js'></script>"
-      @iframeContents+= "<script src='//code.jquery.com/jquery-latest.js'></script>"
-      @iframeContents+= "<style>"+Encoder.htmlDecode(codebin.attachments[1].content)+"</style>"
+      # @iframeContents+= "<script src='//cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.6/prefixfree.min.js'></script>"
+      # @iframeContents+= "<script src='//code.jquery.com/jquery-latest.js'></script>"
+      # @iframeContents+= "<style>"+Encoder.htmlDecode(codebin.attachments[1].content)+"</style>"
 
-      @iframeContents+= "</head><body>"
+      # @iframeContents+= "</head><body>"
 
-      @iframeContents+= Encoder.htmlDecode(codebin.attachments[0].content)
-      @iframeContents+= "<script type='text/javascript'>"+Encoder.htmlDecode(codebin.attachments[2].content)+"</script>"
+      # @iframeContents+= Encoder.htmlDecode(codebin.attachments[0].content)
+      # @iframeContents+= "<script type='text/javascript'>"+Encoder.htmlDecode(codebin.attachments[2].content)+"</script>"
 
-      @iframeContents+= "</body></html>"
+      # @iframeContents+= "</body></html>"
 
-      @iframeUsername = KD.whoami().profile.nickname
-      @iframeTimestamp = new Date().getTime()
-
+      # @iframeUsername = KD.whoami().profile.nickname
+      # @iframeTimestamp = new Date().getTime()
 
       # these are production paths and names! beware  --arvid
       @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
