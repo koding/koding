@@ -1,11 +1,30 @@
-class ProfileView extends KDView
+class ProfileView extends JView
   constructor:->
+
     super
+
     memberData = @getData()
+
     @avatar = new AvatarStaticView
-      size      :
+      size     :
         width  : 90
         height : 90
+      click    : =>
+        pos =
+          top  : @avatar.getBounds().y - 8
+          left : @avatar.getBounds().x - 8
+        modal = new KDModalView
+          # title   : "#{memberData.profile.firstName} #{memberData.profile.lastName}"
+          width    : 400
+          fx       : yes
+          overlay  : yes
+          draggable: yes
+          position : pos
+        modal.addSubView new AvatarStaticView
+          size     :
+            width  : 400
+            height : 400
+        , memberData
     , memberData
 
     defaultState  = if memberData.followee then "Unfollow" else "Follow"
@@ -68,27 +87,27 @@ class ProfileView extends KDView
     @skillTags = new SkillTagGroup {}, memberData
 
     if KD.checkFlag 'super-admin'
-      @trollSettings = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-context activity-settings-menu'
-        title       : ''
-        icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : [
-          type      : "contextmenu"
-          items     : [
-            { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll @getData() }
-            { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll @getData() }
-          ]
-        ]
-        callback    : (event)=> @settingsButton.contextMenu event
-    else
-      @trollSettings = new KDCustomHTMLView
 
-  viewAppended:->
-    super
-    @setTemplate @pistachio()
-    @template.update()
+      @trollSwitch = new KDCustomHTMLView
+        tagName      : "a"
+        partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'
+        cssClass     : "troll-switch"
+        click        :() =>
+          if KD.checkFlag('exempt', memberData)
+            @getSingleton('mainController').unmarkUserAsTroll memberData
+          else
+            @getSingleton('mainController').markUserAsTroll memberData
+
+    else
+      @trollSwitch = new KDCustomHTMLView
+
+  click:(event)->
+
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
   putNick:(nick)-> "@#{nick}"
 
@@ -102,6 +121,8 @@ class ProfileView extends KDView
       {{> @followButton}}
       {cite{ @putNick #(profile.nickname)}}
     </div>
+
+      {{> @trollSwitch}}
 
     <section>
       <div class="profileinfo">
@@ -121,17 +142,14 @@ class ProfileView extends KDView
         </div>
 
         <div class="profilebio">
-          <p>{{ @utils.applyTextExpansions #(profile.about)}}</p>
+          <p>{{ @utils.applyTextExpansions #(profile.about), yes}}</p>
         </div>
 
         <div class="skilltags"><label>SKILLS</label>{{> @skillTags}}</div>
-
       </div>
     </section>
 
-    {{> @trollSettings}}
     """
-
 
   putSkillTags:()->
     memberData = @getData()
@@ -173,7 +191,7 @@ class ProfileView extends KDView
         @prepareMessage formOutput,callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   prepareMessage:(formOutput, callback)=>
@@ -188,10 +206,4 @@ class ProfileView extends KDView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
-    bongo.api.JPrivateMessage.create messageDetails, callback
-
-# get rid of this Sinan - 06/2012
-class ContentDisplayControllerVisitor extends ContentDisplayControllerMember
-  addProfileView:(member)->
-    @getView().addSubView memberProfile = new OwnProfileView {cssClass : "profilearea clearfix",delegate : @getView()}, member
-    memberProfile
+    KD.remote.api.JPrivateMessage.create messageDetails, callback

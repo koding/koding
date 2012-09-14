@@ -1,7 +1,7 @@
 class AccountDatabaseListController extends KDListViewController
   constructor:->
     super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
 
     @commands =
       mysql    :
@@ -362,7 +362,7 @@ class AccountDatabaseList extends KDListView
 
 
   
-    # jr = new bongo.api[f.type]
+    # jr = new KD.remote.api[f.type]
     #   title : f.title   ? "My Dev DB #{(Date.now()+"").substr(-2)}"
     #   host  : f.host    ? "localhost"
     #   color : f.color   ? "yellow"

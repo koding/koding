@@ -14,6 +14,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       validate      :
         rules       :
           required  : yes
+          maxLength : 140
         messages    :
           required  : "Code snippet title is required!"
 
@@ -21,9 +22,12 @@ class ActivityCodeSnippetWidget extends KDFormView
       title : "Description:"
 
     @description = new KDInputView
-      label       : @labelDescription
-      name        : "body"
-      placeholder : "What is your code about?"
+      label         : @labelDescription
+      name          : "body"
+      placeholder   : "What is your code about?"
+      validate      :
+        rules       :
+          maxLength : 3000
 
     @labelContent = new KDLabelView
       title : "Code Snip:"

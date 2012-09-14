@@ -34,7 +34,7 @@ AccountMixin = do ->
           callback null, kiteChannelId
 
     JAccount::tellKite = do->
-      {Scrubber, Store} = bongo.dnodeProtocol
+      {Scrubber, Store} = Bongo.dnodeProtocol
 
       localStore = new Store
       remoteStore = new Store
@@ -67,7 +67,7 @@ AccountMixin = do ->
       getChannelName =(kiteName)-> "private-kite-#{kiteName}"
 
       fetchChannel =(kiteName, callback)->  
-        bongo.mq.fetchChannel getChannelName(kiteName), callback
+        KD.remote.fetchChannel getChannelName(kiteName), callback
 
       (options, callback=->)->
         scrubber = new Scrubber localStore

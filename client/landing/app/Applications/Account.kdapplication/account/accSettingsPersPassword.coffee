@@ -72,7 +72,7 @@ class AccountEditSecurity extends KDView
       duration : 1000
   
   saveNewPassword:(formData)->    
-    bongo.api.JUser.changePassword formData.password,(err,docs)=>
+    KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
     
     

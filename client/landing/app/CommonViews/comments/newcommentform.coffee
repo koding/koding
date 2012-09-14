@@ -10,7 +10,7 @@ class NewCommentForm extends KDView
     super options,data
 
   viewAppended:()->
-    {profile} = @getSingleton('mainController').getVisitor().currentDelegate
+    {profile} = KD.whoami()
     host = "http://#{location.host}/"
     fallbackUrl = "url(http://www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
 
@@ -22,17 +22,17 @@ class NewCommentForm extends KDView
       cssClass    : "item-add-comment-form"
 
     commentFormWrapper.addSubView @commentInput   = new KDHitEnterInputView
-      type        : "textarea"
-      delegate    : @
-      placeholder : "Type your comment and hit enter..."
-      autogrow    : yes
-      validate    :
-        # event       : "keyup"
+      type          : "textarea"
+      delegate      : @
+      placeholder   : "Type your comment and hit enter..."
+      autogrow      : yes
+      validate      :
         rules       :
-          required    : yes
+          required  : yes
+          maxLength : 2000
         messages    :
-          required    : "Please type a comment..."
-      callback    : @commentInputReceivedEnter
+          required  : "Please type a comment..."
+      callback      : @commentInputReceivedEnter
 
     @attachListeners()
 
