@@ -67,7 +67,7 @@ class Sidebar extends JView
 
     @adminNav = @adminNavController.getView()
 
-    @resetAdminNavController()
+    # @resetAdminNavController()
 
     @chatController = new NavigationController
       view          : new NavigationList

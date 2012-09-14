@@ -55,10 +55,11 @@ class CommentListViewController extends KDListViewController
       callback      : (pubInst, reply)->
         model = listView.getData()
         listView.emit "BackgroundActivityStarted"
-        model.reply reply, (err, reply)->
+        model.reply reply, (err, reply)=>
           # listView.emit "AllCommentsLinkWasClicked"
-          listView.addItem reply
-          listView.emit "OwnCommentHasArrived"
+          if not @getSingleton('activityController').flags?.liveUpdates
+            listView.addItem reply
+            listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
 
   fetchCommentsByRange:(from,to,callback)=>
