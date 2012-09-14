@@ -1,14 +1,12 @@
 class NewCommentForm extends KDView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
 
-    options = $.extend
-      type      : "new-comment"
-      cssClass  : "item-add-comment-box"
-    ,options
-
+    options.type           or= "new-comment"
+    options.cssClass       or= "item-add-comment-box"
     options.itemTypeString or= 'comment'
-    super options,data
+
+    super options, data
 
   viewAppended:()->
     {profile} = @getSingleton('mainController').getVisitor().currentDelegate

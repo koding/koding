@@ -15,6 +15,7 @@ class DemosMainView extends KDScrollView
         if e.altKey and e.which in [37,39]
           log "splitPanel"
           split.splitPanel focusedIndex
+          split._windowDidResize()
           return no
 
         if e.altKey and e.which is 87
@@ -54,4 +55,21 @@ class FocusableSplit extends KDSplitView
       callback           : @setFocusedPanel
 
     return panel
+
+  _resizeUponPanelCount:->
+    if (l = @panels.length) < 4
+      @_setSize @_getParentSize()
+    else
+      @getOptions().sizes = new Array l
+      @_setSize (w = @_getParentSize()) + (l - 3) / 3 * w
+
+  _windowDidResize:(event)=>
+    super
+    # @utils.wait 300, =>
+    #   @_resizeUponPanelCount()
+    #   @_resetSizeValues()
+    #   @sizes = @_sanitizeSizes()
+    #   @_calculatePanelBounds()
+    #   @_setPanelPositions()
+    #   @_setResizerPositions() if @options.resizable
 
