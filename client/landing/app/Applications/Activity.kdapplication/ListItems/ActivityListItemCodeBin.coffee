@@ -66,8 +66,9 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinForkButton = new KDButtonView
       title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
-      disabled:yes
+      # disabled:yes
       click:=>
+        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
 
     @resultBanner = new KDCustomHTMLView

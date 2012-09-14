@@ -262,6 +262,30 @@ class ActivityCodeBinWidget extends KDFormView
     else
       @once "codeBin.aceLoaded", => fillForm()
 
+  switchToForkView:(activity)->
+    @submitBtn.setTitle "Fork this code bin"
+    # @addCustomData "activity", activity
+    {title, body, tags} = activity
+
+    HTMLcontent = activity.attachments[0]?.content
+    CSScontent = activity.attachments[1]?.content
+    JScontent = activity.attachments[2]?.content
+
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
+
+    fillForm = =>
+      # @title.setValue Encoder.htmlDecode title
+      # @description.setValue Encoder.htmlDecode body
+      @HTMLace.setContents Encoder.htmlDecode HTMLcontent
+      @CSSace.setContents Encoder.htmlDecode CSScontent
+      @JSace.setContents Encoder.htmlDecode JScontent
+
+    if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
+      fillForm()
+    else
+      @once "codeBin.aceLoaded", => fillForm()
+
   widgetShown:->
 
     snippetCount = 0
