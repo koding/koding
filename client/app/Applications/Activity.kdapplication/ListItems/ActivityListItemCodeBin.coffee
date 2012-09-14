@@ -57,6 +57,7 @@ class CodeBinActivityItemView extends ActivityItemChild
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
+        @codeBinResultView.resetResultFrame()
         @codeBinResultButton.setTitle "Run"
         @resultBanner.show()
         @codeBinCloseButton.hide()
@@ -65,6 +66,7 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinForkButton = new KDButtonView
       title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
+      disabled:yes
       click:=>
 
 
@@ -207,6 +209,9 @@ class CodeBinResultView extends KDCustomHTMLView
       # @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
 
       resultObject =
+
+        resetFrame    : no
+
         html          : Encoder.htmlDecode(codebin.attachments[0].content)
         htmlType      : "html"
 
@@ -263,7 +268,8 @@ class CodeBinResultView extends KDCustomHTMLView
 
 
   resetResultFrame:=>
-    @codeView.options.attributes.src = @codeView.options.attributes.src
+    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),"*")
+    # @codeView.options.attributes.src = @codeView.options.attributes.src
 
   appendResultFrame:(url)=>
 

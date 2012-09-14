@@ -12,9 +12,9 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
     @unsetClass 'status'
     @setClass 'codebin'
 
-    @codeBinHTMLView = new CodeSnippetView {},data.attachments[0]
-    @codeBinCSSView = new CodeSnippetView {},data.attachments[1]
-    @codeBinJSView = new CodeSnippetView {},data.attachments[2]
+    @codeBinHTMLView = new CodeBinSnippetView {},data.attachments[0]
+    @codeBinCSSView = new CodeBinSnippetView {},data.attachments[1]
+    @codeBinJSView = new CodeBinSnippetView {},data.attachments[2]
 
     @codeBinResultView = new CodeBinResultView {} ,data
     @codeBinResultView.hide()
@@ -23,22 +23,26 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       title: "Run this"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultResetButton.show()
+        @codeBinResultButton.setTitle "Reset"
         @codeBinResultView.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges"
+        @codeBinCloseButton.show()
+        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
 
-    @codeBinResultResetButton = new KDButtonView
-      title: "Reset"
-      cssClass:"clean-gray result-reset-button hidden"
+    @codeBinCloseButton = new KDButtonView
+      title: "Close"
+      cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
-        @codeBinResultView.emit "CodeBinResultShouldReset"
+        @codeBinResultView.resetResultFrame()
+        @codeBinResultButton.setTitle "Run"
+        @codeBinCloseButton.hide()
 
     @codeBinForkButton = new KDButtonView
-      title: "Fork this"
+      title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
-
+      disabled: yes
       click:=>
+
 
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeBinActivity
@@ -62,6 +66,7 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       <span class="author">AUTHOR</span>
     </span>
     <div class='activity-item-right-col'>
+
       <h3>{{#(title)}}</h3>
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
       <div class="code-bin-source">
@@ -69,10 +74,10 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
       {{> @codeBinCSSView}}
       {{> @codeBinJSView}}
       </div>
-      {{> @codeBinResultButton}}
-      {{> @codeBinResultResetButton}}
-      {{> @codeBinForkButton}}
       {{> @codeBinResultView}}
+      {{> @codeBinResultButton}}
+      {{> @codeBinCloseButton}}
+      {{> @codeBinForkButton}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}

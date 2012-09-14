@@ -183,6 +183,7 @@ class ActivityCodeBinWidget extends KDFormView
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
+        @codeBinResultView.resetResultFrame()
         @codeBinResultButton.setTitle "Run"
         @codeBinCloseButton.hide()
 
