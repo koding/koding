@@ -1,16 +1,18 @@
 jraphical = require 'jraphical'
 
+console.log 'capsule', jraphical.Capsule.name
+
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
   {Relationship} = jraphical
-
-  @trait __dirname, '../../traits/followable'
 
   @getFlagRole =-> 'activity'
 
   jraphical.Snapshot.watchConstructor @
 
   @share()
+
+  @trait __dirname, '../../traits/followable', override: no
 
   @set
     feedable          : yes

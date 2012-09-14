@@ -13,6 +13,7 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
+  @trait __dirname, '../../traits/likeable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical

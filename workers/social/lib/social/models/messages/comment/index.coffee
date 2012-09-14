@@ -5,26 +5,32 @@ module.exports = class JComment extends jraphical.Reply
   {ObjectId,ObjectRef,dash,daisy,secure} = require 'bongo'
   {Relationship}  = require 'jraphical'
   
+  @trait __dirname, '../../../traits/likeable'
+
   @share()
 
   @set
-    sharedMethods :
-      instance    : ['delete']
-    schema        :
-      isLowQuality: Boolean
-      body        :
-        type      : String
-        required  : yes
-      originType  :
-        type      : String
-        required  : yes
-      originId    :
-        type      : ObjectId
-        required  : yes
-      deletedAt   : Date
-      deletedBy   : ObjectRef
-      meta        : require 'bongo/bundles/meta'
-  
+    sharedMethods  :
+      instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
+    schema         :
+      isLowQuality : Boolean
+      body         :
+        type       : String
+        required   : yes
+      originType   :
+        type       : String
+        required   : yes
+      originId     :
+        type       : ObjectId
+        required   : yes
+      deletedAt    : Date
+      deletedBy    : ObjectRef
+      meta         : require 'bongo/bundles/meta'
+    relationships  :
+      likedBy      :
+        targetType : 'JAccount'
+        as         : 'like'
+
   delete: secure (client, callback)->
     {delegate} = client.connection
     {getDeleteHelper} = Relationship

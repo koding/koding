@@ -205,7 +205,7 @@ Includes =
         KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
-        KDRySwitch            : "./client/Framework/components/inputs/KDRySwitch.coffee"
+        KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -308,8 +308,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
-        
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
+
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
@@ -392,17 +392,6 @@ Includes =
         footerView                    : "./client/app/Applications/Home.kdapplication/Views/FooterBarContents.coffee"
 
         #ABOUT VIEWS
-        
-        # CHAT CONTROLLERS
-        ChannelController             : "./client/app/Applications/Chat.kdapplication/Controllers/ChannelController.coffee"
-        MentionAutoCompleteController : "./client/app/Applications/Chat.kdapplication/Controllers/MentionAutoCompleteController.coffee"
-
-        # CHAT VIEWS
-        ChatView                      : "./client/app/Applications/Chat.kdapplication/Views/ChatView.coffee"
-        ChannelView                   : "./client/app/Applications/Chat.kdapplication/Views/ChannelView.coffee"
-        ChatInputFormView             : "./client/app/Applications/Chat.kdapplication/Views/ChatInputFormView.coffee"
-        ChatListItemView              : "./client/app/Applications/Chat.kdapplication/Views/ChatListItemViews.coffee"
-        ChannelListItemView           : "./client/app/Applications/Chat.kdapplication/Views/ChatListItemViews.coffee"
 
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
@@ -462,6 +451,7 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
+        broker                      : "./broker/apps/broker/priv/www/js/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
@@ -488,6 +478,7 @@ Includes =
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
 
+        LikeView                    : "./client/app/CommonViews/LikeView.coffee"
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
@@ -610,7 +601,6 @@ Includes =
 
       Libraries :
         #pusher            : "./client/libs/pusher.min.js"
-        broker            : "./broker/apps/broker/priv/www/js/broker.js"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
@@ -639,17 +629,17 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        appabout            : "./client/stylus/app.about.styl"
+        # appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
         appaceeditor        : "./client/stylus/app.aceeditor.styl"
         activity            : "./client/stylus/app.activity.styl"
         appcontextmenu      : "./client/stylus/app.contextmenu.styl"
-        appchat             : "./client/stylus/app.chat.styl"
+        # appchat             : "./client/stylus/app.chat.styl"
         appsettings         : "./client/stylus/app.settings.styl"
         appinbox            : "./client/stylus/app.inbox.styl"
-        appenvsettings      : "./client/stylus/app.envsettings.styl"
+        # appenvsettings      : "./client/stylus/app.envsettings.styl"
         appmembers          : "./client/stylus/app.members.styl"
         comments            : "./client/stylus/app.comments.styl"
         bootstrap           : "./client/stylus/app.bootstrap.styl"
@@ -657,13 +647,13 @@ Includes =
         appkeyboard         : "./client/stylus/app.keyboard.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
-        apphome             : "./client/stylus/app.home.styl"
+        # apphome             : "./client/stylus/app.home.styl"
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        book                : "./client/stylus/app.book.styl"
+        # book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"
@@ -677,7 +667,7 @@ Includes =
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
 
-        toolsdemos          : "./client/stylus/tools.demos.styl"
+        # toolsdemos          : "./client/stylus/tools.demos.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
@@ -693,5 +683,4 @@ Includes =
         # multiselect : "./client/css/jquery.multiselect.css"
         # tipTip    : "./client/css/tipTip.css"
         # fonts     : "./client/css/fonts.css"
-
 module.exports = Includes

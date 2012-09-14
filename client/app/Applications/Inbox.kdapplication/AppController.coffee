@@ -33,8 +33,6 @@ class Inbox12345 extends AppController
     mainView.createCommons()
     mainView.createTabs()
 
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
       listener     : @

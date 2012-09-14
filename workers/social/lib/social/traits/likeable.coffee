@@ -1,0 +1,46 @@
+module.exports = class Likeable
+
+  {ObjectRef,daisy,secure} = require 'bongo'
+  {Relationship} = require 'jraphical'
+
+  checkIfLikedBefore: secure ({connection}, callback)->
+    {delegate} = connection
+    {constructor} = @
+    Relationship.one
+      sourceId: @getId()
+      targetId: delegate.getId()
+      as: 'like'
+    , (err, likedBy)=>
+      if likedBy
+        callback null, yes
+      else
+        callback err, no
+
+  like: secure ({connection}, callback)->
+    JAccount = require '../models/account'
+    {delegate} = connection
+    {constructor} = @
+    unless delegate instanceof JAccount
+      callback new Error 'Only instances of JAccount can like things.'
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'like'
+      , (err, likedBy)=>
+        if err
+          callback err
+        else
+          unless likedBy
+            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
+              if err
+                callback err
+              else
+                @update ($set: 'meta.likes': count), callback
+          else
+            @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
+              if err
+                callback err
+                console.log err
+              else
+                @update ($set: 'meta.likes': count), callback

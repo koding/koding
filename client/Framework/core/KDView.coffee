@@ -73,15 +73,7 @@ class KDView extends KDObject
             event.stopPropagation?()
             event.preventDefault?()
             return false
-<<<<<<< HEAD
-          else if event.metaKey and event.altKey and event.shiftKey
-            data = @getData()
-            debugger
-            return false
-          else if event.metaKey and event.altKey
-=======
           else if event.ctrlKey and event.altKey
->>>>>>> fcdb488e3a64d5ba99e5e5597c5685a678ebc60e
             log @
             return false
 
