@@ -19,10 +19,10 @@ import (
 )
 
 type WebtermServer struct {
-	user    string
-	remote  dnode.Remote
-	pty     *pty.PTY
-	process *os.Process
+	user      string
+	remote    dnode.Remote
+	pty       *pty.PTY
+	process   *os.Process
 }
 
 var config Config
@@ -68,11 +68,7 @@ func main() {
 			fmt.Printf("WebSocket opened: %p\n", ws)
 
 			server := &WebtermServer{user: config.user}
-			defer func() {
-				if server.process != nil {
-					server.process.Signal(syscall.SIGHUP)
-				}
-			}()
+			defer server.Close()
 
 			node := dnode.New(ws)
 			node.SendRemote(server)
@@ -225,4 +221,11 @@ func (server *WebtermServer) SetSize(x, y float64) {
 	if server.pty != nil {
 		server.pty.SetSize(uint16(x), uint16(y))
 	}
+}
+
+func (server *WebtermServer) Close() error {
+	if server.process != nil {
+		server.process.Signal(syscall.SIGHUP)
+	}
+	return nil
 }

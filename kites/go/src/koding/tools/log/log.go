@@ -175,7 +175,6 @@ func RecoverAndLog() {
 			}
 			message = append(message, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 		}
-		message = message[0 : len(message)-2]
 		_, file, line, _ := runtime.Caller(2)
 		Log(ERR, file, line, message...)
 	}

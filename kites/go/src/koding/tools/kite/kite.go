@@ -1,6 +1,8 @@
 package kite
 
 import (
+	"github.com/streadway/amqp"
+	"io"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
@@ -23,17 +25,17 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 			log.Info("Connecting to AMQP server...")
 
+			notifyCloseChannel := make(chan *amqp.Error)
 			consumeConn := createConn(uri)
-			defer consumeConn.Close()
-
+			consumeConn.NotifyClose(notifyCloseChannel)
+			//defer consumeConn.Close()
 			publishConn := createConn(uri)
-			defer publishConn.Close()
+			publishConn.NotifyClose(notifyCloseChannel)
+			//defer publishConn.Close()
 
 			log.Info("Successfully connected to AMQP server.")
 
 			joinChannel := createChannel(consumeConn)
-			defer joinChannel.Close()
-
 			joinStream := declareBindConsumeQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 			for {
 				select {
@@ -58,22 +60,30 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 							log.Debug("Client disconnected: " + user)
 						}()
 
-						messageChannel := createChannel(consumeConn)
-						defer messageChannel.Close()
-						messageStream := declareBindConsumeQueue(messageChannel, "", "client-message.*", secretName, true)
+						conn := newConnection(secretName, consumeConn, publishConn)
+						defer conn.Close()
 
-						publishChannel := createChannel(publishConn)
-						defer publishChannel.Close()
-
-						node := dnode.New(&connection{messageStream, publishChannel, secretName, "", make([]byte, 0)})
+						node := dnode.New(conn)
 						node.OnRootMethod = func(method string, args []interface{}) {
 							result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
 							if result != nil {
+								if closer, ok := result.(io.Closer); ok {
+									conn.notifyClose(closer)
+								}
 								args[1].(dnode.Callback)(result)
 							}
 						}
 						node.Run()
 					}()
+
+				case err := <-notifyCloseChannel:
+					if err != nil {
+						panic(err)
+					}
+					if !shutdown {
+						log.Warn("Connection to AMQP server lost.")
+					}
+					return
 
 				case <-sigtermChannel:
 					log.Info("Received TERM signal. Beginning shutdown...")

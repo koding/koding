@@ -51,7 +51,10 @@ func (dnode *DNode) Send(method interface{}, arguments []interface{}) {
 		make(map[string]([]string)),
 	}
 	dnode.collectCallbacks(arguments, make([]string, 0), message.Callbacks)
-	dnode.encoder.Encode(message)
+	err := dnode.encoder.Encode(message)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (dnode *DNode) collectCallbacks(obj interface{}, path []string, callbackMap map[string]([]string)) {
