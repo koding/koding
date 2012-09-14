@@ -70,9 +70,9 @@ koding.on 'auth', (exchange, sessionToken)->
     {nickname} = delegate.profile
     ownExchange = "x#{nickname}"
     # When client logs in, create own queue to consume real-time updates
-    koding.mq.bindQueue ownExchange, ownExchange, '#'
+    koding.mq.bindQueue ownExchange, ownExchange, '#', {autoDelete: false}
     # Bind to feed worker queue
-    koding.mq.bindQueue "koding-feeder", ownExchange, "#.activity"
+    koding.mq.bindQueue "koding-feeder", ownExchange, "#.activity", {autoDelete: false}
 
     delegate.on "FollowCountChanged", () ->
       console.log "FollowCountChanged", arguments
