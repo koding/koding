@@ -149,6 +149,43 @@ class ActivityCodeBinWidget extends KDFormView
         range       : 0.4
         speed       : 1
         FPS         : 24
+
+    @codeBinResultView = new CodeBinResultView {}, {}
+    @codeBinResultView.hide()
+    @codeBinResultButton = new KDButtonView
+      title: "Run this"
+      cssClass:"clean-gray result-button"
+      click:=>
+        @codeBinResultButton.setTitle "Apply Changes"
+        @codeBinResultView.show()
+        @codeBinCloseButton.show()
+        @codeBinResultView.emit "CodeBinSourceHasChanges", {
+          attachments:[
+            {
+              content:@HTMLace.getContents()
+              title:"irrelevant"
+              syntax:"html"},
+            {
+              content:@CSSace.getContents()
+              title:"irrelevant"
+              syntax:"css"
+              },
+            {
+              content:@JSace.getContents()
+              title:"irrelevant"
+              syntax:"javascript"
+            }
+            ]
+          }
+
+    @codeBinCloseButton = new KDButtonView
+      title: "Close"
+      cssClass:"clean-gray hidden"
+      click:=>
+        @codeBinResultView.hide()
+        @codeBinResultButton.setTitle "Run"
+        @codeBinCloseButton.hide()
+
     # @syntaxSelect = new KDSelectBox
     #   name          : "syntax"
     #   selectOptions : __aceSettings.getSyntaxOptions()
@@ -225,12 +262,9 @@ class ActivityCodeBinWidget extends KDFormView
 
     snippetCount = 0
 
-    log "showing widget", @HTMLace, @CSSace, @JSace
     unless @HTMLace? and @CSSace? and @JSace?
-      log "loading ace"
       @loadAce()
     else
-      log "refreshing"
       @refreshEditorView()
 
   snippetCount = 0
@@ -296,7 +330,7 @@ class ActivityCodeBinWidget extends KDFormView
   pistachio:->
     """
     <div class="form-actions-mask">
-      <div class="form-actions-holder">
+      <div class="form-actions-holder code-share">
         <div class="formline">
           {{> @labelTitle}}
           <div>
@@ -309,27 +343,36 @@ class ActivityCodeBinWidget extends KDFormView
             {{> @description}}
           </div>
         </div>
-        <div class="formline">
+        <div class="formline-codeshare">
+        <div class="code-snip-container">
           {{> @labelHTMLContent}}
-          <div class="code-snip-holder">
+          <div class="code-snip-holder share">
             {{> @HTMLloader}}
             {{> @aceHTMLWrapper}}
           </div>
-          {{> @HTMLfullScreenBtn}}
         </div>
-        <div class="formline">
+        <div class="code-snip-container">
           {{> @labelCSSContent}}
-          <div class="code-snip-holder">
+          <div class="code-snip-holder share">
             {{> @CSSloader}}
             {{> @aceCSSWrapper}}
           </div>
         </div>
-        <div class="formline">
+        <div class="code-snip-container">
           {{> @labelJSContent}}
-          <div class="code-snip-holder">
+          <div class="code-snip-holder share">
             {{> @JSloader}}
             {{> @aceJSWrapper}}
           </div>
+        </div>
+        </div>
+        <div class="formline">
+          {{> @codeBinResultView}}
+          {{> @codeBinResultButton}}
+          {{> @codeBinCloseButton}}
+        </div>
+        <div class="formline">
+
         </div>
         <div class="formline">
           {{> @labelAddTags}}
