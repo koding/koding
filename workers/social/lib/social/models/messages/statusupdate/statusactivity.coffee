@@ -2,8 +2,6 @@ CActivity = require '../../activity'
 
 module.exports = class CStatusActivity extends CActivity
 
-  JStatusUpdate = require './index'
-
   @share()
   
   @set
@@ -12,5 +10,5 @@ module.exports = class CStatusActivity extends CActivity
     schema          : CActivity.schema
     relationships   :
       subject       :
-        targetType  : JStatusUpdate
+        targetType  : 'JStatusUpdate'
         as          : 'content'
