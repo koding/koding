@@ -100,7 +100,10 @@ class JApp extends jraphical.Module
     , (err, app)=>
       if err
         callback err
-      else if app
+      else
+        data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
+
+      if app
         console.log "alreadyPublished trying to update fields"
 
         if not data.manifest.version
