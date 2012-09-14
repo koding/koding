@@ -156,7 +156,6 @@ class Activity12345 extends AppController
         log '>> error fetching app storage', err
       else
         options.collection = 'activities'
-        options.isPublic = true
         flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
