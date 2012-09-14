@@ -220,8 +220,7 @@ class ActivityCodeBinWidget extends KDFormView
     super
 
   reset:=>
-    log "reseting widget"
-    @submitBtn.setTitle "Share your Code Snippet"
+    @submitBtn.setTitle "Share your Code Bin"
     @removeCustomData "activity"
     @title.setValue ''
     @description.setValue ''
@@ -232,6 +231,10 @@ class ActivityCodeBinWidget extends KDFormView
       @CSSace.setSyntax 'css'
       @JSace.setContents "//your JavaScript goes here..."
       @JSace.setSyntax 'javascript'
+      @codeBinResultView?.resetResultFrame()
+      @codeBinResultView?.hide()
+      @codeBinCloseButton?.hide()
+      @codeBinResultButton?.setTitle "Run"
     @tagController.reset()
 
   switchToEditView:(activity)->
