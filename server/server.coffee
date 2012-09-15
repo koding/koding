@@ -52,7 +52,7 @@ app.get '/auth', do ->
         if /^bongo\./.test type
           privName = 'secret-bongo-'+hat()+'.private'
           koding.mq.funnel privName, koding.queueName
-          koding.mq.on privName, 'disconnect', console.log
+          koding.mq.on privName, 'disconnected', console.log
           res.send privName
         else unless session?
           authenticationFailed(res)

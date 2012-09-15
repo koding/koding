@@ -64,27 +64,40 @@ koding = new Bongo
     #login     : "guest"
     #password  : "x1srTA7!%Vb}$n|S"
   }
+
+Feeder = require './feeder'
+feeder = new Feeder
+
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
     {nickname} = delegate.profile
-    ownExchange = "x#{nickname}"
+
+    ownExchangeName = "x#{nickname}"
     # When client logs in, create own queue to consume real-time updates
-    koding.mq.bindQueue ownExchange, ownExchange, '#', {autoDelete: false}
+    koding.mq.bindQueue ownExchangeName, ownExchangeName, '#', {exchangeAutoDelete: false}
     # Bind to feed worker queue
-    koding.mq.bindQueue "koding-feeder", ownExchange, "#.activity", {autoDelete: false}
+    workerQueueOptions =
+      exchangeAutoDelete: false
+      queueExclusive: false
+    koding.mq.bindQueue "koding-feeder", ownExchangeName, "#.activity", workerQueueOptions
+
+    # Listen to when an activity is posted and publish it to MQ
+    koding.models.CActivity.on "feed.new", ([model]) ->
+      options = deliveryMode: 2
+
+      ownExchange= koding.mq.connection.exchanges[ownExchangeName]
+      payload = JSON.stringify model
+      ownExchange.publish "#{ownExchangeName}.activity", payload, options
 
     delegate.on "FollowCountChanged", () ->
       console.log "FollowCountChanged", arguments
-
-    delegate.on "Followed", ({followee, action}) =>
-      console.log arguments
-      return unless action is "follow" or "unfollow"
+      return unless action? is "follow" or "unfollow"
       # Set up the exchange-to-exchange binding for followings.
       followerNick = follower.profile.nickname
       routingKey = "#{followerNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      koding.mq[method] ownExchange, "x#{followerNick}", routingKey
+      koding.mq[method] ownExchangeName, "x#{followerNick}", routingKey
 
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect console.log
