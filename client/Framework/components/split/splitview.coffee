@@ -16,9 +16,10 @@ class KDSplitView extends KDView
 
     super options,data
 
-    @panels = []
+    @panels       = []
     @panelsBounds = []
-    @resizers = []
+    @resizers     = []
+    @sizes        = []
 
   viewAppended:->
 
@@ -33,8 +34,6 @@ class KDSplitView extends KDView
 
     if @options.resizable and @panels.length
       @_createResizers()
-      @_putResizers()
-      @_setResizerPositions()
 
     @listenWindowResize()
 
@@ -59,6 +58,9 @@ class KDSplitView extends KDView
       minimum  : @_sanitizeSize minimums[index] if minimums
       maximum  : @_sanitizeSize maximums[index] if maximums
 
+    panel.on "KDObjectWillBeDestroyed", => @_panelIsBeingDestroyed panel
+
+    return panel
 
   _calculatePanelBounds:()->
     @panelsBounds = for size,i in @sizes
@@ -85,6 +87,8 @@ class KDSplitView extends KDView
   _createResizers:->
     @resizers = for i in [1...@sizes.length]
       @_createResizer i
+    @_putResizers()
+    @_setResizerPositions()
 
   _createResizer:(index)->
     resizer = new KDSplitResizer
@@ -110,10 +114,12 @@ class KDSplitView extends KDView
   # HELPERS
   _sanitizeSizes:()->
     @_setMinsAndMaxs()
-    nullCount = 0
+    o             = @getOptions()
+    nullCount     = 0
     totalOccupied = 0
-    splitSize = @_getSize()
-    newSizes = for size,i in @options.sizes
+    splitSize     = @_getSize()
+
+    newSizes = for size,i in (if @sizes.length > 0 then @sizes else o.sizes)
       if size is null
         # log size, "null"
         nullCount++
@@ -125,7 +131,7 @@ class KDSplitView extends KDView
         totalOccupied += panelSize
         panelSize
 
-    for size in newSizes
+    @sizes = for size in newSizes
       if size is null
         nullSize = (splitSize - totalOccupied) / nullCount
         Math.round(nullSize)
@@ -213,9 +219,11 @@ class KDSplitView extends KDView
     @utils.wait 300, =>
       @_setSize @_getParentSize()
       @_resetSizeValues()
-      @sizes = @_sanitizeSizes()
+
+      @_sanitizeSizes()
       @_calculatePanelBounds()
       @_setPanelPositions()
+
       # find a way to do that for when parent get resized and split reachs a min-width
       # if @getWidth() > @_getParentSize() then @setClass "min-width-reached" else @unsetClass "min-width-reached"
       if @options.resizable
@@ -334,7 +342,7 @@ class KDSplitView extends KDView
       if p.getId() is panel.getId()
         return i
 
-  splitPanel:(index,options,callback = noop)->
+  splitPanel:(index, options)->
 
     newPanelOptions = $.extend
       minimum : null
@@ -407,45 +415,79 @@ class KDSplitView extends KDView
       # APPEND NEW RESIZER
       @addSubView newResizer
 
-    callback()
-    newPanel
+    return newPanel
 
-  removePanel:(index,callback = noop)->
-    return warn "this is the only panel left" if @panels.length is 1
+  _panelIsBeingDestroyed:(panel)->
 
-    panel  = @panels[index]
-    length = @panels.length
+    index = @getPanelIndex panel
+    log "><><#{index}><><"
+    o = @getOptions()
+    # log @panels.splice       index, 1
+    # log @sizes.splice        index, 1
+    # log @panelsBounds.splice index, 1
+    @panels       = @panels.slice(0,index).concat(@panels.slice(index+1))
+    @sizes        = @sizes.slice(0,index).concat(@sizes.slice(index+1))
+    @panelsBounds = @panelsBounds.slice(0,index).concat(@panelsBounds.slice(index+1))
+    o.minimums.splice    index, 1
+    o.maximums.splice    index, 1
+    o.views.splice       index, 1 if o.views[index]?
+
+
+    log "panelsBounds", @panelsBounds
+    log "sizes", @sizes
+
+    # if o.resizable and @panels.length > 1
+    #   for r,i in @resizers
+    #     log "destroying resizer", i
+    #     r.destroy()
+    #   @resizers = []
+    #   @utils.wait 310, =>
+    #     @_createResizers()
+
+
+  removePanel:(index)->
+
+    l = @panels.length
+    if l is 1
+      warn "this is the only panel left"
+      return no
+
+    panel = @panels[index]
+    panel.destroy()
 
     if index is 0
       # log "FIRST ONE"
-      nextPanel = @panels[1]
-      nextPanel._setOffset nextPanel._getOffset() - panel._getSize()
-      nextPanel._setSize   nextPanel._getSize() + panel._getSize()
-      @resizers[0].destroy()
-      @resizers.splice 0,1
+      r = @resizers.shift()
+      r.destroy()
+      if res = @resizers[0]
+        res.panel0 = @panels[0]
+        res.panel1 = @panels[1]
+      # nextPanel._setOffset nextPanel._getOffset() - panel._getSize()
+      # nextPanel._setSize   nextPanel._getSize() + panel._getSize()
 
-    else if index is length - 1
+    else if index is l - 1
       # log "LAST ONE"
-      prevPanel = @panels[length - 2]
-      prevPanel._setSize prevPanel._getSize() + panel._getSize()
-      @resizers[length - 2].destroy()
-      @resizers.splice length-2,1
+      r = @resizers.pop()
+      r.destroy()
+      if res = @resizers[0]
+        res.panel0 = @panels[l-2]
+        res.panel1 = @panels[l-1]
+
+      # prevPanel = @panels[length - 2]
+      # prevPanel._setSize prevPanel._getSize() + panel._getSize()
 
     else
       # log "ONE IN THE MIDDLE"
-      prevPanel = @panels[index - 1]
-      @resizers[index - 1].destroy()
-      @resizers[index].panel0 = prevPanel
-      prevPanel._setSize prevPanel._getSize() + panel._getSize()
-      @resizers.splice index-1,1
+      [r] = @resizers.splice index - 1, 1
+      r.destroy()
+      @resizers[index - 1].panel0 = @panels[index-1]
+      @resizers[index - 1].panel1 = @panels[index]
 
-    panel.destroy()
-    @panels.splice index,1
-    @sizes.splice index,1
-    @panelsBounds.splice index,1
-    @options.minimums.splice index,1
-    @options.maximums.splice index,1
-    @options.views.splice index,1 if @options.views[index]?
+      # prevPanel = @panels[index - 1]
+      # prevPanel._setSize prevPanel._getSize() + panel._getSize()
+
+
+    return yes
 
   setView:(view,index)->
     if index > @panels.length or not view
