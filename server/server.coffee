@@ -36,7 +36,7 @@ koding = new Bongo {
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
-
+      
 app.get '/auth', do ->
   crypto = require 'crypto'
   (req, res)->
@@ -45,15 +45,17 @@ app.get '/auth', do ->
     return res.send 'user error', 400 unless channel
     clientId = req.cookies.clientid
     JSession.fetchSession {clientId}, (err, session)->
+      console.log 'arrrrrguments', arguments
       if err
         authenticationFailed(res, err)
       else
         [priv, type, pubName] = channel.split '-'
         if /^bongo\./.test type
           privName = 'secret-bongo-'+hat()+'.private'
+          console.log 'in here!!'
           koding.mq.funnel privName, koding.queueName
           koding.mq.on privName, 'disconnect', console.log
-          res.send privName
+          res.send privName 
         else unless session?
           authenticationFailed(res)
         else

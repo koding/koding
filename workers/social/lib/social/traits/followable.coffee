@@ -2,7 +2,7 @@ jraphical = require 'jraphical'
 {KodingError} = require '../error.coffee'
 CBucket = require '../models/bucket'
 
-module.exports = class Followable #extends jraphical.Module
+module.exports = class Followable
 
   {Model, dash, secure} = require 'bongo'
   {Relationship, Module} = jraphical

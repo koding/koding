@@ -5,8 +5,9 @@ Flaggable = require '../traits/flaggable'
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
   
-  JAccount = require './account'
-  JSession = require './session'
+  JAccount  = require './account'
+  JSession  = require './session'
+  JGuest    = require './guest'
   JEmailConfirmation = require './emailconfirmation'
 
   createKodingError =(err)->
@@ -115,22 +116,30 @@ module.exports = class JUser extends jraphical.Module
   @authenticateClient:(clientId, callback=->)->
     JSession.one {clientId}, (err, session)->
       if err
-        console.log 'there was an err.'
-        callback err
+        callback createKodingError err
       else unless session?
-        console.log 'auth failed'
-        callback createKodingError 'Authentication failed!'
+        JGuest.obtain null, clientId, callback
       else
-        {username} = session
-        JUser.one {username}, (err, user)->
-          if err
-            callback? err
-          else
-            user.fetchOwnAccount (err, account)->
-              if err
-                callback? err
-              else
-                callback null, account
+        {username, guestId} = session
+        if guestId?
+          JGuest.one {guestId}, (err, guest)=>
+            if err
+              callback createKodingError err
+            else if guest?
+              callback null, guest
+            else
+              @logout clientId, callback
+        else if username?
+          JUser.one {username}, (err, user)->
+            if err
+              callback? err
+            else
+              user.fetchOwnAccount (err, account)->
+                if err
+                  callback createKodingError err
+                else
+                  callback null, account
+        else @logout clientId, callback
 
 
   createNewMemberActivity =(account, callback=->)->
@@ -232,30 +241,41 @@ module.exports = class JUser extends jraphical.Module
                             else
                               console.log 'user link was added'
   
-  @logout = secure ({connection}, callback)->
-    connection.remote.fetchClientId (clientId)->
-      visitor = JVisitor.visitors[clientId]
-      JSession.one {clientId}, (err, session)->
-        if err
-          callback err
-        else if session
-          session.update {
-            $unset      :
-              username  : 1
-              tokens    : 1
-          }, (err, docs)->
-            if err
-              callback err
-            else
-              {guestId} = session
-              JGuest.one {guestId}, (err, guest)->
-                if err
-                  callback err
-                else if guest
-                  connection.delegate = guest
-                  callback null, guest
-                  visitor.emit ['change','logout'], guest
-        else callback createKodingError 'Could not restore your session!'
+  @logout = secure (client, callback)->
+    if 'string' is typeof clientId
+      sessionToken = client
+    else
+      {sessionToken} = client
+      delete client.connection.delegate
+      delete client.sessionToken
+    JSession.remove {clientId: sessionToken}, (err)->
+      if err
+        callback err
+      else
+        JGuest.obtain null, sessionToken, callback
+    # connection.remote.fetchClientId (clientId)->
+    #   visitor = JVisitor.visitors[clientId]
+    #   JSession.one {clientId}, (err, session)->
+    #     if err
+    #       callback err
+    #     else if session
+    #       session.update {
+    #         $unset      :
+    #           username  : 1
+    #           tokens    : 1
+    #       }, (err, docs)->
+    #         if err
+    #           callback err
+    #         else
+    #           {guestId} = session
+    #           JGuest.one {guestId}, (err, guest)->
+    #             if err
+    #               callback err
+    #             else if guest
+    #               connection.delegate = guest
+    #               callback null, guest
+    #               visitor.emit ['change','logout'], guest
+    #     else callback createKodingError 'Could not restore your session!'
   
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences.one {}, (err, prefs)->

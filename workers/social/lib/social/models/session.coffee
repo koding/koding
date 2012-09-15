@@ -32,8 +32,7 @@ module.exports = class JSession extends Model
    
   @createSession =(callback)->
     clientId = createId()
-    guest = new JGuest {clientId}
-    guest.save (err, docs)=>
+    JGuest.obtain null, clientId, (err, guest)=>
       if err
         @emit 'error', err
       else
