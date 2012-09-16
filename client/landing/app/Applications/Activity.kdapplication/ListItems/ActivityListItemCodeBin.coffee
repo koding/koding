@@ -42,10 +42,10 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinResultView.hide()
 
     @codeBinResultButton = new KDButtonView
-      title: "Run this"
+      title: "Run Code Share"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultButton.setTitle "Reset"
+        @codeBinResultButton.setTitle "Reset Code Share"
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
@@ -53,12 +53,12 @@ class CodeBinActivityItemView extends ActivityItemChild
         @codeBinContainer.showPane @codeBinResultPane
 
     @codeBinCloseButton = new KDButtonView
-      title: "Close"
+      title: "Stop and Close Code Share"
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
         @codeBinResultView.resetResultFrame()
-        @codeBinResultButton.setTitle "Run"
+        @codeBinResultButton.setTitle "Run Code Share"
         @resultBanner.show()
         @codeBinCloseButton.hide()
 
@@ -83,7 +83,7 @@ class CodeBinActivityItemView extends ActivityItemChild
       partial : "Click here to see this Code Share!"
       cssClass : "result-banner-button"
       click:=>
-        @codeBinResultButton.setTitle "Reset"
+        @codeBinResultButton.setTitle "Reset Code Share"
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
