@@ -53,22 +53,28 @@ function handleDefaults() {
   }
 }
 
+function resetFrame(){
+        this.stopFrame();
+        console.log("stopped");
+        $("body").empty();
+        $("head style#codeshare_style").empty();
+}
+
+function stopFrame(){
+        for (var e in window) typeof this.defaultValues[e] == "undefined" && delete window[e];
+        setTimeout.clearAll(), setInterval.clearAll()
+        $("*").stop(true,true).clearQueue().unbind();
+}
+
 function receiveMessage(event)
 {
     var codeshare, share_script;
 
     if (event.data != null) codeshare = JSON.parse(event.data);
 
-    if (codeshare.resetFrame === true) {
-        $("body").empty();
-        $("head style#codeshare_style").empty();
-    }
+    if (codeshare.resetFrame === true) this.resetFrame();
 
-    else if (codeshare.stopFrame === true){
-        for (var e in window) typeof this.defaultValues[e] == "undefined" && delete window[e];
-        setTimeout.clearAll(), setInterval.clearAll()
-        $("*").stop(true,true).clearQueue().unbind();
-    }
+    else if (codeshare.stopFrame === true) this.stopFrame();
 
     else {
     // Prepare the CSS

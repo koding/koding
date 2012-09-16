@@ -16,7 +16,6 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinResultPane = new KDTabPaneView
       name:"Code Share"
 
-
     @codeBinHTMLPane = new KDTabPaneView
       name:"HTML"
 
@@ -42,20 +41,21 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinResultView.hide()
 
     @codeBinResultButton = new KDButtonView
-      title: "Run Code Share"
-      cssClass:"clean-gray result-button"
-      click:=>
+      title              : "Run Code Share"
+      cssClass           : "clean-gray result-button"
+      click              : =>
         @codeBinResultButton.setTitle "Reset Code Share"
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
+        @codeBinResultView.stopResultFrame()
         @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
         @codeBinContainer.showPane @codeBinResultPane
 
     @codeBinCloseButton = new KDButtonView
-      title: "Stop and Close Code Share"
-      cssClass:"clean-gray hidden"
-      click:=>
+      title             : "Stop and Close Code Share"
+      cssClass          : "clean-gray hidden"
+      click             : =>
         @codeBinResultView.hide()
         @codeBinResultView.stopResultFrame()
         @codeBinResultView.resetResultFrame()
@@ -63,33 +63,30 @@ class CodeBinActivityItemView extends ActivityItemChild
         @resultBanner.show()
         @codeBinCloseButton.hide()
 
-
     @codeBinForkButton = new KDButtonView
-      title: "Fork this Code Share"
-      cssClass:"clean-gray fork-button"
-      click:=>
+      title            : "Fork this Code Share"
+      cssClass         : "clean-gray fork-button"
+      click            : =>
         @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
-
     @resultBanner = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "result-banner"
-      partial : ""
+      tagName     : "div"
+      cssClass    : "result-banner"
+      partial     : ""
 
     @resultBannerButton = new KDCustomHTMLView
-      name : "resultBannerButton"
-      tagName:"a"
-      attributes:
-        href:"#"
-      partial : "Click here to see this Code Share!"
-      cssClass : "result-banner-button"
-      click:=>
+      name              : "resultBannerButton"
+      tagName           : "a"
+      attributes        :
+        href            : "#"
+      partial           : "Click here to see this Code Share!"
+      cssClass          : "result-banner-button"
+      click             : =>
         @codeBinResultButton.setTitle "Reset Code Share"
         @codeBinResultView.show()
         @resultBanner.hide()
         @codeBinCloseButton.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
-
 
     @resultBanner.addSubView @resultBannerButton
 
@@ -117,18 +114,6 @@ class CodeBinActivityItemView extends ActivityItemChild
     , noop
 
     @codeBinContainer.showPane @codeBinResultPane
-
-    # setTimeout =>
-    #   @codeBinResultButton.setTitle "Reset Code Share"
-    #   @codeBinResultView.show()
-    #   @resultBanner.hide()
-    #   @codeBinCloseButton.show()
-    #   @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
-    #   # setTimeout =>
-    #   #   @codeBinResultView.stopResultFrame()
-    #   # , 10000
-    # , 1000
-
 
   render:->
     super()
@@ -170,8 +155,8 @@ class CodeBinActivityItemView extends ActivityItemChild
     @$("pre.subview").css height:maxHeight
 
     initiallyPausedObserver = setInterval =>
-      codeBinOffset =@$(".code-bin-source").offset().top
-      scrollViewTop = @parent.parent.parent.$().scrollTop()
+      codeBinOffset    = @$(".code-bin-source").offset().top
+      scrollViewTop    = @parent.parent.parent.$().scrollTop()
       scrollviewHeight = @parent.parent.parent.$().innerHeight()+scrollViewTop
 
       if codeBinOffset+scrollViewTop < scrollviewHeight
@@ -185,10 +170,7 @@ class CodeBinActivityItemView extends ActivityItemChild
           clearInterval initiallyPausedObserver
     ,500
 
-
-
   pistachio:->
-
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
@@ -233,77 +215,20 @@ class CodeBinResultView extends KDCustomHTMLView
 
       codebin = data
 
-      # these are production paths and names! beware  --arvid
-      # addendum: only to be used when writing stuff to vhosts tmp
-
-      # @iframeUsername = KD.whoami().profile.nickname
-      # @iframeTimestamp = new Date().getTime()
-
-      # @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
-      # @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
-
       resultObject =
-
         resetFrame    : no
-
         html          : Encoder.htmlDecode(codebin.attachments[0].content)
         htmlType      : "html"
-
         css           : Encoder.htmlDecode(codebin.attachments[1].content)
         cssType       : "css"
         cssPrefix     : yes
-
         js            : Encoder.htmlDecode(codebin.attachments[2].content)
         jsType        : "js"
 
-
       @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),"*")
-
-
-
-      ###//////////////////////////////////////////////////////////////////////
-      #
-      # this block is also vhost production logic. --arvid
-
-      @kiteController.run
-        withArgs  :
-          command : "stat #{FSHelper.escapeFilePath(@iframePath)}"
-      , (err, stderr, response)=>
-        if err or stderr
-          # log "temp directory not found, trying mkdir - response is",response
-          @kiteController.run
-            withArgs  :
-              command : "mkdir #{FSHelper.escapeFilePath(@iframePath)}"
-            ,(err, stderr, response)=>
-              if err or stderr
-                # log "Could not mkdir - response is",response
-              else
-                @uploadFileAndUpdateView()
-        else
-          @uploadFileAndUpdateView()
-
-
-  uploadFileAndUpdateView:->
-    @kiteController.run
-       toDo           :  "uploadFile"
-       withArgs       : {
-         path         : FSHelper.escapeFilePath @iframePath+"/"+@iframeFileName
-         contents     : @iframeContents
-         username     : @iframeUsername
-       }
-    , (err, res)=>
-      if err
-        warn err
-      else
-        appendResultFrame "//#{@iframeUsername}.koding.com/codeshare_temp/"+@iframeFileName
-      #
-      #
-      ///////////////////////////////////////////////////////////////////// ###
-
 
   resetResultFrame:=>
     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),"*")
-    # @codeView.options.attributes.src = @codeView.options.attributes.src
 
   stopResultFrame:=>
      @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),"*")
@@ -325,7 +250,6 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @setTemplate @pistachio()
     @template.update()
-
 
   pistachio:->
     """
@@ -436,3 +360,59 @@ class CodeBinSnippetView extends KDCustomHTMLView
     </div>
     {{> @syntaxMode}}
     """
+  legacyCode:->
+
+      ###//////////////////////////////////////////////////////////////////////
+      #
+      # this part is the pseudo-implementation of codeshares hosted on the
+        users personal webspace on koding. whenever a user clicked "run" on
+        a codeshare, the resulting code was supposed to be fed into a html
+        file, uploaded to the vhost and then ran in an iframe. the following is
+        not plug&play material, it's just a collection of snippets that are
+        needed for this functionality.
+        -- arvid
+
+
+      # these are production paths and names! beware  --arvid
+      # addendum: only to be used when writing stuff to vhosts tmp
+
+      @iframeUsername = KD.whoami().profile.nickname
+      @iframeTimestamp = new Date().getTime()
+
+      @iframePath = "/Users/#{@iframeUsername}/Sites/#{@iframeUsername}.koding.com/website/codeshare_temp"
+      @iframeFileName = 'codeshare_'+@iframeTimestamp+'.html'
+
+      @kiteController.run
+        withArgs  :
+          command : "stat #{FSHelper.escapeFilePath(@iframePath)}"
+      , (err, stderr, response)=>
+        if err or stderr
+          # log "temp directory not found, trying mkdir - response is",response
+          @kiteController.run
+            withArgs  :
+              command : "mkdir #{FSHelper.escapeFilePath(@iframePath)}"
+            ,(err, stderr, response)=>
+              if err or stderr
+                # log "Could not mkdir - response is",response
+              else
+                @uploadFileAndUpdateView()
+        else
+          @uploadFileAndUpdateView()
+
+
+  uploadFileAndUpdateView:->
+    @kiteController.run
+       toDo           :  "uploadFile"
+       withArgs       : {
+         path         : FSHelper.escapeFilePath @iframePath+"/"+@iframeFileName
+         contents     : @iframeContents
+         username     : @iframeUsername
+       }
+    , (err, res)=>
+      if err
+        warn err
+      else
+        appendResultFrame "//#{@iframeUsername}.koding.com/codeshare_temp/"+@iframeFileName
+      #
+      #
+      ///////////////////////////////////////////////////////////////////// ###
