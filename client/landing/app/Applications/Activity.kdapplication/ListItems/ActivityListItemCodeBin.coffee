@@ -57,6 +57,7 @@ class CodeBinActivityItemView extends ActivityItemChild
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
+        # @codeBinResultView.stopResultFrame()
         @codeBinResultView.resetResultFrame()
         @codeBinResultButton.setTitle "Run Code Share"
         @resultBanner.show()
@@ -117,6 +118,17 @@ class CodeBinActivityItemView extends ActivityItemChild
 
     @codeBinContainer.showPane @codeBinResultPane
 
+    setTimeout =>
+      @codeBinResultButton.setTitle "Reset Code Share"
+      @codeBinResultView.show()
+      @resultBanner.hide()
+      @codeBinCloseButton.show()
+      @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+      # setTimeout =>
+      #   @codeBinResultView.stopResultFrame()
+      # , 10000
+    , 1000
+
   render:->
     super()
 
@@ -135,7 +147,6 @@ class CodeBinActivityItemView extends ActivityItemChild
     @codeBinHTMLView.render()
     @codeBinCSSView.render()
     @codeBinJSView.render()
-
 
   click:(event)->
     super
@@ -275,6 +286,9 @@ class CodeBinResultView extends KDCustomHTMLView
   resetResultFrame:=>
     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),"*")
     # @codeView.options.attributes.src = @codeView.options.attributes.src
+
+  stopResultFrame:=>
+     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),"*")
 
   appendResultFrame:(url)=>
 
