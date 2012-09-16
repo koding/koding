@@ -153,10 +153,10 @@ class ActivityCodeBinWidget extends KDFormView
     @codeBinResultView = new CodeBinResultView {}, {}
     @codeBinResultView.hide()
     @codeBinResultButton = new KDButtonView
-      title: "Run this"
+      title: "Run this Code Share"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultButton.setTitle "Apply Changes"
+        @codeBinResultButton.setTitle "Refresh Code Share"
         @codeBinResultView.show()
         @codeBinCloseButton.show()
         @codeBinResultView.emit "CodeBinSourceHasChanges", {
@@ -179,12 +179,12 @@ class ActivityCodeBinWidget extends KDFormView
           }
 
     @codeBinCloseButton = new KDButtonView
-      title: "Close"
+      title: "Stop and Close this Code Share"
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
         @codeBinResultView.resetResultFrame()
-        @codeBinResultButton.setTitle "Run"
+        @codeBinResultButton.setTitle "Run this Code Share"
         @codeBinCloseButton.hide()
 
     # @syntaxSelect = new KDSelectBox
@@ -221,7 +221,7 @@ class ActivityCodeBinWidget extends KDFormView
     super
 
   reset:=>
-    @submitBtn.setTitle "Share your Code Bin"
+    @submitBtn.setTitle "Post your Code Share"
     @removeCustomData "activity"
     @title.setValue ''
     @description.setValue ''
@@ -239,7 +239,7 @@ class ActivityCodeBinWidget extends KDFormView
     @tagController.reset()
 
   switchToEditView:(activity)->
-    @submitBtn.setTitle "Edit code bin"
+    @submitBtn.setTitle "Edit your Code Share"
     @addCustomData "activity", activity
     {title, body, tags} = activity
 
@@ -263,7 +263,7 @@ class ActivityCodeBinWidget extends KDFormView
       @once "codeBin.aceLoaded", => fillForm()
 
   switchToForkView:(activity)->
-    @submitBtn.setTitle "Fork this code bin"
+    @submitBtn.setTitle "Fork this Code Share"
     # @addCustomData "activity", activity
     {title, body, tags} = activity
 
