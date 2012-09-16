@@ -7,10 +7,51 @@
 <style type="text/css" id="codeshare_style"></style>
 
 <script type="text/javascript">
-$(window).load(function(){
 
-// Fetch the postMessage from the parent App
-window.addEventListener("message", receiveMessage, false);
+function sanitizeWindow() {
+
+  // these methods need to be cleared
+  window.confirm = function () {}
+  window.prompt = function () {}
+  window.open = function () {}
+  window.print = function () {}
+}
+
+function handleDefaults() {
+  if (!this.defaultValues) {
+    this.defaultValues = {};
+
+    for (var variable in window) {
+
+      // keep default window values when resetting JS
+      this.defaultValues[variable] = !0;
+    }
+
+    // overload setInterval and setTimeout to have a clearAll method
+    window.setInterval = function (e) {
+      var t = [],
+      n = function (n, r) {
+        return t[t.length] = e(n, r)
+      };
+      return n.clearAll = function () {
+        var e;
+        while (e = t.pop()) clearInterval(e)
+      }, n
+    }(window.setInterval)
+
+    window.setTimeout = function (e) {
+      var t = [],
+      n = function (n, r) {
+        return t[t.length] = e(n, r)
+      };
+      return n.clearAll = function () {
+        var e;
+        while (e = t.pop()) clearTimeout(e)
+      }, n
+    }(window.setTimeout)
+
+  }
+}
 
 function receiveMessage(event)
 {
@@ -21,6 +62,12 @@ function receiveMessage(event)
     if (codeshare.resetFrame === true) {
         $("body").empty();
         $("head style#codeshare_style").empty();
+    }
+
+    else if (codeshare.stopFrame === true){
+        for (var e in window) typeof this.defaultValues[e] == "undefined" && delete window[e];
+        setTimeout.clearAll(), setInterval.clearAll()
+        $("*").stop(true,true).clearQueue().unbind();
     }
 
     else {
@@ -40,6 +87,18 @@ function receiveMessage(event)
             }
         }
     }
+
+
+
+$(window).load(function(){
+
+// Initialize
+this.handleDefaults();
+this.sanitizeWindow();
+
+// Fetch the postMessage from the parent App
+window.addEventListener("message", this.receiveMessage, false);
+
 });
 </script>
 </head>
