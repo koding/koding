@@ -57,7 +57,7 @@ class CodeBinActivityItemView extends ActivityItemChild
       cssClass:"clean-gray hidden"
       click:=>
         @codeBinResultView.hide()
-        # @codeBinResultView.stopResultFrame()
+        @codeBinResultView.stopResultFrame()
         @codeBinResultView.resetResultFrame()
         @codeBinResultButton.setTitle "Run Code Share"
         @resultBanner.show()
@@ -118,16 +118,17 @@ class CodeBinActivityItemView extends ActivityItemChild
 
     @codeBinContainer.showPane @codeBinResultPane
 
-    setTimeout =>
-      @codeBinResultButton.setTitle "Reset Code Share"
-      @codeBinResultView.show()
-      @resultBanner.hide()
-      @codeBinCloseButton.show()
-      @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
-      # setTimeout =>
-      #   @codeBinResultView.stopResultFrame()
-      # , 10000
-    , 1000
+    # setTimeout =>
+    #   @codeBinResultButton.setTitle "Reset Code Share"
+    #   @codeBinResultView.show()
+    #   @resultBanner.hide()
+    #   @codeBinCloseButton.show()
+    #   @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+    #   # setTimeout =>
+    #   #   @codeBinResultView.stopResultFrame()
+    #   # , 10000
+    # , 1000
+
 
   render:->
     super()
@@ -167,6 +168,23 @@ class CodeBinActivityItemView extends ActivityItemChild
         maxHeight = view.getHeight()
 
     @$("pre.subview").css height:maxHeight
+
+    initiallyPausedObserver = setInterval =>
+      codeBinOffset =@$(".code-bin-source").offset().top
+      scrollViewTop = @parent.parent.parent.$().scrollTop()
+      scrollviewHeight = @parent.parent.parent.$().innerHeight()+scrollViewTop
+
+      if codeBinOffset+scrollViewTop < scrollviewHeight
+        if not @initiallyPaused
+          @initiallyPaused = true
+          @codeBinResultButton.setTitle "Reset Code Share"
+          @codeBinResultView.show()
+          @resultBanner.hide()
+          @codeBinCloseButton.show()
+          @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+          clearInterval initiallyPausedObserver
+    ,500
+
 
 
   pistachio:->
