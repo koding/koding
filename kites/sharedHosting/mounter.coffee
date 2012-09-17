@@ -39,14 +39,19 @@ mounter =
      #  mountpoint : String # mountpoint for remount drive
 
      {mountpoint} = options
-
-     fs.mkdir mountpoint, 0755,(err)->
-       if err?
-         log.error error = "[ERROR] Couldn't create mountpoint #{mountpoint}: #{err.message}"
-         callback error
-       else
-         log.info info = "[OK] mountpoint #{mountpoint} created"
+     
+     fs.stat mountpoint, (err,stats)->
+       if stats
+         log.info info = "[OK] #{mountpoint} already exists"
          callback null, info
+       else
+         fs.mkdir mountpoint, 0755,(err)->
+           if err?
+             log.error error = "[ERROR] Couldn't create mountpoint #{mountpoint}: #{err.message}"
+             callback error
+           else
+             log.info info = "[OK] mountpoint #{mountpoint} created"
+             callback null, info
 
     mountFtpDrive : (options, callback)->
 
@@ -90,12 +95,12 @@ mounter =
 
       options.mountpoint = path.join config.usersPath, username, config.baseMountDir, ftphost
 
-      exec "/bin/umount #{mountpoint}",(err, stdout, stderr)=>
+      exec "/bin/umount #{options.mountpoint}",(err, stdout, stderr)=>
         if err
-          log.error error = "[ERROR] can't umount #{mountpoint}: #{stderr}"
+          log.error error = "[ERROR] can't umount #{options.mountpoint}: #{stderr}"
           callback error
         else
-          log.info info = "[OK] directory #{mountpoint} umounted"
+          log.info info = "[OK] directory #{options.mountpoint} umounted"
           @remountVE options,(err,res)->
             if err
               callback err
