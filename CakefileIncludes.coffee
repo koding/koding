@@ -485,6 +485,8 @@ Includes =
         appLinkView                 : "./client/app/CommonViews/linkviews/applinkview.coffee"
         activityTagGroup            : "./client/app/CommonViews/linkviews/activitychildviewtaggroup.coffee"
         autoCompleteProfileTextView : "./client/app/CommonViews/linkviews/autocompleteprofiletextview.coffee"
+        splitView                   : "./client/app/CommonViews/splitview.coffee"
+        slidingSplitView            : "./client/app/CommonViews/slidingsplit.coffee"
 
         avatarView                  : "./client/app/CommonViews/avatarviews/avatarview.coffee"
         avatarStaticView            : "./client/app/CommonViews/avatarviews/avatarstaticview.coffee"

@@ -9,15 +9,17 @@ class KDSplitViewPanel extends KDScrollView
     @isVertical = @getOptions().type.toLowerCase() is "vertical"
     @isFixed    = @getOptions().fixed
 
-    {@size, @minimum, @maximum, @index} = @options
+    {@size, @minimum, @maximum} = @options
 
-  _getSize:->if @isVertical then @getWidth() else @getHeight()
+  _getIndex:-> @parent.getPanelIndex @
+
+  _getSize:-> if @isVertical then @getWidth() else @getHeight()
 
   _setSize:(size)->
     if @_wouldResize size
       size = 0 if size < 0
       if @isVertical then @setWidth size else @setHeight size
-      @parent.sizes[@index] = @size = size
+      @parent.sizes[@_getIndex()] = @size = size
       @parent.emit "PanelDidResize", panel: @
       @emit "PanelDidResize", newSize : size
       size
@@ -33,15 +35,15 @@ class KDSplitViewPanel extends KDScrollView
       yes
     else
       if size < @minimum
-        @parent._panelReachedMinimum @index
+        @parent._panelReachedMinimum @_getIndex()
       else if size > @maximum
-        @parent._panelReachedMaximum @index
+        @parent._panelReachedMaximum @_getIndex()
       no
 
   _setOffset:(offset)->
     offset = 0 if offset < 0
     if @isVertical then @$().css(left : offset) else @$().css(top : offset)
-    @parent.panelsBounds[@index] = offset
+    @parent.panelsBounds[@_getIndex()] = offset
 
   _getOffset:->
     if @isVertical then @getRelativeX() else @getRelativeY()

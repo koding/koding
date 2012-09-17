@@ -420,7 +420,7 @@ class WpApp extends JView
     {{> @dashboardTabs}}
     """
 
-class WpSplit extends KDSplitView
+class WpSplit extends SplitView
 
   constructor:(options, data)->
 
