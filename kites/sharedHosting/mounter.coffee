@@ -78,3 +78,36 @@ mounter =
                 else
                   callback null,res
 
+    umountFtpDrive : (options, callback)->
+      
+      # umount FTP from user's home directory
+
+      # options =
+      #   username : String # koding username
+      #   ftphost  : String # FTP server address
+
+      {username, ftphost} = options
+
+      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, ftphost
+
+      exec "/bin/umount #{mountpoint}",(err, stdout, stderr)=>
+        if err
+          log.error error = "[ERROR] can't umount #{mountpoint}: #{stderr}"
+          callback error
+        else
+          log.info info = "[OK] directory #{mountpoint} umounted"
+          @remountVE options,(err,res)->
+            if err
+              callback err
+            else
+              callback null,res
+
+
+#options =
+#  username: "aleksey-m"
+#  ftpuser: "aleksey-m"
+#  ftppass: "xxxx"
+#  ftphost: "ftp.beta.koding.com"
+#
+#mounter.mountFtpDrive options,(err,res)->
+#  console.log err,res
