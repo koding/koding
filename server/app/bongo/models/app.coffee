@@ -36,8 +36,8 @@ class JApp extends jraphical.Module
         'fetchRelativeReviews'
       ]
       static        : [
-        "one","on","some","create"
-        'someWithRelationship','byRelevance'
+        "one","on","some","create","byRelevance",
+        "someWithRelationship"
       ]
 
     schema          :
@@ -181,6 +181,25 @@ class JApp extends jraphical.Module
                             callback null
           else
             callback new KodingError 'Relationship already exists, App already installed'
+
+  @someWithRelationship: secure (client, selector, options, callback)->
+    @some selector, options, (err, _apps)=>
+      if err then callback err else @markInstalled client, _apps, (err, apps)=>
+        @markFollowing client, apps, callback
+
+  @markInstalled = bongo.secure (client, apps, callback)->
+    Relationship.all
+      targetId  : client.connection.delegate.getId()
+      as        : 'user'
+    , (err, relationships)->
+      for app in apps
+        app.installed = no
+        for relationship, index in relationships
+          if app.getId().equals relationship.sourceId
+            app.installed = yes
+            relationships.splice index,1
+            break
+      callback err, apps
 
   delete: secure ({connection:{delegate}}, callback)->
 
