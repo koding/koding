@@ -41,7 +41,6 @@ class AppsListItemView extends KDListItemView
 
   viewAppended:->
     @setClass "apps-item"
-
     @setTemplate @pistachio()
     @template.update()
 
@@ -51,7 +50,7 @@ class AppsListItemView extends KDListItemView
       @createInstallButton()
 
   createInstallButton:->
-    {profile} = app = @getData()
+    app = @getData()
 
     @installButton.destroy() if @installButton?
     @installButton = new KDButtonView
@@ -64,7 +63,6 @@ class AppsListItemView extends KDListItemView
     @addSubView @installButton, '.button-container'
 
   alreadyInstalledText:->
-    {profile} = app = @getData()
 
     @installButton.destroy() if @installButton?
     @installButton = new KDButtonView
