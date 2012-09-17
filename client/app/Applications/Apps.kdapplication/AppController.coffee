@@ -69,6 +69,8 @@ class Apps12345 extends AppController
 
 
     }, (controller)=>
+      # @getSingleton("kodingAppsController").fetchAppsFromDb (err, apps)=>
+      #   log "Installed Apps:", apps
       for own name,listController of controller.resultsController.listControllers
         listController.getListView().registerListener
           KDEventTypes  : 'AppWantsToExpand'
