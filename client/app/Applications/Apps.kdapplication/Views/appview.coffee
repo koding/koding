@@ -40,18 +40,46 @@ class AppView extends KDView
 
     appsController = @getSingleton("kodingAppsController")
 
-    @installButton = new KDButtonView
-      title     : "Install Now"
-      style     : "cupid-green"
-      loader    :
-        top     : 0
-        diameter: 30
-        color   : "#ffffff"
-      callback  : ->
-        appsController.installApp app, (err)=>
-          @hideLoader()
+    if app.versions?.length > 1
+      menu =
+        type : "contextmenu"
+        items : []
 
-    # @forkButton = new KDButtonView
+      for version,i in app.versions
+        menu.items.push
+          id       : i
+          title    : "Install version #{version}"
+          parentId : null
+          callback : (item)=>
+            appsController.installApp app, app.versions[item.data.id], (err)=>
+              @hideLoader()
+
+      @installButton = new KDButtonViewWithMenu
+        title     : "Install Now"
+        style     : "cupid-green"
+        loader    :
+          top     : 0
+          diameter: 30
+          color   : "#ffffff"
+        delegate      : @
+        menu          : [menu]
+        callback      : ->
+          appsController.installApp app, 'latest', (err)=>
+            @hideLoader()
+
+    else
+      @installButton = new KDButtonView
+        title     : "Install Now"
+        style     : "cupid-green"
+        loader    :
+          top     : 0
+          diameter: 30
+          color   : "#ffffff"
+        callback  : ->
+          appsController.installApp app, 'latest', (err)=>
+            @hideLoader()
+
+    # # @forkButton = new KDButtonView
     #   title     : "Fork"
     #   style     : "clean-gray"
     #   disabled  : !app.manifest.repo?
