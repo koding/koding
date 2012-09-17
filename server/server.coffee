@@ -65,9 +65,8 @@ app.get '/auth', do ->
           privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
           privName += '.private'
 
-          koding.mq.bindQueue privName, privName, "client-message", ->
-            koding.mq.emit(channel, 'join', {user: username, queue: privName})
-            
+          koding.mq.bindQueue privName, privName, "client-message"
+          koding.mq.emit(channel, 'join', {user: username, queue: privName})
           return res.send privName
 
 app.get "/", (req, res)->
