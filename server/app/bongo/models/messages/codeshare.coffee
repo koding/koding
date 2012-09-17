@@ -25,6 +25,23 @@ class JCodeShare extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
+
+      modeHTML    : data.modeHTML or "html"
+      modeCSS     : data.modeCSS or "css"
+      modeJS      : data.modeJS or "javascript"
+
+      classesHTML : data.classesHTML or ""
+      extrasHTML  : data.extrasHTML or ""
+
+      prefixCSS   : data.prefixCSS
+      resetsCSS   : data.resetsCSS
+
+      libsJS      : data.libsJS
+      modernizeJS : data.modernizeJS
+
+      externalCSS : data.externalCSS
+      externalJS  : data.externalJS
+
       attachments : [{
         type      : 'JCodeShareAttachment'
         content   : data.codeHTML
@@ -47,6 +64,23 @@ class JCodeShare extends JPost
       meta        : data.meta
       title       : data.title
       body        : data.body
+
+      modeHTML    : data.modeHTML or "html"
+      modeCSS     : data.modeCSS or "css"
+      modeJS      : data.modeJS or "javascript"
+
+      classesHTML : data.classesHTML or ""
+      extrasHTML  : data.extrasHTML or ""
+
+      prefixCSS   : data.prefixCSS
+      resetsCSS   : data.resetsCSS
+
+      libsJS      : data.libsJS
+      modernizeJS : data.modernizeJS
+
+      externalCSS : data.externalCSS
+      externalJS  : data.externalJS
+
       attachments : [{
         type      : 'JCodeShareAttachment'
         content   : data.codeHTML

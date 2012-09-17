@@ -29,6 +29,10 @@ class CodeShareActivityItemView extends ActivityItemChild
     codeShareCSSData = @getData().attachments[1]
     codeShareJSData = @getData().attachments[2]
 
+    codeShareHTMLData.syntax = @getData().modeHTML or "html"
+    codeShareCSSData.syntax = @getData().modeCSS or "css"
+    codeShareJSData.syntax = @getData().modeJS or "javascript"
+
     codeShareHTMLData.title = @getData().title
     codeShareCSSData.title = @getData().title
     codeShareJSData.title = @getData().title
@@ -215,15 +219,34 @@ class CodeShareResultView extends KDCustomHTMLView
 
       codeshare = data
 
+      log "preparing iframe with", data
+
+      html= Encoder.htmlDecode(codeshare.attachments[0].content)
+      css = Encoder.htmlDecode(codeshare.attachments[1].content)
+      js  = Encoder.htmlDecode(codeshare.attachments[2].content)
+
+      # MARKDOWN handling
+      if codeshare.modeHTML is "markdown"
+        marked.setOptions
+          gfm: true
+          pedantic: false
+          sanitize: true
+          highlight:(text)->
+        html = marked html
+
+
+      # done with the conversions
       resultObject =
         resetFrame    : no
-        html          : Encoder.htmlDecode(codeshare.attachments[0].content)
+        stopFrame     : no
+        renderFrame   : yes
+        html          : html
         htmlType      : "html"
-        css           : Encoder.htmlDecode(codeshare.attachments[1].content)
+        css           : css
         cssType       : "css"
-        cssPrefix     : yes
-        js            : Encoder.htmlDecode(codeshare.attachments[2].content)
-        jsType        : "js"
+        cssPrefix     : yes unless codeshare.prefixCSS is not "on"
+        js            : js
+        jsType        : "javascript"
 
       @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),"*")
 

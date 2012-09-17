@@ -996,6 +996,26 @@ a.discussion-view-more
     &:hover
       color white
 
+
+div.libs-container
+  border 1px solid black
+  background-color white
+  z-index -1
+  opacity 0
+  position absolute
+  top 23px
+  height auto
+  vendor transition, opacity 0.1s ease-in
+  &.libs-html
+    padding 5px
+  select
+    display inline-block
+  input.kdinput.text.libs-html-input
+    font-size 10px
+    line-height 120%
+    display inline-block
+
+
 // fix for the  discussion activity opinion width design issue
 // - border-top/bottom needs to go to the right while width has to be
 //   restrained
