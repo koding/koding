@@ -198,13 +198,20 @@ appstore.styl
     margin              10px 0 0 0
     rounded             4px
     > .kdbutton
-      margin            11px 10px 0px 0px
+    > .kdbuttonwithmenu-wrapper
+      margin            11px 26px 0px 0px
       font-size         14px
       font-weight       600
       line-height       1
-      padding           9px 20px 10px 20px
       width             auto
       fl()
+      .kdbutton.with-menu
+        font-size       14px
+        font-weight     600
+        height          33px
+        padding-right   13px !important
+    > .kdbutton
+      padding           9px 20px 10px 20px
 
   .topic.appversion
     .topicmeta
