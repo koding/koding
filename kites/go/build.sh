@@ -1,4 +1,4 @@
 #! /bin/bash
 
-export GOPATH=`dirname "$(readlink -f "$0")"`
+export GOPATH=$(cd "$(dirname "$0")"; pwd)
 go get -v koding/kites/webterm
