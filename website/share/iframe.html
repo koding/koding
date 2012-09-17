@@ -66,6 +66,52 @@ function stopFrame(){
         $("*").stop(true,true).clearQueue().unbind();
 }
 
+function renderFrame(codeshare){
+  var x, _i, _len, _ref;
+
+
+
+  // Load and Inject CSS (Resets -> (Prefixed) User -> Externals )
+
+
+  // Load Reset Stylesheet
+
+  // Prefix
+
+  if (codeshare.cssPrefix === true) {
+    codeshare.css = PrefixFree.prefixCSS(codeshare.css, true);
+  }
+
+  $("head style#codeshare_style").html(codeshare.css, true);
+
+  // Load External Stylesheets (raw css only)
+  if (codeshare.cssExternals !== ''){
+    _ref = codeshare.cssExternals.split(";");
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      x = _ref[_i];
+      $('head').append('<link rel="stylesheet" type="text/css" href="' + x + '">');
+    }
+  }
+
+  // Inject HTML into BODY
+  $("body#codeshare_body").html(codeshare.html);
+  if (codeshare.htmlClass !== '') $("html").addClass(codeshare.htmlClass);
+  if (codeshare.htmlExtras !== '') $("html head").append(codeshare.htmlExtras);
+
+  // Load and Execute JS (Libraries -> Modernizr -> User)
+
+  // Load Libraries
+
+  // Load Modernizr
+
+  try {
+    js = $.globalEval(codeshare.js), $(window).load()
+  } catch (err) {
+    typeof console != "undefined" && console.log('Your Javascript resulted in this error: '+err.message)
+  }
+
+}
+
 function receiveMessage(event)
 {
     var codeshare, share_script;
@@ -76,24 +122,8 @@ function receiveMessage(event)
 
     else if (codeshare.stopFrame === true) this.stopFrame();
 
-    else {
-    // Prepare the CSS
-      if (codeshare.cssPrefix === true) {
-        codeshare.css = PrefixFree.prefixCSS(codeshare.css, true);
-      }
-    // Inject CSS
-    $("head style#codeshare_style").html(codeshare.css, true);
-    // Inject HTML
-    $("body").html(codeshare.html);
-    // Execute JS
-    try {
-            js = $.globalEval(codeshare.js), $(window).load()
-        } catch (err) {
-            typeof console != "undefined" && console.log(err.message)
-            }
-        }
-    }
-
+    else if (codeshare.renderFrame === true) this.renderFrame(codeshare);
+}
 
 
 $(window).load(function(){
@@ -108,6 +138,6 @@ window.addEventListener("message", this.receiveMessage, false);
 });
 </script>
 </head>
-<body>
+<body id="codeshare_body">
 </body>
 </html>
