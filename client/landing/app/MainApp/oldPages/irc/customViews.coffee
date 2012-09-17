@@ -387,7 +387,7 @@
 #
 #   viewAppended:->
 #     @addSubView @header  = new Chat_IrcTabPaneHeader()
-#     @addSubView @content = new KDSplitView
+#     @addSubView @content = new SplitView
 #       domId : "irc-split"
 #       views : [panelLeft = new KDScrollView(cssClass : "bordered"),panelRight = new KDScrollView()]
 #       sizes : ["62%","38%"]

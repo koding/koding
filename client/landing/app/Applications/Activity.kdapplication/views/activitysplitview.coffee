@@ -1,4 +1,4 @@
-class ActivitySplitView extends KDSplitView
+class ActivitySplitView extends SplitView
 
   # until mixins are here
   viewAppended : ()->
