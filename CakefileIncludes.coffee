@@ -113,7 +113,7 @@ Includes =
         jpost                     : "./server/app/bongo/models/messages/post.coffee"
         jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
         jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
-        jcodebin                  : "./server/app/bongo/models/messages/codebin.coffee"
+        jcodeshare                : "./server/app/bongo/models/messages/codeshare.coffee"
         janswer                   : "./server/app/bongo/models/messages/answer.coffee"
         jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
@@ -310,7 +310,7 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
-        codeBinWidget               : "./client/app/Applications/Activity.kdapplication/widgets/codebinwidget.coffee"
+        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
@@ -319,7 +319,7 @@ Includes =
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
-        actCodeBinDisplay           : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codebin.coffee"
+        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
 
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
@@ -334,7 +334,7 @@ Includes =
         ActListItem                 : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee"
         ActListItemStatusUpdate     : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee"
         ActListItemCodeSnippet      : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee"
-        ActListItemCodeBin          : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeBin.coffee"
+        ActListItemCodeShare        : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee"
         ActListItemDiscussion       : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee"
         ActListItemFollow           : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee"
         ActListItemLink             : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee"
@@ -385,7 +385,7 @@ Includes =
         # FEED CONTROLLERS
         FeedController                : "./client/app/Applications/Feeder.kdapplication/FeedController.coffee"
         FeederFacetsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee"
-        FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
+        FeederResultsController       : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"

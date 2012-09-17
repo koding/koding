@@ -95,8 +95,8 @@ class ActivityUpdateWidget extends KDView
         }
         {
           title       : "Code Bin"
-          type        : "default codebin"
-          callback    : (treeItem, event)=> @changeTab "codebin", treeItem.getData().title
+          type        : "default codeshare"
+          callback    : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
         }
         {
           title       : "Discussion"

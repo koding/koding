@@ -1,16 +1,16 @@
-class JCodeBinAttachment extends jraphical.Attachment
+class JCodeShareAttachment extends jraphical.Attachment
   @setSchema
     description : String
     content     : String
     syntax      : String
 
-class JCodeBin extends JPost
+class JCodeShare extends JPost
 
   {secure} = require 'bongo'
 
   @share()
 
-  @getActivityType =-> CCodeBinActivity
+  @getActivityType =-> CCodeShareActivity
 
   @getAuthorType =-> JAccount
 
@@ -21,54 +21,54 @@ class JCodeBin extends JPost
     relationships : JPost.relationships
 
   @create = secure (client, data, callback)->
-    codeBin=
+    codeShare=
       meta        : data.meta
       title       : data.title
       body        : data.body
       attachments : [{
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeHTML
         syntax    : 'html'
       },
       {
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeCSS
         syntax    : 'css'
       },
       {
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeJS
         syntax    : 'javascript'
       }]
-    JPost.create.call @, client, codeBin, callback
+    JPost.create.call @, client, codeShare, callback
 
   modify: secure (client, data, callback)->
-    codeBin =
+    codeShare =
       meta        : data.meta
       title       : data.title
       body        : data.body
       attachments : [{
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeHTML
         syntax    : 'html'
       },
       {
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeCSS
         syntax    : 'css'
       },
       {
-        type      : 'JCodeBinAttachment'
+        type      : 'JCodeShareAttachment'
         content   : data.codeJS
         syntax    : 'javascript'
       }]
 
-    JPost::modify.call @, client, codeBin, callback
+    JPost::modify.call @, client, codeShare, callback
 
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback
 
-class CCodeBinActivity extends CActivity
+class CCodeShareActivity extends CActivity
 
   @share()
 
@@ -78,5 +78,5 @@ class CCodeBinActivity extends CActivity
     schema          : CActivity.schema
     relationships   :
       subject       :
-        targetType  : JCodeBin
+        targetType  : JCodeShare
         as          : 'content'

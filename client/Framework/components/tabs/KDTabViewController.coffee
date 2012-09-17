@@ -9,7 +9,7 @@ class KDTabViewController extends KDScrollView
     @setTabHandleContainer options.tabHandleContainer ? null
 
     @listenWindowResize()
-    
+
     @listenTo
       KDEventTypes        : ["PaneRemoved","paneAdded"]
       listenedToInstance  : @
@@ -20,8 +20,8 @@ class KDTabViewController extends KDScrollView
         KDEventTypes        : "viewAppended"
         listenedToInstance  : @
         callback            : @createPanes
-          
-  
+
+
   handleMouseDownDefaultAction:(clickedTabHandle,event)->
     for handle,index in @handles
       if clickedTabHandle is handle
@@ -51,9 +51,9 @@ class KDTabViewController extends KDScrollView
     for title in paneTitlesArray
       @addPane pane = new @tabConstructor title : title,null
       pane.setTitle title
-  
+
   addPane:(paneInstance)->
-    if paneInstance instanceof KDTabPaneView 
+    if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
       tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
       @addHandle newTabHandle = new tabHandleClass
@@ -61,7 +61,7 @@ class KDTabViewController extends KDScrollView
         title   : paneInstance.options.name
         hidden  : paneInstance.options.hiddenHandle
         view    : paneInstance.options.tabHandleView
-      paneInstance.tabHandle = newTabHandle      
+      paneInstance.tabHandle = newTabHandle
       @listenTo
         KDEventTypes : "click"
         listenedToInstance : newTabHandle
@@ -71,7 +71,7 @@ class KDTabViewController extends KDScrollView
       @handleEvent type : "PaneAdded",pane : paneInstance
       return paneInstance
     else
-      warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead." 
+      warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
       false
 
   removePane:(pane)->
@@ -96,7 +96,7 @@ class KDTabViewController extends KDScrollView
       handle.setClass "hidden" if handle.getOptions().hidden
       return handle
     else
-      warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead." 
+      warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead."
 
   removeHandle:()->
 
@@ -134,52 +134,52 @@ class KDTabViewController extends KDScrollView
     for pane,index in @panes
       result = index if pane is aPane
     result
-  
+
   #NAVIGATING
   showPaneByIndex:(index)->
     @showPane @getPaneByIndex index
-  
+
   showPaneByName:(name)->
     @showPane @getPaneByName name
-    
+
   showNextPane:->
     activePane  = @getActivePane()
     activeIndex = @getPaneIndex activePane
     @showPane @getPaneByIndex activeIndex + 1
-    
+
   showPreviousPane:->
     activePane  = @getActivePane()
     activeIndex = @getPaneIndex activePane
     @showPane @getPaneByIndex activeIndex - 1
-    
+
 
   #MODIFY PANES/HANDLES
   setPaneTitle:(pane,title)->
     handle = @getHandleByPane pane
     handle.getDomElement().find("b").html title
-    
+
   getHandleByPane: (pane) ->
     index   = @getPaneIndex pane
     handle  = @getHandleByIndex index
-  
+
   hideCloseIcon:(pane)->
     index = @getPaneIndex pane
     handle = @getHandleByIndex index
     handle.getDomElement().addClass("hide-close-icon")
-    
+
   resizeTabHandles:->
     return if @_tabHandleContainerHidden
-    # 
+    #
     # visibleHandles = []
     # visibleTotalSize = 0
-    # 
+    #
     # #FIX hardcoded values
     # containerSize = @tabHandleContainer.getWidth()
     # for handle in @handles
     #   unless handle.$().hasClass("hidden")
     #     visibleHandles.push handle
     #     visibleTotalSize += handle.getWidth()
-    # 
+    #
     # if containerSize-50 < visibleTotalSize
     #   for handle in visibleHandles
     #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15,200
@@ -192,5 +192,4 @@ class KDTabViewController extends KDScrollView
 
   _windowDidResize:(event)=>
     @resizeTabHandles @,event
-    
-    
+

@@ -1,4 +1,4 @@
-class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
+class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
 
   constructor:(options = {}, data)->
 
@@ -10,34 +10,34 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
     super options, data
 
     @unsetClass 'status'
-    @setClass 'codebin'
+    @setClass 'codeshare'
 
-    @codeBinHTMLView = new CodeBinSnippetView {},data.attachments[0]
-    @codeBinCSSView = new CodeBinSnippetView {},data.attachments[1]
-    @codeBinJSView = new CodeBinSnippetView {},data.attachments[2]
+    @codeShareHTMLView = new CodeShareSnippetView {},data.attachments[0]
+    @codeShareCSSView = new CodeShareSnippetView {},data.attachments[1]
+    @codeShareJSView = new CodeShareSnippetView {},data.attachments[2]
 
-    @codeBinResultView = new CodeBinResultView {} ,data
-    @codeBinResultView.hide()
+    @codeShareResultView = new CodeShareResultView {} ,data
+    @codeShareResultView.hide()
 
-    @codeBinResultButton = new KDButtonView
+    @codeShareResultButton = new KDButtonView
       title: "Run this"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultButton.setTitle "Reset"
-        @codeBinResultView.show()
-        @codeBinCloseButton.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+        @codeShareResultButton.setTitle "Reset"
+        @codeShareResultView.show()
+        @codeShareCloseButton.show()
+        @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
 
-    @codeBinCloseButton = new KDButtonView
+    @codeShareCloseButton = new KDButtonView
       title: "Close"
       cssClass:"clean-gray hidden"
       click:=>
-        @codeBinResultView.hide()
-        @codeBinResultView.resetResultFrame()
-        @codeBinResultButton.setTitle "Run"
-        @codeBinCloseButton.hide()
+        @codeShareResultView.hide()
+        @codeShareResultView.resetResultFrame()
+        @codeShareResultButton.setTitle "Run"
+        @codeShareCloseButton.hide()
 
-    @codeBinForkButton = new KDButtonView
+    @codeShareForkButton = new KDButtonView
       title: "Fork this Code Share"
       cssClass:"clean-gray fork-button"
       click:=>
@@ -46,13 +46,13 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
 
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeBinActivity
+    return if @getData().constructor is bongo.api.CCodeShareActivity
     super()
     # @setTemplate @pistachio()
     # @template.update()
 
     maxHeight = 30
-    views = [@codeBinJSView,@codeBinCSSView,@codeBinHTMLView]
+    views = [@codeShareJSView,@codeShareCSSView,@codeShareHTMLView]
 
     for view in views
       if view.getHeight()>maxHeight
@@ -70,15 +70,15 @@ class ContentDisplayCodeBin extends ContentDisplayStatusUpdate
 
       <h3>{{#(title)}}</h3>
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
-      <div class="code-bin-source">
-      {{> @codeBinHTMLView}}
-      {{> @codeBinCSSView}}
-      {{> @codeBinJSView}}
+      <div class="code-share-source">
+      {{> @codeShareHTMLView}}
+      {{> @codeShareCSSView}}
+      {{> @codeShareJSView}}
       </div>
-      {{> @codeBinResultView}}
-      {{> @codeBinResultButton}}
-      {{> @codeBinCloseButton}}
-      {{> @codeBinForkButton}}
+      {{> @codeShareResultView}}
+      {{> @codeShareResultButton}}
+      {{> @codeShareCloseButton}}
+      {{> @codeShareForkButton}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}

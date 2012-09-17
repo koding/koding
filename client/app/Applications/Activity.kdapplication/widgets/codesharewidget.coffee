@@ -1,4 +1,4 @@
-class ActivityCodeBinWidget extends KDFormView
+class ActivityCodeShareWidget extends KDFormView
 
   constructor:->
 
@@ -150,16 +150,16 @@ class ActivityCodeBinWidget extends KDFormView
         speed       : 1
         FPS         : 24
 
-    @codeBinResultView = new CodeBinResultView {}, {}
-    @codeBinResultView.hide()
-    @codeBinResultButton = new KDButtonView
+    @codeShareResultView = new CodeShareResultView {}, {}
+    @codeShareResultView.hide()
+    @codeShareResultButton = new KDButtonView
       title: "Run this Code Share"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeBinResultButton.setTitle "Refresh Code Share"
-        @codeBinResultView.show()
-        @codeBinCloseButton.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges", {
+        @codeShareResultButton.setTitle "Refresh Code Share"
+        @codeShareResultView.show()
+        @codeShareCloseButton.show()
+        @codeShareResultView.emit "CodeShareSourceHasChanges", {
           attachments:[
             {
               content:@HTMLace.getContents()
@@ -178,14 +178,14 @@ class ActivityCodeBinWidget extends KDFormView
             ]
           }
 
-    @codeBinCloseButton = new KDButtonView
+    @codeShareCloseButton = new KDButtonView
       title: "Stop and Close this Code Share"
       cssClass:"clean-gray hidden"
       click:=>
-        @codeBinResultView.hide()
-        @codeBinResultView.resetResultFrame()
-        @codeBinResultButton.setTitle "Run this Code Share"
-        @codeBinCloseButton.hide()
+        @codeShareResultView.hide()
+        @codeShareResultView.resetResultFrame()
+        @codeShareResultButton.setTitle "Run this Code Share"
+        @codeShareCloseButton.hide()
 
     # @syntaxSelect = new KDSelectBox
     #   name          : "syntax"
@@ -232,10 +232,10 @@ class ActivityCodeBinWidget extends KDFormView
       @CSSace.setSyntax 'css'
       @JSace.setContents "//your JavaScript goes here..."
       @JSace.setSyntax 'javascript'
-      @codeBinResultView?.resetResultFrame()
-      @codeBinResultView?.hide()
-      @codeBinCloseButton?.hide()
-      @codeBinResultButton?.setTitle "Run"
+      @codeShareResultView?.resetResultFrame()
+      @codeShareResultView?.hide()
+      @codeShareCloseButton?.hide()
+      @codeShareResultButton?.setTitle "Run"
     @tagController.reset()
 
   switchToEditView:(activity)->
@@ -260,7 +260,7 @@ class ActivityCodeBinWidget extends KDFormView
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
     else
-      @once "codeBin.aceLoaded", => fillForm()
+      @once "codeShare.aceLoaded", => fillForm()
 
   switchToForkView:(activity)->
     @submitBtn.setTitle "Fork this Code Share"
@@ -284,7 +284,7 @@ class ActivityCodeBinWidget extends KDFormView
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
     else
-      @once "codeBin.aceLoaded", => fillForm()
+      @once "codeShare.aceLoaded", => fillForm()
 
   widgetShown:->
 
@@ -333,7 +333,7 @@ class ActivityCodeBinWidget extends KDFormView
       @JSace.setSyntax "javascript"
       @JSace.editor.getSession().on 'change', => @refreshEditorView()
 
-      @emit "codeBin.aceLoaded"
+      @emit "codeShare.aceLoaded"
 
   refreshEditorView:->
     # lines = @HTMLace.editor.selection.doc.$lines
@@ -351,7 +351,7 @@ class ActivityCodeBinWidget extends KDFormView
 
   viewAppended:()->
 
-    @setClass "update-options codebin"
+    @setClass "update-options codeshare"
     @setTemplate @pistachio()
     @template.update()
 
@@ -395,9 +395,9 @@ class ActivityCodeBinWidget extends KDFormView
         </div>
         </div>
         <div class="formline">
-          {{> @codeBinResultView}}
-          {{> @codeBinResultButton}}
-          {{> @codeBinCloseButton}}
+          {{> @codeShareResultView}}
+          {{> @codeShareResultButton}}
+          {{> @codeShareCloseButton}}
         </div>
         <div class="formline">
 
