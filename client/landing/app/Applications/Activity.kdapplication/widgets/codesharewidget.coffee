@@ -189,18 +189,53 @@ class ActivityCodeShareWidget extends KDFormView
 
 ## LIBRARY OVERLAYS
 
-    @librariesHTMLContent = new KDView
+    @labelHTMLSelect = new KDLabelView
+      title : "Markup:"
+    @labelHTMLClasses = new KDLabelView
+      title : "&lt;html&gt; Classes:"
+    @labelHTMLExtras = new KDLabelView
+      title : "&lt;head&gt; Elements:"
+    @labelCSSSelect = new KDLabelView
+      title : "Stylesheet:"
+    @labelCSSPrefix = new KDLabelView
+      title : "Use PrefixFree"
+    @labelCSSResets = new KDLabelView
+      title : "Use CSS Reset"
+    @labelCSSExternals = new KDLabelView
+      title : "External Stylesheets:"
+    @labelJSSelect = new KDLabelView
+      title : "Script:"
+    @labelJSModernizr = new KDLabelView
+      title : "Use Modernizr"
+    @labelJSLibraries = new KDLabelView
+      title : "Select JS Libraries:"
+    @labelJSExternals = new KDLabelView
+      title : "External Scripts:"
+
+
+    @librariesHTMLContainer = new KDView
       cssClass : "libs-container libs-html"
 
-    @librariesCSSContent = new KDView
+    @librariesCSSContainer = new KDView
       cssClass : "libs-container libs-css"
 
-    @librariesJSContent = new KDView
+    @librariesJSContainer = new KDView
       cssClass : "libs-container libs-js"
+
+    @librariesHTMLContent = new KDView
+      cssClass : "libs-box"
+
+    @librariesCSSContent = new KDView
+      cssClass : "libs-box"
+
+    @librariesJSContent = new KDView
+      cssClass : "libs-box"
 
     @libHTMLSelect = new KDSelectBox
       title : "HTML Modes"
+      label : @labelHTMLSelect
       name  : "modeHTML"
+      height: 12
       selectOptions:
         [
           {
@@ -216,6 +251,7 @@ class ActivityCodeShareWidget extends KDFormView
     @libCSSSelect = new KDSelectBox
       title : "CSS Modes"
       name  : "modeCSS"
+      label : @labelCSSSelect
       selectOptions:
         [
           {
@@ -241,16 +277,19 @@ class ActivityCodeShareWidget extends KDFormView
 
     @libHTMLClasses = new KDInputView
       name : "classesHTML"
+      label : @labelHTMLClasses
       cssClass : "libs-html-input"
       placeholder : "extra html classes"
 
     @libHTMLHeadExtras = new KDInputView
       name : "extrasHTML"
+      label: @labelHTMLExtras
       cssClass : "libs-html-input"
       placeholder : "extra head tags"
 
     @libCSSExternal = new KDInputView
       name : "externalCSS"
+      label : @labelCSSExternals
       cssClass : "libs-html-input"
       placeholder : "external css files"
 
@@ -262,12 +301,14 @@ class ActivityCodeShareWidget extends KDFormView
     @libCSSPrefix = new KDInputView
       type : "checkbox"
       name : "prefixCSSCheck"
+      label : @labelCSSPrefix
       cssClass : "libs-css-checkbox"
       title : "PrefixFree"
       partial : "PrefixFree"
 
     @libCSSResets = new KDInputRadioGroup
       name : "resetsCSS"
+      label : @labelCSSResets
       title: "CSS Resets"
       radios: [
         {
@@ -310,19 +351,35 @@ class ActivityCodeShareWidget extends KDFormView
       title : "Modernizr"
       partial : "Modernizr"
 
+    @librariesHTMLContent.addSubView @labelHTMLSelect
     @librariesHTMLContent.addSubView @libHTMLSelect
+    @librariesHTMLContent.addSubView @labelHTMLClasses
     @librariesHTMLContent.addSubView @libHTMLClasses
+    @librariesHTMLContent.addSubView @labelHTMLExtras
     @librariesHTMLContent.addSubView @libHTMLHeadExtras
 
+
+    @librariesCSSContent.addSubView @labelCSSSelect
     @librariesCSSContent.addSubView @libCSSSelect
     @librariesCSSContent.addSubView @libCSSPrefix
+    @librariesCSSContent.addSubView @labelCSSPrefix
+    @librariesCSSContent.addSubView @labelCSSResets
     @librariesCSSContent.addSubView @libCSSResets
+    @librariesCSSContent.addSubView @labelCSSExternals
     @librariesCSSContent.addSubView @libCSSExternal
 
+    @librariesJSContent.addSubView @labelJSSelect
     @librariesJSContent.addSubView @libJSSelect
+    @librariesJSContent.addSubView @labelJSLibraries
     @librariesJSContent.addSubView @libJSSelectLibs
     @librariesJSContent.addSubView @libJSModernizr
+    @librariesJSContent.addSubView @labelJSModernizr
+    @librariesJSContent.addSubView @labelJSExternals
     @librariesJSContent.addSubView @libJSExternal
+
+    @librariesHTMLContainer.addSubView @librariesHTMLContent
+    @librariesCSSContainer.addSubView @librariesCSSContent
+    @librariesJSContainer.addSubView @librariesJSContent
 
     @labelHTMLContent.$().hover =>
       @$("div.libs-html").css "opacity":1
@@ -595,7 +652,7 @@ class ActivityCodeShareWidget extends KDFormView
         <div class="formline-codeshare">
         <div class="code-snip-container">
           {{> @labelHTMLContent}}
-          {{> @librariesHTMLContent}}
+          {{> @librariesHTMLContainer}}
           <div class="code-snip-holder share">
             {{> @HTMLloader}}
             {{> @aceHTMLWrapper}}
@@ -603,7 +660,7 @@ class ActivityCodeShareWidget extends KDFormView
         </div>
         <div class="code-snip-container">
           {{> @labelCSSContent}}
-          {{> @librariesCSSContent}}
+          {{> @librariesCSSContainer}}
           <div class="code-snip-holder share">
             {{> @CSSloader}}
             {{> @aceCSSWrapper}}
@@ -611,7 +668,7 @@ class ActivityCodeShareWidget extends KDFormView
         </div>
         <div class="code-snip-container">
           {{> @labelJSContent}}
-          {{> @librariesJSContent}}
+          {{> @librariesJSContainer}}
           <div class="code-snip-holder share">
             {{> @JSloader}}
             {{> @aceJSWrapper}}

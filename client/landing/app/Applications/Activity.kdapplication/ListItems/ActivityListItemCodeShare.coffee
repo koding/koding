@@ -263,7 +263,7 @@ class CodeShareResultView extends KDCustomHTMLView
     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),@iframeURL)
 
   stopResultFrame:=>
-     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),@iframeURL)
+    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),@iframeURL)
 
   appendResultFrame:(url)=>
 
