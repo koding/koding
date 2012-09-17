@@ -134,7 +134,7 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    @appStorage.fetchValue 'apps', (apps)->
+    @appStorage.fetchValue 'apps', (apps)=>
       if apps and Object.keys(apps).length > 0
         @constructor.manifests = apps
         callback null, apps
