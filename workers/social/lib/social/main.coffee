@@ -56,7 +56,7 @@ koding = new Bongo
         koding.emit 'error', err
       else
         callback {sessionToken, connection:delegate:account}
-  mq      : new Broker {
+  mq          : new Broker {
     host      : "localhost"
     login     : "guest"
     password  : "guest"
@@ -71,10 +71,6 @@ koding.on 'auth', (exchange, sessionToken)->
     ownExchange = "x#{nickname}"
     # When client logs in, create own queue to consume real-time updates
     koding.mq.bindQueue ownExchange, ownExchange, '#'
-
-
-    CActivity.on 'foo', console.log
-    CActivity.emit 'foo'
 
     delegate.on "FollowCountChanged", ({follower, action}) =>
       return unless action is "follow" or "unfollow"

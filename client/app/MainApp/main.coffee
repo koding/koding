@@ -37,7 +37,7 @@ KD.remote.on 'loggedInStateChanged', (account)->
 
 # Pistachio.MODE = if KD.env is 'dev' then 'development' else 'production'
 
-$.cookie 'clientId', localStorage.clientId
+#$.cookie 'clientId', localStorage.clientId
 
 # Cacheable = new Cacheable
 

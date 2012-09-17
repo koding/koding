@@ -12,12 +12,6 @@ module.exports = class JGuest extends jraphical.Module
   {secure, dash} = require 'bongo'
   
   @share()
-  
-  counter = 0
-  
-  # @hose {guestId: 1}, {limit: 1, sort: guestId: -1}, (err, cursor)->
-  #   cursor?.nextObject (err, obj)->
-  #     counter = unless isNaN obj?.guestId then obj.guestId + 1 else 0
 
   @set
     sharedMethods   :
@@ -27,8 +21,8 @@ module.exports = class JGuest extends jraphical.Module
       guestId       : ['unique', 'descending']
     schema          :
       guestId       :
+        required    : yes
         type        : Number
-        default     : -> counter++
       status        :
         type        : String
         enum        : ['invalid guest status',['pristine','needs cleanup','in use','leasing']]
@@ -57,6 +51,9 @@ module.exports = class JGuest extends jraphical.Module
       dash queue, ->
         console.log 'done restting guests!'
 
+  @free =(guestId, callback=->) ->
+    @update {guestId}, $set:{status: 'needs cleanup'}, callback
+
   @obtain = secure (client, clientId, callback)->
     [callback, clientId] = [clientId, callback] unless callback
     JAccount = require './account'
@@ -80,7 +77,6 @@ module.exports = class JGuest extends jraphical.Module
                 $set      :
                   status  : 'in use'
               }, (err)->
-                console.log guest
                 if err then callback error err
                 else callback null, guest
 
