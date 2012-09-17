@@ -129,6 +129,7 @@ class KodingAppsController extends KDController
               manifest = JSON.parse rawManifest
               manifests["#{manifest.name}"] = manifest
 
+          @putAppsToAppStorage manifests
           callback? null, manifests
 
   fetchAppsFromDb:(callback)->
@@ -167,10 +168,8 @@ class KodingAppsController extends KDController
 
   putAppsToAppStorage:(apps)->
 
-    appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
-      storage.update {
-        $set: { "bucket.apps" : apps }
-      }, => log arguments,"kodingAppsController storage updated"
+    @appStorage.setValue 'apps', apps, (err)=>
+      log err if err
 
   defineApp:(name, script)->
 
