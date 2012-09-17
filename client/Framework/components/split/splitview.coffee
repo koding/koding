@@ -89,13 +89,13 @@ class KDSplitView extends KDView
 
   # CREATE RESIZERS
   _createResizers:->
-    
+
     @resizers = for i in [1...@sizes.length]
       @_createResizer i
     @_repositionResizers()
 
   _createResizer:(index)->
-    
+
     @addSubView resizer = new KDSplitResizer
       cssClass : "kdsplitview-resizer #{@getOptions().type}"
       type     : @getOptions().type
@@ -226,7 +226,7 @@ class KDSplitView extends KDView
 
 
   _resizePanels:->
-    
+
     @_sanitizeSizes()
 
   _repositionPanels:->
