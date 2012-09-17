@@ -187,33 +187,191 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultButton.setTitle "Run this Code Share"
         @codeShareCloseButton.hide()
 
-    # @syntaxSelect = new KDSelectBox
-    #   name          : "syntax"
-    #   selectOptions : __aceSettings.getSyntaxOptions()
-    #   defaultValue  : "javascript"
-    #   callback      : (value) => @emit "codeSnip.changeSyntax", value
+## LIBRARY OVERLAYS
 
-    # @on "codeSnip.changeSyntax", (syntax)=>
-    #   @updateSyntaxTag syntax
-    #   @HTMLace.setSyntax syntax
+    @librariesHTMLContent = new KDView
+      cssClass : "libs-container libs-html"
 
-  # updateSyntaxTag:(syntax)=>
-  #   # Remove already appended syntax tag from submit queue if exists
-  #   # FIXME It still fails for meta characters like /
-  #   # oldSyntax = __aceSettings.syntaxAssociations[@ace.getSyntax()][0].toLowerCase()
-  #   oldSyntax = @HTMLace.getSyntax()
-  #   subViews = @tagController.itemWrapper.getSubViews().slice()
-  #   for item in subViews
-  #     if item.getData().title is oldSyntax
-  #       @tagController.removeFromSubmitQueue(item)
-  #       break
+    @librariesCSSContent = new KDView
+      cssClass : "libs-container libs-css"
 
-  #   {selectedItemsLimit} = @tagController.getOptions()
-  #   # Add new syntax tag to submit queue
-  #   if @tagController.selectedItemCounter < selectedItemsLimit
-  #     @tagController.addItemToSubmitQueue @tagController.getNoItemFoundView(syntax)
+    @librariesJSContent = new KDView
+      cssClass : "libs-container libs-js"
+
+    @libHTMLSelect = new KDSelectBox
+      title : "HTML Modes"
+      name  : "modeHTML"
+      selectOptions:
+        [
+          {
+            title:"HTML"
+            value:"html"
+          }
+          {
+            title:"Markdown"
+            value:"markdown"
+          }
+        ]
+
+    @libCSSSelect = new KDSelectBox
+      title : "CSS Modes"
+      name  : "modeCSS"
+      selectOptions:
+        [
+          {
+            title:"CSS"
+            value:"css"
+          }
+        ]
+
+    @libJSSelect = new KDSelectBox
+      title : "JS Modes"
+      name  : "modeJS"
+      selectOptions:
+        [
+          {
+            title:"JavaScript"
+            value:"javascript"
+          }
+          {
+            title:"CoffeeScript"
+            value:"coffee-script"
+          }
+        ]
+
+    @libHTMLClasses = new KDInputView
+      name : "classesHTML"
+      cssClass : "libs-html-input"
+      placeholder : "extra html classes"
+
+    @libHTMLHeadExtras = new KDInputView
+      name : "extrasHTML"
+      cssClass : "libs-html-input"
+      placeholder : "extra head tags"
+
+    @libCSSExternal = new KDInputView
+      name : "externalCSS"
+      cssClass : "libs-html-input"
+      placeholder : "external css files"
+
+    @libJSExternal = new KDInputView
+      name : "externalJS"
+      cssClass : "libs-html-input"
+      placeholder : "external JS files"
+
+    @libCSSPrefix = new KDInputView
+      type : "checkbox"
+      name : "prefixCSSCheck"
+      cssClass : "libs-css-checkbox"
+      title : "PrefixFree"
+      partial : "PrefixFree"
+
+    @libCSSResets = new KDInputRadioGroup
+      name : "resetsCSS"
+      title: "CSS Resets"
+      radios: [
+        {
+          title:"Reset"
+          value:"reset"
+        }
+        {
+          title:"Normalize"
+          value:"normalize"
+        }
+        {
+          title:"None"
+          value:"none"
+        }
+      ]
+
+    @libJSSelectLibs = new KDSelectBox
+      title : "JS Libraries"
+      name  : "libsJS"
+      selectOptions:
+        [
+          {
+            title:"none (JQuery-latest is always included)"
+            value:"none"
+          }
+          {
+            title:"JQuery latest with JQuery UI"
+            value:"jquery-latest-with-ui"
+          }
+          {
+            title:"MooTools latest"
+            value:"mootools-latest"
+          }
+        ]
+
+    @libJSModernizr = new KDInputView
+      type : "checkbox"
+      name : "modernizeJSCheck"
+      cssClass : "libs-js-checkbox"
+      title : "Modernizr"
+      partial : "Modernizr"
+
+    @librariesHTMLContent.addSubView @libHTMLSelect
+    @librariesHTMLContent.addSubView @libHTMLClasses
+    @librariesHTMLContent.addSubView @libHTMLHeadExtras
+
+    @librariesCSSContent.addSubView @libCSSSelect
+    @librariesCSSContent.addSubView @libCSSPrefix
+    @librariesCSSContent.addSubView @libCSSResets
+    @librariesCSSContent.addSubView @libCSSExternal
+
+    @librariesJSContent.addSubView @libJSSelect
+    @librariesJSContent.addSubView @libJSSelectLibs
+    @librariesJSContent.addSubView @libJSModernizr
+    @librariesJSContent.addSubView @libJSExternal
+
+
+
+    @labelHTMLContent.$().hover =>
+      @$("div.libs-html").css "opacity":1
+      @$("div.libs-html").css "z-index":100
+
+    , =>
+      @$("div.libs-html").hover =>
+        noop
+      , =>
+        @$("div.libs-html").css "opacity":0
+        @$("div.libs-html").css "z-index":-1
+
+    @labelCSSContent.$().hover =>
+      @$("div.libs-css").css "opacity":1
+      @$("div.libs-css").css "z-index":100
+    , =>
+      @$("div.libs-css").hover =>
+        noop
+      , =>
+        @$("div.libs-css").css "opacity":0
+        @$("div.libs-css").css "z-index":-1
+
+    @labelJSContent.$().hover =>
+      @$("div.libs-js").css "opacity":1
+      @$("div.libs-js").css "z-index":100
+    , =>
+      @$("div.libs-js").hover =>
+        noop
+      , =>
+        @$("div.libs-js").css "opacity":0
+        @$("div.libs-js").css "z-index":-1
+
 
   submit:=>
+
+    if not (@getData().prefixCSSCheck?) or (@getData().prefixCSS is "off")
+      @addCustomData "prefixCSS", "off"
+    else
+      @addCustomData "prefixCSS", "on"
+
+    if not (@getData().modernizeJSCheck?) or (@getData().modernizeJS is "off")
+      @addCustomData "modernizeJS", "off"
+    else
+      @addCustomData "modernizeJS", "on"
+
+    @addCustomData "resetsCSS", @getData().resetsCSS
+
     @addCustomData "codeHTML", Encoder.htmlEncode @HTMLace.getContents()
     @addCustomData "codeCSS", Encoder.htmlEncode @CSSace.getContents()
     @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
@@ -223,8 +381,29 @@ class ActivityCodeShareWidget extends KDFormView
   reset:=>
     @submitBtn.setTitle "Post your Code Share"
     @removeCustomData "activity"
+
     @title.setValue ''
     @description.setValue ''
+
+    @libHTMLClasses.setValue ''
+    @libHTMLHeadExtras.setValue ''
+    @libCSSExternal.setValue ''
+    @libJSExternal.setValue ''
+
+    @addCustomData "prefixCSS", "off"
+    @addCustomData "modernizeJS", "off"
+
+    @$("input[name=prefixCSSCheck]").prop "checked", false
+    @$("input[name=modernizeJSCheck]").prop "checked", false
+
+    @$(":radio[value=none]").prop "checked", true
+
+    @$("select[name=modeHTML]").val("html").trigger "change"
+    @$("select[name=modeCSS]").val("css").trigger "change"
+    @$("select[name=modeJS]").val("javascript").trigger "change"
+
+    @$("select[name=libsJS]").val("none").trigger "change"
+
     @utils.wait =>
       @HTMLace.setContents "//your HTML goes here..."
       @HTMLace.setSyntax 'html'
@@ -241,7 +420,7 @@ class ActivityCodeShareWidget extends KDFormView
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit your Code Share"
     @addCustomData "activity", activity
-    {title, body, tags} = activity
+    {title, body, tags, prefixCSS, resetsCSS, classesHTML, extrasHTML, modeHTML, modeCSS, modeJS, libsJS, externalCSS, externalJS, modernizeJS} = activity
 
     HTMLcontent = activity.attachments[0]?.content
     CSScontent = activity.attachments[1]?.content
@@ -256,6 +435,33 @@ class ActivityCodeShareWidget extends KDFormView
       @HTMLace.setContents Encoder.htmlDecode HTMLcontent
       @CSSace.setContents Encoder.htmlDecode CSScontent
       @JSace.setContents Encoder.htmlDecode JScontent
+
+      if prefixCSS is "on"
+        @$("input[name=prefixCSSCheck]").prop "checked", true
+      else
+        @$("input[name=prefixCSSCheck]").prop "checked", false
+
+      if modernizeJS is "on"
+        @$("input[name=modernizeJSCheck]").prop "checked", true
+      else
+        @$("input[name=modernizeJSCheck]").prop "checked", false
+
+      @$(":radio[value=#{resetsCSS}]").prop "checked", true
+
+      @$("select[name=modeHTML]").val(modeHTML).trigger "change"
+      @$("select[name=modeCSS]").val(modeCSS).trigger "change"
+      @$("select[name=modeJS]").val(modeJS).trigger "change"
+
+      @$("select[name=libsJS]").val(libsJS).trigger "change"
+
+      @$("input[name=classesHTML]").val(classesHTML)
+      @$("input[name=extrasHTML]").val(extrasHTML)
+      @$("input[name=externalCSS]").val(externalCSS)
+      @$("input[name=externalJS]").val(externalJS)
+
+
+
+
 
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
@@ -374,6 +580,7 @@ class ActivityCodeShareWidget extends KDFormView
         <div class="formline-codeshare">
         <div class="code-snip-container">
           {{> @labelHTMLContent}}
+          {{> @librariesHTMLContent}}
           <div class="code-snip-holder share">
             {{> @HTMLloader}}
             {{> @aceHTMLWrapper}}
@@ -381,6 +588,7 @@ class ActivityCodeShareWidget extends KDFormView
         </div>
         <div class="code-snip-container">
           {{> @labelCSSContent}}
+          {{> @librariesCSSContent}}
           <div class="code-snip-holder share">
             {{> @CSSloader}}
             {{> @aceCSSWrapper}}
@@ -388,6 +596,7 @@ class ActivityCodeShareWidget extends KDFormView
         </div>
         <div class="code-snip-container">
           {{> @labelJSContent}}
+          {{> @librariesJSContent}}
           <div class="code-snip-holder share">
             {{> @JSloader}}
             {{> @aceJSWrapper}}
