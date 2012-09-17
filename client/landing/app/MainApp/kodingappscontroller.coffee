@@ -35,6 +35,7 @@ class KodingAppsController extends KDController
 
   @manifests = {}
 
+
   # #
   # HELPERS
   # #
@@ -61,6 +62,7 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
+    @appStorage = new AppStorage 'KodingApps', '1.0'
 
   # #
   # FETCHERS
@@ -131,19 +133,15 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-      if err
-        warn err
-        callback err
+    @appStorage.fetchValue 'apps', (apps)->
+      if apps and Object.keys(apps).length > 0
+        @constructor.manifests = apps
+        callback null, apps
       else
-        apps = storage.getAt "bucket.apps"
-        if apps and Object.keys(apps).length > 0
-          @constructor.manifests = apps
-          callback null, apps
-        else
-          callback new Error "There are no apps in the app storage."
+        callback new Error "There are no apps in the app storage."
 
   fetchCompiledApp:(manifest, callback)->
+
     {name} = manifest
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
