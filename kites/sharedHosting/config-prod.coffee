@@ -21,6 +21,11 @@ module.exports =
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true
   processBaseDir    : process.cwd()
+  cagefsctl         : "/usr/sbin/cagefsctl"
+  baseMountDir      : 'RemoteDrive'
+  ftpfs  :
+    curlftpfs       : '/usr/bin/curlftpfs'
+    opts            : "connect_timeout=15, direct_io"
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'
@@ -39,3 +44,4 @@ module.exports =
     baseSharedDir : '/Shared'
     baseDir : '/Users'
     setfacl : '/usr/bin/setfacl'
+
