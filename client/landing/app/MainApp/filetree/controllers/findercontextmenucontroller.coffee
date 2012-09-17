@@ -176,6 +176,8 @@ class NFinderContextMenuController extends KDController
             separator             : yes
           "Publish to App Catalog":
             action                : "publish"
+      fileData.on "fs.delete.finished", =>
+        @getSingleton("kodingAppsController").refreshApps()
 
     return items
 
