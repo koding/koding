@@ -391,7 +391,7 @@ class KodingAppsController extends KDController
     else
       kallback @constructor.manifests[name]
 
-  installApp:(app, callback)->
+  installApp:(app, version='latest', callback)->
 
     @fetchApps (err, manifests = {})=>
       if err
@@ -416,6 +416,7 @@ class KodingAppsController extends KDController
                   owner       : acc.profile.nickname
                   appPath     : getAppPath app.manifest
                   appName     : app.manifest.name
+                  version     : version
               log "asking kite to install", options
               @kiteController.run options, (err, res)=>
                 log "kite response", err, res
