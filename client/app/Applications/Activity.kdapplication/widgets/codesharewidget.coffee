@@ -324,8 +324,6 @@ class ActivityCodeShareWidget extends KDFormView
     @librariesJSContent.addSubView @libJSModernizr
     @librariesJSContent.addSubView @libJSExternal
 
-
-
     @labelHTMLContent.$().hover =>
       @$("div.libs-html").css "opacity":1
       @$("div.libs-html").css "z-index":100
@@ -359,7 +357,6 @@ class ActivityCodeShareWidget extends KDFormView
 
 
   submit:=>
-
     if not (@getData().prefixCSSCheck?) or (@getData().prefixCSS is "off")
       @addCustomData "prefixCSS", "off"
     else
@@ -375,6 +372,7 @@ class ActivityCodeShareWidget extends KDFormView
     @addCustomData "codeHTML", Encoder.htmlEncode @HTMLace.getContents()
     @addCustomData "codeCSS", Encoder.htmlEncode @CSSace.getContents()
     @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
+
     @once "FormValidationPassed", => @reset()
     super
 
@@ -459,10 +457,6 @@ class ActivityCodeShareWidget extends KDFormView
       @$("input[name=externalCSS]").val(externalCSS)
       @$("input[name=externalJS]").val(externalJS)
 
-
-
-
-
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
     else
@@ -470,8 +464,8 @@ class ActivityCodeShareWidget extends KDFormView
 
   switchToForkView:(activity)->
     @submitBtn.setTitle "Fork this Code Share"
-    # @addCustomData "activity", activity
-    {title, body, tags} = activity
+
+    {title, body, tags, prefixCSS, resetsCSS, classesHTML, extrasHTML, modeHTML, modeCSS, modeJS, libsJS, externalCSS, externalJS, modernizeJS} = activity
 
     HTMLcontent = activity.attachments[0]?.content
     CSScontent = activity.attachments[1]?.content
@@ -481,11 +475,32 @@ class ActivityCodeShareWidget extends KDFormView
     @tagController.setDefaultValue tags or []
 
     fillForm = =>
-      # @title.setValue Encoder.htmlDecode title
-      # @description.setValue Encoder.htmlDecode body
       @HTMLace.setContents Encoder.htmlDecode HTMLcontent
       @CSSace.setContents Encoder.htmlDecode CSScontent
       @JSace.setContents Encoder.htmlDecode JScontent
+
+      if prefixCSS is "on"
+        @$("input[name=prefixCSSCheck]").prop "checked", true
+      else
+        @$("input[name=prefixCSSCheck]").prop "checked", false
+
+      if modernizeJS is "on"
+        @$("input[name=modernizeJSCheck]").prop "checked", true
+      else
+        @$("input[name=modernizeJSCheck]").prop "checked", false
+
+      @$(":radio[value=#{resetsCSS}]").prop "checked", true
+
+      @$("select[name=modeHTML]").val(modeHTML).trigger "change"
+      @$("select[name=modeCSS]").val(modeCSS).trigger "change"
+      @$("select[name=modeJS]").val(modeJS).trigger "change"
+
+      @$("select[name=libsJS]").val(libsJS).trigger "change"
+
+      @$("input[name=classesHTML]").val(classesHTML)
+      @$("input[name=extrasHTML]").val(extrasHTML)
+      @$("input[name=externalCSS]").val(externalCSS)
+      @$("input[name=externalJS]").val(externalJS)
 
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
