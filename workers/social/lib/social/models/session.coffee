@@ -29,11 +29,20 @@ module.exports = class JSession extends Model
     nonces        : [String]
     tokens        : [JToken]
   
+  @cycleSession =(clientId, callback=->)->
+    @remove {clientId}, (err)=>
+      if err
+        callback err
+      else
+        @createSession (err, session, guest)->
+          if err
+            callback err
+          else
+            callback null, guest, session.clientId
    
   @createSession =(callback)->
     clientId = createId()
-    guest = new JGuest {clientId}
-    guest.save (err, docs)=>
+    JGuest.obtain null, clientId, (err, guest)=>
       if err
         @emit 'error', err
       else
@@ -46,17 +55,14 @@ module.exports = class JSession extends Model
           if err
             callback err
           else
-            callback null, session
+            callback null, session, guest
 
   @fetchSession =(clientId, callback)->
-    @one {clientId}, (err, session)=>
+    selector = {clientId}
+    @one selector, (err, session)=>
       if err
         callback err
-      else if session
+      else if session?
         callback null, session
       else
-        @createSession (err, session)->
-          if err
-            callback err
-          else
-            callback null, session
+        @createSession callback

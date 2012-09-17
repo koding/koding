@@ -55,8 +55,8 @@ koding = new Bongo
       if err
         koding.emit 'error', err
       else
-        callback {connection:delegate:account}
-  mq      : new Broker {
+        callback {sessionToken, connection:delegate:account}
+  mq          : new Broker {
     host      : "localhost"
     login     : "guest"
     password  : "guest"

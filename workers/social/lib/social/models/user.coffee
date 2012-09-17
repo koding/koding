@@ -5,9 +5,12 @@ Flaggable = require '../traits/flaggable'
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
   
-  JAccount = require './account'
-  JSession = require './session'
+  JAccount  = require './account'
+  JSession  = require './session'
+  JGuest    = require './guest'
   JEmailConfirmation = require './emailconfirmation'
+
+  createId = require 'hat'
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -59,7 +62,7 @@ module.exports = class JUser extends jraphical.Module
       instance      : []
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword'
-        'fetchUser','setDefaultHash','whoami'
+        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
       ]
 
     schema          :
@@ -112,25 +115,38 @@ module.exports = class JUser extends jraphical.Module
   #     else
   #       constructor.one {username}, callback
   
+  @isRegistrationEnabled =(callback)->
+    JRegistrationPreferences = require './registrationpreferences'
+    JRegistrationPreferences.one {}, (err, prefs)->
+      callback err? or prefs?.isRegistrationEnabled or no
+
   @authenticateClient:(clientId, callback=->)->
     JSession.one {clientId}, (err, session)->
       if err
-        console.log 'there was an err.'
-        callback err
+        callback createKodingError err
       else unless session?
-        console.log 'auth failed'
-        callback createKodingError 'Authentication failed!'
+        JGuest.obtain null, clientId, callback
       else
-        {username} = session
-        JUser.one {username}, (err, user)->
-          if err
-            callback? err
-          else
-            user.fetchOwnAccount (err, account)->
-              if err
-                callback? err
-              else
-                callback null, account
+        {username, guestId} = session
+        if guestId?
+          JGuest.one {guestId}, (err, guest)=>
+            if err
+              callback createKodingError err
+            else if guest?
+              callback null, guest
+            else
+              @logout clientId, callback
+        else if username?
+          JUser.one {username}, (err, user)->
+            if err
+              callback? err
+            else
+              user.fetchOwnAccount (err, account)->
+                if err
+                  callback createKodingError err
+                else
+                  callback null, account
+        else @logout clientId, callback
 
 
   createNewMemberActivity =(account, callback=->)->
@@ -178,84 +194,52 @@ module.exports = class JUser extends jraphical.Module
   @whoami = secure ({connection:{delegate}}, callback)-> callback delegate 
   
   @login = secure ({connection}, credentials, callback)->
-    {username, password} = credentials
+    {username, password, clientId} = credentials
     constructor = @
-    connection.remote.fetchClientId (clientId)->
-      visitor = JVisitor.visitors[clientId]
-      unless visitor
-        callback new KodingError 'No visitor instance was found.'
-      JUser.one {username, status: $ne: 'blocked'}, (err, user)->
-        if err
-          callback createKodingError err.message
-        else unless user?
-          callback createKodingError 'Unknown username!'
-        else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-          callback createKodingError 'Access denied!'
-        else
-          JSession.one {clientId}, (err, session)->
-            if err
-              callback err
-            else unless session
-              callback createKodingError 'Could not restore your session!'
-            else
-              session.update {
-                $set            :
-                  username      : user.username
-                  lastLoginDate : new Date
-                $addToSet       :
-                  tokens        :
-                    token       : hat()
-                    expires     : new Date(Date.now() + 1000*60*60*24*14)
-                    authority   : 'koding.com'
-                    requester   : 'api.koding.com'
-              }, (err)->
+    JUser.one {username, status: $ne: 'blocked'}, (err, user)->
+      if err
+        callback createKodingError err.message
+      else unless user?
+        callback createKodingError 'Unknown username!'
+      else unless user.getAt('password') is hashPassword password, user.getAt('salt')
+        callback createKodingError 'Access denied!'
+      else
+        JSession.one {clientId}, (err, session)->
+          if err
+            callback err
+          else unless session
+            callback createKodingError 'Could not restore your session!'
+          else
+            replacementToken = createId()
+            JGuest.free session.guestId
+            session.update {
+              $set            :
+                username      : user.username
+                lastLoginDate : new Date
+                clientId      : replacementToken
+              $unset:
+                guestId       : 1
+            }, (err)->
+              if err
+                callback err
+              else
                 if err
                   callback err
-                else
+                else user.fetchOwnAccount (err, account)->
                   if err
                     callback err
-                  else user.fetchOwnAccount (err, account)->
-                    if err
-                      callback err
-                    else
-                      connection.delegate = account
-                      callback null, account
-                      visitor.emit ['change','login'], account
-                      userToCreate = user.get()
-                      user.fetchTenderAppLink (err, link)->
-                        if err
-                          console.log err
-                        else
-                          user.update $set: tenderAppLink: link, (err)->
-                            if err
-                              console.log err
-                            else
-                              console.log 'user link was added'
-  
-  @logout = secure ({connection}, callback)->
-    connection.remote.fetchClientId (clientId)->
-      visitor = JVisitor.visitors[clientId]
-      JSession.one {clientId}, (err, session)->
-        if err
-          callback err
-        else if session
-          session.update {
-            $unset      :
-              username  : 1
-              tokens    : 1
-          }, (err, docs)->
-            if err
-              callback err
-            else
-              {guestId} = session
-              JGuest.one {guestId}, (err, guest)->
-                if err
-                  callback err
-                else if guest
-                  connection.delegate = guest
-                  callback null, guest
-                  visitor.emit ['change','logout'], guest
-        else callback createKodingError 'Could not restore your session!'
+                  else
+                    connection.delegate = account
+                    callback null, account, replacementToken
+
+  @logout = secure (client, callback)->
+    if 'string' is typeof clientId
+      sessionToken = client
+    else
+      {sessionToken} = client
+      delete client.connection.delegate
+      delete client.sessionToken
+    JSession.cycleSession sessionToken, callback
   
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences.one {}, (err, prefs)->

@@ -99,7 +99,9 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doLogin formData
+      callback : (formData)=>
+        formData.clientId = $.cookie('clientId')
+        @doLogin formData
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
@@ -259,13 +261,15 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, (error, result) =>
+    KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView
           title   : error.message
           duration: 1000
       else
+        $.cookie 'clientId', replacementToken if replacementToken
+        @getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -317,7 +321,7 @@ class LoginView extends KDScrollView
 
   animateToForm: (name)->
     if name is "register"
-      KD.remote.api.JVisitor.isRegistrationEnabled (status)=>
+      KD.remote.api.JUser.isRegistrationEnabled (status)=>
         if status is no
           @registerForm.$('div').hide()
           @registerForm.$('section').show()

@@ -1,7 +1,6 @@
 KD.remote = new Bongo
 
-  getSessionToken:->
-    localStorage.clientId or $.cookie('clientId')
+  getSessionToken:-> $.cookie('clientId')
 
   mq: do->
 
