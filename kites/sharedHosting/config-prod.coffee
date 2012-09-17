@@ -25,7 +25,7 @@ module.exports =
   baseMountDir      : 'RemoteDrive'
   ftpfs  :
     curlftpfs       : '/usr/bin/curlftpfs'
-    opts            : "connect_timeout=15, direct_io"
+    opts            : "connect_timeout=15,direct_io,allow_other"
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'

@@ -3,6 +3,7 @@
 config = require './config'
 
 path   = require "path"
+fs     = require "fs"
 log4js = require 'log4js'
 log    = log4js.getLogger("[#{config.name}]")
 {exec} = require "child_process"
@@ -18,7 +19,9 @@ mounter =
     # options =
     #   username : String # koding username
 
-    exec "#{config.cagefsctl} -m #{username}",(err, stderr, stdout)->
+    {username} = options
+
+    exec "#{config.cagefsctl} -m #{username}",(err, stdout, stderr)->
       if err
         log.error error = "[ERROR] Couldn't remount user's VE - username #{username}: #{stderr}"
         callback error
@@ -57,14 +60,14 @@ mounter =
       #
       {username, ftpuser, ftppass, ftphost} = options
       
-      options.mountpoint = path.join config.usersPath, username, config.baseMountDir
-      ftpfsopts = "#{config.ftpfs.opts},uid=`/usr/bin/id -u #{username}`,gid=`/usr/bin/id -g #{username},fsname=#{ftphost},user=#{ftpuser}:#{ftppass}"
+      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, ftphost
+      ftpfsopts = "#{config.ftpfs.opts},uid=`/usr/bin/id -u #{username}`,gid=`/usr/bin/id -g #{username}`,fsname=#{ftphost},user=#{ftpuser}:#{ftppass}"
       
       @createMountpoint options,(err,res)=>
         if err
           callback err
         else
-          exec "#{config.curlftpfs} #{ftpfsopts} #{ftphost} #{options.mountpoint}", (err, stderr, stdout)=>
+          exec "#{config.ftpfs.curlftpfs} -o #{ftpfsopts} #{ftphost} #{options.mountpoint}", (err, stdout, stderr)=>
             if err?
               log.error error = "[ERROR] couldn't mount remote FTP server #{ftphost}: #{stderr}"
               callback error
