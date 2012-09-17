@@ -117,7 +117,7 @@ class KodingAppsController extends KDController
             #     cb null, "no manifest"
 
         manifests = @constructor.manifests
-        async.parallel stack, (err, results)->
+        async.parallel stack, (err, results)=>
           warn err if err
           results.forEach (rawManifest)->
             # if rawManifest.substr(0,1) is '{'
