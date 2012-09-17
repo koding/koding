@@ -49,10 +49,10 @@ AccountMixin = do ->
           scrubbed.method or= method
           fetchChannel kiteName, (channel)=>
             channel[onMethod](
-              "reply-client-message.#{callbackId}",
+              "reply-client-message",
               messageHandler.bind null, kiteName
             )
-            channel.emit "client-message.#{callbackId}", JSON.stringify(scrubbed)
+            channel.emit "client-message", JSON.stringify(scrubbed)
 
       messageHandler =(kiteName, args) ->
         callback = localStore.get(args.method)
