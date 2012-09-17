@@ -78,10 +78,8 @@ class MainController extends KDController
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
           @utils.wait 2500, -> modal?.destroy()
-      @getVisitor().on 'change.login', (account)=> @accountChanged account, connectedState
-      @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
 
-  accountChanged:(account, connectedState)->
+  accountChanged:(account, connectedState={})->
 
     connectedState.connected = yes
     @emit "RemoveModal"
@@ -167,7 +165,9 @@ class MainController extends KDController
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
-        KD.remote.api.JUser.logout ->
+        KD.remote.api.JUser.logout (err, account, replacementToken)=>
+          $.cookie 'clientId', replacementToken if replacementToken
+          @accountChanged account
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Come back soon!"

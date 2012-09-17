@@ -23,10 +23,15 @@
       return $.evalJSON(value);
     }
     else if(JSON && typeof JSON.parse == 'function'){
-      return JSON.parse(value);
+      try {
+        return JSON.parse(value);
+      }
+      catch (e) {
+        return value;
+      }
     }
     else try {
-      return Function('return '+value).call();
+      return Function('return '+value)();
     } catch(e) {
       return null;
     }
