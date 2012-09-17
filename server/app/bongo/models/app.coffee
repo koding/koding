@@ -29,7 +29,7 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        'update', 'follow', 'unfollow', 'remove', 'review',
+        'update', 'follow', 'unfollow', 'delete', 'review',
         'like', 'checkIfLikedBefore', 'fetchLikedByes',
         'fetchFollowersWithRelationship', 'install',
         'fetchFollowingWithRelationship', 'fetchCreator',
@@ -181,6 +181,11 @@ class JApp extends jraphical.Module
                             callback null
           else
             callback new KodingError 'Relationship already exists, App already installed'
+
+  delete: secure ({connection:{delegate}}, callback)->
+
+    if delegate.can 'delete', this
+      @remove callback
 
   review: secure (client, review, callback)->
     {delegate} = client.connection
