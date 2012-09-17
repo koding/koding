@@ -47,8 +47,8 @@ class KiteController extends KDController
 
     mainController = @getSingleton "mainController"
     
-    mainController.getVisitor().on 'change.login', (account)=> 
-      @accountChanged account
+#    mainController.getVisitor().on 'change.login', (account)=> 
+#      @accountChanged account
 
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
