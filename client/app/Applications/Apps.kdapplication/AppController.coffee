@@ -283,14 +283,3 @@ class Apps12345 extends AppController
     formData = modal.modalTabs.getFinalData()
     log formData
     pane.form.addSubView (modal.preview = new AppPreSubmitPreview {},formData),null,yes
-
-
-
-
-
-
-
-
-
-
-
