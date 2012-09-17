@@ -208,6 +208,8 @@ class CodeShareResultView extends KDCustomHTMLView
     super options, data
     data = @getData()
 
+    @iframeURL = "*"
+
     @codeViewContainer = new KDCustomHTMLView
       cssClass : "result-frame-container"
 
@@ -218,8 +220,6 @@ class CodeShareResultView extends KDCustomHTMLView
     @on "CodeShareSourceHasChanges",(data)=>
 
       codeshare = data
-
-      log "preparing iframe with", data
 
       html= Encoder.htmlDecode(codeshare.attachments[0].content)
       css = Encoder.htmlDecode(codeshare.attachments[1].content)
@@ -240,21 +240,30 @@ class CodeShareResultView extends KDCustomHTMLView
         resetFrame    : no
         stopFrame     : no
         renderFrame   : yes
+
         html          : html
         htmlType      : "html"
+        htmlClass     : codeshare.classesHTML
+        htmlExtras    : codeshare.extrasHTML
+
         css           : css
         cssType       : "css"
         cssPrefix     : yes unless codeshare.prefixCSS is not "on"
+        cssExternals  : codeshare.externalCSS
+
         js            : js
         jsType        : "javascript"
+        jsLibs        : codeshare.libsJS
+        jsExternals   : codeshare.externalJS
+        jsModernizr   : yes unless codeshare.modernizeJS is not "on"
 
-      @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),"*")
+      @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),@iframeURL)
 
   resetResultFrame:=>
-    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),"*")
+    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),@iframeURL)
 
   stopResultFrame:=>
-     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),"*")
+     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),@iframeURL)
 
   appendResultFrame:(url)=>
 
