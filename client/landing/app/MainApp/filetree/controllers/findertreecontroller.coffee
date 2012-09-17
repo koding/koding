@@ -223,14 +223,12 @@ class NFinderTreeController extends JTreeViewController
         callback  : (confirmation)=>
           @deleteFiles @selectedNodes if confirmation
           @setKeyView()
-          @runPostActions 'delete', extension
     else
       @beingEdited = nodeView
       nodeView.confirmDelete (confirmation)=>
         @deleteFiles [nodeView] if confirmation
         @setKeyView()
         @beingEdited = null
-        @runPostActions 'delete', extension
 
   deleteFiles:(nodes, callback)->
 
@@ -402,13 +400,6 @@ class NFinderTreeController extends JTreeViewController
       folder.emit "fs.run.finished"
       callback?()
 
-  runPostActions:(action, extension)->
-    actions   =
-      delete  :
-        kdapp :
-          => @getSingleton("kodingAppsController").refreshApps()
-
-    actions[action]?[extension]?()
 
   cloneRepo:(nodeView)->
 
