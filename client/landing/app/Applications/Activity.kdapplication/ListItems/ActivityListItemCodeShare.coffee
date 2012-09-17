@@ -1,8 +1,8 @@
-class CodeBinActivityItemView extends ActivityItemChild
+class CodeShareActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
     options = $.extend
-      cssClass    : "activity-item codebin"
+      cssClass    : "activity-item codeshare"
       tooltip     :
         title     : "Code Bin"
         offset    : 3
@@ -10,60 +10,60 @@ class CodeBinActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
-    @codeBinContainer = new KDTabView
-      cssClass: "code-bin-container"
+    @codeShareContainer = new KDTabView
+      cssClass: "code-share-container"
 
-    @codeBinResultPane = new KDTabPaneView
+    @codeShareResultPane = new KDTabPaneView
       name:"Code Share"
 
-    @codeBinHTMLPane = new KDTabPaneView
+    @codeShareHTMLPane = new KDTabPaneView
       name:"HTML"
 
-    @codeBinCSSPane = new KDTabPaneView
+    @codeShareCSSPane = new KDTabPaneView
       name:"CSS"
 
-    @codeBinJSPane = new KDTabPaneView
+    @codeShareJSPane = new KDTabPaneView
       name:"JavaScript"
 
-    codeBinHTMLData = @getData().attachments[0]
-    codeBinCSSData = @getData().attachments[1]
-    codeBinJSData = @getData().attachments[2]
+    codeShareHTMLData = @getData().attachments[0]
+    codeShareCSSData = @getData().attachments[1]
+    codeShareJSData = @getData().attachments[2]
 
-    codeBinHTMLData.title = @getData().title
-    codeBinCSSData.title = @getData().title
-    codeBinJSData.title = @getData().title
+    codeShareHTMLData.title = @getData().title
+    codeShareCSSData.title = @getData().title
+    codeShareJSData.title = @getData().title
 
-    @codeBinHTMLView = new CodeBinSnippetView {}, codeBinHTMLData
-    @codeBinCSSView = new CodeBinSnippetView {}, codeBinCSSData
-    @codeBinJSView = new CodeBinSnippetView {}, codeBinJSData
+    @codeShareHTMLView = new CodeShareSnippetView {}, codeShareHTMLData
+    @codeShareCSSView = new CodeShareSnippetView {}, codeShareCSSData
+    @codeShareJSView = new CodeShareSnippetView {}, codeShareJSData
 
-    @codeBinResultView = new CodeBinResultView {}, data
-    @codeBinResultView.hide()
+    @codeShareResultView = new CodeShareResultView {}, data
+    @codeShareResultView.hide()
 
-    @codeBinResultButton = new KDButtonView
+    @codeShareResultButton = new KDButtonView
       title              : "Run Code Share"
       cssClass           : "clean-gray result-button"
       click              : =>
-        @codeBinResultButton.setTitle "Reset Code Share"
-        @codeBinResultView.show()
+        @codeShareResultButton.setTitle "Reset Code Share"
+        @codeShareResultView.show()
         @resultBanner.hide()
-        @codeBinCloseButton.show()
-        @codeBinResultView.stopResultFrame()
-        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
-        @codeBinContainer.showPane @codeBinResultPane
+        @codeShareCloseButton.show()
+        @codeShareResultView.stopResultFrame()
+        @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
+        @codeShareContainer.showPane @codeShareResultPane
 
-    @codeBinCloseButton = new KDButtonView
+    @codeShareCloseButton = new KDButtonView
       title             : "Stop and Close Code Share"
       cssClass          : "clean-gray hidden"
       click             : =>
-        @codeBinResultView.hide()
-        @codeBinResultView.stopResultFrame()
-        @codeBinResultView.resetResultFrame()
-        @codeBinResultButton.setTitle "Run Code Share"
+        @codeShareResultView.hide()
+        @codeShareResultView.stopResultFrame()
+        @codeShareResultView.resetResultFrame()
+        @codeShareResultButton.setTitle "Run Code Share"
         @resultBanner.show()
-        @codeBinCloseButton.hide()
+        @codeShareCloseButton.hide()
 
-    @codeBinForkButton = new KDButtonView
+    @codeShareForkButton = new KDButtonView
       title            : "Fork this Code Share"
       cssClass         : "clean-gray fork-button"
       click            : =>
@@ -82,57 +82,57 @@ class CodeBinActivityItemView extends ActivityItemChild
       partial           : "Click here to see this Code Share!"
       cssClass          : "result-banner-button"
       click             : =>
-        @codeBinResultButton.setTitle "Reset Code Share"
-        @codeBinResultView.show()
+        @codeShareResultButton.setTitle "Reset Code Share"
+        @codeShareResultView.show()
         @resultBanner.hide()
-        @codeBinCloseButton.show()
-        @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+        @codeShareCloseButton.show()
+        @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
 
     @resultBanner.addSubView @resultBannerButton
 
-    @codeBinResultPane.addSubView @resultBanner
+    @codeShareResultPane.addSubView @resultBanner
 
-    @codeBinResultPane.addSubView @codeBinResultView
-    @codeBinHTMLPane.addSubView @codeBinHTMLView
-    @codeBinCSSPane.addSubView @codeBinCSSView
-    @codeBinJSPane.addSubView @codeBinJSView
+    @codeShareResultPane.addSubView @codeShareResultView
+    @codeShareHTMLPane.addSubView @codeShareHTMLView
+    @codeShareCSSPane.addSubView @codeShareCSSView
+    @codeShareJSPane.addSubView @codeShareJSView
 
 
-    @codeBinContainer.addPane @codeBinResultPane
-    @codeBinContainer.addPane @codeBinHTMLPane
-    @codeBinContainer.addPane @codeBinCSSPane
-    @codeBinContainer.addPane @codeBinJSPane
+    @codeShareContainer.addPane @codeShareResultPane
+    @codeShareContainer.addPane @codeShareHTMLPane
+    @codeShareContainer.addPane @codeShareCSSPane
+    @codeShareContainer.addPane @codeShareJSPane
 
-    @codeBinResultPane.hideTabCloseIcon()
-    @codeBinHTMLPane.hideTabCloseIcon()
-    @codeBinCSSPane.hideTabCloseIcon()
-    @codeBinJSPane.hideTabCloseIcon()
+    @codeShareResultPane.hideTabCloseIcon()
+    @codeShareHTMLPane.hideTabCloseIcon()
+    @codeShareCSSPane.hideTabCloseIcon()
+    @codeShareJSPane.hideTabCloseIcon()
 
     # hover switching enabled by default
-    @codeBinContainer.$(".kdtabhandle").hover (event)->
+    @codeShareContainer.$(".kdtabhandle").hover (event)->
       $(event.target).closest(".kdtabhandle").click()
     , noop
 
-    @codeBinContainer.showPane @codeBinResultPane
+    @codeShareContainer.showPane @codeShareResultPane
 
   render:->
     super()
 
-    codeBinHTMLData = @getData().attachments[0]
-    codeBinCSSData = @getData().attachments[1]
-    codeBinJSData = @getData().attachments[2]
+    codeShareHTMLData = @getData().attachments[0]
+    codeShareCSSData = @getData().attachments[1]
+    codeShareJSData = @getData().attachments[2]
 
-    codeBinHTMLData.title = @getData().title
-    codeBinCSSData.title = @getData().title
-    codeBinJSData.title = @getData().title
+    codeShareHTMLData.title = @getData().title
+    codeShareCSSData.title = @getData().title
+    codeShareJSData.title = @getData().title
 
-    @codeBinHTMLView.setData codeBinHTMLData
-    @codeBinCSSView.setData codeBinCSSData
-    @codeBinJSView.setData codeBinJSData
+    @codeShareHTMLView.setData codeShareHTMLData
+    @codeShareCSSView.setData codeShareCSSData
+    @codeShareJSView.setData codeShareJSData
 
-    @codeBinHTMLView.render()
-    @codeBinCSSView.render()
-    @codeBinJSView.render()
+    @codeShareHTMLView.render()
+    @codeShareCSSView.render()
+    @codeShareJSView.render()
 
   click:(event)->
     super
@@ -140,13 +140,13 @@ class CodeBinActivityItemView extends ActivityItemChild
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeBinActivity
+    return if @getData().constructor is bongo.api.CCodeShareActivity
     super()
     @setTemplate @pistachio()
     @template.update()
 
     maxHeight = 30
-    views = [@codeBinJSView,@codeBinCSSView,@codeBinHTMLView]
+    views = [@codeShareJSView,@codeShareCSSView,@codeShareHTMLView]
 
     for view in views
       if view.getHeight()>maxHeight
@@ -155,18 +155,18 @@ class CodeBinActivityItemView extends ActivityItemChild
     @$("pre.subview").css height:maxHeight
 
     initiallyPausedObserver = setInterval =>
-      codeBinOffset    = @$(".code-bin-source").offset().top
+      codeShareOffset    = @$(".code-share-source").offset().top
       scrollViewTop    = @parent.parent.parent.$().scrollTop()
       scrollviewHeight = @parent.parent.parent.$().innerHeight()+scrollViewTop
 
-      if codeBinOffset+scrollViewTop < scrollviewHeight
+      if codeShareOffset+scrollViewTop < scrollviewHeight
         if not @initiallyPaused
           @initiallyPaused = true
-          @codeBinResultButton.setTitle "Reset Code Share"
-          @codeBinResultView.show()
+          @codeShareResultButton.setTitle "Reset Code Share"
+          @codeShareResultView.show()
           @resultBanner.hide()
-          @codeBinCloseButton.show()
-          @codeBinResultView.emit "CodeBinSourceHasChanges", @getData()
+          @codeShareCloseButton.show()
+          @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
           clearInterval initiallyPausedObserver
     ,500
 
@@ -177,14 +177,14 @@ class CodeBinActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       {h3{#(title)}}
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
-      <div class="code-bin-source">
+      <div class="code-share-source">
 
-      {{> @codeBinContainer}}
+      {{> @codeShareContainer}}
 
       </div>
-      {{> @codeBinResultButton}}
-      {{> @codeBinCloseButton}}
-      {{> @codeBinForkButton}}
+      {{> @codeShareResultButton}}
+      {{> @codeShareCloseButton}}
+      {{> @codeShareForkButton}}
 
       <footer class='clearfix'>
         <div class='type-and-time'>
@@ -198,7 +198,7 @@ class CodeBinActivityItemView extends ActivityItemChild
     </div>
     """
 
-class CodeBinResultView extends KDCustomHTMLView
+class CodeShareResultView extends KDCustomHTMLView
   constructor:(options,data)->
     options.cssClass = "result-container"
     super options, data
@@ -211,18 +211,18 @@ class CodeBinResultView extends KDCustomHTMLView
 
     @appendResultFrame "/share/iframe.html"
 
-    @on "CodeBinSourceHasChanges",(data)=>
+    @on "CodeShareSourceHasChanges",(data)=>
 
-      codebin = data
+      codeshare = data
 
       resultObject =
         resetFrame    : no
-        html          : Encoder.htmlDecode(codebin.attachments[0].content)
+        html          : Encoder.htmlDecode(codeshare.attachments[0].content)
         htmlType      : "html"
-        css           : Encoder.htmlDecode(codebin.attachments[1].content)
+        css           : Encoder.htmlDecode(codeshare.attachments[1].content)
         cssType       : "css"
         cssPrefix     : yes
-        js            : Encoder.htmlDecode(codebin.attachments[2].content)
+        js            : Encoder.htmlDecode(codeshare.attachments[2].content)
         jsType        : "js"
 
       @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),"*")
@@ -256,7 +256,7 @@ class CodeBinResultView extends KDCustomHTMLView
       {{> @codeViewContainer}}
     """
 
-class CodeBinSnippetView extends KDCustomHTMLView
+class CodeShareSnippetView extends KDCustomHTMLView
 
   openFileIteration = 0
 
@@ -294,7 +294,7 @@ class CodeBinSnippetView extends KDCustomHTMLView
           type      : "mini"
           duration  : 2500
 
-        # CodeBinSnippetView.emit 'CodeSnippetWantsSave', data
+        # CodeShareSnippetView.emit 'CodeSnippetWantsSave', data
 
     @openButton = new KDButtonView
       title     : ""

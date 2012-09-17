@@ -42,15 +42,15 @@ class ActivityUpdateWidgetController extends KDViewController
             @codeSnippetWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
-    codeBinPane = mainView.addWidgetPane
-      paneName    : "codebin"
-      mainContent : codeBinWidget = new ActivityCodeBinWidget
+    codeSharePane = mainView.addWidgetPane
+      paneName    : "codeshare"
+      mainContent : codeShareWidget = new ActivityCodeShareWidget
         delegate  : mainView
         callback  : (data)=>
           if submissionStopped
             return notifySubmissionStopped()
           else
-            @codeBinWidgetSubmit data, stopSubmission
+            @codeShareWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
     mainView.addWidgetPane
@@ -81,10 +81,10 @@ class ActivityUpdateWidgetController extends KDViewController
       listener     : @
       callback     : -> codeWidget.widgetShown()
 
-    codeBinPane.registerListener
+    codeSharePane.registerListener
       KDEventTypes : 'PaneDidShow'
       listener     : @
-      callback     : -> codeBinWidget.widgetShown()
+      callback     : -> codeShareWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
@@ -99,17 +99,17 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           discussionWidget.switchToEditView activity
-        when "JCodeBin"
-          mainView.showPane "codebin"
-          codeBinWidget.switchToEditView activity
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
 
       switch activity.bongo_.constructorName
-        when "JCodeBin"
-          mainView.showPane "codebin"
-          codeBinWidget.switchToForkView activity
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToForkView activity
 
   updateWidgetSubmit:(data, callback)->
 
@@ -154,7 +154,7 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
-  codeBinWidgetSubmit:(data, callback)->
+  codeShareWidgetSubmit:(data, callback)->
     if data.activity
       {activity} = data
       delete data.activity
@@ -167,13 +167,13 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
-      bongo.api.JCodeBin.create data, (err, codebin) =>
-        callback? err, codebin
+      bongo.api.JCodeShare.create data, (err, codeshare) =>
+        callback? err, codeshare
         stopSubmission()
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
-          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codebin
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
 
 
   questionWidgetSubmit:(data)->
