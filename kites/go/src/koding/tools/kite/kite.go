@@ -1,13 +1,13 @@
 package kite
 
 import (
+	"encoding/json"
 	"github.com/streadway/amqp"
 	"io"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -49,8 +49,12 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 					go func() {
 						defer log.RecoverAndLog()
 
-						secretName := string(join.Body)
-						user := strings.Split(secretName, ".")[1]
+						joinData := make(map[string]interface{})
+						json.Unmarshal(join.Body, &joinData)
+
+						//user := strings.Split(secretName, ".")[1]
+						user := "koding"
+						queue := joinData["queue"].(string)
 
 						changeNumClients <- 1
 						log.Debug("Client connected: " + user)
@@ -60,7 +64,7 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 							log.Debug("Client disconnected: " + user)
 						}()
 
-						conn := newConnection(secretName, consumeConn, publishConn)
+						conn := newConnection(queue, queue, consumeConn, publishConn)
 						defer conn.Close()
 
 						node := dnode.New(conn)

@@ -19,10 +19,9 @@ type connection struct {
 	closeMutex      sync.Mutex
 }
 
-func newConnection(secretName string, consumeConn, publishConn *amqp.Connection) *connection {
+func newConnection(queue, replyExchange string, consumeConn, publishConn *amqp.Connection) *connection {
 	messageChannel := createChannel(consumeConn)
-	messageStream := declareBindConsumeQueue(messageChannel, "", "client-message.*", secretName, true)
-	err := messageChannel.QueueBind("", "disconnected", secretName, false, nil)
+	messageStream, err := messageChannel.Consume(queue, "", true, false, false, false, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -31,7 +30,7 @@ func newConnection(secretName string, consumeConn, publishConn *amqp.Connection)
 		messageChannel:  messageChannel,
 		messageStream:   messageStream,
 		publishChannel:  createChannel(publishConn),
-		replyExchange:   secretName,
+		replyExchange:   replyExchange,
 		bufferedMessage: make([]byte, 0),
 		closers:         make([]io.Closer, 0),
 	}

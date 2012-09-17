@@ -19,7 +19,7 @@ var configs = map[string]Config{
 	},
 
 	"local": {
-		amqpUrl:      "amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com",
+		amqpUrl:      "amqp://guest:guest@localhost",
 		homePrefix:   "/home/",
 		shellCommand: []string{"/bin/bash"},
 	},

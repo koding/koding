@@ -76,6 +76,8 @@ class WebTermView extends KDView
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
 
+    AccountMixin.init KD.remote.api if not KD.whoami().tellKite?
+
     KD.whoami().tellKite
       kiteName: 'webterm',
       method: 'createServer',
@@ -88,7 +90,7 @@ class WebTermView extends KDView
   
   destroy: ->
     super
-    @terminal.server.close()
+    @terminal.server?.close()
   
   setKeyView: ->
     super
