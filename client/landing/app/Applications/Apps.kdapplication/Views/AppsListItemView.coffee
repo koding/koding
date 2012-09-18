@@ -40,7 +40,8 @@ class AppsListItemView extends KDListItemView
       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
-    @setClass "apps-item"
+    if not @getData().approved
+      @setClass "waits-approve"
     @setTemplate @pistachio()
     @template.update()
 
