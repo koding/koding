@@ -258,7 +258,7 @@ class JAccount extends jraphical.Module
 
   can:(action, target)->
     switch action
-      when 'delete','flag'
+      when 'delete','flag','approve'
         @profile.nickname in dummyAdmins or target.originId?.equals @getId()
 
   fetchRole: secure ({connection}, callback)->
