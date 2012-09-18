@@ -357,9 +357,9 @@ class Sidebar extends JView
     id    : "footer-menu"
     title : "footer-menu"
     items : [
-      { title : "Help", callback : -> log "Help" }
+      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
       { title : "About", callback : -> @showAboutDisplay() }
-      { title : "Chat", loggedIn : yes, callback : -> @getSingleton('bottomPanel').emit "ToggleBottomPanel"  }
+      { title : "Chat",  loggedIn : yes, callback : -> @getSingleton('bottomPanel').emit "ToggleBottomPanel"  }
     ]
 
 class AdminModal extends KDModalView

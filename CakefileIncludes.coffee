@@ -673,7 +673,7 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        # book                : "./client/stylus/app.book.styl"
+        book                : "./client/stylus/app.book.styl"
 
         temp             : "./client/stylus/temp.styl"
 
