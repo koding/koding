@@ -206,6 +206,24 @@ body.loggedIn
     margin              0 6px 0 0
     overflow            visible
 
+    &.selected
+      border                1px solid transparent
+      border-width          1px 0
+      border-color          transparent
+      margin                0 10px 0 0
+      text-shadow           0 1px 0 #fff
+      cursor                pointer
+      bg                    color,rgba(0, 0, 0, 0.20)
+      .title
+        font-weight         600!important
+        color               white!important
+        bg                  image,none
+        bg                  color,transparent
+        text-shadow         none
+        &:hover
+          color             white
+          text-decoration   none
+
   &.account
     margin                16px 0 15px 0
     .kdlistitemview.navigation-item
@@ -214,7 +232,34 @@ body.loggedIn
         padding-top     3px
         margin-top      -1px
         font-size       11px
-        line-height     18px
+        line-height
+
+.kdview.kdlistview-footer-menu
+  size                  100%, 30px
+  position              absolute
+  bottom                0
+  left                  0
+
+  .kdlistitemview
+    border              none
+    cursor              pointer
+    size                33%, 100%
+    display             inline-block
+    span
+      display           block
+      size              20px, 20px
+      margin            5px auto
+      opacity           .2
+      vendor            transition, opacity .15s linear
+      sprite()
+      &:hover
+        opacity         1
+    &.about span
+      bg                position, -160px -620px
+    &.help span
+      bg                position, -140px -620px
+    &.chat span
+      bg                position, -180px -620px
 
 #avatar-area
   overflow              visible
@@ -345,25 +390,6 @@ span.main-nav-icon
       bg(position,-20px -300px)
     &.demos
       bg(position,-20px -100px)
-
-#main-nav
-  .kdlistitemview.selected
-    border                1px solid transparent
-    border-width          1px 0
-    border-color          transparent
-    margin                0 10px 0 0
-    text-shadow           0 1px 0 #fff
-    cursor                pointer
-    bg                    color,rgba(0, 0, 0, 0.20)
-    .title
-      font-weight         600!important
-      color               white!important
-      bg                  image,none
-      bg                  color,transparent
-      text-shadow         none
-      &:hover
-        color             white
-        text-decoration   none
 
 
 
@@ -676,6 +702,7 @@ span.main-nav-icon
 
 #sidebar
   #main-nav
+    position          relative
     size              160px,auto
     min-height        100%
     overflow          hidden
