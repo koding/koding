@@ -32,6 +32,23 @@ class AppView extends KDView
       ]
     , app
 
+    if KD.checkFlag 'super-admin'
+      @approveButton = new KDToggleButton
+        style           : "kdwhitebtn"
+        dataPath        : "approved"
+        defaultState    : if app.approved then "Disapprove" else "Approve"
+        states          : [
+          "Approve", (callback)->
+            app.approve yes, (err)->
+              callback? err
+          "Disapprove", (callback)->
+            app.approve no, (err)->
+              callback? err
+        ]
+      , app
+    else
+      @approveButton = new KDView
+
     app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
@@ -52,7 +69,7 @@ class AppView extends KDView
           parentId : null
           callback : (item)=>
             appsController.installApp app, app.versions[item.data.id], (err)=>
-              @hideLoader()
+              if err then warn err
 
       @installButton = new KDButtonViewWithMenu
         title     : "Install Now"
@@ -115,6 +132,7 @@ class AppView extends KDView
       <span>
         <a class='profile-avatar' href='#'>{{ @putThumb #(manifest)}}</a>
       </span>
+      {{> @approveButton}}
     </div>
     <section class="right-overflow">
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
