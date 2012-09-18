@@ -257,8 +257,8 @@ module.exports = class JAccount extends jraphical.Module
   
   can:(action, target)->
     switch action
-      when 'delete','flag'
-        @profile.nickname in dummyAdmins or target.originId?.equals @getId()
+      when 'delete','flag','reset guests'
+        @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
   
   fetchRole: secure ({connection}, callback)->
     

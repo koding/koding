@@ -13,6 +13,7 @@ class PageRegister extends KDView
 
   formSubmit:(formData)=>
     KD.remote.api.JUser.register formData, (error, result) =>
+      console.log arguments
       if error
         new KDNotificationView
           title   : error.message
