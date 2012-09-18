@@ -7,7 +7,10 @@ import (
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
+	"os/exec"
 	"os/signal"
+	"os/user"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -69,6 +72,7 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 						node := dnode.New(conn)
 						node.OnRootMethod = func(method string, args []interface{}) {
+							defer log.RecoverAndLog()
 							result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
 							if result != nil {
 								if closer, ok := result.(io.Closer); ok {
@@ -97,4 +101,42 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 			}
 		}()
 	}
+}
+
+func CreateCommand(command []string, userName, homePrefix string) *exec.Cmd {
+	userData, err := user.Lookup(userName)
+	if err != nil {
+		panic(err)
+	}
+	uid, err := strconv.Atoi(userData.Uid)
+	if err != nil {
+		panic(err)
+	}
+	gid, err := strconv.Atoi(userData.Gid)
+	if err != nil {
+		panic(err)
+	}
+	if uid == 0 || gid == 0 {
+		panic("SECURITY BREACH: User lookup returned root.")
+	}
+
+	cmd := exec.Command(command[0], command[1:]...)
+	cmd.Dir = homePrefix + userName
+	cmd.Env = []string{
+		"USER=" + userName,
+		"LOGNAME=" + userName,
+		"HOME=" + homePrefix + userName,
+		"SHELL=/bin/bash",
+		"TERM=xterm",
+		"LANG=en_US.UTF-8",
+		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + homePrefix + userName + "/bin",
+	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Credential: &syscall.Credential{
+			Uid: uint32(uid),
+			Gid: uint32(gid),
+		},
+	}
+
+	return cmd
 }

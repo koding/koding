@@ -10,7 +10,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"os/user"
 	"strconv"
 	"strings"
 	"syscall"
@@ -19,10 +18,10 @@ import (
 )
 
 type WebtermServer struct {
-	user      string
-	remote    dnode.Remote
-	pty       *pty.PTY
-	process   *os.Process
+	user    string
+	remote  dnode.Remote
+	pty     *pty.PTY
+	process *os.Process
 }
 
 var config Config
@@ -121,59 +120,25 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	userData, err := user.Lookup(server.user)
-	if err != nil {
-		panic(err)
-	}
-	uid, err := strconv.Atoi(userData.Uid)
-	if err != nil {
-		panic(err)
-	}
-	gid, err := strconv.Atoi(userData.Gid)
-	if err != nil {
-		panic(err)
-	}
-	if uid == 0 || gid == 0 {
-		panic("SECURITY BREACH: User lookup returned root.")
-	}
-
 	command := config.shellCommand
 	// command = append(command, args...)
 
-	pty := pty.New(uid)
+	pty := pty.New()
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	process, err := server.pty.StartProcess(
-		command,
-		&os.ProcAttr{
-			Dir: config.homePrefix + server.user,
-			Env: []string{
-				"USER=" + server.user,
-				"LOGNAME=" + server.user,
-				"HOME=" + config.homePrefix + server.user,
-				"SHELL=/bin/bash",
-				"TERM=xterm",
-				"LANG=en_US.UTF-8",
-				"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + config.homePrefix + server.user + "/bin",
-			},
-			Sys: &syscall.SysProcAttr{
-				Setsid: true,
-				Credential: &syscall.Credential{
-					Uid: uint32(uid),
-					Gid: uint32(gid),
-				},
-			},
-		})
+	cmd := kite.CreateCommand(command, server.user, config.homePrefix)
+	pty.AdaptCommand(cmd)
+	err := cmd.Start()
 	if err != nil {
 		panic(err)
 	}
-	server.process = process
+	server.process = cmd.Process
 
 	go func() {
 		defer log.RecoverAndLog()
 
-		process.Wait()
+		cmd.Wait()
 		pty.Master.Close()
 		pty.Slave.Close()
 		server.pty = nil
