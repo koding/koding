@@ -29,6 +29,7 @@ module.exports =
   sshfs :
     sshfscmd    : '/usr/bin/sshfs'
     opts       : "ssh_command='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',password_stdin,intr,allow_other,direct_io"
+    optsWithKey : "ssh_command='ssh -o PubkeyAuthentication -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/koding.pem',intr,allow_other,direct_io"
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'

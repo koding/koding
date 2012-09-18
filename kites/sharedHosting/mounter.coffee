@@ -92,12 +92,18 @@ mounter =
       #   remoteuser : String # SSH username
       #   remotepass : String # SSH password
       #   remotehost : String # SSH server address
+      #   sshkey     : Bool # auth with key true/false
 
-      {username, remoteuser, remotepass, remotehost} = options
+      {username, remoteuser, remotepass, remotehost, sshkey} = options
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
       
-      sshopts = "#{config.sshfs.opts},fsname=#{remotehost}"
+      if sshkey?
+        sshopts = "#{config.sshfs.optsWithKey},fsname=#{remotehost}"
+        sshcmd  = "#{config.sshfs.sshfscmd} -o #{sshopts} #{remoteuser}@#{remotehost}:/ #{options.mountpoint}"
+      else
+        sshopts = "#{config.sshfs.opts},fsname=#{remotehost}"
+        sshcmd  = "/bin/echo '#{remotepass}' | #{config.sshfs.sshfscmd} -o #{sshopts} #{remoteuser}@#{remotehost}:/ #{options.mountpoint}"
 
       @createMountpoint options, (err, res)=>
         if err
