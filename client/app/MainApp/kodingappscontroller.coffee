@@ -408,30 +408,35 @@ class KodingAppsController extends KDController
           callback? msg : "App is already installed!"
         else
           log "installing the app: #{app.title}"
-          app.fetchCreator (err, acc)=>
-            # log err, acc, ">>>>"
-            if err
-              callback? err
-            else
-              options =
-                toDo          : "installApp"
-                withArgs      :
-                  owner       : acc.profile.nickname
-                  appPath     : getAppPath app.manifest
-                  appName     : app.manifest.name
-                  version     : version
-              log "asking kite to install", options
-              @kiteController.run options, (err, res)=>
-                log "kite response", err, res
-                if err then warn err
-                else
-                  app.install (err)=>
-                    log err if err
-                    log callback
-                    # This doesnt work :#
-                    appManager.openApplication "StartTab"
-                    @refreshApps()
-                    # callback?()
+          if not app.approved
+            err = "This app is not approved, installation cancelled."
+            log err
+            callback? err
+          else
+            app.fetchCreator (err, acc)=>
+              # log err, acc, ">>>>"
+              if err
+                callback? err
+              else
+                options =
+                  toDo          : "installApp"
+                  withArgs      :
+                    owner       : acc.profile.nickname
+                    appPath     : getAppPath app.manifest
+                    appName     : app.manifest.name
+                    version     : version
+                log "asking kite to install", options
+                @kiteController.run options, (err, res)=>
+                  log "kite response", err, res
+                  if err then warn err
+                  else
+                    app.install (err)=>
+                      log err if err
+                      log callback
+                      # This doesnt work :#
+                      appManager.openApplication "StartTab"
+                      @refreshApps()
+                      # callback?()
 
   # #
   # MAKE NEW APP
