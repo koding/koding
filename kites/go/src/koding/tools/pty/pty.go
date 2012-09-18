@@ -5,6 +5,7 @@ import (
 	_ "code.google.com/p/go-charset/data"
 	"io"
 	"os"
+	"os/exec"
 	"syscall"
 	"unsafe"
 )
@@ -21,12 +22,11 @@ type PTY struct {
 	Slave         *os.File
 }
 
-func New(uid int) *PTY {
+func New() *PTY {
 	var master, slave C.int
 	C.openpty(&master, &slave, nil, nil, nil)
 	masterFile := os.NewFile(uintptr(master), "")
 	slaveFile := os.NewFile(uintptr(slave), "")
-	slaveFile.Chown(uid, -1)
 	encodedMaster, err := charset.NewWriter("ISO-8859-1", masterFile)
 	if err != nil {
 		panic(err)
@@ -34,12 +34,12 @@ func New(uid int) *PTY {
 	return &PTY{masterFile, encodedMaster, slaveFile}
 }
 
-func (pty *PTY) StartProcess(command []string, procAttr *os.ProcAttr) (*os.Process, error) {
-	if procAttr == nil {
-		procAttr = new(os.ProcAttr)
-	}
-	procAttr.Files = []*os.File{pty.Slave, pty.Slave, pty.Slave}
-	return os.StartProcess(command[0], command, procAttr)
+func (pty *PTY) AdaptCommand(cmd *exec.Cmd) {
+	pty.Slave.Chown(int(cmd.SysProcAttr.Credential.Uid), -1)
+	cmd.Stdin = pty.Slave
+	cmd.Stdout = pty.Slave
+	cmd.Stderr = pty.Slave
+	cmd.SysProcAttr.Setsid = true
 }
 
 type winsize struct {
