@@ -26,6 +26,9 @@ module.exports =
   ftpfs  :
     curlftpfs       : '/usr/bin/curlftpfs'
     opts            : "connect_timeout=15,direct_io,allow_other"
+  sshfs :
+    sshfscmd    : '/usr/bin/sshfs'
+    opts       : "ssh_command='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',password_stdin,intr,allow_other,direct_io"
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'

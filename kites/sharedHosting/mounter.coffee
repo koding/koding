@@ -59,22 +59,22 @@ mounter =
 
       # options = 
       #   username : String # koding username
-      #   ftpuser  : String # FTP username
-      #   ftppass  : String # FTP password
-      #   ftphost  : String # FTP server address
+      #   remoteuser  : String # FTP username
+      #   remotepass  : String # FTP password
+      #   remotehost  : String # FTP server address
       #
-      {username, ftpuser, ftppass, ftphost} = options
+      {username, remoteuser, remotepass, remotehost} = options
       
-      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, ftphost
-      ftpfsopts = "#{config.ftpfs.opts},uid=`/usr/bin/id -u #{username}`,gid=`/usr/bin/id -g #{username}`,fsname=#{ftphost},user=#{ftpuser}:#{ftppass}"
+      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
+      ftpfsopts = "#{config.ftpfs.opts},uid=`/usr/bin/id -u #{username}`,gid=`/usr/bin/id -g #{username}`,fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
       
       @createMountpoint options,(err,res)=>
         if err
           callback err
         else
-          exec "#{config.ftpfs.curlftpfs} -o #{ftpfsopts} #{ftphost} #{options.mountpoint}", (err, stdout, stderr)=>
+          exec "#{config.ftpfs.curlftpfs} -o #{ftpfsopts} #{remotehost} #{options.mountpoint}", (err, stdout, stderr)=>
             if err?
-              log.error error = "[ERROR] couldn't mount remote FTP server #{ftphost}: #{stderr}"
+              log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{stderr}"
               callback error
             else
               @remountVE options, (err,res)->
@@ -83,17 +83,48 @@ mounter =
                 else
                   callback null,res
 
-    umountFtpDrive : (options, callback)->
+    mountSshDrive : (options, callback)->
+      
+      # mount SSHfs to the user's home directory
+      
+      # options =
+      #   username : String # koding username
+      #   remoteuser : String # SSH username
+      #   remotepass : String # SSH password
+      #   remotehost : String # SSH server address
+
+      {username, remoteuser, remotepass, remotehost} = options
+
+      options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
+      
+      sshopts = "#{config.sshfs.opts},fsname=#{remotehost}"
+
+      @createMountpoint options, (err, res)=>
+        if err
+          callback err
+        else
+          exec "/bin/echo '#{remotepass}' | #{config.sshfs.sshfscmd} -o #{sshopts} #{remoteuser}@#{remotehost}:/ #{options.mountpoint}", (err, stdout, stderr)=>
+            if err?
+              log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{stderr}"
+              callback error
+            else
+              @remountVE options, (err,res)->
+                if err
+                  callback err
+                else
+                  callback null, res
+
+    umountDrive : (options, callback)->
       
       # umount FTP from user's home directory
 
       # options =
       #   username : String # koding username
-      #   ftphost  : String # FTP server address
+      #   remotehost  : String # FTP server address
 
-      {username, ftphost} = options
+      {username, remotehost} = options
 
-      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, ftphost
+      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
 
       exec "/bin/umount #{options.mountpoint}",(err, stdout, stderr)=>
         if err
@@ -110,9 +141,9 @@ mounter =
 
 #options =
 #  username: "aleksey-m"
-#  ftpuser: "aleksey-m"
-#  ftppass: "xxxx"
-#  ftphost: "ftp.beta.koding.com"
+#  remoteuser: "aleksey-m"
+#  remotepass: "xxxx"
+#  remotehost: "ftp.beta.koding.com"
 #
 #mounter.mountFtpDrive options,(err,res)->
 #  console.log err,res
