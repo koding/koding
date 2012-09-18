@@ -48,10 +48,8 @@ class KDListViewController extends KDViewController
       scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
 
     @instantiateListItems(@getData().items or [])
-    @listenTo
-      KDEventTypes       : "ReceivedMouseUpElsewhere"
-      listenedToInstance : @getSingleton("windowController")
-      callback           : (windowController, event)-> @mouseUpHappened windowController, event
+
+    @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
   instantiateListItems:(items)->
     newItems = for itemData in items
@@ -171,7 +169,7 @@ class KDListViewController extends KDViewController
       @mouseDown = no
       @mouseDownTempItem = null
 
-  mouseUpHappened:(windowController, event)->
+  mouseUpHappened:(event)->
 
     clearTimeout @mouseDownTimer
     @mouseDown = no
