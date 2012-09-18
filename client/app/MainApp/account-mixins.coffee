@@ -41,6 +41,8 @@ AccountMixin = do ->
 
       listenerId = 0
 
+      channels = {}
+
       request =(kiteName, method, args, onMethod='on')-> 
         callbackId = listenerId++
         scrubber = new Scrubber localStore
@@ -67,7 +69,13 @@ AccountMixin = do ->
       getChannelName =(kiteName)-> "private-kite-#{kiteName}"
 
       fetchChannel =(kiteName, callback)->  
-        KD.remote.fetchChannel getChannelName(kiteName), callback
+        channelName = getChannelName(kiteName)
+        unless channels[channelName]
+          KD.remote.fetchChannel channelName, (channel) ->
+            channels[channelName] = channel
+            callback channel
+        else
+          callback channels[channelName]
 
       (options, callback=->)->
         scrubber = new Scrubber localStore
