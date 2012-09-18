@@ -98,6 +98,14 @@ class JApp extends jraphical.Module
 
     {connection:{delegate}} = client
 
+    if not (delegate.checkFlag('app-publisher') or delegate.checkFlag('super-admin'))
+      callback new KodingError 'You are not authorized to publish apps.'
+      return no
+
+    if data.identifier.indexOf('com.koding.apps.') isnt 0
+      callback new KodingError 'Invalid identifier provided.'
+      return no
+
     JApp.one
       identifier : data.identifier
     , (err, app)=>
