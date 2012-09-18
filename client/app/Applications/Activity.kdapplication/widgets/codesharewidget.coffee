@@ -68,7 +68,8 @@ class ActivityCodeShareWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
     @labelHTMLContent = new KDLabelView
-      title : "HTML:"
+      title : "HTML Options"
+      cssClass : "settings-label"
 
     @aceHTMLWrapper = new KDView
 
@@ -84,40 +85,32 @@ class ActivityCodeShareWidget extends KDFormView
         speed       : 1
         FPS         : 24
 
-    @HTMLfullScreenBtn = new KDButtonView
-      style           : "clean-gray"
-      cssClass        : "fullscreen-button"
-      title           : "Fullscreen HTML Editor"
-      callback: =>
-        modal = new KDModalView
-          title       : "What do you want to discuss?"
-          cssClass    : "modal-fullscreen"
-          height      : $(window).height()-110
-          width       : $(window).width()-110
-          position:
-            top       : 55
-            left      : 55
-          overlay     : yes
-          content     : "" #"<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@HTMLace.getContents()+"</textarea></div>"
-          buttons     :
-            Cancel    :
-              title   : "Discard changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                modal.destroy()
-            Apply     :
-              title   : "Apply changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                @HTMLace.setContents $("#fullscreen-data").val()
-                modal.destroy()
+    @isWideScreen = no
 
-        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        # modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
-        # modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+    @wideScreenBtn = new KDButtonView
+      style           : "clean-gray"
+      cssClass        : ""
+      title           : "Increase Editor Size"
+      callback: =>
+        if @isWideScreen
+          @$(".formline-codeshare").css "margin-left":"168px"
+          @$(".formline-codeshare").css "margin-right":"0px"
+          @$(".code-snip-container").css "max-width":"560px"
+          @$(".formline-codeshare").css "max-width":"560px"
+          @wideScreenBtn.setTitle "Increase Editor Size"
+          @isWideScreen = no
+        else
+          @$(".formline-codeshare").css "margin-left":"10px"
+          @$(".formline-codeshare").css "margin-right":"10px"
+          @$(".code-snip-container").css "max-width":"100%"
+          @$(".formline-codeshare").css "max-width":"100%"
+          @isWideScreen = yes
+          @wideScreenBtn.setTitle "Reduce Editor Size"
+
 
     @labelCSSContent = new KDLabelView
-      title : "CSS:"
+      title : "CSS Options"
+      cssClass : "settings-label"
 
     @aceCSSWrapper = new KDView
 
@@ -134,7 +127,8 @@ class ActivityCodeShareWidget extends KDFormView
         FPS         : 24
 
     @labelJSContent = new KDLabelView
-      title : "JavaScript:"
+      title : "JavaScript Options"
+      cssClass : "settings-label"
 
     @aceJSWrapper = new KDView
 
@@ -151,7 +145,7 @@ class ActivityCodeShareWidget extends KDFormView
         FPS         : 24
 
     @codeShareResultView = new CodeShareResultView {}, {}
-    @codeShareResultView.hide()
+
     @codeShareResultButton = new KDButtonView
       title: "Run this Code Share"
       cssClass:"clean-gray result-button"
@@ -159,8 +153,6 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultButton.setTitle "Refresh Code Share"
         @codeShareResultView.show()
         @codeShareCloseButton.show()
-
-        # fetch current options here!
 
         @codeShareResultView.emit "CodeShareSourceHasChanges", {
           attachments:[
@@ -196,6 +188,8 @@ class ActivityCodeShareWidget extends KDFormView
           libsJS : @libJSSelectLibs.getValue()
 
           }
+        @codeShareContainer.showPane @codeShareResultPane
+
 
     @codeShareCloseButton = new KDButtonView
       title: "Stop and Close this Code Share"
@@ -453,8 +447,12 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareContainer = new KDTabView
       cssClass: "code-share-container"
 
+    # iframe Tab
+
     @codeShareResultPane = new KDTabPaneView
       name:"Code Share"
+
+    @codeShareResultPane.addSubView @codeShareResultView
 
     # HTML Tab
 
@@ -525,7 +523,6 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareJSCodeSnipContainer.addSubView @codeShareJSCodeSnipHolder
 
-
     @codeShareContainer.addPane @codeShareResultPane
     @codeShareContainer.addPane @codeShareHTMLPane
     @codeShareContainer.addPane @codeShareCSSPane
@@ -536,6 +533,12 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareCSSPane.hideTabCloseIcon()
     @codeShareJSPane.hideTabCloseIcon()
 
+    # hover switching enabled by default
+    @codeShareContainer.$(".kdtabhandle").hover (event)->
+      $(event.target).closest(".kdtabhandle").click()
+    , noop
+
+    @codeShareContainer.showPane @codeShareResultPane
 
 
   submit:=>
@@ -645,6 +648,8 @@ class ActivityCodeShareWidget extends KDFormView
     else
       @once "codeShare.aceLoaded", => fillForm()
 
+    @codeShareResultView.show()
+
   switchToForkView:(activity)->
     @submitBtn.setTitle "Fork this Code Share"
 
@@ -689,6 +694,9 @@ class ActivityCodeShareWidget extends KDFormView
       fillForm()
     else
       @once "codeShare.aceLoaded", => fillForm()
+
+    @codeShareResultView.show()
+
 
   widgetShown:->
 
@@ -779,13 +787,10 @@ class ActivityCodeShareWidget extends KDFormView
         <div class="formline-codeshare">
         {{> @codeShareContainer}}
        </div>
-        <div class="formline">
-          {{> @codeShareResultView}}
+        <div class="formline codeshare-buttons">
           {{> @codeShareResultButton}}
           {{> @codeShareCloseButton}}
-        </div>
-        <div class="formline">
-
+          {{> @wideScreenBtn}}
         </div>
         <div class="formline">
           {{> @labelAddTags}}

@@ -215,60 +215,71 @@ class CodeShareResultView extends KDCustomHTMLView
     @codeViewContainer = new KDCustomHTMLView
       cssClass : "result-frame-container"
 
-    # @kiteController = @getSingleton('kiteController')
-
     @appendResultFrame @iframeFile
+
 
     @on "CodeShareSourceHasChanges",(data)=>
 
-      log "Data received", data
       codeshare = data
 
-      html= Encoder.htmlDecode(codeshare.attachments[0].content)
-      css = Encoder.htmlDecode(codeshare.attachments[1].content)
-      js  = Encoder.htmlDecode(codeshare.attachments[2].content)
+      codeshare.html= Encoder.htmlDecode(codeshare.attachments[0].content)
+      codeshare.css = Encoder.htmlDecode(codeshare.attachments[1].content)
+      codeshare.js  = Encoder.htmlDecode(codeshare.attachments[2].content)
 
-      # MARKDOWN handling
-      if codeshare.modeHTML is "markdown"
-        marked.setOptions
-          gfm: true
-          pedantic: false
-          sanitize: true
-          highlight:(text)->
-        html = marked html
+      @handleMarkdown codeshare, (data)=>
+        @handleCoffee data, (result)=>
+          @setResultObject result
 
-      # COFFEE handling (returns compiled JS if compilation doesnt fail)
-      if codeshare.modeJS is "coffee"
-        requirejs (['js/coffee-script.js']), (coffee)->
-          try
-            js = coffee.compile js
-          catch err
-            log err
+  handleMarkdown:(codeshare, callback)=>
+   if codeshare.modeHTML is "markdown"
+    marked.setOptions
+      gfm: true
+      pedantic: false
+      sanitize: true
+      highlight:(text)->
 
-      # done with the conversions
-      resultObject =
-        resetFrame    : no
-        stopFrame     : no
-        renderFrame   : yes
+    codeshare.html = marked codeshare.html
+    callback(codeshare)
+   else
+    callback(codeshare)
 
-        html          : html
-        htmlType      : "html"
-        htmlClass     : codeshare.classesHTML
-        htmlExtras    : codeshare.extrasHTML
+  handleCoffee:(codeshare, callback)=>
+   if codeshare.modeJS is "coffee"
+    requirejs (['js/coffee-script.js']), (coffee)->
+      try
+        codeshare.js = coffee.compile codeshare.js
+        callback(codeshare)
+      catch err
+        log "While compiling the coffee-script to js, this happened: ",err
+        callback(codeshare)
+   else
+    callback(codeshare)
 
-        css           : css
-        cssType       : "css"
-        cssPrefix     : if codeshare.prefixCSS is "on" then yes else no
-        cssResets     : codeshare.resetsCSS
-        cssExternals  : codeshare.externalCSS
+  setResultObject:(codeshare)=>
 
-        js            : js
-        jsType        : "javascript"
-        jsLibs        : codeshare.libsJS
-        jsExternals   : codeshare.externalJS
-        jsModernizr   : if codeshare.modernizeJS is "on" then yes else no
+   resultObject =
+    resetFrame    : no
+    stopFrame     : no
+    renderFrame   : yes
 
-      @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),@iframeURL)
+    html          : codeshare.html
+    htmlType      : "html"
+    htmlClass     : codeshare.classesHTML
+    htmlExtras    : codeshare.extrasHTML
+
+    css           : codeshare.css
+    cssType       : "css"
+    cssPrefix     : if codeshare.prefixCSS is "on" then yes else no
+    cssResets     : codeshare.resetsCSS
+    cssExternals  : codeshare.externalCSS
+
+    js            : codeshare.js
+    jsType        : "javascript"
+    jsLibs        : codeshare.libsJS
+    jsExternals   : codeshare.externalJS
+    jsModernizr   : if codeshare.modernizeJS is "on" then yes else no
+
+   @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),@iframeURL)
 
   resetResultFrame:=>
     # @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),@iframeURL)
