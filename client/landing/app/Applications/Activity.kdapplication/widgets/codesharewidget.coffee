@@ -179,6 +179,21 @@ class ActivityCodeShareWidget extends KDFormView
               syntax:"javascript"
             }
             ]
+          classesHTML:@libHTMLClasses.getValue()
+          extrasHTML:@libHTMLHeadExtras.getValue()
+          externalCSS:@libCSSExternal.getValue()
+          externalJS:@libJSExternal.getValue()
+
+          modeHTML : @libHTMLSelect.getValue()
+          modeCSS  : @libCSSSelect.getValue()
+          modeJS   : @libJSSelect.getValue()
+
+          resetsCSS : if @$("input[name=prefixCSSCheck]").prop("checked") is yes then "on" else "off"
+          prefixCSS : @libCSSPrefix.getValue()
+
+          modernizeJS : if @$("input[name=modernizeJSCheck]").prop("checked") is yes then "on" else "off"
+          libsJS : @libJSSelectLibs.getValue()
+
           }
 
     @codeShareCloseButton = new KDButtonView
@@ -279,7 +294,7 @@ class ActivityCodeShareWidget extends KDFormView
           }
           {
             title:"CoffeeScript"
-            value:"coffee-script"
+            value:"coffee"
           }
         ]
 
@@ -343,12 +358,28 @@ class ActivityCodeShareWidget extends KDFormView
             value:"none"
           }
           {
-            title:"JQuery latest with JQuery UI"
-            value:"jquery-latest-with-ui"
+            title:"JQuery latest with JQuery UI (1.8.23)"
+            value:"jquery-latest-with-ui-1-8-23"
           }
           {
-            title:"MooTools latest"
-            value:"mootools-latest"
+            title:"MooTools (1.4.5)"
+            value:"mootools-1-4-5"
+          }
+          {
+            title:"Dojo (1.8.0)"
+            value:"dojo-1-8-0"
+          }
+          {
+            title:"Ext Core (3.1.0)"
+            value:"ext-core-3-1-0"
+          }
+          {
+            title:"Prototype (1.7.1.0)"
+            value:"prototype-1-7-1-0"
+          }
+          {
+            title:"script.aculo.us (1.9.0)"
+            value:"scriptaculous-1-9-0"
           }
         ]
 
@@ -470,6 +501,7 @@ class ActivityCodeShareWidget extends KDFormView
     @utils.wait =>
       @HTMLace.setContents "//your HTML goes here..."
       @HTMLace.setSyntax 'html'
+      @HTMLace.render()
       @CSSace.setContents "//your CSS goes here..."
       @CSSace.setSyntax 'css'
       @JSace.setContents "//your JavaScript goes here..."
@@ -575,7 +607,6 @@ class ActivityCodeShareWidget extends KDFormView
   widgetShown:->
 
     snippetCount = 0
-
     unless @HTMLace? and @CSSace? and @JSace?
       @loadAce()
     else
@@ -622,9 +653,11 @@ class ActivityCodeShareWidget extends KDFormView
       @emit "codeShare.aceLoaded"
 
   refreshEditorView:->
-    # lines = @HTMLace.editor.selection.doc.$lines
-    # lineAmount = if lines.length > 10 then 10 else if lines.length < 5 then 5 else lines.length
-    # @setAceHeightByLines lineAmount
+    @HTMLace.editor.renderer.updateText()
+    @CSSace.editor.renderer.updateText()
+    @JSace.editor.renderer.updateText()
+
+
 
   setAceHeightByLines: (lineAmount) ->
     lineHeight  = @HTMLace.editor.renderer.lineHeight
