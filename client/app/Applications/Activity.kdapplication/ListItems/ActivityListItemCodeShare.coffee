@@ -52,8 +52,9 @@ class CodeShareActivityItemView extends ActivityItemChild
         @codeShareResultView.show()
         @resultBanner.hide()
         @codeShareCloseButton.show()
-        @codeShareResultView.stopResultFrame()
-        @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
+        @codeShareResultView.resetResultFrame()
+        @utils.wait 500, =>
+          @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
         @codeShareContainer.showPane @codeShareResultPane
 
     @codeShareCloseButton = new KDButtonView
@@ -209,16 +210,18 @@ class CodeShareResultView extends KDCustomHTMLView
     data = @getData()
 
     @iframeURL = "*"
+    @iframeFile = "/share/iframe.html"
 
     @codeViewContainer = new KDCustomHTMLView
       cssClass : "result-frame-container"
 
     # @kiteController = @getSingleton('kiteController')
 
-    @appendResultFrame "/share/iframe.html"
+    @appendResultFrame @iframeFile
 
     @on "CodeShareSourceHasChanges",(data)=>
 
+      log "Data received", data
       codeshare = data
 
       html= Encoder.htmlDecode(codeshare.attachments[0].content)
@@ -234,6 +237,13 @@ class CodeShareResultView extends KDCustomHTMLView
           highlight:(text)->
         html = marked html
 
+      # COFFEE handling (returns compiled JS if compilation doesnt fail)
+      if codeshare.modeJS is "coffee"
+        requirejs (['js/coffee-script.js']), (coffee)->
+          try
+            js = coffee.compile js
+          catch err
+            log err
 
       # done with the conversions
       resultObject =
@@ -248,19 +258,22 @@ class CodeShareResultView extends KDCustomHTMLView
 
         css           : css
         cssType       : "css"
-        cssPrefix     : yes unless codeshare.prefixCSS is not "on"
+        cssPrefix     : if codeshare.prefixCSS is "on" then yes else no
+        cssResets     : codeshare.resetsCSS
         cssExternals  : codeshare.externalCSS
 
         js            : js
         jsType        : "javascript"
         jsLibs        : codeshare.libsJS
         jsExternals   : codeshare.externalJS
-        jsModernizr   : yes unless codeshare.modernizeJS is not "on"
+        jsModernizr   : if codeshare.modernizeJS is "on" then yes else no
 
       @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),@iframeURL)
 
   resetResultFrame:=>
-    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),@iframeURL)
+    # @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({resetFrame:yes}),@iframeURL)
+    # @codeView.options.attributes.url = @iframeFile
+    @$(".result-frame")[0].src = @$(".result-frame")[0].src
 
   stopResultFrame:=>
     @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify({stopFrame:yes}),@iframeURL)

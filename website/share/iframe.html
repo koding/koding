@@ -55,9 +55,10 @@ function handleDefaults() {
 
 function resetFrame(){
         this.stopFrame();
-        console.log("stopped");
         $("body").empty();
         $("head style#codeshare_style").empty();
+        $("head link#reset-style").remove();
+        $("head link.external-style").remove();
 }
 
 function stopFrame(){
@@ -66,22 +67,47 @@ function stopFrame(){
         $("*").stop(true,true).clearQueue().unbind();
 }
 
+function loadLibs(data, libraries){
+    if (libraries.length>0){
+      var currentLib = libraries.shift();
+      $.getScript(currentLib).done($.proxy(function(){
+        this.loadLibs(data,libraries)
+      }, this)).fail($.proxy(function(){
+        this.loadLibs(data,libraries)
+      },this));
+    } else
+
+  // Eval JS
+  try {
+    js = $.globalEval(data.js), $(window).load()
+  } catch (err) {
+    typeof console != "undefined" && console.log('Your Javascript resulted in this error: '+err.message)
+  }
+  }
+
 function renderFrame(codeshare){
-  var x, _i, _len, _ref;
+  var x, _i, _len, _ref, libList = [];
 
 
+  console.log(codeshare);
 
   // Load and Inject CSS (Resets -> (Prefixed) User -> Externals )
 
-
   // Load Reset Stylesheet
+  // - the meyerweb css reset
+  if (codeshare.cssResets === "reset"){
+    $('head').prepend('<link id="reset-style" rel="stylesheet" type="text/css" href="../css/reset.css">');
+  } else if (codeshare.cssResets === "normalize"){
+  // the normalize css reset
+    $('head').prepend('<link id="reset-style" rel="stylesheet" type="text/css" href="../css/normalize.css">');
+  }
 
   // Prefix
-
   if (codeshare.cssPrefix === true) {
     codeshare.css = PrefixFree.prefixCSS(codeshare.css, true);
   }
 
+  // Inject User CSS
   $("head style#codeshare_style").html(codeshare.css, true);
 
   // Load External Stylesheets (raw css only)
@@ -89,7 +115,7 @@ function renderFrame(codeshare){
     _ref = codeshare.cssExternals.split(";");
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       x = _ref[_i];
-      $('head').append('<link rel="stylesheet" type="text/css" href="' + x + '">');
+      $('head').append('<link class="external-style" rel="stylesheet" type="text/css" href="' + x + '">');
     }
   }
 
@@ -99,16 +125,44 @@ function renderFrame(codeshare){
   if (codeshare.htmlExtras !== '') $("html head").append(codeshare.htmlExtras);
 
   // Load and Execute JS (Libraries -> Modernizr -> User)
-
-  // Load Libraries
+  switch(codeshare.jsLibs){
+    case "jquery-latest-with-ui-1-8-23":
+      libList.push("//ajax.googleapis.com/ajax/libs/jqueryui/1.8.23/jquery-ui.min.js");
+    break;
+    case "mootools-1-4-5":
+      libList.push("//ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js");
+    break;
+    case "dojo-1-8-0":
+      libList.push("//ajax.googleapis.com/ajax/libs/dojo/1.8.0/dojo/dojo.js");
+    break;
+    case "ext-core-3-1-0":
+      libList.push("//ajax.googleapis.com/ajax/libs/ext-core/3.1.0/ext-core.js");
+    break;
+    case "prototype-1-7-1-0":
+      libList.push("//ajax.googleapis.com/ajax/libs/prototype/1.7.1.0/prototype.js");
+    break;
+    case "scriptaculous-1-9-0":
+      libList.push("//ajax.googleapis.com/ajax/libs/scriptaculous/1.9.0/scriptaculous.js");
+    break;
+    default:
+  }
 
   // Load Modernizr
+  if (codeshare.jsModernizr === true) libList.push("//cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js");
 
-  try {
-    js = $.globalEval(codeshare.js), $(window).load()
-  } catch (err) {
-    typeof console != "undefined" && console.log('Your Javascript resulted in this error: '+err.message)
+  // Load Externals
+  if (codeshare.jsExternals !== ''){
+    _ref = codeshare.jsExternals.split(";");
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      x = _ref[_i];
+      libList.push(x);
+    }
   }
+
+  // Fetch files, load them, then evaluate JS
+  $.ajaxSetup({async:false});
+  this.loadLibs(codeshare,libList);
+  $.ajaxSetup({async:true});
 
 }
 
@@ -119,9 +173,7 @@ function receiveMessage(event)
     if (event.data != null) codeshare = JSON.parse(event.data);
 
     if (codeshare.resetFrame === true) this.resetFrame();
-
     else if (codeshare.stopFrame === true) this.stopFrame();
-
     else if (codeshare.renderFrame === true) this.renderFrame(codeshare);
 }
 
