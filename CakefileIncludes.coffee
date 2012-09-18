@@ -163,7 +163,9 @@ Includes =
         KDImage             : "./client/Framework/components/image/KDImage.coffee"
 
         # split
-        KDSplitView         : "./client/Framework/components/split/KDSplitView.coffee"
+        KDSplitView         : "./client/Framework/components/split/splitview.coffee"
+        KDSplitResizer      : "./client/Framework/components/split/splitresizer.coffee"
+        KDSplitPanel        : "./client/Framework/components/split/splitpanel.coffee"
 
         # header
         KDHeaderView        : "./client/Framework/components/header/KDHeaderView.coffee"
@@ -483,6 +485,8 @@ Includes =
         appLinkView                 : "./client/app/CommonViews/linkviews/applinkview.coffee"
         activityTagGroup            : "./client/app/CommonViews/linkviews/activitychildviewtaggroup.coffee"
         autoCompleteProfileTextView : "./client/app/CommonViews/linkviews/autocompleteprofiletextview.coffee"
+        splitView                   : "./client/app/CommonViews/splitview.coffee"
+        slidingSplitView            : "./client/app/CommonViews/slidingsplit.coffee"
 
         avatarView                  : "./client/app/CommonViews/avatarviews/avatarview.coffee"
         avatarStaticView            : "./client/app/CommonViews/avatarviews/avatarstaticview.coffee"
@@ -573,6 +577,9 @@ Includes =
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
+        # BOTTOM PANEL
+        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
+
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
@@ -641,7 +648,8 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        # appabout            : "./client/stylus/app.about.styl"
+        appBottom           : "./client/stylus/app.bottom.styl"
+        appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
@@ -665,7 +673,7 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        # book                : "./client/stylus/app.book.styl"
+        book                : "./client/stylus/app.book.styl"
 
         temp             : "./client/stylus/temp.styl"
 

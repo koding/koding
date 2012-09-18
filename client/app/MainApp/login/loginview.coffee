@@ -265,6 +265,7 @@ class LoginView extends KDScrollView
         new KDNotificationView
           title   : error.message
           duration: 1000
+        @loginForm.resetDecoration()
       else
         new KDNotificationView
           cssClass  : "login"

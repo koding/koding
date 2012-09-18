@@ -270,9 +270,7 @@ class Activity12345 extends AppController
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    contentDisplayController.propagateEvent
-      KDEventType : "ContentDisplayWantsToBeShown"
-    ,contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity

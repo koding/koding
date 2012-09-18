@@ -35,15 +35,23 @@ class KDScrollView extends KDView
   getScrollHeight:()->@$()[0].scrollHeight
   getScrollWidth:()->@$()[0].scrollWidth
   getScrollTop:()->@$().scrollTop()
+  getScrollLeft:()->@$().scrollLeft()
 
-  scrollTo:({top,duration},callback)->
-    top       or= 0
-    duration  or= null
+  scrollTo:({top, left, duration},callback)->
+    top      or= 0
+    left     or= 0
+    duration or= null
+
     if duration
-      @$().animate scrollTop : top, duration, ->
+      @$().animate
+        scrollTop  : top
+        scrollLeft : left
+      , duration
+      , ->
         callback?()
     else
       @$().scrollTop top
+      @$().scrollLeft left
       callback?()
 
   scrollToSubView:(subView)->

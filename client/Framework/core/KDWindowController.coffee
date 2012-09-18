@@ -77,7 +77,7 @@ class KDWindowController extends KDController
 
     document.body.addEventListener 'mouseup', (e)=>
       @unsetDragView e if @dragView
-      @propagateEvent (KDEventType: 'ReceivedMouseUpElsewhere'), e
+      @emit 'ReceivedMouseUpElsewhere', e
     , yes
 
     document.body.addEventListener 'mousemove', (e)=>
@@ -92,7 +92,7 @@ class KDWindowController extends KDController
     #     return msg
 
   setDragInAction:(action = no)->
-    
+
     $('body')[if action then "addClass" else "removeClass"]("dragInAction")
     @dragInAction = action
 
@@ -115,7 +115,7 @@ class KDWindowController extends KDController
 
     return if newKeyView is @keyView
     # debugger
-    # log newKeyView.getOptions().name, "newKeyView" if newKeyView
+    # log newKeyView, "newKeyView" if newKeyView
 
     @oldKeyView = @keyView
     @keyView = newKeyView

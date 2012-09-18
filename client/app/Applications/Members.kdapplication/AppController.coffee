@@ -102,7 +102,7 @@ class Members12345 extends AppController
 
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
-      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
 
   createFolloweeContentDisplay:(account, filter)->
     # log "I need to create followee for", account, filter
@@ -125,7 +125,7 @@ class Members12345 extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerMember null, content
     contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createContentDisplay:(account, doShow = yes)->
     controllerClass = ContentDisplayControllerMember
@@ -138,7 +138,7 @@ class Members12345 extends AppController
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   setCurrentViewNumber:(type)->
     {currentDelegate} = @getSingleton('mainController').getVisitor()

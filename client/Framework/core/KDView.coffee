@@ -5,7 +5,9 @@ class KDView extends KDObject
 # #
 
   {defineProperty} = Object
+
   deprecated = (methodName)-> warn "#{methodName} is deprecated from KDView if you need it override in your subclass"
+
   eventNames =
     ///
     ^(
@@ -21,6 +23,7 @@ class KDView extends KDObject
     error
     )$
     ///
+
   overrideAndMergeObjects = (objects)->
     for own title,item of objects.overridden
       continue if objects.overrider[title]
@@ -639,8 +642,9 @@ class KDView extends KDObject
     posY = @dragState[directionY] + y
     posX = @dragState[directionX] + x
 
-    @$().css directionX, posX unless axis is 'y'
-    @$().css directionY, posY unless axis is 'x'
+    if @dragIsAllowed
+      @$().css directionX, posX unless axis is 'y'
+      @$().css directionY, posY unless axis is 'x'
 
     @emit "DragInAction", x, y
 

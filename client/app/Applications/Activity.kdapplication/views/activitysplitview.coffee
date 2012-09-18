@@ -1,16 +1,16 @@
-class ActivitySplitView extends KDSplitView
+class ActivitySplitView extends SplitView
 
   # until mixins are here
   viewAppended : ()->
     ContentPageSplitBelowHeader::viewAppended.apply @,arguments
 
-  toggleFirstPanel: ()-> 
+  toggleFirstPanel: ()->
     ContentPageSplitBelowHeader::toggleFirstPanel.apply @,arguments
 
-  setRightColumnClass: ()-> 
+  setRightColumnClass: ()->
     ContentPageSplitBelowHeader::setRightColumnClass.apply @,arguments
 
-  _windowDidResize:()=> 
+  _windowDidResize:()=>
     super
     welcomeHeaderHeight = @$().siblings('h1').outerHeight()
     # updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight()  # split margin top
