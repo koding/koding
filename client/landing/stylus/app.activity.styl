@@ -1004,11 +1004,11 @@ div.libs-container
   z-index -1
   opacity 0
   position absolute
-  top 23px
+  top 5px
   height auto
-  width auto
+  width 300px
   right 5px
-  left 0px
+  // left 0px
   vendor transition, opacity 0.1s ease-in
   .libs-box
     padding 5px
@@ -1038,13 +1038,73 @@ div.libs-container
     // label
     //   display block
 
+label.settings-label
+  rounded(4px)
+  padding 4px 8px
+  line-height 120%
+  font-size 12px
+  border 1px solid black
+  position absolute
+  right 0px
+  top 5px
+  z-index 99
+  color white
+  background-color #444
+  font-weight 300
 
-// fix for the  discussion activity opinion width design issue
-// - border-top/bottom needs to go to the right while width has to be
-//   restrained
-// .activity-item.discussion
-//   max-width 100%
-//   .activity-discussion-container
-//     max-width 820px
-// .activity-opinion.item-content-comment .comment-contents
-//   max-width 685px
+.formline > div.result-container
+    max-width 100%
+    margin-left 5px
+    height 300px
+
+.code-snip-holder.share
+  height 300px
+
+.formline-codeshare
+  margin 5px 0px 5px 168px
+  max-width 560px
+  height 350px
+  vendor transition, max-width .1s linear
+  vendor transition, margin .1s linear
+
+.code-snip-container
+  scrollbars()
+  width 100%
+  max-width 560px
+  text-align left
+  padding 0px 0px 0px 0px
+  display inline-block
+  position relative
+  vendor transition, max-width .1s linear
+  vendor transition, margin .1s linear
+
+
+.codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
+  width 32%
+  margin 0 0 10px 0
+  padding 0
+  borderBox()
+  &:first-child
+    margin-right 1%
+  &:last-child
+    margin-left 1%
+.code-share-container
+  height 340px
+  > .kdview.kdtabhandlecontainer
+    border-bottom none
+    background-color white
+    padding 0 10px
+    borderBox()
+    > .kdtabhandle
+      height 30px
+      vendor border-top-left-radius 4px
+      vendor border-top-right-radius 4px
+  > div.kdview.clearfix.kdtabpaneview
+    vendor box-shadow none
+    height  300px
+    padding-top 0px
+    iframe.result-frame
+      min-height 297px
+      max-height 297px
+.codeshare-buttons
+  margin-left 170px
