@@ -33,7 +33,7 @@ class JApp extends jraphical.Module
         'like', 'checkIfLikedBefore', 'fetchLikedByes',
         'fetchFollowersWithRelationship', 'install',
         'fetchFollowingWithRelationship', 'fetchCreator',
-        'fetchRelativeReviews'
+        'fetchRelativeReviews', 'approve'
       ]
       static        : [
         "one","on","some","create","byRelevance",
@@ -187,6 +187,19 @@ class JApp extends jraphical.Module
             callback new KodingError 'App is not approved so activity is not created.'
           else
             callback new KodingError 'Relationship already exists, App already installed'
+
+  approve: secure ({connection}, state = yes, callback)->
+
+    {delegate} = connection
+    {constructor} = @
+    unless delegate instanceof constructor.getAuthorType()
+      callback new KodingError 'Only instances of JAccount can approve apps.'
+    else
+      unless delegate.checkFlag 'super-admin'
+        callback new KodingError 'Only Koding Application Admins can approve apps.'
+      else
+        @update ($set: approved: state), (err)=>
+          callback err
 
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
