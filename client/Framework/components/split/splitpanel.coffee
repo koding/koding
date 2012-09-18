@@ -2,7 +2,10 @@ class KDSplitViewPanel extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.fixed ?= no
+    options.fixed    ?= no
+    options.minimum or= null
+    options.maximum or= null
+    options.view    or= null
 
     super options,data
 

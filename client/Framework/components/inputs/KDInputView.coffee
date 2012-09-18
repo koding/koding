@@ -4,52 +4,54 @@
 
 class KDInputView extends KDView
 
-  constructor:(options = {},data)->
-    options = $.extend
-      type                    : "text"        # a String of one of input types "text","password","select", etc...
-      name                    : ""            # a String
-      label                   : null          # a KDLabelView instance
-      cssClass                : ""            # a String
-      callback                : null          # a Function
-      defaultValue            : ""            # a String or a Boolean value depending on type
-      placeholder             : ""            # a String
-      disabled                : no            # a Boolean value
-      # readonly                : no            # a Boolean value
-      selectOptions           : null          # an Array of Strings
-      validate                : null          # an Object of Validation options see KDInputValidator for details
-      validationNotifications : yes
-      hint                    : null          # a String of HTML
-      autogrow                : no            # a Boolean
-      enableTabKey            : no            # a Boolean # NOT YET READY needs some work
-      bind                    : ""            # a String of event names
-      forceCase               : null          # a String of either "lowercase" or "uppercase"
-      # new HTML5 input properties, choose wisely. chart can be found in this link http://d.pr/vvn4
-      attributes              :
-        autocomplete          : null
-        dirname               : null
-        list                  : null
-        maxlength             : null
-        pattern               : null
-        readonly              : null
-        required              : null
-        size                  : null
-        list                  : null
-        selectionStart        : null
-        selectionEnd          : null
-        selectionDirection    : null
-        multiple              : null # > for email only
-        min                   : null # > range, number only
-        max                   : null # > range, number only
-        step                  : null # > range, number only
-        valueAsNumber         : null # > number only
+  constructor:(o = {}, data)->
 
-    ,options
+    o.type                    or= "text"        # a String of one of input types "text","password","select", etc...
+    o.name                    or= ""            # a String
+    o.label                   or= null          # a KDLabelView instance
+    o.cssClass                or= ""            # a String
+    o.callback                or= null          # a Function
+    o.defaultValue            or= ""            # a String or a Boolean value depending on type
+    o.placeholder             or= ""            # a String
+    o.disabled                 ?= no            # a Boolean value
+    # o.readonly               ?= no            # a Boolean value
+    o.selectOptions           or= null          # an Array of Strings
+    o.validate                or= null          # an Object of Validation options see KDInputValidator for details
+    o.validationNotifications  ?= yes
+    o.hint                    or= null          # a String of HTML
+    o.autogrow                 ?= no            # a Boolean
+    o.enableTabKey             ?= no            # a Boolean # NOT YET READY needs some work
+    o.bind                    or= ""            # a String of event names
+    o.forceCase               or= null          # a String of either "lowercase" or "uppercase"
 
-    options.bind += " blur change focus"
+    # HTML5 input properties, choose wisely. chart can be found in this link http://d.pr/vvn4
+    o.attributes                     or= {}
+    o.attributes.autocomplete        or= null
+    o.attributes.dirname             or= null
+    o.attributes.list                or= null
+    o.attributes.maxlength           or= null
+    o.attributes.pattern             or= null
+    o.attributes.readonly            or= null
+    o.attributes.required            or= null
+    o.attributes.size                or= null
+    o.attributes.list                or= null
+    o.attributes.selectionStart      or= null
+    o.attributes.selectionEnd        or= null
+    o.attributes.selectionDirection  or= null
+    o.attributes.multiple            or= null # > for email only
+    o.attributes.min                 or= null # > range, number only
+    o.attributes.max                 or= null # > range, number only
+    o.attributes.step                or= null # > range, number only
+    o.attributes.valueAsNumber       or= null # > number only
 
-    @setType options.type
+    o.bind += " blur change focus"
 
-    super options,data
+    @setType o.type
+
+    super o, data
+    
+    options = @getOptions()
+
     @inputValidationNotifications = {}
     @valid = yes
     @inputCallback = null
