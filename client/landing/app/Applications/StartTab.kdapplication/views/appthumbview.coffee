@@ -11,9 +11,13 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description} = manifest = @getData()
+    {icns, name, version, author, description, authorNick} = manifest = @getData()
+
+    if not authorNick
+      authorNick = KD.whoami().profile.nickname
+
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{KD.appsUri}/sinan/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+      thumb = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 
@@ -21,7 +25,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        log "anytime here"
         # @img.$().attr "src", "#{KD.apiUri + '/images/default.app.listthumb.png'}"
         @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :

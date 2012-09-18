@@ -173,9 +173,14 @@ class NFinderContextMenuController extends KDController
             separator             : yes
           "Download source files" :
             action                : "downloadApp"
-            separator             : yes
-          "Publish to App Catalog":
-            action                : "publish"
+
+      if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
+        items['Application menu'].children["Download source files"].separator = yes
+        items['Application menu'].children["Publish to App Catalog"] =
+          action                : "publish"
+
+      fileData.on "fs.delete.finished", =>
+        @getSingleton("kodingAppsController").refreshApps()
 
     return items
 

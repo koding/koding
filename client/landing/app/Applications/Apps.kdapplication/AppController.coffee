@@ -21,7 +21,7 @@ class Apps12345 extends AppController
     @createFeed()
 
   createFeed:(view)->
-    appManager.tell 'Feeder', 'createContentFeedController', {
+    options =
       subItemClass          : AppsListItemView
       limitPerPage          : 10
       filter                :
@@ -32,21 +32,15 @@ class Apps12345 extends AppController
         kodingAddOns        :
           title             : "Koding Add-ons"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            callback 'Coming soon!'
         serverStacks        :
           title             : "Server Stacks"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            callback 'Coming soon!'
         frameworks          :
           title             : "Frameworks"
           dataSource        : (selector, options, callback)=>
-            setTimeout =>
-              callback null,@dummy
-            ,200
+            callback 'Coming soon!'
       sort                  :
         'counts.followers'  :
           title             : "Most popular"
@@ -67,8 +61,16 @@ class Apps12345 extends AppController
           html      : yes
           animate   : yes
 
+    if KD.checkFlag 'super-admin'
+      options.filter.waitsForApprove =
+        title             : "New Apps"
+        dataSource        : (selector, options, callback)=>
+          selector.approved = no
+          bongo.api.JApp.someWithRelationship selector, options, callback
 
-    }, (controller)=>
+    appManager.tell 'Feeder', 'createContentFeedController', options, (controller)=>
+      # @getSingleton("kodingAppsController").fetchAppsFromDb (err, apps)=>
+      #   log "Installed Apps:", apps
       for own name,listController of controller.resultsController.listControllers
         listController.getListView().registerListener
           KDEventTypes  : 'AppWantsToExpand'
@@ -283,14 +285,3 @@ class Apps12345 extends AppController
     formData = modal.modalTabs.getFinalData()
     log formData
     pane.form.addSubView (modal.preview = new AppPreSubmitPreview {},formData),null,yes
-
-
-
-
-
-
-
-
-
-
-

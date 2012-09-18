@@ -103,10 +103,8 @@ class NFinderController extends KDViewController
 
     KD.getSingleton('kiteController').run
       withArgs  :
-        command : "ls #{pathArray.join(" ")} -lpva --group-directories-first --time-style=full-iso"
+        command : "ls \"#{pathArray.join("\" \"")}\" -lpva --group-directories-first --time-style=full-iso"
     , callback
-
-
 
   fetchStorage:(callback)->
 
