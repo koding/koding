@@ -185,7 +185,7 @@ class Topics12345 extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

@@ -2,9 +2,9 @@ class LinkActivityItemView extends KDView
   click:->
     super
     if $(event.target).is(".activity-item-right-col")
-      @contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",new ContentDisplayLink {},@getData()
-      
-      
+      @contentDisplayController.emit "ContentDisplayWantsToBeShown", (new ContentDisplayLink {}, @getData())
+
+
   partial: (activity, account) ->
     data    = @getData()
     unless account
@@ -12,7 +12,7 @@ class LinkActivityItemView extends KDView
         profile:
           firstName: 'Loading...'
           lastName: ''
-    
+
     # log data, "<=- this is data", "∆ ∆ LinkActivityItemView ∆ ∆"
 
     name = "#{account.profile.firstName} #{account.profile.lastName}"
@@ -30,7 +30,7 @@ class LinkActivityItemView extends KDView
                       <div class='commentsContainer'></div>
                       <!--<div class='stats'><cite><span>1456</span> VIEWS</cite> | <cite><span>2</span> ANSWERS</cite> | <cite><span>5</span> COMMENTS</cite></div>-->
                     </footer>
-                    
+
                   </div>
                   </div>
                   "
