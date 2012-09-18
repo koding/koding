@@ -67,7 +67,18 @@ class Sidebar extends JView
 
     @adminNav = @adminNavController.getView()
 
-    # @resetAdminNavController()
+    @footerMenuController = new NavigationController
+      view           : new NavigationList
+        type         : "footer-menu"
+        subItemClass : FooterMenuItem
+        bind         : "mouseenter mouseleave"
+        mouseenter   : => @animateLeftNavIn()
+        mouseleave   : => @animateLeftNavOut()
+      wrapper        : no
+      scrollView     : no
+    , footerMenuItems
+
+    @footerMenu = @footerMenuController.getView()
 
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
@@ -83,7 +94,7 @@ class Sidebar extends JView
       initDelay         : 5000
       useStorage        : yes
       addOrphansToRoot  : no
-    
+
     @finder = @finderController.getView()
 
     @finderBottomControlsController = new KDListViewController
@@ -174,6 +185,7 @@ class Sidebar extends JView
 
     @navController.reset()
     @accNavController.reset()
+    @footerMenuController.reset()
     @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
@@ -196,6 +208,7 @@ class Sidebar extends JView
       <hr>
       {{> @accNav}}
       {{> @adminNav}}
+      {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
@@ -317,34 +330,36 @@ class Sidebar extends JView
     id    : "acc-navigation"
     title : "acc-navigation"
     items : [
-        title : "Invite Friends", loggedIn : yes
-      ,
-        title : "Account",        loggedIn : yes
-      ,
-        title : "Logout",         loggedIn : yes,  action : "logout",
-      ,
-        title : "Login",          loggedOut : yes, action : "login"
+      { title : "Invite Friends", loggedIn  : yes }
+      { title : "Account",        loggedIn  : yes }
+      { title : "Logout",         loggedIn  : yes, action : "logout" }
+      { title : "Login",          loggedOut : yes, action : "login" }
     ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-        title : "Launch Terminal",    icon : "terminal",    path : "Shell"
-      ,
-        title : "Add Resources",      icon : "resources"
-      ,
-        title : "Settings",           icon : "cog"
-      ,
-        title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts"
+      { title : "Launch Terminal",    icon : "terminal",    path : "Shell" }
+      { title : "Add Resources",      icon : "resources" }
+      { title : "Settings",           icon : "cog" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }
     ]
 
   adminNavItems =
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-        title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
-      ,
-        title : "Admin"        , loggedIn : yes, callback : -> new AdminModal
+      { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin",         loggedIn : yes, callback : -> new AdminModal }
+    ]
+
+  footerMenuItems =
+    id    : "footer-menu"
+    title : "footer-menu"
+    items : [
+      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
+      { title : "About", callback : -> @showAboutDisplay() }
+      { title : "Chat",  loggedIn : yes, callback : -> @getSingleton('bottomPanel').emit "ToggleBottomPanel"  }
     ]
 
 class AdminModal extends KDModalView
@@ -354,6 +369,29 @@ class AdminModal extends KDModalView
     options.title = "Admin stuff"
     super options, data
 
+class FooterMenuItem extends KDListItemView
+
+  constructor:->
+    super
+    @setClass "#{@utils.slugify @getData().title.toLowerCase()}"
+
+  mouseDown:(event)->
+
+    cb = @getData().callback
+    cb.call @ if cb
+
+  partial:->
+    "<span></span>"
+
+  showAboutDisplay:->
+
+    if not @aboutIsOpen
+      @aboutIsOpen             = yes
+      contentDisplayController = @getSingleton "contentDisplayController"
+      controller               = new ContentDisplayControllerAbout null, null
+      contentDisplay           = controller.getView()
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+      contentDisplayController.on "ContentDisplayWantsToBeHidden", => @aboutIsOpen = no
 
 
 
@@ -374,7 +412,7 @@ class KiteSelectorModal extends KDModalView
 
   kiteIsChanged:(kiteName, value)->
     KD.whoami().setKiteConnection kiteName, value
-  
+
   createNewKiteModal:->
     # TODO: write real descriptions for these:
     descriptions =
@@ -439,9 +477,9 @@ class KiteSelectorModal extends KDModalView
                   { title : "Random",             value : "random" }
                 ]
                 callback: (value)-> loadBalancerDescription.updatePartial descriptions['Load Balancing Strategy'][value]
-    form = modal.modalTabs.forms["Create a service"]      
+    form = modal.modalTabs.forms["Create a service"]
     form.fields["Load Balancing Strategy"].addSubView loadBalancerDescription
-  
+
   createNewPlanModal:(accumulator)->
     collectData =->
       accumulator.planData ?= []
@@ -563,7 +601,7 @@ class KiteSelectorModal extends KDModalView
                 attributes      :
                   valueAsNumber : yes
                   size          : 3
-    form = modal.modalTabs.forms["Create a plan"]            
+    form = modal.modalTabs.forms["Create a plan"]
     form.fields.Type.addSubView planTypeDescription
     form.fields['Plan ID'].addSubView planIdDescription
     form.fields['Interval Length'].addSubView intervalUnitDescription
@@ -591,7 +629,7 @@ class KiteSelectorModal extends KDModalView
       else
         clusters.forEach (cluster)=>
           {kiteName, kites, currentKiteUri} = cluster
-          
+
           selectOptions = sanitizeHosts kites if kites
 
           @addSubView field = new KDView
@@ -609,6 +647,6 @@ class KiteSelectorModal extends KDModalView
         @addSubView new KDButtonView
           style     : "clean-gray savebtn"
           title     : "Create a kite service"
-          callback  : => 
+          callback  : =>
             @createNewKiteModal()
             @destroy()

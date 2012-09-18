@@ -1,0 +1,22 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+.bottom-panel
+  position        absolute
+  bottom          -300px
+  height          300px
+  z-index         1
+  margin-left     160px
+  shadow          0 0 20px rgba(0,0,0,.25)
+  bg              color, white
+  vendor          transition, bottom .15s ease-in-out
+  &.in
+    bottom        0
+
+  .chat-split
+    .focused
+      bg color, rgba(255,0,0,.1)
+      vendor transition, background-color .2s linear
+
