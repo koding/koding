@@ -11,7 +11,7 @@
   rounded                   4px
   shadow                    inset 0 5px 5px rgba(0,0,0,.35)\, 0 15px 40px rgba(0,0,0,.8)
   background                transparent url("../images/book/book.jpg") no-repeat 0 0
-  vendor                    transition, left .3s ease-out                          
+  vendor                    transition, left .3s ease-in-out
   &.in
     left                    -700px
   >div                      
@@ -30,7 +30,15 @@
         bg                  image, url("../images/book/01.png")
         bg                  position, 55px 90px
         .embedded
-          margin            30px 0 0 450px       
+          margin            30px 60px 0 450px
+          line-height       30px
+          font-size         14px
+          a
+            color           linkColor1
+            fl()
+          span
+            fr()
+
       &.a-story
         bg                  image, url("../images/book/02.png")
         bg                  position, center 74px
@@ -65,35 +73,81 @@
         p
           width             auto
         .embedded
-          margin            15px 0 0 43px
+          margin            15px 25px 0 43px
+          size              auto, 77px
+          bg                color, white
+          border            1px solid rgb(229,229,229)
+          shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
+          gradient          rgb(255,255,255),rgb(242,242,242)
+          rounded           2px
+          span.button
+            display         block
+            position        absolute
+            margin          23px 0 0 17px
+            size            143px, 34px
+            background      transparent url('../images/book/statusupdate.png') no-repeat 0 0
+          input
+            margin          23px 0 0 169px
+            size            479px, 33px
 
       &.topics
         bg                  image, url("../images/book/11.png")
         bg                  position, left 174px
+        
         p
           width             55%
           margin-left       45%
           padding           15px 20px 0 0
+        
+        .embedded
+          position          absolute
+          top               97px
+          left              43px
+          size              260px, 130px
+          .ttag
+            font-size       12px
+            margin          0 6px 6px 0
+            line-height     20px
+            padding         0 7px
+            max-width       150px
+            rounded         4px
+          .kdloader
+            margin          40px 0 0 120px
+
 
       &.members
         bg                  image, url("../images/book/12.png")
         bg                  position, left bottom
         >article
-          margin            20px 0 0 215px          
+          margin            20px 0 0 255px
+          gradient          rgba(255, 255, 255, 0), rgba(255, 255, 255, .65)
           p
             width           auto
+            padding-left    10px
 
       &.develop
         bg                  image, url("../images/book/13.png")
         bg                  position, left bottom
         >article
-          margin            70px 0 0 360px
+          margin            40px 0 0 360px
           font-size         13px
           p
             width           auto
         &.more-1
           bg                image, url("../images/book/14.png")
           bg                position, left center
+          >article
+            strong
+              margin        14px 20px 0 40px
+              display       block
+              font-size     14px
+              padding       3px 6px
+              color         linkColor1
+              background    #f2f2f2
+              font-weight   400
+              border        1px solid #eee
+              word-break    break-all
+              rounded       4px
         &.more-2
           bg                image, url("../images/book/15.png")
           bg                position, center center

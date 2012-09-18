@@ -11,10 +11,6 @@ class HelpBox extends JView
 
     super options, data
 
-  click:->
-
-    # @getSingleton('mainController').emit "ShowInstructionsBook"
-
   pistachio:()->
 
     """
