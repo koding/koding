@@ -159,6 +159,9 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultButton.setTitle "Refresh Code Share"
         @codeShareResultView.show()
         @codeShareCloseButton.show()
+
+        # fetch current options here!
+
         @codeShareResultView.emit "CodeShareSourceHasChanges", {
           attachments:[
             {
@@ -199,18 +202,23 @@ class ActivityCodeShareWidget extends KDFormView
       title : "Stylesheet:"
     @labelCSSPrefix = new KDLabelView
       title : "Use PrefixFree"
+      cssClass : "legend-for-checkbox"
     @labelCSSResets = new KDLabelView
       title : "Use CSS Reset"
+      cssClass : "legend-for-radios"
     @labelCSSExternals = new KDLabelView
       title : "External Stylesheets:"
     @labelJSSelect = new KDLabelView
       title : "Script:"
     @labelJSModernizr = new KDLabelView
       title : "Use Modernizr"
+      cssClass : "legend-for-checkbox"
     @labelJSLibraries = new KDLabelView
       title : "Select JS Libraries:"
     @labelJSExternals = new KDLabelView
       title : "External Scripts:"
+      cssClass : "legend-for-text"
+
 
 
     @librariesHTMLContainer = new KDView
