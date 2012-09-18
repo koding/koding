@@ -16,7 +16,7 @@ class ContentDisplayControllerApps extends KDViewController
       attributes  :
         href      : "#"
       click       : ->
-        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     contentDisplayController = @getSingleton "contentDisplayController"
 
