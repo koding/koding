@@ -7,7 +7,6 @@ class SplitView extends KDSplitView
     # this is bad but we don't have any other way for now
     @utils.wait 300, =>
       @_setSize @_getParentSize()
-      @_resetSizeValues()
 
       @_resizePanels()
       @_repositionPanels()

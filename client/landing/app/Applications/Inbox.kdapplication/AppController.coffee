@@ -56,37 +56,41 @@ class Inbox12345 extends AppController
 
     {newMessageBar} = mainView
 
-    mainView.registerListener
-      KDEventTypes: 'MessageIsSelected'
-      listener    : @
-      callback    :(pubInst,{item, event})=>
-        data = item.getData()
-        data.mark 'read', (err)->
-          item.unsetClass 'unread' unless err
-        # unless event.shiftKey
-        #   @deselectMessages()
-        @deselectMessages()
-        if item.paneView?
-          {paneView} = item
-          mainView.inboxMessagesContainer.showPane item.paneView
-        else
-          paneView = new KDTabPaneView
-            name: data.subject
-            hiddenHandle: yes
-          mainView.inboxMessagesContainer.addPane paneView
-          detail = new InboxMessageDetail cssClass : "message-detail", data
+    mainView.on 'MessageIsSelected', ({item, event})=>
+      data = item.getData()
+      data.mark 'read', (err)->
+        item.unsetClass 'unread' unless err
+      # unless event.shiftKey
+      #   @deselectMessages()
+      @deselectMessages()
+      if item.paneView?
+        {paneView} = item
+        mainView.inboxMessagesContainer.showPane item.paneView
+      else
+        paneView = new KDTabPaneView
+          name: data.subject
+          hiddenHandle: yes
+        mainView.inboxMessagesContainer.addPane paneView
+        detail = new InboxMessageDetail cssClass : "message-detail", data
 
-          detail.registerListener
-            KDEventTypes: 'viewAppended'
-            listener: @
-            callback: =>
-              data.restComments 0, (err, comments)-> # log arguments, data
+        detail.registerListener
+          KDEventTypes: 'viewAppended'
+          listener: @
+          callback: =>
+            data.restComments 0, (err, comments)-> # log arguments, data
 
-          paneView.addSubView detail
-          paneView.detail = detail
-          item.paneView = paneView
-        newMessageBar.enableMessageActionButtons()
-        @selectMessage data, item, paneView
+        paneView.addSubView detail
+        paneView.detail = detail
+        item.paneView = paneView
+
+      mainView.messagesSplit.resizePanel "33%", 0
+      # this is to change resize behavior of the split
+      # initially it has full width first panel
+      # after a message opens we change the defaults
+      mainView.messagesSplit.getOptions().sizes = ["33%", null]
+
+      newMessageBar.enableMessageActionButtons()
+      @selectMessage data, item, paneView
 
     newMessageBar.registerListener
       KDEventTypes  : "AutoCompleteNeedsMemberData"
@@ -145,7 +149,7 @@ class Inbox12345 extends AppController
   goToMessages:(message)->
     @getView().showTab "messages"
     @mainView.emit 'MessageSelectedFromOutside', message
-    
+
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
       data
