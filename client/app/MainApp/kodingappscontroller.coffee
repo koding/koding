@@ -10,10 +10,11 @@ class KodingAppsController extends KDController
       devMode       : yes
       version       : "0.1"
       name          : "#{name or type.capitalize()}"
+      identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.koding.com/#{name or type}"
+      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
       author        : "#{profile.firstName} #{profile.lastName}"
-      repository    : "git://github.com/#{profile.nickname}/#{name or type.capitalize()}.kdapp.git"
+      repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       source        :
         blocks      :
@@ -33,6 +34,7 @@ class KodingAppsController extends KDController
     json = JSON.stringify raw, null, 2
 
   @manifests = {}
+
 
   # #
   # HELPERS
@@ -60,6 +62,7 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
+    @appStorage = new AppStorage 'KodingApps', '1.0'
 
   # #
   # FETCHERS
@@ -114,7 +117,7 @@ class KodingAppsController extends KDController
             #     cb null, "no manifest"
 
         manifests = @constructor.manifests
-        async.parallel stack, (err, results)->
+        async.parallel stack, (err, results)=>
           warn err if err
           results.forEach (rawManifest)->
             # if rawManifest.substr(0,1) is '{'
@@ -126,23 +129,20 @@ class KodingAppsController extends KDController
               manifest = JSON.parse rawManifest
               manifests["#{manifest.name}"] = manifest
 
+          @putAppsToAppStorage manifests
           callback? null, manifests
 
   fetchAppsFromDb:(callback)->
 
-    appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
-      if err
-        warn err
-        callback err
+    @appStorage.fetchValue 'apps', (apps)=>
+      if apps and Object.keys(apps).length > 0
+        @constructor.manifests = apps
+        callback null, apps
       else
-        apps = storage.getAt "bucket.apps"
-        if apps and Object.keys(apps).length > 0
-          @constructor.manifests = apps
-          callback null, apps
-        else
-          callback new Error "There are no apps in the app storage."
+        callback new Error "There are no apps in the app storage."
 
   fetchCompiledApp:(manifest, callback)->
+
     {name} = manifest
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
@@ -168,10 +168,8 @@ class KodingAppsController extends KDController
 
   putAppsToAppStorage:(apps)->
 
-    appManager.fetchStorage "KodingApps", "1.0", (err, storage)->
-      storage.update {
-        $set: { "bucket.apps" : apps }
-      }, => log arguments,"kodingAppsController storage updated"
+    @appStorage.setValue 'apps', apps, (err)=>
+      log err if err
 
   defineApp:(name, script)->
 
@@ -280,6 +278,12 @@ class KodingAppsController extends KDController
 
   publishApp:(path, callback)->
 
+    if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
+      err = "You are not authorized to publish apps."
+      console.log err
+      callback? err
+      return no
+
     manifest = getManifestFromPath(path)
     appName  = manifest.name
 
@@ -302,9 +306,10 @@ class KodingAppsController extends KDController
         else
           manifest.authorNick = KD.whoami().profile.nickname
           jAppData   =
-            title    : manifest.name        or "Application Title"
-            body     : manifest.description or "Application description"
-            manifest : manifest
+            title      : manifest.name        or "Application Title"
+            body       : manifest.description or "Application description"
+            identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
+            manifest   : manifest
 
           appManager.tell "Apps", "createApp", jAppData, (err, app)=>
             if err
@@ -389,7 +394,7 @@ class KodingAppsController extends KDController
     else
       kallback @constructor.manifests[name]
 
-  installApp:(app, callback)->
+  installApp:(app, version='latest', callback)->
 
     @fetchApps (err, manifests = {})=>
       if err
@@ -403,29 +408,35 @@ class KodingAppsController extends KDController
           callback? msg : "App is already installed!"
         else
           log "installing the app: #{app.title}"
-          app.fetchCreator (err, acc)=>
-            # log err, acc, ">>>>"
-            if err
-              callback? err
-            else
-              options =
-                toDo          : "installApp"
-                withArgs      :
-                  owner       : acc.profile.nickname
-                  appPath     : getAppPath app.manifest
-                  appName     : app.manifest.name
-              log "asking kite to install", options
-              @kiteController.run options, (err, res)=>
-                log "kite response", err, res
-                if err then warn err
-                else
-                  app.install (err)=>
-                    log err if err
-                    log callback
-                    # This doesnt work :#
-                    appManager.openApplication "StartTab"
-                    @refreshApps()
-                    # callback?()
+          if not app.approved and not KD.checkFlag 'super-admin'
+            err = "This app is not approved, installation cancelled."
+            log err
+            callback? err
+          else
+            app.fetchCreator (err, acc)=>
+              # log err, acc, ">>>>"
+              if err
+                callback? err
+              else
+                options =
+                  toDo          : "installApp"
+                  withArgs      :
+                    owner       : acc.profile.nickname
+                    appPath     : getAppPath app.manifest
+                    appName     : app.manifest.name
+                    version     : version
+                log "asking kite to install", options
+                @kiteController.run options, (err, res)=>
+                  log "kite response", err, res
+                  if err then warn err
+                  else
+                    app.install (err)=>
+                      log err if err
+                      log callback
+                      # This doesnt work :#
+                      appManager.openApplication "StartTab"
+                      @refreshApps()
+                      # callback?()
 
   # #
   # MAKE NEW APP

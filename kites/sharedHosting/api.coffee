@@ -158,9 +158,10 @@ module.exports = new Kite 'sharedHosting'
 
     {username, version, appName, userAppPath} = options
 
-    appRootPath   = "/opt/Apps/#{username}/#{appName}"
+    appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
     versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
+    userAppPath   = escapePath userAppPath
 
     cb = (err)->
       console.error err if err
@@ -215,13 +216,14 @@ module.exports = new Kite 'sharedHosting'
 
   installApp: (options, callback)->
 
-    {username, owner, appPath, appName} = options
+    {username, owner, appPath, appName, version} = options
+    version ?= 'latest'
 
     cb = (err)->
       console.error err if err
       callback? err, null
 
-    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/latest"
+    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
     appPath    = escapePath appPath
 
     createAppsDir username, (err)->

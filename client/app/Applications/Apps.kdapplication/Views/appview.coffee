@@ -32,6 +32,23 @@ class AppView extends KDView
       ]
     , app
 
+    if KD.checkFlag 'super-admin'
+      @approveButton = new KDToggleButton
+        style           : "kdwhitebtn"
+        dataPath        : "approved"
+        defaultState    : if app.approved then "Disapprove" else "Approve"
+        states          : [
+          "Approve", (callback)->
+            app.approve yes, (err)->
+              callback? err
+          "Disapprove", (callback)->
+            app.approve no, (err)->
+              callback? err
+        ]
+      , app
+    else
+      @approveButton = new KDView
+
     app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
@@ -40,18 +57,46 @@ class AppView extends KDView
 
     appsController = @getSingleton("kodingAppsController")
 
-    @installButton = new KDButtonView
-      title     : "Install Now"
-      style     : "cupid-green"
-      loader    :
-        top     : 0
-        diameter: 30
-        color   : "#ffffff"
-      callback  : ->
-        appsController.installApp app, (err)=>
-          @hideLoader()
+    if app.versions?.length > 1
+      menu =
+        type : "contextmenu"
+        items : []
 
-    # @forkButton = new KDButtonView
+      for version,i in app.versions
+        menu.items.push
+          id       : i
+          title    : "Install version #{version}"
+          parentId : null
+          callback : (item)=>
+            appsController.installApp app, app.versions[item.data.id], (err)=>
+              if err then warn err
+
+      @installButton = new KDButtonViewWithMenu
+        title     : "Install Now"
+        style     : "cupid-green"
+        loader    :
+          top     : 0
+          diameter: 30
+          color   : "#ffffff"
+        delegate      : @
+        menu          : [menu]
+        callback      : ->
+          appsController.installApp app, 'latest', (err)=>
+            @hideLoader()
+
+    else
+      @installButton = new KDButtonView
+        title     : "Install Now"
+        style     : "cupid-green"
+        loader    :
+          top     : 0
+          diameter: 30
+          color   : "#ffffff"
+        callback  : ->
+          appsController.installApp app, 'latest', (err)=>
+            @hideLoader()
+
+    # # @forkButton = new KDButtonView
     #   title     : "Fork"
     #   style     : "clean-gray"
     #   disabled  : !app.manifest.repo?
@@ -87,6 +132,7 @@ class AppView extends KDView
       <span>
         <a class='profile-avatar' href='#'>{{ @putThumb #(manifest)}}</a>
       </span>
+      {{> @approveButton}}
     </div>
     <section class="right-overflow">
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>

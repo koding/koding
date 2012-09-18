@@ -18,13 +18,20 @@ class AppsListItemView extends KDListItemView
         src       : thumb
 
     @thumbnail = new KDCustomHTMLView thumbOptions
+
     @removeButton = new KDButtonView
-      title : "Delete app"
+      title    : "Delete app"
       callback : =>
-        @getData().remove (err)=>
+        @getData().delete (err)=>
           if err then warn err
           else
             @emit "AppDeleted", @
+            @destroy()
+
+    @removeButton.hide()
+
+    KD.whoami().fetchRole? (err, role) =>
+      @removeButton.show() if role is "super-admin"
 
   click:(event)->
     if $(event.target).is ".appdetails h3 a span"
@@ -33,8 +40,8 @@ class AppsListItemView extends KDListItemView
       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
-    @setClass "apps-item"
-
+    if not @getData().approved
+      @setClass "waits-approve"
     @setTemplate @pistachio()
     @template.update()
 
@@ -44,7 +51,7 @@ class AppsListItemView extends KDListItemView
       @createInstallButton()
 
   createInstallButton:->
-    {profile} = app = @getData()
+    app = @getData()
 
     @installButton.destroy() if @installButton?
     @installButton = new KDButtonView
@@ -57,7 +64,6 @@ class AppsListItemView extends KDListItemView
     @addSubView @installButton, '.button-container'
 
   alreadyInstalledText:->
-    {profile} = app = @getData()
 
     @installButton.destroy() if @installButton?
     @installButton = new KDButtonView

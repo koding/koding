@@ -29,18 +29,22 @@ class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        'update', 'follow', 'unfollow', 'remove', 'review',
+        'update', 'follow', 'unfollow', 'delete', 'review',
         'like', 'checkIfLikedBefore', 'fetchLikedByes',
         'fetchFollowersWithRelationship', 'install',
         'fetchFollowingWithRelationship', 'fetchCreator',
-        'fetchRelativeReviews'
+        'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        "one","on","some","create"
-        'someWithRelationship','byRelevance'
+        "one","on","some","create","byRelevance",
+        "someWithRelationship"
       ]
 
     schema          :
+      identifier    :
+        type        : String
+        set         : (value)-> value.trim()
+        required    : yes
       title         :
         type        : String
         set         : (value)-> value.trim()
@@ -56,6 +60,7 @@ class JApp extends jraphical.Module
           default   : 0
       thumbnails    : [Object]
       screenshots   : [Object]
+      versions      : [String]
       meta          : require "bongo/bundles/meta"
       manifest      : Object
       type          :
@@ -64,6 +69,9 @@ class JApp extends jraphical.Module
         default     : "web-app"
       originId      : ObjectId
       originType    : String
+      approved      :
+        type        : Boolean
+        default     : false
 
     relationships   :
       creator       : JAccount
@@ -90,22 +98,69 @@ class JApp extends jraphical.Module
 
     {connection:{delegate}} = client
 
-    app = new JApp
-      title       : data.title
-      body        : data.body
-      manifest    : data.manifest
-      originId    : delegate.getId()
-      originType  : delegate.constructor.name
+    if not (delegate.checkFlag('app-publisher') or delegate.checkFlag('super-admin'))
+      callback new KodingError 'You are not authorized to publish apps.'
+      return no
 
-    app.save (err)->
+    if data.identifier.indexOf('com.koding.apps.') isnt 0
+      callback new KodingError 'Invalid identifier provided.'
+      return no
+
+    JApp.one
+      identifier : data.identifier
+    , (err, app)=>
       if err
         callback err
       else
-        app.addCreator delegate, (err)->
-          if err
-            callback err
+        # Override author info with delegate
+        data.manifest.authorNick = delegate.getAt 'profile.nickname'
+        data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
+
+        if app
+          if app.getAt('originId') isnt delegate.getId() and not delegate.can('approve', this)
+            callback new KodingError 'Identifier belongs to different user.'
           else
-            callback null, app
+            console.log "alreadyPublished trying to update fields"
+
+            if not data.manifest.version
+              callback new KodingError 'Version is not provided.'
+            else
+              curVersions = app.data.versions
+              versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+
+            if versionExists
+              callback new KodingError 'Version already exists, update version to publish.'
+            else
+              app.update
+                $set:
+                  title     : data.title
+                  body      : data.body
+                  manifest  : data.manifest
+                  approved  : no # After each update on an app we need to reapprove it
+                $addToSet   :
+                  versions  : data.manifest.version
+              , (err)->
+                if err then callback err
+                else callback null, app
+        else
+          app = new JApp
+            title       : data.title
+            body        : data.body
+            manifest    : data.manifest
+            originId    : delegate.getId()
+            originType  : delegate.constructor.name
+            identifier  : data.identifier
+            versions    : [data.manifest.version]
+
+          app.save (err)->
+            if err
+              callback err
+            else
+              app.addCreator delegate, (err)->
+                if err
+                  callback err
+                else
+                  callback null, app
 
   install: secure ({connection}, callback)->
     {delegate} = connection
@@ -122,27 +177,70 @@ class JApp extends jraphical.Module
           callback err
         else
           unless installedBefore
-            @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
-              if err
-                callback err
-              else
-                @update ($set: 'counts.installed': count), (err)=>
-                  if err then callback err
-                  else
-                    Relationship.one
-                      sourceId: @getId()
-                      targetId: delegate.getId()
-                      as: 'user'
-                    , (err, relation)=>
-                      if err then callback err
-                      else
-                        CBucket.addActivities relation, @, delegate, (err)=>
-                          if err
-                            callback err
-                          else
-                            callback null
+            # If itsn't an approved app so we dont need to create activity
+            if @getAt 'approved'
+              @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
+                if err
+                  callback err
+                else
+                  @update ($set: 'counts.installed': count), (err)=>
+                    if err then callback err
+                    else
+                      Relationship.one
+                        sourceId: @getId()
+                        targetId: delegate.getId()
+                        as: 'user'
+                      , (err, relation)=>
+                        if err then callback err
+                        else
+                          CBucket.addActivities relation, @, delegate, (err)=>
+                            if err
+                              callback err
+                            else
+                              callback null
+            callback new KodingError 'App is not approved so activity is not created.'
           else
             callback new KodingError 'Relationship already exists, App already installed'
+
+  approve: secure ({connection}, state = yes, callback)->
+
+    {delegate} = connection
+    {constructor} = @
+    unless delegate instanceof constructor.getAuthorType()
+      callback new KodingError 'Only instances of JAccount can approve apps.'
+    else
+      unless delegate.checkFlag 'super-admin'
+        callback new KodingError 'Only Koding Application Admins can approve apps.'
+      else
+        @update ($set: approved: state), (err)=>
+          callback err
+
+  @someWithRelationship: secure (client, selector, options, callback)->
+    {delegate} = client.connection
+    if not delegate.checkFlag 'super-admin'
+      selector.approved = yes
+    @some selector, options, (err, _apps)=>
+      if err then callback err else @markInstalled client, _apps, (err, apps)=>
+        @markFollowing client, apps, callback
+
+  @markInstalled = bongo.secure (client, apps, callback)->
+    Relationship.all
+      targetId  : client.connection.delegate.getId()
+      as        : 'user'
+    , (err, relationships)->
+      for app in apps
+        app.installed = no
+        for relationship, index in relationships
+          if app.getId().equals relationship.sourceId
+            app.installed = yes
+            relationships.splice index,1
+            break
+      callback err, apps
+
+  delete: secure ({connection:{delegate}}, callback)->
+
+    if delegate.can 'delete', this
+      @remove callback
 
   review: secure (client, review, callback)->
     {delegate} = client.connection
