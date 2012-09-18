@@ -278,6 +278,12 @@ class KodingAppsController extends KDController
 
   publishApp:(path, callback)->
 
+    if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
+      err = "You are not authorized to publish apps."
+      console.log err
+      callback? err
+      return no
+
     manifest = getManifestFromPath(path)
     appName  = manifest.name
 
