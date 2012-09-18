@@ -1,234 +1,8 @@
-###
-  todo
-    - dynamic table of contents (with real data)
-    - page switching ui
-    - activity
-    - develop fake button items and styling
-    - flip pages by clicking left or right half of the pages
-###
-
-class BookView extends JView
-
-  @lastIndex = 0
-
-  constructor: (options = {},data) ->
-
-    options.domId    = "instruction-book"
-    options.cssClass = "book"
-
-    super options, data
-
-    @currentIndex = 0
-
-    @right = new KDView
-      cssClass : "right-page right-overflow"
-      click    : -> @setClass "flipped"
-
-    @left = new KDView
-      cssClass : "left-page fl"
-
-    @putOverlay cssClass : "", isRemovable : yes, animated : yes
-    @once "OverlayAdded", =>
-      @$overlay.css zIndex : 999
-
-    @once "OverlayWillBeRemoved", =>
-      @unsetClass "in"
-
-    @once "OverlayRemoved", =>
-      @destroy()
-
-    @setKeyView()
-    @registerSingleton "InstructionsBook", @
-
-  pistachio:->
-
-    """
-    {{> @left}}
-    {{> @right}}
-    """
-
-  click:-> @setKeyView()
-
-  keyDown:(event)->
-
-    switch event.which
-      when 37 then do @fillPrevPage
-      when 39 then do @fillNextPage
-
-  getPage:(index = 0)->
-
-    @currentIndex = index
-    
-    page = new BookPage 
-      delegate : @
-    , __bookPages[index]
-
-    return page
-
-  fillPrevPage:->
-
-    return if @currentIndex - 1 < 0
-    BookView.lastIndex = @currentIndex - 1
-    @fillPage @currentIndex - 1
-
-  fillNextPage:->
-
-    return if __bookPages.length is @currentIndex + 1
-    BookView.lastIndex = @currentIndex + 1
-    @fillPage @currentIndex + 1
-
-  fillPage:(index)->
-
-    index or= BookView.lastIndex
-    page = @getPage index
-    @right.setClass "out"
-    @utils.wait 300, =>
-      @setClass "in"
-      @right.destroySubViews()
-      @right.addSubView page
-      @right.unsetClass "out"
-
-
-
-
-
-class BookPage extends JView
-
-  constructor: (options = {},data) ->
-
-    data.cssClass  or= ""
-    data.content   or= ""
-    data.profile     = KD.whoami().profile
-    options.cssClass = "page #{@utils.slugify data.title} #{data.cssClass} #{unless data.title then "no-header"}"
-    options.tagName  = "section"
-
-    super options, data
-
-    @header = new KDView
-      tagName   : "header"
-      partial   : "#{data.title}"
-      cssClass  : "hidden" unless data.title
-
-    @content = new KDView
-      tagName   : "article"
-      cssClass  : "content-wrapper"
-      pistachio : data.content
-    , data
-
-    konstructor = if data.embed then data.embed else KDCustomHTMLView
-
-    @embedded = new konstructor
-      delegate : @getDelegate()
-
-  pistachio:->
-
-    """
-    {{> @header}}
-    {{> @content}}
-    <div class='embedded'>
-      {{> @embedded}}
-    </div>
-    """
-
-
-class BookTableOfContents extends JView
-
-  pistachio:->
-
-    tmpl = ""
-    for page, nr in __bookPages
-      if page.title and page.anchor isnt no
-        tmpl += "<a href='#'>#{page.title}</a><span>#{nr+1}</span><br>"
-
-    return tmpl
-
-  click:(event)->
-    if $(event.target).is("a")
-      nr = parseInt($(event.target).next().text(), 10)-1
-      @getDelegate().fillPage nr
-
-
-class BookUpdateWidget extends KDView
-
-  viewAppended:->
-
-    @setPartial "<span class='button'></span>"
-    @addSubView @statusField = new KDHitEnterInputView
-      type          : "text"
-      defaultValue  : "Hello World!"
-      focus         : => @statusField.setKeyView()
-      click         : (pubInst, event)=> 
-        event.stopPropagation()
-        no
-      validate      :
-        rules       :
-          required  : yes
-      callback      : (status)=> @updateStatus status
-
-    @statusField.$().trigger "focus"
-
-
-  updateStatus:(status)->
-
-    @getDelegate().$().css left : -1349
-
-    bongo.api.JStatusUpdate.create body : status, (err,reply)=>
-      @utils.wait 2000, =>
-        @getDelegate().$().css left : -700
-      unless err
-        appManager.tell 'Activity', 'ownActivityArrived', reply
-        new KDNotificationView
-          type     : 'growl'
-          cssClass : 'mini'
-          title    : 'Message posted!'
-          duration : 2000
-        @statusField.setValue ""
-        @statusField.setPlaceHolder reply.body
-      else
-        new KDNotificationView type : "mini", title : "There was an error, try again later!"
-
-class BookTopics extends KDView
-
-  viewAppended:->
-    
-    @addSubView loader = new KDLoaderView
-      size          : 
-        width       : 60
-      loaderOptions :
-        color       : "#666666"
-        shape       : "spiral"
-        diameter    : 60
-        density     : 60
-        range       : 0.6
-        speed       : 2
-        FPS         : 25
-
-    @utils.wait -> loader.show()
-    
-    appManager.tell "Topics", "fetchCustomTopics",
-      limit : 20
-    , (err, topics)=>
-      loader.hide()
-      unless err
-        for topic in topics
-          @addSubView topicLink = new TagLinkView null, topic
-          topicLink.registerListener
-            KDEventTypes : "click"
-            listener     : @
-            callback     : =>
-              @getDelegate().$().css left : -1349
-              @utils.wait 4000, =>
-                @getDelegate().$().css left : -700
-
-
-class BookDevelopButton extends KDButtonViewWithMenu
-
-
 __bookPages = [
 
     title     : "Table of Contents"
     anchor    : no
-    embed     : BookTableOfContents
+    embed     : "BookTableOfContents"
   ,
     title     : "A Story"
     content   : "Once upon a time, there were developers just like you<br/>Despite the sea between them, development had ensued"
@@ -258,10 +32,10 @@ __bookPages = [
   ,
     title     : "Activity"
     content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
-    embed     : BookUpdateWidget
+    embed     : "BookUpdateWidget"
   ,
     title     : "Topics"
-    embed     : BookTopics
+    embed     : "BookTopics"
     content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences. In addition to public tags, there are also private tags for within groups.</p>
                    <p>Select from a few of our most popular topics to the right. At anytime, you can return to the Topics board to Follow more, or stop following those you’ve selected.</p>
                    <p>Can’t find what you’re looking for? Start a new topic!</p>"""
@@ -288,7 +62,7 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : "Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features. Go ahead and check it out!"
-    embed     : BookDevelopButton
+    embed     : "BookDevelopButton"
   ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
