@@ -179,6 +179,7 @@ class ActivityCodeShareWidget extends KDFormView
               syntax:"javascript"
             }
             ]
+
           classesHTML:@libHTMLClasses.getValue()
           extrasHTML:@libHTMLHeadExtras.getValue()
           externalCSS:@libCSSExternal.getValue()
@@ -233,8 +234,6 @@ class ActivityCodeShareWidget extends KDFormView
     @labelJSExternals = new KDLabelView
       title : "External Scripts:"
       cssClass : "legend-for-text"
-
-
 
     @librariesHTMLContainer = new KDView
       cssClass : "libs-container libs-html"
@@ -390,13 +389,13 @@ class ActivityCodeShareWidget extends KDFormView
       title : "Modernizr"
       partial : "Modernizr"
 
+
     @librariesHTMLContent.addSubView @labelHTMLSelect
     @librariesHTMLContent.addSubView @libHTMLSelect
     @librariesHTMLContent.addSubView @labelHTMLClasses
     @librariesHTMLContent.addSubView @libHTMLClasses
     @librariesHTMLContent.addSubView @labelHTMLExtras
     @librariesHTMLContent.addSubView @libHTMLHeadExtras
-
 
     @librariesCSSContent.addSubView @labelCSSSelect
     @librariesCSSContent.addSubView @libCSSSelect
@@ -450,6 +449,93 @@ class ActivityCodeShareWidget extends KDFormView
       , =>
         @$("div.libs-js").css "opacity":0
         @$("div.libs-js").css "z-index":-1
+
+    @codeShareContainer = new KDTabView
+      cssClass: "code-share-container"
+
+    @codeShareResultPane = new KDTabPaneView
+      name:"Code Share"
+
+    # HTML Tab
+
+    @codeShareHTMLPane = new KDTabPaneView
+      name:"HTML"
+
+    @codeShareHTMLCodeSnipContainer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass :"code-snip-container"
+
+    @codeShareHTMLCodeSnipContainer.addSubView @labelHTMLContent
+    @codeShareHTMLCodeSnipContainer.addSubView @librariesHTMLContainer
+
+    @codeShareHTMLPane.addSubView @codeShareHTMLCodeSnipContainer
+
+    @codeShareHTMLCodeSnipHolder = new KDCustomHTMLView
+      tagName:"div"
+      cssClass : "code-snip-holder share"
+
+    @codeShareHTMLCodeSnipHolder.addSubView @HTMLloader
+    @codeShareHTMLCodeSnipHolder.addSubView @aceHTMLWrapper
+
+    @codeShareHTMLCodeSnipContainer.addSubView @codeShareHTMLCodeSnipHolder
+
+    # CSS Tab
+
+    @codeShareCSSPane = new KDTabPaneView
+      name:"CSS"
+
+    @codeShareCSSCodeSnipContainer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass :"code-snip-container"
+
+    @codeShareCSSCodeSnipContainer.addSubView @labelCSSContent
+    @codeShareCSSCodeSnipContainer.addSubView @librariesCSSContainer
+
+    @codeShareCSSPane.addSubView @codeShareCSSCodeSnipContainer
+
+    @codeShareCSSCodeSnipHolder = new KDCustomHTMLView
+      tagName:"div"
+      cssClass : "code-snip-holder share"
+
+    @codeShareCSSCodeSnipHolder.addSubView @CSSloader
+    @codeShareCSSCodeSnipHolder.addSubView @aceCSSWrapper
+
+    @codeShareCSSCodeSnipContainer.addSubView @codeShareCSSCodeSnipHolder
+
+    # JS Tab
+
+    @codeShareJSPane = new KDTabPaneView
+      name:"JavaScript"
+
+    @codeShareJSCodeSnipContainer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass :"code-snip-container"
+
+    @codeShareJSCodeSnipContainer.addSubView @labelJSContent
+    @codeShareJSCodeSnipContainer.addSubView @librariesJSContainer
+
+    @codeShareJSPane.addSubView @codeShareJSCodeSnipContainer
+
+    @codeShareJSCodeSnipHolder = new KDCustomHTMLView
+      tagName:"div"
+      cssClass : "code-snip-holder share"
+
+    @codeShareJSCodeSnipHolder.addSubView @JSloader
+    @codeShareJSCodeSnipHolder.addSubView @aceJSWrapper
+
+    @codeShareJSCodeSnipContainer.addSubView @codeShareJSCodeSnipHolder
+
+
+    @codeShareContainer.addPane @codeShareResultPane
+    @codeShareContainer.addPane @codeShareHTMLPane
+    @codeShareContainer.addPane @codeShareCSSPane
+    @codeShareContainer.addPane @codeShareJSPane
+
+    @codeShareResultPane.hideTabCloseIcon()
+    @codeShareHTMLPane.hideTabCloseIcon()
+    @codeShareCSSPane.hideTabCloseIcon()
+    @codeShareJSPane.hideTabCloseIcon()
+
 
 
   submit:=>
@@ -691,31 +777,8 @@ class ActivityCodeShareWidget extends KDFormView
           </div>
         </div>
         <div class="formline-codeshare">
-        <div class="code-snip-container">
-          {{> @labelHTMLContent}}
-          {{> @librariesHTMLContainer}}
-          <div class="code-snip-holder share">
-            {{> @HTMLloader}}
-            {{> @aceHTMLWrapper}}
-          </div>
-        </div>
-        <div class="code-snip-container">
-          {{> @labelCSSContent}}
-          {{> @librariesCSSContainer}}
-          <div class="code-snip-holder share">
-            {{> @CSSloader}}
-            {{> @aceCSSWrapper}}
-          </div>
-        </div>
-        <div class="code-snip-container">
-          {{> @labelJSContent}}
-          {{> @librariesJSContainer}}
-          <div class="code-snip-holder share">
-            {{> @JSloader}}
-            {{> @aceJSWrapper}}
-          </div>
-        </div>
-        </div>
+        {{> @codeShareContainer}}
+       </div>
         <div class="formline">
           {{> @codeShareResultView}}
           {{> @codeShareResultButton}}
