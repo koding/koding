@@ -24,15 +24,15 @@ class PageInbox extends KDView
       cssClass  : "inbox-tabview"
     @inboxTabs.hideHandleContainer()
 
-    inboxSplitView = @inboxSplitView = new ContentPageSplitBelowHeader
-      views     : [@commonInnerNavigation,@inboxTabs]
-      sizes     : [138,null]
+    @inboxSplitView = new ContentPageSplitBelowHeader
+      views     : [@commonInnerNavigation, @inboxTabs]
+      sizes     : [138, null]
       cssClass  : "inbox-main-split"
       resizable : no
 
-    @addSubView inboxSplitView
+    @addSubView @inboxSplitView
 
-    inboxSplitView._windowDidResize()
+    @inboxSplitView._windowDidResize()
 
   createTabs:->
     @_tab_messages      = @createMessagesTab()
@@ -69,47 +69,39 @@ class PageInbox extends KDView
 
     @newMessageBar.disableMessageActionButtons()
 
-    messagesSplit = new SplitViewWithOlderSiblings
+    @messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList, @inboxMessagesContainer]
       cssClass  : "messages-split"
       resizable : yes
       minimums  : [150, null]
 
-    tab.addSubView messagesSplit
-    messagesSplit._windowDidResize()
+    tab.addSubView @messagesSplit
+    @messagesSplit._windowDidResize()
 
-    messagesSplit.didResizeBefore = no
-
-    @inboxSplitView.on "PanelDidResize", ->
-      messagesSplit._windowDidResize()
-      unless messagesSplit.didResizeBefore
-        messagesSplit.resizePanel "100%",0
+    @messagesSplit.didResizeBefore = no
 
     @on "MessageSelectedFromOutside", (item)=>
+      @newMessageBar.enableMessageActionButtons()
 
-        messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
-        messagesSplit.didResizeBefore = yes
-        @newMessageBar.enableMessageActionButtons()
+      messageIsSelectable = =>
+        {items} = inboxMessagesList
+        return no if items.length is 0
+        {_id} = item.getData()
+        wasMessageInList = no
+        items.forEach (message) =>
+          if message.getData()?.getId() is _id
+            message.click()
+            wasMessageInList = yes
+        wasMessageInList
 
-        messageIsSelectable = =>
-          {items} = inboxMessagesList
-          return no if items.length is 0
-          {_id} = item.getData()
-          wasMessageInList = no
-          items.forEach (message) =>
-            if message.getData()?.getId() is _id
-              message.click()
-              wasMessageInList = yes
-          wasMessageInList
-
-        if item
-          if not messageIsSelectable()
-            inboxMessageListController.loadMessages =>
-              if not messageIsSelectable()
-                @propagateEvent KDEventType : "MessageIsSelected", {item, event}
-        else
-          inboxMessageListController.loadMessages()
+      if item
+        if not messageIsSelectable()
+          inboxMessageListController.loadMessages =>
+            if not messageIsSelectable()
+              @emit "MessageIsSelected", {item, event}
+      else
+        inboxMessageListController.loadMessages()
 
     return tab
 
