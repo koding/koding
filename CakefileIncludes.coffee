@@ -577,6 +577,9 @@ Includes =
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
+        # BOTTOM PANEL
+        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
+
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
@@ -645,7 +648,8 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        # appabout            : "./client/stylus/app.about.styl"
+        appBottom           : "./client/stylus/app.bottom.styl"
+        appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
