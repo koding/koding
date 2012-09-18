@@ -116,47 +116,51 @@ class JApp extends jraphical.Module
         data.manifest.authorNick = delegate.getAt 'profile.nickname'
         data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
 
-      if app
-        console.log "alreadyPublished trying to update fields"
-
-        if not data.manifest.version
-          callback new KodingError 'Version is not provided.'
-        else
-          curVersions = app.data.versions
-          versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
-
-        if versionExists
-          callback new KodingError 'Version already exists, update version to publish.'
-        else
-          app.update
-            $set:
-              title     : data.title
-              body      : data.body
-              manifest  : data.manifest
-            $addToSet   :
-              versions  : data.manifest.version
-          , (err)->
-            if err then callback err
-            else callback null, app
-      else
-        app = new JApp
-          title       : data.title
-          body        : data.body
-          manifest    : data.manifest
-          originId    : delegate.getId()
-          originType  : delegate.constructor.name
-          identifier  : data.identifier
-          versions    : [data.manifest.version]
-
-        app.save (err)->
-          if err
-            callback err
+        if app
+          if app.getAt('originId') isnt delegate.getId() and not delegate.can('approve', this)
+            callback new KodingError 'Identifier belongs to different user.'
           else
-            app.addCreator delegate, (err)->
-              if err
-                callback err
-              else
-                callback null, app
+            console.log "alreadyPublished trying to update fields"
+
+            if not data.manifest.version
+              callback new KodingError 'Version is not provided.'
+            else
+              curVersions = app.data.versions
+              versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+
+            if versionExists
+              callback new KodingError 'Version already exists, update version to publish.'
+            else
+              app.update
+                $set:
+                  title     : data.title
+                  body      : data.body
+                  manifest  : data.manifest
+                  approved  : no # After each update on an app we need to reapprove it
+                $addToSet   :
+                  versions  : data.manifest.version
+              , (err)->
+                if err then callback err
+                else callback null, app
+        else
+          app = new JApp
+            title       : data.title
+            body        : data.body
+            manifest    : data.manifest
+            originId    : delegate.getId()
+            originType  : delegate.constructor.name
+            identifier  : data.identifier
+            versions    : [data.manifest.version]
+
+          app.save (err)->
+            if err
+              callback err
+            else
+              app.addCreator delegate, (err)->
+                if err
+                  callback err
+                else
+                  callback null, app
 
   install: secure ({connection}, callback)->
     {delegate} = connection
