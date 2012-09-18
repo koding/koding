@@ -408,7 +408,7 @@ class KodingAppsController extends KDController
           callback? msg : "App is already installed!"
         else
           log "installing the app: #{app.title}"
-          if not app.approved
+          if not app.approved and not KD.checkFlag 'super-admin'
             err = "This app is not approved, installation cancelled."
             log err
             callback? err
