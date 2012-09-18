@@ -163,29 +163,35 @@ class JApp extends jraphical.Module
           callback err
         else
           unless installedBefore
-            @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
-              if err
-                callback err
-              else
-                @update ($set: 'counts.installed': count), (err)=>
-                  if err then callback err
-                  else
-                    Relationship.one
-                      sourceId: @getId()
-                      targetId: delegate.getId()
-                      as: 'user'
-                    , (err, relation)=>
-                      if err then callback err
-                      else
-                        CBucket.addActivities relation, @, delegate, (err)=>
-                          if err
-                            callback err
-                          else
-                            callback null
+            # If itsn't an approved app so we dont need to create activity
+            if @getAt 'approved'
+              @addParticipant delegate, {as:'user', respondWithCount: yes}, (err, docs, count)=>
+                if err
+                  callback err
+                else
+                  @update ($set: 'counts.installed': count), (err)=>
+                    if err then callback err
+                    else
+                      Relationship.one
+                        sourceId: @getId()
+                        targetId: delegate.getId()
+                        as: 'user'
+                      , (err, relation)=>
+                        if err then callback err
+                        else
+                          CBucket.addActivities relation, @, delegate, (err)=>
+                            if err
+                              callback err
+                            else
+                              callback null
+            callback new KodingError 'App is not approved so activity is not created.'
           else
             callback new KodingError 'Relationship already exists, App already installed'
 
   @someWithRelationship: secure (client, selector, options, callback)->
+    {delegate} = client.connection
+    if not delegate.checkFlag 'super-admin'
+      selector.approved = yes
     @some selector, options, (err, _apps)=>
       if err then callback err else @markInstalled client, _apps, (err, apps)=>
         @markFollowing client, apps, callback
