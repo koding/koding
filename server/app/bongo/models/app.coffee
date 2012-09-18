@@ -112,6 +112,8 @@ class JApp extends jraphical.Module
       if err
         callback err
       else
+        # Override author info with delegate
+        data.manifest.authorNick = delegate.getAt 'profile.nickname'
         data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
 
       if app
