@@ -9,6 +9,7 @@ module.exports = class JUser extends jraphical.Module
   JSession  = require './session'
   JGuest    = require './guest'
   JEmailConfirmation = require './emailconfirmation'
+  JInvitation = require './invitation'
 
   createId = require 'hat'
 
@@ -150,6 +151,8 @@ module.exports = class JUser extends jraphical.Module
 
 
   createNewMemberActivity =(account, callback=->)->
+    CNewMemberBucket = require './bucket/newmemberbucket'
+    CBucketActivity = require './activity/bucketactivity'
     bucket = new CNewMemberBucket
       anchor      : account
       sourceName  : 'JAccount'
@@ -242,6 +245,8 @@ module.exports = class JUser extends jraphical.Module
     JSession.cycleSession sessionToken, callback
   
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
+    JRegistrationPreferences = require './registrationpreferences'
+    JInvitation = require './invitation'
     JRegistrationPreferences.one {}, (err, prefs)->
       if err
         callback err
@@ -278,8 +283,8 @@ module.exports = class JUser extends jraphical.Module
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
-    {username, email, password, passwordConfirm, 
-     firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
+    {username, email, password, passwordConfirm, firstName, lastName,
+     agree, inviteCode, kodingenUser, clientId} = userFormData
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
 
@@ -311,72 +316,58 @@ module.exports = class JUser extends jraphical.Module
                 return callback createKodingError 'Wrong password'
               else
                 nickname = username
-                connection.remote.fetchClientId (clientId)->
-                  visitor = JVisitor.visitors[clientId]
-                  JSession.one {clientId}, (err, session)->
-                    if err
-                      callback err
-                    else unless session
-                      callback createKodingError 'Could not restore your session!'
-                    else
-                      salt = createSalt()
-                      user = new JUser {
-                        username
-                        email
-                        salt
-                        password: hashPassword(password, salt)
-                      }
-                      user.save (err)->
-                        if err
-                          callback err
-                        else
-                          hash = getHash email
-                          account = new JAccount
-                            profile: {
-                              nickname
-                              firstName
-                              lastName
-                              hash
-                            }
-                          account.save (err)->
-                            if err
-                              callback err
-                            else
-                              user.addOwnAccount account, (err)->
-                                if err
-                                  callback err
-                                else
-                                  session.update {
-                                    $set:
-                                      username: user.username
-                                    $addToSet:
-                                      tokens        :
-                                        token       : hat()
-                                        expires     : new Date(Date.now() + 1000*60*60*24*14)
-                                        authority   : 'koding.com'
-                                        requester   : 'api.koding.com'
-                                  }, (err, docs)->
-                                    if err
-                                      callback err
-                                    else
-                                      invite?.redeem? client
-                                      connection.delegate = account
-                                      visitor.emit ['change','login'], account
-                                      user.fetchTenderAppLink (err, link)->
-                                        if err
-                                          console.log err
-                                        else
-                                          user.update $set: tenderAppLink: link, (err)->
-                                            if err
-                                              console.log err
-                                            else
-                                              user.sendEmailConfirmation()
-                                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                                console.log 'An error granting invitations', err if err
-                                              createNewMemberActivity account
-                                              # added by sinan 30 apr 2012, is that ok??? success state wasnt firing callback
-                                              callback?()
-  
+                JSession.one {clientId: client.sessionToken}, (err, session)->
+                  if err
+                    callback err
+                  else unless session
+                    callback createKodingError 'Could not restore your session!'
+                  else
+                    salt = createSalt()
+                    user = new JUser {
+                      username
+                      email
+                      salt
+                      password: hashPassword(password, salt)
+                    }
+                    user.save (err)->
+                      if err
+                        callback err
+                      else
+                        hash = getHash email
+                        account = new JAccount
+                          profile: {
+                            nickname
+                            firstName
+                            lastName
+                            hash
+                          }
+                        account.save (err)->
+                          if err
+                            callback err
+                          else
+                            user.addOwnAccount account, (err)->
+                              if err
+                                callback err
+                              else
+                                replacementToken = createId()
+                                session.update {
+                                  $set:
+                                    username      : user.username
+                                    lastLoginDate : new Date
+                                    clientId      : replacementToken
+                                  $unset          :
+                                    guestId       : 1
+                                }, (err, docs)->
+                                  if err
+                                    callback err
+                                  else
+                                    user.sendEmailConfirmation()
+                                    JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                      console.log 'An error granting invitations', err if err
+                                    createNewMemberActivity account
+                                    console.log replacementToken
+                                    callback null, account, replacementToken
+
   
   @fetchUser = secure ({connection},callback)->
     connection.remote.fetchClientId (clientId)->

@@ -242,12 +242,15 @@ class LoginView extends KDScrollView
   doRegister:(formData)->
     {kodingenUser} = formData
     formData.agree = 'on'
-    KD.remote.api.JUser.register formData, (error, result)=>
+    KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
+      console.log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
         @registerForm.emit "SubmitFailed", message
       else
+        $.cookie 'clientId', replacementToken
+        @getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'

@@ -13,6 +13,7 @@ module.exports = class JInvitation extends jraphical.Module
   {ObjectRef, dash, daisy, secure} = require 'bongo'
 
   JAccount = require './account'
+  JUser = require './user'
 
   
   @share()
@@ -186,13 +187,15 @@ module.exports = class JInvitation extends jraphical.Module
   #       daisy recipients
 
   @grant =(selector, quota, options, callback)->
+    JLimit = require './limit'
     [callback, options] = [options, callback] unless callback
+    options ?= {}
     unless quota > 0
       callback new KodingError "Quota must be positive."
     else
       batch = []
       i = 0
-      JAccount.all selector, options, (err, accounts)->
+      JAccount.some selector, options, (err, accounts)->
         accounts.forEach (account)->
           batch.push ->
             account.fetchLimit 'invite', (err, limit)->
@@ -208,7 +211,6 @@ module.exports = class JInvitation extends jraphical.Module
                     account.addLimit limit, 'invite', (err)->
                       console.log 'granted invites to one', ++i
                       batch.fin(err)
-        # console.log batch.length
         dash batch, callback
   
   @getInviteEmail =-> "hello@koding.com"
@@ -272,13 +274,14 @@ module.exports = class JInvitation extends jraphical.Module
                 if err
                   callback err
                 else
-                  {host, port} = server
-                  protocol = if host is 'localhost' then 'http://' else 'https://'
+                  {host, protocol} = require('../config').email
+                  protocol = if host is 'localhost' then 'http:' else 'https:'
+                  protocol ?= protocol.split(':').shift()+':'
                   messageOptions =
                     subject   : customMessage.subject
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
-                    url       : "#{protocol}#{host}/invitation/#{encodeURIComponent code}"
+                    url       : "#{protocol}//#{host}/invitation/#{encodeURIComponent code}"
 
                   JUser.fetchUser client,(err,user)=>
                     inviterEmail = user.email

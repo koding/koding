@@ -65,9 +65,8 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   getSubject:-> '[Koding] Please confirm your email address.'
   
   getTextBody:->
-    {host} = server
-    protocol = if host is 'localhost' then 'http://' else 'https://'
-    url = "#{protocol}#{host}/verify/#{encodeURIComponent @getAt('token')}"
+    {host, protocol} = require('../config.email')
+    url = "#{protocol}//#{host}/verify/#{encodeURIComponent @getAt('token')}"
     
     #
     # chris: you can do this at some point, i did setup kd.io/ domain.
@@ -88,7 +87,6 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   
   send:(callback)->
     Emailer.send
-      From      : 'hi@koding.com'
       To        : @getAt('email')
       Subject   : @getSubject()
       TextBody  : @getTextBody()

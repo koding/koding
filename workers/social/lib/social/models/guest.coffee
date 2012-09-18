@@ -39,17 +39,17 @@ module.exports = class JGuest extends jraphical.Module
         avatar      : String
         status      : String
 
-  @resetAllGuests =(callback)->
-    console.log 'resetting all guest accounts!'
-    @drop ->
-      console.log 'dropped all the old guests!'
-      queue = [0...10000].map (guestId)->
-        guest = new JGuest {guestId}
-        guest.save (err)->
-          console.log 'saved a guest!'
-          queue.fin err
-      dash queue, ->
-        console.log 'done restting guests!'
+  @resetAllGuests =(client, callback)->
+    {delegate} = client.connection
+    if delegate.can 'reset guests'
+      @drop ->
+        queue = [0...10000].map (guestId)->
+          guest = new JGuest {guestId}
+          guest.save (err)->
+            console.log 'saved a guest!'
+            queue.fin err
+        dash queue, ->
+          console.log 'done restting guests!'
 
   @free =(guestId, callback=->) ->
     @update {guestId}, $set:{status: 'needs cleanup'}, callback

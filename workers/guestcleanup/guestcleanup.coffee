@@ -20,7 +20,7 @@ worker = new Bongo {
   ]
 }
 
-job = new CronJob '*/10 * * * * *', ->
+job = new CronJob guestCleanup.cron, ->
   {JGuest} = worker.models
   JGuest.someData {status: 'needs cleanup'}, {guestId:1}, {limit: guestCleanup?.batchSize}, (err, cursor)->
     cursor.each (err, guest)->
