@@ -69,6 +69,9 @@ class JApp extends jraphical.Module
         default     : "web-app"
       originId      : ObjectId
       originType    : String
+      approved      :
+        type        : Boolean
+        default     : false
 
     relationships   :
       creator       : JAccount
