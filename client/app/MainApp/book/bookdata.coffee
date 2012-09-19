@@ -77,7 +77,7 @@ __bookPages = [
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
   ,
-    title     : "The End"
+    title     : "Enjoy!"
     anchor    : no
     content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
