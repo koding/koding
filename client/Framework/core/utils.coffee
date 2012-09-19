@@ -118,7 +118,7 @@ __utils =
     return null unless text
     text.replace /\n/g, "<br />"
 
-  applyTextExpansions: (text)->
+  applyTextExpansions: (text, shorten)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '
