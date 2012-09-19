@@ -43,17 +43,25 @@ AccountMixin = do ->
 
       channels = {}
 
-      request =(kiteName, method, args, onMethod='on')-> 
-        callbackId = listenerId++
+      scrub = (method, args, callback) ->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
           scrubbed = scrubber.toDnodeProtocol()
           scrubbed.method or= method
-          fetchChannel kiteName, (channel)=>
+          callback scrubbed
+
+      request =(kiteName, method, args, onMethod='on')-> 
+        scrub method, args, (scrubbed) ->
+          fetchChannel kiteName, (channel)->
             channel[onMethod](
               "reply-client-message",
               messageHandler.bind null, kiteName
             )
+            channel.emit "client-message", JSON.stringify(scrubbed)
+
+      response = (kiteName, method, args) ->
+        scrub method, args, (scrubbed) ->
+          fetchChannel kiteName, (channel)=>
             channel.emit "client-message", JSON.stringify(scrubbed)
 
       messageHandler =(kiteName, args) ->
@@ -62,7 +70,7 @@ AccountMixin = do ->
         unscrubbed = scrubber.unscrub args, (callbackId)->
           unless remoteStore.has callbackId
             remoteStore.add callbackId, ->
-              request kiteName, callbackId, [].slice.call arguments
+              response kiteName, callbackId, [].slice.call(arguments)
           remoteStore.get callbackId
         callback.apply @, unscrubbed
 
@@ -81,6 +89,5 @@ AccountMixin = do ->
         scrubber = new Scrubber localStore
         args = [options, callback]
         {method} = options
-        onMethod = if options.autoCull is false then 'on' else 'once'
         delete options.autoCull
-        request options.kiteName, method, args, onMethod
+        request options.kiteName, method, args
