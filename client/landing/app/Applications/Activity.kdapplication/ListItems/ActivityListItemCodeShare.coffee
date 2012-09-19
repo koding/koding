@@ -37,9 +37,9 @@ class CodeShareActivityItemView extends ActivityItemChild
     codeShareCSSData.title = @getData().title
     codeShareJSData.title = @getData().title
 
-    @codeShareHTMLView = new CodeShareSnippetView {}, codeShareHTMLData
-    @codeShareCSSView = new CodeShareSnippetView {}, codeShareCSSData
-    @codeShareJSView = new CodeShareSnippetView {}, codeShareJSData
+    @codeShareHTMLView = new CodeShareSnippetView {}, codeShareHTMLData, @getData()
+    @codeShareCSSView = new CodeShareSnippetView {}, codeShareCSSData, @getData()
+    @codeShareJSView = new CodeShareSnippetView {}, codeShareJSData, @getData()
 
     @codeShareResultView = new CodeShareResultView {}, data
     @codeShareResultView.hide()
@@ -318,7 +318,7 @@ class CodeShareSnippetView extends KDCustomHTMLView
 
   openFileIteration = 0
 
-  constructor:(options, data)->
+  constructor:(options, data, extras={})->
     options.tagName  = "figure"
     options.cssClass = "code-container"
     super
@@ -339,6 +339,11 @@ class CodeShareSnippetView extends KDCustomHTMLView
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
       partial  : __aceSettings.syntaxAssociations[syntax]?[0] or syntax ? "text"
+
+    @extrasMode = new KDCustomHTMLView
+      tagName  : "strong"
+      cssClass : "snippet-extras "#+("hidden" if extrasListLength is 0)
+      partial  : "<div>Extras:</div><span>#{@compileExtrasList(extras)}</span>"
 
     @saveButton = new KDButtonView
       title     : ""
@@ -376,15 +381,45 @@ class CodeShareSnippetView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
-  render:->
+  compileExtrasList:(extras)=>
+    extrasList = []
 
+    if extras.prefixCSS? and extras.prefixCSS is "on" then extrasList.push "PrefixFree"
+    if extras.modernizeJS? and extras.modernizeJS is "on" then extrasList.push "Modernizr.js"
+
+    if extras.externalJS? and extras.externalJS is not "" then extrasList.push "external JS"
+    if extras.externalCSS? and extras.externalCSS is "" then extrasList.push "external CSS"
+    if extras.classesHTML? and extras.classesHTML is "" then extrasList.push "additional HTML classes"
+    if extras.extrasHTML? and extras.extrasHTML is "" then extrasList.push "additional HEAD tags"
+
+    if extras.resetsCSS? and extras.resetsCSS is "reset" then extrasList.push "Eric Meyers CSS reset"
+    if extras.resetsCSS? and extras.resetsCSS is "normalize" then extrasList.push "CSS normalize"
+
+    if extras.libsJS? and /jquery/.test(extras.libsJS) is yes then extrasList.push "JQuery/JQueryUI"
+    if extras.libsJS? and /mootools/.test(extras.libsJS) is yes then extrasList.push "MooTools"
+    if extras.libsJS? and /dojo/.test(extras.libsJS) is yes then extrasList.push "Dojo"
+    if extras.libsJS? and /ext-core/.test(extras.libsJS) is yes then extrasList.push "Ext Core"
+    if extras.libsJS? and /prototype/.test(extras.libsJS) is yes then extrasList.push "Prototype"
+    if extras.libsJS? and /scriptaculous/.test(extras.libsJS) is yes then extrasList.push "script.aculo.us"
+
+    extrasListLength = extrasList.length
+
+    if extrasListLength is 0
+      compiledList = ""
+    else if extrasListLength is 1
+      compiledList = extrasList[0]
+    else if extrasListLength is 2
+      compiledList = extrasList[0]+" and "+extrasList[1]
+    else
+      compiledList = extrasList[0]+", "+extrasList[1...extrasListLength-1].join(", ")+" and "+extrasList[extrasListLength-1]
+
+  render:->
     super()
     @codeView.setData @getData()
     @codeView.render()
     @applySyntaxColoring()
 
   applySyntaxColoring:( syntax = @getData().syntax)->
-
     snipView  = @
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
@@ -398,7 +433,6 @@ class CodeShareSnippetView extends KDCustomHTMLView
             console.warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
-
     @setTemplate @pistachio()
     @template.update()
     @applySyntaxColoring()
@@ -417,6 +451,7 @@ class CodeShareSnippetView extends KDCustomHTMLView
       <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
+    {{> @extrasMode}}
     """
   legacyCode:->
 

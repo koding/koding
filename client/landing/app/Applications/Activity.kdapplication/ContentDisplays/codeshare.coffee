@@ -12,9 +12,9 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
     @unsetClass 'status'
     @setClass 'codeshare'
 
-    @codeShareHTMLView = new CodeShareSnippetView {},data.attachments[0]
-    @codeShareCSSView = new CodeShareSnippetView {},data.attachments[1]
-    @codeShareJSView = new CodeShareSnippetView {},data.attachments[2]
+    @codeShareHTMLView = new CodeShareSnippetView {},data.attachments[0],data
+    @codeShareCSSView = new CodeShareSnippetView {},data.attachments[1],data
+    @codeShareJSView = new CodeShareSnippetView {},data.attachments[2],data
 
     @codeShareResultView = new CodeShareResultView {} ,data
 

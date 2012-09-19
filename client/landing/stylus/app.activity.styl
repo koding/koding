@@ -1110,3 +1110,21 @@ label.settings-label
 .codeshare-buttons
   margin-left 170px
   padding 0 0 0 0
+
+figure.code-container strong.snippet-extras
+  top 30px
+  background-color darken(#0896BD, 25%)
+  width 5%
+  overflow hidden
+  height 10px
+  span
+    display block
+    opacity 0
+  // vendor transition, all .1s ease-in
+  &:hover
+    width 25%
+    height auto
+  &:hover span
+    opacity 1
+    margin-top 5px
+    display block
