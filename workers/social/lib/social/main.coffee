@@ -4,10 +4,6 @@ log = -> logger.info arguments...
 
 {exec} = require 'child_process'
 
-if process.argv[5] is "true"
-  __runCronJobs   = yes
-  log "--cron is active, cronjobs will be running with your server."
-
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack

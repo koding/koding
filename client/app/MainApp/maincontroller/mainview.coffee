@@ -166,7 +166,7 @@ class MainView extends KDView
           link.hide()
         else
           $.ajax
-            # url       : KD.apiUri+'https://api.koding.com/1.0/logout'
+            # url       : KD.config.apiUri+'https://api.koding.com/1.0/logout'
             url       : "/beta.txt"
             success	  : (response)=>
           

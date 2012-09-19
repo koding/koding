@@ -41,7 +41,7 @@ module.exports = class JGuest extends jraphical.Module
 
   @resetAllGuests =(client, callback)->
     {delegate} = client.connection
-    if delegate.can 'reset guests', =>
+    if delegate.can('reset guests')
       @drop ->
         queue = [0...10000].map (guestId)->
           guest = new JGuest {guestId}
@@ -51,7 +51,7 @@ module.exports = class JGuest extends jraphical.Module
         dash queue, ->
           console.log 'done restting guests!'
 
-  @free =(guestId, callback=->) ->
+  @free =(guestId, callback=->)->
     @update {guestId}, $set:{status: 'needs cleanup'}, callback
 
   @obtain = secure (client, clientId, callback)->
