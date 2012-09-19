@@ -589,6 +589,7 @@ Includes =
 
         # BOTTOM PANEL
         bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
