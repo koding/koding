@@ -34,7 +34,7 @@ class MainController extends KDController
   # authorizeServices:(callback)->
   #   KD.whoami().fetchNonce (nonce)->
   #     $.ajax
-  #       url       : KD.apiUri+"/1.0/login"
+  #       url       : KD.config.apiUri+"/1.0/login"
   #       data      :
   #         n       : nonce
   #         env     : KD.env
@@ -44,7 +44,7 @@ class MainController extends KDController
   # deauthorizeServices:(callback)->
   #   KD.whoami().fetchNonce (nonce)->
   #     $.ajax
-  #       url       : KD.apiUri+'/1.0/logout'
+  #       url       : KD.config.apiUri+'/1.0/logout'
   #       data      :
   #         n       : nonce
   #         env     : KD.env
