@@ -17,7 +17,46 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
     @codeShareJSView = new CodeShareSnippetView {},data.attachments[2]
 
     @codeShareResultView = new CodeShareResultView {} ,data
-    @codeShareResultView.hide()
+
+    @codeShareContainer = new KDTabView
+      cssClass: "code-share-container"
+
+    @codeShareResultPane = new KDTabPaneView
+      name:"Code Share"
+      cssClass: "result-pane"
+
+    @codeShareResultPane.addSubView @codeShareResultView
+
+    @codeShareHTMLPane = new KDTabPaneView
+      name:"HTML"
+
+    @codeShareHTMLPane.addSubView @codeShareHTMLView
+
+    @codeShareCSSPane = new KDTabPaneView
+      name:"CSS"
+
+    @codeShareCSSPane.addSubView @codeShareCSSView
+
+    @codeShareJSPane = new KDTabPaneView
+      name:"JavaScript"
+
+    @codeShareJSPane.addSubView @codeShareJSView
+
+    @codeShareContainer.addPane @codeShareResultPane
+    @codeShareContainer.addPane @codeShareHTMLPane
+    @codeShareContainer.addPane @codeShareCSSPane
+    @codeShareContainer.addPane @codeShareJSPane
+
+    @codeShareResultPane.hideTabCloseIcon()
+    @codeShareHTMLPane.hideTabCloseIcon()
+    @codeShareCSSPane.hideTabCloseIcon()
+    @codeShareJSPane.hideTabCloseIcon()
+
+    # hover switching enabled by default
+    @codeShareContainer.$(".kdtabhandle").hover (event)=>
+      $(event.target).closest(".kdtabhandle").click()
+    , noop
+
 
     @codeShareResultButton = new KDButtonView
       title: "Run this"
@@ -60,6 +99,15 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
 
     @$("pre.subview").css height:maxHeight
 
+      # {{> @codeShareHTMLView}}
+      # {{> @codeShareCSSView}}
+      # {{> @codeShareJSView}}
+      # </div>
+      # {{> @codeShareResultView}}
+      # {{> @codeShareResultButton}}
+      # {{> @codeShareCloseButton}}
+      # {{> @codeShareForkButton}}
+
   pistachio:->
     """
     <span>
@@ -71,11 +119,9 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
       <h3>{{#(title)}}</h3>
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
       <div class="code-share-source">
-      {{> @codeShareHTMLView}}
-      {{> @codeShareCSSView}}
-      {{> @codeShareJSView}}
+      {{> @codeShareContainer}}
+
       </div>
-      {{> @codeShareResultView}}
       {{> @codeShareResultButton}}
       {{> @codeShareCloseButton}}
       {{> @codeShareForkButton}}
