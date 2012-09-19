@@ -17,6 +17,7 @@ class BottomPanelController extends KDViewController
 
   show:->
 
+    return unless location.hostname is "localhost"
     @isVisible = yes
     @bottomPanel.setClass 'in'
     @wc.addLayer @bottomPanel

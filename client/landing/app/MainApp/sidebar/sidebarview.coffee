@@ -359,5 +359,9 @@ class Sidebar extends JView
     items : [
       { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
       { title : "About", callback : -> @showAboutDisplay() }
-      { title : "Chat",  loggedIn : yes, callback : -> @getSingleton('bottomPanel').emit "ToggleBottomPanel"  }
+      { title : "Chat",  loggedIn : yes, callback : ->
+          @getSingleton('bottomPanel').emit "ToggleBottomPanel"
+          unless location.hostname is "localhost"
+            new KDNotificationView title : "Coming soon..."
+      }
     ]
