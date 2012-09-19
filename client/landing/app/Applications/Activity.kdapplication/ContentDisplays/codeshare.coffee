@@ -59,21 +59,21 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
 
 
     @codeShareResultButton = new KDButtonView
-      title: "Run this"
+      title: "Run Code Share"
       cssClass:"clean-gray result-button"
       click:=>
-        @codeShareResultButton.setTitle "Reset"
+        @codeShareResultButton.setTitle "Reset Code Share"
         @codeShareResultView.show()
         @codeShareCloseButton.show()
         @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
 
     @codeShareCloseButton = new KDButtonView
-      title: "Close"
+      title: "Stop and Close Code Share"
       cssClass:"clean-gray hidden"
       click:=>
         @codeShareResultView.hide()
         @codeShareResultView.resetResultFrame()
-        @codeShareResultButton.setTitle "Run"
+        @codeShareResultButton.setTitle "Run Code Share"
         @codeShareCloseButton.hide()
 
     @codeShareForkButton = new KDButtonView
@@ -82,7 +82,6 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
       click:=>
         @emit "ContentDisplayWantsToBeHidden"
         @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
-
 
   viewAppended: ->
     return if @getData().constructor is bongo.api.CCodeShareActivity
