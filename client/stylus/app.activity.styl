@@ -1063,9 +1063,14 @@ label.settings-label
 .formline-codeshare
   margin 5px 0px 5px 168px
   max-width 560px
-  height 350px
+  height 340px
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
+  vendor transition, height .1s linear
+  .result-container,
+  .result-frame-container,
+  .result-frame
+    height 100%
 
 .code-snip-container
   scrollbars()
@@ -1077,6 +1082,7 @@ label.settings-label
   position relative
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
+  vendor transition, height .1s linear
 
 
 .codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
@@ -1105,6 +1111,7 @@ label.settings-label
     padding-top 0px
     iframe.result-frame
       min-height 297px
-      max-height 297px
+      max-height 100%
 .codeshare-buttons
   margin-left 170px
+  padding 0 0 0 0

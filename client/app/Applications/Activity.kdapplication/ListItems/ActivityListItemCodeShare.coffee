@@ -217,17 +217,17 @@ class CodeShareResultView extends KDCustomHTMLView
 
     @appendResultFrame @iframeFile
 
+    # this gets called whenever an iframe should be refreshed
+    # it prepares the codeshare object, compiles content types and then
+    # sends a message to the iframe.
 
     @on "CodeShareSourceHasChanges",(data)=>
-
       codeshare = data
-
       codeshare.html= Encoder.htmlDecode(codeshare.attachments[0].content)
       codeshare.css = Encoder.htmlDecode(codeshare.attachments[1].content)
       codeshare.js  = Encoder.htmlDecode(codeshare.attachments[2].content)
-
-      @handleMarkdown codeshare, (data)=>
-        @handleCoffee data, (result)=>
+      @handleMarkdown codeshare, (codeshare_)=>
+        @handleCoffee codeshare_, (result)=>
           @setResultObject result
 
   handleMarkdown:(codeshare, callback)=>
@@ -236,8 +236,7 @@ class CodeShareResultView extends KDCustomHTMLView
       gfm: true
       pedantic: false
       sanitize: true
-      highlight:(text)->
-
+      highlight:(text)-> # highlighting handled by either ACE or g-prettify
     codeshare.html = marked codeshare.html
     callback(codeshare)
    else
@@ -257,6 +256,7 @@ class CodeShareResultView extends KDCustomHTMLView
 
   setResultObject:(codeshare)=>
 
+   ## checkbox debug ## log "alics::setResultObject (codeshare.prefixCSS):", codeshare.prefixCSS, "(codeshare.prefixCSSCheck):", codeshare.prefixCSSCheck
    resultObject =
     resetFrame    : no
     stopFrame     : no
@@ -278,6 +278,8 @@ class CodeShareResultView extends KDCustomHTMLView
     jsLibs        : codeshare.libsJS
     jsExternals   : codeshare.externalJS
     jsModernizr   : if codeshare.modernizeJS is "on" then yes else no
+
+   ## checkbox debug ## log "alics::setResultObject (resultObject.cssPrefix):", resultObject.cssPrefix
 
    @$(".result-frame")[0].contentWindow.postMessage(JSON.stringify(resultObject),@iframeURL)
 

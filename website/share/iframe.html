@@ -28,27 +28,27 @@ function handleDefaults() {
     }
 
     // overload setInterval and setTimeout to have a clearAll method
-    // window.setInterval = function (e) {
-    //   var t = [],
-    //   n = function (n, r) {
-    //     return t[t.length] = e(n, r)
-    //   };
-    //   return n.clearAll = function () {
-    //     var e;
-    //     while (e = t.pop()) clearInterval(e)
-    //   }, n
-    // }(window.setInterval)
+    window.setInterval = function (e) {
+      var t = [],
+      n = function (n, r) {
+        return t[t.length] = e(n, r)
+      };
+      return n.clearAll = function () {
+        var e;
+        while (e = t.pop()) clearInterval(e)
+      }, n
+    }(window.setInterval)
 
-    // window.setTimeout = function (e) {
-    //   var t = [],
-    //   n = function (n, r) {
-    //     return t[t.length] = e(n, r)
-    //   };
-    //   return n.clearAll = function () {
-    //     var e;
-    //     while (e = t.pop()) clearTimeout(e)
-    //   }, n
-    // }(window.setTimeout)
+    window.setTimeout = function (e) {
+      var t = [],
+      n = function (n, r) {
+        return t[t.length] = e(n, r)
+      };
+      return n.clearAll = function () {
+        var e;
+        while (e = t.pop()) clearTimeout(e)
+      }, n
+    }(window.setTimeout)
 
   }
 }
@@ -87,9 +87,6 @@ function loadLibs(data, libraries){
 
 function renderFrame(codeshare){
   var x, _i, _len, _ref, libList = [];
-
-
-  console.log(codeshare);
 
   // Load and Inject CSS (Resets -> (Prefixed) User -> Externals )
 
