@@ -92,21 +92,14 @@ class ActivityCodeShareWidget extends KDFormView
       cssClass        : ""
       title           : "Increase Editor Size"
       callback: =>
-        if @isWideScreen
-          @$(".formline-codeshare").css "margin-left":"168px"
-          @$(".formline-codeshare").css "margin-right":"0px"
-          @$(".code-snip-container").css "max-width":"560px"
-          @$(".formline-codeshare").css "max-width":"560px"
-          @wideScreenBtn.setTitle "Increase Editor Size"
-          @isWideScreen = no
-        else
-          @$(".formline-codeshare").css "margin-left":"10px"
-          @$(".formline-codeshare").css "margin-right":"10px"
-          @$(".code-snip-container").css "max-width":"100%"
-          @$(".formline-codeshare").css "max-width":"100%"
-          @isWideScreen = yes
-          @wideScreenBtn.setTitle "Reduce Editor Size"
+        # crude size estimation
+        viewport = $(window).height()
+        wideScreenHeight = viewport / 2
 
+        if @isWideScreen
+          @setWideScreen wideScreenHeight
+        else
+          @unsetWideScreen wideScreenHeight
 
     @labelCSSContent = new KDLabelView
       title : "CSS Options"
@@ -153,6 +146,8 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultButton.setTitle "Refresh Code Share"
         @codeShareResultView.show()
         @codeShareCloseButton.show()
+
+        ## checkbox debug ## log "csw::resultButton:click (@libCSSPrefix.getValue()):",@libCSSPrefix.getValue(), "(@libCSSPrefix):",@libCSSPrefix
 
         @codeShareResultView.emit "CodeShareSourceHasChanges", {
           attachments:[
@@ -451,6 +446,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareResultPane = new KDTabPaneView
       name:"Code Share"
+      cssClass: "result-pane"
 
     @codeShareResultPane.addSubView @codeShareResultView
 
@@ -534,14 +530,55 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareJSPane.hideTabCloseIcon()
 
     # hover switching enabled by default
-    @codeShareContainer.$(".kdtabhandle").hover (event)->
+    @codeShareContainer.$(".kdtabhandle").hover (event)=>
       $(event.target).closest(".kdtabhandle").click()
+      @HTMLace.editor.resize()
+      @CSSace.editor.resize()
+      @JSace.editor.resize()
     , noop
 
     @codeShareContainer.showPane @codeShareResultPane
 
+  setWideScreen:(wideScreenHeight)=>
+
+          @$(".formline-codeshare").css "margin-left":"168px"
+          @$(".formline-codeshare").css "margin-right":"0px"
+          @$(".code-snip-container").css "max-width":"560px"
+          @$(".formline-codeshare").css "max-width":"560px"
+          @$(".code-snip-container").css "height":"300px"
+          @$(".code-share-container").css "height":(340)+"px"
+          @$(".code-snip-holder.share").css "height":300+"px"
+          @$(".kdview.result-pane").css "height":300+"px"
+          @$(".formline-codeshare").css "height":"340px"
+
+          @HTMLace.editor.resize()
+          @CSSace.editor.resize()
+          @JSace.editor.resize()
+
+          @isWideScreen = no
+          @wideScreenBtn.setTitle "Increase Editor Size"
+
+    unsetWideScreen:(wideScreenHeight)=>
+          @$(".formline-codeshare").css "margin-left":"10px"
+          @$(".formline-codeshare").css "margin-right":"10px"
+          @$(".code-snip-container").css "max-width":"100%"
+          @$(".formline-codeshare").css "max-width":"100%"
+          @$(".code-snip-container").css "height":wideScreenHeight+"px"
+          @$(".code-share-container").css "height":(40+wideScreenHeight)+"px"
+          @$(".code-snip-holder.share").css "height":wideScreenHeight+"px"
+          @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
+          @$(".formline-codeshare").css "height":(40+wideScreenHeight)+"px"
+
+          @HTMLace.editor.resize()
+          @CSSace.editor.resize()
+          @JSace.editor.resize()
+
+          @isWideScreen = yes
+          @wideScreenBtn.setTitle "Reduce Editor Size"
 
   submit:=>
+
+    ## checkbox debug ## log "csw::submit/pre (@getData().prefixCSSCheck):",@getData().prefixCSSCheck," (@getData().prefixCSS):",@getData().prefixCSS
     if not (@getData().prefixCSSCheck?) or (@getData().prefixCSS is "off")
       @addCustomData "prefixCSS", "off"
     else
@@ -559,6 +596,9 @@ class ActivityCodeShareWidget extends KDFormView
     @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
 
     @once "FormValidationPassed", => @reset()
+
+    ## checkbox debug ## log "csw::submit/post (@getData().prefixCSSCheck):",@getData().prefixCSSCheck," (@getData().prefixCSS):",@getData().prefixCSS
+
     super
 
   reset:=>
@@ -572,9 +612,6 @@ class ActivityCodeShareWidget extends KDFormView
     @libHTMLHeadExtras.setValue ''
     @libCSSExternal.setValue ''
     @libJSExternal.setValue ''
-
-    @addCustomData "prefixCSS", "off"
-    @addCustomData "modernizeJS", "off"
 
     @$("input[name=prefixCSSCheck]").prop "checked", false
     @$("input[name=modernizeJSCheck]").prop "checked", false
@@ -604,6 +641,9 @@ class ActivityCodeShareWidget extends KDFormView
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit your Code Share"
     @addCustomData "activity", activity
+
+    ## checkbox debug ## log "csw::switchToEditView (activity.prefixCSS):",activity.prefixCSS, "(activity.prefixCSSCheck):", activity.prefixCSSCheck
+
     {title, body, tags, prefixCSS, resetsCSS, classesHTML, extrasHTML, modeHTML, modeCSS, modeJS, libsJS, externalCSS, externalJS, modernizeJS} = activity
 
     HTMLcontent = activity.attachments[0]?.content
@@ -620,15 +660,24 @@ class ActivityCodeShareWidget extends KDFormView
       @CSSace.setContents Encoder.htmlDecode CSScontent
       @JSace.setContents Encoder.htmlDecode JScontent
 
+      ## checkbox debug ##log "csw::sTEV::fillForm (prefixCSS):",prefixCSS
+
       if prefixCSS is "on"
         @$("input[name=prefixCSSCheck]").prop "checked", true
       else
         @$("input[name=prefixCSSCheck]").prop "checked", false
 
+      # this removes the checkbox bug. (else you'd have it checked forever)
+      @removeCustomData "prefixCSS"
+      @removeCustomData "prefixCSSCheck"
+
       if modernizeJS is "on"
         @$("input[name=modernizeJSCheck]").prop "checked", true
       else
         @$("input[name=modernizeJSCheck]").prop "checked", false
+
+      @removeCustomData "modernizeJS"
+      @removeCustomData "modernizeJSCheck"
 
       @$(":radio[value=#{resetsCSS}]").prop "checked", true
 
@@ -672,10 +721,16 @@ class ActivityCodeShareWidget extends KDFormView
       else
         @$("input[name=prefixCSSCheck]").prop "checked", false
 
+      @removeCustomData "prefixCSS"
+      @removeCustomData "prefixCSSCheck"
+
       if modernizeJS is "on"
         @$("input[name=modernizeJSCheck]").prop "checked", true
       else
         @$("input[name=modernizeJSCheck]").prop "checked", false
+
+      @removeCustomData "modernizeJS"
+      @removeCustomData "modernizeJSCheck"
 
       @$(":radio[value=#{resetsCSS}]").prop "checked", true
 
@@ -747,11 +802,10 @@ class ActivityCodeShareWidget extends KDFormView
       @emit "codeShare.aceLoaded"
 
   refreshEditorView:->
+    # log "csw::refreshEditorView called"
     @HTMLace.editor.renderer.updateText()
     @CSSace.editor.renderer.updateText()
     @JSace.editor.renderer.updateText()
-
-
 
   setAceHeightByLines: (lineAmount) ->
     lineHeight  = @HTMLace.editor.renderer.lineHeight
@@ -763,7 +817,6 @@ class ActivityCodeShareWidget extends KDFormView
     @JSace.editor.resize()
 
   viewAppended:()->
-
     @setClass "update-options codeshare"
     @setTemplate @pistachio()
     @template.update()
