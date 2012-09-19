@@ -52,7 +52,7 @@ app.activity.styl
     font-size           12px
 
 .activity-content
-
+  scrollbars()
   .kdtabview
     overflow            visible !important
 
@@ -224,6 +224,10 @@ app.activity.styl
       .type-icon
         bg(position,-706px -376px)
 
+    &.codeshare
+      .type-icon
+        bg(position,-706px -376px)
+
     &.discussion
       .type-icon
         bg(position,-475px -376px)
@@ -298,7 +302,7 @@ app.activity.styl
     font-weight           300
     line-height           125%
     a
-      font-size           12px
+      font-size           14px
       line-height         125%
       font-weight         300
       noTextDeco()
@@ -317,6 +321,16 @@ app.activity.styl
     line-height           18px
     .type-and-time
       fl()
+      font-size           12px
+      a
+        noTextDeco()
+        strong
+          color           #7F7F7F
+          text-transform  capitalize
+      time, .tag-group
+        font-size           11px
+    .type-and-time-right
+      fr()
       font-size           12px
       a
         noTextDeco()
@@ -464,6 +478,9 @@ button.kdbutton.dark
     borderBox()
     &:hover
       border-color        rgb(199,199,199)
+    &.discussion-body
+      min-height 72px
+      height 72px
 
   input:-moz-placeholder,
   input::-webkit-input-placeholder
@@ -694,6 +711,8 @@ form.status-widget
       bg            position,-80px -80px
     &.codesnip
       bg            position,-80px -100px
+    &.codeshare
+      bg            position,-80px -100px
 
   > button.icon-only
     padding       4px 4px 5px 5px
@@ -736,6 +755,8 @@ button.activity-status-context
     &.link
       bg(position,-140px -400px)
     &.codesnip
+      bg(position,-140px -420px)
+    &.codeshare
       bg(position,-140px -420px)
 
 .activity-update-widget-wrapper
@@ -869,6 +890,12 @@ button.activity-status-context
     &:hover
       .icon
         bg(position,-160px -420px)
+  .codeshare
+    .icon
+      bg(position,-140px -420px)
+    &:hover
+      .icon
+        bg(position,-160px -420px)
 
   // .hoverhook /* hover hook for context menu */
   //   cursor            pointer !important
@@ -881,7 +908,233 @@ button.activity-status-context
   .kdcontextmenutreeview
     .kdview.kdtreeitemview-default.disabledForBeta
     .kdview.kdtreeitemview-default.disabled
-      opacity .5
+      opacity                         .5
       &:hover
-        border-top  1px solid #666
+        border-top                    1px solid #666
         gradient(#777,#aaa)
+
+.kdview.activity-item.discussion
+  padding                             0px
+
+  .activity-discussion-container
+    padding                           22px 0 0px 20px
+    .comment-body
+      margin-top                      10px
+      margin-bottom                   10px
+      .data p
+        font-weight                   400
+        font-size                     12px
+
+  .activity-opinion-list
+    border                            none!important
+    .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
+      border-top                      1px solid #f2f2f2
+      border-bottom                   none
+      margin-left                     72px
+      &:last-child
+        border-bottom                 1px solid #f2f2f2
+        padding-bottom                10px
+      padding                         0px 0px 0px 0px
+      max-height                      200px
+      max-width                       750px
+      .activity-opinion.item-content-comment span.avatar
+        margin-right                  20px
+
+.activity-opinion
+  &:hover
+    cursor                            pointer
+  .comment-contents
+    margin-left                       25px
+    margin-right                      25px
+
+
+.activity-opinion .comment-contents p.comment-body span p
+  font-size                           12px
+  font-weight                         400
+
+.activity-opinion-list
+  margin-top                          15px
+  a.activity-opinion-more
+    margin-top                        10px
+.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion
+  border none
+.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
+  border-bottom                       none
+
+
+
+.activity-opinion-item-footer
+  margin-top                          6px
+  margin-bottom                       10px
+  color                               #a5a5a5
+
+.activity-opinion.item-content-comment .comment-contents .comment-body .data p
+  margin-bottom                       1px
+
+.activity-opinion-container .show-more-discussion
+  background-color                    none
+  margin-top                          -10px
+
+a.discussion-view-more
+  background-color                    #FD7E09
+  padding                             3px 5px
+  line-height                         16px
+  margin-left                         85px
+
+  color                               #fff
+  font-weight                         400
+  &:hover
+    color                             #fff
+
+.discussion-spacer
+  height                              20px
+  display                             block
+  width                               100%
+
+.opinion-first-box
+  height 30px
+  margin-top 10px
+  .first-reply-link
+    text-decoration                     none
+    line-height                         16px
+    color #fff
+    background-color #FD7E09
+    padding 1px 4px
+    font-weight 400
+    margin-left 85px
+    &:hover
+      color white
+
+
+div.libs-container
+  border 1px solid black
+  rounded(4px)
+  background-color white
+  z-index -1
+  opacity 0
+  position absolute
+  top 5px
+  height auto
+  width 300px
+  right 5px
+  // left 0px
+  vendor transition, opacity 0.1s ease-in
+  .libs-box
+    padding 5px
+    width auto
+    font-size 10px
+    .kdselectbox
+      display block
+      margin-bottom 5px
+    .kdinput
+      margin-bottom 5px
+      height 16px
+      font-size 10px
+      line-height 12px
+    .kd-radio-holder
+      display inline-block
+    label.legend-for-text
+      display block
+    label.legend-for-checkbox
+      line-height 120%
+      display inline-block
+    label.legend-for-radios
+      margin-bottom 1px
+      display block
+    input.libs-css-checkbox,
+    input.libs-js-checkbox
+      vertical-align top
+    // label
+    //   display block
+
+label.settings-label
+  rounded(4px)
+  padding 4px 8px
+  line-height 120%
+  font-size 12px
+  border 1px solid black
+  position absolute
+  right 0px
+  top 5px
+  z-index 99
+  color white
+  background-color #444
+  font-weight 300
+
+.formline > div.result-container
+    max-width 100%
+    margin-left 5px
+    height 300px
+
+.code-snip-holder.share
+  height 300px
+
+.formline-codeshare
+  margin 5px 0px 5px 168px
+  max-width 560px
+  height 340px
+  vendor transition, max-width .1s linear
+  vendor transition, margin .1s linear
+  vendor transition, height .1s linear
+  .result-container,
+  .result-frame-container,
+  .result-frame
+    height 100%
+
+.code-snip-container
+  scrollbars()
+  width 100%
+  max-width 560px
+  text-align left
+  padding 0px 0px 0px 0px
+  display inline-block
+  position relative
+  vendor transition, max-width .1s linear
+  vendor transition, margin .1s linear
+  vendor transition, height .1s linear
+
+
+.codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
+  height auto
+  borderBox()
+
+.code-share-container
+  height 340px
+  > .kdview.kdtabhandlecontainer
+    border-bottom none
+    background-color white
+    padding 0 10px
+    borderBox()
+    > .kdtabhandle
+      height 30px
+      vendor border-top-left-radius 4px
+      vendor border-top-right-radius 4px
+  > div.kdview.clearfix.kdtabpaneview
+    vendor box-shadow none
+    height  300px
+    padding-top 0px
+    iframe.result-frame
+      min-height 297px
+      max-height 100%
+
+.codeshare-buttons
+  margin-left 170px
+  padding 0 0 0 0 !important
+
+figure.code-container strong.snippet-extras
+  top 30px
+  background-color darken(#0896BD, 25%)
+  width 5%
+  overflow hidden
+  height 10px
+  span
+    display block
+    opacity 0
+  // vendor transition, all .1s ease-in
+  &:hover
+    width 25%
+    height auto
+  &:hover span
+    opacity 1
+    margin-top 5px
+    display block
