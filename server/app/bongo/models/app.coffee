@@ -246,8 +246,50 @@ class JApp extends jraphical.Module
       unless delegate.checkFlag 'super-admin'
         callback new KodingError 'Only Koding Application Admins can approve apps.'
       else
-        @update ($set: approved: state), (err)=>
-          callback err
+        if @getAt('identifier').indexOf('waits.for.approve:') is 0
+          identifier = @getAt('identifier').replace 'waits.for.approve:', ''
+
+          JApp.one
+            identifier:identifier
+          , (err, target)=>
+            if err
+              callback err
+            else
+
+              if target
+                newVersion = @getAt 'manifest.version'
+
+                if not newVersion
+                  callback new KodingError 'Version is not provided.'
+                else
+                  curVersions = target.data.versions
+                  versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is newVersion).length
+
+                  if versionExists
+                    callback new KodingError 'Version already approved, update version to reapprove.'
+                  else
+                    target.update
+                      $set:
+                        title     : @getAt 'title'
+                        body      : @getAt 'body'
+                        manifest  : @getAt 'manifest'
+                        approved  : yes
+                      $addToSet   :
+                        versions  : @getAt 'manifest.version'
+                    , (err)->
+                      if err
+                        console.log err
+                        callback err
+                      else
+                        # @delete We can delete the temporary JApp (@) here.
+                        callback null, target
+
+              else
+                callback new KodingError "Target (already approved application) not found!"
+
+        else
+          @update ($set: approved: state), (err)=>
+            callback err
 
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
