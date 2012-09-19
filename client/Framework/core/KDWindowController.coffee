@@ -81,7 +81,7 @@ class KDWindowController extends KDController
     , yes
 
     document.body.addEventListener 'mousemove', (e)=>
-      @redirectMouseMoveEvent e
+      @redirectMouseMoveEvent e if @dragView
     , yes
 
     # unless window.location.hostname is 'localhost'
@@ -137,7 +137,6 @@ class KDWindowController extends KDController
   redirectMouseMoveEvent:(event)->
 
     view = @dragView
-    return unless @dragView
 
     {pageX, pageY}   = event
     {startX, startY} = view.dragState
