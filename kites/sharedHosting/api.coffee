@@ -240,6 +240,26 @@ module.exports = new Kite 'sharedHosting'
                 else
                   cb null
 
+  approveApp: (options, callback)->
+
+    {username, authorNick, version, appName} = options
+
+    appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
+    latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
+    versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
+
+    cb = (err)->
+      console.error err if err
+      callback? err, null
+
+    exec "test -d #{versionedPath}", (err, stdout, stderr)->
+      if err or stderr.length
+        cb "[ERROR] Version is not exists!", version
+      else
+        exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else cb
+
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
