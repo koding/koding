@@ -97,9 +97,9 @@ class ActivityCodeShareWidget extends KDFormView
         wideScreenHeight = viewport / 2
 
         if @isWideScreen
-          @setWideScreen wideScreenHeight
-        else
           @unsetWideScreen wideScreenHeight
+        else
+          @setWideScreen wideScreenHeight
 
     @labelCSSContent = new KDLabelView
       title : "CSS Options"
@@ -539,7 +539,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareContainer.showPane @codeShareResultPane
 
-  setWideScreen:(wideScreenHeight)=>
+  unsetWideScreen:(wideScreenHeight)=>
 
           @$(".formline-codeshare").css "margin-left":"168px"
           @$(".formline-codeshare").css "margin-right":"0px"
@@ -558,7 +558,7 @@ class ActivityCodeShareWidget extends KDFormView
           @isWideScreen = no
           @wideScreenBtn.setTitle "Increase Editor Size"
 
-    unsetWideScreen:(wideScreenHeight)=>
+  setWideScreen:(wideScreenHeight)=>
           @$(".formline-codeshare").css "margin-left":"10px"
           @$(".formline-codeshare").css "margin-right":"10px"
           @$(".code-snip-container").css "max-width":"100%"
@@ -637,6 +637,7 @@ class ActivityCodeShareWidget extends KDFormView
       @codeShareCloseButton?.hide()
       @codeShareResultButton?.setTitle "Run"
     @tagController.reset()
+    @unsetWideScreen(undefined)
 
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit your Code Share"
