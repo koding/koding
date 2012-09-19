@@ -749,13 +749,13 @@ class ActivityCodeShareWidget extends KDFormView
     if @HTMLace?.editor? and @CSSace?.editor? and @JSace?.editor?
       fillForm()
     else
-      @once "codeShare.aceLoaded", => fillForm()
+      @once "codeShare.aceLoaded", =>
+        fillForm()
 
     @codeShareResultView.show()
 
 
   widgetShown:->
-
     snippetCount = 0
     unless @HTMLace? and @CSSace? and @JSace?
       @loadAce()
@@ -765,7 +765,6 @@ class ActivityCodeShareWidget extends KDFormView
   snippetCount = 0
 
   loadAce:->
-
     @HTMLloader.show()
     @CSSloader.show()
     @JSloader.show()
@@ -774,33 +773,61 @@ class ActivityCodeShareWidget extends KDFormView
     @aceCSSWrapper.addSubView @CSSace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceJSWrapper.addSubView @JSace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
 
+    # basically, count to three for every Ace firing its ready event
+    @aceLoadCount = 0
+    @aceLoaded = no
+    @HTMLace.on "ace.ready",=>
+      @aceLoadCount++
+      @checkForAce()
+
+    @CSSace.on "ace.ready",=>
+      @aceLoadCount++
+      @checkForAce()
+
+    @JSace.on "ace.ready",=>
+      @aceLoadCount++
+      @checkForAce()
+
+  checkForAce:=>
     @HTMLace.on "ace.ready", =>
+      if @aceLoadCount is 3 then if not @aceLoaded
+        @aceIsReady()
+        @aceLoaded = yes
+    @CSSace.on "ace.ready", =>
+      if @aceLoadCount is 3 then if not @aceLoaded
+        @aceIsReady()
+        @aceLoaded = yes
+    @JSace.on "ace.ready", =>
+      if @aceLoadCount is 3 then if not @aceLoaded
+        @aceIsReady()
+        @aceLoaded = yes
 
-      @HTMLloader.destroy()
-      @HTMLace.setShowGutter no
-      @HTMLace.setContents "//your html goes here..."
-      @HTMLace.setTheme()
-      @HTMLace.setFontSize(12, no)
-      @HTMLace.setSyntax "html"
-      @HTMLace.editor.getSession().on 'change', => @refreshEditorView()
+  aceIsReady:=>
+    @HTMLloader.destroy()
+    @HTMLace.setShowGutter no
+    @HTMLace.setContents "//your html goes here..."
+    @HTMLace.setTheme()
+    @HTMLace.setFontSize(12, no)
+    @HTMLace.setSyntax "html"
+    @HTMLace.editor.getSession().on 'change', => @refreshEditorView()
 
-      @CSSloader.destroy()
-      @CSSace.setShowGutter no
-      @CSSace.setContents "//your css goes here..."
-      @CSSace.setTheme()
-      @CSSace.setFontSize(12, no)
-      @CSSace.setSyntax "css"
-      @CSSace.editor.getSession().on 'change', => @refreshEditorView()
+    @CSSloader.destroy()
+    @CSSace.setShowGutter no
+    @CSSace.setContents "//your css goes here..."
+    @CSSace.setTheme()
+    @CSSace.setFontSize(12, no)
+    @CSSace.setSyntax "css"
+    @CSSace.editor.getSession().on 'change', => @refreshEditorView()
 
-      @JSloader.destroy()
-      @JSace.setShowGutter no
-      @JSace.setContents "//your javascript goes here..."
-      @JSace.setTheme()
-      @JSace.setFontSize(12, no)
-      @JSace.setSyntax "javascript"
-      @JSace.editor.getSession().on 'change', => @refreshEditorView()
+    @JSloader.destroy()
+    @JSace.setShowGutter no
+    @JSace.setContents "//your javascript goes here..."
+    @JSace.setTheme()
+    @JSace.setFontSize(12, no)
+    @JSace.setSyntax "javascript"
+    @JSace.editor.getSession().on 'change', => @refreshEditorView()
 
-      @emit "codeShare.aceLoaded"
+    @emit "codeShare.aceLoaded"
 
   refreshEditorView:->
     # log "csw::refreshEditorView called"
