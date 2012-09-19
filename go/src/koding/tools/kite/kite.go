@@ -55,8 +55,7 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 						joinData := make(map[string]interface{})
 						json.Unmarshal(join.Body, &joinData)
 
-						//user := strings.Split(secretName, ".")[1]
-						user := "koding"
+						user := joinData["user"].(string)
 						queue := joinData["queue"].(string)
 
 						changeNumClients <- 1
