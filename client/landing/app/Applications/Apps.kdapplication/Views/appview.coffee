@@ -32,6 +32,8 @@ class AppView extends KDView
       ]
     , app
 
+    appsController = @getSingleton("kodingAppsController")
+
     if KD.checkFlag 'super-admin'
       @approveButton = new KDToggleButton
         style           : "kdwhitebtn"
@@ -39,8 +41,13 @@ class AppView extends KDView
         defaultState    : if app.approved then "Disapprove" else "Approve"
         states          : [
           "Approve", (callback)->
-            app.approve yes, (err)->
-              callback? err
+            appsController.approveApp app, (err)=>
+              if not err
+                app.approve yes, (err)->
+                  if err then warn err
+                  callback? err
+              else
+                callback? err
           "Disapprove", (callback)->
             app.approve no, (err)->
               callback? err
@@ -55,7 +62,6 @@ class AppView extends KDView
       else
         @likeButton.setState "Like"
 
-    appsController = @getSingleton("kodingAppsController")
 
     if app.versions?.length > 1
       menu =
