@@ -40,19 +40,16 @@ class Members12345 extends AppController
                 callback err, items
             else
               bongo.api.JAccount.someWithRelationship selector, options, callback
-              {currentDelegate} = @getSingleton('mainController').getVisitor()
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           dataSource        : (selector, options, callback)=>
-            {currentDelegate} = @getSingleton('mainController').getVisitor()
-            currentDelegate.fetchFollowersWithRelationship selector, options, callback
+            KD.whoami().fetchFollowersWithRelationship selector, options, callback
             @setCurrentViewNumber 'followers'
-        recommended         :
+        followings          :
           title             : "Following <span class='member-numbers-following'></span>"
           dataSource        : (selector, options, callback)=>
-            {currentDelegate} = @getSingleton('mainController').getVisitor()
-            currentDelegate.fetchFollowingWithRelationship selector, options, callback
+            KD.whoami().fetchFollowingWithRelationship selector, options, callback
             @setCurrentViewNumber 'following'
       sort                  :
         'meta.modifiedAt'   :
@@ -173,7 +170,6 @@ class MembersListViewController extends KDListViewController
     @scrollView.setHeight @getView().getHeight() - 28
 
   loadView:(mainView)->
-    log mainView
     super
 
     @getListView().on 'ItemWasAdded', (view)=> @addListenersForItem view
