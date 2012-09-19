@@ -1,0 +1,16 @@
+{fork} = require 'child_process'
+KodingLogger = require 'koding-logger'
+
+option '-c', '--configPath [CONFIG]', 'Which config file to use.'
+option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
+
+task 'run', ({numberOfWorkers, configPath})->
+  configPath ?= '../../config/dev'
+  {logger} = require configPath
+  logger = new KodingLogger 'Social Worker', logger
+  i = 0
+  logger.logAll(process, {mainProcess: 1})
+  while i < numberOfWorkers
+    child = fork './index', ['-c', configPath], silent: yes
+    logger.logAll(child, {workerNumber: i})
+    i++
