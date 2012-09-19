@@ -211,10 +211,14 @@ module.exports = new Kite 'sharedHosting'
     #   if err then cb err
     #   else
     #     cb null
-    exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
-      if err or stderr then cb err
+    exec "stat #{kpmAppPath}", (err, stdout, stderr)->
+      unless err or stderr.length
+        cb "[ERROR] App files not found! Download cancelled."
       else
-        cb null
+        exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else
+            cb null
 
   installApp: (options, callback)->
 
