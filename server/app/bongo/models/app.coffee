@@ -117,7 +117,7 @@ class JApp extends jraphical.Module
         data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
 
         if app
-          if app.getAt('originId') isnt delegate.getId() and not delegate.can('approve', this)
+          if String(app.originId) isnt String(delegate.getId()) and not delegate.can('approve', this)
             callback new KodingError 'Identifier belongs to different user.'
           else
             console.log "alreadyPublished trying to update fields"
