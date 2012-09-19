@@ -166,7 +166,7 @@ class KDTabViewController extends KDScrollView
     handle.getDomElement().addClass("hide-close-icon")
 
   resizeTabHandles:->
-    return if @handlesHidden
+    return if @_tabHandleContainerHidden
     #
     # visibleHandles = []
     # visibleTotalSize = 0

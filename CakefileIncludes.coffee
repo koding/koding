@@ -113,17 +113,20 @@ Includes =
         jpost                     : "./server/app/bongo/models/messages/post.coffee"
         jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
         jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
+        jcodeshare                : "./server/app/bongo/models/messages/codeshare.coffee"
         janswer                   : "./server/app/bongo/models/messages/answer.coffee"
         jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
         jreview                   : "./server/app/bongo/models/messages/review.coffee"
         japp                      : "./server/app/bongo/models/app.coffee"
+        jdiscussion               : "./server/app/bongo/models/messages/discussion.coffee"
+        # jreply                    : "./server/app/bongo/models/messages/reply.coffee"
 
         jinvitation               : "./server/app/bongo/models/invitation.coffee"
         jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
         jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
-        jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
+        # jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
+        # jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
       OtherStuff :
         # moduledata            : "./server/app/core/moduledata.coffee"
@@ -301,6 +304,7 @@ Includes =
         activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
+        discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -309,6 +313,7 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
+        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
@@ -316,6 +321,9 @@ Includes =
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
+        actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
+        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
+
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
         # Activity content displays commons
@@ -329,6 +337,7 @@ Includes =
         ActListItem                 : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee"
         ActListItemStatusUpdate     : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee"
         ActListItemCodeSnippet      : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee"
+        ActListItemCodeShare        : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee"
         ActListItemDiscussion       : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee"
         ActListItemFollow           : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee"
         ActListItemLink             : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee"
@@ -372,7 +381,6 @@ Includes =
         startTabRecentFileView        : "./client/app/Applications/StartTab.kdapplication/views/recentfileview.coffee"
         startTabAppThumbContainer     : "./client/app/Applications/StartTab.kdapplication/views/appcontainer.coffee"
 
-
         # INBOX CONTROLLERS
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
         inboxNotificationsController  : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxNotificationsController.coffee"
@@ -391,7 +399,7 @@ Includes =
         # FEED CONTROLLERS
         FeedController                : "./client/app/Applications/Feeder.kdapplication/FeedController.coffee"
         FeederFacetsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee"
-        FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
+        FeederResultsController       : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
@@ -518,10 +526,18 @@ Includes =
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
-        ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
-        ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
-        ReviewListItemView          : "./client/app/CommonViews/reviews/reviewlistitemview.coffee"
-        ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
+        OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
+        DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"
+        DiscussionActivityOpinionLI   : "./client/app/CommonViews/opinions/discussionactivityopinionlistitemview.coffee"
+        OpinionViewHeader             : "./client/app/CommonViews/opinions/opinionviewheader.coffee"
+        OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
+        OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"
+        OpinionCommentListItemView    : "./client/app/CommonViews/opinions/opinioncommentlistitemview.coffee"
+        OpinionFormView               : "./client/app/CommonViews/opinions/opinionformview.coffee"
+        OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
+        DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
+
+        MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
 
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
@@ -539,7 +555,6 @@ Includes =
         bookUpdateWidget            : "./client/app/MainApp/book/embedded/updatewidget.coffee"
         bookTopics                  : "./client/app/MainApp/book/embedded/topics.coffee"
         bookDevelopButton           : "./client/app/MainApp/book/embedded/developbutton.coffee"
-
 
         #maintabs
 
@@ -618,6 +633,9 @@ Includes =
         # underscore        : "./client/libs/underscore.js"
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
+
+        marked            : "./client/libs/marked.js"
+        google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
@@ -698,5 +716,6 @@ Includes =
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
+        prettify            : "./client/css/prettify.css"
 
 module.exports = Includes

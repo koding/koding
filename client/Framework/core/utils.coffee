@@ -85,7 +85,40 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
-  applyTextExpansions: (text, shorten)->
+  applyMarkdown: (text)->
+    # problems with markdown so far:
+    # - links are broken due to textexpansions (images too i guess)
+    return null unless text
+
+    marked.setOptions
+      gfm: true
+      pedantic: false
+      sanitize: true
+      highlight:(text)->
+        # log "highlight callback called"
+        # if hljs?
+        #   requirejs (['js/highlightjs/highlight.js']), ->
+        #     requirejs (["highlightjs/languages/javascript"]), ->
+        #       try
+        #         hljs.compileModes()
+        #         _text = hljs.highlightAuto text
+        #         log "hl",_text,text
+        #         return _text.value
+        #       catch err
+        #         log "Error applying highlightjs syntax", err
+        # else
+        #   log "hljs not found"
+          return text
+
+    text = Encoder.htmlDecode text
+
+    text = marked text
+
+  applyLineBreaks: (text)->
+    return null unless text
+    text.replace /\n/g, "<br />"
+
+  applyTextExpansions: (text)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '

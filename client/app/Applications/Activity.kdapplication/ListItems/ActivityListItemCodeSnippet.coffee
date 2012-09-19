@@ -101,7 +101,7 @@ class CodeSnippetView extends KDCustomHTMLView
 
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
-      partial  : __aceSettings.syntaxAssociations[syntax][0] or syntax
+      partial  : __aceSettings.syntaxAssociations[syntax]?[0] or syntax ? "text"
 
     @saveButton = new KDButtonView
       title     : ""

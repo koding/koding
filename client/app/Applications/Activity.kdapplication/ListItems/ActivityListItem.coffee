@@ -6,8 +6,9 @@ class ActivityListItemView extends KDListItemView
     # CCodeSnipActivity   : CodesnipActivityItemView
     JCodeSnip           : CodesnipActivityItemView
     JQuestionActivity   : QuestionActivityItemView
-    JDiscussionActivity : DiscussionActivityItemView
+    JDiscussion         : DiscussionActivityItemView
     JLinkActivity       : LinkActivityItemView
+    JCodeShare            : CodeShareActivityItemView
 
   getActivityChildCssClass = ->
 

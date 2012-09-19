@@ -87,7 +87,6 @@ class KDListView extends KDView
     super()
 
   appendItem:(itemInstance, animation)->
-
     itemInstance.setParent @
     scroll = @doIHaveToScroll()
     # @items.push itemInstance

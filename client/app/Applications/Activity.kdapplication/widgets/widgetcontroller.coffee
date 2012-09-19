@@ -42,6 +42,17 @@ class ActivityUpdateWidgetController extends KDViewController
             @codeSnippetWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
+    codeSharePane = mainView.addWidgetPane
+      paneName    : "codeshare"
+      mainContent : codeShareWidget = new ActivityCodeShareWidget
+        delegate  : mainView
+        callback  : (data)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @codeShareWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
+
     mainView.addWidgetPane
       paneName    : "link"
       mainContent : linkWidget = new ActivityLinkWidget
@@ -55,16 +66,25 @@ class ActivityUpdateWidgetController extends KDViewController
     mainView.addWidgetPane
       paneName    : "discussion"
       mainContent : discussionWidget = new ActivityDiscussionWidget
-        callback  : @discussionWidgetSubmit
+        delegate  : mainView
+        callback  : (data)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @discussionWidgetSubmit data, stopSubmission
+            mainView.resetWidgets()
 
     mainView.showPane "update"
 
     codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
+    codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
       appManager.openApplication "Activity"
       mainView.setClass "edit-mode"
+
       switch activity.bongo_.constructorName
         when "JStatusUpdate"
           mainView.showPane "update"
@@ -72,6 +92,20 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JCodeSnip"
           mainView.showPane "codesnip"
           codeWidget.switchToEditView activity
+        when "JDiscussion"
+          mainView.showPane "discussion"
+          discussionWidget.switchToEditView activity
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToEditView activity
+
+    @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
+      mainView.setClass "edit-mode"
+
+      switch activity.bongo_.constructorName
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToForkView activity
 
   updateWidgetSubmit:(data, callback)->
 
@@ -96,8 +130,6 @@ class ActivityUpdateWidgetController extends KDViewController
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
   codeSnippetWidgetSubmit:(data, callback)->
-
-
     if data.activity
       {activity} = data
       delete data.activity
@@ -118,6 +150,28 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
+  codeShareWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+      bongo.api.JCodeShare.create data, (err, codeshare) =>
+        callback? err, codeshare
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
+
+
   questionWidgetSubmit:(data)->
     log 'creating question', data
     bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
@@ -133,8 +187,24 @@ class ActivityUpdateWidgetController extends KDViewController
     bongo.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
       warn 'couldnt save tutorial', error if error
 
-  discussionWidgetSubmit:(data)->
-    log 'starting discussion', data
-    bongo.api.JActivity.create {type: 'discussion', activity: data}, (error) ->
-      warn 'couldnt save discussion', error if error
+  discussionWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated the discussion successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+      bongo.api.JDiscussion.create data, (err, discussion) =>
+        callback? err, discussion
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), discussion
 
