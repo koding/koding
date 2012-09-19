@@ -1,5 +1,7 @@
 class BookUpdateWidget extends KDView
 
+  @updateSent = no
+
   viewAppended:->
 
     @setPartial "<span class='button'></span>"
@@ -20,12 +22,20 @@ class BookUpdateWidget extends KDView
 
   updateStatus:(status)->
 
+    if @constructor.updateSent
+      new KDNotificationView
+        title      : 'You\'ve already posted your activity :)'
+        duration   : 3000
+      return
+
+    appManager.openApplication "Activity"
     @getDelegate().$().css left : -1349
 
     bongo.api.JStatusUpdate.create body : status, (err,reply)=>
       @utils.wait 2000, =>
         @getDelegate().$().css left : -700
       unless err
+        @constructor.updateSent = yes
         appManager.tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
           type     : 'growl'

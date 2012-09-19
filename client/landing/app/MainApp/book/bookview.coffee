@@ -25,11 +25,24 @@ class BookView extends JView
     @left = new KDView
       cssClass    : "left-page fl"
 
-    @pager = new KDCustomHTMLView
+    @pagerWrapper = new KDCustomHTMLView
       cssClass : "controls"
-      partial  : "<a href='#'>◀</a><a href='#'>▶</a>"
-      click    : (pubInst, event)=>
-        if $(event.target).text() is "◀" then @fillPrevPage() else @fillNextPage()
+
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "◀"
+      click     : (pubInst, event)=> @fillPrevPage()
+      tooltip   :
+        title   : "⌘ Left Arrow"
+        gravity : "sw"
+
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "▶"
+      click     : (pubInst, event)=> @fillNextPage()
+      tooltip   :
+        title   : "⌘ Right Arrow"
+        gravity : "se"
 
     @putOverlay
       cssClass    : ""
@@ -47,7 +60,7 @@ class BookView extends JView
     """
     {{> @left}}
     {{> @right}}
-    {{> @pager}}
+    {{> @pagerWrapper}}
     """
 
   click:(event)->
@@ -88,9 +101,17 @@ class BookView extends JView
 
     index or= BookView.lastIndex
     page = @getPage index
-    @right.setClass "out"
-    @utils.wait 300, =>
-      @setClass "in"
+
+    if @$().hasClass "in"
+      @right.setClass "out"
+      @utils.wait 300, =>
+        @right.destroySubViews()
+        @right.addSubView page
+        @right.unsetClass "out"
+    else
       @right.destroySubViews()
       @right.addSubView page
       @right.unsetClass "out"
+      @utils.wait 400, =>
+        @setClass "in"
+
