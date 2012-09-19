@@ -23,6 +23,7 @@ mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = require "processes"
 
+KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log = 
 #   info  : console.log
@@ -31,6 +32,7 @@ processes   = require "processes"
 
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
+nodePath      = require 'path'
  
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -133,30 +135,66 @@ clientFileMiddleware  = (options, code, callback)->
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
-task 'buildClient', (options)->
-  {configPath} = options
-  configPath ?= './config/dev'
-  config = require configPath
+pipeStd =(children...)->
+  for child in children
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
+normalizeConfigPath =(path)->
+  path ?= './config/dev'
+  nodePath.join __dirname, path
+
+buildClient =(configFile, callback=->)->
+  try
+    config = require configFile
+  catch e
+    console.log 'hello', e
   builder = new Builder config.client, clientFileMiddleware, ""
   builder.watcher.initialize()
   builder.watcher.on 'initDidComplete', ->
     builder.buildClient "", ->
       builder.buildCss "", ->
         builder.buildIndex "", ->
+          callback null
+
+task 'buildClient', (options)->
+  configFile = normalizeConfigPath options.configFile
+  buildClient configFile
+
 
 task 'runNew', (options)->
-  broker = spawn './broker/start.sh'
-  server = spawn 'node', ['server/index.js', '-c', './config.coffee']
-  social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  logPath = options.logPath ? '/tmp'
-  procs = {broker, server, social}
-  if options.runClient
-    client = spawn 'cake', ['build']
-    procs.push client
-  for own name, proc of procs
-    logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
-    proc.stdout.pipe(logFile)
-    proc.stderr.pipe(logFile)
+  configFile = normalizeConfigPath options.configFile
+  console.log 'KONFIG', configFile
+  buildClient configFile, ->
+    broker = spawn './broker/start.sh'
+    serverSupervisor = spawn KODING_CAKE, [
+      './server',
+      '-c', configFile
+      'run'
+    ]
+    socialSupervisor = spawn KODING_CAKE, [
+      './workers/social'
+      '-c', configFile
+      'run'
+    ]
+    pipeStd(
+      broker
+      serverSupervisor
+      socialSupervisor
+    )
+    
+  # broker = spawn './broker/start.sh'
+  # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
+  # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
+  # logPath = options.logPath ? '/tmp'  
+  # procs = {broker, server, social}
+  # if options.runClient
+  #   client = spawn 'cake', ['build']
+  #   procs.push client
+  # for own name, proc of procs
+  #   logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
+  #   proc.stdout.pipe(logFile)
+  #   proc.stderr.pipe(logFile)
 
 
 task 'buildAll',"build chris's modules", ->

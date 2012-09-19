@@ -1,6 +1,7 @@
 log = -> logger.info arguments...
 
 {argv} = require 'optimist'
+console.log argv.c
 
 {exec} = require 'child_process'
 
@@ -65,3 +66,5 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
+
+console.log 'Koding Social Worker has started.'

@@ -82,4 +82,4 @@ app.get '*', (req,res)->
 
 app.listen webPort
 
-console.log 'Koding Webserver running on port', webPort
+console.log 'Koding Webserver running ', "http://localhost:#{webPort}"

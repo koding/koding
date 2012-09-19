@@ -3,13 +3,16 @@ nodePath  = require 'path'
 {spawn}   = require 'child_process'
 mongodb   = require 'mongoskin'
 KodingLogger = require 'koding-logger'
+os = require 'os'
 
 option '-c', '--configPath [CONFIG]', 'Which config file to use'
+option '-s', '--silent', 'Set this flag to suppress stdout'
 
-task 'run', ({configPath, noisy})->
+task 'run', ({configPath, silent})->
   configPath ?= '../config/dev'
   {webPort, logger} = require configPath
-  logger = new KodingLogger 'Koding WebServer', logger, noisy
+  logger = new KodingLogger 'webserver', os.hostname(), logger.mq
+  logger.tailTo process.stdout unless silent
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port)->
     runServer configPath, logger, port
@@ -20,6 +23,6 @@ runServer =(configPath, logger, port)->
     '-c', configPath
     '-p', port
   ]
-  logger.logAll child, {port}
+  logger.logAll child, "webserver#{port}"
 
 shouldRestart =(port)-> yes

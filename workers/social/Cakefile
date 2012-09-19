@@ -1,16 +1,20 @@
 {fork} = require 'child_process'
 KodingLogger = require 'koding-logger'
+os = require 'os'
 
 option '-c', '--configPath [CONFIG]', 'Which config file to use.'
 option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
+option '-s', '--silent', 'Set this flag to suppress stdout'
 
-task 'run', ({numberOfWorkers, configPath})->
+task 'run', ({numberOfWorkers, configPath, silent})->
+  numberOfWorkers ?= 1
   configPath ?= '../../config/dev'
   {logger} = require configPath
-  logger = new KodingLogger 'Social Worker', logger
+  logger = new KodingLogger 'social', os.hostname(), logger.mq
+  logger.tailTo process.stdout unless silent
   i = 0
-  logger.logAll(process, {mainProcess: 1})
+  logger.logAll process, 'supervisor'
   while i < numberOfWorkers
     child = fork './index', ['-c', configPath], silent: yes
-    logger.logAll(child, {workerNumber: i})
+    logger.logAll child, "worker#{i}"
     i++
