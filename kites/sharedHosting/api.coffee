@@ -156,7 +156,7 @@ module.exports = new Kite 'sharedHosting'
 
   publishApp:(options, callback)->
 
-    {username, version, appName, userAppPath} = options
+    {username, profile, version, appName, userAppPath} = options
 
     appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
@@ -175,7 +175,7 @@ module.exports = new Kite 'sharedHosting'
             unless err or stderr.length
               cb "[ERROR] Version is already published, change version and try again!"
             else
-              exec "rm -f #{latestPath} && cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+              exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
                 if err or stderr then cb err
                 else
                   manifestPath = "#{versionedPath}/.manifest"
@@ -184,6 +184,7 @@ module.exports = new Kite 'sharedHosting'
                     else
                       exec "rm -f #{manifestPath}", ->
                         manifest = JSON.parse stdout
+                        manifest.author = "#{profile.firstName} #{profile.lastName}"
                         manifest.authorNick = username
                         delete manifest.devMode if manifest.devMode
                         unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
@@ -197,7 +198,8 @@ module.exports = new Kite 'sharedHosting'
       console.error err if err
       callback? err, null
 
-    kpmAppPath  = escapePath if version then "/opt/Apps/#{owner}/#{appName}/latest" else "/opt/Apps/#{owner}/#{appName}/#{version}"
+    version   or= 'latest'
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
     userAppPath = escapePath appPath
     backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
 
@@ -209,10 +211,14 @@ module.exports = new Kite 'sharedHosting'
     #   if err then cb err
     #   else
     #     cb null
-    exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
-      if err or stderr then cb err
+    exec "stat #{kpmAppPath}", (err, stdout, stderr)->
+      unless err or stderr.length
+        cb "[ERROR] App files not found! Download cancelled."
       else
-        cb null
+        exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else
+            cb null
 
   installApp: (options, callback)->
 
@@ -239,6 +245,26 @@ module.exports = new Kite 'sharedHosting'
                   cb err or "[ERROR] #{stderr}"
                 else
                   cb null
+
+  approveApp: (options, callback)->
+
+    {username, authorNick, version, appName} = options
+
+    appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
+    latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
+    versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
+
+    cb = (err)->
+      console.error err if err
+      callback? err, null
+
+    exec "test -d #{versionedPath}", (err, stdout, stderr)->
+      if err or stderr.length
+        cb "[ERROR] Version is not exists!", version
+      else
+        exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else cb
 
   createSystemUser : (options,callback)->
     #

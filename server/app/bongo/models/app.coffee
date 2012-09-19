@@ -117,31 +117,65 @@ class JApp extends jraphical.Module
         data.manifest.author = "#{delegate.getAt 'profile.firstName'} #{delegate.getAt 'profile.lastName'}"
 
         if app
-          if app.getAt('originId') isnt delegate.getId() and not delegate.can('approve', this)
+          if String(app.originId) isnt String(delegate.getId()) and not delegate.can('approve', this)
             callback new KodingError 'Identifier belongs to different user.'
           else
             console.log "alreadyPublished trying to update fields"
 
-            if not data.manifest.version
-              callback new KodingError 'Version is not provided.'
-            else
-              curVersions = app.data.versions
-              versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+            if app.approved # So, this is just a new update
+              # Lets look if already waiting for approve
+              JApp.one
+                identifier : "waits.for.approve:#{data.identifier}"
+              , (err, approval_app)=>
+                if approval_app
+                  # means no one approved the update before this update
+                  approval_app.update
+                    $set:
+                      title     : data.title
+                      body      : data.body
+                      manifest  : data.manifest
+                      approved  : no
+                  , (err)->
+                    if err then callback err
+                    else callback null, approval_app
 
-            if versionExists
-              callback new KodingError 'Version already exists, update version to publish.'
+                else
+                  approval_app = new JApp
+                    title       : data.title
+                    body        : data.body
+                    manifest    : data.manifest
+                    originId    : delegate.getId()
+                    originType  : delegate.constructor.name
+                    identifier  : "waits.for.approve:#{data.identifier}"
+
+                  approval_app.save (err)->
+                    if err
+                      callback err
+                    else
+                      callback null, app
+
             else
-              app.update
-                $set:
-                  title     : data.title
-                  body      : data.body
-                  manifest  : data.manifest
-                  approved  : no # After each update on an app we need to reapprove it
-                $addToSet   :
-                  versions  : data.manifest.version
-              , (err)->
-                if err then callback err
-                else callback null, app
+              if not data.manifest.version
+                callback new KodingError 'Version is not provided.'
+              else
+                curVersions = app.data.versions
+                versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+
+              if versionExists
+                callback new KodingError 'Version already exists, update version to publish.'
+              else
+                app.update
+                  $set:
+                    title     : data.title
+                    body      : data.body
+                    manifest  : data.manifest
+                    approved  : no # After each update on an app we need to reapprove it
+                  $addToSet   :
+                    versions  : data.manifest.version
+                , (err)->
+                  if err then callback err
+                  else callback null, app
+
         else
           app = new JApp
             title       : data.title
@@ -212,8 +246,50 @@ class JApp extends jraphical.Module
       unless delegate.checkFlag 'super-admin'
         callback new KodingError 'Only Koding Application Admins can approve apps.'
       else
-        @update ($set: approved: state), (err)=>
-          callback err
+        if @getAt('identifier').indexOf('waits.for.approve:') is 0
+          identifier = @getAt('identifier').replace 'waits.for.approve:', ''
+
+          JApp.one
+            identifier:identifier
+          , (err, target)=>
+            if err
+              callback err
+            else
+
+              if target
+                newVersion = @getAt 'manifest.version'
+
+                if not newVersion
+                  callback new KodingError 'Version is not provided.'
+                else
+                  curVersions = target.data.versions
+                  versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is newVersion).length
+
+                  if versionExists
+                    callback new KodingError 'Version already approved, update version to reapprove.'
+                  else
+                    target.update
+                      $set:
+                        title     : @getAt 'title'
+                        body      : @getAt 'body'
+                        manifest  : @getAt 'manifest'
+                        approved  : yes
+                      $addToSet   :
+                        versions  : @getAt 'manifest.version'
+                    , (err)->
+                      if err
+                        console.log err
+                        callback err
+                      else
+                        # @delete We can delete the temporary JApp (@) here.
+                        callback null, target
+
+              else
+                callback new KodingError "Target (already approved application) not found!"
+
+        else
+          @update ($set: approved: state), (err)=>
+            callback err
 
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
