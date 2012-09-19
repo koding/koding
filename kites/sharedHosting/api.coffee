@@ -198,7 +198,8 @@ module.exports = new Kite 'sharedHosting'
       console.error err if err
       callback? err, null
 
-    kpmAppPath  = escapePath if version then "/opt/Apps/#{owner}/#{appName}/latest" else "/opt/Apps/#{owner}/#{appName}/#{version}"
+    version   or= 'latest'
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
     userAppPath = escapePath appPath
     backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
 
