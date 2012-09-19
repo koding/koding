@@ -41,7 +41,7 @@ module.exports = class JGuest extends jraphical.Module
 
   @resetAllGuests =(client, callback)->
     {delegate} = client.connection
-    if delegate.can 'reset guests', =>
+    if delegate.can('reset guests')
       @drop ->
         queue = [0...1e4].map (guestId)->
           guest = new JGuest {guestId}

@@ -1,6 +1,7 @@
 {argv} = require 'optimist'
 
 {webPort, mongo, amqp} = require argv.c
+webPort = argv.p if argv.p?
 
 path = __dirname+'/..'
 
@@ -31,8 +32,6 @@ koding = new Bongo {
   mq: new Broker amqp
   queueName: 'koding-social'
 }
-
-# JSession = require './models/session'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -82,3 +81,5 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
+
+console.log 'Koding Webserver running on port', webPort
