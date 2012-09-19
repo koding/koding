@@ -92,8 +92,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            {host, port} = server
-            protocol = if host is 'localhost' then 'http://' else 'https://'
+            {host, protocol} = require '../config.email'
             messageOptions =
               # url         : "#{protocol}#{host}:#{port}/recover/#{encodeURIComponent token}"
               url         : "#{protocol}#{host}/recover/#{encodeURIComponent token}"

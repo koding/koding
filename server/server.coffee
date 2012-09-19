@@ -36,36 +36,36 @@ koding = new Bongo {
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
-
-app.get '/auth', do ->
+      
+app.get '/auth', (req, res)->
   crypto = require 'crypto'
-  (req, res)->
-    {JSession, JGuest} = koding.models
-    channel = req.query?.channel
-    return res.send 'user error', 400 unless channel
-    clientId = req.cookies.clientid
-    JSession.fetchSession {clientId}, (err, session)->
-      if err
-        authenticationFailed(res, err)
+  {JSession} = koding.models
+  channel = req.query?.channel
+  return res.send 'user error', 400 unless channel?
+  clientId = req.cookies.clientid
+  JSession.fetchSession clientId, (err, session)->
+    res.cookie 'clientId', session.clientId if clientId isnt session.clientId
+    if err
+      authenticationFailed(res, err)
+    else
+      [priv, type, pubName] = channel.split '-'
+      if /^bongo\./.test type
+        privName = 'secret-bongo-'+hat()+'.private'
+        koding.mq.funnel privName, koding.queueName
+        koding.mq.on privName, 'disconnect', console.log
+        res.send privName 
+      else unless session?
+        authenticationFailed(res)
       else
-        [priv, type, pubName] = channel.split '-'
-        if /^bongo\./.test type
-          privName = 'secret-bongo-'+hat()+'.private'
-          koding.mq.funnel privName, koding.queueName
-          koding.mq.on privName, 'disconnected', console.log
-          res.send privName
-        else unless session?
-          authenticationFailed(res)
-        else
-          {username} = session
-          cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
-          cipher.update(
-            ''+pubName+req.cookies.clientid+Date.now()+Math.random()
-          )
-          privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
-          privName += '.private'
-          koding.mq.emit(channel, 'join', privName)
-          return res.send privName
+        {username} = session
+        cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
+        cipher.update(
+          ''+pubName+req.cookies.clientid+Date.now()+Math.random()
+        )
+        privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+        privName += '.private'
+        koding.mq.emit(channel, 'join', privName)
+        return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?

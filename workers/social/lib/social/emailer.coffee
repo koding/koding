@@ -1,6 +1,8 @@
 module.exports = class Emailer
   nodemailer = require 'nodemailer'
 
+  {email} = require './config'
+
   @smtpTransport = nodemailer.createTransport "SMTP",
     service: "SES"
     auth:
@@ -10,7 +12,7 @@ module.exports = class Emailer
   @send : (options,callback) ->
     {From,To,Subject,HtmlBody,TextBody,ReplyTo} = options
     mailOptions =
-      from    : From
+      from    : email.defaultFromAddress
       to      : To
       subject : Subject
 
@@ -22,6 +24,7 @@ module.exports = class Emailer
     # console.log mailOptions
     setTimeout ->
       Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
+        console.log 'got a response', arguments
         if error
           # console.log error
           callback error
