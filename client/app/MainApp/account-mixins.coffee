@@ -52,11 +52,13 @@ AccountMixin = do ->
 
       request =(kiteName, method, args, onMethod='on')-> 
         scrub method, args, (scrubbed) ->
+          declaredBefore = channels[getChannelName(kiteName)]
           fetchChannel kiteName, (channel)->
-            channel[onMethod](
-              "reply-client-message",
-              messageHandler.bind null, kiteName
-            )
+            unless declaredBefore?
+              channel[onMethod](
+                "reply-client-message",
+                messageHandler.bind null, kiteName
+              )
             channel.emit "client-message", JSON.stringify(scrubbed)
 
       response = (kiteName, method, args) ->
