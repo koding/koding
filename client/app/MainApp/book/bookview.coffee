@@ -25,6 +25,12 @@ class BookView extends JView
     @left = new KDView
       cssClass    : "left-page fl"
 
+    @pager = new KDCustomHTMLView
+      cssClass : "controls"
+      partial  : "<a href='#'>◀</a><a href='#'>▶</a>"
+      click    : (pubInst, event)=>
+        if $(event.target).text() is "◀" then @fillPrevPage() else @fillNextPage()
+
     @putOverlay
       cssClass    : ""
       isRemovable : yes
@@ -41,9 +47,14 @@ class BookView extends JView
     """
     {{> @left}}
     {{> @right}}
+    {{> @pager}}
     """
 
-  click:-> @setKeyView()
+  click:(event)->
+
+    @setKeyView()
+    # if event.pageX < 400 then @fillPrevPage() else @fillNextPage()
+
 
   keyDown:(event)->
 
