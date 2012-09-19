@@ -156,7 +156,7 @@ module.exports = new Kite 'sharedHosting'
 
   publishApp:(options, callback)->
 
-    {username, version, appName, userAppPath} = options
+    {username, profile, version, appName, userAppPath} = options
 
     appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
@@ -184,6 +184,7 @@ module.exports = new Kite 'sharedHosting'
                     else
                       exec "rm -f #{manifestPath}", ->
                         manifest = JSON.parse stdout
+                        manifest.author = "#{profile.firstName} #{profile.lastName}"
                         manifest.authorNick = username
                         delete manifest.devMode if manifest.devMode
                         unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
