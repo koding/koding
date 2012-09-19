@@ -14,6 +14,23 @@
   vendor                    transition, left .3s ease-in-out
   &.in
     left                    -700px
+  .controls
+    position                absolute
+    bottom                  25px
+    right                   40px
+    size                    685px, auto
+    a
+      color                 rgba(0,0,0,.1)
+      vendor                transition, color .1s linear
+      noTextDeco()
+      &.active
+      &:hover
+        color               rgba(0,0,0,.7)
+      &:first-child
+        fl()
+      &:last-child
+        fr()
+
   >div
     size                    735px, 408px
     vendor                  transition, opacity .3s ease-out
@@ -30,7 +47,7 @@
         bg                  image, url("../images/book/01.png")
         bg                  position, 55px 90px
         .embedded
-          margin            30px 60px 0 450px
+          margin            20px 60px 0 450px
           line-height       30px
           font-size         14px
           a
@@ -159,9 +176,22 @@
           >article
             margin          70px 60px 0 330px
           .embedded
+            background      transparent url("../images/book/devbutton.png") no-repeat 0 0
             position        absolute
-            bottom          25px
-            right           100px
+            bottom          35px
+            right           105px
+            size            250px, 120px
+            .kdbuttonwithmenu-wrapper
+              margin        99px 0 0 227px
+
+      &.terminal
+        bg                  image, url("../images/book/13a.png")
+        bg                  position, left 80px
+        >article
+          margin            40px 20px 0 260px
+          font-size         13px
+          p
+            width           auto
 
       &.apps
         bg                  image, url("../images/book/18.png")
@@ -179,6 +209,26 @@
             top             0
             right           0
             padding         15px 20px 0 20px
+
+      &.the-end
+        bg                  image, url("../images/book/08.png")
+        bg                  position, center 74px
+        >article
+          overflow          visible
+          p
+            padding         300px 0 0
+            text-align      center
+            width           100%
+          span
+            position        absolute
+            top             -35px
+            right           20px
+            font-weight     300
+            font-size       12px
+            line-height     16px
+            color           #aaa
+            a
+              color         linkColor1
 
       >article
         size                auto, auto

@@ -64,6 +64,10 @@ __bookPages = [
     content   : "Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features. Go ahead and check it out!"
     embed     : "BookDevelopButton"
   ,
+    title     : "Terminal"
+    content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a smooth, fast console.</p>
+                   <p>Basically this is your virtual machine, that you're seeing its file of on your filetree. Whenever you signup we create this server for you. __CHANGE THIS COPY__</p>"""
+  ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
                    <p>In addition to applications for the database, there are add-ons, and extensions to get your projects personalized, polished, and published faster.</p>"""
@@ -72,4 +76,9 @@ __bookPages = [
     content   : """<p>Seems like a fancy word, huh? Don’t worry, we’re not going to preach. This is more of a Koding Mission Statement. Sure, Koding is built around cloud development, but it’s second pillar is community.</p>
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
+  ,
+    title     : "The End"
+    anchor    : no
+    content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
+                   <p>That's it, we hope that you enjoy what we built.</p>"""
 ]

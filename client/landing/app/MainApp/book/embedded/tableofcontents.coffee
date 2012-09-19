@@ -10,6 +10,10 @@ class BookTableOfContents extends JView
     return tmpl
 
   click:(event)->
+
     if $(event.target).is("a")
       nr = parseInt($(event.target).next().text(), 10)-1
       @getDelegate().fillPage nr
+      no
+    else
+      yes
