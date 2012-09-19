@@ -65,8 +65,8 @@ __bookPages = [
     embed     : "BookDevelopButton"
   ,
     title     : "Terminal"
-    content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a smooth, fast console.</p>
-                   <p>Basically this is your virtual machine, that you're seeing its file of on your filetree. Whenever you signup we create this server for you. __CHANGE THIS COPY__</p>"""
+    content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
+                   <p>__CHANGE THIS COPY__</p>"""
   ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
