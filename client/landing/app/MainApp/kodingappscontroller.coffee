@@ -297,6 +297,7 @@ class KodingAppsController extends KDController
           version     : manifest.version
           appName     : manifest.name
           userAppPath : userAppPath
+          profile     : KD.whoami().profile
 
       @kiteController.run options, (err, res)=>
         log "app is being published"
