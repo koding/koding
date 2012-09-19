@@ -293,7 +293,7 @@ class Activity12345 extends AppController
 
   createCodeShareContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity
-      title       : "Code Bin"
+      title       : "Code Share"
       type        : "codeshare"
       contentView : new ContentDisplayCodeShare {},activity
     , activity

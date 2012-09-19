@@ -4,7 +4,7 @@ class CodeShareActivityItemView extends ActivityItemChild
     options = $.extend
       cssClass    : "activity-item codeshare"
       tooltip     :
-        title     : "Code Bin"
+        title     : "Code Share"
         offset    : 3
         selector  : "span.type-icon"
     ,options

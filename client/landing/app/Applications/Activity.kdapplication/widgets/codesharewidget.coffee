@@ -37,7 +37,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @submitBtn = new KDButtonView
       style : "clean-gray"
-      title : "Share your Code Bin"
+      title : "Post your Code Share"
       type  : 'submit'
 
     @heartBox = new HelpBox
