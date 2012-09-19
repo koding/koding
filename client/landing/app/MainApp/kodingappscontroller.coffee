@@ -297,6 +297,7 @@ class KodingAppsController extends KDController
           version     : manifest.version
           appName     : manifest.name
           userAppPath : userAppPath
+          profile     : KD.whoami().profile
 
       @kiteController.run options, (err, res)=>
         log "app is being published"
@@ -320,6 +321,31 @@ class KodingAppsController extends KDController
               appManager.openApplication "Apps", yes, (instance)=>
                 @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
                 callback?()
+
+
+  approveApp:(app, callback)->
+
+    if not KD.checkFlag('super-admin')
+      err = "You are not authorized to approve apps."
+      console.log err
+      callback? err
+      return no
+
+    options         =
+      toDo          : "approveApp"
+      withArgs      :
+        version     : app.manifest.version
+        appName     : app.manifest.name
+        authorNick  : app.manifest.authorNick
+
+    @kiteController.run options, (err, res)=>
+      log "app is being approved"
+      if err
+        warn err
+        callback? err
+      else
+        log app, "app approved"
+        callback?()
 
   compileApp:(name, callback)->
 
