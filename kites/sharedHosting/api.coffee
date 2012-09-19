@@ -175,7 +175,7 @@ module.exports = new Kite 'sharedHosting'
             unless err or stderr.length
               cb "[ERROR] Version is already published, change version and try again!"
             else
-              exec "rm -f #{latestPath} && cp -r #{userAppPath} #{versionedPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+              exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
                 if err or stderr then cb err
                 else
                   manifestPath = "#{versionedPath}/.manifest"
