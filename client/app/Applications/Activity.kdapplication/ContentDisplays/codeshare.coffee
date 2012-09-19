@@ -3,7 +3,7 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
   constructor:(options = {}, data)->
 
     options.tooltip or=
-      title     : "Code Bin"
+      title     : "Code Share"
       offset    : 3
       selector  : "span.type-icon"
 
