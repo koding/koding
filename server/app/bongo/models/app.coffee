@@ -122,26 +122,60 @@ class JApp extends jraphical.Module
           else
             console.log "alreadyPublished trying to update fields"
 
-            if not data.manifest.version
-              callback new KodingError 'Version is not provided.'
-            else
-              curVersions = app.data.versions
-              versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+            if app.approved # So, this is just a new update
+              # Lets look if already waiting for approve
+              JApp.one
+                identifier : "waits.for.approve:#{data.identifier}"
+              , (err, approval_app)=>
+                if approval_app
+                  # means no one approved the update before this update
+                  approval_app.update
+                    $set:
+                      title     : data.title
+                      body      : data.body
+                      manifest  : data.manifest
+                      approved  : no
+                  , (err)->
+                    if err then callback err
+                    else callback null, approval_app
 
-            if versionExists
-              callback new KodingError 'Version already exists, update version to publish.'
+                else
+                  approval_app = new JApp
+                    title       : data.title
+                    body        : data.body
+                    manifest    : data.manifest
+                    originId    : delegate.getId()
+                    originType  : delegate.constructor.name
+                    identifier  : "waits.for.approve:#{data.identifier}"
+
+                  approval_app.save (err)->
+                    if err
+                      callback err
+                    else
+                      callback null, app
+
             else
-              app.update
-                $set:
-                  title     : data.title
-                  body      : data.body
-                  manifest  : data.manifest
-                  approved  : no # After each update on an app we need to reapprove it
-                $addToSet   :
-                  versions  : data.manifest.version
-              , (err)->
-                if err then callback err
-                else callback null, app
+              if not data.manifest.version
+                callback new KodingError 'Version is not provided.'
+              else
+                curVersions = app.data.versions
+                versionExists = (curVersions[i] for i in [0..curVersions.length] when curVersions[i] is data.manifest.version).length
+
+              if versionExists
+                callback new KodingError 'Version already exists, update version to publish.'
+              else
+                app.update
+                  $set:
+                    title     : data.title
+                    body      : data.body
+                    manifest  : data.manifest
+                    approved  : no # After each update on an app we need to reapprove it
+                  $addToSet   :
+                    versions  : data.manifest.version
+                , (err)->
+                  if err then callback err
+                  else callback null, app
+
         else
           app = new JApp
             title       : data.title
