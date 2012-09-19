@@ -115,18 +115,7 @@ class Followable extends jraphical.Module
     _.extend query,
       targetId  : @getId()
       as        : 'follower'
-    # log query, page
-    Relationship.some query, page, (err, docs)->
-      if err then callback err
-      else
-        ids = (rel.sourceId for rel in docs)
-        JAccount.all _id: $in: ids, (err, accounts)->
-          callback err, accounts
-
-  fetchFollowers: (query, page, callback)->
-    _.extend query,
-      targetId  : @getId()
-      as        : 'follower'
+      sourceName: @constructor.name
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else
