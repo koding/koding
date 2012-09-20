@@ -78,14 +78,37 @@ AccountMixin = do ->
 
       getChannelName =(kiteName)-> "private-kite-#{kiteName}"
 
-      fetchChannel =(kiteName, callback)->  
+      # A helper to delay a call until some condition is met
+      # Types:
+      #  condition = func() -> boolean
+      #  delay = integer (optional), default is 100ms.
+      #  callback = func()
+      waitUntil = (condition, delay, callback) ->
+        unless callback
+          callback = delay
+          delay = 100
+        g = ->
+          if condition()
+            callback()
+            clearInterval h
+        h = setInterval g, delay
+
+      fetchChannel =(kiteName, callback)-> 
         channelName = getChannelName(kiteName)
         unless channels[channelName]
+          # Use a cheap hack to ensure the next immediate call to
+          # this will not fetch channel again
+          channels[channelName] = true
           KD.remote.fetchChannel channelName, (channel) ->
             channels[channelName] = channel
             callback channel
         else
-          callback channels[channelName]
+          # Because we set channels[channelName] to true when there
+          # are consecutive calls to this, we want it to be a Channel
+          # instead, so we wait until the first call is finish.
+          condition = -> channels[channelName] instanceof Channel
+          waitUntil condition, ->
+            callback channels[channelName]
 
       (options, callback=->)->
         scrubber = new Scrubber localStore
