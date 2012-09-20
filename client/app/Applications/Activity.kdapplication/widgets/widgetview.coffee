@@ -96,7 +96,8 @@ class ActivityUpdateWidget extends KDView
         }
         {
           title       : "Code Share"
-          type        : "default codeshare"
+          type        : "default codeshare disabledForBeta"
+          disabled    : yes
           callback    : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
         }
         {
