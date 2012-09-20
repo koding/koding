@@ -21,7 +21,7 @@ module.exports =
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3020'
+    staticFilesBaseUrl: 'https://api.koding.com'
     runtimeOptions:
       version   : version
       mainUri   : 'https://dev.koding.com'
