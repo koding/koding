@@ -6,6 +6,7 @@ class KodingAppsController extends KDController
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
+    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
       version       : "0.1"
@@ -13,7 +14,7 @@ class KodingAppsController extends KDController
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
       homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
-      author        : "#{profile.firstName} #{profile.lastName}"
+      author        : "#{fullName}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
