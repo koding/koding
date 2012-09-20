@@ -17,6 +17,8 @@ module.exports = class Feeder
       {exchange, routingKey, consumerTag} = deliveryInfo
       activity = JSON.parse message
 
+      console.log "Worker receives message from #{exchange} on #{routingKey}"
+
       # @feeds.findOne {owner: owner}, {'_id':1}, (err, feed) =>
       #   unless err
       #     criteria =

@@ -65,9 +65,22 @@ handleClient = do ->
   getExchange = (exchangeName) ->
     mq.connection.exchanges[exchangeName]
 
-  prepareBroker = (account, callback) ->
+  getWorkerQueueName = () -> "koding-feeder"
+  getWorkerBinding = () -> "feed"
+
+  prepareBroker = (account) ->
     ownExchangeName = getOwnExchangeName account
-    mq.createExchange ownExchangeName, {autoDelete: true}, callback
+    # Bind to feed worker queue
+    workerQueueOptions =
+      exchangeAutoDelete: false
+      queueExclusive: false
+    # This effectively declares own exchange.
+    mq.bindQueue(
+      getWorkerQueueName(), 
+      ownExchangeName, 
+      "#.activity", 
+      workerQueueOptions
+    )
 
   handleFolloweeActivity = (account) ->
     ownExchangeName = getOwnExchangeName account
@@ -80,9 +93,11 @@ handleClient = do ->
       "#.activity", 
       ownExchangeName, 
       (message, headers, deliveryInfo) ->
-        publisher = deliveryInfo.exchange
-        unless publisher is getOwnExchangeName account
-          ownExchange.publish "feed", message, {deliveryMode: 2}
+        {exchange, routingKey} = deliveryInfo
+        console.log "#{ownExchangeName} receives message from #{exchange} on #{routingKey}"
+        # publisher = deliveryInfo.exchange
+        # unless publisher is getOwnExchangeName account
+        #   ownExchange.publish "feed.#{publisher}", message, {deliveryMode: 2}
     )
 
   handleOwnActivity = (account) ->
@@ -98,6 +113,7 @@ handleClient = do ->
         ownExchange.publish "#{ownExchangeName}.activity", payload, options
   
   handleFollowAction = (account) ->
+    ownExchangeName = getOwnExchangeName account
     account.on "FollowCountChanged", () ->
       console.log "FollowCountChanged111", arguments
       return unless action? is "follow" or "unfollow"
@@ -105,31 +121,21 @@ handleClient = do ->
       followerNick = follower.profile.nickname
       routingKey = "#{followerNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      koding.mq[method] ownExchangeName, "x#{followerNick}", routingKey
+      mq[method] ownExchangeName, "x#{followerNick}", routingKey
 
-  (client) ->
-    {delegate} = client.connection
-    nickname = delegate.profile.nickname
+  (account) ->
+    nickname = account.profile.nickname
     return if clients[nickname]
-    clients[nickname] = client
-    prepareBroker delegate, ->
-      handleFolloweeActivity delegate
-      handleOwnActivity delegate
-      handleFollowAction delegate
+    clients[nickname] = account
+    prepareBroker account
+    handleFolloweeActivity account
+    handleOwnActivity account
+    handleFollowAction account
 
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
-    {nickname} = delegate.profile
-
-    handleClient client
-
-    # # Bind to feed worker queue
-    # workerQueueOptions =
-    #   exchangeAutoDelete: false
-    #   queueExclusive: false
-    # koding.mq.bindQueue "koding-feeder", ownExchangeName, "#.activity", workerQueueOptions
-
+    handleClient delegate
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
