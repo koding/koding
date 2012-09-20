@@ -15,6 +15,8 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   i = 0
   logger.logAll process, 'supervisor'
   while i < numberOfWorkers
+    console.log 'in here'
     child = fork './index', ['-c', configPath], silent: yes
     logger.logAll child, "worker#{i}"
     i++
+  return
