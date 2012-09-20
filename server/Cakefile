@@ -1,9 +1,8 @@
 fs        = require 'fs'
+os        = require 'os'
 nodePath  = require 'path'
 {spawn}   = require 'child_process'
-mongodb   = require 'mongoskin'
 KodingLogger = require 'koding-logger'
-os = require 'os'
 
 option '-c', '--configPath [CONFIG]', 'Which config file to use'
 option '-s', '--silent', 'Set this flag to suppress stdout'
