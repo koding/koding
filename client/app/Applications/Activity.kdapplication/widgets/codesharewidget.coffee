@@ -138,6 +138,7 @@ class ActivityCodeShareWidget extends KDFormView
         FPS         : 24
 
     @codeShareResultView = new CodeShareResultView {}, {}
+    @codeShareResultView.hide()
 
     @codeShareResultButton = new KDButtonView
       title: "Run this Code Share"
@@ -147,9 +148,12 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultView.show()
         @codeShareCloseButton.show()
 
+        @resultBanner.hide()
+
         ## checkbox debug ## log "csw::resultButton:click (@libCSSPrefix.getValue()):",@libCSSPrefix.getValue(), "(@libCSSPrefix):",@libCSSPrefix
 
-        @codeShareResultView.emit "CodeShareSourceHasChanges", {
+        @codeShareResultView.emit "CodeShareSourceHasChanges",
+        {
           attachments:[
             {
               content:@HTMLace.getContents()
@@ -183,6 +187,7 @@ class ActivityCodeShareWidget extends KDFormView
           libsJS : @libJSSelectLibs.getValue()
 
           }
+
         @codeShareContainer.showPane @codeShareResultPane
 
 
@@ -194,6 +199,64 @@ class ActivityCodeShareWidget extends KDFormView
         @codeShareResultView.resetResultFrame()
         @codeShareResultButton.setTitle "Run this Code Share"
         @codeShareCloseButton.hide()
+
+        @resultBanner.show()
+
+    @resultBanner = new KDCustomHTMLView
+      tagName     : "div"
+      cssClass    : "result-banner"
+      partial     : ""
+
+    @resultBannerButton = new KDCustomHTMLView
+      name              : "resultBannerButton"
+      tagName           : "a"
+      attributes        :
+        href            : "#"
+      partial           : "Click here to see this Code Share!"
+      cssClass          : "result-banner-button"
+      click             : =>
+        @codeShareResultButton.setTitle "Reset Code Share"
+        @codeShareResultView.show()
+        @resultBanner.hide()
+        @codeShareCloseButton.show()
+        @codeShareResultView.emit "CodeShareSourceHasChanges",
+        {
+          attachments:[
+            {
+              content:@HTMLace.getContents()
+              title:"irrelevant"
+              syntax:"html"},
+            {
+              content:@CSSace.getContents()
+              title:"irrelevant"
+              syntax:"css"
+              },
+            {
+              content:@JSace.getContents()
+              title:"irrelevant"
+              syntax:"javascript"
+            }
+            ]
+
+          classesHTML:@libHTMLClasses.getValue()
+          extrasHTML:@libHTMLHeadExtras.getValue()
+          externalCSS:@libCSSExternal.getValue()
+          externalJS:@libJSExternal.getValue()
+
+          modeHTML : @libHTMLSelect.getValue()
+          modeCSS  : @libCSSSelect.getValue()
+          modeJS   : @libJSSelect.getValue()
+
+          resetsCSS : if @$("input[name=prefixCSSCheck]").prop("checked") is yes then "on" else "off"
+          prefixCSS : @libCSSPrefix.getValue()
+
+          modernizeJS : if @$("input[name=modernizeJSCheck]").prop("checked") is yes then "on" else "off"
+          libsJS : @libJSSelectLibs.getValue()
+
+          }
+
+    @resultBanner.addSubView @resultBannerButton
+
 
 ## LIBRARY OVERLAYS
 
@@ -340,36 +403,55 @@ class ActivityCodeShareWidget extends KDFormView
       title : "JS Libraries"
       name  : "libsJS"
       selectOptions:
-        [
-          {
-            title:"none (JQuery-latest is always included)"
-            value:"none"
-          }
-          {
-            title:"JQuery latest with JQuery UI (1.8.23)"
-            value:"jquery-latest-with-ui-1-8-23"
-          }
-          {
-            title:"MooTools (1.4.5)"
-            value:"mootools-1-4-5"
-          }
-          {
-            title:"Dojo (1.8.0)"
-            value:"dojo-1-8-0"
-          }
-          {
-            title:"Ext Core (3.1.0)"
-            value:"ext-core-3-1-0"
-          }
-          {
-            title:"Prototype (1.7.1.0)"
-            value:"prototype-1-7-1-0"
-          }
-          {
-            title:"script.aculo.us (1.9.0)"
-            value:"scriptaculous-1-9-0"
-          }
-        ]
+        "no additional Library":
+          [
+            {
+              title:"none (JQuery-latest is always included)"
+              value:"none"
+            }
+          ]
+        "jQuery":
+          [
+            {
+              title:"JQuery latest with JQuery UI (1.8.23)"
+              value:"jquery-latest-with-ui-1-8-23"
+            }
+          ]
+        "MooTools":
+          [
+            {
+              title:"MooTools (1.4.5)"
+              value:"mootools-1-4-5"
+            }
+          ]
+        "Dojo":
+          [
+            {
+              title:"Dojo (1.8.0)"
+              value:"dojo-1-8-0"
+            }
+          ]
+        "Ext Core":
+          [
+            {
+              title:"Ext Core (3.1.0)"
+              value:"ext-core-3-1-0"
+            }
+          ]
+        "Prototype":
+          [
+            {
+              title:"Prototype (1.7.1.0)"
+              value:"prototype-1-7-1-0"
+            }
+          ]
+        "script.aculo.us":
+          [
+            {
+              title:"script.aculo.us (1.9.0)"
+              value:"scriptaculous-1-9-0"
+            }
+          ]
 
     @libJSModernizr = new KDInputView
       type : "checkbox"
@@ -448,6 +530,7 @@ class ActivityCodeShareWidget extends KDFormView
       name:"Code Share"
       cssClass: "result-pane"
 
+    @codeShareResultPane.addSubView @resultBanner
     @codeShareResultPane.addSubView @codeShareResultView
 
     # HTML Tab
@@ -538,6 +621,7 @@ class ActivityCodeShareWidget extends KDFormView
     , noop
 
     @codeShareContainer.showPane @codeShareResultPane
+
 
   unsetWideScreen:(wideScreenHeight)=>
 
@@ -640,6 +724,9 @@ class ActivityCodeShareWidget extends KDFormView
     @tagController.reset()
     @unsetWideScreen(undefined)
 
+    @codeShareResultView.hide()
+    @resultBanner.show()
+
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit your Code Share"
     @addCustomData "activity", activity
@@ -658,6 +745,7 @@ class ActivityCodeShareWidget extends KDFormView
     fillForm = =>
       @title.setValue Encoder.htmlDecode title
       @description.setValue Encoder.htmlDecode body
+
       @HTMLace.setContents Encoder.htmlDecode HTMLcontent
       @CSSace.setContents Encoder.htmlDecode CSScontent
       @JSace.setContents Encoder.htmlDecode JScontent
@@ -699,7 +787,9 @@ class ActivityCodeShareWidget extends KDFormView
     else
       @once "codeShare.aceLoaded", => fillForm()
 
-    @codeShareResultView.show()
+    @codeShareResultView.hide()
+    @resultBanner.show()
+
 
   switchToForkView:(activity)->
     @submitBtn.setTitle "Fork this Code Share"
@@ -753,8 +843,8 @@ class ActivityCodeShareWidget extends KDFormView
       @once "codeShare.aceLoaded", =>
         fillForm()
 
-    @codeShareResultView.show()
-
+    @codeShareResultView.hide()
+    @resultBanner.show()
 
   widgetShown:->
     snippetCount = 0
@@ -770,13 +860,14 @@ class ActivityCodeShareWidget extends KDFormView
     @CSSloader.show()
     @JSloader.show()
 
+    @aceLoadCount = 0
+    @aceLoaded = no
+
     @aceHTMLWrapper.addSubView @HTMLace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceCSSWrapper.addSubView @CSSace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
     @aceJSWrapper.addSubView @JSace = new Ace {}, FSHelper.createFileFromPath "localfile:/codesnippet#{snippetCount++}.txt"
 
     # basically, count to three for every Ace firing its ready event
-    @aceLoadCount = 0
-    @aceLoaded = no
 
     @HTMLace.on "ace.ready",=>
       @aceLoadCount++
