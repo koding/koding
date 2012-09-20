@@ -9,11 +9,13 @@ module.exports =
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
+  social        :
+    numberOfWorkers: 10
   client        :
     minify      : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
+    indexMaster : "./client/index-master.html"
     index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'

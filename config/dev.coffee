@@ -9,6 +9,8 @@ module.exports =
   version   : version
   webPort   : 3000
   mongo     : mongo
+  social    :
+    numberOfWorkers: 1
   client    :
     minify  : no
     js      : "./website/js/kd.#{version}.js"

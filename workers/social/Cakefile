@@ -7,9 +7,9 @@ option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
 option '-s', '--silent', 'Set this flag to suppress stdout'
 
 task 'run', ({numberOfWorkers, configPath, silent})->
-  numberOfWorkers ?= 1
   configPath ?= '../../config/dev'
-  {logger} = require configPath
+  {logger, configNumberOfWorkers} = require configPath
+  numberOfWorkers ?= configNumberOfWorkers ? 1
   logger = new KodingLogger 'social', os.hostname(), logger.mq
   logger.tailTo process.stdout unless silent
   i = 0
