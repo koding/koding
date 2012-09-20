@@ -1,5 +1,7 @@
 {argv} = require 'optimist'
 
+console.log 'hey'
+
 {webPort, mongo, amqp} = require argv.c
 webPort = argv.p if argv.p?
 
@@ -82,4 +84,4 @@ app.get '*', (req,res)->
 
 app.listen webPort
 
-console.log 'Koding Webserver running on port', webPort
+console.log 'Koding Webserver running ', "http://localhost:#{webPort}"
