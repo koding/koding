@@ -9,9 +9,15 @@ class BottomPanelController extends KDViewController
     bottomPanel.on "ToggleBottomPanel", => @toggle()
     bottomPanel.on "ReceivedClickElsewhere", (event)=> @hide event
 
-    bottomPanel.addSubView split = new SlidingSplit
-      cssClass        : "chat-split"
-      sizes           : [null]
+    bottomPanel.addSubView splitWrapper = new KDScrollView
+
+    bottomPanel.addSubView sidebar = new KDView
+      cssClass : "chat-sidebar"
+      click    : -> @$().toggleClass "out"
+
+    splitWrapper.addSubView split = new SlidingSplit
+      cssClass : "chat-split"
+      sizes    : [null]
 
   toggle:-> if @isVisible then @hide() else @show()
 

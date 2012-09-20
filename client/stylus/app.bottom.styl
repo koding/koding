@@ -14,9 +14,19 @@
   vendor          transition, bottom .15s ease-in-out
   &.in
     bottom        0
-
+  .chat-sidebar
+    width         200px
+    position      absolute
+    top           0
+    left          0
+    bg            color, yellow
+    vendor        transition, width .15s ease-in-out
+    &.out
+      width       10px
   .chat-split
+    .kdsplitview-resizer, .kdsplitview-resizer:hover
+      background  none
     .focused
-      bg color, rgba(255,0,0,.1)
-      vendor transition, background-color .2s linear
+      bg          color, rgba(255,0,0,.1)
+      vendor      transition, background-color .2s linear
 
