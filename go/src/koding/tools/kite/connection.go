@@ -69,6 +69,10 @@ func (conn *connection) Close() error {
 	defer conn.closeMutex.Unlock()
 
 	conn.closed = true
+	go func() {
+		for _ = range conn.messageStream { // workaround: consume all remaining messages
+		}
+	}()
 	for _, closer := range conn.closers {
 		closer.Close()
 	}
