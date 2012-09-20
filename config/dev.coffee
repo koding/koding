@@ -47,5 +47,5 @@ module.exports =
       host          : 'localhost'
       login         : 'logger'
       password      : 'logger'
-      vhost         : '/logs'
+      vhost         : 'logs'
   pidFile           : '/tmp/koding.server.pid'
