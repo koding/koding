@@ -1,10 +1,10 @@
 ###
   todo:
-   
+
     - make save dialog a view with pistachio
     - put listeners in methods
     - make this splittable
-    
+
 ###
 
 class AceView extends JView
@@ -20,9 +20,9 @@ class AceView extends JView
       style         : "editor-button save-menu"
       delegate      : @
       menu          : [@getSaveMenu()]
-      callback      : ()=> 
+      callback      : ()=>
         @ace.requestSave()
-    
+
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
       cssClass      : "caret-position section"
@@ -53,17 +53,28 @@ class AceView extends JView
         return if publicPath is @getData().path
         appManager.openFileWithApplication publicPath, "Viewer"
 
-    unless publicUrlCheck.test(@getData().path) then @previewButton.hide()
+    @previewButton.hide() unless publicUrlCheck.test(@getData().path)
+
+    @compileButton = new KDButtonView
+      style     : "editor-button"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "compile"
+      callback  : =>
+        @getSingleton('kodingAppsController').compileApp @getData().path, =>
+          @ace.notify "App compiled!", "success"
+
+    @compileButton.hide() unless /\.kdapp\//.test @getData().path
 
     @setViewListeners()
-    
+
   setViewListeners:->
 
     @advancedSettings.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
-    
+
     @advancedSettings.emit "ace.settingsView.setDefaults", @ace
-    
+
     $spans = @caretPosition.$('span')
 
     @ace.on "ace.change.cursor", (cursor)=>
@@ -89,6 +100,7 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
+        {{> @compileButton}}
         {{> @previewButton}}
         {{> @saveButton}}
       </div>
@@ -106,7 +118,7 @@ class AceView extends JView
 
     items : [
       { type : 'customView', view : new AceSettingsView (delegate : @)}
-    ]                                           
+    ]
 
   getSaveMenu:->
 
@@ -114,7 +126,7 @@ class AceView extends JView
       title : "Save as..."
       id    : 13
       parentId : null
-      callback : => 
+      callback : =>
         @openSaveDialog()
     ]
 
@@ -141,16 +153,16 @@ class AceView extends JView
           callback  : ()=>
             [node] = @finderController.treeController.selectedNodes
             name   = @inputFileName.getValue()
-            
+
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
               @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
-            
+
             unless node
               @ace.notify "Please select a folder to save!", "error"
               return
-              
+
             parent = node.getData()
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
@@ -167,7 +179,7 @@ class AceView extends JView
     form.addSubView labelFileName = new KDLabelView
       title : "Filename:"
 
-    form.addSubView @inputFileName = inputFileName = new KDInputView 
+    form.addSubView @inputFileName = inputFileName = new KDInputView
       label        : labelFileName
       defaultValue : file.name
 
@@ -178,7 +190,7 @@ class AceView extends JView
     inputFileName.setFocus()
 
     @finderController = new NFinderController
-      treeItemClass     : NFinderItem 
+      treeItemClass     : NFinderItem
       nodeIdPath        : "path"
       nodeParentIdPath  : "parentPath"
       dragdrop          : yes

@@ -23,7 +23,7 @@ class ContentDisplayControllerActivity extends KDViewController
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
-        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     contentView = @getOptions().contentView
     contentView.setDelegate @getView()
@@ -34,7 +34,7 @@ class ContentDisplayControllerActivity extends KDViewController
     @getView().addSubView contentView
 
     contentView.on "ContentDisplayWantsToBeHidden", ->
-      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+      contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
 
     # disabled for beta

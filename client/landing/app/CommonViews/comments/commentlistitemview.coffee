@@ -12,38 +12,21 @@ class CommentListItemView extends KDListItemView
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
 
-    origin = {
+    origin =
       constructorName  : originType
       id               : originId
-    }
 
     @avatar = new AvatarView {
-      size    : {width: 30, height: 30}
+      size     :
+        width  : 30
+        height : 30
       origin
     }
 
-    @author = new ProfileLinkView {
-      origin
-    }
+    @author = new ProfileLinkView { origin }
 
     if deleterId? and deleterId isnt originId
       @deleter = new ProfileLinkView {}, data.getAt('deletedBy')
-    # if data.originId is KD.whoami().getId()
-    #   @settingsButton = new KDButtonViewWithMenu
-    #     style       : 'transparent activity-settings-context'
-    #     cssClass    : 'activity-settings-menu'
-    #     title       : ''
-    #     icon        : yes
-    #     delegate    : @
-    #     iconClass   : "cog"
-    #     menu        : [
-    #       type      : "contextmenu"
-    #       items     : [
-    #         { title : 'Delete', id : 2,  parentId : null, callback : => data.delete (err)=> @propagateEvent KDEventType: 'CommentIsDeleted' }
-    #       ]
-    #     ]
-    #     callback    : (event)=> @settingsButton.contextMenu event
-    # else
 
     @deleteLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -63,18 +46,28 @@ class CommentListItemView extends KDListItemView
           listenedToInstance : @deleteLink
           callback           : => @confirmDeleteComment data
 
+    @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
+
   render:->
     if @getData().getAt 'deletedAt'
       @emit 'CommentIsDeleted'
-    @setTemplate @pistachio()
+    @updateTemplate()
     super
 
   viewAppended:->
-    @setTemplate @pistachio()
+    @updateTemplate yes
     @template.update()
-    # super unless @_partialUpdated
 
   click:(event)->
+
+    if $(event.target).is("span.collapsedtext a.more-link")
+      @$("span.collapsedtext").addClass "show"
+      @$("span.collapsedtext").removeClass "hide"
+
+    if $(event.target).is("span.collapsedtext a.less-link")
+      @$("span.collapsedtext").removeClass "show"
+      @$("span.collapsedtext").addClass "hide"
+
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
       bongo.cacheable originType, originId, (err, origin)->
@@ -82,9 +75,10 @@ class CommentListItemView extends KDListItemView
           appManager.tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
+    {type} = @getOptions()
     modal = new KDModalView
-      title          : "Delete comment"
-      content        : "<div class='modalformline'>Are you sure you want to delete this comment?</div>"
+      title          : "Delete #{type}"
+      content        : "<div class='modalformline'>Are you sure you want to delete this #{type}?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -103,28 +97,30 @@ class CommentListItemView extends KDListItemView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
-        # cancel       :
-        #   style      : "modal-cancel"
-        #   callback   : => modal.destroy()
 
-  pistachio:->
+  updateTemplate:(force = no)->
     if @getData().getAt 'deletedAt'
+      {type} = @getOptions()
       @setClass "deleted"
       if @deleter
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted by {{> @deleter}}.</span></div>"
+        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
       else
-        "<div class='item-content-comment clearfix'><span>{{> @author}}'s comment has been deleted.</span></div>"
-    else
-      """
-      <div class='item-content-comment clearfix'>
-        <span class='avatar'>{{> @avatar}}</span>
-        <div class='comment-contents clearfix'>
-          {{> @deleteLink}}
-          <p class='comment-body'>
-            {{> @author}}
-            {{@utils.applyTextExpansions #(body)}}
-          </p>
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-        </div>
+       @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+    else if force
+      @setTemplate @pistachio()
+
+  pistachio:->
+    """
+    <div class='item-content-comment clearfix'>
+      <span class='avatar'>{{> @avatar}}</span>
+      <div class='comment-contents clearfix'>
+        <p class='comment-body'>
+          {{> @author}}
+          {{@utils.applyTextExpansions #(body), yes}}
+        </p>
+        {{> @deleteLink}}
+        <time>{{$.timeago #(meta.createdAt)}}</time>
+        {{> @likeView}}
       </div>
-      """
+    </div>
+    """

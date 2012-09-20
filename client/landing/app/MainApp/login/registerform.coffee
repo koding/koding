@@ -71,7 +71,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       size        :
         width     : 20
         height    : 20
-    , profile     : 
+    , profile     :
         hash      : md5.digest "there is no such email"
         firstName : "New koding user"
     @avatar.hide()
@@ -104,9 +104,9 @@ class RegisterInlineForm extends LoginViewInlineForm
             placement    : "right"
             offset       : 2
             title        : """
-                            Only lowercase letters and numbers are allowed, 
-                            max 25 characters. Also keep in mind that the username you select will 
-                            be a part of your kodingen domain, and can't be changed later. 
+                            Only lowercase letters and numbers are allowed,
+                            max 25 characters. Also keep in mind that the username you select will
+                            be a part of your kodingen domain, and can't be changed later.
                             i.e. http://username.kodingen.com <h1></h1>
                            """
 
@@ -147,7 +147,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           if @kodingenUser
             input.setValue @password.input.getValue()
             @invitationCode.input.$().focus()
-          
+
 
     @button = new KDButtonView
       title         : "REGISTER"
@@ -156,7 +156,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       loader        :
         color       : "#ffffff"
         diameter    : 21
-    
+
     @disabledNotice = new KDCustomHTMLView
       tagName       : "section"
       cssClass      : "disabled-notice"
@@ -167,7 +167,7 @@ class RegisterInlineForm extends LoginViewInlineForm
                       if you want to be notified when registrations are enabled again.
                       </p>
                       """
-    
+
     @invitationCode = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
@@ -182,19 +182,19 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
-    
+
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
         @password.input.setValue ''
         @password.input.validate()
-      
+
       @button.hideLoader()
       @invitationCode.notify msg
 
 
   usernameCheckTimer = null
-  
+
   reset:->
 
     inputs = KDFormView.findChildInputs @
@@ -244,13 +244,13 @@ class RegisterInlineForm extends LoginViewInlineForm
     return
 
   showOldUserFeedback:->
-    
+
     @addCustomData "kodingenUser", "on"
     @kodingenUser = yes
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @password.input.$().attr "placeholder", "Type your kodingen password"
-    
+
     {validate} = @password.input.getOptions()
     delete validate.rules.minLength
     @password.input.setValidation validate
@@ -260,7 +260,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @$('p.kodingen-user-notification').height 54
 
   hideOldUserFeedback:->
-    
+
     @removeCustomData "kodingenUser"
     @kodingenUser = no
     @parent.unsetClass "taller"
@@ -277,8 +277,8 @@ class RegisterInlineForm extends LoginViewInlineForm
   userAvatarFeedback:(input)->
 
     if input.valid
-      @avatar.setData 
-        profile     : 
+      @avatar.setData
+        profile     :
           hash      : md5.digest input.getValue()
           firstName : "New koding user"
       @avatar.render()
@@ -318,7 +318,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     <div>
       {{> @passwordConfirm}}
       <p class='kodingen-user-notification'>
-        <b>This</b> is a reserved Kodingen username, if you own this 
+        <b>This</b> is a reserved Kodingen username, if you own this
         account please type your Kodingen password above to unlock your old
         username for the new Koding.
       </p>

@@ -16,8 +16,8 @@ class LoginInputView extends JView
 
     @input = new KDInputView inputOptions, data
     @icon  = new KDCustomHTMLView iconOptions, data
-    
-    @listenTo 
+
+    @listenTo
       KDEventTypes       : "mouseenter"
       listenedToInstance : @icon
       callback           : =>
@@ -31,7 +31,7 @@ class LoginInputView extends JView
   resetDecoration:-> @unsetClass "validation-error validation-passed"
 
   decorateValidation:(err)->
-    
+
     if err
       @notify err
       @unsetClass "validation-passed"
@@ -42,9 +42,9 @@ class LoginInputView extends JView
       @setClass "validation-passed"
 
   pistachio:-> "{{> @input}}{{> @icon}}"
-  
+
   destroyNotification:->
-    
+
     parent.notification.destroy() if parent.notification
 
   notify:(msg)->
@@ -57,7 +57,7 @@ class LoginInputView extends JView
       cssClass  : "register"
       container : @parent
       duration  : 0
-    
+
 class LoginInputViewWithLoader extends LoginInputView
 
   constructor:(options, data)->

@@ -80,7 +80,7 @@ class InboxMessagesListItem extends KDListItemView
   click:(event)->
     list     = @getDelegate()
     mainView = list.getDelegate()
-    mainView.propagateEvent KDEventType : "MessageIsSelected", {item: @, event}
+    mainView.emit "MessageIsSelected", {item: @, event}
     @makeAllItemsUnselected()
     @makeItemSelected()
 
@@ -99,7 +99,3 @@ class LoadMoreMessagesItem extends KDListItemView
 
   partial:(data)->
     "Load more messages..."
-
-  click:(event)->
-    controller = @getDelegate()
-    controller.continueLoadingMessages @

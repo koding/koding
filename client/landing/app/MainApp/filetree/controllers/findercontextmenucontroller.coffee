@@ -140,9 +140,8 @@ class NFinderContextMenuController extends KDController
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
-      'Clone from Github...'      :
-        disabled                  : yes
-        action                    : 'gitHubClone'
+      'Clone a repo here'         :
+        action                    : "cloneRepo"
       Download                    :
         disabled                  : yes
         action                    : "download"
@@ -155,15 +154,33 @@ class NFinderContextMenuController extends KDController
     else
       delete items.Collapse
 
-    if fileView.getData().getExtension() is "kdapp"
+    {nickname} = KD.whoami().profile
+
+    if fileData.path is "/Users/#{nickname}/Applications"
+      items.Refresh.separator         = yes
+      items["Make a new Application"] =
+        action : "makeNewApp"
+
+
+    if fileData.getExtension() is "kdapp"
       items.Refresh.separator   = yes
       items['Application menu'] =
         children                  :
           Compile                 :
             action                : "compile"
+          Run                     :
+            action                : "runApp"
             separator             : yes
-          "Publish to App Catalog":
-            action                : "publish"
+          "Download source files" :
+            action                : "downloadApp"
+
+      if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
+        items['Application menu'].children["Download source files"].separator = yes
+        items['Application menu'].children["Publish to App Catalog"] =
+          action                : "publish"
+
+      fileData.on "fs.delete.finished", =>
+        @getSingleton("kodingAppsController").refreshApps()
 
     return items
 

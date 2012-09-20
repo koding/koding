@@ -97,6 +97,7 @@ app.activity.styl
       text-decoration   none
       font-size         88%
 
+  .new-updates
     span
       rounded           3px
       background-color  #FF9200
@@ -159,19 +160,29 @@ app.activity.styl
 
     >.new-member
       .icon
-        bg(position,-320px -180px)
+        bg                position,-320px -180px
     >.follow
       .icon
-        bg(position,-320px -160px)
+        bg                position,-320px -160px
     >.profile-update
       .icon
-        bg(position,-340px -160px)
+        bg                position,-340px -160px
     >.tagged
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
     >.topic
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
+    >.application
+      a.app
+        font-family       mono
+        bg                color, #eee
+        padding           2px 5px 1px 5px
+        shadow            inset 0 0 2px rgba(0, 0, 0, 0.1)
+        rounded           2px
+
+      .icon
+        bg                position,-320px -200px
 
   .activity-item
     max-width           840px
@@ -295,24 +306,6 @@ app.activity.styl
       line-height         125%
       font-weight         300
       noTextDeco()
-    span.more
-      font-size           0
-      vendor              transition, font-size .2s linear
-      a.more-link
-      a.less-link
-        margin-left       5px
-        vendor            transition, font-size .2s linear
-      a.more-link
-        font-size         14px
-      a
-        font-size         0
-      &.show
-        font-size         14px
-        a.more-link
-          font-size       0
-          margin-left     0
-        a
-          font-size       14px
 
   p.context
     margin                0 0 18px 0
@@ -352,6 +345,7 @@ app.activity.styl
       size                auto,auto
       fr()
 
+      span.like-view
       a.action-link
         margin            0 2px
         color             #FF9200
@@ -508,7 +502,6 @@ button.kdbutton.dark
     max-width               560px
     shadow                  0px 1px 0px 0px white
 
-
   .tags-selected-item-wrapper
     margin                  10px 0 0 0
 
@@ -613,23 +606,8 @@ form.status-widget
     vendor                transition, height .1s ease-out
     margin-bottom         20px
 
-  // .kdautocompletewrapper
-  //   position              absolute
-  //   top                   72px
-  //   left                  170px
-  //   max-width             558px
-  //   border-color          transparent
-  //   padding               0
-  //   bg                    color, transparent
-  //   height                22px
-  //   border-top            1px solid #E9E9E9
-  //   shadow                none
-  //   rounded               0
-  //   .kdinput.text
-  //     border-color        transparent
-  //     bg                  color, #f2f2f2
-  //     rounded             0 0 3px 3px
-  //     shadow              none
+  .tags-selected-item-wrapper
+    margin                0
 
 .code-snip-holder
   position                  relative
@@ -795,6 +773,23 @@ button.activity-status-context
     //   bg                color, #ffd56e
     .first-label
       visible()
+
+// .activity-update-widget-wrapper-folded
+//   height                auto
+//   position              absolute
+//   overflow              visible
+//   z-index               100
+//   hidden()
+//   .first-label
+//     hidden()
+//   &.edit-mode
+//     visible()
+//     .kdbuttonwithmenu-wrapper.activity-status-context
+//       hidden()
+//     // .update-widget-tabs .kdtabpaneview
+//     //   bg                color, #ffd56e
+//     .first-label
+//       visible()
 
 .widget-holder
   overflow              visible
