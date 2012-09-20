@@ -46,7 +46,7 @@ module.exports =
     mq          :
       host      : 'localhost'
       login     : 'logger'
-      password  : 'logger'
-      #password  : '1:n;3531p7uw52z5bSTl'
+      # password  : 'logger'
+      password  : '1:n;3531p7uw52z5bSTl'
       vhost     : '/logs'
   pidFile       : '/tmp/koding.server.pid'
