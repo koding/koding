@@ -525,11 +525,13 @@ class KodingAppsController extends KDController
     appPath     = getAppPath manifest
     log manifestStr
 
-
     FSItem.create appPath, "folder", (err, fsFolder)=>
       if err then warn err
       else
         stack = []
+        today = new Date().format('yyyy-mm-dd')
+        {profile} = KD.whoami()
+        fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
 
         stack.push (cb)=>
           @kiteController.run
@@ -546,6 +548,33 @@ class KodingAppsController extends KDController
               path      : escapeFilePath "#{fsFolder.path}/index.coffee"
               contents  : "do ->"
           , cb
+
+        stack.push (cb)=>
+          @kiteController.run
+            toDo        : "uploadFile"
+            withArgs    :
+              path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
+              contents  : """
+                              #{today} #{fullName} <@#{profile.nickname}>
+
+                                  * #{name} (index.coffee): Initial commit
+                          """
+          , cb
+
+        # Uncomment followings when we have reachable files for skel of Apps
+        #
+        # stack.push (cb)=>
+        #   @kiteController.run
+        #     withArgs  :
+        #       command : "cp -f /opt/Apps/.default/README #{escapeFilePath fsFolder.path}"
+        #   , cb
+
+        # if not isBlank
+        #   stack.push (cb)=>
+        #     @kiteController.run
+        #       withArgs  :
+        #         command : "cp -rf /opt/Apps/.default/resources #{escapeFilePath fsFolder.path}"
+        #     , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err
