@@ -69,7 +69,6 @@ class Followable extends jraphical.Module
         callback new KodingError('already following...'), count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
-          console.log 'Kount', count
           if err
             callback err
           else
@@ -102,7 +101,7 @@ class Followable extends jraphical.Module
       if err
         console.log err
       else
-        bongo.Model::update.call @, $set: 'counts.followers': count, (err)->
+        Module::update.call @, $set: 'counts.followers': count, (err)->
           throw err if err
         callback err, count
         @emit 'FollowCountChanged'

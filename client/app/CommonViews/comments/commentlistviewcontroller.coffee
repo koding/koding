@@ -62,14 +62,6 @@ class CommentListViewController extends KDListViewController
             listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
 
-  fetchCommentsByRange:(from,to,callback)=>
-    [to,callback] = [callback,to] unless callback
-    query = {from,to}
-    message = @getListView().getData()
-    message.commentsByRange query,(err,comments)=>
-      @getListView().emit "BackgroundActivityFinished"
-      callback err,comments
-
   fetchAllComments:(skipCount=3, callback = noop)=>
 
     listView = @getListView()

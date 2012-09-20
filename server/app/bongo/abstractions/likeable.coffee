@@ -36,6 +36,21 @@ class Likeable
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                @fetchActivityId? (err, id)->
+                  CActivity.update {_id: id}, {
+                    $set: 'sorts.likesCount': count
+                  }, log
+                @fetchOrigin? (err, origin)=>
+                  if err then log "Couldn't fetch the origin"
+                  else @emit 'LikeIsAdded', {
+                    origin
+                    subject       : ObjectRef(@).data
+                    actorType     : 'liker'
+                    actionType    : 'like'
+                    liker         : ObjectRef(delegate).data
+                    likesCount    : count
+                    relationship  : docs[0]
+                  }
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err

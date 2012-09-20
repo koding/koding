@@ -13,12 +13,12 @@ class KDTabViewWithForms extends KDTabView
       @showPane @panes[0]
     if forms.length is 1
       @hideHandleContainer()
-    
+
   sanitizeOptions:(options)->
     for key,option of options
       option.title = key
       option
-    
+
   handleClicked:(index,event)=>
     if @getOptions().navigable
       super
@@ -50,8 +50,8 @@ class KDTabViewWithForms extends KDTabView
   fireFinalCallback:->
     finalData = @getFinalData()
     @getOptions().callback? finalData
-    
-    
+
+
 
 # new KDTabViewWithForms
 #   callback              : (formOutput)-> log formOutput,"All Forms ::::::"
@@ -75,7 +75,7 @@ class KDTabViewWithForms extends KDTabView
 #               required  : yes
 #             messages    :
 #               required  : "topic name is required!"
-#         Zikko           :          
+#         Zikko           :
 #           label         : "Zikkko"
 #           type          : "textarea"
 #           name          : "zikko"
@@ -86,7 +86,7 @@ class KDTabViewWithForms extends KDTabView
 #               name        : "lulu"
 #               placeholder : "lulu..."
 #     "My Second Form"    :
-#       buttons           :  
+#       buttons           :
 #         Submit          :
 #           title         : "Submit"
 #           style         : "modal-clean-gray"
@@ -96,8 +96,8 @@ class KDTabViewWithForms extends KDTabView
 #           style         : "modal-clean-red"
 #           type          : "reset"
 #       # callback          : (formOutput)-> log formOutput,"Form 2 ::::::"
-#       fields            :  
-#         Hoho            :           
+#       fields            :
+#         Hoho            :
 #           label         : "Hoho:"
 #           type          : "text"
 #           name          : "title"

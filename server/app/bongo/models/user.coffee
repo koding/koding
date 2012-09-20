@@ -23,18 +23,18 @@ class JUser extends jraphical.Module
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
       users.forEach (user)-> user.changePassword user.getAt('password')
-  
+
   hashPassword =(value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
-    
+
   createSalt = require 'hat'
-  
+
   @share()
-  
+
   @::mixin Flaggable::
-  
+
   @getFlagRole =-> 'owner'
-  
+
   @set
     indexes         :
       username      : 'unique'
@@ -58,7 +58,7 @@ class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
-      status        : 
+      status        :
         type        : String
         enum        : [
           'invalid status type', [
@@ -82,7 +82,7 @@ class JUser extends jraphical.Module
       emailConfirmation :
         targetType      : JEmailConfirmation
         as              : 'confirmation'
-  
+
   sessions  = {}
   users     = {}
   guests    = {}
@@ -96,7 +96,7 @@ class JUser extends jraphical.Module
   #       callback new KodingError 'No visitor instance was found.'
   #     else
   #       constructor.one {username}, callback
-  
+
   createNewMemberActivity =(account, callback=->)->
     bucket = new CNewMemberBucket
       anchor      : account
@@ -120,10 +120,10 @@ class JUser extends jraphical.Module
                   $addToSet     :
                     snapshotIds : bucket.getId()
                 , callback
-  
+
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
-  
+
   fetchTenderAppLink : (callback)->
     {username,email} = @
     nodeRequest.get uri: "http://devrim.kodingen.com/_/tender.php?name=#{username}&email=#{email}", (err,res,body)->
@@ -131,16 +131,16 @@ class JUser extends jraphical.Module
         callback err
       else
         callback null, body
-  
+
   @setDefaultHash =->
     JUser.all {}, (err, users)->
       users.forEach (user)->
         user.fetchOwnAccount (err, account)->
           account.profile.hash = getHash user.email
           account.save (err)-> throw err if err
-  
-  @whoami = bongo.secure ({connection:{delegate}}, callback)-> callback delegate 
-  
+
+  @whoami = bongo.secure ({connection:{delegate}}, callback)-> callback delegate
+
   @login = bongo.secure ({connection}, credentials, callback)->
     {username, password} = credentials
     constructor = @
@@ -195,7 +195,7 @@ class JUser extends jraphical.Module
                               console.log err
                             else
                               console.log 'user link was added'
-  
+
   @logout = bongo.secure ({connection}, callback)->
     connection.remote.fetchClientId (clientId)->
       visitor = JVisitor.visitors[clientId]
@@ -220,7 +220,7 @@ class JUser extends jraphical.Module
                   callback null, guest
                   visitor.emit ['change','logout'], guest
         else callback new KodingError 'Could not restore your session!'
-  
+
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences.one {}, (err, prefs)->
       if err
@@ -233,13 +233,13 @@ class JUser extends jraphical.Module
           status: $in : ['active','sent']
         }, (err, invite)->
           # callback null, yes, invite
-          if err or !invite? 
+          if err or !invite?
             callback new KodingError 'Invalid invitation ID!'
-          else 
+          else
             callback null, yes, invite
       else
         callback new KodingError 'Invitation code is required!'
-  
+
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
       callback null
@@ -258,7 +258,7 @@ class JUser extends jraphical.Module
 
   @register = bongo.secure (client, userFormData, callback)->
     {connection} = client
-    {username, email, password, passwordConfirm, 
+    {username, email, password, passwordConfirm,
      firstName, lastName, agree, inviteCode, kodingenUser} = userFormData
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
@@ -285,7 +285,7 @@ class JUser extends jraphical.Module
               return callback new KodingError 'You have to agree to the TOS'
             else if not username? or not email?
               return callback new KodingError 'Username and email are required fields'
-            
+
             @verifyKodingenPassword {username, password, kodingenUser}, (err)->
               if err
                 return callback new KodingError 'Wrong password'
@@ -356,8 +356,8 @@ class JUser extends jraphical.Module
                                               createNewMemberActivity account
                                               # added by sinan 30 apr 2012, is that ok??? success state wasnt firing callback
                                               callback?()
-  
-  
+
+
   @fetchUser = bongo.secure ({connection},callback)->
     connection.remote.fetchClientId (clientId)->
       JSession.one {clientId},(err,session)->
@@ -370,7 +370,7 @@ class JUser extends jraphical.Module
 
   @changePassword = bongo.secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
-  
+
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
       if err
@@ -402,20 +402,20 @@ class JUser extends jraphical.Module
             r.kodingenUser = if !+chunk then no else yes
             callback null, r
           res.on 'error', (err)-> callback err, r
-  
+
   changePassword:(newPassword, callback)->
     salt = createSalt()
     @update $set: {
       salt
       password: hashPassword(newPassword, salt)
     }, callback
-  
+
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err
       else
         confirmation.send callback
-  
+
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
   block:(callback)-> @update {$set: status: 'blocked'}, callback

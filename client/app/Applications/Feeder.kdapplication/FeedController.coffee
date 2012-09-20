@@ -45,13 +45,10 @@ class FeedController extends KDViewController
       callback      : (pubInst, item)=>
         @changeActiveSort item.type
 
-    @resultsController.getView().registerListener
-      KDEventTypes  : 'PaneDidShow'
-      listener      : @
-      callback      : (pubInst, event)=>
-        filterName  = @selection.name
-        sortName    = @selection.activeSort or @defaultSort.name
-        @facetsController.highlight filterName, sortName
+    @resultsController.getView().on 'PaneDidShow', (pane)=>
+      filterName  = @selection.name
+      sortName    = @selection.activeSort or @defaultSort.name
+      @facetsController.highlight filterName, sortName
 
     @resultsController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
@@ -108,6 +105,7 @@ class FeedController extends KDViewController
     options.sort[sort.name] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
+    console.log options
     options
 
   emitLoadStarted:(filter)=>

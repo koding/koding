@@ -1,5 +1,5 @@
 class KDInputValidator
-  
+
   @ruleRequired = (input, event)->
 
     return if event?.which is 9
@@ -112,7 +112,7 @@ class KDInputValidator
       return null
     else
       return ruleSet.messages?.creditCard or "Please enter a valid credit card number!"
-  
+
   @ruleJSON = (input, event)->
 
     return if event?.which is 9
@@ -140,12 +140,45 @@ class KDInputValidator
     ruleSet       = input.getOptions().validate
     {regExp}      = ruleSet.rules
     doesValidate  = regExp.test value
-    
+
     if doesValidate
       return null
     else
       return ruleSet.messages?.regExp or "Validation failed!"
 
+  @ruleUri = (input, event)->
+
+    return if event?.which is 9
+
+    regExp = ///
+        ^
+        	([a-z0-9+.-]+):							                            #scheme
+        	(?:
+        		//							                                      #it has an authority:
+        		(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?	  #userinfo
+        		((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)		        #host
+        		(?::(\d*))?						                                #port
+        		(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?	    #path
+        		|
+        									                                        #it doesn't have an authority:
+        		(/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?	#path
+        	)
+        	(?:
+        		\?((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*)	    #query string
+        	)?
+        	(?:
+        		#((?:[a-z0-9-._~!$&'()*+,;=:/?@]|%[0-9A-F]{2})*)	    #fragment
+        	)?
+        	$
+    ///i
+    value         = $.trim input.getValue()
+    ruleSet       = input.getOptions().validate
+    doesValidate  = regExp.test value
+
+    if doesValidate
+      return null
+    else
+      return ruleSet.messages?.uri or "Not a valid uri!"
 
 ###
 Credits

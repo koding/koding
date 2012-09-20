@@ -125,10 +125,8 @@ class AccountDatabaseListController extends KDListViewController
     dbtype = @getListView().modal.modalTabs.forms["On Koding"].inputs.Type.getValue()
 
     {nickname} = KD.whoami().profile
-    pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
-    dbName  = md5.digest("#{Math.random()*1e18}").substr(-(15-nickname.length))
-    dbUser  = dbName
-    dbPass  = pass.substr(-40)
+    dbUser = dbName = __utils.generatePassword 15-nickname.length, yes
+    dbPass = __utils.generatePassword 40, no
 
     @talkToKite
       toDo      : @commands[dbtype].create

@@ -1,9 +1,13 @@
 class KDView extends KDObject
+
 # #
 # CLASS LEVEL STUFF
 # #
+
   {defineProperty} = Object
+
   deprecated = (methodName)-> warn "#{methodName} is deprecated from KDView if you need it override in your subclass"
+
   eventNames =
     ///
     ^(
@@ -15,9 +19,11 @@ class KDView extends KDObject
     drop|
     contextmenu|
     scroll|
-    paste
+    paste|
+    error
     )$
     ///
+
   overrideAndMergeObjects = (objects)->
     for own title,item of objects.overridden
       continue if objects.overrider[title]
@@ -58,7 +64,6 @@ class KDView extends KDObject
 
     data?.on? 'update', =>
       data
-      debugger if window.paws
       @render()
 
     @setInstanceVariables options
@@ -505,12 +510,17 @@ class KDView extends KDObject
       when "blur"       then @blur event
       when "change"     then @change event
       when "focus"      then @focus event
+      when "error"      then @error event
       else yes
     @propagateEvent (KDEventType:event.type.capitalize()),event if @notifiesOthers event
     @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event if @notifiesOthers event
     willPropagateToDOM = thisEvent
 
   scroll:(event)->
+    # log "override keyDown in your subclass to do something useful"
+    yes
+
+  error:(event)->
     # log "override keyDown in your subclass to do something useful"
     yes
 
@@ -632,8 +642,9 @@ class KDView extends KDObject
     posY = @dragState[directionY] + y
     posX = @dragState[directionX] + x
 
-    @$().css directionX, posX unless axis is 'y'
-    @$().css directionY, posY unless axis is 'x'
+    if @dragIsAllowed
+      @$().css directionX, posX unless axis is 'y'
+      @$().css directionY, posY unless axis is 'x'
 
     @emit "DragInAction", x, y
 

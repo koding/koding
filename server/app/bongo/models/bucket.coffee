@@ -46,6 +46,10 @@ class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
+      when 'user'
+        switch groupName
+          when 'source' then CInstalleeBucket
+          when 'target' then CInstallerBucket
 
   addToBucket =do ->
     # @helper
@@ -205,6 +209,20 @@ class CLikeeBucket extends CBucket
   @set
     schema          : CBucket.schema
 
+class CInstallerBucket extends CBucket
+
+  @share()
+
+  @set
+    schema          : CBucket.schema
+
+class CInstalleeBucket extends CBucket
+
+  @share()
+
+  @set
+    schema          : CBucket.schema
+
 class CBucketActivity extends CActivity
 
   @setRelationships
@@ -213,6 +231,8 @@ class CBucketActivity extends CActivity
         CFollowerBucket
         CFolloweeBucket
         CNewMemberBucket
+        CInstallerBucket
+        CInstalleeBucket
         CLikerBucket
         CLikeeBucket
         CReplierBucket
@@ -272,6 +292,22 @@ class CLikerBucketActivity extends CBucketActivity
     relationships   : CBucketActivity.relationships
 
 class CLikeeBucketActivity extends CBucketActivity
+  @share()
+  @set
+    encapsulatedBy  : CActivity
+    schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
+    relationships   : CBucketActivity.relationships
+
+class CInstallerBucketActivity extends CBucketActivity
+  @share()
+  @set
+    encapsulatedBy  : CActivity
+    schema          : CActivity.schema
+    sharedMethods   : CActivity.sharedMethods
+    relationships   : CBucketActivity.relationships
+
+class CInstalleeBucketActivity extends CBucketActivity
   @share()
   @set
     encapsulatedBy  : CActivity

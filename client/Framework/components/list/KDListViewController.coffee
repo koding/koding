@@ -13,6 +13,7 @@ class KDListViewController extends KDViewController
     @selectedItems            = []
     @lazyLoader               = null
     viewOptions               = options.viewOptions or {}
+    viewOptions.lastToFirst   = options.lastToFirst
 
     if options.subItemClass
       viewOptions.subItemClass = options.subItemClass
@@ -32,9 +33,7 @@ class KDListViewController extends KDViewController
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
-      # log "hev hev", @
       listView.on 'KeyDownOnList', (event)=>
-        # log "alo"
         @keyDownPerformed listView, event
 
   loadView:(mainView)->
@@ -49,14 +48,12 @@ class KDListViewController extends KDViewController
       scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
 
     @instantiateListItems(@getData().items or [])
-    @listenTo
-      KDEventTypes       : "ReceivedMouseUpElsewhere"
-      listenedToInstance : @getSingleton("windowController")
-      callback           : (windowController, event)-> @mouseUpHappened windowController, event
+
+    @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
   instantiateListItems:(items)->
-    newItems = for listItem in items
-      @getListView().addItem listItem
+    newItems = for itemData in items
+      @getListView().addItem itemData
 
     @emit "AllItemsAddedToList"
 
@@ -87,15 +84,23 @@ class KDListViewController extends KDViewController
     @listView
 
   ###
-  CRUD OPERATIONS FOR ITEMS
+  ITEM OPERATIONS
   ###
+
+  addItem:(itemData, index, animation)->
+
+    @getListView().addItem itemData, index, animation
+
+  removeItem:(itemInstance, itemData, index)->
+
+    @getListView().removeItem itemInstance, itemData, index
 
   registerItem:(view, index)->
 
     options = @getOptions()
 
     if index?
-      actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
+      actualIndex = if @getOptions().lastToFirst then @getListView().items.length - index - 1 else index
       @itemsOrdered.splice(actualIndex, 0, view)
     else
       @itemsOrdered[if @getOptions().lastToFirst then 'unshift' else 'push'] view
@@ -122,7 +127,7 @@ class KDListViewController extends KDViewController
 
     @emit "UnregisteringItem", itemInfo
     {index, view} = itemInfo
-    actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
+    actualIndex = if @getOptions().lastToFirst then @getListView().items.length - index - 1 else index
     @itemsOrdered.splice actualIndex, 1
     if view.getData()?
       delete @itemsIndexed[view.getItemDataId()]
@@ -164,7 +169,7 @@ class KDListViewController extends KDViewController
       @mouseDown = no
       @mouseDownTempItem = null
 
-  mouseUpHappened:(windowController, event)->
+  mouseUpHappened:(event)->
 
     clearTimeout @mouseDownTimer
     @mouseDown = no

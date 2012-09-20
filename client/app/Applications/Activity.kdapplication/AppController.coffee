@@ -11,6 +11,7 @@ class Activity12345 extends AppController
       'CCodeSnipActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
+      'CInstallerBucketActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -185,7 +186,8 @@ class Activity12345 extends AppController
           'CCodeSnipActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
-        ]
+          'CInstallerBucketActivity'
+          ]
 
     options =
       limit         : 7
@@ -251,6 +253,7 @@ class Activity12345 extends AppController
         'CCodeSnipActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
+        'CInstallerBucketActivity'
       ]
 
     controller.removeAllItems()
@@ -267,9 +270,7 @@ class Activity12345 extends AppController
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    contentDisplayController.propagateEvent
-      KDEventType : "ContentDisplayWantsToBeShown"
-    ,contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity

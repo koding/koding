@@ -43,12 +43,12 @@ body
 
   .drop-is-acceptable
     gradient        light-green, dark-green
-  
+
   .kdlistitemview-members.ui-draggable-dragging
     width           auto
     overflow        auto
     height          auto
-  
+
   input,textarea,button,select,option
     font-weight     400
 
@@ -81,7 +81,7 @@ body
         width       81px
       &:last-child
         width       69px
-      
+
 
 /* moz hack for font weights */
 @css {
@@ -123,7 +123,7 @@ body
         sprite()
         &:hover
           bg          position, -60px -244px
-          
+
       &:hover
         color         white
   > section
@@ -191,7 +191,7 @@ body.loggedIn
 //       left            260px
 
 
-/* 
+/*
 **  Navigation & Application Menu STYLES
 */
 
@@ -206,6 +206,24 @@ body.loggedIn
     margin              0 6px 0 0
     overflow            visible
 
+    &.selected
+      border                1px solid transparent
+      border-width          1px 0
+      border-color          transparent
+      margin                0 10px 0 0
+      text-shadow           0 1px 0 #fff
+      cursor                pointer
+      bg                    color,rgba(0, 0, 0, 0.20)
+      .title
+        font-weight         600!important
+        color               white!important
+        bg                  image,none
+        bg                  color,transparent
+        text-shadow         none
+        &:hover
+          color             white
+          text-decoration   none
+
   &.account
     margin                16px 0 15px 0
     .kdlistitemview.navigation-item
@@ -214,7 +232,34 @@ body.loggedIn
         padding-top     3px
         margin-top      -1px
         font-size       11px
-        line-height     18px
+        line-height
+
+.kdview.kdlistview-footer-menu
+  size                  100%, 30px
+  position              absolute
+  bottom                0
+  left                  0
+
+  .kdlistitemview
+    border              none
+    cursor              pointer
+    size                33%, 100%
+    display             inline-block
+    span
+      display           block
+      size              20px, 20px
+      margin            5px auto
+      opacity           .2
+      vendor            transition, opacity .15s linear
+      sprite()
+      &:hover
+        opacity         1
+    &.about span
+      bg                position, -160px -620px
+    &.help span
+      bg                position, -140px -620px
+    &.chat span
+      bg                position, -180px -620px
 
 #avatar-area
   overflow              visible
@@ -248,7 +293,7 @@ body.loggedIn
       a
         color             #f18932
         text-decoration   none
-  
+
 /* collapsed sidebar state */
 #main-nav-wrapper.collapsed
   .avatar-image-wrapper
@@ -274,7 +319,7 @@ span.main-nav-icon
 
   &.home
     bg(position,0 0)
-  &.activity           
+  &.activity
     bg(position,0 -80px) //new bubbles
   &.members
     bg(position,0 -60px)
@@ -346,30 +391,11 @@ span.main-nav-icon
     &.demos
       bg(position,-20px -100px)
 
-#main-nav
-  .kdlistitemview.selected
-    border                1px solid transparent
-    border-width          1px 0
-    border-color          transparent
-    margin                0 10px 0 0
-    text-shadow           0 1px 0 #fff
-    cursor                pointer
-    bg                    color,rgba(0, 0, 0, 0.20)
-    .title
-      font-weight         600!important
-      color               white!important
-      bg                  image,none
-      bg                  color,transparent
-      text-shadow         none
-      &:hover
-        color             white
-        text-decoration   none
-
 
 
 .navigation-item
   min-width         135px
-  a 
+  a
     text-decoration     none
     &:hover
       text-decoration        none
@@ -378,7 +404,7 @@ span.main-nav-icon
   .title
     margin          0
     padding         1px 0 1px 15px
-    font-weight     300!important 
+    font-weight     300!important
     font-size       14px
     line-height     20px
     overflow        hidden
@@ -405,7 +431,7 @@ span.main-nav-icon
   z-index             0
   bg                  color,transparent
   vendor              transition, top .3s linear
-  .kdtabhandle        
+  .kdtabhandle
     color             rgba(255,255,255,0.85)
     line-height       23px
     font-size         11px
@@ -422,7 +448,7 @@ span.main-nav-icon
     shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
     > div
       margin-right    14px
-      b                 
+      b
         z-index       0
         font-weight   normal
         text-overflow ellipsis
@@ -431,11 +457,11 @@ span.main-nav-icon
         width         100%
         margin-right  0
         display       block
-      
+
     span.close-tab
       z-index     10
       bg          color,transparent
-      
+
     &:hover
       bg          color,rgba(255,255,255,.3)
 
@@ -447,7 +473,7 @@ span.main-nav-icon
       border-right  1px solid rgba(255,255,255,.15)
       rounded       0 3px 0 0
       margin-left   0
-    
+
     &.first.last
       rounded       3px 3px 0 0
 
@@ -488,7 +514,7 @@ span.main-nav-icon
 
     .chevron-arrow-separator
       display         none
-      
+
     .chevron-arrow
       position        absolute
       left            2px
@@ -519,7 +545,7 @@ span.main-nav-icon
     opacity             1
     // transform           scale(1) skew(0deg)
     transition-delay    0s
-  
+
   .kdview.kdlistview
     margin              0
   .tab
@@ -540,7 +566,7 @@ span.main-nav-icon
   .content
     border              1px solid #d2d2d2
     margin-top          -27px
-    shadow              0 0 21px 10px rgba(0,0,0,0.18) 
+    shadow              0 0 21px 10px rgba(0,0,0,0.18)
     rounded        0,3px,3px,3px
     size                280px,auto
     bg                  color,white
@@ -563,22 +589,22 @@ span.main-nav-icon
 
   &.notifications
     left                52px
-    .tab 
+    .tab
       span
         bg(position,-120px -540px)
 
   &.messages
     left                105px
-    .tab 
+    .tab
       span
         bg(position,-140px -540px)
 
   &.friends-followers
     left                162px
-    .tab 
+    .tab
       span
         bg(position,-140px -540px)
-  
+
   .sublink
     border-top            1px solid #e0e0df
     font-size             11px
@@ -590,13 +616,13 @@ span.main-nav-icon
   .sublink a
     color                 #0991be
     text-decoration       none
-  
+
   .input-with-extras
-    textarea 
+    textarea
       font-size             12px !important
       color                 #5a5a5a !important
-    
-    
+
+
 .avatararea-popup-list
   margin              0
   li
@@ -646,13 +672,13 @@ span.main-nav-icon
       max-height        46px
       overflow          hidden
       color             #8e8e8e
-      span.profile      
+      span.profile
         color           linkColor1
     a
       color             linkColor1
       text-decoration   none
       font-weight       600
-      &:hover           
+      &:hover
         text-decoration underline
       span
         color           linkColor1
@@ -670,15 +696,16 @@ span.main-nav-icon
         font-size         10px
         // blockMid()
 
-/* 
+/*
 **  LEFT SIDEBAR STYLES
 */
 
 #sidebar
   #main-nav
+    position          relative
     size              160px,auto
     min-height        100%
-    overflow          hidden  
+    overflow          hidden
     .avatar-placeholder
       height          76px
       bg              color,transparent
@@ -686,8 +713,8 @@ span.main-nav-icon
       vendor          transition, margin-left .3s linear
       &.collapsed
         margin-left   -54px
-        
-    .actions          
+
+    .actions
       height          27px
       border-top      1px solid #403d37
       overflow        visible
@@ -813,7 +840,7 @@ span.main-nav-icon
     padding           6px 0
     position          relative
     min-width         9px
-  
+
   div.member-title
     margin-bottom     0
     span.short-desc
@@ -836,7 +863,7 @@ span.main-nav-icon
   background-color  transparent !important
   bg(image,url("../images/_kd.sprites.png")) !important
   bg(position,-120px -340px) !important
-  .title 
+  .title
       blockMid() !important
 
   .short-desc
@@ -906,7 +933,7 @@ span.main-nav-icon
 .comingsoon
   height               100%
   text-align           left
-  padding              40px 
+  padding              40px
   text-shadow          0 1px 0 rgba(255,255,255,.9)
   background           linear-gradient(top,  rgba(247,247,247,.47) 0%,rgba(173,173,173,1) 100%)
 
@@ -943,58 +970,58 @@ span.main-nav-icon
     line-height   22px
 
 
-.ui-resizable 
+.ui-resizable
   position: relative
-.ui-resizable-handle 
+.ui-resizable-handle
   position: absolute
   font-size: 0.1px
   z-index: 99999
   display: block
-.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle 
+.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle
   display: none
-.ui-resizable-n 
+.ui-resizable-n
   cursor: n-resize
   height: 7px
   width: 100%
   top: -5px
   left: 0
-.ui-resizable-s 
+.ui-resizable-s
   cursor: s-resize
   height: 7px
   width: 100%
   bottom: -5px
   left: 0
-.ui-resizable-e 
+.ui-resizable-e
   cursor: e-resize
   width: 7px
   right: -5px
   top: 0
   height: 100%
-.ui-resizable-w 
+.ui-resizable-w
   cursor: w-resize
   width: 7px
   left: -5px
   top: 0
   height: 100%
-.ui-resizable-se 
+.ui-resizable-se
   cursor: se-resize
   width: 12px
   height: 12px
   right: 1px
   bottom: 1px
-.ui-resizable-sw 
+.ui-resizable-sw
   cursor: sw-resize
   width: 9px
   height: 9px
   left: -5px
   bottom: -5px
-.ui-resizable-nw 
+.ui-resizable-nw
   cursor: nw-resize
   width: 9px
   height: 9px
   left: -5px
   top: -5px
-.ui-resizable-ne 
+.ui-resizable-ne
   cursor: ne-resize
   width: 9px
   height: 9px
@@ -1012,7 +1039,7 @@ span.main-nav-icon
 
   textarea.kdinput
     height        80px
-  
+
   .modal-hint
     height        auto
     gradient      #333333,#454546
@@ -1043,6 +1070,6 @@ span.main-nav-icon
       rounded     2px
       bg          color,linkColor1
       color       white
-      
-      
-      
+
+
+

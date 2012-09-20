@@ -139,14 +139,6 @@ class JPost extends jraphical.Message
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 
-  fetchOrigin: (callback)->
-    originType = @getAt 'originType'
-    originId   = @getAt 'originId'
-    if Base.constructors[originType]?
-      Base.constructors[originType].one {_id: originId}, callback
-    else
-      callback null
-
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
