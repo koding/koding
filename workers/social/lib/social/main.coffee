@@ -37,6 +37,8 @@ Bongo = require 'bongo'
 Broker = require 'broker'
 {amqp, mongo, email} = require './config'
 
+{Relationship} = require 'jraphical'
+
 koding = new Bongo
   root        : __dirname
   mongo       : mongo
@@ -55,27 +57,45 @@ feeder = new Feeder
 
 handleClient = do ->
   clients = {}
+  {mq} = koding
+
+  getOwnExchangeName = (account) ->
+    "x#{account.profile.nickname}"
+
+  getExchange = (exchangeName) ->
+    mq.connection.exchanges[exchangeName]
+
+  prepareBroker = (account, callback) ->
+    ownExchangeName = getOwnExchangeName account
+    mq.createExchange ownExchangeName, {autoDelete: true}, callback
 
   handleFolloweeActivity = (account) ->
-    ownExchangeName = "x#{account.profile.nickname}"
-    # When client logs in, create own queue to consume real-time updates
-    koding.mq.bindQueue ownExchangeName, ownExchangeName, '#', {exchangeAutoDelete: false}
-    # Client will receive followee's post (not own) on client's queue, then
-    # forward it to the worker queue by publishing to own exchange. The
-    # worker queue is consuming from this exchange.
-    ownExchange = koding.mq.connection.exchanges[ownExchangeName]
-    koding.mq.subscribe ownExchangeName, (message, headers, deliveryInfo) =>
-      publisher = deliveryInfo.exchange
-      ownExchange.publish "feed", message, {deliveryMode: 2}
+    ownExchangeName = getOwnExchangeName account
+    ownExchange = getExchange ownExchangeName
+    # When client logs in, listen to message from own exchange and
+    # publish followees' activies to own exchange on a different
+    # routing so that worker queue can consume from it.
+    mq.on(
+      ownExchangeName,
+      "#.activity", 
+      ownExchangeName, 
+      (message, headers, deliveryInfo) ->
+        publisher = deliveryInfo.exchange
+        unless publisher is getOwnExchangeName account
+          ownExchange.publish "feed", message, {deliveryMode: 2}
+    )
 
   handleOwnActivity = (account) ->
-    # Listen to when an activity is posted and publish it to MQ
+    ownExchangeName = getOwnExchangeName account
+    ownExchange = getExchange ownExchangeName
+    # Listen to when an activity is posted and publish own activity to MQ
     koding.models.CActivity.on "feed.new", ([model]) ->
-      console.log "account", account
-      console.log model
-      options = deliveryMode: 2
-      payload = JSON.stringify model
-      # ownExchange.publish "#{ownExchangeName}.activity", payload, options
+      unless account.getId().toString() is model.originId.toString()
+        console.log "other feed"
+      else
+        options = deliveryMode: 2
+        payload = JSON.stringify model
+        ownExchange.publish "#{ownExchangeName}.activity", payload, options
   
   handleFollowAction = (account) ->
     account.on "FollowCountChanged", () ->
@@ -92,9 +112,10 @@ handleClient = do ->
     nickname = delegate.profile.nickname
     return if clients[nickname]
     clients[nickname] = client
-    handleFolloweeActivity delegate
-    handleOwnActivity delegate
-    handleFollowAction delegate
+    prepareBroker delegate, ->
+      handleFolloweeActivity delegate
+      handleOwnActivity delegate
+      handleFollowAction delegate
 
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
