@@ -60,7 +60,8 @@ class ActivityUpdateWidgetController extends KDViewController
 
             # notify the user
             notifiy = new KDNotificationView
-              title: "Submitting your Code Share - This may take up to  seconds"
+              title: "Submitting your Code Share"
+              content: "This may take up to ten seconds. Thank you for your patience!"
               duration: 5000
 
             # then wait x seconds

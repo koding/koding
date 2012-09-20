@@ -39,18 +39,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
     opinionList.on "BackgroundActivityStarted", => @loader.show()
     opinionList.on "BackgroundActivityFinished", => @loader.hide()
 
-    @likeLink.registerListener
-      KDEventTypes  : "Click"
-      listener      : @
-      callback      : =>
-        if KD.isLoggedIn()
-          activity.like (err)=>
-            if err
-              log "Something went wrong while like:", err
-              new KDNotificationView
-                title     : "You already liked this!"
-                duration  : 1300
-
   pistachio:->
     """
     {{> @loader}}
@@ -58,5 +46,5 @@ class DiscussionActivityActionsView extends ActivityActionsView
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
-    {{> @likeLink}}{{> @likeCount}}
+    {{> @likeView}}
     """
