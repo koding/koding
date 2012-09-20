@@ -53,8 +53,9 @@ start(_StartType, _StartArgs) ->
 
     error_logger:tty(get_env(verbose, true)),
     
+    SockOpts = [{websocket, true}, {cookie_needed, true}],
     SockjsState = sockjs_handler:init_state(
-                    <<"/subscribe">>, fun handle_client/3, {}, []),
+                    <<"/subscribe">>, fun handle_client/3, {}, SockOpts),
     VhostRoutes = [
         {
             [<<"subscribe">>, '...'], 
@@ -108,10 +109,6 @@ handle(Req, State) ->
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
-        [] ->
-            {ok, Data} = file:read_file("./apps/broker/priv/www/index.html"),
-            cowboy_http_req:reply(200, [{<<"Content-Type">>, "text/html"}],
-                               Data, Req1);
         _ ->
             cowboy_http_req:reply(404, [],
                                <<"404 - Nothing here\n">>, Req1)
