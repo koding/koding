@@ -22,6 +22,10 @@ app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
+process.on 'uncaughtException'(err)->
+  console.error err
+  console.trace()
+
 koding = new Bongo {
   mongo
   root: __dirname
