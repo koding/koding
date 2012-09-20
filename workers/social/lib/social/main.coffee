@@ -77,13 +77,24 @@ handleClient = do ->
       payload = JSON.stringify model
       # ownExchange.publish "#{ownExchangeName}.activity", payload, options
   
+  handleFollowAction = (account) ->
+    account.on "FollowCountChanged", () ->
+      console.log "FollowCountChanged111", arguments
+      return unless action? is "follow" or "unfollow"
+      # Set up the exchange-to-exchange binding for followings.
+      followerNick = follower.profile.nickname
+      routingKey = "#{followerNick}.activity"
+      method = "#{action.replace 'follow', 'bind'}Exchange"
+      koding.mq[method] ownExchangeName, "x#{followerNick}", routingKey
+
   (client) ->
     {delegate} = client.connection
     nickname = delegate.profile.nickname
     return if clients[nickname]
     clients[nickname] = client
-    handleFolloweeActivity(delegate)
-    handleOwnActivity(delegate)
+    handleFolloweeActivity delegate
+    handleOwnActivity delegate
+    handleFollowAction delegate
 
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
@@ -92,24 +103,11 @@ koding.on 'auth', (exchange, sessionToken)->
 
     handleClient client
 
-    # handleFolloweeActivity()
-
     # # Bind to feed worker queue
     # workerQueueOptions =
     #   exchangeAutoDelete: false
     #   queueExclusive: false
     # koding.mq.bindQueue "koding-feeder", ownExchangeName, "#.activity", workerQueueOptions
-
-    #handleOwnActivity(delegate) 
-
-    # delegate.on "FollowCountChanged", () ->
-    #   console.log "FollowCountChanged111", arguments
-    #   return unless action? is "follow" or "unfollow"
-    #   # Set up the exchange-to-exchange binding for followings.
-    #   followerNick = follower.profile.nickname
-    #   routingKey = "#{followerNick}.activity"
-    #   method = "#{action.replace 'follow', 'bind'}Exchange"
-    #   koding.mq[method] ownExchangeName, "x#{followerNick}", routingKey
 
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
