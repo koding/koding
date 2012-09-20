@@ -97,6 +97,7 @@ app.activity.styl
       text-decoration   none
       font-size         88%
 
+  .new-updates
     span
       rounded           3px
       background-color  #FF9200
@@ -159,19 +160,29 @@ app.activity.styl
 
     >.new-member
       .icon
-        bg(position,-320px -180px)
+        bg                position,-320px -180px
     >.follow
       .icon
-        bg(position,-320px -160px)
+        bg                position,-320px -160px
     >.profile-update
       .icon
-        bg(position,-340px -160px)
+        bg                position,-340px -160px
     >.tagged
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
     >.topic
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
+    >.application
+      a.app
+        font-family       mono
+        bg                color, #eee
+        padding           2px 5px 1px 5px
+        shadow            inset 0 0 2px rgba(0, 0, 0, 0.1)
+        rounded           2px
+
+      .icon
+        bg                position,-320px -200px
 
   .activity-item
     max-width           840px

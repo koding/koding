@@ -18,7 +18,7 @@ class Shell12345 extends KDViewController
     @sendCount = 0
     @keyStrokeCount = 0
     @resetBufferedKeyStrokes()
-    
+
     shellView.registerListener KDEventTypes:'AdvancedSettingsFunction', listener:@, callback:(pubInst, {functionName})=>
       switch functionName
         when 'clear'
@@ -34,8 +34,8 @@ class Shell12345 extends KDViewController
             if not clientType
               clientType = shellView.clientType
             @resetTerminalSession clientType
-    
-  
+
+
   nextScreenDiff:(data, messageNum)->
     {_lastMessageProcessed, _orderedMessages} = @
     _orderedMessages[messageNum] = data
@@ -48,34 +48,34 @@ class Shell12345 extends KDViewController
         currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
         # currentScreen = diff
         @getView().updateScreen(currentScreen)
-        @lastScreen = currentScreen      
+        @lastScreen = currentScreen
         @_lastMessageProcessed = i-1
-  
+
   resetMessageCounter:->
     console.log 'message counter is reset.'
     @_lastMessageProcessed = 0
     @_orderedMessages = []
-  
+
   generateTerminalOptions : ()->
     view = @getView()
     options = view.getSize()
-    options.callbacks = 
-      data : (data, messageNum) => 
+    options.callbacks =
+      data : (data, messageNum) =>
         @nextScreenDiff data, messageNum
-        
+
         # console.log "screen:",JSON.stringify data,messageNum
       error : (error) =>
         @getView().disableInput()
         msg = "connection closed"
         if error.msg then msg += ",#{error.msg}"
         @setNotification msg
-        
+
       ping : () =>
         try
           @terminal.ping()
         catch e
           console.log "terminal ping error: #{e}"
-        
+
     options.callbacks.newSession = (totalViews)=>
       console.log "new session"
       notification = new KDNotificationView
@@ -92,6 +92,8 @@ class Shell12345 extends KDViewController
       @notification = new KDNotificationView
         title   : "#{msg}"
         duration: 0
+        click   : =>
+          @notification.destroy()
 
   resetTerminalSession :(type)->
     @setNotification "restarting terminal"
@@ -104,7 +106,7 @@ class Shell12345 extends KDViewController
       console.log "terminal kill error : #{e}"
     options = @generateTerminalOptions()
     options.type = type ? view.clientType
-    @account.tellKite 
+    @account.tellKite
       kiteName :"terminaljs"
       toDo     :"create"
       withArgs : options
@@ -115,13 +117,13 @@ class Shell12345 extends KDViewController
         @setNotification()
         @terminal = terminal
         @welcomeUser yes
-      
+
   initApplication:(options,callback)=>
     @applyStyleSheet ()=>
       callback()
       @propagateEvent
         KDEventType : 'ApplicationInitialized', globalEvent : yes
-  
+
   bringToFront:()=>
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -131,15 +133,15 @@ class Shell12345 extends KDViewController
         hiddenHandle      : no
         applicationType   : 'Shell.kdapplication'
       data : @getView()
-      
+
     appManager.addOpenTab @getView(), 'Shell.kdapplication'
     @getView().input.setFocus()
-    
+
   initAndBringToFront:(options,callback)=>
     @initApplication options, =>
       @bringToFront()
       callback()
-  
+
   closeView:(view)->
     appManager.removeOpenTab @getView()
     view.parent.removeSubView view
@@ -174,7 +176,7 @@ class Shell12345 extends KDViewController
     options = @generateTerminalOptions()
     options.type = view.clientType
     # @pickAResponsiveKite {},(err,kiteId)=>
-    #   console.log "whatup",err,kiteId 
+    #   console.log "whatup",err,kiteId
     console.log 'initial terminal is called'
     KD.singletons.kiteController.run
       kiteName  : "terminaljs"
@@ -188,12 +190,12 @@ class Shell12345 extends KDViewController
       else
         window.T = terminal
         @sendCount = 0
-        @keyStrokeCount = 0 
+        @keyStrokeCount = 0
         @terminal = terminal
         @welcomeUser terminal.isNew
         callback? terminal.totalSessions
-  
-      
+
+
   loadView:(mainView)->
 
     @initiateTerminal (totalSessions)=>
@@ -215,7 +217,7 @@ class Shell12345 extends KDViewController
       @terminal.resize options.rows, options.cols
     catch e
       console.log "terminal.resize error #{e}"
-  
+
   sendThrottled : _.throttle ->
     @sendCount++
     baseTime = @bufferedKeyStrokes[0][2]
@@ -224,7 +226,7 @@ class Shell12345 extends KDViewController
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
     @resetBufferedKeyStrokes()
   ,100
-  
+
   resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
 
   send: (command) ->
@@ -234,7 +236,7 @@ class Shell12345 extends KDViewController
     @keyStrokeCount++
     @sendThrottled()
     # @terminal.write command
-    
+
     # try
     # snd command
     # catch e
@@ -249,14 +251,14 @@ class Shell12345 extends KDViewController
 #   return application
 
 # class Shell1234512345 extends AppController
-# 
+#
 #   constructor:(options = {}, data)->
 #     options.view = new KDView
 #       cssClass : "content-page"
 #       domId    : "termDiv"
-#       
+#
 #     super options, data
-# 
+#
 #   bringToFront:()=>
 #     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
 #       options :
@@ -266,16 +268,16 @@ class Shell12345 extends KDViewController
 #         hiddenHandle      : no
 #         applicationType   : 'Shell.kdapplication'
 #       data : @getView()
-#       
+#
 #     appManager.addOpenTab @getView(), 'Shell.kdapplication'
 #     @getView().input.setFocus()
-# 
+#
 #   loadView:(mainView)->
-# 
+#
 #     @termOpen()
-# 
+#
 #   termOpen : ->
-# 
+#
 #     @term = new Terminal
 #       x         : 0 # @view.getWidth()  #220
 #       y         : 0 # @view.getHeight() #70
@@ -289,7 +291,7 @@ class Shell12345 extends KDViewController
 #       # ctrlHandler: termCtrlHandler
 #       # printTab: false
 #       # closeOnESC: false
-# 
+#
 #     @term.open()
 #     # mainPane = (if (document.getElementById) then document.getElementById("mainPane") else document.all.mainPane)
 #     # # mainPane = document.getElementById @view.getDomId

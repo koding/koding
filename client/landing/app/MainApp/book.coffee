@@ -10,23 +10,23 @@
 class BookView extends JView
 
   @lastIndex = 0
-  
+
   constructor: (options = {},data) ->
-    
+
     options.domId    = "instruction-book"
     options.cssClass = "book"
 
     super options, data
-    
+
     @currentIndex = 0
-    
+
     @right = new KDView
       cssClass : "right-page right-overflow"
       click    : -> @setClass "flipped"
 
     @left = new KDView
       cssClass : "left-page fl"
-  
+
     @putOverlay cssClass : "", isRemovable : yes, animated : yes
     @once "OverlayAdded", =>
       @$overlay.css zIndex : 999
@@ -36,30 +36,34 @@ class BookView extends JView
 
     @once "OverlayRemoved", =>
       @destroy()
-    
-    # @fillPage @getPage()
-    
+
     @setKeyView()
-    
+    @registerSingleton "InstructionsBook", @
+
   pistachio:->
-    
+
     """
     {{> @left}}
     {{> @right}}
     """
-  
+
   click:-> @setKeyView()
 
   keyDown:(event)->
-    
+
     switch event.which
       when 37 then do @fillPrevPage
       when 39 then do @fillNextPage
-  
+
   getPage:(index = 0)->
-    
+
     @currentIndex = index
-    new BookPage {}, __bookPages[index]
+    
+    page = new BookPage 
+      delegate : @
+    , __bookPages[index]
+
+    return page
 
   fillPrevPage:->
 
@@ -68,13 +72,13 @@ class BookView extends JView
     @fillPage @currentIndex - 1
 
   fillNextPage:->
-    
+
     return if __bookPages.length is @currentIndex + 1
     BookView.lastIndex = @currentIndex + 1
     @fillPage @currentIndex + 1
-  
+
   fillPage:(index)->
-    
+
     index or= BookView.lastIndex
     page = @getPage index
     @right.setClass "out"
@@ -83,15 +87,15 @@ class BookView extends JView
       @right.destroySubViews()
       @right.addSubView page
       @right.unsetClass "out"
-      
-  
-  
+
+
+
 
 
 class BookPage extends JView
 
   constructor: (options = {},data) ->
-    
+
     data.cssClass  or= ""
     data.content   or= ""
     data.profile     = KD.whoami().profile
@@ -99,7 +103,7 @@ class BookPage extends JView
     options.tagName  = "section"
 
     super options, data
-    
+
     @header = new KDView
       tagName   : "header"
       partial   : "#{data.title}"
@@ -110,13 +114,14 @@ class BookPage extends JView
       cssClass  : "content-wrapper"
       pistachio : data.content
     , data
-    
+
     konstructor = if data.embed then data.embed else KDCustomHTMLView
 
     @embedded = new konstructor
-  
+      delegate : @getDelegate()
+
   pistachio:->
-    
+
     """
     {{> @header}}
     {{> @content}}
@@ -124,30 +129,105 @@ class BookPage extends JView
       {{> @embedded}}
     </div>
     """
-  
+
 
 class BookTableOfContents extends JView
-  
-  pistachio:->
-    
-    """
-    table of contents
-    """
-
-class BookUpdateWidget extends JView
 
   pistachio:->
+
+    tmpl = ""
+    for page, nr in __bookPages
+      if page.title and page.anchor isnt no
+        tmpl += "<a href='#'>#{page.title}</a><span>#{nr+1}</span><br>"
+
+    return tmpl
+
+  click:(event)->
+    if $(event.target).is("a")
+      nr = parseInt($(event.target).next().text(), 10)-1
+      @getDelegate().fillPage nr
+
+
+class BookUpdateWidget extends KDView
+
+  viewAppended:->
+
+    @setPartial "<span class='button'></span>"
+    @addSubView @statusField = new KDHitEnterInputView
+      type          : "text"
+      defaultValue  : "Hello World!"
+      focus         : => @statusField.setKeyView()
+      click         : (pubInst, event)=> 
+        event.stopPropagation()
+        no
+      validate      :
+        rules       :
+          required  : yes
+      callback      : (status)=> @updateStatus status
+
+    @statusField.$().trigger "focus"
+
+
+  updateStatus:(status)->
+
+    @getDelegate().$().css left : -1349
+
+    bongo.api.JStatusUpdate.create body : status, (err,reply)=>
+      @utils.wait 2000, =>
+        @getDelegate().$().css left : -700
+      unless err
+        appManager.tell 'Activity', 'ownActivityArrived', reply
+        new KDNotificationView
+          type     : 'growl'
+          cssClass : 'mini'
+          title    : 'Message posted!'
+          duration : 2000
+        @statusField.setValue ""
+        @statusField.setPlaceHolder reply.body
+      else
+        new KDNotificationView type : "mini", title : "There was an error, try again later!"
+
+class BookTopics extends KDView
+
+  viewAppended:->
     
-    """
-    update widget
-    """
+    @addSubView loader = new KDLoaderView
+      size          : 
+        width       : 60
+      loaderOptions :
+        color       : "#666666"
+        shape       : "spiral"
+        diameter    : 60
+        density     : 60
+        range       : 0.6
+        speed       : 2
+        FPS         : 25
+
+    @utils.wait -> loader.show()
     
+    appManager.tell "Topics", "fetchCustomTopics",
+      limit : 20
+    , (err, topics)=>
+      loader.hide()
+      unless err
+        for topic in topics
+          @addSubView topicLink = new TagLinkView null, topic
+          topicLink.registerListener
+            KDEventTypes : "click"
+            listener     : @
+            callback     : =>
+              @getDelegate().$().css left : -1349
+              @utils.wait 4000, =>
+                @getDelegate().$().css left : -700
+
+
 class BookDevelopButton extends KDButtonViewWithMenu
-    
+
 
 __bookPages = [
 
     title     : "Table of Contents"
+    anchor    : no
     embed     : BookTableOfContents
   ,
     title     : "A Story"
@@ -181,12 +261,15 @@ __bookPages = [
     embed     : BookUpdateWidget
   ,
     title     : "Topics"
+    embed     : BookTopics
     content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences. In addition to public tags, there are also private tags for within groups.</p>
                    <p>Select from a few of our most popular topics to the right. At anytime, you can return to the Topics board to Follow more, or stop following those you’ve selected.</p>
                    <p>Can’t find what you’re looking for? Start a new topic!</p>"""
   ,
     title     : "Members"
-    content   : "<p>Welcome to the club! Here you’ll find all of Koding’s members. Follow people you’re working with, you’re learning from, or maybe some that you just find interesting...here’s your chance to connect and collaborate! Feel free to follow the whole Koding Team!</p>"
+    content   : """<p>Welcome to the club!</p>
+                   <p>Here you’ll find all of Koding’s members. Follow people you’re working with, you’re learning from, or maybe some that you just find interesting...</p>
+                   <p>here’s your chance to connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
   ,
     title     : "Develop"
     content   : """<p>This is what Koding is all about. Here, you can view, edit, and preview files. Here’s a quck tour of the tool.</p>
