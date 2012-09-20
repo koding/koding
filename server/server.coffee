@@ -65,13 +65,17 @@ app.get '/auth', (req, res)->
         privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
         
-        koding.mq.bindQueue(
-          privName, privName, "client-message",
-          {queueDurable:no, queueExclusive:no},
-          ->
-            koding.mq.emit(channel, 'join', {user: username, queue: privName})
-            return res.send privName
-        )
+        bindKiteQueue = (binding, callback) ->
+          koding.mq.bindQueue(
+            privName, privName, binding,
+            {queueDurable:no, queueExclusive:no},
+            callback
+            )
+
+        bindKiteQueue "client-message", ->
+          bindKiteQueue "disconnected"
+          koding.mq.emit(channel, 'join', {user: username, queue: privName})
+          return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
