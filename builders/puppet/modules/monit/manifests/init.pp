@@ -59,7 +59,7 @@ define monit::nodeapp ($appname,$isenabled,$nodeuser,$require_deploy) {
         logoutput => "on_failure",
         #require   => Class['mount_nas']
         #require => [Class["gluster_client"],Class["nodejs_rpm::install"]]
-        require => Class["nodejs_rpm::install"]
+        #require => Class["nodejs_rpm::install"]
     }
 
 }
