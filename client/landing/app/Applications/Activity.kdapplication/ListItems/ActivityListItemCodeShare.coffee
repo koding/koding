@@ -72,7 +72,7 @@ class CodeShareActivityItemView extends ActivityItemChild
       title            : "Fork this Code Share"
       cssClass         : "clean-gray fork-button"
       click            : =>
-        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
+        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', @getData()
 
     @resultBanner = new KDCustomHTMLView
       tagName     : "div"
@@ -223,9 +223,9 @@ class CodeShareResultView extends KDCustomHTMLView
 
     @on "CodeShareSourceHasChanges",(data)=>
       codeshare = data
-      codeshare.html= Encoder.htmlDecode(codeshare.attachments[0].content)
-      codeshare.css = Encoder.htmlDecode(codeshare.attachments[1].content)
-      codeshare.js  = Encoder.htmlDecode(codeshare.attachments[2].content)
+      codeshare.html= Encoder.htmlDecode(codeshare.attachments?[0]?.content) or codeshare.codeHTML
+      codeshare.css = Encoder.htmlDecode(codeshare.attachments?[1]?.content) or codeshare.codeCSS
+      codeshare.js  = Encoder.htmlDecode(codeshare.attachments?[2]?.content) or codeshare.codeJS
       @handleMarkdown codeshare, (codeshare_)=>
         @handleCoffee codeshare_, (result)=>
           @setResultObject result

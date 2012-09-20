@@ -50,8 +50,24 @@ class ActivityUpdateWidgetController extends KDViewController
           if submissionStopped
             return notifySubmissionStopped()
           else
-            @codeShareWidgetSubmit data, stopSubmission
+
+            # this forces the iframe to load the code and execute it
+            codeShareWidget.codeShareResultView.hide()
+            codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
+
+            # reset widget tab as if it was submitted
             mainView.resetWidgets()
+
+            # notify the user
+            notifiy = new KDNotificationView
+              title: "Submitting your Code Share - This may take up to  seconds"
+              duration: 5000
+
+            # then wait x seconds
+            window.setTimeout =>
+              #only if the browser/tab did not lock up due to script execution, this will run
+              @codeShareWidgetSubmit data, stopSubmission
+            , 5000
 
     mainView.addWidgetPane
       paneName    : "link"

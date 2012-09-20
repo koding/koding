@@ -595,9 +595,10 @@ class ActivityCodeShareWidget extends KDFormView
     @addCustomData "codeCSS", Encoder.htmlEncode @CSSace.getContents()
     @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
 
-    @once "FormValidationPassed", => @reset()
-
-    ## checkbox debug ## log "csw::submit/post (@getData().prefixCSSCheck):",@getData().prefixCSSCheck," (@getData().prefixCSS):",@getData().prefixCSS
+    @once "FormValidationPassed", =>
+      setTimeout =>
+        @reset()
+      ,8000
 
     super
 
@@ -742,7 +743,7 @@ class ActivityCodeShareWidget extends KDFormView
       @$("select[name=libsJS]").val(libsJS).trigger "change"
 
       @$("input[name=classesHTML]").val(classesHTML)
-      @$("input[name=extrasHTML]").val(extrasHTML)
+      @$("input[name=extrasHTML]").val(Encoder.htmlDecode extrasHTML)
       @$("input[name=externalCSS]").val(externalCSS)
       @$("input[name=externalJS]").val(externalJS)
 
@@ -776,6 +777,7 @@ class ActivityCodeShareWidget extends KDFormView
     # basically, count to three for every Ace firing its ready event
     @aceLoadCount = 0
     @aceLoaded = no
+
     @HTMLace.on "ace.ready",=>
       @aceLoadCount++
       @checkForAce()
