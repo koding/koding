@@ -105,7 +105,7 @@ module.exports = class Builder
   wrapWithJSClosure : (js)-> "(function(){#{js}}).call(this);"
 
   buildIndex : (options,callback)->
-    console.log 'building index', options
+    console.log 'building index', @options
     fs.readFile @options.indexMaster, 'utf-8',(err,data)=>
 
       index = data
