@@ -20,7 +20,8 @@ module.exports =
     index       : "./website_nonstatic/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
-    useStaticFilesServer: no
+    useStaticFileServer: no
+    staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
       version   : version
       mainUri   : 'https://dev.koding.com'
@@ -29,7 +30,6 @@ module.exports =
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
       apiUri    : 'https://api.koding.com'
-      # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :
     host        : 'localhost'
     login       : 'guest'
