@@ -3,7 +3,7 @@
 {webPort, mongo, amqp} = require argv.c
 webPort = argv.p if argv.p?
 
-path = __dirname+'/..'
+projectRoot = require('path').join(__dirname, '/..')
 
 express = require 'express'
 Broker = require 'broker'
@@ -17,7 +17,7 @@ app = express.createServer()
 app.use express.bodyParser()
 app.use express.cookieParser()
 app.use express.session {"secret":"foo"}
-app.use gzippo.staticGzip "#{path}/website/"
+app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
@@ -72,7 +72,7 @@ app.get "/", (req, res)->
   else
     # log.info "serving index.html"
     res.header 'Content-type', 'text/html'
-    fs.readFile "#{path}/website_nonstatic/index.html", (err, data) ->
+    fs.readFile "#{projectRoot}/website_nonstatic/index.html", (err, data) ->
       throw err if err
       res.send data
 
