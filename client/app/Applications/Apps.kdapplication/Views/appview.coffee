@@ -53,8 +53,41 @@ class AppView extends KDView
               callback? err
         ]
       , app
+
+      @removeButton = new KDButtonView
+        title    : "Delete"
+        style    : "kdwhitebtn"
+        callback : =>
+          modal = new KDModalView
+            title          : "Delete App"
+            content        : "<div class='modalformline'>Are you sure you want to delete this application?</div>"
+            height         : "auto"
+            overlay        : yes
+            buttons        :
+              Delete       :
+                style      : "modal-clean-red"
+                loader     :
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  app.delete (err)=>
+                    modal.buttons.Delete.hideLoader()
+                    modal.destroy()
+                    if not err
+                      @emit 'AppDeleted', app
+                      appManager.openApplication "Apps", yes, (instance)=>
+                        @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
+                        callback?()
+                    else
+                      new KDNotificationView
+                        type     : "mini"
+                        cssClass : "error editor"
+                        title    : "Error, please try again later!"
+                      warn err
+
     else
       @approveButton = new KDView
+      @removeButton  = new KDView
 
     app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
@@ -138,7 +171,6 @@ class AppView extends KDView
       <span>
         <a class='profile-avatar' href='#'>{{ @putThumb #(manifest)}}</a>
       </span>
-      {{> @approveButton}}
     </div>
     <section class="right-overflow">
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
@@ -153,6 +185,10 @@ class AppView extends KDView
         <div class="appfollowlike">
           {{> @followButton}}
           {{> @likeButton}}
+        </div>
+        <div class="appfollowlike">
+          {{> @approveButton}}
+          {{> @removeButton}}
         </div>
       </div>
     </section>
