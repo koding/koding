@@ -6,6 +6,7 @@ class JPost extends jraphical.Message
   @::mixin Notifying::
   @mixin Flaggable
   @::mixin Flaggable::
+  @::mixin Likeable::
 
   {Base,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -33,7 +34,7 @@ class JPost extends jraphical.Message
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
     schema            : schema
     relationships     :
@@ -139,14 +140,6 @@ class JPost extends jraphical.Message
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 
-  fetchOrigin: (callback)->
-    originType = @getAt 'originType'
-    originId   = @getAt 'originId'
-    if Base.constructors[originType]?
-      Base.constructors[originType].one {_id: originId}, callback
-    else
-      callback null
-
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
     if delegate.getId().equals @originId
@@ -167,10 +160,8 @@ class JPost extends jraphical.Message
       callback new KodingError "Access denied"
 
   delete: secure ({connection:{delegate}}, callback)->
-    originId = @getAt 'originId'
-    unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
-    else
+
+    if delegate.can 'delete', this
       id = @getId()
       {getDeleteHelper} = Relationship
       queue = [
@@ -192,6 +183,8 @@ class JPost extends jraphical.Message
       dash queue, =>
         @emit 'PostIsDeleted', 1
         callback null
+    else
+      callback new KodingError 'Access denied!'
 
   fetchActivityId:(callback)->
     Relationship.one {
@@ -255,53 +248,6 @@ class JPost extends jraphical.Message
       callback
     ]
     daisy queue
-
-  like: secure ({connection}, callback)->
-    {delegate} = connection
-    {constructor} = @
-    unless delegate instanceof constructor.getAuthorType()
-      callback new Error 'Only instances of JAccount can like things.'
-    else
-      Relationship.one
-        sourceId: @getId()
-        targetId: delegate.getId()
-        as: 'like'
-      , (err, likedBy)=>
-        if err
-          callback err
-        else
-          unless likedBy
-            @addLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
-              if err
-                callback err
-              else
-                @update ($set: 'meta.likes': count), callback
-                @fetchActivityId (err, id)->
-                  CActivity.update {_id: id}, {
-                    $set: 'sorts.likesCount': count
-                  }, log
-                @fetchOrigin (err, origin)=>
-                  if err then log "Couldn't fetch the origin"
-                  else @emit 'LikeIsAdded', {
-                    origin
-                    subject       : ObjectRef(@).data
-                    actorType     : 'liker'
-                    actionType    : 'like'
-                    liker    		  : ObjectRef(delegate).data
-                    likesCount	  : count
-                    relationship  : docs[0]
-                  }
-          else
-            callback new KodingError 'You already like this.'
-            ###
-            @removeLikedBy delegate, respondWithCount: yes, (err, docs, count)=>
-              if err
-                callback err
-                console.log err
-              else
-                count ?= 1
-                @update ($set: 'meta.likes': count), callback
-            ###
 
   reply: secure (client, replyType, comment, callback)->
     {delegate} = client.connection

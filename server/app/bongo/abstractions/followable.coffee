@@ -69,7 +69,6 @@ class Followable extends jraphical.Module
         callback new KodingError('already following...'), count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
-          console.log 'Kount', count
           if err
             callback err
           else
@@ -98,11 +97,11 @@ class Followable extends jraphical.Module
 
   unfollow: bongo.secure (client,callback)->
     follower = client.connection.delegate
-    @removeFollower follower, respondWithCount : yes, (err, docs, count)=>
+    @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err
       else
-        bongo.Model::update.call @, $set: 'counts.followers': count, (err)->
+        Module::update.call @, $set: 'counts.followers': count, (err)->
           throw err if err
         callback err, count
         @emit 'FollowCountChanged'
@@ -115,18 +114,7 @@ class Followable extends jraphical.Module
     _.extend query,
       targetId  : @getId()
       as        : 'follower'
-    # log query, page
-    Relationship.some query, page, (err, docs)->
-      if err then callback err
-      else
-        ids = (rel.sourceId for rel in docs)
-        JAccount.all _id: $in: ids, (err, accounts)->
-          callback err, accounts
-
-  fetchFollowers: (query, page, callback)->
-    _.extend query,
-      targetId  : @getId()
-      as        : 'follower'
+      sourceName: @constructor.name
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else

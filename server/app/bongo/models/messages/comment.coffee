@@ -1,28 +1,34 @@
 class JComment extends jraphical.Reply
-  
+
   {ObjectId,ObjectRef,dash,daisy} = require 'bongo'
   {Relationship}  = require 'jraphical'
-  
+
+  @::mixin Likeable::
+
   @share()
 
   @set
-    sharedMethods :
-      instance    : ['delete']
-    schema        :
-      isLowQuality: Boolean
-      body        :
-        type      : String
-        required  : yes
-      originType  :
-        type      : String
-        required  : yes
-      originId    :
-        type      : ObjectId
-        required  : yes
-      deletedAt   : Date
-      deletedBy   : ObjectRef
-      meta        : require 'bongo/bundles/meta'
-  
+    sharedMethods  :
+      instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
+    schema         :
+      isLowQuality : Boolean
+      body         :
+        type       : String
+        required   : yes
+      originType   :
+        type       : String
+        required   : yes
+      originId     :
+        type       : ObjectId
+        required   : yes
+      deletedAt    : Date
+      deletedBy    : ObjectRef
+      meta         : require 'bongo/bundles/meta'
+    relationships  :
+      likedBy      :
+        targetType : JAccount
+        as         : 'like'
+
   delete: bongo.secure (client, callback)->
     {delegate} = client.connection
     {getDeleteHelper} = Relationship
@@ -57,9 +63,9 @@ class JComment extends jraphical.Reply
     dash queue, callback
 
 class CCommentActivity extends CActivity
-  
+
   {Relationship} = jraphical
-  
+
   @share()
 
   @set
@@ -107,5 +113,5 @@ class CCommentActivity extends CActivity
                                   'commenter'
                               , (err)->
                                 if err
-                                  console.log "Couldn't add an activity", err 
+                                  console.log "Couldn't add an activity", err
   @init()

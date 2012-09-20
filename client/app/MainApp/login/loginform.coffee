@@ -42,6 +42,10 @@ class LoginInlineForm extends LoginViewInlineForm
         color     : "#ffffff"
         diameter  : 21
 
+  resetDecoration:->
+    @username.resetDecoration()
+    @password.resetDecoration()
+
   pistachio:->
     """
     <div>{{> @username}}</div>

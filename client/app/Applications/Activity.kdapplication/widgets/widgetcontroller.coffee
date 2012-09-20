@@ -92,17 +92,13 @@ class ActivityUpdateWidgetController extends KDViewController
 
     mainView.showPane "update"
 
-    codeSnippetPane.registerListener
-      KDEventTypes : 'PaneDidShow'
-      listener     : @
-      callback     : -> codeWidget.widgetShown()
+    codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
-    codeSharePane.registerListener
-      KDEventTypes : 'PaneDidShow'
-      listener     : @
-      callback     : -> codeShareWidget.widgetShown()
+    codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+      # Remove this if can fix the ActivityStatusUpdateWidget's bug
+      appManager.openApplication "Activity"
       mainView.setClass "edit-mode"
 
       switch activity.bongo_.constructorName

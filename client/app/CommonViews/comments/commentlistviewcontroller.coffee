@@ -14,6 +14,7 @@ class CommentListViewController extends KDListViewController
       if a<b then -1 else if a>b then 1 else 0
 
     for comment, i in items
+
       nextComment = items[i+1]
 
       skipComment = no
@@ -59,10 +60,11 @@ class CommentListViewController extends KDListViewController
       callback      : (pubInst, reply)->
         model = listView.getData()
         listView.emit "BackgroundActivityStarted"
-        model.reply reply, (err, reply)->
+        model.reply reply, (err, reply)=>
           # listView.emit "AllCommentsLinkWasClicked"
-          listView.addItem reply
-          listView.emit "OwnCommentHasArrived"
+          if not @getSingleton('activityController').flags?.liveUpdates
+            listView.addItem reply
+            listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
 
   fetchCommentsByRange:(from,to,callback)=>
@@ -87,13 +89,12 @@ class CommentListViewController extends KDListViewController
   fetchRelativeComments:(_limit = 10, _after)=>
     listView = @getListView()
     message = @getListView().getData()
-
-
     message.fetchRelativeComments limit:_limit, after:_after, (err, comments)=>
 
       if not @_removedBefore
         @removeAllItems()
         @_removedBefore = yes
+
       @instantiateListItems comments[_limit-10...], yes
 
       if comments.length is _limit

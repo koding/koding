@@ -33,7 +33,9 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
   click:(event)->
+
     super
+
     if $(event.target).is(".activity-item-right-col h3")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
@@ -51,7 +53,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {h3{#(title)}}
-      <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
+      <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
       {{> @codeSnippetView}}
       <footer class='clearfix'>
         <div class='type-and-time'>

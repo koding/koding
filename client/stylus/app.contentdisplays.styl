@@ -114,29 +114,42 @@ app.contentdisplays.styl
       width                 auto
       margin-left           140px
       padding               23px 25px 25px 17px
-      h3
-        margin              0
-        padding             0
-        color               #222
-        font-size           30px
+      
+      h3, h4, h5
         display             inline-block
         position            relative
-
-      h4
+        margin              5px 10px 0 0
+        padding             0px
         font-size           16px
         color               #a5a5a5
+      
+      h3
+        color               #222
+        font-size           30px
+
+      h4
         font-weight         300
-        margin              0px
-        padding             0px
-        display             inline-block
-        margin-left         10px
-        position            relative
+      
+      h5
+        display             block
+        a.user-home-link
+          font-size         15px
+          font-weight       300
+          line-height       20px
+          noTextDeco()
+
+        span.icon
+          hidden()
+          // size              19px, 20px
+          // bg                position, -220px -439px
+          // sprite()
+
 
   .profilestats
     padding               14px 0px 11px 0px
     border-bottom         1px solid #E2E2E2
     border-top            1px solid #E2E2E2
-    margin-top            17px
+    margin-top            12px
     borderBox()
     a
       color               #222

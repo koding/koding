@@ -41,12 +41,19 @@ execute = (options,callback)->
     unlink = no
   else
     log.error "execute can only work with provided .filename or .command"
-  
-  cmd = exec execStr,(err,stdout,stderr)->
+
+  cmd = exec execStr, {maxBuffer: 1024*1024}, (err,stdout,stderr)->
     respond {err,stdout,stderr},callback
     fs.unlink filename if unlink is yes
-    log.debug "executed",execStr
+    log.debug "executed", truncateOutput execStr
 
+
+truncateOutput = (output)->
+
+  if output.length > 300
+    "#{output[0...300]} ...[truncated output]"
+  else
+    output
 
 respond = (options,callback)->
 
@@ -57,7 +64,10 @@ respond = (options,callback)->
 
   if err?
     callback stderr,stdout
-    log.error "[ERROR]",{err,stdout,stderr}
+    if stdout
+      log.warn "[WARNING]", err, truncateOutput(stderr), truncateOutput stdout
+    else
+      log.error "[ERROR]", err, truncateOutput stderr
   else
     # log.info "[OK] command \"#{command}\" executed for user #{username}"
     callback? null,stdout
@@ -109,7 +119,7 @@ module.exports =(options, callback)->
       chars = ";&|><*?`$(){}[]!#"
       if containsAnyChar command,chars
         log.debug "exec in a file",command
-        prepareForBashExecute options, (err, filename)->          
+        prepareForBashExecute options, (err, filename)->
           unless err
             execute {filename,username},callback
           else

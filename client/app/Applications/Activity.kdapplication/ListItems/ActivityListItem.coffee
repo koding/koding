@@ -15,13 +15,17 @@ class ActivityListItemView extends KDListItemView
     CFollowerBucket           : "system-message"
     CFolloweeBucket           : "system-message"
     CNewMemberBucket          : "system-message"
+    CInstallerBucket          : "system-message"
+
     CFollowerBucketActivity   : "system-message"
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
+    CInstallerBucketActivity  : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
     JTag      : TagFollowBucketItemView
+    JApp      : AppFollowBucketItemView
 
   constructor:(options = {},data)->
 
@@ -46,6 +50,7 @@ class ActivityListItemView extends KDListItemView
     data.on 'ContentUnmarkedAsLowQuality', => @show()
 
   addChildView:(data, callback)->
+
     {constructorName} = data.bongo_
 
     childConstructor =

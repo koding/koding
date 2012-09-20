@@ -5,7 +5,7 @@ class JTreeItemView extends KDListItemView
     options.tagName   or= "li"
     options.type      or= "jtreeitem"
     options.bind      or= "mouseenter contextmenu dragstart dragenter dragleave dragend dragover drop"
-    
+
     super options, data
 
     @setClass "jtreeitem"

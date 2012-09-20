@@ -5,6 +5,7 @@ class JOpinion extends JPost
   @::mixin Notifying::
   @mixin Flaggable
   @::mixin Flaggable::
+  @::mixin Likeable::
 
   {Base,ObjectId,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -151,6 +152,7 @@ class JDiscussion extends JPost
   @::mixin Notifying::
   @mixin Flaggable
   @::mixin Flaggable::
+  @::mixin Likeable::
 
   {Base,ObjectId,ObjectRef,secure,dash,daisy} = bongo
   {Relationship} = jraphical
@@ -173,7 +175,7 @@ class JDiscussion extends JPost
       static          : ['create','on','one']
       instance        : [
         'on','reply','restComments','commentsByRange'
-        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments'
         'updateTeaser'
       ]

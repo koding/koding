@@ -3,7 +3,7 @@ class TopicsListItemView extends KDListItemView
   constructor:(options = {}, data)->
     options.type = "topics"
     super options,data
-    
+
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
@@ -16,15 +16,15 @@ class TopicsListItemView extends KDListItemView
     , data
 
     if options.editable
-      @settingsButton = new KDCustomHTMLView
+      @editButton = new KDCustomHTMLView
         tagName     : 'a'
         cssClass    : 'edit-topic'
         pistachio   : '<span class="icon"></span>Edit'
         click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'TopicItemEditLinkClicked', data
+          @getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
       , null
-    else    
-      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+    else
+      @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     @followButton = new KDToggleButton
       style           : if data.followee then "follow-btn following-topic" else "follow-btn"
@@ -60,10 +60,10 @@ class TopicsListItemView extends KDListItemView
 
     @setTemplate @pistachio()
     @template.update()
-    
+
   setFollowerCount:(count)->
     @$('.followers a').html count
-  
+
   expandItem:->
     return unless @_trimmedBody
     list = @getDelegate()
@@ -88,14 +88,14 @@ class TopicsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
-      {{> @settingsButton}}
+      {{> @editButton}}
       {h3{> @titleLink}}
       {article{#(body)}}
       <div class="topicmeta clearfix">
         <div class="topicstats">
           <p class="posts">
             <span class="icon"></span>
-            <a href="#">{{#(counts.tagged) or 0}}</a> Posts
+            <a href="#">{{#(counts.post) or 0}}</a> Posts
           </p>
           <p class="followers">
             <span class="icon"></span>
@@ -108,20 +108,20 @@ class TopicsListItemView extends KDListItemView
     """
 
   refreshPartial: ->
-    
+
     @skillList?.destroy()
     @locationList?.destroy()
     super
     @_addSkillList()
     @_addLocationsList()
-    
+
   _addSkillList: ->
-    
+
     @skillList = new ProfileSkillsList {}, {KDDataPath:"Data.skills", KDDataSource: @getData()}
     @addSubView @skillList, '.profile-meta'
-  
+
   _addLocationsList: ->
-    
+
     @locationList = new TopicsLocationView {}, @getData().locations
     @addSubView @locationList, '.personal'
 
@@ -140,7 +140,6 @@ class ModalTopicsListItem extends TopicsListItemView
         @getDelegate().emit "CloseTopicsModal"
 
   pistachio:->
-    
     """
     <div class="topictext">
       <div class="topicmeta">
@@ -148,7 +147,7 @@ class ModalTopicsListItem extends TopicsListItemView
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
-            <span class="icon"></span>{{#(counts.tagged) or 0}} Posts
+            <span class="icon"></span>{{#(counts.post) or 0}} Posts
           </p>
           <p class="fers">
             <span class="icon"></span>{{#(counts.followers) or 0}} Followers
@@ -161,8 +160,8 @@ class ModalTopicsListItem extends TopicsListItemView
 class TopicsListItemViewEditable extends TopicsListItemView
 
   constructor:(options = {}, data)->
-    
+
     options.editable = yes
     options.type     = "topics"
-    
+
     super options, data

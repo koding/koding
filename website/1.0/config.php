@@ -1,6 +1,8 @@
 <?php
 
 define("TIME_ZONE",    "America/New_York");
+define('TRACE_LOG', '/home/cthorn/koding/website/1.0/.tmp/dev-api-trace.log');
+
 date_default_timezone_set(TIME_ZONE);
 
 $query = $_GET;
@@ -21,6 +23,7 @@ elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == '
   $dbPass = "633939V3R6967W93A";
 }
 else {
+  error_log('local db');
   $dbName = "beta_koding";
   $dbHost = "localhost";
   $dbPort = "27017";

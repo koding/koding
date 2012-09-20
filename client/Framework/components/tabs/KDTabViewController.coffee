@@ -10,10 +10,8 @@ class KDTabViewController extends KDScrollView
 
     @listenWindowResize()
 
-    @listenTo
-      KDEventTypes        : ["PaneRemoved","paneAdded"]
-      listenedToInstance  : @
-      callback            : @resizeTabHandles
+    @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
+    @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
 
     if options.tabNames?
       @listenTo
@@ -68,7 +66,7 @@ class KDTabViewController extends KDScrollView
         callback : @handleMouseDownDefaultAction
       @appendPane paneInstance
       @showPane paneInstance
-      @handleEvent type : "PaneAdded",pane : paneInstance
+      @emit "PaneAdded", paneInstance
       return paneInstance
     else
       warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
@@ -86,7 +84,7 @@ class KDTabViewController extends KDScrollView
     if isActivePane
       newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
       @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
-    @handleEvent type : "PaneRemoved"
+    @emit "PaneRemoved"
 
   # ADD/REMOVE HANDLES
   addHandle:(handle)->
@@ -190,6 +188,5 @@ class KDTabViewController extends KDScrollView
     #   for handle in visibleHandles
     #     handle.$().css width : ((containerSize-50)/visibleHandles.length) - 15
 
-  _windowDidResize:(event)=>
-    @resizeTabHandles @,event
+  _windowDidResize:(event)=> @resizeTabHandles event
 

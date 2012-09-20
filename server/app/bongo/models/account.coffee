@@ -41,19 +41,18 @@ class JAccount extends jraphical.Module
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship','getDefaultEnvironment'
+        'fetchFollowingWithRelationship'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKiteClusters','setKiteConnection','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
-        # defaultEnvironment  : JEnvironment
         defaultToLastUsedEnvironment :
           type              : Boolean
           default           : yes
@@ -97,10 +96,6 @@ class JAccount extends jraphical.Module
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
     relationships           : ->
-      environment   :
-        as          : 'owner'
-        targetType  : JEnvironment
-
       mount         :
         as          : 'owner'
         targetType  : JMount
@@ -141,6 +136,10 @@ class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : JTag
 
+      kiteSubscription  :
+        as              : 'owner'
+        targetType      : JKiteSubscription
+
       content       :
         as          : 'creator'
         targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment, JDiscussion, JOpinion]
@@ -149,7 +148,7 @@ class JAccount extends jraphical.Module
     callback x+" foo"
 
   @findSuggestions = (seed, options, callback)->
-    {limit,blacklist}  = options
+    {limit, blacklist, skip}  = options
 
     @some {
       $or : [
@@ -160,6 +159,7 @@ class JAccount extends jraphical.Module
       _id     :
         $nin  : blacklist
     },{
+      skip
       limit
       sort    : 'profile.firstName' : 1
     }, callback
@@ -258,7 +258,7 @@ class JAccount extends jraphical.Module
 
   can:(action, target)->
     switch action
-      when 'delete','flag'
+      when 'delete','flag','approve'
         @profile.nickname in dummyAdmins or target.originId?.equals @getId()
 
   fetchRole: secure ({connection}, callback)->
@@ -268,16 +268,38 @@ class JAccount extends jraphical.Module
     else
       callback null, "regular"
 
-  fetchAllKites: secure ({connection}, callback)->
+  setKiteConnection: secure ({connection}, kiteName, kiteUri, callback=->)->
+    username = connection.delegate.getAt 'profile.nickname'
+    if isDummyAdmin username
+      JKiteConnection.update {username, kiteName}, $set: {kiteUri}, callback
+    else
+      callback new KodingError "Permission denied!"
 
-    if isDummyAdmin connection.delegate.profile.nickname
-      callback null,
-        sharedHosting :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-        Databases     :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
-        terminal      :
-          hosts       : ["cl0", "cl1", "cl2", "cl3"]
+  fetchAllKiteClusters: secure ({connection}, callback)->
+    username = connection.delegate.getAt 'profile.nickname'
+    if isDummyAdmin username
+      JKiteCluster.all {
+        kiteName:
+          $ne: 'pinger'
+        kites:
+          $exists: yes
+      }, (err, clusters)->
+        if err
+          callback err
+        else
+          clusterData = []
+          queue = clusters.map (cluster)->->
+            {kiteName} = cluster
+            JKiteConnection.one {username, kiteName}, (err, connection)->
+              if err
+                queue.fin err
+              else
+                {data} = cluster
+                delete data.connectionCount
+                data.currentKiteUri = connection?.getAt('kiteUri')
+                clusterData.push data
+                queue.fin()
+          dash queue, -> callback null, clusterData
     else
       callback new KodingError "Permission denied!"
 
@@ -387,13 +409,6 @@ class JAccount extends jraphical.Module
               if err then callback err
               else
                 callback null,environment
-
-  getDefaultEnvironment: secure (client, callback)->
-    unless @equals client.connection.delegate
-      return callback null, 'Not enough privileges'
-
-    defaultEnvironment = new JEnvironment environmentId : 'wikiwikiblueblue'
-    callback defaultEnvironment
 
   setClientId:(@clientId)->
 

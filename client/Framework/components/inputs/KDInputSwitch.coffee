@@ -23,7 +23,7 @@ class KDInputSwitch extends KDInputView
     switch value
       when on   then @switchAnimateOn()
       when off  then @switchAnimateOff()
-      
+
   _setDefaultValue: (val) ->
     setTimeout =>
       val = !!val
@@ -49,7 +49,7 @@ class KDInputSwitch extends KDInputView
         @switchStateChanged()
       counter++
     ,20
-  
+
   switchAnimateOn:()->
     return if @getValue()
     counter = 6

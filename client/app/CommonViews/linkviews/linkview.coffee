@@ -1,16 +1,16 @@
 class LinkView extends KDCustomHTMLView
 
   constructor:(options = {}, data)->
-    
+
     options.tagName or= 'a'
     data            or= fake : yes
     data.profile    or= {}
-    
+
     data.profile.firstName or= "a koding"
     data.profile.lastName  or= "user"
 
     super options, data
-    
+
     if data.fake and options.origin
       @loadFromOrigin options.origin
 
@@ -19,6 +19,7 @@ class LinkView extends KDCustomHTMLView
     callback = (data)=>
       @setData data
       @render()
+      @emit "OriginLoadComplete", data
 
     if origin.constructorName
       bongo.cacheable origin.constructorName, origin.id, (err, origin)=>
@@ -27,6 +28,6 @@ class LinkView extends KDCustomHTMLView
       callback origin
 
   viewAppended:->
-    
+
     @setTemplate @pistachio()
     @template.update()

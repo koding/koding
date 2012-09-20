@@ -1,6 +1,6 @@
 class KDObject extends KDEventEmitter
   utils: __utils
-  
+
   constructor:(options = {}, data)->
     @id or= options.id or __utils.getUniqueId()
     @setOptions options
@@ -11,7 +11,7 @@ class KDObject extends KDEventEmitter
     @listeningTo = []
     super
 
-  # inheritanceChain:()->  
+  # inheritanceChain:()->
   #   proto = @__proto__
   #   chain = @constructor.name
   #   while proto = proto.__proto__
@@ -22,7 +22,7 @@ class KDObject extends KDEventEmitter
     o:(o)-> @interfere o
   else
     o:(o)->o
-  
+
   inheritanceChain:(options)->
     #need to detect () to know whether to call as function or get value as parameter
     methodArray = options.method.split "."
@@ -35,7 +35,7 @@ class KDObject extends KDEventEmitter
       newChain = newChain[method] for method in methodArray
       chain = options.callback chain:chain,newLink:newChain
     chain
-  
+
   chainNames:(options)->
     options.chain
     options.newLink
@@ -47,7 +47,7 @@ class KDObject extends KDEventEmitter
   #     KDEventTypes : eventName.capitalize()
   #     callback : callback
   #   @
-  # 
+  #
   # emit:()->
   #   arr = $.extend [],arguments
   #   eventName = arr[0].capitalize()
@@ -57,7 +57,7 @@ class KDObject extends KDEventEmitter
   #       if !!(new RegExp subscription.KDEventType).test eventName
   #         subscription.callback.apply null, data
   #   @
-          
+
   listenToOnce:(KDEventTypes,callback,obj)->
     options = @_listenToAdapter KDEventTypes, callback, obj
     if (obj = options.obj)?
@@ -70,19 +70,19 @@ class KDObject extends KDEventEmitter
         KD.getAllSubscriptions().splice (KD.getAllSubscriptions().indexOf subscription), 1
       options.callback = onceCallback
       @_listenTo options
-  
+
   listenTo:(KDEventTypes,callback,obj)->
     options = @_listenToAdapter KDEventTypes, callback, obj
     @_listenTo options
-    
+
   _listenToAdapter:(KDEventTypes, callback, obj)->
-  # 
+  #
   # @listenTo
   #   KDEventTypes        : [arrayOfStrings]|string
   #   listenedToInstance  : [arrayOfObjects]|object
   #   callback            :
-  # 
-  #     KDEventTypes = 
+  #
+  #     KDEventTypes =
   #       className : "blah1"
   #       eventType : "click"
   #       ,
@@ -91,19 +91,19 @@ class KDObject extends KDEventEmitter
   #       ,
   #       className : "Data"
   #       property  : "account.profile"
-  # 
-    
+  #
+
 # temporary migration code
     #listenTo:({KDEventTypes,listenedToInstance,callback,callbacks})->
     if KDEventTypes.KDEventTypes? # for backwards compatibility
       options = KDEventTypes
-      
+
       if options.KDEventTypes
         options.KDEventTypes = [options.KDEventTypes] unless $.isArray options.KDEventTypes
-      
+
       KDEventTypes = for event in options.KDEventTypes
         unless event.className? or event.eventType? #default property is eventType
-          event = 
+          event =
             eventType : event
         # FIXME: if no className, "eventType" should become "eventType." to distinguish between e.g. "Scroll" and "KDScrollViewAppended"
         (if event.className is "KDData" then "Data" else (event.className or "")) + (event.eventType?.capitalize() or (".#{event.property}" if event.property?) or "")
@@ -115,7 +115,7 @@ class KDObject extends KDEventEmitter
 
   _listenTo:({KDEventTypes, callback, callbacks, obj})->
     return error "you should pass at least a callback for KDObject.listenTo() method to work. (#{KDEventTypes})" unless callback? or callbacks?
-      
+
     unless obj?
       if KDEventTypes
         KDEventTypes = [KDEventTypes] unless $.isArray KDEventTypes
@@ -155,7 +155,7 @@ class KDObject extends KDEventEmitter
       #   KDEventType         : null
       #   callback            : callback
     listener?.setListeningTo @
-  
+
   registerListenOncer:({KDEventTypes, callback, listener})->
     self = @
     onceCallback = (source, data, {subscription})->
@@ -164,14 +164,14 @@ class KDObject extends KDEventEmitter
       self.subscriptionCountByListenerId[listener.id][subscription.KDEventType]--
       # @listeners.splice (@listeners.indexOf subscription), 1
     @registerListener {KDEventTypes, callback : onceCallback, listener}
-  
+
   setListeningTo:(obj)->
     @listeningTo.push obj
-  
+
   registerSingleton:KD.registerSingleton
-      
+
   getSingleton:KD.getSingleton
-  
+
   getInstance:(instanceId)->
     KD.getAllKDInstances()[instanceId] ? null
 
@@ -190,7 +190,7 @@ class KDObject extends KDEventEmitter
     #     if (!KDEventType? or !(path = subscription.KDEventType)? or !!(new RegExp path).test KDEventType.capitalize())
     #       subscription.callback.call subscription.listener, @, data, {subscription}
     KD.propagateEvent KDEventType, @, data if globalEvent
-  
+
   removeListener:( {listener} )->
     for eventType, count of @subscriptionCountByListenerId[listener]
       subscriptionList = @subscriptionsByEvent[eventType]
@@ -199,15 +199,15 @@ class KDObject extends KDEventEmitter
         if subscriptionListCopy[_i].listener is listener
           subscriptionList.splice _i, 1
           count--
-        _i++      
+        _i++
       subscriptionCountByListenerId[listener][eventType] = 0
     # remainingSubscriptions = []
     # for subscription in @listeners
     #   remainingSubscriptions.push subscription if subscription.listener isnt listener
-    
+
     # log remainingSubscriptions,@
     # @listeners = remainingSubscriptions
-  
+
   requireLogin:KD.requireLogin
   # DUP
   # registerKDObjectInstance : ->
@@ -234,17 +234,17 @@ class KDObject extends KDEventEmitter
 
   getOptions:->
     @options
-  
+
   changeId:(id)->
     KD.deleteInstance @
     @id = id
     KD.registerInstance @
 
   getId:()->@id
-    
+
   setDelegate:(anInstance)->
     @delegate = anInstance
-    
+
   getDelegate:->@delegate
 
   destroy: do ->

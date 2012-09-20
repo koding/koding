@@ -1,0 +1,2 @@
+class BottomPanel extends KDScrollView
+
