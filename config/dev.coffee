@@ -21,6 +21,7 @@ module.exports =
     includesFile: '../CakefileIncludes.coffee'
     runtimeOptions:
       version   : version
+      mainUri   : 'http://localhost:3000'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://localhost:8008/subscribe'
@@ -31,6 +32,7 @@ module.exports =
     host        : 'localhost'
     login       : 'guest'
     password    : 'guest'
+    vhost       : '/'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
