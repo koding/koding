@@ -17,8 +17,7 @@ task 'run', ({configPath, silent})->
     runServer configPath, logger, port
 
 runServer =(configPath, logger, port)->
-  child = spawn 'node', [
-    'index.js'
+  child = spawn 'node', ['./index.js'
     '-c', configPath
     '-p', port
   ]

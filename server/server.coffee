@@ -1,7 +1,5 @@
 {argv} = require 'optimist'
 
-console.log 'hey'
-
 {webPort, mongo, amqp} = require argv.c
 webPort = argv.p if argv.p?
 
