@@ -15,7 +15,6 @@ ProgressBar       = require './node_modules/progress'
 module.exports = class Builder
 
   constructor:(@options,@middleware,fileList="deprecated")->
-    console.log @options
     @watcher = new Watcher @options.includesFile 
 
     @attachListeners()
