@@ -12,6 +12,7 @@ module.exports =
   social        :
     numberOfWorkers: 10
   client        :
+    version     : version
     minify      : no
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
@@ -26,7 +27,7 @@ module.exports =
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
-      apiUri    : 'https://api.koding.com'
+      apiUri    : 'https://dev.koding.com'
       # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :
     host        : 'localhost'
