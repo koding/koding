@@ -16,6 +16,7 @@ class KodingAppsController extends KDController
       author        : "#{profile.firstName} #{profile.lastName}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
       source        :
         blocks      :
           app       :
