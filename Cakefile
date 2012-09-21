@@ -1,15 +1,6 @@
-option '-u', '--uglify', 'concatenate,uglify and js resources'
-option '-p', '--port [PORT]', 'specify the port number that server runs on'
-option '-h', '--host [HOST]', 'specify the host that server runs on eg:x.com default is localhost'
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
-option '-w', '--watch [INTERVAL]', 'watches and restarts at given milliseconds, defaults to 1000=1sec'
 option '-D', '--debug', 'runs with node --debug'
-option '-s', '--dontStart', "just build, don't start the server."
-option '-r', '--autoReload', "auto-reload frontend on change."
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
-option '-z', '--useStatic', "specifies that files should be served from the static server"
-option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
-option '-k', '--runClient', "run the client code"
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 ProgressBar = require './builders/node_modules/progress'
@@ -22,6 +13,9 @@ hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = require "processes"
+{spawn, exec} = require 'child_process'
+fs            = require "fs"
+nodePath      = require 'path'
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
@@ -30,9 +24,6 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 #   debug : console.log
 #   warn  : console.log
 
-{spawn, exec} = require 'child_process'
-fs            = require "fs"
-nodePath      = require 'path'
  
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -103,37 +94,6 @@ clientFileMiddleware  = (options, code, callback)->
         callback null,data         
       else
         throw err
-      
-         
-  # useStaticFilesServer  : (options)-> !!options.useStatic
-
-  # whichEnv : (options)->
-  #   {database} = options
-  #   if database is "beta" or database is "beta-local"
-  #     return "beta"
-  #   else
-  #     return "dev"
-
-  # prodPostBuildSteps : (options,callback)->
-  #   callback null
-    # if targetPaths.whichEnv(options) is "prod"
-    #   prompt.start()
-    #   prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
-    #     if result.p is 'yes'
-    #       log.info "syncing recently built static files with static files server"
-    #       rsync = exec "rm -rf /opt/kfmjs/website && cp -fr ./website /opt/kfmjs/",(err,stdout,stderr)->
-    #         if err or stderr
-    #           log.error "SYNCING FAILED, THIS IS NOT GOOD. SITE MIGHT BE BROKEN RIGHT NOW. FIX THE PROBLEM AND REBUILD IMMEDIATELY"
-    #         else
-    #           log.info "sync complete."
-    #           callback? null
-    #       rsync.stdout.on 'data', (data)=> 
-    #         log.info "#{data}".replace /\n+$/, ''
-    #       rsync.stderr.on 'data', (data)-> 
-    #         log.info "#{data}".replace /\n+$/, ''          
-    #     else
-    #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
-    #       callback? null
 
 pipeStd =(children...)->
   for child in children
@@ -162,27 +122,29 @@ task 'buildClient', (options)->
   buildClient configFile
 
 
-task 'runNew', (options)->
+task 'run', (options)->
   configFile = normalizeConfigPath options.configFile
   console.log 'KONFIG', configFile
-  buildClient configFile, ->
-    broker = spawn './broker/start.sh'
-    serverSupervisor = spawn KODING_CAKE, [
-      './server',
-      '-c', configFile
-      'run'
-    ]
-    socialSupervisor = spawn KODING_CAKE, [
-      './workers/social'
-      '-c', configFile
-      'run'
-    ]
-    pipeStd(
-      broker
-      serverSupervisor
-      socialSupervisor
-    )
-    
+  broker = spawn './broker/start.sh'
+  serverSupervisor = spawn KODING_CAKE, [
+    './server',
+    '-c', configFile
+    'run'
+  ]
+  socialSupervisor = spawn KODING_CAKE, [
+    './workers/social'
+    '-c', configFile
+    '-n', 10
+    'run'
+  ]
+  pipeStd(
+    broker
+    serverSupervisor
+    socialSupervisor
+  )
+  setInterval (->),10000
+
+
   # broker = spawn './broker/start.sh'
   # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
   # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
@@ -304,21 +266,21 @@ task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in .
     arr = data.split "\n"
 
 task 'build', 'optimized version for deployment', (options)->  
-  invoke 'checkModules'
-  # require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
-  options.port      or= 3000
-  options.host      or= "localhost"
-  options.watch     or= 1000
-  options.database  ?= "mongohq-dev" 
-  options.port      ?= "3000"
-  options.dontStart ?= no
-  options.uglify    ?= no
+  # invoke 'checkModules'
+  # # require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
+  # options.port      or= 3000
+  # options.host      or= "localhost"
+  # options.watch     or= 1000
+  # options.database  ?= "mongohq-dev" 
+  # options.port      ?= "3000"
+  # options.dontStart ?= no
+  # options.uglify    ?= no
   
 
-  options.target = targetPaths.server ? "/tmp/kd-server.js" 
+  # options.target = targetPaths.server ? "/tmp/kd-server.js" 
   
-  {dontStart,uglify,database} = options
-  build options
+  # {dontStart,uglify,database} = options
+  # build options
   
   
   
@@ -458,7 +420,8 @@ task 'parseAnalyzedCss','',(options)->
     log.info stuff
 
 task 'analyzeCss','',(options)->
-    
+  configFile = normalizeConfigPath options.configFile
+  config = require configFile
   compareArrays = (arrA, arrB) ->
     return false if arrA?.length isnt arrB?.length
     if arrA?.slice()?.sort?
@@ -470,7 +433,7 @@ task 'analyzeCss','',(options)->
     
 
 
-  fs.readFile targetPaths.css,'utf8',(err,data)->
+  fs.readFile config.client.css,'utf8',(err,data)->
     br = 'body,html'+(data.split "body,html")[1]
     # log.debug arr
     arr = br.split "\n"
