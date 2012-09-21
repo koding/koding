@@ -1,14 +1,11 @@
 class ActivitySplitView extends SplitView
 
   # until mixins are here
-  viewAppended : ()->
-    ContentPageSplitBelowHeader::viewAppended.apply @,arguments
+  viewAppended : ContentPageSplitBelowHeader::viewAppended
 
-  toggleFirstPanel: ()->
-    ContentPageSplitBelowHeader::toggleFirstPanel.apply @,arguments
+  toggleFirstPanel: ContentPageSplitBelowHeader::toggleFirstPanel
 
-  setRightColumnClass: ()->
-    ContentPageSplitBelowHeader::setRightColumnClass.apply @,arguments
+  setRightColumnClass: ContentPageSplitBelowHeader::setRightColumnClass
 
   _windowDidResize:()=>
     super
