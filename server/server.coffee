@@ -61,6 +61,7 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
+        console.log koding.mq
         koding.mq.on privName, 'disconnect', console.log
         res.send privName 
       else unless session?
