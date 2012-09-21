@@ -15,6 +15,10 @@ define  yumrepos ($repo) {
          'erlang': {
             include yumrepos::erlang
          }
+         'zabbixzone': {
+            include yumrepos::zabbixzone
+         }
+
 
 
 

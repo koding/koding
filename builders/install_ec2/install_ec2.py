@@ -20,12 +20,11 @@ import config
 
 
 
-#ami_id        = 'ami-04ff246d' # RHEL6.2 64bit
-#ami_id        = 'ami-e565ba8c' # amazon ami
-#centos_id     = 'ami-441fc42d' # koding ami (centos)
-centos_id     = 'ami-c49030ad' # koding ami (centos)
-#cloudlinux_id = 'ami-9e18c3f7' # CloudLinux
-cloudlinux_id = 'ami-888f2fe1' # CloudLinux
+#centos_id     = 'ami-c49030ad' # koding ami (centos)
+centos_id     = 'ami-2f219746' # koding ami (centos)
+
+#cloudlinux_id = 'ami-888f2fe1' # CloudLinux
+cloudlinux_id = 'ami-dd02b4b4'
 key_name      = 'koding'
 zone          = 'us-east-1b'
 placement     = 'us-east-1'
