@@ -40,7 +40,11 @@ koding = new Bongo {
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
-      
+
+app.get '/favicon.ico', (req, res)->
+  console.log 'tried to get the favicon!'
+  res.send 404
+
 app.get '/auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
