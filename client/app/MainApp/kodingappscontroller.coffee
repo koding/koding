@@ -557,7 +557,7 @@ class KodingAppsController extends KDController
               contents  : """
                               #{today} #{fullName} <@#{profile.nickname}>
 
-                                  * #{name} (index.coffee): Initial commit
+                                  * #{name} (index.coffee): Application created.
                           """
           , cb
 
