@@ -34,7 +34,7 @@ koding = new Bongo {
     '../workers/social/lib/social/models/session.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
-  mq: new Broker amqp
+  mq: new Broker mq
   queueName: 'koding-social'
 }
 
