@@ -124,7 +124,7 @@ task 'buildClient', (options)->
 
 task 'run', (options)->
   configFile = normalizeConfigPath options.configFile
-  console.log 'KONFIG', configFile
+  config = require configFile
   broker = spawn './broker/start.sh'
   serverSupervisor = spawn KODING_CAKE, [
     './server',
@@ -134,7 +134,7 @@ task 'run', (options)->
   socialSupervisor = spawn KODING_CAKE, [
     './workers/social'
     '-c', configFile
-    '-n', 1
+    '-n', config.social.numberOfWorkers
     'run'
   ]
   pipeStd(

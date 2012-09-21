@@ -1,9 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq} = require argv.c
+{webPort, mongo, mq, projectRoot} = require argv.c
 webPort = argv.p if argv.p?
 
-projectRoot = require('path').join(__dirname, '/..')
 
 express = require 'express'
 Broker = require 'broker'
@@ -44,10 +43,6 @@ koding.mq.connection.on 'ready', ->
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-app.get '/favicon.ico', (req, res)->
-  console.log 'tried to get the favicon!'
-  res.send 404
-
 app.get '/auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
@@ -55,7 +50,6 @@ app.get '/auth', (req, res)->
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
-    console.log 'in here'
     res.cookie 'clientId', session.clientId if clientId isnt session.clientId
     if err
       authenticationFailed(res, err)
@@ -64,7 +58,6 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        console.log koding.mq
         koding.mq.on privName, 'disconnect', console.log
         res.send privName 
       else unless session?

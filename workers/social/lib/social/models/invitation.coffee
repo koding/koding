@@ -4,6 +4,7 @@ module.exports = class JInvitation extends jraphical.Module
   
   fs = require 'fs'  
   crypto = require 'crypto'
+  nodePath = require 'path'
   {uniq} = require 'underscore'
   
   Emailer = require '../emailer'
@@ -107,8 +108,7 @@ module.exports = class JInvitation extends jraphical.Module
                     
       else
         JInvitation.sendBetaInvite options,callback
-
-  betaTestersHTML   = fs.readFileSync 'email/beta-testers-invite.txt', 'utf-8'
+  betaTestersHTML   = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
   @sendBetaInvite = (options,callback) ->
     protocol = 'http://'
     {host, port} = server

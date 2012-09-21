@@ -1,7 +1,6 @@
 log = -> logger.info arguments...
 
 {argv} = require 'optimist'
-console.log argv.c
 
 {exec} = require 'child_process'
 
@@ -32,7 +31,9 @@ if require("os").platform() is 'linux'
 
 Bongo = require 'bongo'
 Broker = require 'broker'
-{mq, mongo, email} = require './config'
+
+Object.defineProperty global, 'KONFIG', value: require './config'
+{mq, mongo, email} = KONFIG
 
 koding = new Bongo
   root        : __dirname
