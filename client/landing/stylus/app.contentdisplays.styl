@@ -114,7 +114,7 @@ app.contentdisplays.styl
       width                 auto
       margin-left           140px
       padding               23px 25px 25px 17px
-      
+
       h3, h4, h5
         display             inline-block
         position            relative
@@ -122,14 +122,14 @@ app.contentdisplays.styl
         padding             0px
         font-size           16px
         color               #a5a5a5
-      
+
       h3
         color               #222
         font-size           30px
 
       h4
         font-weight         300
-      
+
       h5
         display             block
         a.user-home-link
@@ -395,6 +395,7 @@ app.contentdisplays.styl
       margin-top                      14px
 
     .item-content-opinion
+      margin-left                     73px
       margin-top                      5px
       padding                         15px 20px 0px 20px
       &:hover
@@ -523,7 +524,7 @@ app.contentdisplays.styl
           padding-left                95px
 
         .item-add-comment-box
-          padding-left                95px
+          padding-left                166px
           border none
 
         .kdlistview-comments
@@ -546,12 +547,15 @@ app.contentdisplays.styl
           margin-top                  5px
         .item-content-comment
           max-width                   1080px
-          margin-left                 90px
+          margin-left                 103px
           time
             float                     right
             font-size                 11px
             font-weight               300
             color                     #a5a5a5
+          > div.comment-header,
+          > div.comment-contents
+            margin-left 55px
 
 
 .opinion-form-footer
@@ -723,8 +727,9 @@ div.discussion-contents
   opacity                             0
   vendor                              transition, opacity .15s linear
   sprite()
-
+.activity-item.discussion .comment-body .data,
 .activity-opinion .comment-body .data,
+.activity-opinion.item-content-comment .comment-body .data,
 .discussion-body .data,
 .opinion-body-with-markup .data
   font-size                           12px
@@ -732,7 +737,7 @@ div.discussion-contents
   line-height                         170%
   margin-bottom                       5px
   color                               #5f5f5f
-  p
+  > p
     margin-bottom                     1em
     word-wrap                         break-word
     code
@@ -741,26 +746,39 @@ div.discussion-contents
       rounded(3px)
       padding                         1px 3px
       font-weight                     300
-  ul
+  > ul
     margin-left                       30px
     margin-bottom                     1em
     list-style                        disc
-    li
+    > li
       margin-bottom                   0.5em
-  h1,h2,h3,h4,h5,h6
+  > h1,h2,h3,h4,h5,h6
     font-size                         14px
     font-weight                       300
     line-height                       130%
     margin-bottom                     1em
     margin-top                        2em
-  ol
+    padding                           0px
+    border                            none
+    height                            auto
+    &:first-child
+      margin-top                      0px
+  > ol
     margin-left                       30px
     list-style                        decimal
     margin-bottom                     1em
-  a
+  > a
     font-weight                       400
     text-decoration                   none
     font-size                         12px
+
+.activity-opinion.item-content-comment .comment-body .data :last-child
+  padding-bottom 0
+  margin-bottom 0
+
+.activity-opinion.item-content-comment .comment-body .data :first-child
+  padding-top 0
+  margin-top 12px!important
 
 
 .markdown-cheatsheet

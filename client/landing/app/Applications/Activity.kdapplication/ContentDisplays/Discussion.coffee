@@ -55,21 +55,28 @@ class ContentDisplayDiscussion extends KDView
 
     , data
 
-    @jumpToReplyLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Scroll to Reply Box"
-      attributes  :
-        href      : "#"
-      click:->
-        $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
+    # @jumpToReplyLink = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Scroll to Reply Box"
+    #   attributes  :
+    #     href      : "#"
+    #   click:->
+    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
 
-    @jumpToTopLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Scroll to Top"
-      attributes  :
-        href      : "#"
-      click:->
-        $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
+    # @jumpToTopLink = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Scroll to Top"
+    #   attributes  :
+    #     href      : "#"
+    #   click:->
+    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
+
+    ###
+    <div class="discussion-nav">
+      {{> @jumpToTopLink}}
+      {{> @jumpToReplyLink}}
+    </div>
+    ###
 
     @staticLinkBox = new KDCustomHTMLView
       tagName     : "a"
@@ -222,9 +229,5 @@ class ContentDisplayDiscussion extends KDView
       <div class="content-display-main-section opinion-form-footer">
         {{> @opinionForm}}
       </div>
-    </div>
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
     </div>
     """

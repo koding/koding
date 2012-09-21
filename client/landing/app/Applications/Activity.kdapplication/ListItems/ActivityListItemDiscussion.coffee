@@ -74,6 +74,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
       <p>{{@applyTextExpansions #(title)}}</p>
+    <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
 
       <footer class='clearfix'>
         <div class='type-and-time'>
@@ -83,7 +84,6 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
-    <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
     </div>
   </div>
   {{> @opinionBox}}
