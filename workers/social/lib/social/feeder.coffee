@@ -10,9 +10,10 @@ module.exports = class Feeder
 
     @exchangePrefix = options.exchangePrefix ? "x"
 
-    @mongo = options.mongo ? mongo.db "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
-    @feeds = @mongo.collection 'jFeeds'
-    @relationships = @mongo.collection 'relationships'
+    dbUrl = options.mongo ? "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
+    db = mongo.db dbUrl
+    @feeds = db.collection 'jFeeds'
+    @relationships = db.collection 'relationships'
 
     @mq.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
       # The message will come from feed's owner's exchange with the routing
