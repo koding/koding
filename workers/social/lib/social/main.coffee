@@ -32,7 +32,8 @@ if require("os").platform() is 'linux'
 
 Bongo = require 'bongo'
 Broker = require 'broker'
-{mq, mongo, email} = require './config'
+global.config = require './config'
+{mq, mongo, email} = config
 
 koding = new Bongo
   root        : __dirname

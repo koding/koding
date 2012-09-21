@@ -1,9 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq} = require argv.c
+{webPort, mongo, mq, projectRoot} = require argv.c
 webPort = argv.p if argv.p?
 
-projectRoot = require('path').join(__dirname, '/..')
 
 express = require 'express'
 Broker = require 'broker'
