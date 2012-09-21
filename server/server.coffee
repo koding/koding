@@ -46,13 +46,13 @@ app.get '/favicon.ico', (req, res)->
   res.send 404
 
 app.get '/auth', (req, res)->
-  console.log 'iiii'
   crypto = require 'crypto'
   {JSession} = koding.models
   channel = req.query?.channel
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
+    console.log 'in here'
     res.cookie 'clientId', session.clientId if clientId isnt session.clientId
     if err
       authenticationFailed(res, err)
