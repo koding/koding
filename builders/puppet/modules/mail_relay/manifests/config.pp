@@ -95,6 +95,13 @@ class mail_relay::config {
           notify => Class['mail_relay::clamav_service']
     }
 
+   cron { freshclam:
+        command => "/usr/bin/freshclam --quiet",
+        user    => root,
+        hour    => 1,
+        minute  => 0,
+        require => Class['mail_relay::install']
+   }
 
 
 }
