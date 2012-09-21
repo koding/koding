@@ -42,7 +42,6 @@ class KiteController {
         'kiteName' => $kite_name,
       ));
       if (isset($custom_cluster)) {
-        trace('in here');
         $custom_cluster = (object) $custom_cluster;
         $this->add_cluster($kite_name, $custom_cluster);
         $clusters =& $this->get_cluster($kite_name);

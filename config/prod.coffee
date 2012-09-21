@@ -1,6 +1,8 @@
 fs = require 'fs'
 nodePath = require 'path'
 
+deepFreeze = require 'koding-deep-freeze'
+
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
@@ -11,7 +13,8 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 # STAGING
 mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
-module.exports =
+module.exports = deepFreeze
+  projectRoot   : nodePath.join __dirname, '..'
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
