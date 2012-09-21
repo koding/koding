@@ -82,7 +82,7 @@ do ->
 
     '/discussion/:title': ({title})->
 
-        bongo.api.JDiscussion.one "title": title, (err, discussion)->
+        KD.remote.api.JDiscussion.one "title": title, (err, discussion)->
           if err then warn err
           else if discussion
             appManager.tell "Activity", "createContentDisplay", discussion

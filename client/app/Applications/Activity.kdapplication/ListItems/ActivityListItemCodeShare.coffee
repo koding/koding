@@ -145,7 +145,7 @@ class CodeShareActivityItemView extends ActivityItemChild
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeShareActivity
+    return if @getData().constructor is KD.remote.api.CCodeShareActivity
     super()
     @setTemplate @pistachio()
     @template.update()
