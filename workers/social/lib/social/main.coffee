@@ -1,12 +1,9 @@
 log = -> logger.info arguments...
 
 {argv} = require 'optimist'
+console.log argv.c
 
 {exec} = require 'child_process'
-
-if process.argv[5] is "true"
-  __runCronJobs   = yes
-  log "--cron is active, cronjobs will be running with your server."
 
 process.on 'uncaughtException', (err)->
   exec './beep'
@@ -35,7 +32,8 @@ if require("os").platform() is 'linux'
 
 Bongo = require 'bongo'
 Broker = require 'broker'
-{amqp, mongo, email} = require './config'
+global.config = require './config'
+{mq, mongo, email} = config
 
 {Relationship} = require 'jraphical'
 
@@ -44,7 +42,7 @@ koding = new Bongo
   mongo       : mongo
   models      : './models'
   queueName   : 'koding-social'
-  mq          : new Broker amqp
+  mq          : new Broker mq
   fetchClient :(sessionToken, callback)->
     koding.models.JUser.authenticateClient sessionToken, (err, account)->
       if err
@@ -139,3 +137,5 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
+
+console.log 'Koding Social Worker has started.'

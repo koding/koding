@@ -1,8 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, amqp} = require argv.c
+{webPort, mongo, mq, projectRoot} = require argv.c
+webPort = argv.p if argv.p?
 
-path = __dirname+'/..'
 
 express = require 'express'
 Broker = require 'broker'
@@ -16,10 +16,15 @@ app = express.createServer()
 app.use express.bodyParser()
 app.use express.cookieParser()
 app.use express.session {"secret":"foo"}
-app.use gzippo.staticGzip "#{path}/website/"
+app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
+
+process.on 'uncaughtException',(err)->
+  console.log 'there was an uncaught exception'
+  console.error err
+  console.trace()
 
 koding = new Bongo {
   mongo
@@ -28,15 +33,20 @@ koding = new Bongo {
     '../workers/social/lib/social/models/session.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
-  mq: new Broker amqp
+  mq: new Broker mq
   queueName: 'koding-social'
 }
 
-# JSession = require './models/session'
+koding.mq.connection.on 'ready', ->
+  console.log 'message broker is ready'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
-      
+
+app.get '/favicon.ico', (req, res)->
+  console.log 'tried to get the favicon!'
+  res.send 404
+
 app.get '/auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
@@ -44,6 +54,7 @@ app.get '/auth', (req, res)->
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
+    console.log 'in here'
     res.cookie 'clientId', session.clientId if clientId isnt session.clientId
     if err
       authenticationFailed(res, err)
@@ -52,6 +63,7 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
+        console.log koding.mq
         koding.mq.on privName, 'disconnect', console.log
         res.send privName 
       else unless session?
@@ -73,7 +85,7 @@ app.get "/", (req, res)->
   else
     # log.info "serving index.html"
     res.header 'Content-type', 'text/html'
-    fs.readFile "#{path}/website_nonstatic/index.html", (err, data) ->
+    fs.readFile "#{projectRoot}/website_nonstatic/index.html", (err, data) ->
       throw err if err
       res.send data
 
@@ -82,3 +94,5 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
+
+console.log 'Koding Webserver running ', "http://localhost:#{webPort}"

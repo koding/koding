@@ -3,7 +3,6 @@ option '-p', '--port [PORT]', 'specify the port number that server runs on'
 option '-h', '--host [HOST]', 'specify the host that server runs on eg:x.com default is localhost'
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-w', '--watch [INTERVAL]', 'watches and restarts at given milliseconds, defaults to 1000=1sec'
-option '-c', '--cron', 'runs the cronjobs'
 option '-D', '--debug', 'runs with node --debug'
 option '-s', '--dontStart', "just build, don't start the server."
 option '-r', '--autoReload', "auto-reload frontend on change."
@@ -11,6 +10,7 @@ option '-P', '--pistachios', "as a post-processing step, it compiles any pistach
 option '-z', '--useStatic', "specifies that files should be served from the static server"
 option '-S', '--sourceCodeAnalyze',"draws a graph of the source code at locl:3000/dev/"
 option '-k', '--runClient', "run the client code"
+option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
@@ -23,6 +23,7 @@ mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes   = require "processes"
 
+KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log = 
 #   info  : console.log
@@ -31,6 +32,7 @@ processes   = require "processes"
 
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
+nodePath      = require 'path'
  
 # create required folders
 mkdirp.sync "./.build/.cache"
@@ -46,92 +48,74 @@ if process.argv[2] is 'buildForProduction'
 else
   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
- 
-targetPaths =
-  server                : "./kd-server.js"
-  serverProd            : process.cwd()+"/kd-server.js" # "/opt/kfmjs/kd-server.js"
-  client                : "./website/js/kd.#{version}.js"
-  css                   : "./website/css/kd.#{version}.css"
-  index                 : "./website_nonstatic/index.html"
-  indexMaster           : "./client/index-master.html"
-  watchCache            : "/tmp/watcherCache.txt"
-  includesFile          : "../CakefileIncludes"
-  installedApps         : "../CakefileInstalledApplications.coffee"
-  apps                  : "./website/js/KDApplications"
-  staticFilesBaseUrl    : "https://api.koding.com"
-  staticFilesPath       : "/opt/kfmjs/website"
-  deployedGitBranch     : "privateBeta"
-  closureCompilerPath   : "./builders/closure/compiler.jar"
-  version               : version
-  clientFileMiddleware  : (options,opt,callback)->
-    # here you can change the content of kd.js before it's written to it's final file.
-    # options is the cakefile options, opt is where file is passed in.
-    {libraries,kdjs} = opt
-        
-    compressJs = (js,callback)->
-      totalTicks = 200
-      bar = new ProgressBar 'Closure compiling kd.js [:bar] :percent :elapseds',{total: 200,width:50,incomplete:" "}
-      ticks = 0
-      a = setInterval ->
-        bar.tick()
-        ticks++
-      ,500
+clientFileMiddleware  = (options, code, callback)->
+  console.log 'args', options
+  # here you can change the content of kd.js before it's written to it's final file.
+  # options is the cakefile options, opt is where file is passed in.
+  {libraries,kdjs} = code
+      
+  compressJs = (js,callback)->
+    totalTicks = 200
+    bar = new ProgressBar 'Closure compiling kd.js [:bar] :percent :elapseds',{total: 200,width:50,incomplete:" "}
+    ticks = 0
+    a = setInterval ->
+      bar.tick()
+      ticks++
+    ,500
 
-      tmpFile = "./.build/#{hat()}.txt"
-      tmpFileCompiled = tmpFile+".js"
-      fs.writeFile tmpFile,js,(err)-> 
-        execStr = "java -jar #{targetPaths.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
-        console.log execStr
-        exec execStr,(err,stdout,stderr)->
-          if stderr
-            unless arguments[2].indexOf "\n0 error(s)"
-              log.error arguments
-              log.error "CLOSURE FAILED TO COMPILE KD.JS CHECK THE ERROR MSG ABOVE. EXITING."
-              process.exit()
-            else
-              # log.debug "closure compile finished successfully."
-          else if stdout
-            console.log "12",arguments
-          else throw err
-          bar.tick() for ko in [ticks...totalTicks]
-          fs.readFile tmpFileCompiled,'utf8',(err,data)->
-            clearInterval a
-            unless err
-              callback null,data
-              # fs.unlink tmpFileCompiled,->
-              # fs.unlink tmpFile,->
-            else
-              log.error "something wrong with compressing #{tmpFile}",execStr
-              callback err
+    tmpFile = "./.build/#{hat()}.txt"
+    tmpFileCompiled = tmpFile+".js"
+    fs.writeFile tmpFile,js,(err)-> 
+      execStr = "java -jar #{options.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
+      console.log execStr
+      exec execStr,(err,stdout,stderr)->
+        if stderr
+          unless arguments[2].indexOf "\n0 error(s)"
+            log.error arguments
+            log.error "CLOSURE FAILED TO COMPILE KD.JS CHECK THE ERROR MSG ABOVE. EXITING."
+            process.exit()
+          else
+            # log.debug "closure compile finished successfully."
+        else if stdout
+          console.log "12",arguments
+        else throw err
+        bar.tick() for ko in [ticks...totalTicks]
+        fs.readFile tmpFileCompiled,'utf8',(err,data)->
+          clearInterval a
+          unless err
+            callback null,data
+            # fs.unlink tmpFileCompiled,->
+            # fs.unlink tmpFile,->
+          else
+            log.error "something wrong with compressing #{tmpFile}",execStr
+            callback err
 
-    kdjs =  "var KD = {};\n" +
-            "KD.version = \"#{targetPaths.version}\";\n" +
-            "KD.env = \"#{targetPaths.whichEnv(options)}\";\n" +
-            "KD.staticFilesBaseUrl = \"#{if targetPaths.useStaticFilesServer(options) then targetPaths.staticFilesBaseUrl else ""}\";\n" +
-            kdjs
-    
-    # return callback null,kdjs+libraries
-    unless options.uglify
-      callback null,(libraries+kdjs)
-    else
-      compressJs (libraries+kdjs),(err,data)->
-        unless err
-          callback null,data         
-        else
-          throw err
-        
+  kdjs =  "var KD = {};\n" +
+          "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
+          kdjs
+  
+  # return callback null,kdjs+libraries
+  unless options.uglify
+    callback null,(libraries+kdjs)
+  else
+    compressJs (libraries+kdjs),(err,data)->
+      unless err
+        callback null,data         
+      else
+        throw err
+      
          
-  useStaticFilesServer  : (options)-> !!options.useStatic
+  # useStaticFilesServer  : (options)-> !!options.useStatic
 
-  whichEnv : (options)->
-    {database} = options
-    if database is "beta" or database is "beta-local"
-      return "beta"
-    else
-      return "dev"
+  # whichEnv : (options)->
+  #   {database} = options
+  #   if database is "beta" or database is "beta-local"
+  #     return "beta"
+  #   else
+  #     return "dev"
 
-  prodPostBuildSteps : (options,callback)->
-    callback null
+  # prodPostBuildSteps : (options,callback)->
+  #   callback null
     # if targetPaths.whichEnv(options) is "prod"
     #   prompt.start()
     #   prompt.get [{message:"Do you want me to nuke #{targetPaths.staticFilesPath} and copy ./website instead (think!)? yes/no",name:'p'}],  (err, result) ->
@@ -151,19 +135,66 @@ targetPaths =
     #       log.warn "kd.js kd.env values might be different, prod site may be broken if you built on prod web server."
     #       callback? null
 
+pipeStd =(children...)->
+  for child in children
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
+normalizeConfigPath =(path)->
+  path ?= './config/dev'
+  nodePath.join __dirname, path
+
+buildClient =(configFile, callback=->)->
+  try
+    config = require configFile
+  catch e
+    console.log 'hello', e
+  builder = new Builder config.client, clientFileMiddleware, ""
+  builder.watcher.initialize()
+  builder.watcher.on 'initDidComplete', ->
+    builder.buildClient "", ->
+      builder.buildCss "", ->
+        builder.buildIndex "", ->
+          callback null
+
+task 'buildClient', (options)->
+  configFile = normalizeConfigPath options.configFile
+  buildClient configFile
+
+
 task 'runNew', (options)->
-  broker = spawn './broker/start.sh'
-  server = spawn 'node', ['server/index.js', '-c', './config.coffee']
-  social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  logPath = options.logPath ? '/tmp'
-  procs = {broker, server, social}
-  if options.runClient
-    client = spawn 'cake', ['build']
-    procs.push client
-  for own name, proc of procs
-    logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
-    proc.stdout.pipe(logFile)
-    proc.stderr.pipe(logFile)
+  configFile = normalizeConfigPath options.configFile
+  console.log 'KONFIG', configFile
+  buildClient configFile, ->
+    broker = spawn './broker/start.sh'
+    serverSupervisor = spawn KODING_CAKE, [
+      './server',
+      '-c', configFile
+      'run'
+    ]
+    socialSupervisor = spawn KODING_CAKE, [
+      './workers/social'
+      '-c', configFile
+      'run'
+    ]
+    pipeStd(
+      broker
+      serverSupervisor
+      socialSupervisor
+    )
+    
+  # broker = spawn './broker/start.sh'
+  # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
+  # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
+  # logPath = options.logPath ? '/tmp'  
+  # procs = {broker, server, social}
+  # if options.runClient
+  #   client = spawn 'cake', ['build']
+  #   procs.push client
+  # for own name, proc of procs
+  #   logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
+  #   proc.stdout.pipe(logFile)
+  #   proc.stderr.pipe(logFile)
 
 
 task 'buildAll',"build chris's modules", ->
@@ -271,8 +302,6 @@ task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in .
   
   fs.readFile "./.gitignore",'utf8',(err,data)->
     arr = data.split "\n"
-    
-    
 
 task 'build', 'optimized version for deployment', (options)->  
   invoke 'checkModules'
@@ -327,21 +356,21 @@ build = (options)->
         builder.processMonitor.flags.forever = yes
         builder.processMonitor.startProcess()
       builder.buildClient "",()->
-          builder.buildCss "",()->
-            builder.buildIndex "",()->
-              unless options.dontStart
-                log.info "website is ready at #{options.host}:#{options.port}"
-                builder.watcher.start 1000
-                # builder.buildApplications targetPaths.installedApps, targetPaths.apps
-                # issueFrontendReloadCommand()
+        builder.buildCss "",()->
+          builder.buildIndex "",()->
+            unless options.dontStart
+              log.info "website is ready at #{options.host}:#{options.port}"
+              builder.watcher.start 1000
+              # builder.buildApplications targetPaths.installedApps, targetPaths.apps
+              # issueFrontendReloadCommand()
+            else
+              if options.dontStart                    
+                targetPaths.prodPostBuildSteps options,->
+                  log.info "build complete, now run: monit start kfmjs or"
+                  log.info "export NODE_PATH=#{process.cwd()}/node_modules/ && node #{run.command[1].join ' '}"
               else
-                if options.dontStart                    
-                  targetPaths.prodPostBuildSteps options,->
-                    log.info "build complete, now run: monit start kfmjs or"
-                    log.info "export NODE_PATH=#{process.cwd()}/node_modules/ && node #{run.command[1].join ' '}"
-                else
-                  log.info "build complete, now run:","node #{run.command[1].join ' '}"
-        
+                log.info "build complete, now run:","node #{run.command[1].join ' '}"
+      
   builder.watcher.on "changeDidHappen",(changes)-> 
     # log.info changes
     if changes.Client? and not changes.StylusFiles

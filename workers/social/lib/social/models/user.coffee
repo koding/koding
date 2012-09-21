@@ -214,7 +214,7 @@ module.exports = class JUser extends jraphical.Module
             callback createKodingError 'Could not restore your session!'
           else
             replacementToken = createId()
-            JGuest.free session.guestId
+            JGuest.recycle session.guestId
             session.update {
               $set            :
                 username      : user.username
