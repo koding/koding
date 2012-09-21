@@ -63,7 +63,7 @@ Includes =
         jchannel                  : "./server/app/bongo/models/channel.coffee"
         jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
         jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
-        jverify                   : "./server/app/bongo/models/verify.coffee"
+        jverificationtoken        : "./server/app/bongo/models/verify.coffee"
         # bongo models:
         # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
         # jreplyactivity            : "./server/app/bongo/models/activity/reply.coffee"

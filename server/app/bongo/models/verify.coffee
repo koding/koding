@@ -2,7 +2,7 @@
 {secure}    = require 'bongo'
 crypto      = require 'crypto'
 
-class JVerify extends jraphical.Module
+class JVerificationToken extends jraphical.Module
 
   @share()
 
@@ -53,7 +53,7 @@ class JVerify extends jraphical.Module
             pin      = crypto.createHash('sha1').update(plainPin+'').digest('hex')
 
             # Create and send new pin
-            confirmation = new JVerify {username, action, email, pin}
+            confirmation = new JVerificationToken {username, action, email, pin}
             confirmation.save (err)=>
               if err
                 callback err

@@ -435,7 +435,7 @@ class JUser extends jraphical.Module
         user      : @
         email     : email
 
-      JVerify.requestNewPin options, callback
+      JVerificationToken.requestNewPin options, callback
 
     else
       options =
@@ -444,7 +444,7 @@ class JUser extends jraphical.Module
         email     : email
         pin       : pin
 
-      JVerify.confirmByPin options, (err, confirmed)=>
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
 
         if err then callback err
         else if confirmed
