@@ -142,7 +142,7 @@ class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment, JReview]
+        targetType  : [CActivity, JStatusUpdate, JCodeSnip, JComment, JDiscussion, JOpinion]
 
   @sonTest = (x,callback)->
     callback x+" foo"

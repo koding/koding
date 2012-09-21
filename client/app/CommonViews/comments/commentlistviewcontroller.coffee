@@ -8,6 +8,11 @@ class CommentListViewController extends KDListViewController
 
     newItems = []
 
+    items.sort (a,b) =>
+      a = a.meta.createdAt
+      b = b.meta.createdAt
+      if a<b then -1 else if a>b then 1 else 0
+
     for comment, i in items
 
       nextComment = items[i+1]
@@ -61,6 +66,15 @@ class CommentListViewController extends KDListViewController
             listView.addItem reply
             listView.emit "OwnCommentHasArrived"
           listView.emit "BackgroundActivityFinished"
+
+  fetchCommentsByRange:(from,to,callback)=>
+    [to,callback] = [callback,to] unless callback
+    query = {from,to}
+    message = @getListView().getData()
+
+    message.commentsByRange query,(err,comments)=>
+      @getListView().emit "BackgroundActivityFinished"
+      callback err,comments
 
   fetchAllComments:(skipCount=3, callback = noop)=>
 
