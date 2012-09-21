@@ -31,7 +31,7 @@ class BookUpdateWidget extends KDView
     appManager.openApplication "Activity"
     @getDelegate().$().css left : -1349
 
-    bongo.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       @utils.wait 2000, =>
         @getDelegate().$().css left : -700
       unless err

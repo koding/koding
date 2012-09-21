@@ -93,7 +93,7 @@ class OpinionListItemView extends KDListItemView
     @textMaxHeight = 0
 
     activity = @getDelegate().getData()
-    bongo.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner
@@ -165,7 +165,7 @@ class OpinionListItemView extends KDListItemView
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
-      bongo.cacheable originType, originId, (err, origin)->
+      KD.remote.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
 
