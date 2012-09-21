@@ -1,11 +1,11 @@
-<?php 
+<?php
 require_once 'config.php';
 require_once 'routes.php';
 require_once 'helpers.php';
 
 // $params = explode('/', preg_replace('/^\/\d+\.\d+\//', '', $_SERVER['REDIRECT_URL']));
 // // $route = array_shift($params);
-// 
+//
 // switch($route) {
 // case 'invitation' :
 //  #header(200);
@@ -26,7 +26,7 @@ if (!$route || !$router->handle_route($route)) {
           break;
       default:
           respondWith(array("error"=>"not a  valid collection",));
-  } 
+  }
 }
 
 function respondWith($res){
@@ -44,38 +44,38 @@ function getFeed($collection,$limit,$sort,$skip){
     ) : array(
       '$ne' => -1,
     );
-
+    trace('isPublic', $isPublic, $query);
 
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
     $type  = $type        ? $type : array( '$nin' => array('CFolloweeBucketActivity'));
-    
+
     $activityQuery = array(
       "snapshot"  => array( '$exists'  => true ),
       "type"      => $type,
       "originId"  => $originId,
       "isPublic"  => $isPublic,
     );
+    trace($activityQuery);
+
     if (!isset($query['t'])) {
       $activityQuery['isLowQuality'] = array( '$ne' => true );
     }
-    
+
     switch ($collection){
         case 'cActivities':
             $cursor = $mongo->$dbName->$collection->find($activityQuery,array('snapshot' => true));
-
             break;
         case 'jTags':
             $cursor = $mongo->$dbName->$collection->find();
             break;
         default:
             break;
-    }            
+    }
     $cursor->sort($sort);
     $cursor->limit($limit);
     $cursor->skip($skip);
     $r = array();
     foreach ($cursor as $doc) array_push($r,$doc);
-
     return $r;
 }

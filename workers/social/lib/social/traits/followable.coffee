@@ -123,20 +123,7 @@ module.exports = class Followable
     extend query,
       targetId  : @getId()
       as        : 'follower'
-    # log query, page
-    Relationship.some query, page, (err, docs)->
-      if err then callback err
-      else
-        ids = (rel.sourceId for rel in docs)
-        JAccount.all _id: $in: ids, (err, accounts)->
-          callback err, accounts
-
-  fetchFollowers: (query, page, callback)->
-    JAccount = require '../models/account'
-
-    extend query,
-      targetId  : @getId()
-      as        : 'follower'
+      sourceName: @constructor.name
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else
@@ -145,7 +132,6 @@ module.exports = class Followable
           callback err, accounts
 
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
-    JAccount = require '../models/account'
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 

@@ -23,7 +23,8 @@ import config
 #centos_id     = 'ami-c49030ad' # koding ami (centos)
 centos_id     = 'ami-2f219746' # koding ami (centos)
 
-cloudlinux_id = 'ami-888f2fe1' # CloudLinux
+#cloudlinux_id = 'ami-888f2fe1' # CloudLinux
+cloudlinux_id = 'ami-dd02b4b4'
 key_name      = 'koding'
 zone          = 'us-east-1b'
 placement     = 'us-east-1'

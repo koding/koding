@@ -44,6 +44,7 @@ module.exports = class JSession extends Model
     clientId = createId()
     JGuest.obtain null, clientId, (err, guest)=>
       if err
+        console.log err
         @emit 'error', err
       else
         {guestId} = guest

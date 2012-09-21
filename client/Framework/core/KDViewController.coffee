@@ -4,7 +4,7 @@ class KDViewController extends KDController
     @setOptions options
     @setDelegate options.delegate if options?.delegate?
     super options,data
-    
+
     if options?.view?
       @setView options.view
 
@@ -35,8 +35,8 @@ class KDViewController extends KDController
     @mainView = aViewInstance
     if aViewInstance.isViewReady() then @loadView @getView()
     else
-      aViewInstance.registerListener KDEventTypes : ['ViewAppended'], callback : @loadView, listener : @
+      aViewInstance.on 'viewAppended', @loadView.bind(@, aViewInstance)
       aViewInstance.on 'KDObjectWillBeDestroyed', => @destroy()
-    
+
   # DELEGATE METHOD
   hashDidChange:(params,query)->

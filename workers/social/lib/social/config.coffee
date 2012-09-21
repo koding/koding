@@ -1,4 +1,4 @@
 nodePath = require 'path'
 {argv} = require 'optimist'
 
-module.exports = require nodePath.join __dirname, '../..', argv.c
+module.exports = require argv.c

@@ -64,6 +64,7 @@ class KDSelectBox extends KDInputView
         @_$select.append "<option value='#{option.value}'>#{option.title}</option>"
     else
       warn "no valid options specified for the input:", @
+    
     @_$select.val @getDefaultValue()
 
     value = @getDefaultValue() + "" # casting number to string

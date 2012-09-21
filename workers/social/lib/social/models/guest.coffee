@@ -43,7 +43,7 @@ module.exports = class JGuest extends jraphical.Module
     {delegate} = client.connection
     if delegate.can 'reset guests'
       @drop ->
-        queue = [0...10000].map (guestId)->
+        queue = [0...1e4].map (guestId)->
           guest = new JGuest {guestId}
           guest.save (err)->
             console.log 'saved a guest!'
@@ -51,8 +51,11 @@ module.exports = class JGuest extends jraphical.Module
         dash queue, ->
           console.log 'done restting guests!'
 
-  @free =(guestId, callback=->) ->
+  @recycle =(guest, callback=->) ->
+    guestId = if guest instanceof @ then guest.getId() else guest
     @update {guestId}, $set:{status: 'needs cleanup'}, callback
+
+  recycle:-> @constructor.recycle this # YAGNI?
 
   @obtain = secure (client, clientId, callback)->
     [callback, clientId] = [clientId, callback] unless callback

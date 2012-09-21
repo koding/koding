@@ -122,6 +122,7 @@ module.exports = class JPost extends jraphical.Message
           tags or= []
           status.addTags client, tags, (err)->
             if err
+              log err
               callback createKodingError err
             else
               queue.next()
@@ -149,14 +150,6 @@ module.exports = class JPost extends jraphical.Message
     super
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
-
-  fetchOrigin: (callback)->
-    originType = @getAt 'originType'
-    originId   = @getAt 'originId'
-    if Base.constructors[originType]?
-      Base.constructors[originType].one {_id: originId}, callback
-    else
-      callback null
 
   modify: secure (client, formData, callback)->
     {delegate} = client.connection
@@ -273,7 +266,7 @@ module.exports = class JPost extends jraphical.Message
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
-      comment = new JComment body: comment
+      comment = new replyType body: comment
       exempt = delegate.checkFlag('exempt')
       if exempt
         comment.isLowQuality = yes
@@ -283,7 +276,9 @@ module.exports = class JPost extends jraphical.Message
           if err
             callback err
           else
-            delegate.addContent comment, (err)-> console.log 'error adding content', err
+            delegate.addContent comment, (err)->
+              if err
+                log 'error adding content to delegate', err
             @addComment comment,
               flags:
                 isLowQuality    : exempt
@@ -382,7 +377,7 @@ module.exports = class JPost extends jraphical.Message
       if to
         queryOptions.limit = to - from
     selector['data.flags.isLowQuality'] = $ne: yes
-    queryOptions.sort = timestamp: 1
+    queryOptions.sort = timestamp: -1
     @fetchComments selector, queryOptions, callback
 
   restComments:(skipCount, callback)->

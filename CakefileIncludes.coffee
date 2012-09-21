@@ -162,7 +162,9 @@ Includes =
         KDImage             : "./client/Framework/components/image/KDImage.coffee"
 
         # split
-        KDSplitView         : "./client/Framework/components/split/KDSplitView.coffee"
+        KDSplitView         : "./client/Framework/components/split/splitview.coffee"
+        KDSplitResizer      : "./client/Framework/components/split/splitresizer.coffee"
+        KDSplitPanel        : "./client/Framework/components/split/splitpanel.coffee"
 
         # header
         KDHeaderView        : "./client/Framework/components/header/KDHeaderView.coffee"
@@ -308,6 +310,7 @@ Includes =
         activitysplitview           : "./client/app/Applications/Activity.kdapplication/views/activitysplitview.coffee"
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
+        discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -316,6 +319,7 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
+        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
@@ -323,6 +327,9 @@ Includes =
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
+        actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
+        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
+
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
         # Activity content displays commons
@@ -336,6 +343,7 @@ Includes =
         ActListItem                 : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItem.coffee"
         ActListItemStatusUpdate     : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemStatusUpdate.coffee"
         ActListItemCodeSnippet      : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeSnippet.coffee"
+        ActListItemCodeShare        : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemCodeShare.coffee"
         ActListItemDiscussion       : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemDiscussion.coffee"
         ActListItemFollow           : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemFollow.coffee"
         ActListItemLink             : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee"
@@ -352,10 +360,17 @@ Includes =
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
         appsController                : "./client/app/Applications/Apps.kdapplication/AppController.coffee"
+
         appsInnerNavigation           : "./client/app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee"
         appslistItemView              : "./client/app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee"
         appSubmissionModal            : "./client/app/Applications/Apps.kdapplication/Views/AppSubmission.coffee"
-        appsDisplay                   : "./client/app/Applications/Apps.kdapplication/ContentDisplays/Apps.coffee"
+        appInfoView                   : "./client/app/Applications/Apps.kdapplication/Views/appinfoview.coffee"
+        appView                       : "./client/app/Applications/Apps.kdapplication/Views/appview.coffee"
+        appScreenshotListItem         : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee"
+        appScreenshotsView            : "./client/app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee"
+        appDetailsView                : "./client/app/Applications/Apps.kdapplication/Views/appdetailsview.coffee"
+
+        appsDisplay                   : "./client/app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee"
         singleAppNavigation           : "./client/app/Applications/Apps.kdapplication/ContentDisplays/SingleAppNavigation.coffee"
 
         # MEMBERS VIEWS
@@ -367,6 +382,10 @@ Includes =
 
         # START TAB VIEWS
         startTabAppView               : "./client/app/Applications/StartTab.kdapplication/AppView.coffee"
+        startTabAppThumbView          : "./client/app/Applications/StartTab.kdapplication/views/appthumbview.coffee"
+        startTabAppThumbViewOld       : "./client/app/Applications/StartTab.kdapplication/views/appthumbview.old.coffee"
+        startTabRecentFileView        : "./client/app/Applications/StartTab.kdapplication/views/recentfileview.coffee"
+        startTabAppThumbContainer     : "./client/app/Applications/StartTab.kdapplication/views/appcontainer.coffee"
 
         # INBOX CONTROLLERS
         inboxMessageListController    : "./client/app/Applications/Inbox.kdapplication/Controllers/InboxMessageListController.coffee"
@@ -386,7 +405,7 @@ Includes =
         # FEED CONTROLLERS
         FeedController                : "./client/app/Applications/Feeder.kdapplication/FeedController.coffee"
         FeederFacetsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederFacetsController.coffee"
-        FeederResultsController        : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
+        FeederResultsController       : "./client/app/Applications/Feeder.kdapplication/Controllers/FeederResultsController.coffee"
 
         # FEED VIEWS
         FeederSplitView               : "./client/app/Applications/Feeder.kdapplication/Views/FeederSplitView.coffee"
@@ -478,8 +497,11 @@ Includes =
         profileTextView             : "./client/app/CommonViews/linkviews/profiletextview.coffee"
         profileTextGroup            : "./client/app/CommonViews/linkviews/profiletextgroup.coffee"
         tagLinkView                 : "./client/app/CommonViews/linkviews/taglinkview.coffee"
+        appLinkView                 : "./client/app/CommonViews/linkviews/applinkview.coffee"
         activityTagGroup            : "./client/app/CommonViews/linkviews/activitychildviewtaggroup.coffee"
         autoCompleteProfileTextView : "./client/app/CommonViews/linkviews/autocompleteprofiletextview.coffee"
+        splitView                   : "./client/app/CommonViews/splitview.coffee"
+        slidingSplitView            : "./client/app/CommonViews/slidingsplit.coffee"
 
         avatarView                  : "./client/app/CommonViews/avatarviews/avatarview.coffee"
         avatarStaticView            : "./client/app/CommonViews/avatarviews/avatarstaticview.coffee"
@@ -511,13 +533,35 @@ Includes =
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
+        OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
+        DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"
+        DiscussionActivityOpinionLI   : "./client/app/CommonViews/opinions/discussionactivityopinionlistitemview.coffee"
+        OpinionViewHeader             : "./client/app/CommonViews/opinions/opinionviewheader.coffee"
+        OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
+        OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"
+        OpinionCommentListItemView    : "./client/app/CommonViews/opinions/opinioncommentlistitemview.coffee"
+        OpinionFormView               : "./client/app/CommonViews/opinions/opinionformview.coffee"
+        OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
+        DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
+
+        MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
+
         foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
         sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
+        sidebarFooterMenuItem       : "./client/app/MainApp/sidebar/footermenuitem.coffee"
+        sidebarAdminModal           : "./client/app/MainApp/sidebar/modals/adminmodal.coffee"
+        sidebarKiteSelector         : "./client/app/MainApp/sidebar/modals/kiteselector.coffee"
 
         # BOOK
-        BookView                    : "./client/app/MainApp/book.coffee"
+        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
+        bookView                    : "./client/app/MainApp/book/bookview.coffee"
+        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
+        bookTOC                     : "./client/app/MainApp/book/embedded/tableofcontents.coffee"
+        bookUpdateWidget            : "./client/app/MainApp/book/embedded/updatewidget.coffee"
+        bookTopics                  : "./client/app/MainApp/book/embedded/topics.coffee"
+        bookDevelopButton           : "./client/app/MainApp/book/embedded/developbutton.coffee"
 
         #maintabs
 
@@ -565,6 +609,10 @@ Includes =
         resetform                 : "./client/app/MainApp/login/resetform.coffee"
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
+        # BOTTOM PANEL
+        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
+
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
         KodingMainController      : "./client/app/MainApp/maincontroller/maincontroller.coffee"
@@ -572,14 +620,11 @@ Includes =
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
         jqueryHash        : "./client/libs/jquery-hashchange.js"
-        # jqueryAutoGrow    : "./client/libs/jquery-autogrow.js"
         jqueryTimeAgo     : "./client/libs/jquery-timeago.js"
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
-        # jqueryJodo        : "./client/libs/jquery.jodo.js"
-        # jqueryTipTip      : "./client/libs/jquery.tipTip.min.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
         # log4js            : "./client/libs/log4js.js"
@@ -596,9 +641,9 @@ Includes =
         inflector         : "./client/libs/inflector.js"
         canvasLoader      : "./client/libs/canvas-loader.js"
 
+        marked            : "./client/libs/marked.js"
+        google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
 
-
-        # bootstrapPopover  : "./client/libs/bootstrap-popover.js"
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
 
@@ -639,7 +684,8 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        # appabout            : "./client/stylus/app.about.styl"
+        appBottom           : "./client/stylus/app.bottom.styl"
+        appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
@@ -663,21 +709,15 @@ Includes =
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        # book                : "./client/stylus/app.book.styl"
+        book                : "./client/stylus/app.book.styl"
 
-        # group          : "./client/stylus/app.group.styl"
-        # responsive     : "./client/stylus/responsive.styl"
         temp             : "./client/stylus/temp.styl"
-        # app1           : "./client/stylus/app1.styl"
-        # appdiscarded   : "./client/stylus/app.discarded.styl" => junk styles from app.styl seperated.
 
         # mediaqueries should stay at the bottom
         app1200             : "./client/stylus/app.1200.styl"
         app1024             : "./client/stylus/app.1024.styl"
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
-
-        # toolsdemos          : "./client/stylus/tools.demos.styl"
 
         WebTermDefaultTheme : "./client/app/Applications/WebTerm.kdapplication/themes/default.styl"
 

@@ -1,37 +1,91 @@
-class DiscussionActivityItemView extends KDView
-  viewAppended: ->
-    # @setClass 'activity-item clearfix'
-    super
+class DiscussionActivityItemView extends ActivityItemChild
 
-  partial: (activity, account) ->
-    data    = @getData()
-    unless account
-      account =
-        profile:
-          firstName: 'Loading...'
-          lastName: ''
-      
-    # log data, "<=- this is data", "∆ ∆ DiscussionActivityItemView ∆ ∆"
+  constructor:(options, data)->
 
-    name = "#{account.profile.firstName} #{account.profile.lastName}"
-    partial = $ "<div class='activity-item discussion clearfix'>
-                  <span class='avatar'>
-                    <a class = 'propagateAccount' href='/#/' style='background-image:url(#{account.profile.avatar});'></a>
-                  </span>
-                  <div class='activity-item-right-col'>
-                    <h3>#{data.title}</h3>
-                    <p class='context'>#{data.subTitle} - #{data.body}</p>
-                    <footer class='clearfix'>
-                      <div><span class='tag'>Discussion</span> by <strong>#{name}</strong> <time class='timeago' datetime='#{new Date(activity.time).format 'isoUtcDateTime'}'></time></div>
-                      
-                      <div class='commentsContainer'></div>
-                      
-                      <!--<div class='stats'><cite><span>1456</span> VIEWS</cite> | <cite><span>2</span> ANSWERS</cite> | <cite><span>5</span> COMMENTS</cite></div>-->
-                    </footer>
-                    
-                  </div>
-                  </div>
-                  "
+    options = $.extend
+      cssClass    : "activity-item discussion"
+      tooltip     :
+        title     : "Discussion"
+        offset    : 3
+        selector  : "span.type-icon"
+    ,options
 
-    partial.find("time.timeago").timeago()
-    partial
+    super options,data
+
+    @actionLinks = new DiscussionActivityActionsView
+      delegate : @commentBox.opinionList
+      cssClass : "reply-header"
+    , data
+
+    if data.repliesCount > 0
+      @opinionBox = new DiscussionActivityOpinionView
+        cssClass    : "activity-opinion-list comment-container"
+      , data
+    else
+      @opinionBox = new KDCustomHTMLView
+        tagName     : "div"
+        cssClass    : "opinion-first-box"
+
+      @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
+        tagName     : "a"
+        cssClass    : "first-reply-link"
+        attributes  :
+          title     : "Be the first to reply"
+          href      : "#"
+        partial     : "Be the first to reply!"
+        click       :->
+          appManager.tell "Activity", "createContentDisplay", data
+
+  viewAppended:()->
+    return if @getData().constructor is bongo.api.CDiscussionActivity
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
+
+  render:->
+    super()
+
+    @$("pre").addClass "prettyprint"
+    prettyPrint()
+
+  click:(event)->
+    if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
+      appManager.tell "Activity", "createContentDisplay", @getData()
+
+  applyTextExpansions:(str = "")->
+    str = @utils.expandUsernames @utils.applyMarkdown str
+
+    if str.length > 500
+      visiblePart = str.substr 0, 500
+      # this breaks the markdown sanitizer
+      # morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"
+      str = visiblePart  + " ..." #+ morePart
+
+    return str
+
+  pistachio:->
+    """
+  <div class="activity-discussion-container">
+    <span class="avatar">{{> @avatar}}</span>
+    <div class='activity-item-right-col'>
+      {{> @settingsButton}}
+      <h3 class='hidden'></h3>
+      <p>{{@applyTextExpansions #(title)}}</p>
+
+      <footer class='clearfix'>
+        <div class='type-and-time'>
+          <span class='type-icon'></span> by {{> @author}}
+          <time>{{$.timeago #(meta.createdAt)}}</time>
+          {{> @tags}}
+        </div>
+        {{> @actionLinks}}
+      </footer>
+    <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
+    </div>
+  </div>
+  {{> @opinionBox}}
+    """
+

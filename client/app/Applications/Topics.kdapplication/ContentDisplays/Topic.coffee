@@ -19,7 +19,7 @@ class ContentDisplayControllerTopic extends KDViewController
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
-        contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeHidden",mainView
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden",mainView
 
     topicView = @addTopicView topic
 

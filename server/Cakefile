@@ -1,0 +1,26 @@
+fs        = require 'fs'
+os        = require 'os'
+nodePath  = require 'path'
+{spawn}   = require 'child_process'
+KodingLogger = require 'koding-logger'
+
+option '-c', '--configPath [CONFIG]', 'Which config file to use'
+option '-s', '--silent', 'Set this flag to suppress stdout'
+
+task 'run', ({configPath, silent})->
+  configPath ?= '../config/dev'
+  {webPort, logger} = require configPath
+  logger = new KodingLogger 'webserver', os.hostname(), logger.mq
+  logger.tailTo process.stdout unless silent
+  webPort = [webPort] unless Array.isArray webPort
+  webPort.forEach (port)->
+    runServer configPath, logger, port
+
+runServer =(configPath, logger, port)->
+  child = spawn 'node', ['./index.js'
+    '-c', configPath
+    '-p', port
+  ]
+  logger.logAll child, "webserver#{port}"
+
+shouldRestart =(port)-> yes

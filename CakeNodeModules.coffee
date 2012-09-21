@@ -5,7 +5,7 @@ module.exports =
     "kite-amqp","amqp","broker","koding-eventemitter2"
   ]
   npm_modules :
-    bitly           : '1.2.3'
+    bitly           : '1.2.4'
     braintree       : '1.1.0'
     'coffee-script' : '1.3.3'
     dateformat      : '1.0.2-1.2.3'

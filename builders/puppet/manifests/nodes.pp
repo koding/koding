@@ -1,11 +1,15 @@
 
 node base {
+    yumrepos { 'zabbixzone':
+        repo => 'zabbixzone',
+    }
 
     yumrepos { 'epel':
         repo => 'epel',
     }
 
     include motd
+    include puppet
     include timezone
     # install and configure sudo
     include ntpd
