@@ -47,7 +47,7 @@ class JInvitation extends jraphical.Module
   createBetaInvite = (options,callback)->
     {inviterUsername,inviteeEmail,inviteType} = options
     inviterUsername ?= "devrim"
-    inviteeEmail    ?= "devrim+"+Date.now()+"@koding.com"
+    inviteeEmail    ?= "pleaseChangeThisEmailWithYourOwn+"+Date.now()+"@koding.com"
     inviteType      ?= "koding.com"
 
     JAccount.one {'profile.nickname': inviterUsername}, (err, inviterAccount)->
