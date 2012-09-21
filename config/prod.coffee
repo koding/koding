@@ -27,7 +27,7 @@ module.exports =
       mainUri   : 'https://dev.koding.com'
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
-        sockJS  : 'https://mq.koding.com/subscribe'
+        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         auth    : 'https://dev.koding.com/auth'
       apiUri    : 'https://api.koding.com'
   mq            :
