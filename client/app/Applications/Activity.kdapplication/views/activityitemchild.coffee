@@ -10,7 +10,7 @@ class ActivityItemChild extends KDView
       size    : {width: 40, height: 40}
       origin
     }
-    
+
     @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
@@ -35,10 +35,10 @@ class ActivityItemChild extends KDView
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
     super
-    
+
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
-      bongo.cacheable tagRefs, (err, tags)=>
+      KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
         # debugger
@@ -58,13 +58,13 @@ class ActivityItemChild extends KDView
 
     @contentDisplayController = @getSingleton "contentDisplayController"
 
-    bongo.cacheable data.originType, data.originId, (err, account)=>
+    KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   settingsMenu:(data)->
-    
+
     account = KD.whoami()
-    
+
     menu = [
       type      : "contextmenu"
       items     : []
@@ -77,7 +77,7 @@ class ActivityItemChild extends KDView
       ]
 
       return menu
-    
+
     if KD.checkFlag 'super-admin'
       menu[0].items = [
         { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll data  }
@@ -110,3 +110,12 @@ class ActivityItemChild extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+
+  click:(event)->
+
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+

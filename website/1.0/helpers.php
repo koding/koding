@@ -5,12 +5,10 @@ require_once 'config.php';
 $respond = 'json_respond';
 
 function trace () {
-  error_log(implode(' ', array_map(function ($value) {
+  file_put_contents(TRACE_LOG, PHP_EOL.'[35m'.date('c').'[39m'.' '.implode(PHP_EOL, array_map(function ($value) {
     return var_export($value, TRUE);
-  }, func_get_args())));
+  }, func_get_args())), FILE_APPEND);
 }
-
-trace($headers);
 
 function handle_vacated_channel ($type, $event, $ms) {
   $kite_controller = get_kite_controller();
@@ -18,7 +16,7 @@ function handle_vacated_channel ($type, $event, $ms) {
   $kite_uri = $kite_controller->get_kite_uri($kite_id, $requester_id);
   trace(implode(array('sending disconnect event', $kite_id, $requester_id), ' '));
   $query = array(
-    'toDo' => '_disconnect',
+    'method' => '_disconnect',
     'secretChannelId' => $event->channel,
   ); 
   $uri = $kite_uri."?username={$requester_id}&data=".urlencode(json_encode($query));

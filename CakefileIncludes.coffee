@@ -6,14 +6,14 @@ Includes =
         includes        : "./CakefileIncludes.coffee"
     Server:
       Stuff:
-        config          : "./config.coffee"
-        dependencies    : "./server/dependencies.coffee"
-        errors          : "./server/app/errors.coffee"
-        initConfig      : "./server/app/initConfig.coffee"
-        emailer         : "./server/app/emailer.coffee"
+        config          : "./empty.coffee"
+        # dependencies    : "./server/dependencies.coffee"
+        # errors          : "./server/app/errors.coffee"
+        # initConfig      : "./server/app/initConfig.coffee"
+        # emailer         : "./server/app/emailer.coffee"
         # base            : "./server/app/base.coffee"
-        utils           : "./server/app/utils.coffee"
-        jspath          : "./server/app/jspath.coffee"
+        # utils           : "./server/app/utils.coffee"
+        #jspath          : "./server/app/jspath.coffee"
         # access_control  : "./server/app/access_control.coffee"
         # output_filters  : "./server/app/output_filters.coffee"
         # api             : "./server/app/api.coffee"
@@ -22,8 +22,8 @@ Includes =
         # ftp             : "./server/app/ftp.coffee"
         # job             : "./server/app/job.coffee"
         # jobq            : "./server/app/jobq.coffee"
-        resource        : "./server/app/resource.coffee"
-        server          : "./server/app/server.coffee"
+        # resource        : "./server/app/resource.coffee"
+        # server          : "./server/app/server.coffee"
         # foreign_auth    : "./server/app/foreign_auth.coffee"
         # shell           : "./server/app/shell.coffee"
         # status          : "./server/app/status.coffee"
@@ -31,11 +31,11 @@ Includes =
         # Irc             : "./server/app/irc.coffee"
 
 
-        KiteController  : "./server/app/core/KiteController.coffee"
+        #KiteController  : "./server/app/core/KiteController.coffee"
         # archiver        : "./server/app/core/archiver.coffee"
         # limit           : "./server/app/core/limit.coffee"
         # allocation      : "./server/app/core/allocation.coffee"
-        register        : "./server/app/core/register.coffee"
+        # register        : "./server/app/core/register.coffee"
         #localization    : "./server/app/core/localization.coffee"
         # relationship    : "./server/app/core/relationship.coffee"
         # permission      : "./server/app/core/permission.coffee"
@@ -59,11 +59,11 @@ Includes =
         # metadataExperiencepoints    : "./server/app/metadata/metadata.experiencepoints.coffee"
 
 
-      Models :
-        jchannel                  : "./server/app/bongo/models/channel.coffee"
-        jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
-        jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
-        # bongo models:
+      #Models :
+        # jchannel                  : "./server/app/bongo/models/channel.coffee"
+        # jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
+        # jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
+        # # bongo models:
         # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
         # jreplyactivity            : "./server/app/bongo/models/activity/reply.coffee"
         # jabstractActivity         : "./server/app/bongo/models/activity/abstract.coffee"
@@ -76,55 +76,55 @@ Includes =
         # activity redo:
 
 
-        # abstractions
-        followable                : "./server/app/bongo/abstractions/followable.coffee"
-        filterable                : "./server/app/bongo/abstractions/filterable.coffee"
-        taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
-        notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
-        notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
-        flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
+        # # abstractions
+        # followable                : "./server/app/bongo/abstractions/followable.coffee"
+        # filterable                : "./server/app/bongo/abstractions/filterable.coffee"
+        # taggable                  : "./server/app/bongo/abstractions/taggable.coffee"
+        # notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
+        # notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
+        # flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
         
         
-        cactivity                 : "./server/app/bongo/models/activity.coffee"
-        cbucket                   : "./server/app/bongo/models/bucket.coffee"
+        # cactivity                 : "./server/app/bongo/models/activity.coffee"
+        # cbucket                   : "./server/app/bongo/models/bucket.coffee"
         
-        jlimit                    : "./server/app/bongo/models/limit.coffee"
-        jmount                    : "./server/app/bongo/models/mount.coffee"
-        jrepo                     : "./server/app/bongo/models/repo.coffee"
-        jdatabase                 : "./server/app/bongo/models/database.coffee"
-        jenvironment              : "./server/app/bongo/models/environment.coffee"
-        jappstorage               : "./server/app/bongo/models/appStorage.coffee"
-        jaccount                  : "./server/app/bongo/models/account.coffee"
-        jsession                  : "./server/app/bongo/models/session.coffee"
-        juser                     : "./server/app/bongo/models/user.coffee"
-        jguest                    : "./server/app/bongo/models/guest.coffee"
-        jvisitor                  : "./server/app/bongo/models/visitor.coffee"
-        jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
+        # jlimit                    : "./server/app/bongo/models/limit.coffee"
+        # jmount                    : "./server/app/bongo/models/mount.coffee"
+        # jrepo                     : "./server/app/bongo/models/repo.coffee"
+        # jdatabase                 : "./server/app/bongo/models/database.coffee"
+        # jappstorage               : "./server/app/bongo/models/appStorage.coffee"
+        # jaccount                  : "./server/app/bongo/models/account.coffee"
+        # jsession                  : "./server/app/bongo/models/session.coffee"
+        # juser                     : "./server/app/bongo/models/user.coffee"
+        # jguest                    : "./server/app/bongo/models/guest.coffee"
+        # jvisitor                  : "./server/app/bongo/models/visitor.coffee"
+        # jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
         
-        jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
+        # jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
         
-        # jterminal                  : "./server/app/bongo/models/terminal.coffee"
+        # # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
-        fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
+        # fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
 
-        jtag                      : "./server/app/bongo/models/tag.coffee"
+        # jtag                      : "./server/app/bongo/models/tag.coffee"
 
-        jcomment                  : "./server/app/bongo/models/messages/comment.coffee"
-        jpost                     : "./server/app/bongo/models/messages/post.coffee"
-        jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
-        jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
-        janswer                   : "./server/app/bongo/models/messages/answer.coffee"
-        jquestion                 : "./server/app/bongo/models/messages/question.coffee"
-        jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
-        japp                      : "./server/app/bongo/models/app.coffee"
+        # jcomment                  : "./server/app/bongo/models/messages/comment.coffee"
+        # jpost                     : "./server/app/bongo/models/messages/post.coffee"
+        # jstatusupdate             : "./server/app/bongo/models/messages/status.coffee"
+        # jcodesnip                 : "./server/app/bongo/models/messages/codesnip.coffee"
+        # janswer                   : "./server/app/bongo/models/messages/answer.coffee"
+        # jquestion                 : "./server/app/bongo/models/messages/question.coffee"
+        # jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
+        # japp                      : "./server/app/bongo/models/app.coffee"
 
-        jinvitation               : "./server/app/bongo/models/invitation.coffee"
-        jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
-        jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
-        
+        # jinvitation               : "./server/app/bongo/models/invitation.coffee"
+        # jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
+        # jpasswordrecovery         : "./server/app/bongo/models/passwordrecovery.coffee"
+        # jkitecluster              : "./server/app/bongo/models/kitecontroller/kitecluster.coffee"
+        # jkiteconnection           : "./server/app/bongo/models/kitecontroller/kiteconnection.coffee"
 
 
-      OtherStuff :
+      # OtherStuff :
         # moduledata            : "./server/app/core/moduledata.coffee"
         # moduledata_deprecated : "./server/app/core/moduledata_deprecated.coffee"
         # defaultAllocations    : "./server/app/defaults/defaultallocations.coffee"
@@ -136,7 +136,7 @@ Includes =
         # groupsDump            : "./server/migrate/migrants/groupsdump.coffee"
         # postsDump             : "./server/migrate/migrants/postsdump.coffee"
         # unwrapper             : "./server/migrate/migrants/unwrapper.coffee"
-        main                  : "./server/app/main.coffee"
+        # main                  : "./server/app/main.coffee"
 
     Client:
       Framework :
@@ -205,7 +205,7 @@ Includes =
         KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
-        KDRySwitch            : "./client/Framework/components/inputs/KDRySwitch.coffee"
+        KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
@@ -308,8 +308,8 @@ Includes =
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
-        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"        
-        
+        discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
+
         # Activity content displays
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
@@ -451,8 +451,9 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
-        bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
+        broker                      : "./broker/apps/broker/priv/www/js/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
+        bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
 
         # mainapp controllers
@@ -477,6 +478,7 @@ Includes =
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
 
+        LikeView                    : "./client/app/CommonViews/LikeView.coffee"
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
         FormViews                   : "./client/app/CommonViews/FormViews.coffee"
         messagesList                : "./client/app/CommonViews/messagesList.coffee"
@@ -627,17 +629,17 @@ Includes =
         # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
         app                 : "./client/stylus/app.styl"
-        appabout            : "./client/stylus/app.about.styl"
+        # appabout            : "./client/stylus/app.about.styl"
         appcommons          : "./client/stylus/app.commons.styl"
         appeditor           : "./client/stylus/app.editor.styl"
         appfinder           : "./client/stylus/app.finder.styl"
         appaceeditor        : "./client/stylus/app.aceeditor.styl"
         activity            : "./client/stylus/app.activity.styl"
         appcontextmenu      : "./client/stylus/app.contextmenu.styl"
-        appchat             : "./client/stylus/app.chat.styl"
+        # appchat             : "./client/stylus/app.chat.styl"
         appsettings         : "./client/stylus/app.settings.styl"
         appinbox            : "./client/stylus/app.inbox.styl"
-        appenvsettings      : "./client/stylus/app.envsettings.styl"
+        # appenvsettings      : "./client/stylus/app.envsettings.styl"
         appmembers          : "./client/stylus/app.members.styl"
         comments            : "./client/stylus/app.comments.styl"
         bootstrap           : "./client/stylus/app.bootstrap.styl"
@@ -645,13 +647,13 @@ Includes =
         appkeyboard         : "./client/stylus/app.keyboard.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
-        apphome             : "./client/stylus/app.home.styl"
+        # apphome             : "./client/stylus/app.home.styl"
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
-        book                : "./client/stylus/app.book.styl"
+        # book                : "./client/stylus/app.book.styl"
 
         # group          : "./client/stylus/app.group.styl"
         # responsive     : "./client/stylus/responsive.styl"
@@ -665,7 +667,7 @@ Includes =
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
 
-        toolsdemos          : "./client/stylus/tools.demos.styl"
+        # toolsdemos          : "./client/stylus/tools.demos.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
@@ -681,5 +683,4 @@ Includes =
         # multiselect : "./client/css/jquery.multiselect.css"
         # tipTip    : "./client/css/tipTip.css"
         # fonts     : "./client/css/fonts.css"
-
 module.exports = Includes

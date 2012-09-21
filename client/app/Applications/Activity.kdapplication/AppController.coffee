@@ -56,7 +56,7 @@ class Activity12345 extends AppController
         title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
-    unless account instanceof bongo.api.JGuest
+    unless account instanceof KD.remote.api.JGuest
         # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
@@ -111,7 +111,7 @@ class Activity12345 extends AppController
       KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
       listener      : @
       callback      : (pubInst, data)=>
-        @filter data.type
+        @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -148,7 +148,7 @@ class Activity12345 extends AppController
       @activityListController.isLoading = yes
       @loadSomeTeasers =>
         @activityListController.isLoading = no
-        @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
+        @activityListController.hideLazyLoader()
 
   fetchTeasers:(selector,options,callback)->
     appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
@@ -156,7 +156,7 @@ class Activity12345 extends AppController
         log '>> error fetching app storage', err
       else
         options.collection = 'activities'
-        flags = KD.whoami().data.globalFlags
+        flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
         $.ajax KD.apiUri+'/1.0'
@@ -166,10 +166,11 @@ class Activity12345 extends AppController
             env     : KD.env
           dataType  : 'jsonp'
           success   : (data)->
-            bongo.reviveFromJSONP data, (err, instances)->
+            KD.remote.reviveFromSnapshots data, (err, instances)->
+              console.log instances
               callback instances
     #
-    # bongo.api.CActivity.teasers selector, options, (err, activities) =>
+    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
     #     callback? activities
     #   else
@@ -210,29 +211,37 @@ class Activity12345 extends AppController
       sort        :
         createdAt : -1
 
-    @fetchTeasers selector, options, (activities)=>
-      if activities
-        for activity in activities
-          @activityListController.addItem activity
-        callback? activities
-      else
-        callback?()
+    if not options.skip < options.limit
+      @fetchTeasers selector, options, (activities)=>
+        if activities
+          for activity in activities
+            @activityListController.addItem activity
+          callback? activities
+        else
+          callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
-    bongo.api.Relationship.within sourceIds, options, (err, rels)->
-      bongo.cacheable rels.map((rel)->
+    KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
+      KD.remote.cacheable rels.map((rel)->
         constructorName : rel.targetName
         id              : rel.targetId
       ), callback
 
   filter: (show, callback) ->
+
     controller = @activityListController
+    controller.noActivityItem.hide()
 
     if show is 'private'
+      _counter = 0
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
-        item.hide() if not controller.isInFollowing(item.data)
-      return
+        if not controller.isInFollowing(item.data)
+          item.hide()
+          _counter++
+      if _counter is controller.itemsOrdered.length
+        controller.noActivityItem.show()
+      return no
 
     else if show is 'public'
       controller._state = 'public'
@@ -246,8 +255,10 @@ class Activity12345 extends AppController
       ]
 
     controller.removeAllItems()
+    controller.showLazyLoader no
     @loadSomeTeasers ->
       controller.isLoading = no
+      controller.hideLazyLoader()
       callback?()
 
   createContentDisplay:(activity)->
@@ -290,11 +301,18 @@ class ActivityListController extends KDListViewController
     viewOptions.comments      or= yes
     viewOptions.subItemClass  or= options.subItemClass
     options.view              or= new KDListView viewOptions, data
+    options.startWithLazyLoader = yes
     super
 
     @_state = 'public'
+    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity from your followings."
+    @noActivityItem.hide()
 
   loadView:(mainView)->
+    @noActivityItem.hide()
+
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -337,7 +355,7 @@ class ActivityListController extends KDListViewController
         @activityHeader.newActivityArrived()
     else
       switch activity.constructor
-        when bongo.api.CFolloweeBucket
+        when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
 
@@ -347,6 +365,7 @@ class ActivityListController extends KDListViewController
     return instance
 
   addItem:(activity, index, animation = null) ->
+    @noActivityItem.hide()
     # log "ADD:", activity
     if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
       @getListView().addItem activity, index, animation

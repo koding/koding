@@ -33,7 +33,6 @@ class KDInputView extends KDView
         readonly              : null
         required              : null
         size                  : null
-        list                  : null
         selectionStart        : null
         selectionEnd          : null
         selectionDirection    : null

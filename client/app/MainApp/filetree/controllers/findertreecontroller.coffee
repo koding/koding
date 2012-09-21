@@ -403,7 +403,7 @@ class NFinderTreeController extends JTreeViewController
 
       log "trying to publish"
       log options =
-        toDo          : "publishApp"
+        method          : "publishApp"
         withArgs      :
           version     : manifest.version
           appName     : manifest.name

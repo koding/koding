@@ -58,7 +58,7 @@ class KDModalView extends KDView
       <div class='kdmodal-shadow'>
         <div class='kdmodal-inner'>
           <span class='close-icon closeModal'></span>
-          <div class='kdmodal-title'></div>
+          <div class='kdmodal-title hidden'></div>
           <div class='kdmodal-content'></div>
         </div>
       </div>
@@ -91,7 +91,7 @@ class KDModalView extends KDView
     @destroy() if e.which is 27
   
   setTitle:(title)-> 
-    @getDomElement().find(".kdmodal-title").html("<span class='title'>#{title}</span>")
+    @$().find(".kdmodal-title").removeClass('hidden').html("<span class='title'>#{title}</span>")
     @modalTitle = title
 
   setModalHeight:(value)->

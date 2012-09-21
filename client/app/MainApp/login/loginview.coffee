@@ -99,7 +99,9 @@ class LoginView extends KDScrollView
 
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doLogin formData
+      callback : (formData)=>
+        formData.clientId = $.cookie('clientId')
+        @doLogin formData
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
@@ -218,14 +220,14 @@ class LoginView extends KDScrollView
     """
 
   doReset:({recoveryToken, password})->
-    bongo.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
+    KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
       @animateToForm 'login'
       @doLogin {username, password}
 
   doRecover:(formData)->
-    bongo.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
+    KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
       @recoverForm.button.hideLoader()
       if err
         new KDNotificationView
@@ -240,12 +242,15 @@ class LoginView extends KDScrollView
   doRegister:(formData)->
     {kodingenUser} = formData
     formData.agree = 'on'
-    bongo.api.JUser.register formData, (error, result)=>
+    KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
+      console.log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
         @registerForm.emit "SubmitFailed", message
       else
+        $.cookie 'clientId', replacementToken
+        @getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
@@ -259,13 +264,15 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    bongo.api.JUser.login credentials, (error, result) =>
+    KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView
           title   : error.message
           duration: 1000
       else
+        $.cookie 'clientId', replacementToken if replacementToken
+        @getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -275,7 +282,7 @@ class LoginView extends KDScrollView
 
   doRequest:(formData)->
 
-    bongo.api.JInvitationRequest.create formData, (err, result)=>
+    KD.remote.api.JInvitationRequest.create formData, (err, result)=>
 
       if err
         msg = if err.code is 11000 then "This email was used for a request before!"
@@ -317,7 +324,7 @@ class LoginView extends KDScrollView
 
   animateToForm: (name)->
     if name is "register"
-      bongo.api.JVisitor.isRegistrationEnabled (status)=>
+      KD.remote.api.JUser.isRegistrationEnabled (status)=>
         if status is no
           @registerForm.$('div').hide()
           @registerForm.$('section').show()

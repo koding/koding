@@ -111,7 +111,6 @@ class Watcher extends EventEmitter
       
       
   watch : (options,callback)->
-
     @watcher.isLooping = yes
     @watchlist.order.__watch ?= {}
     build =

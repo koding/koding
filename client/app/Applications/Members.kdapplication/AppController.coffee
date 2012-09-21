@@ -5,6 +5,10 @@ class Members12345 extends AppController
     ,options
     super options,data
 
+    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
+      if @_searchValue and itemClass is MembersListItemView and filterName is 'everything'
+        @setCurrentViewHeader count
+
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -28,25 +32,26 @@ class Members12345 extends AppController
       filter                :
         everything          :
           title             : "All Members <span class='member-numbers-all'></span>"
-          optional_title    : if @_searchValue then "Search results for <strong>#{@_searchValue}</strong> in all members" else null
+          optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
           dataSource        : (selector, options, callback)=>
             if @_searchValue
-              bongo.api.JAccount.byRelevance @_searchValue, options, callback
+              @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
+              KD.remote.api.JAccount.byRelevance @_searchValue, options, callback
             else
-              bongo.api.JAccount.someWithRelationship selector, options, callback
-              {currentDelegate} = @getSingleton('mainController').getVisitor()
+              KD.remote.api.JAccount.someWithRelationship selector, options, callback
+              #{currentDelegate} = @getSingleton('mainController').getVisitor()
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           dataSource        : (selector, options, callback)=>
-            {currentDelegate} = @getSingleton('mainController').getVisitor()
-            currentDelegate.fetchFollowersWithRelationship selector, options, callback
+            #{currentDelegate} = @getSingleton('mainController').getVisitor()
+            KD.whoami().fetchFollowersWithRelationship selector, options, callback
             @setCurrentViewNumber 'followers'
         recommended         :
           title             : "Following <span class='member-numbers-following'></span>"
           dataSource        : (selector, options, callback)=>
-            {currentDelegate} = @getSingleton('mainController').getVisitor()
-            currentDelegate.fetchFollowingWithRelationship selector, options, callback
+            #{currentDelegate} = @getSingleton('mainController').getVisitor()
+            KD.whoami().fetchFollowingWithRelationship selector, options, callback
             @setCurrentViewNumber 'following'
       sort                  :
         'meta.modifiedAt'   :
@@ -59,7 +64,6 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-
       view.addSubView @_lastSubview = controller.getView()
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
@@ -122,20 +126,8 @@ class Members12345 extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
 
-  showVisitorContentDisplay:(pubInst, event)=>
-    {content} = event
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerVisitor null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
   createContentDisplay:(account, doShow = yes)->
-    if account.equals @getSingleton('mainController').getVisitor().currentDelegate
-      controllerClass = ContentDisplayControllerVisitor
-    else
-      controllerClass = ContentDisplayControllerMember
-
-    controller = new controllerClass null, account
+    controller = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
     if doShow
       @showContentDisplay contentDisplay
@@ -147,10 +139,21 @@ class Members12345 extends AppController
     contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
 
   setCurrentViewNumber:(type)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    # typeClass =
-    currentDelegate.count? type, (err, count)=>
+    KD.whoami().count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
+
+  setCurrentViewHeader:(count)->
+    if typeof 1 isnt typeof count
+      @getView().$(".activityhead span.optional_title").html count
+      return no
+
+    if count >= 10 then count = '10+'
+    # return if count % 10 is 0 and count isnt 20
+    # postfix = if count is 10 then '+' else ''
+    count   = 'No' if count is 0
+    result  = "#{count} member" + if count isnt 1 then 's' else ''
+    title   = "#{result} found for <strong>#{@_searchValue}</strong>"
+    @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
     options =
@@ -159,7 +162,7 @@ class Members12345 extends AppController
       sort      :
         "meta.modifiedAt": -1
     selector = {}
-    bongo.api.JAccount.someWithRelationship selector, options, callback
+    KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
 
 class MembersListViewController extends KDListViewController
@@ -179,13 +182,11 @@ class MembersListViewController extends KDListViewController
     data = item.getData()
 
     data.on 'FollowCountChanged', (followCounts)=>
-      {followerCount, followingCount, newFollower, oldFollower} = followCounts
+      {followerCount, followingCount, action} = followCounts
       data.counts.followers = followerCount
       data.counts.following = followingCount
       item.setFollowerCount followerCount
-      switch @getSingleton('mainController').getVisitor().currentDelegate
-        when newFollower, oldFollower
-          if newFollower then item.unfollowTheButton() else item.followTheButton()
+      if action is "follow" then item.unfollowTheButton() else item.followTheButton()
 
     item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
     item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount
@@ -206,9 +207,9 @@ class MembersListViewController extends KDListViewController
       controller.removeAllItems()
       controller.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), members.length
       controller.instantiateListItems members
-      if (myItem = controller.itemForId controller.getSingleton('mainController').getVisitor().currentDelegate.getId())?
+      if (myItem = controller.itemForId KD.whoami().getId())?
         myItem.isMyItem()
-        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showVisitorContentDisplay
+        myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showMemberContentDisplay
       controller._windowDidResize()
 
   pageDown:()->
@@ -219,14 +220,13 @@ class MembersListViewController extends KDListViewController
       listController.isLoading = yes
       currentFilter query, {skip, limit}, (err, members)->
         listController.addItem member for member in members
-        if (myItem = listController.itemForId listController.getSingleton('mainController').getVisitor().currentDelegate.getId())?
+        if (myItem = listController.itemForId KD.whoami().getId())?
           myItem.isMyItem()
-          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showVisitorContentDisplay
+          myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showMemberContentDisplay
         listController._windowDidResize()
         listController.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), skip + members.length
         listController.isLoading = no
-        listController.propagateEvent KDEventType : 'LazyLoadComplete'
+        listController.hideLazyLoader()
 
   getTotalMemberCount:(callback)=>
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    currentDelegate.count? @getOptions().filterName, callback
+    KD.whoami().count? @getOptions().filterName, callback

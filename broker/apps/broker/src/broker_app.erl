@@ -27,11 +27,11 @@
 -behaviour(cowboy_http_handler). %% To handle the default route
 
 %% Application callbacks
--export([start/0, start/2, stop/1, subscribe/4]).
+-export([start/0, start/2, stop/1]).
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
--record (user_info, {name, broker, channel, exchange}).
+-record (client, {id, socket_id, subscriptions=dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 
 %% ===================================================================
@@ -49,15 +49,13 @@ start() ->
 
 start(_StartType, _StartArgs) ->
     NumberOfAcceptors = 100,
-    Port = 8008,
+    Port = get_env(port, 8008),
 
-    MultiplexState = sockjs_mq:init_state(fun handle_subscription/3),
-
-    %% sockjs_handler:init_state(Prefix, Callback, State, Options)
-    %% Callback is a sockjs_service behavior module.
+    error_logger:tty(get_env(verbose, true)),
+    
+    SockOpts = [{websocket, true}, {cookie_needed, true}],
     SockjsState = sockjs_handler:init_state(
-                    <<"/subscribe">>, sockjs_mq, MultiplexState, []),
-
+                    <<"/subscribe">>, fun handle_client/3, {}, SockOpts),
     VhostRoutes = [
         {
             [<<"subscribe">>, '...'], 
@@ -76,7 +74,7 @@ start(_StartType, _StartArgs) ->
     ],
     Routes = [{'_',  VhostRoutes}], % any vhost
 
-    io:format(" [*] Running at http://localhost:~p~n", [Port]),
+    debug_log(" [*] Running at http://localhost:~p~n", [Port]),
 
     cowboy:start_listener(http, 
         NumberOfAcceptors,
@@ -106,14 +104,11 @@ handle(Req, State) ->
 
         [<<"auth">>] ->
             {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
-            PrivateChannel = uuid:to_string(uuid:uuid4()),
+            %PrivateChannel = uuid:to_string(uuid:uuid4()),
+            PrivateChannel = <<"secret-", Channel/binary, ".private">>,
             cowboy_http_req:reply(200,
                 [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
-        [] ->
-            {ok, Data} = file:read_file("./apps/broker/priv/www/index.html"),
-            cowboy_http_req:reply(200, [{<<"Content-Type">>, "text/html"}],
-                               Data, Req1);
         _ ->
             cowboy_http_req:reply(404, [],
                                <<"404 - Nothing here\n">>, Req1)
@@ -127,77 +122,159 @@ terminate(_Req, _State) ->
 %% SockJS_MQ Handlers
 %% ===================================================================
 
-%% This callback is called for a combination of a Queue in an Exchange
-%% on a Channel.
-handle_subscription(Conn, {init, From}, _State) ->
-    {ok, Broker} =
-        amqp_connection:start(#amqp_params_network{host = "localhost"}),
+handle_client(Conn, init, _State) ->
+    SocketId = list_to_binary(uuid:to_string(uuid:uuid4())),
+    Event = <<"connected">>,
+    EventProp = {<<"event">>, Event},
+    Payload = {<<"socket_id">>, SocketId},
+    Conn:send(jsx:encode([EventProp, Payload])),
 
-    {topic, Exchange} = lists:last(Conn:info()),
+    send_system_event(Conn, Event, [Payload]),
 
-    {ok, Channel} = amqp_connection:open_channel(Broker),
-    spawn(?MODULE, subscribe, [Conn, Channel, Exchange, From]),
-    {ok, #user_info{broker=Broker, channel=Channel, exchange=Exchange}};
-    % B = broker:start(Broker, Conn, term_to_binary(self())),
-    % broker:subscribe(B, Exchange),
-    % {ok, #user_info{broker=B}};
-    
-handle_subscription(_Conn, {recv, Payload, From}, State) ->
-    #user_info{channel=Channel, exchange=Exchange, broker=Broker} = State,
+    {ok, #client{socket_id=SocketId}};
 
-    broadcast(From, Channel, Exchange, Payload),
-    {ok, State};
+handle_client(Conn, {recv, Data}, 
+                    State=#client{subscriptions=Subscriptions}) ->
+    [Event, Exchange, _Payload, _Meta] = Decoded = decode(Data),
+    Check = {Event, dict:is_key(Exchange, Subscriptions)},
+    NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
+    {ok, State#client{subscriptions=NewSubs}};
 
-handle_subscription(_Conn, closed, State) ->
+handle_client(Conn, closed, #client{socket_id=SocketId,
+                                    subscriptions=Subscriptions}) ->
+    Event = <<"disconnected">>,
+    Sid = {<<"socket_id">>, SocketId},
+    Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
+    send_system_event(Conn, Event, [Sid, Exchanges]),
+
+    Handler = fun
+        (Sub) ->
+            broker:trigger(Sub, Event, jsx:encode([Sid]), [], true),
+            broker:unsubscribe(Sub)
+    end,
+
+    case dict:size(Subscriptions) of 
+        0 -> ok;
+        _ ->
+            List = dict:to_list(Subscriptions),
+            [Handler(Subscription) 
+                || {_Exchange, Subscription} <- List]
+    end,
+    {ok, #client{}};
+
+handle_client(_Conn, Other, State) ->
+    io:format("Other data ~p~n", [Other]),
     {ok, State}.
 
-broadcast(From, Channel, Exchange, Data) ->
-    Props = #'P_basic'{correlation_id = From},
-    amqp_channel:cast(Channel,
-                      #'basic.publish'{exchange = Exchange, routing_key = <<"#">>},
-                      #amqp_msg{props = Props, payload = Data}).
+handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    case broker:subscribe(Conn, Exchange) of
+        {error, _Error} -> Subs;
+        {ok, Subscription} ->
+            dict:store(Exchange, Subscription, Subs)
+    end;
+
+handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
+    [_Event, Where, Who, _Meta] = Data,
+    % This only acts as a key so that it can be used to
+    % remove the subscription later from the dictionary.
+    Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
+    case dict:find(Exchange, Subs) of
+        {ok, Subscription} ->
+            broker:unsubscribe(Subscription),
+            dict:erase(Exchange, Subs);
+        error ->
+            case broker:presence(Conn, Where, Who) of
+                {error, _Error} -> Subs;
+                {ok, Subscription} ->            
+                    dict:store(Exchange, Subscription, Subs)
+            end
+    end;
+
+handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:bind(Subscription, Payload),
+    Subs;
+
+handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
+    [_Event, Exchange, Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unbind(Subscription, Payload),
+    Subs;
+
+handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
+    [_Event, Exchange, _Payload, _Meta] = Data,
+    Subscription = dict:fetch(Exchange, Subs),
+    broker:unsubscribe(Subscription),
+    dict:erease(Exchange, Subs);
+
+handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
+    [Event, Exchange, Payload, Meta] = Data,
+    RegExp = "^secret-",
+    case re:run(Exchange, RegExp) of
+        nomatch -> Subs;
+        {match, _} ->
+            Subscription = dict:fetch(Exchange, Subs),
+            broker:trigger(Subscription, Event, Payload, Meta),
+            Subs
+    end;
+
+handle_event(_Conn, _Else, _Data, Subs) ->
+    Subs.
 
 %%--------------------------------------------------------------------
-%% Function: subscribe(Conn, Channel, Queue, Subscriber) -> void()
-%% Subscriber -> pid() the id of the connection to subscribe.
-%% Description: Exported but internal function to be spawned to handle
-%% the receive loop for data from subscribed exchange of RabbitMQ.
+%%% Internal functions
 %%--------------------------------------------------------------------
-subscribe(Conn, Channel, Exchange, Subscriber) -> 
-    amqp_channel:call(Channel, #'exchange.declare'{exchange = Exchange,
-                                                   type = <<"topic">>}),   
-    #'queue.declare_ok'{queue = Queue} =
-        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
-    amqp_channel:call(Channel, #'queue.bind'{exchange = Exchange,
-                                    routing_key = <<"#">>,
-                                     queue = Queue}),
-    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Queue,
-                                                     no_ack = true}, self()),
-    loop(Conn, Subscriber).
 
-rpc_call(Broker, RoutingKey, Payload) ->
-    %Fun = fun(X) -> X + 1 end,
-    %RPCHandler = fun(X) -> term_to_binary(Fun(binary_to_term(X))) end,
-    %Server = amqp_rpc_server:start(Broker, <<"RoutingKey">>, RPCHandler),
-    RpcClient = amqp_rpc_client:start(Broker, RoutingKey),
-    io:format("RpcClient ~p~n", [RpcClient]),
-    Reply = amqp_rpc_client:call(RpcClient, list_to_binary(Payload)).
-    %Reply = amqp_rpc_client:call(RpcClient, term_to_binary(1)),
-    %io:format("Reply ~p~n", [binary_to_term(Reply)]).
+send_system_event(Conn, Event, Payload) ->
+    SystemExchange = get_env(system_exchange, <<"private-broker">>),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    broker:trigger(Subscription, Event, jsx:encode(Payload), []),
+    broker:unsubscribe(Subscription).
+
+debug_log(Text, Args) ->
+    case application:get_env(broker, verbose) of
+        {ok, Val} when Val ->
+            io:format(Text, Args);
+        _ -> true
+    end.
 
 %%--------------------------------------------------------------------
-%% Function: loop(Conn) -> void()
-%% Description: The receive loop to send broadcast message to client.
+%% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
+%% Types:
+%%  Data = binary()
+%%  Event = binary()
+%%  Exchange = binary()
+%%  Payload = binary()
+%%  Meta = binary()
+%% Description:  Decode a binary data from the websocket connection
+%% into a list of data that the handler expects
 %%--------------------------------------------------------------------
-loop(Conn, Subscriber) ->
-    receive
-        #'basic.consume_ok'{} ->
-            loop(Conn, Subscriber);
-        {#'basic.deliver'{routing_key = Key}, #amqp_msg{props = #'P_basic'{correlation_id = Subscriber}, payload = Body}} ->
-            %Conn:send(Body),
-            loop(Conn, Subscriber);
-        {#'basic.deliver'{exchange = Exchange}, #amqp_msg{payload = Body}} ->
-            io:format(" [x] ~p:~p~n", [Exchange, Body]),
-            Conn:send(<<"client-message">>, Body),
-            loop(Conn, Subscriber)
+decode(Data) ->
+    [{<<"event">>, Event}, 
+        {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+
+    Payload = bin_key_find(<<"payload">>, Rest, false),
+    Meta = bin_key_find(<<"meta">>, Rest, true),
+    [Event, Exchange, Payload, Meta].
+
+%%--------------------------------------------------------------------
+%% Function: bin_key_find(BinKey, List, ReturnsEmptyList) -> Val || false
+%% Description:  A helper to find a binary key in a binary proplist.
+%% The third boolean argument specifies to return an empty list or empty
+%% binary when the BinKey not found.
+%%--------------------------------------------------------------------
+bin_key_find(BinKey, List, ReturnEmptyList) ->
+    case lists:keyfind(BinKey, 1, List) of
+        {_, Val} when is_integer(Val) -> list_to_binary(integer_to_list(Val));
+        {_, Val} -> Val;
+        false when ReturnEmptyList -> [];
+        false -> <<>>
+    end.
+
+get_env(Param, DefaultValue) ->
+    case application:get_env(broker, Param) of
+        {ok, Val} -> Val;
+        undefined -> DefaultValue
     end.

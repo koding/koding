@@ -3973,7 +3973,7 @@ AppController = (function() {
     options.type = type != null ? type : view.clientType;
     return this.account.tellKite({
       kiteName: "terminaljs",
-      toDo: "create",
+      method: "create",
       withArgs: options
     }, __bind(function(error, terminal) {
       if (error) {
@@ -4076,7 +4076,7 @@ AppController = (function() {
             return account.tellKite({
               kiteName: "terminaljs",
               kiteId: kiteId,
-              toDo: "_ping",
+              method: "_ping",
               withArgs: {}
             }, function(error, res) {
               if (!err) {
@@ -4103,7 +4103,7 @@ AppController = (function() {
     options.type = view.clientType;
     return this.account.tellKite({
       kiteName: "terminaljs",
-      toDo: "create",
+      method: "create",
       withArgs: options
     }, function(error, terminal) {
       // console.log("initated terminal",terminal);

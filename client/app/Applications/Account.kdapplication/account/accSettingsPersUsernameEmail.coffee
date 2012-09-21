@@ -3,7 +3,7 @@ class AccountEditUsername extends KDView
     # =================
     # ADDING EMAIL FORM
     # =================
-    bongo.api.JUser.fetchUser (err,user)=>
+    KD.remote.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->
@@ -47,7 +47,7 @@ class AccountEditUsername extends KDView
     emailForm.addSubView emailSwappable = new AccountsSwappable
       views    : [emailInputs,nonEmailInputs]
       cssClass : "clearfix"
-    
+
     @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
 
@@ -93,21 +93,21 @@ class AccountEditUsername extends KDView
     usernameForm.addSubView usernameSwappable = new AccountsSwappable
       views    : [usernameInputs,usernameNonInputs]
       cssClass : "clearfix"
-    
+
     @listenTo KDEventTypes : "click", listenedToInstance : usernameCancel, callback : usernameSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : usernameEdit,   callback : usernameSwappable.swapViews
-    
+
     @addSubView @emailOptOutView = new KDFormView
     @emailOptOutView.addSubView new KDLabelView
       title        : "Email notifications"
       cssClass     : "main-label"
-    
+
     emailFrequency = user.getAt('emailFrequency.global')
 
     @emailOptOutView.addSubView new KDOnOffSwitch
       cssClass      : 'dark'
       defaultValue  : if emailFrequency is 'never' then off else on
-      callback      : (state)-> 
+      callback      : (state)->
         account.setEmailPreferences global: state, ->
           new KDNotificationView
             duration : 2000

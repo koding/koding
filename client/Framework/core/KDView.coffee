@@ -58,7 +58,6 @@ class KDView extends KDObject
 
     data?.on? 'update', =>
       data
-      debugger if window.paws
       @render()
 
     @setInstanceVariables options
@@ -74,7 +73,7 @@ class KDView extends KDObject
             event.stopPropagation?()
             event.preventDefault?()
             return false
-          else if event.metaKey and event.altKey
+          else if event.ctrlKey and event.altKey
             log @
             return false
 
@@ -757,6 +756,7 @@ class KDView extends KDObject
     o.selector or= null
     o.title    or= ""
     @$(o.selector)[0].setAttribute "original-title", o.title
+    @$(o.selector).tipsy "update"
 
   hideTooltip:(o = {})->
     o.selector or= null

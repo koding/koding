@@ -10,9 +10,9 @@ class MessagesListView extends KDListView
 class MessagesListController extends KDListViewController
 
   constructor:(options, data)->
-    options.subItemClass or= InboxMessagesListItem
-    options.listView     or= new MessagesListView
-
+    options.subItemClass        or= InboxMessagesListItem
+    options.listView            or= new MessagesListView
+    options.startWithLazyLoader   = yes
     super options, data
 
     @getListView().registerListener
@@ -37,6 +37,7 @@ class MessagesListController extends KDListViewController
         unreadCount++ unless message.flags_?.read
 
       @emit "MessageCountDidChange", unreadCount
+      @hideLazyLoader()
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
@@ -58,6 +59,7 @@ class MessagesListController extends KDListViewController
         unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
         @emit 'NotificationCountDidChange', unglanced.length
         callback? items
+      @hideLazyLoader()
 
 class NotificationListItem extends KDListItemView
 
@@ -146,7 +148,7 @@ class NotificationListItem extends KDListItemView
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
     else
-      bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
+      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
         if post
           appManager.tell "Activity", "createContentDisplay", post
         else
@@ -158,5 +160,5 @@ class NotificationListItem extends KDListItemView
     # contentDisplayController = @getSingleton('contentDisplayController')
     # list = @getDelegate()
     # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    # bongo.cacheable sourceName, sourceId, (err, source)=>
+    # KD.remote.cacheable sourceName, sourceId, (err, source)=>
     #   appManager.tell "Activity", "createContentDisplay", source

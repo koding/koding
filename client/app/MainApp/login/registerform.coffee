@@ -14,6 +14,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         # defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
+        defaultValue  : "Xerces"
         validate      :
           event       : "blur"
           rules       :
@@ -25,6 +26,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
+        defaultValue  : 'KK'
         # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
@@ -38,7 +40,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
-        # defaultValue  : "sinanyasar+xx@gmail.com"
+        defaultValue  : "chris"+Math.round(Math.random()*100)+"@jraphical.com"
         validate      :
           event       : "blur"
           rules       :
@@ -50,7 +52,7 @@ class RegisterInlineForm extends LoginViewInlineForm
               email = input.getValue()
               if input.valid
                 @email.loader.show()
-                bongo.api.JUser.emailAvailable email, (err, response)=>
+                KD.remote.api.JUser.emailAvailable email, (err, response)=>
                   @email.loader.hide()
                   if err then warn err
                   else
@@ -81,7 +83,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
-        # defaultValue     : "xx"
+        defaultValue     : "chris"+Math.round(Math.random()*100)
         validate         :
           rules          :
             required     : yes
@@ -115,7 +117,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
-        # defaultValue  : "123123123"
+        defaultValue  : "123123123"
         validate      :
           event       : "blur"
           rules       :
@@ -131,7 +133,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
       inputOptions    :
-        # defaultValue  : "123123123"
+        defaultValue  : "123123123"
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
@@ -175,7 +177,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase     : "lowercase"
         placeholder   : "your code..."
         # defaultValue  : "111"
-        # defaultValue  : "futureinsights"
+        defaultValue  : "twitterfriends"
         validate      :
           event       : "blur"
           rules       :
@@ -212,7 +214,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     if input.valid
       usernameCheckTimer = setTimeout =>
         @username.loader.show()
-        bongo.api.JUser.usernameAvailable name, (err, response)=>
+        KD.remote.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
           {kodingUser, kodingenUser, forbidden} = response
           if err
@@ -302,7 +304,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         {origin} = invite
         @invitationCode.input.setValue invite.code
         @email.input.setValue invite.inviteeEmail
-        if origin instanceof bongo.api.JAccount
+        if origin instanceof KD.remote.api.JAccount
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, origin), '.invited-by .wrapper'
           @addSubView new ProfileTextView({}, origin), '.invited-by .wrapper'
         else
