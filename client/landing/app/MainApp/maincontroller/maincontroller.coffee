@@ -69,6 +69,7 @@ class MainController extends KDController
     connectionFails =(connectedState)->
       fail() unless connectedState.connected
     ->
+      console.log 'never happens'
       KD.registerSingleton "kiteController", new KiteController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
