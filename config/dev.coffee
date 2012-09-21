@@ -6,6 +6,7 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
 module.exports =
+  projectRoot: nodePath.join __dirname, '..'
   version   : version
   webPort   : 3000
   mongo     : mongo

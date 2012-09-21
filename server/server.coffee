@@ -1,9 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq} = require argv.c
+{webPort, mongo, mq, projectRoot} = require argv.c
 webPort = argv.p if argv.p?
 
-projectRoot = require('path').join(__dirname, '/..')
 
 express = require 'express'
 Broker = require 'broker'
@@ -34,7 +33,7 @@ koding = new Bongo {
     '../workers/social/lib/social/models/session.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
-  mq: new Broker amqp
+  mq: new Broker mq
   queueName: 'koding-social'
 }
 
