@@ -378,6 +378,19 @@ button.kdbutton.dark
       bg                position,-220px -420px
     &.select-all
       bg                position,-280px -420px
+    &.config
+      bg                position,-160px -380px
+    &.config-active
+      bg                position,-140px -380px
+    &.play
+      bg                position,-180px -300px
+    &.stop
+      bg                position,-80px -540px
+    &.maximize
+      bg                position,-0px -360px
+    &.minimize
+      bg                position,-20px -360px
+
 
 
 .narrow
@@ -1006,19 +1019,90 @@ a.discussion-view-more
       color white
 
 
-div.libs-container
+// Code Share Stuff
 
+
+.activity-item.codeshare .activity-item-right-col .code-share-source figure.code-container
+
+  width                               100%
+  display                             inline-block
+  vertical-align                      top
+
+  pre code,
+  code
+    min-height                        250px
+    max-height                        250px
+
+.result-container
+    borderBox()
+    width                               100%
+    margin-bottom 10px
+    rounded 0 4px 4px 4px
+    box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
+    background-color                    #E0E0DF
+    .result-frame-container
+      rounded 0 4px 4px 4px
+      margin-right                      3px
+      .result-frame
+        width                           100%
+        min-height                      290px
+        max-height                      290px
+        padding                           0
+        rounded 0 4px 4px 4px
+
+.code-share-source
+//   .kdview.kdtabhandlecontainer
+//     padding 0 10px
+//     background-color white
+//     border-bottom none
+//     .kdtabhandle.active
+//       vendor border-top-left-radius 4px
+//       vendor border-top-right-radius 4px
+// //       height 30px
+//   div.code-share-container.kdtabview.kdscrollview
+//     height 340px
+
+  pre.subview
+    padding                           5px 10px 0 10px
+    min-height                        295px
+    max-height                        295px
+    margin-right                      3px
+    scrollbars()
+    rounded 0 4px 4px 4px
+
+  pre.subview span
+    font-size                         10px
+    font-weight                       300
+
+.result-button
+  margin-bottom                       10px
+
+.result-banner
+  width 100%
+  background-color #2E2E2E
+  opacity 1
+  a
+    text-decoration none
+    color #e80
+    font-weight 300
+    font-size 32px
+  height 100%
+  position relative
+  margin-bottom 10px
+  borderBox()
+  rounded 0 4px 4px 4px
+  padding 210px 50px 40px 50px
+
+
+div.libs-container
+  borderBox()
   border 1px solid black
-  border-bottom 2px solid #444
+  border-bottom 2px solid #2a2a2a
   &.no-bottom-rounded
-    rounded(4px)
-    vendor border-bottom-left-radius 0
-    vendor border-bottom-right-radius 0
+    rounded 0 4px 0 0
   &.bottom-rounded
-    rounded(4px)
-  background-color darken(#333,15%)
-  // background-image: url("../images/koding-bg.png");
-  // background-repeat repeat-x
+    rounded 0 4px 4px 4px
+  background-color darken(#333,0%)
   z-index -1
   opacity 01
   position absolute
@@ -1027,9 +1111,13 @@ div.libs-container
   width auto
   right 0px
   left 0px
-  // left 0px
-  vendor transition, all 0.1s ease-in
+  vendor transition, height 0.1s linear
   .libs-box
+    borderBox()
+    overflow-y hidden
+    height 1px
+    &.settings-visible
+      height 100px
     padding 5px
     width auto
     font-size 10px
@@ -1054,8 +1142,6 @@ div.libs-container
     input.libs-css-checkbox,
     input.libs-js-checkbox
       vertical-align top
-    // label
-    //   display block
 
 label.settings-label
   rounded(4px)
@@ -1079,14 +1165,14 @@ label.settings-label
 .code-snip-holder.share
   height 300px
   vendor transition, margin 0.1s linear, height 0.1s linear
+  rounded 0 4px 4px 4px
   &.no-top-rounded
-    vendor border-top-right-radius 0
-    vendor border-top-left-radius 0
+    rounded 0 0 4px 4px
 
 .formline-codeshare
-  margin 5px 0px 5px 168px
+  margin 5px 0px 0px 168px
   max-width 560px
-  height 340px
+  height 330px
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
@@ -1094,6 +1180,10 @@ label.settings-label
   .result-frame-container,
   .result-frame
     height 100%
+  figure.code-container
+    pre
+      rounded 0 4px 4px 4px
+
 
 .code-snip-container
   scrollbars()
@@ -1104,9 +1194,33 @@ label.settings-label
   display inline-block
   position relative
   height 300px
+  overflow-y hidden
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
+.code-share-container.create-view
+  overflow-y hidden
+  .button-bar
+    position          absolute
+    bg                color,transparent
+    bottom            -30px
+    left             6px
+    overflow          hidden
+    shadow            0 -1px 10px rgba(0,0,0,0.3)
+    vendor            transition, bottom .15s ease-in-out //.3s
+    button
+      margin          0
+      rounded         0
+      border-width    1px 1px 0 1px
+      border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+      fl()
+      &:first-child
+        rounded       3px 0 0 0
+      &:last-child
+        rounded       0 3px 0 0
+        border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+  &:hover .button-bar
+    bottom        5px
 
 
 .codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
@@ -1114,16 +1228,7 @@ label.settings-label
   borderBox()
 
 .code-share-container
-  height 340px
-  > .kdview.kdtabhandlecontainer
-    border-bottom none
-    background-color white
-    padding 0 10px
-    borderBox()
-    > .kdtabhandle
-      height 30px
-      vendor border-top-left-radius 4px
-      vendor border-top-right-radius 4px
+  height 330px
   > div.kdview.clearfix.kdtabpaneview
     vendor box-shadow none
     height  300px
@@ -1145,7 +1250,6 @@ figure.code-container strong.snippet-extras
   span
     display block
     opacity 0
-  // vendor transition, all .1s ease-in
   &:hover
     width 25%
     height auto
@@ -1153,3 +1257,110 @@ figure.code-container strong.snippet-extras
     opacity 1
     margin-top 5px
     display block
+
+.code-share-container .kdtabhandlecontainer
+
+  padding             0
+  margin              0
+  border 0
+
+  overflow            hidden
+  size                100%,25px
+  z-index             0
+  bg                  color,transparent
+  vendor              transition, top .3s linear
+  .kdtabhandle
+    color             #333
+    line-height       23px
+    font-size         11px
+    padding           0 5px 0 10px
+    size              128px,25px
+    border            1px solid #bbb
+    border-right      1px solid transparent
+    overflow          hidden
+    cursor            pointer
+    bg                color,rgba(255,255,255,.2)
+    gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+    rounded           0
+    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+    > div
+      margin-right    14px
+      b
+        z-index       0
+        font-weight   normal
+        text-overflow ellipsis
+        white-space   nowrap
+        overflow      hidden
+        width         100%
+        margin-right  0
+        display       block
+
+    span.close-tab
+      z-index     10
+      bg          color,transparent
+
+    &:hover
+      bg          color,rgba(255,255,255,.3)
+
+    &:first-child
+      rounded       3px 0 0 0
+      margin-left   0
+
+    &:last-child
+      border-right  1px solid #bbb //rgba(255,255,255,.15)
+      rounded       0 3px 0 0
+      margin-left   0
+
+    &.first.last
+      rounded       3px 3px 0 0
+
+    &.active
+      color         black
+      text-shadow   none
+      bg            color,white
+      gradient      white,white
+      shadow        none
+      border 1px solid #ddd
+      border-bottom none
+      span.close-tab
+        bg          color,transparent
+      span.error
+        color         red
+
+    &.plus
+      padding       0 0 0 16px
+      span.icon
+        margin      1px 5px 0 -5px
+        size        20px,20px
+        sprite()
+        bg          position,-60px -260px
+        fl()
+      b
+        margin-right  0
+      &:hover
+        bg          color,rgba(255,255,255,.3)
+        color       rgba(255, 255, 255, 0.9)
+      &.last
+        width       25px
+        padding     0 5px 0 7px
+        b
+          hidden()
+      &.last.first
+        width       142px
+        b
+          width     auto
+          visible()
+
+    .chevron-arrow-separator
+      display         none
+
+    .chevron-arrow
+      position        absolute
+      left            2px
+      top             2px
+      size            20px,20px
+      bg              position,-120px -480px
+
+    span.error
+      color           lightCoral
+      font-style      normal
