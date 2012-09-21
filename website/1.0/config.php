@@ -8,12 +8,21 @@ date_default_timezone_set(TIME_ZONE);
 $query = $_GET;
 $query['data'] = json_decode($query['data'],true);
 
+
 if ($query['env']=="vpn"){
   $dbName = "kodingen";
   $dbHost = "184.173.138.98";
   $dbPort = "27017";
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
+}
+elseif ($query['env'] == 'stage') {
+  error_log('local db');
+  $dbName = "koding_stage";
+  $dbHost = "localhost";
+  $dbPort = "38017";
+  $dbUser = "koding_stage_user";
+  $dbPass = "dkslkds84ddj";
 }
 elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == 'dev-api.koding.com') {
   $dbName = "koding_copy";
