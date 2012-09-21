@@ -42,5 +42,5 @@ class JTreeView extends KDListView
     @propagateEvent KDEventType : "KeyDownOnTreeView", event
 
   destroy:->
-    
+
     @getSingleton("windowController").revertKeyView @

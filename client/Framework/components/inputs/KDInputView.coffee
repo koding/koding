@@ -49,7 +49,7 @@ class KDInputView extends KDView
     @setType o.type
 
     super o, data
-    
+
     options = @getOptions()
 
     @inputValidationNotifications = {}
@@ -75,15 +75,12 @@ class KDInputView extends KDView
         callback           : => @clearValidationFeedback()
 
     if options.type is "select" and options.selectOptions
-      @listenTo
-        KDEventTypes       : "viewAppended"
-        listenedToInstance : @
-        callback           : =>
-          o = @getOptions()
-          unless o.selectOptions.length
-            @setValue o.selectOptions[Object.keys(o.selectOptions)[0]][0].value unless o.defaultValue
-          else
-            @setValue o.selectOptions[0].value unless o.defaultValue
+      @on "viewAppended", =>
+        o = @getOptions()
+        unless o.selectOptions.length
+          @setValue o.selectOptions[Object.keys(o.selectOptions)[0]][0].value unless o.defaultValue
+        else
+          @setValue o.selectOptions[0].value unless o.defaultValue
 
   setDomElement:(cssClass = "")->
     @inputName = @options.name
@@ -200,7 +197,7 @@ class KDInputView extends KDView
         @listenTo
           KDEventTypes       : eventName
           listenedToInstance : @
-          callback           : (input, event)=> 
+          callback           : (input, event)=>
             if rule in @ruleChain
               @validate rule, event
 
@@ -281,17 +278,17 @@ class KDInputView extends KDView
   inputSelectAll:-> @getDomElement().select()
 
   setAutoGrow:->
-    
+
     @setClass "autogrow"
     $growCalculator = $ "<div/>", class : "invisible"
-    
+
     @listenTo
       KDEventTypes       : "focus"
       listenedToInstance : @
       callback           : ->
         @utils.wait 10, =>
           $growCalculator.appendTo 'body'
-          $growCalculator.css 
+          $growCalculator.css
             height        : "auto"
             "z-index"     : 100000
             width         : @$().width()
@@ -303,7 +300,7 @@ class KDInputView extends KDView
     @listenTo
       KDEventTypes       : "blur"
       listenedToInstance : @
-      callback           : -> 
+      callback           : ->
         $growCalculator.detach()
         @$()[0].style.height = "none" # hack to set to initial
 
@@ -344,7 +341,7 @@ class KDInputView extends KDView
     # and this fires right afterwards and reverts it back to blurred one
 
     # hopefully fixed
-    
+
     @getSingleton("windowController").revertKeyView @
 
   mouseDown:=>

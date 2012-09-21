@@ -39,7 +39,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Status Updates",   type : "CStatusActivity" }
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
         { title : "Q&A",              type : "qa",         disabledForBeta : yes }
-        { title : "Discussions",      type : "discussion", disabledForBeta : yes }
+        { title : "Discussions",      type : "CDiscussionActivity" }
         { title : "Links",            type : "link",       disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }

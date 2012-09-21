@@ -8,15 +8,13 @@ class KDListViewController extends KDViewController
     options.multipleSelection   ?= no
     options.selection           ?= yes
     options.startWithLazyLoader ?= no
-    @itemsOrdered             = [] unless @itemsOrdered
-    @itemsIndexed             = {}
-    @selectedItems            = []
-    @lazyLoader               = null
-    viewOptions               = options.viewOptions or {}
-    viewOptions.lastToFirst   = options.lastToFirst
-
-    if options.subItemClass
-      viewOptions.subItemClass = options.subItemClass
+    @itemsOrdered                = [] unless @itemsOrdered
+    @itemsIndexed                = {}
+    @selectedItems               = []
+    @lazyLoader                  = null
+    viewOptions                  = options.viewOptions or {}
+    viewOptions.lastToFirst      = options.lastToFirst
+    viewOptions.subItemClass     = options.subItemClass if options.subItemClass
 
     @setListView listView = options.view or new KDListView viewOptions
 
@@ -27,6 +25,8 @@ class KDListViewController extends KDViewController
 
     if options.wrapper
       options.view = new KDView cssClass : "listview-wrapper"
+    else
+      options.view = listView
 
     super options, data
 

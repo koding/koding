@@ -109,13 +109,10 @@ class MainTabView extends KDTabView
     paneInstance = new MainTabPane options,mainView
     # debugger
     # log 'options', options
-    @listenTo
-      KDEventTypes        : "viewAppended"
-      listenedToInstance  : paneInstance
-      callback            : =>
-        # if options.controller  #dont need that anymore as tabHandle could be controlled by application
-        #   options.controller.applicationPaneReady? mainView, paneInstance
-        @applicationPaneReady paneInstance, mainView
+    paneInstance.on "viewAppended", =>
+      # if options.controller  #dont need that anymore as tabHandle could be controlled by application
+      #   options.controller.applicationPaneReady? mainView, paneInstance
+      @applicationPaneReady paneInstance, mainView
 
     @addPane paneInstance
     @indexPaneByView paneInstance,mainView

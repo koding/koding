@@ -355,7 +355,7 @@ class KDSplitView extends KDView
     @subViews.push newPanel
     newPanel.setParent @
     panelToBeSplitted.$().after newPanel.$()
-    newPanel.propagateEvent KDEventType: 'viewAppended'
+    newPanel.emit 'viewAppended'
 
     # POSITION NEW PANEL
     newSize = panelToBeSplitted._getSize() / 2
@@ -391,6 +391,7 @@ class KDSplitView extends KDView
         # POSITION NEW RESIZER
         newResizer._setOffset @panelsBounds[index+1]
 
+    @emit "panelSplitted", newPanel
     return newPanel
 
   removePanel:(index)->

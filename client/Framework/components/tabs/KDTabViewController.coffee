@@ -14,10 +14,7 @@ class KDTabViewController extends KDScrollView
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
 
     if options.tabNames?
-      @listenTo
-        KDEventTypes        : "viewAppended"
-        listenedToInstance  : @
-        callback            : @createPanes
+      @on "viewAppended", @createPanes.bind @
 
 
   handleMouseDownDefaultAction:(clickedTabHandle,event)->
@@ -166,7 +163,7 @@ class KDTabViewController extends KDScrollView
     handle.getDomElement().addClass("hide-close-icon")
 
   resizeTabHandles:->
-    return if @handlesHidden
+    return if @_tabHandleContainerHidden
     #
     # visibleHandles = []
     # visibleTotalSize = 0

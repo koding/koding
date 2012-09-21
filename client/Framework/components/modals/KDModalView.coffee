@@ -46,11 +46,7 @@ class KDModalView extends KDView
     $(window).on "keydown.modal",(e)=>
       @destroy() if e.which is 27
 
-    @listenTo
-      KDEventTypes: "childAppended"
-      listenedToInstance: @
-      callback:->
-        @setPositions()
+    @on "childAppended", @setPositions.bind @
 
   setDomElement:(cssClass)->
     @domElement = $ "
@@ -70,7 +66,7 @@ class KDModalView extends KDView
     super view, selector
 
   setButtons:(buttonDataSet)->
-    
+
     @buttons or= {}
     @setClass "with-buttons"
     for own buttonTitle, buttonOptions of buttonDataSet
@@ -82,15 +78,15 @@ class KDModalView extends KDView
 
     unless focused
       @$("button").eq(0).trigger "focus"
-      
+
   click:(e)->
     @destroy() if $(e.target).is(".closeModal")
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
   keyUp:(e)->
     @destroy() if e.which is 27
-  
-  setTitle:(title)-> 
+
+  setTitle:(title)->
     @$().find(".kdmodal-title").removeClass('hidden').html("<span class='title'>#{title}</span>")
     @modalTitle = title
 
@@ -99,7 +95,7 @@ class KDModalView extends KDView
       # @$().css "min-height","100px"
       @$().css "height","auto"
       @modalHeight = @getHeight()
-    else 
+    else
       @$().height value
       @modalHeight = value
 
@@ -112,7 +108,7 @@ class KDModalView extends KDView
     @utils.wait =>
       {position} = @getOptions()
       newPosition = {}
-  
+
       newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@getHeight()/2)
       newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
       newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
@@ -131,7 +127,7 @@ class KDModalView extends KDView
         @destroy()
 
   createButton:(title,buttonOptions)->
-    
+
     buttonOptions.title = title
     @buttonHolder.addSubView button = new KDButtonView buttonOptions
       # title       : title

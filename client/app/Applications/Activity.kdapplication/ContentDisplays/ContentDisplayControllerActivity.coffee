@@ -33,6 +33,9 @@ class ContentDisplayControllerActivity extends KDViewController
     @getView().setClass @getOptions().type
     @getView().addSubView contentView
 
+    contentView.on "ContentDisplayWantsToBeHidden", ->
+      contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
+
 
     # disabled for beta
     # @getView().addSubView metaSection = new KDView cssClass : "content-display-meta"
