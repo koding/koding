@@ -371,7 +371,10 @@ class JUser extends jraphical.Module
   @changePassword = bongo.secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
 
-  @changeEmail = bongo.secure (client,email,callback)->
+  @changeEmail = bongo.secure (client, options, callback)->
+
+    {email} = options
+
     @emailAvailable email, (err, res)=>
 
       if err
@@ -381,7 +384,7 @@ class JUser extends jraphical.Module
       else
         @fetchUser client, (err,user)->
           account = client.connection.delegate
-          user.changeEmail account, email, callback
+          user.changeEmail account, options, callback
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
@@ -422,16 +425,38 @@ class JUser extends jraphical.Module
       password: hashPassword(newPassword, salt)
     }, callback
 
-  changeEmail:(account, email, callback)->
+  changeEmail:(account, options, callback)->
 
-    @update $set: {email}, (err, res)->
-      if err
-        callback err
-      else
-        account.profile.hash = getHash email
-        account.save (err)-> throw err if err
-        callback null
+    {email, pin} = options
 
+    if not pin
+      options =
+        action    : "update-email"
+        user      : @
+        email     : email
+
+      JVerify.requestNewPin options, callback
+
+    else
+      options =
+        action    : "update-email"
+        username  : @getAt 'username'
+        email     : email
+        pin       : pin
+
+      JVerify.confirmByPin options, (err, confirmed)=>
+
+        if err then callback err
+        else if confirmed
+          @update $set: {email}, (err, res)=>
+            if err
+              callback err
+            else
+              account.profile.hash = getHash email
+              account.save (err)-> throw err if err
+              callback null
+        else
+          callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation.create @, (err, confirmation)->
