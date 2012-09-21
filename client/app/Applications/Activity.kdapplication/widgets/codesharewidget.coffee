@@ -288,13 +288,13 @@ class ActivityCodeShareWidget extends KDFormView
       cssClass : "legend-for-text"
 
     @librariesHTMLContainer = new KDView
-      cssClass : "libs-container libs-html"
+      cssClass : "libs-container libs-html no-bottom-rounded"
 
     @librariesCSSContainer = new KDView
-      cssClass : "libs-container libs-css"
+      cssClass : "libs-container libs-css no-bottom-rounded"
 
     @librariesJSContainer = new KDView
-      cssClass : "libs-container libs-js"
+      cssClass : "libs-container libs-js no-bottom-rounded"
 
     @librariesHTMLContent = new KDView
       cssClass : "libs-box"
@@ -490,36 +490,79 @@ class ActivityCodeShareWidget extends KDFormView
     @librariesCSSContainer.addSubView @librariesCSSContent
     @librariesJSContainer.addSubView @librariesJSContent
 
-    @labelHTMLContent.$().hover =>
-      @$("div.libs-html").css "opacity":1
-      @$("div.libs-html").css "z-index":100
 
+
+    @labelHTMLContent.$().hover =>
+      # @$("div.libs-html").css "opacity":1
+      @$("div.libs-html").css "z-index":100
+      libsHeight =  @$("div.libs-html").height()
+      @$(".code-snip-holder.share.snip-html").css "margin-top":libsHeight
+      @$(".code-snip-holder.share.snip-html").height(@$(".code-snip-holder.share.snip-html").height()-libsHeight+20)
+      @$(".code-snip-holder.share.snip-html").addClass "no-top-rounded"
     , =>
       @$("div.libs-html").hover =>
         noop
       , =>
-        @$("div.libs-html").css "opacity":0
+        # @$("div.libs-html").css "opacity":0
         @$("div.libs-html").css "z-index":-1
+        @$(".code-snip-holder.share.snip-html").css "margin-top":0
+        @$(".code-snip-holder.share.snip-html").height(@$(".code-snip-container").height())
+        @$(".code-snip-holder.share.snip-html").removeClass "no-top-rounded"
 
     @labelCSSContent.$().hover =>
-      @$("div.libs-css").css "opacity":1
+      # @$("div.libs-html").css "opacity":1
       @$("div.libs-css").css "z-index":100
+      libsHeight =  @$("div.libs-css").height()
+      @$(".code-snip-holder.share.snip-css").css "margin-top":libsHeight
+      @$(".code-snip-holder.share.snip-css").height(@$(".code-snip-holder.share.snip-css").height()-libsHeight+20)
+      @$(".code-snip-holder.share.snip-css").addClass "no-top-rounded"
     , =>
       @$("div.libs-css").hover =>
         noop
       , =>
-        @$("div.libs-css").css "opacity":0
+        # @$("div.libs-html").css "opacity":0
         @$("div.libs-css").css "z-index":-1
+        @$(".code-snip-holder.share.snip-css").css "margin-top":0
+        @$(".code-snip-holder.share.snip-css").height(@$(".code-snip-container").height())
+        @$(".code-snip-holder.share.snip-css").removeClass "no-top-rounded"
 
     @labelJSContent.$().hover =>
-      @$("div.libs-js").css "opacity":1
+      # @$("div.libs-html").css "opacity":1
       @$("div.libs-js").css "z-index":100
+      libsHeight =  @$("div.libs-js").height()
+      @$(".code-snip-holder.share.snip-js").css "margin-top":libsHeight
+      @$(".code-snip-holder.share.snip-js").height(@$(".code-snip-holder.share.snip-js").height()-libsHeight+20)
+      @$(".code-snip-holder.share.snip-js").addClass "no-top-rounded"
     , =>
       @$("div.libs-js").hover =>
         noop
       , =>
-        @$("div.libs-js").css "opacity":0
+        # @$("div.libs-html").css "opacity":0
         @$("div.libs-js").css "z-index":-1
+        @$(".code-snip-holder.share.snip-js").css "margin-top":0
+        @$(".code-snip-holder.share.snip-js").height(@$(".code-snip-container").height())
+        @$(".code-snip-holder.share.snip-js").removeClass "no-top-rounded"
+
+
+    # @labelCSSContent.$().hover =>
+    #   @$("div.libs-css").css "opacity":1
+    #   @$("div.libs-css").css "z-index":100
+    # , =>
+    #   @$("div.libs-css").hover =>
+    #     noop
+    #   , =>
+    #     @$("div.libs-css").css "opacity":0
+    #     @$("div.libs-css").css "z-index":-1
+
+    # @labelJSContent.$().hover =>
+    #   @$("div.libs-js").css "opacity":1
+    #   @$("div.libs-js").css "z-index":100
+    # , =>
+    #   @$("div.libs-js").hover =>
+    #     noop
+    #   , =>
+    #     @$("div.libs-js").css "opacity":0
+    #     @$("div.libs-js").css "z-index":-1
 
     @codeShareContainer = new KDTabView
       cssClass: "code-share-container"
@@ -549,7 +592,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareHTMLCodeSnipHolder = new KDCustomHTMLView
       tagName:"div"
-      cssClass : "code-snip-holder share"
+      cssClass : "code-snip-holder share snip-html"
 
     @codeShareHTMLCodeSnipHolder.addSubView @HTMLloader
     @codeShareHTMLCodeSnipHolder.addSubView @aceHTMLWrapper
@@ -572,7 +615,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareCSSCodeSnipHolder = new KDCustomHTMLView
       tagName:"div"
-      cssClass : "code-snip-holder share"
+      cssClass : "code-snip-holder share snip-css"
 
     @codeShareCSSCodeSnipHolder.addSubView @CSSloader
     @codeShareCSSCodeSnipHolder.addSubView @aceCSSWrapper
@@ -595,7 +638,7 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareJSCodeSnipHolder = new KDCustomHTMLView
       tagName:"div"
-      cssClass : "code-snip-holder share"
+      cssClass : "code-snip-holder share snip-js"
 
     @codeShareJSCodeSnipHolder.addSubView @JSloader
     @codeShareJSCodeSnipHolder.addSubView @aceJSWrapper

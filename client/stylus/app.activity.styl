@@ -1007,18 +1007,28 @@ a.discussion-view-more
 
 
 div.libs-container
+
   border 1px solid black
-  rounded(4px)
-  background-color white
+  border-bottom 2px solid #444
+  &.no-bottom-rounded
+    rounded(4px)
+    vendor border-bottom-left-radius 0
+    vendor border-bottom-right-radius 0
+  &.bottom-rounded
+    rounded(4px)
+  background-color darken(#333,15%)
+  // background-image: url("../images/koding-bg.png");
+  // background-repeat repeat-x
   z-index -1
-  opacity 0
+  opacity 01
   position absolute
-  top 5px
+  top 0px
   height auto
-  width 300px
-  right 5px
+  width auto
+  right 0px
+  left 0px
   // left 0px
-  vendor transition, opacity 0.1s ease-in
+  vendor transition, all 0.1s ease-in
   .libs-box
     padding 5px
     width auto
@@ -1068,6 +1078,10 @@ label.settings-label
 
 .code-snip-holder.share
   height 300px
+  vendor transition, margin 0.1s linear, height 0.1s linear
+  &.no-top-rounded
+    vendor border-top-right-radius 0
+    vendor border-top-left-radius 0
 
 .formline-codeshare
   margin 5px 0px 5px 168px
@@ -1089,6 +1103,7 @@ label.settings-label
   padding 0px 0px 0px 0px
   display inline-block
   position relative
+  height 300px
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
