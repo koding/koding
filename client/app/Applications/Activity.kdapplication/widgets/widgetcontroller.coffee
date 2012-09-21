@@ -141,7 +141,7 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           new KDNotificationView type : "mini", title : err.message
     else
-      bongo.api.JStatusUpdate.create data, (err, activity)=>
+      KD.remote.api.JStatusUpdate.create data, (err, activity)=>
         callback? err, activity
         unless err
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), activity
@@ -161,7 +161,7 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
-      bongo.api.JCodeSnip.create data, (err, codesnip) =>
+      KD.remote.api.JCodeSnip.create data, (err, codesnip) =>
         callback? err, codesnip
         stopSubmission()
         if err
@@ -194,17 +194,17 @@ class ActivityUpdateWidgetController extends KDViewController
 
   questionWidgetSubmit:(data)->
     log 'creating question', data
-    bongo.api.JActivity.create {type: 'qa', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
 
   linkWidgetSubmit:(data)->
     log 'sharing link', data
-    bongo.api.JActivity.create {type: 'link', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
       warn 'couldnt save link', error if error
 
   tutorialWidgetSubmit:(data)->
     log 'sharing tutorial', data
-    bongo.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
+    KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
       warn 'couldnt save tutorial', error if error
 
   discussionWidgetSubmit:(data, callback)->
@@ -220,7 +220,7 @@ class ActivityUpdateWidgetController extends KDViewController
     else
       if submissionStopped
         return notifySubmissionStopped()
-      bongo.api.JDiscussion.create data, (err, discussion) =>
+      KD.remote.api.JDiscussion.create data, (err, discussion) =>
         callback? err, discussion
         stopSubmission()
         if err

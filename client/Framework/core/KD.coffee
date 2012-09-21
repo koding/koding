@@ -52,11 +52,12 @@ KD = @KD or {}
       'http://app.koding.com'
     else
       'http://dev-app.koding.com'
-
-  whoami:-> KD.getSingleton('mainController').getVisitor().currentDelegate
-
-  isLoggedIn:-> @whoami() instanceof bongo.api.JAccount
-
+ 
+  
+  whoami:-> KD.getSingleton('mainController').userAccount
+  
+  isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
+  
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
 
   checkFlag:(flag, account = KD.whoami())-> account.globalFlags and flag in account.globalFlags
@@ -65,8 +66,7 @@ KD = @KD or {}
 
   requireLogin:(errMsg, callback)->
     [callback, errMsg] = [errMsg, callback] unless callback
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    if currentDelegate instanceof bongo.api.JGuest
+    if KD.whoami() instanceof KD.remote.api.JGuest
       # KDView::handleEvent {type:"NavigationTrigger",pageName:"Login", appId:"Login"}
       new KDNotificationView
         type     : 'growl'

@@ -42,10 +42,9 @@ class Topics12345 extends AppController
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              bongo.api.JTag.byRelevance @_searchValue, options, (err, items)=>
-                callback err, items
+              KD.remote.api.JTag.byRelevance @_searchValue, options, callback
             else
-              bongo.api.JTag.someWithRelationship selector, options, callback
+              KD.remote.api.JTag.someWithRelationship selector, options, callback
         followed            :
           title             : "Followed"
           dataSource        : (selector, options, callback)=>
@@ -157,11 +156,11 @@ class Topics12345 extends AppController
     selector = options.selector or {}
     delete options.selector if options.selector
     
-    bongo.api.JTag.someWithRelationship selector, options, callback
+    KD.remote.api.JTag.someWithRelationship selector, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
-  #   bongo.api.JTag.create formData, (err, tag)->
+  #   KD.remote.api.JTag.create formData, (err, tag)->
   #     if err
   #       warn err,"there was an error creating topic!"
   #     else
@@ -190,7 +189,7 @@ class Topics12345 extends AppController
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
-    bongo.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
+    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err, tags)->
       unless err
         callback? tags
       else

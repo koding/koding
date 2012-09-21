@@ -11,11 +11,8 @@ class StatusActivityItemView extends ActivityItemChild
     super options,data
 
   viewAppended:()->
-
-    return if @getData().constructor is bongo.api.CStatusActivity
-
-    super
-
+    return if @getData().constructor is KD.remote.api.CStatusActivity
+    super()
     @setTemplate @pistachio()
     @template.update()
 

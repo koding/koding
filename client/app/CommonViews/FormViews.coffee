@@ -383,7 +383,7 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super
 
   putDefaultValues:(stringTags)->
-    bongo.api.JTag.some
+    KD.remote.api.JTag.some
       title     :
         $in     : stringTags
     ,

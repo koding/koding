@@ -83,29 +83,7 @@ class ProcessMonitor extends EventEmitter
     if data.match "EventEmitter memory leak detected." then return str
     if data.match "at EventEmitter.<anonymous>" then return str
     return data
-  startProcess : _.throttle ()->
-    cmd = "#{@options.run[0]} #{@options.run[1].join(" ")}"
-    log.info "Starting the process $>#{cmd}"
-    cmdArr = cmd.split " "
-    @nodeServer         = spawn cmdArr[0],cmdArr[1...]
-    @nodeServer.stdout.on 'data', (data)=>
-      data = data + ''
-      if data.match "Error"
-        data = @pickUpTheErrorLine(data)
-      
-      log.info "#{data}".replace /\n+$/, ''
-
-        
-    @nodeServer.stderr.on 'data', (data)-> 
-      log.info "#{data}".replace /\n+$/, ''
-    @nodeServer.on        'exit', (code)=>
-      if @flags.forever?
-        log.warn "Forever is on, I'm restarting in 1 sec."
-        @flags.restart = yes
-        @emit "processDidExit",code
-    
-      log.info "Process id: #{@nodeServer.pid} did exit with the exit code: #{code}"
-  ,1000
+  startProcess :->
     
   stopProcess : ()->
     log.info "Stopping the process... #{@nodeServer.pid}"

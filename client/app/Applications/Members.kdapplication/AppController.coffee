@@ -36,10 +36,10 @@ class Members12345 extends AppController
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              bongo.api.JAccount.byRelevance @_searchValue, options, (err, items)=>
-                callback err, items
+              KD.remote.api.JAccount.byRelevance @_searchValue, options, callback
             else
-              bongo.api.JAccount.someWithRelationship selector, options, callback
+              KD.remote.api.JAccount.someWithRelationship selector, options, callback
+              #{currentDelegate} = @getSingleton('mainController').getVisitor()
               @setCurrentViewNumber 'all'
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
@@ -125,8 +125,7 @@ class Members12345 extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createContentDisplay:(account, doShow = yes)->
-    controllerClass = ContentDisplayControllerMember
-    controller = new controllerClass null, account
+    controller = new ContentDisplayControllerMember null, account
     contentDisplay = controller.getView()
     if doShow
       @showContentDisplay contentDisplay
@@ -138,8 +137,7 @@ class Members12345 extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   setCurrentViewNumber:(type)->
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    currentDelegate.count? type, (err, count)=>
+    KD.whoami().count? type, (err, count)=>
       @getView().$(".activityhead span.member-numbers-#{type}").html count
 
   setCurrentViewHeader:(count)->
@@ -162,7 +160,7 @@ class Members12345 extends AppController
       sort      :
         "meta.modifiedAt": -1
     selector = {}
-    bongo.api.JAccount.someWithRelationship selector, options, callback
+    KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
 
 class MembersListViewController extends KDListViewController
@@ -208,7 +206,7 @@ class MembersListViewController extends KDListViewController
       controller.removeAllItems()
       controller.propagateEvent (KDEventType : 'DisplayedMembersCountChanged'), members.length
       controller.instantiateListItems members
-      if (myItem = controller.itemForId controller.getSingleton('mainController').getVisitor().currentDelegate.getId())?
+      if (myItem = controller.itemForId KD.whoami().getId())?
         myItem.isMyItem()
         myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : controller, callback : controller.getDelegate().showMemberContentDisplay
       controller._windowDidResize()
@@ -221,7 +219,7 @@ class MembersListViewController extends KDListViewController
       listController.isLoading = yes
       currentFilter query, {skip, limit}, (err, members)->
         listController.addItem member for member in members
-        if (myItem = listController.itemForId listController.getSingleton('mainController').getVisitor().currentDelegate.getId())?
+        if (myItem = listController.itemForId KD.whoami().getId())?
           myItem.isMyItem()
           myItem.registerListener KDEventTypes : "VisitorProfileWantsToBeShown", listener : listController, callback : listController.getDelegate().showMemberContentDisplay
         listController._windowDidResize()
@@ -230,5 +228,4 @@ class MembersListViewController extends KDListViewController
         listController.hideLazyLoader()
 
   getTotalMemberCount:(callback)=>
-    {currentDelegate} = @getSingleton('mainController').getVisitor()
-    currentDelegate.count? @getOptions().filterName, callback
+    KD.whoami().count? @getOptions().filterName, callback

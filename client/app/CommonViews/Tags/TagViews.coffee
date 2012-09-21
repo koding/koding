@@ -12,7 +12,7 @@ class TagGroup extends KDCustomHTMLView
 
   fetchTags:(stringTags, callback)->
     if stringTags.length > 0
-      bongo.api.JTag.some
+      KD.remote.api.JTag.some
         title     :
           $in     : stringTags
       ,

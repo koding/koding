@@ -40,7 +40,7 @@ class FSFile extends FSItem
 
     @emit "fs.save.started"
     @kiteController.run
-      toDo        : "uploadFile"
+      method        : "uploadFile"
       withArgs    : {
         path      : FSHelper.escapeFilePath @path
         contents

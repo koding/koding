@@ -1,7 +1,7 @@
 class AccountDatabaseListController extends KDListViewController
   constructor:->
     super
-    @account = KD.getSingleton('mainController').getVisitor().currentDelegate
+    @account = KD.whoami()
 
     @commands =
       mysql    :
@@ -73,7 +73,7 @@ class AccountDatabaseListController extends KDListViewController
 
     for dbtype in ['mysql', 'mongo']
       @talkToKite
-        toDo      : @commands[dbtype].fetch
+        method      : @commands[dbtype].fetch
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
@@ -86,7 +86,7 @@ class AccountDatabaseListController extends KDListViewController
   deleteDatabase:(listItem)->
     data     = listItem.getData()
     @talkToKite
-      toDo     : @commands[data.dbType].remove
+      method     : @commands[data.dbType].remove
       withArgs :
         dbUser : data.dbUser
         dbName : data.dbName
@@ -106,7 +106,7 @@ class AccountDatabaseListController extends KDListViewController
     log "Requested DB Type", data
 
     @talkToKite
-      toDo          : @commands[data.dbType].update
+      method          : @commands[data.dbType].update
       withArgs      :
         dbUser      : data.dbUser
         newPassword : formData.password
@@ -129,7 +129,7 @@ class AccountDatabaseListController extends KDListViewController
     dbPass = __utils.generatePassword 40, no
 
     @talkToKite
-      toDo      : @commands[dbtype].create
+      method      : @commands[dbtype].create
       withArgs  : {dbName, dbUser, dbPass}
     , (err, response)=>
       {modal} = @getListView()
@@ -143,10 +143,10 @@ class AccountDatabaseListController extends KDListViewController
 
   talkToKite:(options, callback)->
 
-    # log "Run on kite:", options.toDo
+    # log "Run on kite:", options.method
     @getSingleton("kiteController").run
       kiteName  : "databases"
-      toDo      : options.toDo
+      method      : options.method
       withArgs  : options.withArgs
     , (err, response)=>
       if err then warn err
@@ -193,7 +193,7 @@ class AccountDatabaseList extends KDListView
       width                   : 500
       height                  : "auto"
       tabs                    :
-        navigateable          : yes
+        navigable          : yes
         goToNextFormOnSubmit  : no
         # callback              : (formOutput)-> log formOutput
         forms                 :

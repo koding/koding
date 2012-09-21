@@ -70,9 +70,9 @@ class AccountEditSecurity extends KDView
       type : "growl"
       title : "Password Updated!"
       duration : 1000
-
-  saveNewPassword:(formData)->
-    bongo.api.JUser.changePassword formData.password,(err,docs)=>
+  
+  saveNewPassword:(formData)->    
+    KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
 
 

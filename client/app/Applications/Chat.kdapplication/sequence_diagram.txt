@@ -1,0 +1,54 @@
+title Chat Sequence
+
+participant Alice
+participant Bob
+
+Alice->ChatController: openApplication Chat
+ChatController->ChatView: new()
+ChatView->ChatController: loaded
+
+ChatController->ChatController: joinChannel 'public'
+
+ChatController->ChatView: addChannelTab 'public'
+ChatView->ChatTabView: addPane 'public'
+ChatTabView->ChatView: publicChannelView
+ChatView->ChatController: publicChannelView
+
+ChatController->Channel: new 'public', publicChannelView
+Channel->ChatController: publicChannel
+
+alt presence
+    ChatController->Presence: Alice
+    Presence->ChatController: [Alice | Presences]
+
+    loop each name in [Alice | Presences]
+        ChatController->ChatController: addOnlineUser name, 'public'
+        ChatController->Channel: addOnlineUser name
+        Channel->ChannelView: addRosterItem name
+        ChannelView->RosterListView: addItem name
+    end
+
+    Alice->ChatController: close browser
+    Presence->ChatController: Alice unbind
+    ChatController->ChatController: removeOfflineUser Alice, 'public'
+    ChatController->Channel: removeOfflineUser Alice
+    Channel->ChannelView: removeRosterItem Alice
+    ChannelView->RosterListView: removeItem Alice
+
+else chat
+    ChatController->ChannelView: bind "ChatMessageSent"
+    ChatController->MQ: bind channelName
+
+    loop on message
+        alt from view
+            ChatController->MQ: emit channelName, message
+        else from MQ
+    end
+
+    ChatController->Channel: messageReceived chatItem
+    Channel->ChannelView: newMessage
+
+    Alice->ChannelInputForm: chat message
+    ChannelInputForm->ChannelView: delegate().emit 'ChatMessageSent', msg
+
+end

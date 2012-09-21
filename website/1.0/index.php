@@ -44,7 +44,7 @@ function getFeed($collection,$limit,$sort,$skip){
     ) : array(
       '$ne' => -1,
     );
-
+    trace('isPublic', $isPublic, $query);
 
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
@@ -56,6 +56,8 @@ function getFeed($collection,$limit,$sort,$skip){
       "originId"  => $originId,
       "isPublic"  => $isPublic,
     );
+    trace($activityQuery);
+
     if (!isset($query['t'])) {
       $activityQuery['isLowQuality'] = array( '$ne' => true );
     }
@@ -63,7 +65,6 @@ function getFeed($collection,$limit,$sort,$skip){
     switch ($collection){
         case 'cActivities':
             $cursor = $mongo->$dbName->$collection->find($activityQuery,array('snapshot' => true));
-
             break;
         case 'jTags':
             $cursor = $mongo->$dbName->$collection->find();
@@ -76,6 +77,5 @@ function getFeed($collection,$limit,$sort,$skip){
     $cursor->skip($skip);
     $r = array();
     foreach ($cursor as $doc) array_push($r,$doc);
-
     return $r;
 }
