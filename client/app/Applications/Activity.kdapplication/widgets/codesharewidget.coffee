@@ -88,8 +88,11 @@ class ActivityCodeShareWidget extends KDFormView
     @isWideScreen = no
 
     @wideScreenBtn = new KDButtonView
-      style           : "clean-gray"
+      style           : "dark"
       cssClass        : ""
+      icon:yes
+      iconOnly:yes
+      iconClass:"maximize"
       title           : "Increase Editor Size"
       callback: =>
         # crude size estimation
@@ -142,7 +145,11 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareResultButton = new KDButtonView
       title: "Run this Code Share"
-      cssClass:"clean-gray result-button"
+      style:"dark"
+      # cssClass:"clean-gray result-button"
+      icon:yes
+      iconOnly:yes
+      iconClass:"play"
       click:=>
         @codeShareResultButton.setTitle "Refresh Code Share"
         @codeShareResultView.show()
@@ -193,12 +200,16 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareCloseButton = new KDButtonView
       title: "Stop and Close this Code Share"
-      cssClass:"clean-gray hidden"
+      # cssClass:"clean-gray hidden"
+      style : "dark"
+      icon : yes
+      iconClass:"stop"
+      iconOnly:yes
       click:=>
         @codeShareResultView.hide()
         @codeShareResultView.resetResultFrame()
         @codeShareResultButton.setTitle "Run this Code Share"
-        @codeShareCloseButton.hide()
+        # @codeShareCloseButton.hide()
 
         @resultBanner.show()
 
@@ -256,6 +267,45 @@ class ActivityCodeShareWidget extends KDFormView
           }
 
     @resultBanner.addSubView @resultBannerButton
+
+
+    # The Button Bar!
+
+    @codeShareButtonBar = new KDCustomHTMLView
+      tagName:"div"
+      cssClass:"button-bar"
+
+    @configButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "config"
+      callback  : =>
+        if not @$("div.libs-container .libs-box").hasClass "settings-visible"
+          @$("div.libs-container").css "z-index":100
+          @$("div.libs-container .libs-box").addClass "settings-visible"
+          @$(".code-snip-holder.share").css "margin-top": 100
+          @$(".code-snip-holder.share").height(@$(".code-snip-holder.share.snip-html").height()-80)
+          @$(".code-snip-holder.share").addClass "no-top-rounded"
+
+          @configButton.setIconClass "config-active"
+
+        else
+          # @$("div.libs-html").css "opacity":0
+          @$("div.libs-container").css "z-index":-1
+          @$("div.libs-container .libs-box").removeClass "settings-visible"
+          @$(".code-snip-holder.share").css "margin-top":0
+          @$(".code-snip-holder.share").height(@$(".code-snip-container").height())
+          @$(".code-snip-holder.share").removeClass "no-top-rounded"
+
+          @configButton.setIconClass "config"
+
+
+    @codeShareButtonBar.addSubView @configButton
+    @codeShareButtonBar.addSubView @codeShareResultButton
+    @codeShareButtonBar.addSubView @codeShareCloseButton
+    @codeShareButtonBar.addSubView @wideScreenBtn
 
 
 ## LIBRARY OVERLAYS
@@ -490,88 +540,16 @@ class ActivityCodeShareWidget extends KDFormView
     @librariesCSSContainer.addSubView @librariesCSSContent
     @librariesJSContainer.addSubView @librariesJSContent
 
-
-
-    @labelHTMLContent.$().hover =>
-      # @$("div.libs-html").css "opacity":1
-      @$("div.libs-html").css "z-index":100
-      libsHeight =  @$("div.libs-html").height()
-      @$(".code-snip-holder.share.snip-html").css "margin-top":libsHeight
-      @$(".code-snip-holder.share.snip-html").height(@$(".code-snip-holder.share.snip-html").height()-libsHeight+20)
-      @$(".code-snip-holder.share.snip-html").addClass "no-top-rounded"
-    , =>
-      @$("div.libs-html").hover =>
-        noop
-      , =>
-        # @$("div.libs-html").css "opacity":0
-        @$("div.libs-html").css "z-index":-1
-        @$(".code-snip-holder.share.snip-html").css "margin-top":0
-        @$(".code-snip-holder.share.snip-html").height(@$(".code-snip-container").height())
-        @$(".code-snip-holder.share.snip-html").removeClass "no-top-rounded"
-
-    @labelCSSContent.$().hover =>
-      # @$("div.libs-html").css "opacity":1
-      @$("div.libs-css").css "z-index":100
-      libsHeight =  @$("div.libs-css").height()
-      @$(".code-snip-holder.share.snip-css").css "margin-top":libsHeight
-      @$(".code-snip-holder.share.snip-css").height(@$(".code-snip-holder.share.snip-css").height()-libsHeight+20)
-      @$(".code-snip-holder.share.snip-css").addClass "no-top-rounded"
-    , =>
-      @$("div.libs-css").hover =>
-        noop
-      , =>
-        # @$("div.libs-html").css "opacity":0
-        @$("div.libs-css").css "z-index":-1
-        @$(".code-snip-holder.share.snip-css").css "margin-top":0
-        @$(".code-snip-holder.share.snip-css").height(@$(".code-snip-container").height())
-        @$(".code-snip-holder.share.snip-css").removeClass "no-top-rounded"
-
-    @labelJSContent.$().hover =>
-      # @$("div.libs-html").css "opacity":1
-      @$("div.libs-js").css "z-index":100
-      libsHeight =  @$("div.libs-js").height()
-      @$(".code-snip-holder.share.snip-js").css "margin-top":libsHeight
-      @$(".code-snip-holder.share.snip-js").height(@$(".code-snip-holder.share.snip-js").height()-libsHeight+20)
-      @$(".code-snip-holder.share.snip-js").addClass "no-top-rounded"
-    , =>
-      @$("div.libs-js").hover =>
-        noop
-      , =>
-        # @$("div.libs-html").css "opacity":0
-        @$("div.libs-js").css "z-index":-1
-        @$(".code-snip-holder.share.snip-js").css "margin-top":0
-        @$(".code-snip-holder.share.snip-js").height(@$(".code-snip-container").height())
-        @$(".code-snip-holder.share.snip-js").removeClass "no-top-rounded"
-
-
-    # @labelCSSContent.$().hover =>
-    #   @$("div.libs-css").css "opacity":1
-    #   @$("div.libs-css").css "z-index":100
-    # , =>
-    #   @$("div.libs-css").hover =>
-    #     noop
-    #   , =>
-    #     @$("div.libs-css").css "opacity":0
-    #     @$("div.libs-css").css "z-index":-1
-
-    # @labelJSContent.$().hover =>
-    #   @$("div.libs-js").css "opacity":1
-    #   @$("div.libs-js").css "z-index":100
-    # , =>
-    #   @$("div.libs-js").hover =>
-    #     noop
-    #   , =>
-    #     @$("div.libs-js").css "opacity":0
-    #     @$("div.libs-js").css "z-index":-1
+    # Tabs!
 
     @codeShareContainer = new KDTabView
-      cssClass: "code-share-container"
+      cssClass: "code-share-container create-view"
 
     # iframe Tab
 
     @codeShareResultPane = new KDTabPaneView
       name:"Code Share"
-      cssClass: "result-pane"
+      cssClass: "result-pane first"
 
     @codeShareResultPane.addSubView @resultBanner
     @codeShareResultPane.addSubView @codeShareResultView
@@ -585,7 +563,6 @@ class ActivityCodeShareWidget extends KDFormView
       tagName : "div"
       cssClass :"code-snip-container"
 
-    @codeShareHTMLCodeSnipContainer.addSubView @labelHTMLContent
     @codeShareHTMLCodeSnipContainer.addSubView @librariesHTMLContainer
 
     @codeShareHTMLPane.addSubView @codeShareHTMLCodeSnipContainer
@@ -593,6 +570,7 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareHTMLCodeSnipHolder = new KDCustomHTMLView
       tagName:"div"
       cssClass : "code-snip-holder share snip-html"
+
 
     @codeShareHTMLCodeSnipHolder.addSubView @HTMLloader
     @codeShareHTMLCodeSnipHolder.addSubView @aceHTMLWrapper
@@ -608,7 +586,6 @@ class ActivityCodeShareWidget extends KDFormView
       tagName : "div"
       cssClass :"code-snip-container"
 
-    @codeShareCSSCodeSnipContainer.addSubView @labelCSSContent
     @codeShareCSSCodeSnipContainer.addSubView @librariesCSSContainer
 
     @codeShareCSSPane.addSubView @codeShareCSSCodeSnipContainer
@@ -626,12 +603,12 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareJSPane = new KDTabPaneView
       name:"JavaScript"
+      cssClass:"last"
 
     @codeShareJSCodeSnipContainer = new KDCustomHTMLView
       tagName : "div"
       cssClass :"code-snip-container"
 
-    @codeShareJSCodeSnipContainer.addSubView @labelJSContent
     @codeShareJSCodeSnipContainer.addSubView @librariesJSContainer
 
     @codeShareJSPane.addSubView @codeShareJSCodeSnipContainer
@@ -650,6 +627,8 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareContainer.addPane @codeShareCSSPane
     @codeShareContainer.addPane @codeShareJSPane
 
+    @codeShareContainer.addSubView @codeShareButtonBar
+
     @codeShareResultPane.hideTabCloseIcon()
     @codeShareHTMLPane.hideTabCloseIcon()
     @codeShareCSSPane.hideTabCloseIcon()
@@ -665,7 +644,6 @@ class ActivityCodeShareWidget extends KDFormView
 
     @codeShareContainer.showPane @codeShareResultPane
 
-
   unsetWideScreen:(wideScreenHeight)=>
 
           @$(".formline-codeshare").css "margin-left":"168px"
@@ -673,10 +651,10 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".code-snip-container").css "max-width":"560px"
           @$(".formline-codeshare").css "max-width":"560px"
           @$(".code-snip-container").css "height":"300px"
-          @$(".code-share-container").css "height":(340)+"px"
+          @$(".code-share-container").css "height":(330)+"px"
           @$(".code-snip-holder.share").css "height":300+"px"
           @$(".kdview.result-pane").css "height":300+"px"
-          @$(".formline-codeshare").css "height":"340px"
+          @$(".formline-codeshare").css "height":"330px"
 
           @HTMLace.editor.resize()
           @CSSace.editor.resize()
@@ -684,6 +662,7 @@ class ActivityCodeShareWidget extends KDFormView
 
           @isWideScreen = no
           @wideScreenBtn.setTitle "Increase Editor Size"
+          @wideScreenBtn.setIconClass "maximize"
 
   setWideScreen:(wideScreenHeight)=>
           @$(".formline-codeshare").css "margin-left":"10px"
@@ -691,10 +670,10 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".code-snip-container").css "max-width":"100%"
           @$(".formline-codeshare").css "max-width":"100%"
           @$(".code-snip-container").css "height":wideScreenHeight+"px"
-          @$(".code-share-container").css "height":(40+wideScreenHeight)+"px"
+          @$(".code-share-container").css "height":(30-1+wideScreenHeight)+"px"
           @$(".code-snip-holder.share").css "height":wideScreenHeight+"px"
           @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
-          @$(".formline-codeshare").css "height":(40+wideScreenHeight)+"px"
+          @$(".formline-codeshare").css "height":(30+wideScreenHeight)+"px"
 
           @HTMLace.editor.resize()
           @CSSace.editor.resize()
@@ -702,6 +681,8 @@ class ActivityCodeShareWidget extends KDFormView
 
           @isWideScreen = yes
           @wideScreenBtn.setTitle "Reduce Editor Size"
+          @wideScreenBtn.setIconClass "minimize"
+
 
   submit:=>
 
@@ -1004,11 +985,6 @@ class ActivityCodeShareWidget extends KDFormView
         <div class="formline-codeshare">
         {{> @codeShareContainer}}
        </div>
-        <div class="formline codeshare-buttons">
-          {{> @codeShareResultButton}}
-          {{> @codeShareCloseButton}}
-          {{> @wideScreenBtn}}
-        </div>
         <div class="formline">
           {{> @labelAddTags}}
           <div>
