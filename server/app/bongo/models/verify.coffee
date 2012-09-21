@@ -48,8 +48,8 @@ class JVerify extends jraphical.Module
             if count > 0 then console.log "#{count} expired PIN removed."
             else console.log "No such waiting PIN found."
 
-            # Create a random pin 7 char length
-            plainPin = Math.floor Math.random()*10000001
+            # Create a random pin 4 char length
+            plainPin = Math.floor Math.random()*10001
             pin      = crypto.createHash('sha1').update(plainPin+'').digest('hex')
 
             # Create and send new pin
