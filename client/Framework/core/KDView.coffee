@@ -79,7 +79,7 @@ class KDView extends KDObject
             event.stopPropagation?()
             event.preventDefault?()
             return false
-          else if event.ctrlKey and event.altKey
+          else if event.altKey and (event.metaKey or event.ctrlKey)
             log @
             return false
 

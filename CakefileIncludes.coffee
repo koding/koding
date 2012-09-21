@@ -527,9 +527,19 @@ Includes =
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
         sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
+        sidebarFooterMenuItem       : "./client/app/MainApp/sidebar/footermenuitem.coffee"
+        sidebarAdminModal           : "./client/app/MainApp/sidebar/modals/adminmodal.coffee"
+        sidebarKiteSelector         : "./client/app/MainApp/sidebar/modals/kiteselector.coffee"
 
         # BOOK
-        BookView                    : "./client/app/MainApp/book.coffee"
+        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
+        bookView                    : "./client/app/MainApp/book/bookview.coffee"
+        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
+        bookTOC                     : "./client/app/MainApp/book/embedded/tableofcontents.coffee"
+        bookUpdateWidget            : "./client/app/MainApp/book/embedded/updatewidget.coffee"
+        bookTopics                  : "./client/app/MainApp/book/embedded/topics.coffee"
+        bookDevelopButton           : "./client/app/MainApp/book/embedded/developbutton.coffee"
+
 
         #maintabs
 
@@ -579,6 +589,7 @@ Includes =
 
         # BOTTOM PANEL
         bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
