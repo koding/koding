@@ -203,7 +203,10 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     else
       process.exit()
 
-
+task 'resetGuests', (options)->
+  configFile = normalizeConfigPath options.configFile
+  {resetGuests} = require './workers/guestcleanup/guestinit'
+  resetGuests configFile
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
