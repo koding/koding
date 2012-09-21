@@ -213,7 +213,7 @@ class ApplicationManager extends KDObject
   appShowedAView:(appInstance,{options,data})=>
     index = @appInstanceArray.indexOf appInstance
     @appViewsArray[index].push data
-    @propagateEvent KDEventType: 'ApplicationShowedAView', appInstance
+    @emit 'ApplicationShowedAView', appInstance
 
   appClosedAView:(appInstance,{options,data}) =>
     index = @appInstanceArray.indexOf appInstance

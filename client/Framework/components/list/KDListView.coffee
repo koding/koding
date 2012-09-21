@@ -2,10 +2,12 @@ class KDListView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.type or= "default"
-    options.cssClass = if options.cssClass? then "kdlistview kdlistview-#{options.type} #{options.cssClass}" else "kdlistview kdlistview-#{options.type}"
+    options.type       or= "default"
+    options.lastToFirst ?= no
+    options.cssClass     = if options.cssClass? then "kdlistview kdlistview-#{options.type} #{options.cssClass}" else "kdlistview kdlistview-#{options.type}"
 
     @items = [] unless @items
+
     super options,data
 
   empty:->
@@ -19,7 +21,7 @@ class KDListView extends KDView
     new (@getOptions().subItemClass ? KDListItemView) options, data
 
   keyDown:(event)->
-    log "herer", @
+
     event.stopPropagation()
     event.preventDefault()
     @emit "KeyDownOnList", event
@@ -36,6 +38,7 @@ class KDListView extends KDView
     return itemInstance
 
   addHiddenItem:(item, index, animation)->
+
     @_addItemHelper item, {
       viewOptions :
         isHidden  : yes
@@ -45,9 +48,10 @@ class KDListView extends KDView
     }
 
   addItem:(itemData, index, animation)->
+
     @_addItemHelper itemData, {index, animation}
 
-  removeItem:(itemInstance,itemData,index)->
+  removeItem:(itemInstance, itemData, index)->
 
     if index
       @emit 'ItemIsBeingDestroyed', { view : @items[index], index : index }
@@ -64,6 +68,7 @@ class KDListView extends KDView
           return
 
   addItemView:(itemInstance,index,animation)->
+
     @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
@@ -75,13 +80,13 @@ class KDListView extends KDView
     itemInstance
 
   destroy:(animated = no, animationType = "slideUp", duration = 100)->
+
     for item in @items
       # log "destroying listitem", item
       item.destroy()
     super()
 
   appendItem:(itemInstance, animation)->
-
     itemInstance.setParent @
     scroll = @doIHaveToScroll()
     # @items.push itemInstance
@@ -95,7 +100,7 @@ class KDListView extends KDView
     if scroll
       @scrollDown()
     if @parentIsInDom
-      itemInstance.propagateEvent KDEventType: 'viewAppended'
+      itemInstance.emit 'viewAppended'
     null
 
   scrollDown: ->
@@ -154,5 +159,5 @@ class KDListView extends KDView
       # @items[actualIndex].getDomElement()[if @getOptions().lastToFirst then 'after' else 'before']  itemInstance.getDomElement()
       # itemInstance.handleEvent { type : "viewAppended"}
     if @parentIsInDom
-      itemInstance.propagateEvent KDEventType: 'viewAppended'
+      itemInstance.emit 'viewAppended'
     null

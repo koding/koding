@@ -85,6 +85,39 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
+  applyMarkdown: (text)->
+    # problems with markdown so far:
+    # - links are broken due to textexpansions (images too i guess)
+    return null unless text
+
+    marked.setOptions
+      gfm: true
+      pedantic: false
+      sanitize: true
+      highlight:(text)->
+        # log "highlight callback called"
+        # if hljs?
+        #   requirejs (['js/highlightjs/highlight.js']), ->
+        #     requirejs (["highlightjs/languages/javascript"]), ->
+        #       try
+        #         hljs.compileModes()
+        #         _text = hljs.highlightAuto text
+        #         log "hl",_text,text
+        #         return _text.value
+        #       catch err
+        #         log "Error applying highlightjs syntax", err
+        # else
+        #   log "hljs not found"
+          return text
+
+    text = Encoder.htmlDecode text
+
+    text = marked text
+
+  applyLineBreaks: (text)->
+    return null unless text
+    text.replace /\n/g, "<br />"
+
   applyTextExpansions: (text, shorten)->
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
@@ -248,6 +281,34 @@ __utils =
       callback rest... unless cancelled
     kallback.cancel = -> cancelled = yes
     kallback
+
+  ###
+  password-generator
+  Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
+  MIT Licensed
+  ###
+  generatePassword: do ->
+
+    letter = /[a-zA-Z]$/;
+    vowel = /[aeiouAEIOU]$/;
+    consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/;
+
+    (length = 10, memorable = yes, pattern = /\w/, prefix = '')->
+
+      return prefix if prefix.length >= length
+
+      if memorable
+        pattern = if consonant.test(prefix) then vowel else consonant
+
+      n    = (Math.floor(Math.random() * 100) % 94) + 33
+      char = String.fromCharCode(n)
+      char = char.toLowerCase() if memorable
+
+      unless pattern.test char
+        return __utils.generatePassword length, memorable, pattern, prefix
+
+      return __utils.generatePassword length, memorable, pattern, "" + prefix + char
+
 
   ###
   //     Underscore.js 1.3.1

@@ -1,9 +1,13 @@
 class KDView extends KDObject
+
 # #
 # CLASS LEVEL STUFF
 # #
+
   {defineProperty} = Object
+
   deprecated = (methodName)-> warn "#{methodName} is deprecated from KDView if you need it override in your subclass"
+
   eventNames =
     ///
     ^(
@@ -15,9 +19,11 @@ class KDView extends KDObject
     drop|
     contextmenu|
     scroll|
-    paste
+    paste|
+    error
     )$
     ///
+
   overrideAndMergeObjects = (objects)->
     for own title,item of objects.overridden
       continue if objects.overrider[title]
@@ -27,7 +33,7 @@ class KDView extends KDObject
   @appendToDOMBody = (view)->
     $("body").append view.$()
     view.parentIsInDom = yes
-    view.propagateEvent KDEventType: 'viewAppended'
+    view.emit 'viewAppended', view
 
 # #
 # INSTANCE LEVEL
@@ -73,39 +79,32 @@ class KDView extends KDObject
             event.stopPropagation?()
             event.preventDefault?()
             return false
-          else if event.ctrlKey and event.altKey
+          else if event.altKey and (event.metaKey or event.ctrlKey)
             log @
             return false
 
-    @listenTo
-      KDEventTypes        : 'childAppended'
-      listenedToInstance  : @
-      callback            : (publishingInstance, child)=>
-        @childAppended child
+    @on 'childAppended', @childAppended.bind @
 
-    @listenTo
-      KDEventTypes        : 'viewAppended'
-      listenedToInstance  : @
-      callback            : =>
-        @setViewReady()
-        @viewAppended()
-        @childAppended @
-        @parentIsInDom = yes
-        subViews = @getSubViews()
-        # temp fix for KDTreeView
-        # subviews are stored in an object not in an array
-        # hmm not really sth weirder going on...
-        type = $.type subViews
-        if type is "array"
-          for child in subViews
-            unless child.parentIsInDom
-              child.parentIsInDom = yes
-              child.propagateEvent KDEventType: 'viewAppended'
-        else if type is "object"
-          for key,child of subViews
-            unless child.parentIsInDom
-              child.parentIsInDom = yes
-              child.propagateEvent KDEventType: 'viewAppended'
+    @on 'viewAppended', =>
+      @setViewReady()
+      @viewAppended()
+      @childAppended @
+      @parentIsInDom = yes
+      subViews = @getSubViews()
+      # temp fix for KDTreeView
+      # subviews are stored in an object not in an array
+      # hmm not really sth weirder going on...
+      type = $.type subViews
+      if type is "array"
+        for child in subViews
+          unless child.parentIsInDom
+            child.parentIsInDom = yes
+            child.emit 'viewAppended', child
+      else if type is "object"
+        for key,child of subViews
+          unless child.parentIsInDom
+            child.parentIsInDom = yes
+            child.emit 'viewAppended', child
 
 
   setTemplate:(tmpl)->
@@ -137,7 +136,7 @@ class KDView extends KDObject
       @$('#'+placeholderId).append(child.$())
     child.setParent @
     @subViews.push child
-    child.propagateEvent KDEventType: 'viewAppended'
+    child.emit 'viewAppended', child
 
   getTagName:-> @options.tagName || 'div'
 
@@ -231,25 +230,25 @@ class KDView extends KDObject
   append:(child, selector)->
     @$(selector).append child.$()
     if @parentIsInDom
-      child.propagateEvent KDEventType: 'viewAppended'
+      child.emit 'viewAppended', child
     @
 
   appendTo:(parent, selector)->
     @$().appendTo parent.$(selector)
     if @parentIsInDom
-      @propagateEvent KDEventType: 'viewAppended'
+      @emit 'viewAppended', @
     @
 
   prepend:(child, selector)->
     @$(selector).prepend child.$()
     if @parentIsInDom
-      child.propagateEvent KDEventType: 'viewAppended'
+      child.emit 'viewAppended', child
     @
 
   prependTo:(parent, selector)->
     @$().prependTo parent.$(selector)
     if @parentIsInDom
-      @propagateEvent KDEventType: 'viewAppended'
+      @emit 'viewAppended', @
     @
 
   setPartial:(partial,selector)->
@@ -504,12 +503,17 @@ class KDView extends KDObject
       when "blur"       then @blur event
       when "change"     then @change event
       when "focus"      then @focus event
+      when "error"      then @error event
       else yes
     @propagateEvent (KDEventType:event.type.capitalize()),event if @notifiesOthers event
     @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event if @notifiesOthers event
     willPropagateToDOM = thisEvent
 
   scroll:(event)->
+    # log "override keyDown in your subclass to do something useful"
+    yes
+
+  error:(event)->
     # log "override keyDown in your subclass to do something useful"
     yes
 
@@ -631,8 +635,9 @@ class KDView extends KDObject
     posY = @dragState[directionY] + y
     posX = @dragState[directionX] + x
 
-    @$().css directionX, posX unless axis is 'y'
-    @$().css directionY, posY unless axis is 'x'
+    if @dragIsAllowed
+      @$().css directionX, posX unless axis is 'y'
+      @$().css directionY, posY unless axis is 'x'
 
     @emit "DragInAction", x, y
 
@@ -644,7 +649,7 @@ class KDView extends KDObject
 
   childAppended:(child)->
     # bubbling childAppended event
-    @parent?.propagateEvent KDEventType: 'childAppended', child
+    @parent?.emit 'childAppended', child
 
   setViewReady:()->
     @viewIsReady = yes
@@ -740,13 +745,10 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
 
-    @listenTo
-      KDEventTypes        : "viewAppended"
-      listenedToInstance  : @
-      callback            : =>
-        # log "get rid of this timeout there should be an event after template update"
-        @utils.wait =>
-          @$(o.selector)[o.engine] o
+    @on "viewAppended", =>
+      # log "get rid of this timeout there should be an event after template update"
+      @utils.wait =>
+        @$(o.selector)[o.engine] o
 
   getTooltip:(o = {})->
     o.selector or= null

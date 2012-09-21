@@ -8,11 +8,8 @@ class ActivityListHeader extends JView
     @_newItemsCount = 0
 
     @showNewItemsLink = new KDCustomHTMLView
-      tagName     : "div"
-      partial     : "<span>0</span> new items. <a href='#'>Update</a>"
-      attributes  :
-        href      : "#"
-        title     : "Show new activities"
+      cssClass    : "new-updates"
+      partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
       click       : =>
         @updateShowNewItemsLink yes
 

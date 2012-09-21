@@ -5,15 +5,7 @@ class ActivityChildViewTagGroup extends LinkGroup
     participants = @getData()
     {hasMore, totalCount, group} = @getOptions()
 
-    @more = new KDCustomHTMLView
-      tagName     : "a"
-      cssClass    : "more"
-      partial     : "#{totalCount-3} more"
-      attributes  :
-        href      : "#"
-        title     : "Click to view..."
-      click       : =>
-        new FollowedModalView {group}, @getData()
+    @createMoreLink()
 
     switch totalCount
       when 0 then ""

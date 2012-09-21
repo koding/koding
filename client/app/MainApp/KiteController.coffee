@@ -37,12 +37,32 @@ class KiteController extends KDController
   constructor:->
 
     super
-    @account = KD.whoami()
-    @kiteIds = {}
-    @setListeners()
-    @status = no
+
+    @account   = KD.whoami()
+    @kiteIds   = {}
+    @status    = no
     @intervals = {}
-  
+    @setListeners()
+
+  run:(options = {}, callback)->
+
+    if "string" is typeof options
+      command = options
+      options = {}
+
+    options.kiteName or= "sharedHosting"
+    options.kiteId   or= @kiteIds.sharedHosting?[0]
+    options.method   or= "executeCommand"
+    if command
+      options.withArgs = {command}
+    else
+      options.withArgs or= {}
+
+    # notify "Talking to #{options.kiteName} asking #{options.toDo}"
+    # debugger
+    @account.tellKite options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback
+
   setListeners:->
 
     mainController = @getSingleton "mainController"
@@ -70,7 +90,7 @@ class KiteController extends KDController
       mainView.removeOverlay()
       mainView.contentPanel.removeOverlay()
       _attempt = 1
-  
+
   accountChanged:(account)->
 
     @account = account
@@ -82,20 +102,8 @@ class KiteController extends KDController
           @propagateEvent KDEventType : "SharedHostingIsReady"
     else
       @status = no
-  
-  run:(options = {}, callback)->
 
 
-    options.kiteName or= "sharedHosting"
-    options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.method     or= "executeCommand"
-    options.withArgs or= {}
-
-    # notify "Talking to #{options.kiteName} asking #{options.method}"
-    # debugger
-    ###@account.tellKite options, (err, response)=>
-      @parseKiteResponse {err, response}, options, callback###
-  
   parseKiteResponse:({err, response}, options, callback)->
 
     if err and response
@@ -131,22 +139,22 @@ class KiteController extends KDController
         notify "Backend is not responding, try again later."
         warn "handleKiteNotPresent: we dont handle this yet", err
         callback? "handleKiteNotPresent: we dont handle this yet"
-  
+
   createSystemUser:(callback)->
 
     if _attempt > 1 and _attempt < 5
       notify _notifications.stillCreatingEnv
     else if _attempt >= 5 and _attempt < 10
-      notify 
+      notify
         msg       : _notifications.creationTookLong
         duration  : 4500
     else if _attempt >= 10
-      notify 
+      notify
         msg       : _notifications.tookTooLong
         duration  : 0
         click     : => @createSystemUser callback
       return
-    else 
+    else
       @emit "CreatingUserEnvironment"
       notify _notifications.creatingEnv
 
@@ -164,7 +172,7 @@ class KiteController extends KDController
         @emit "UserEnvironmentIsCreated"
       else
         error "createUserEnvironment", err
-    
+
   ping:(kiteName, callback)->
 
     log "pinging : #{kiteName}"
@@ -183,7 +191,7 @@ class KiteController extends KDController
   setPinger:->
 
     return if @pinger
-    @pinger = setInterval => 
+    @pinger = setInterval =>
       @ping()
     , 10000
     @ping()
@@ -197,5 +205,5 @@ class KiteController extends KDController
 #        notify "Backend servers are ready."
 #        @kiteIds[kiteName] = kiteIds
 #      callback err, kiteIds
-#  
+#
 

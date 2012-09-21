@@ -218,6 +218,16 @@ app.contentdisplays.styl
       cite
         bg(position,-708px -305px)
 
+  &.codeshare
+    .header-view-section
+      cite
+        bg(position,-708px -305px)
+
+  &.discussion
+    .header-view-section
+      cite
+        bg(position,-476px -305px)
+
   &.qa
     .header-view-section
       cite
@@ -311,7 +321,6 @@ app.contentdisplays.styl
       code
         max-height        600px
 
-
 .content-display-meta
   display               none // hidden disabledForBeta
   position              absolute
@@ -357,3 +366,631 @@ app.contentdisplays.styl
     sprite()
     bg                  repeat,no-repeat
     bg                  position,-60px -320px
+
+.opinion-container-box
+  border none
+
+.opinion-container
+  margin-top                          0px
+  a
+    noTextDeco()
+    font-size                         inherit
+  a.count
+    font-style                        normal
+    display                           inline-block
+    bg                                color, #0A92BA
+    color                             #fff
+    font-size                         10px
+    padding                           1px 4px
+    line-height                       10px
+    rounded                           3px
+    noTextDeco()
+  .kdlistview-opinions
+    margin-top                        5px
+    .kdview.kdlistitemview-opinion:nth-child(even)
+      background-color                #F7F7F7
+    .kdview.kdlistitemview-opinion
+      border-bottom                   1px solid #ECECEC // #D1D1D1
+    .kdview.kdlistitemview-opinion:first-child .item-content-opinion
+      margin-top                      14px
+
+    .item-content-opinion
+      margin-top                      5px
+      padding                         15px 20px 0px 20px
+      &:hover
+        .edit-link
+          opacity                     .5
+          &:hover
+            opacity                   1
+        .delete-link
+          opacity                     .5
+          &:hover
+            opacity                   1
+      span.avatar
+        border                        1px solid #E3E3E3
+        padding                       1px
+        margin-right                  20px
+        width                         50px
+        height                        50px
+        bg(color,#fff)
+        fl()
+        a
+          display                     block
+          background-position         center
+          background-image            url('../images/defaultavatar/default.avatar.50.png')
+          bg(size,cover)
+          bg(repeat,no-repeat)
+      .opinion-contents
+        padding-left                  75px
+        margin-top                    11px
+        max-width                     1080px
+
+.opinion-footer
+  margin                              3px 0 0 0
+  display                             inline-block
+
+  .type-and-time
+    font-weight                       300
+    font-size                         11px
+    color                             #a5a5a5
+    display                           inline
+
+.opinion-body-edit
+  .formline
+    border                            none
+
+.opinion-box,
+.discussion-box
+  margin-top                          10px
+  margin-bottom                       20px
+  padding                             0 0 10px 0
+  font-size                           12px
+  width                               auto
+  height                              auto
+  .opinion-form,
+  .discussion-form
+    width                             auto
+    height                            auto
+    position                          relative
+  span.supports-markdown
+    position                          absolute
+    right                             -3px
+    top                               7px
+    color                             #fff
+    padding                           3px 12px 4px 12px
+    bg                                color,#ff9200
+    font-size                         10px
+    line-height                       10px
+    text-shadow                       0 -1px 0 rgba(0, 0, 0, 0.35)
+    text-transform                    uppercase
+    shadow                            0 1px 1px rgba(0, 0, 0, 0.54)
+    z-index                           10
+  .opinion-form-headline
+      margin-left                     5px
+  textarea.opinion-body,
+  textarea.discussion-body
+      max-height                      800px
+      outline                         none
+      height                          auto
+      min-height                      144px
+      padding                         10px
+      width                           100%
+      box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
+      borderBox()
+  .opinion-body,
+  .discussion-body
+      width                           100%
+      min-height                      250px
+
+.opinion-container .opinion-box
+  margin                              0
+  padding                             0 20px 50px 20px
+  border                              none
+  rounded(0px)
+
+.edit-opinion-form.opinion-container .opinion-box
+  margin                              0
+  padding                             0 0px 10px 0px
+  border                              none
+  rounded(0px)
+
+.opinion-comment-header
+  margin-left                         75px
+  float                               left
+  > a.action-link
+    margin                            1px 2px 0 0
+
+.discussion-title
+    width                             100%
+    margin-bottom                     10px
+    padding                           5px 10px
+
+.item-content-opinion-comments
+    background-color                  #ffffff
+    padding                           0
+    margin                            0 0 0px 0px
+    .opinion-comment
+      margin-top                      25px
+      .comment-container
+        borderBox()
+        rounded(0px)
+        border none
+        border-top                    1px solid #e0e0df
+        width                         auto
+
+        .show-more-comments.in
+          border                      none
+          padding-left                95px
+
+        .item-add-comment-box
+          padding-left                95px
+          border none
+
+        .kdlistview-comments
+          border-top                  1px solid #ececec
+          .kdlistitemview-comment
+            border                    none
+        &.no-comment
+          .kdlistview-comments
+            border-top                none
+            .kdlistitemview-comment
+              border                  none
+
+        &.commented
+          border                      none
+        &.active-comment
+          border none
+        .comment-body
+          line-height                 21px!important
+          color                       #5F5F5F
+          margin-top                  5px
+        .item-content-comment
+          max-width                   1080px
+          margin-left                 90px
+          time
+            float                     right
+            font-size                 11px
+            font-weight               300
+            color                     #a5a5a5
+
+
+.opinion-form-footer
+  margin-left                         75px
+  h3
+    margin-top                        35px
+    margin-bottom                     20px
+
+.opinion-form-footer
+  margin-top                          35px
+
+.opinion-buttons,
+.discussion-buttons
+  height                              35px
+  .opinion-submit,
+  .discussion-submit
+    float                             right
+    display                           block
+    button
+      margin-top                      12px
+    a.markdown-link
+      margin-top                      19px
+      display                         inline-block
+      margin-right                    9px
+      line-height                     100%
+      text-decoration                 none
+      font-size                       11px
+
+.opinion-box-header
+  font-size                           10px
+  font-weight                         500
+  margin-left                         95px
+  width                               auto
+  margin-top                          -7px
+  span
+    color                              #ffffff
+    background-color                   #fd7e09
+    padding                            5px 12px
+    text-shadow                        #888 0px -1px 01px
+
+.opinion-sort
+  float                               right
+  font-size                           12px
+  line-height                         250%
+
+div.discussion-contents
+  a.count
+    font-style                        normal
+    display                           inline-block
+    bg                                color, #0A92BA
+    color                             #fff
+    font-size                         10px
+    padding                           1px 4px
+    line-height                       10px
+    rounded                           3px
+    noTextDeco()
+  border-bottom                       1px solid #D1D1D1
+  background-color                    #F7F7F7
+  width                               auto
+  overflow                            hidden
+  p.discussion-body
+    font-size                         14px
+    line-height                       150%
+    margin-top                        10px
+    a.user-fullname
+      font-size                       12px
+      font-weight                     600
+      color                           linkColor1
+      noTextDeco()
+  time
+    line-height                       130%
+    color                             #aaa
+  .discussion-footer
+    font-size                         11px
+    padding-bottom                    10px
+    color                             #a5a5a5
+    display                           inline
+    font-weight                       300
+    margin-left                       -2px
+    a
+      font-size                       11px
+      font-weight                     400
+      noTextDeco()
+    a.count
+      font-size                       10px
+    .type-and-time
+      display                         inline
+      .link-group
+        font-size                     11px
+        font-weight                   300
+        a
+          font-size                   10px
+          line-height                 150%
+  .discussion-main-opinion
+    margin-left                       75px
+    max-width                         1080px
+    .activity-actions a
+      font-weight                     bold
+    h3
+      font-weight                     300!important
+      font-size                       15px
+      line-height                     130%
+      margin-bottom                   1em
+      color                           #5F5F5F
+      a
+        font-size                     14px
+        text-decoration               none
+        font-weight                   300
+    &:hover
+      > .edit-link
+        opacity                       .5
+        &:hover
+          opacity                     1
+      > .delete-link
+        opacity                       .5
+        &:hover
+          opacity                     1
+
+.discussion-content
+  > span
+    padding               1px
+    border                1px solid #E3E3E3
+    width                 50px
+    display               block
+    float                 left
+    size                  50px,66px
+    span
+      background-size     cover
+      width               50px
+      height              50px
+      display             block
+    .author
+      font-size           9px
+      display             block
+      height              9px
+      color               white
+      background          #0896BD
+      text-align          center
+      line-height         9px
+      padding             3px 0px
+      border-top          1px solid white
+
+  padding                             20px
+
+.markdown-select
+  float                               right
+  position                            absolute
+  bottom                              5px
+  display                             inline
+
+.delete-link
+  display                             block
+  size                                20px, 20px
+  position                            absolute
+  top                                 0px
+  right                               0px
+  bg                                  position, -80px -520px
+  opacity                             0
+  vendor                              transition, opacity .15s linear
+  sprite()
+
+.edit-link
+  display                             block
+  size                                20px, 20px
+  position                            absolute
+  top                                 0px
+  right                               15px
+  bg                                  position, -120px -400px
+  opacity                             0
+  vendor                              transition, opacity .15s linear
+  sprite()
+
+.activity-opinion .comment-body .data,
+.discussion-body .data,
+.opinion-body-with-markup .data
+  font-size                           12px
+  font-weight                         400
+  line-height                         170%
+  margin-bottom                       5px
+  color                               #5f5f5f
+  p
+    margin-bottom                     1em
+    word-wrap                         break-word
+    code
+      display                         inline-block
+      background-color                #e6e6e6
+      rounded(3px)
+      padding                         1px 3px
+      font-weight                     300
+  ul
+    margin-left                       30px
+    margin-bottom                     1em
+    list-style                        disc
+    li
+      margin-bottom                   0.5em
+  h1,h2,h3,h4,h5,h6
+    font-size                         14px
+    font-weight                       300
+    line-height                       130%
+    margin-bottom                     1em
+    margin-top                        2em
+  ol
+    margin-left                       30px
+    list-style                        decimal
+    margin-bottom                     1em
+  a
+    font-weight                       400
+    text-decoration                   none
+    font-size                         12px
+
+
+.markdown-cheatsheet
+  font-size                           14px
+  font-weight                         300
+  h1,h2,h3,h4,h5,h6
+    margin-bottom                     12px
+    margin-top                        10px
+.signature
+  font-size                           14px
+  font-weight                         300
+  h3
+    font-size                         130%
+    margin-bottom                     15px
+  p
+    line-height                       130%
+    margin-bottom                     12px
+
+span.more
+  .hideme
+    display                           none
+  vendor                              transition, font-size .2s linear
+  a.more-link
+  a.less-link
+    margin-left                       5px
+    vendor                            transition, font-size .2s linear
+  a.more-link
+    font-size                         14px
+  a
+    font-size                         0
+  &.show
+    .hideme
+      display                         inline
+    font-size                         14px
+    a.more-link
+      font-size                       0
+      margin-left                     0
+    a
+      font-size                       14px
+
+.opinion-body-with-markup
+  vendor                              transition, max-height .2s linear
+  overflow                            hidden
+
+.content-display-main-section.activity-item.discussion
+  max-width                           100%
+  padding                             0
+
+// .activity-related .activity-item.discussion
+
+a.opinion-size-link
+  margin-top                          10px
+  margin-bottom                       20px
+  display                             inline-block
+  background-color                    #e8e9e9
+  font-size                           11px
+  font-weight                         600
+  rounded(3px)
+  padding                             4px 10px
+  width auto
+  color                               #0896BD
+
+.opinion-size-links
+  display block
+
+.show-more-opinions
+  width                               100%
+  color                               white
+  line-height                         150%
+  margin                              20px 0 0 95px
+
+  a
+    font-size                         10px
+    text-shadow                       #888 0px -1px 01px
+
+    color                             white
+    width                             100%
+    height                            100%
+    background-color                  #FD7E09
+    padding                           5px 12px
+  a:hover
+    color                             white
+
+.opinion-loader
+  padding 0px
+
+.opinion-heart-box
+  float                               left
+  .help-box
+    margin-top                        11px
+
+// .opinion-container div.kdlistitemview-opinion:last-child
+//   .item-content-opinion-comments
+//     margin-bottom 15px
+//     border-bottom 1px solid #D1D1D1
+
+.item-content-opinion-comments
+  .opinion-comment
+    .comment-container
+      &.no-comment
+        display                       block
+        border                        none
+        .item-add-comment-box
+          display                     none
+      &.commented
+        display                       block
+      &.active-comment
+        display                       block
+
+.activity-item.codeshare .activity-item-right-col .code-share-source figure.code-container
+
+  width                               100%
+  display                             inline-block
+  vertical-align                      top
+
+  pre code,
+  code
+    min-height                        250px
+    max-height                        250px
+
+.result-container
+    borderBox()
+    width                               100%
+    margin-bottom 10px
+    rounded(4px)
+    box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
+    background-color                    #E0E0DF
+    .result-frame-container
+      rounded(4px)
+      margin-right                      3px
+      .result-frame
+        width                           100%
+        min-height                      290px
+        max-height                      290px
+        padding                           0
+        rounded(4px)
+
+.code-share-source
+  .kdview.kdtabhandlecontainer
+    padding 0 10px
+    background-color white
+    border-bottom none
+    .kdtabhandle.active
+      vendor border-top-left-radius 4px
+      vendor border-top-right-radius 4px
+      height 30px
+  div.code-share-container.kdtabview.kdscrollview
+    height 340px
+
+  pre.subview
+    padding                           5px 10px 0 10px
+    min-height                        295px
+    max-height                        295px
+    margin-right                      3px
+    scrollbars()
+
+  pre.subview span
+    font-size                         10px
+    font-weight                       300
+
+.result-button
+  margin-bottom                       10px
+
+.result-banner
+  width 100%
+  background-color #2E2E2E
+  opacity 1
+  a
+    text-decoration none
+    font-weight 300
+    font-size 32px
+  height 293px
+  position relative
+  margin-bottom 10px
+  borderBox()
+  rounded(4px)
+  padding 210px 50px 40px 50px
+
+.discussion-nav
+  z-index                             100
+  position                            fixed
+  top                                 55px
+  right                               18px
+  height                              30px
+  border                              1px solid #D1D1D1
+  background-color                    #fff
+  padding                             5px 10px
+  borderBox()
+  rounded(5px)
+  opacity                             0.5
+  vendor                              transition, opacity 0.2s linear
+  &:hover
+    opacity                           1
+  a
+    text-decoration                   none
+    margin-right                      3px
+    padding-right                     6px
+    border-right                      1px solid #ff9200
+
+    &:last-child
+      margin-right                    0
+      padding-right                   0
+      border-right                    none
+
+.modal-fullscreen
+  borderBox()
+  .kdmodal-shadow
+    width                             100%
+    height                            100%
+    borderBox()
+    .kdmodal-inner
+      width                           100%
+      height                          100%!important
+      borderBox()
+      .kdmodal-content
+        width                         100%
+        height                        100%
+        borderBox()
+        .modal-fullscreen-text
+          width                       100%
+          height                      100%
+          borderBox()
+          textarea
+
+            width                     auto
+            height                    auto
+            padding                   10px
+            margin                    10px
+            borderBox()
+
+.formline .fullscreen-button
+  float                               right
+  margin-top                          5px
