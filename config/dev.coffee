@@ -29,7 +29,8 @@ module.exports = deepFreeze
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://localhost:8008/subscribe'
         auth    : 'http://localhost:3000/auth'
-      apiUri    : 'http://dev-api.koding.com'
+      apiUri    : 'https://dev-api.koding.com'
+      appsUri   : 'https://dev-apps.koding.com'
       # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :
     host        : 'localhost'

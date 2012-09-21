@@ -41,17 +41,9 @@ KD = @KD or {}
   subscriptions   : []
   classes         : {}
 
-  apiUri: switch KD.env
-    when 'beta'
-      'https://api.koding.com'
-    else
-      'https://dev-api.koding.com'
+  apiUri: switch KD.config.apiUri
 
-  appsUri: switch KD.env
-    when 'beta'
-      'http://app.koding.com'
-    else
-      'http://dev-app.koding.com'
+  appsUri: switch KD.config.appsUri
  
   
   whoami:-> KD.getSingleton('mainController').userAccount
