@@ -53,7 +53,7 @@ start(_StartType, _StartArgs) ->
 
     error_logger:tty(get_env(verbose, true)),
     
-    SockOpts = [{websocket, false}, {cookie_needed, true}],
+    SockOpts = [{websocket, true}, {cookie_needed, true}],
     SockjsState = sockjs_handler:init_state(
                     <<"/subscribe">>, fun handle_client/3, {}, SockOpts),
     VhostRoutes = [
