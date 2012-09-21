@@ -3,8 +3,6 @@ class DiscussionActivityOpinionView extends KDView
   constructor:(options, data)->
     super
     @setClass "activity-opinion-container opinion-container kdlistview-activity-opinions"
-    data.watch "repliesCount",(count)->
-      log "changed!"
     @createSubViews data
 
   createSubViews:(data)->

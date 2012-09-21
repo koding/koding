@@ -371,7 +371,7 @@ app.contentdisplays.styl
   border none
 
 .opinion-container
-  margin-top                          0px
+  margin-top                          10px
   a
     noTextDeco()
     font-size                         inherit
@@ -506,6 +506,10 @@ app.contentdisplays.styl
     margin-bottom                     10px
     padding                           5px 10px
 
+.activity-opinion-container .show-more-discussion
+  background-color                    none
+  padding 5px
+
 .item-content-opinion-comments
     background-color                  #ffffff
     padding                           0
@@ -525,6 +529,7 @@ app.contentdisplays.styl
 
         .item-add-comment-box
           padding-left                166px
+          padding-right               20px
           border none
 
         .kdlistview-comments
@@ -548,6 +553,7 @@ app.contentdisplays.styl
         .item-content-comment
           max-width                   1080px
           margin-left                 103px
+          padding                     10px 20px 10px 10px
           time
             float                     right
             font-size                 11px
@@ -732,8 +738,8 @@ div.discussion-contents
 .activity-opinion.item-content-comment .comment-body .data,
 .discussion-body .data,
 .opinion-body-with-markup .data
-  font-size                           12px
-  font-weight                         400
+  font-size                           14px
+  font-weight                         300
   line-height                         170%
   margin-bottom                       5px
   color                               #5f5f5f
@@ -770,7 +776,14 @@ div.discussion-contents
   > a
     font-weight                       400
     text-decoration                   none
-    font-size                         12px
+    font-size                         14px
+
+
+.activity-opinion.item-content-comment
+  .comment-body .data
+    > *
+      font-size 12px!important
+      font-weight 400!important
 
 .activity-opinion.item-content-comment .comment-body .data :last-child
   padding-bottom 0
@@ -778,7 +791,7 @@ div.discussion-contents
 
 .activity-opinion.item-content-comment .comment-body .data :first-child
   padding-top 0
-  margin-top 12px!important
+  margin-top 0
 
 
 .markdown-cheatsheet
