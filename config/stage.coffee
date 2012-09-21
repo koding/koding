@@ -43,11 +43,12 @@ module.exports = deepFreeze
     host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-  guestCleanup:
+  guests:
      # define this to limit the number of guset accounts
      # to be cleaned up per collection cycle.
     batchSize   : undefined
-    cron        : '*/10 * * * * *'
+    cleanupCron : '*/10 * * * * *'
+    poolSize    : 1e4
   logger        :
     mq          :
       host      : 'localhost'
