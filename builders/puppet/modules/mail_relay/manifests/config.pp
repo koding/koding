@@ -17,7 +17,6 @@ class mail_relay::config {
     }
      file {"/etc/postfix/master.cf":
         ensure => present,
-        require => Class["mail_relay::install"],
         source => "puppet:///modules/mail_relay/etc/postfix/master.cf",
         require => Class["mail_relay::install"],
         notify  => Class["mail_relay::postfix_service"],
