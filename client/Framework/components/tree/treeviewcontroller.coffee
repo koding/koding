@@ -307,7 +307,7 @@ class JTreeViewController extends KDViewController
     if nodeView
       nodeView.$().after listToBeAdded.$()
       listToBeAdded.parentIsInDom = yes
-      listToBeAdded.propagateEvent KDEventType: 'viewAppended'
+      listToBeAdded.emit 'viewAppended'
       if o.addListsCollapsed
         @collapse nodeView
       else
@@ -350,11 +350,7 @@ class JTreeViewController extends KDViewController
 
   setItemListeners:(view, index)->
 
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : view
-      callback           : (view)=> @nodeWasAdded view
-
+    view.on "viewAppended", @nodeWasAdded.bind @, view
 
     mouseEvents = ["dblclick", "click", "mousedown", "mouseup", "mouseenter", "mousemove"]
 

@@ -68,7 +68,7 @@ class KDListView extends KDView
           return
 
   addItemView:(itemInstance,index,animation)->
-    
+
     @emit 'ItemWasAdded', itemInstance, index
     if index?
       actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
@@ -80,7 +80,7 @@ class KDListView extends KDView
     itemInstance
 
   destroy:(animated = no, animationType = "slideUp", duration = 100)->
-    
+
     for item in @items
       # log "destroying listitem", item
       item.destroy()
@@ -101,7 +101,7 @@ class KDListView extends KDView
     if scroll
       @scrollDown()
     if @parentIsInDom
-      itemInstance.propagateEvent KDEventType: 'viewAppended'
+      itemInstance.emit 'viewAppended'
     null
 
   scrollDown: ->
@@ -160,5 +160,5 @@ class KDListView extends KDView
       # @items[actualIndex].getDomElement()[if @getOptions().lastToFirst then 'after' else 'before']  itemInstance.getDomElement()
       # itemInstance.handleEvent { type : "viewAppended"}
     if @parentIsInDom
-      itemInstance.propagateEvent KDEventType: 'viewAppended'
+      itemInstance.emit 'viewAppended'
     null

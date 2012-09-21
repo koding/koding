@@ -127,10 +127,7 @@ class KDScrollThumb extends KDView
     @_track = @getDelegate()
     @_view = @_track.getDelegate()
 
-    @listenTo
-      KDEventTypes : "viewAppended"
-      listenedToInstance : @
-      callback : @_calculateSize
+    @on "viewAppended", @_calculateSize.bind @
 
     @listenTo
       KDEventTypes : "scroll"

@@ -73,11 +73,8 @@ class Inbox12345 extends AppController
         mainView.inboxMessagesContainer.addPane paneView
         detail = new InboxMessageDetail cssClass : "message-detail", data
 
-        detail.registerListener
-          KDEventTypes: 'viewAppended'
-          listener: @
-          callback: =>
-            data.restComments 0, (err, comments)-> # log arguments, data
+        detail.on 'viewAppended', ->
+          data.restComments 0, (err, comments)-> # log arguments, data
 
         paneView.addSubView detail
         paneView.detail = detail
