@@ -42,10 +42,8 @@ KD = @KD or {}
   classes         : {}
 
   apiUri: switch KD.config.apiUri
-
   appsUri: switch KD.config.appsUri
- 
-  
+
   whoami:-> KD.getSingleton('mainController').userAccount
   
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
