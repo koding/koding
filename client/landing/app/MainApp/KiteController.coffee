@@ -44,6 +44,25 @@ class KiteController extends KDController
     @intervals = {}
     @setListeners()
 
+  run:(options = {}, callback)->
+
+    if "string" is typeof options
+      command = options
+      options = {}
+
+    options.kiteName or= "sharedHosting"
+    options.kiteId   or= @kiteIds.sharedHosting?[0]
+    options.toDo     or= "executeCommand"
+    if command
+      options.withArgs = {command}
+    else
+      options.withArgs or= {}
+
+    # notify "Talking to #{options.kiteName} asking #{options.toDo}"
+    # debugger
+    @account.tellKite options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback
+
   setListeners:->
 
     mainController = @getSingleton "mainController"
@@ -84,24 +103,6 @@ class KiteController extends KDController
     else
       @status = no
 
-  run:(options = {}, callback)->
-
-    if "string" is typeof options
-      command = options
-      options = {}
-
-    options.kiteName or= "sharedHosting"
-    options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.toDo     or= "executeCommand"
-    if command
-      options.withArgs = {command}
-    else
-      options.withArgs or= {}
-
-    notify "Talking to #{options.kiteName} asking #{options.toDo}"
-    # debugger
-    @account.tellKite options, (err, response)=>
-      @parseKiteResponse {err, response}, options, callback
 
   parseKiteResponse:({err, response}, options, callback)->
 

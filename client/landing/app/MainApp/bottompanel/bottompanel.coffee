@@ -9,4 +9,4 @@ class BottomPanel extends KDScrollView
   _windowDidResize:->
 
     @utils.wait 300, =>
-      @setWidth @getSingleton('contentPanel').getWidth()
+      @setWidth @getSingleton('contentPanel').getWidth() + 10

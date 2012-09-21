@@ -9,8 +9,12 @@ class Activity12345 extends AppController
     @currentFilter = [
       'CStatusActivity'
       'CCodeSnipActivity'
+      'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
+      # 'COpinionActivity'
+      # THIS WILL DISABLE CODE SHARES
+      # 'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -184,10 +188,14 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
+          'CDiscussionActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
+          # 'COpinionActivity'
+          # THIS WILL DISABLE CODE SHARES
+          # 'CCodeShareActivity'
           'CInstallerBucketActivity'
-          ]
+        ]
 
     options =
       limit         : 7
@@ -251,8 +259,12 @@ class Activity12345 extends AppController
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
         'CCodeSnipActivity'
+        'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
+        # 'COpinionActivity'
+        # THIS WILL DISABLE CODE SHARES
+        # 'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -267,6 +279,10 @@ class Activity12345 extends AppController
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
+      when "JDiscussion"   then @createDiscussionContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES
+      # when "JCodeShare"    then @createCodeShareContentDisplay activity
+
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
@@ -286,6 +302,25 @@ class Activity12345 extends AppController
       title       : "Code Snippet"
       type        : "codesnip"
       contentView : new ContentDisplayCodeSnippet {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
+
+  # THIS WILL DISABLE CODE SHARES
+  # createCodeShareContentDisplay:(activity)->
+  #   controller = new ContentDisplayControllerActivity
+  #     title       : "Code Share"
+  #     type        : "codeshare"
+  #     contentView : new ContentDisplayCodeShare {},activity
+  #   , activity
+  #   contentDisplay = controller.getView()
+  #   @showContentDisplay contentDisplay
+
+  createDiscussionContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title : "Discussion"
+      type  : "discussion"
+      contentView : new ContentDisplayDiscussion {},activity
     , activity
     contentDisplay = controller.getView()
     @showContentDisplay contentDisplay
