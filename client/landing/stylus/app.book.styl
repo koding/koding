@@ -14,7 +14,24 @@
   vendor                    transition, left .3s ease-in-out
   &.in
     left                    -700px
-  >div                      
+  .controls
+    position                absolute
+    bottom                  25px
+    right                   40px
+    size                    685px, auto
+    a
+      color                 rgba(0,0,0,.1)
+      vendor                transition, color .1s linear
+      noTextDeco()
+      &.active
+      &:hover
+        color               rgba(0,0,0,.7)
+      &:first-child
+        fl()
+      &:last-child
+        fr()
+
+  >div
     size                    735px, 408px
     vendor                  transition, opacity .3s ease-out
     &.left-page
@@ -23,14 +40,14 @@
       margin                6px 0 0 0
     &.out
       opacity               0
-                          
+
     >section
       background            transparent no-repeat 0 0
       &.table-of-contents
         bg                  image, url("../images/book/01.png")
         bg                  position, 55px 90px
         .embedded
-          margin            30px 60px 0 450px
+          margin            20px 60px 0 450px
           line-height       30px
           font-size         14px
           a
@@ -49,18 +66,18 @@
           bg                position, center top
           >article
             margin          324px 0 0 0
-          
+
         &.more-1
           bg                image, url("../images/book/03.png")
-        &.more-2            
+        &.more-2
           bg                image, url("../images/book/04.png")
-        &.more-3            
+        &.more-3
           bg                image, url("../images/book/05.png")
-        &.more-4            
+        &.more-4
           bg                image, url("../images/book/06.png")
-        &.more-5            
+        &.more-5
           bg                image, url("../images/book/07.png")
-        &.more-6            
+        &.more-6
           bg                image, url("../images/book/08.png")
 
       &.foreword
@@ -93,12 +110,12 @@
       &.topics
         bg                  image, url("../images/book/11.png")
         bg                  position, left 174px
-        
+
         p
           width             55%
           margin-left       45%
           padding           15px 20px 0 0
-        
+
         .embedded
           position          absolute
           top               97px
@@ -159,9 +176,22 @@
           >article
             margin          70px 60px 0 330px
           .embedded
+            background      transparent url("../images/book/devbutton.png") no-repeat 0 0
             position        absolute
-            bottom          15px
-            right           15px
+            bottom          35px
+            right           105px
+            size            250px, 120px
+            .kdbuttonwithmenu-wrapper
+              margin        99px 0 0 227px
+
+      &.terminal
+        bg                  image, url("../images/book/13a.png")
+        bg                  position, left 80px
+        >article
+          margin            40px 20px 0 260px
+          font-size         13px
+          p
+            width           auto
 
       &.apps
         bg                  image, url("../images/book/18.png")
@@ -179,6 +209,26 @@
             top             0
             right           0
             padding         15px 20px 0 20px
+
+      &.enjoy
+        bg                  image, url("../images/book/08.png")
+        bg                  position, center 74px
+        >article
+          overflow          visible
+          p
+            padding         300px 0 0
+            text-align      center
+            width           100%
+          span
+            position        absolute
+            top             -35px
+            right           20px
+            font-weight     300
+            font-size       12px
+            line-height     16px
+            color           #aaa
+            a
+              color         linkColor1
 
       >article
         size                auto, auto

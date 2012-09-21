@@ -11,7 +11,7 @@ class SlidingSplit extends KDSplitView
 
   splitPanel:->
 
-    super
+    @setFocusedPanel super
     @_resizePanels()
     @_repositionPanels()
     @_repositionResizers() if @getOptions().resizable
