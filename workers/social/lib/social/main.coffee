@@ -76,7 +76,7 @@ handleClient = do ->
     mq.bindQueue(
       getWorkerQueueName(), 
       ownExchangeName, 
-      "#.activity", 
+      "activityOf.#", 
       workerQueueOptions
     )
 
@@ -92,10 +92,9 @@ handleClient = do ->
       ownExchangeName, 
       (message, headers, deliveryInfo) ->
         {exchange, routingKey} = deliveryInfo
-        console.log "#{ownExchangeName} receives message from #{exchange} on #{routingKey}"
-        # publisher = deliveryInfo.exchange
-        # unless publisher is getOwnExchangeName account
-        #   ownExchange.publish "feed.#{publisher}", message, {deliveryMode: 2}
+        publisher = deliveryInfo.exchange
+        unless publisher is getOwnExchangeName account
+          ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
     )
 
   handleOwnActivity = (account) ->

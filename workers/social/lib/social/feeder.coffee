@@ -12,12 +12,11 @@ module.exports = class Feeder
     @relationships = db.collection 'relationships'
 
     @mq.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
-      # The message will come from the person who publish the message,
-      # not who receive it. Not sure how to get the owner of the feed.
+      # The message will come from feed's owner's exchange with the routing
+      # key of format "activityOf.#{followee}", payload is the activity.
       {exchange, routingKey, consumerTag} = deliveryInfo
       activity = JSON.parse message
 
-      console.log "Worker receives message from #{exchange} on #{routingKey}"
 
       # @feeds.findOne {owner: owner}, {'_id':1}, (err, feed) =>
       #   unless err
