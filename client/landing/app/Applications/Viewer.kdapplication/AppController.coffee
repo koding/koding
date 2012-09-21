@@ -27,7 +27,7 @@ class Viewer12345 extends KDViewController
         name            : path
         applicationType : 'Viewer.kdApplication'
       data : frontDocument
-    
+
     callback()
 
   openFile: (path, options = {})=>
@@ -41,25 +41,25 @@ class Viewer12345 extends KDViewController
   getOpenDocuments:()->
     @openDocuments
 
-  getFrontDocument:()->  
+  getFrontDocument:()->
     [backDocuments...,frontDocument] = @getOpenDocuments()
     frontDocument
-  
+
   addOpenDocument:(document)->
     appManager.addOpenTab document, 'Viewer.kdApplication'
     @openDocuments.push document
-    
+
   removeOpenDocument:(document)->
     appManager.removeOpenTab document, @
     @openDocuments.splice (@openDocuments.indexOf document), 1
 
   createNewDocument:()->
     document = new PreviewerView()
-    document.registerListener KDEventTypes:"viewAppended", callback:@loadDocumentView, listener:@
+    document.on "viewAppended", @loadDocumentView.bind @
     document.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeDocument
     @addOpenDocument document
     document
-  
+
   closeDocument:(document)->
     document.parent.removeSubView document
     @removeOpenDocument document
@@ -75,9 +75,9 @@ class PreviewerView extends KDView
   constructor:(options = {},data)->
     options.cssClass = 'previewer-body'
     super options,data
-    
+
   openPath:(path)->
-    
+
     # do not open main koding domains in the iframe
     if /(^(http(s)?:\/\/)?beta\.|^(http(s)?:\/\/)?)koding\.com/.test path
       @viewerHeader.pageLocation.setClass "validation-error"
@@ -85,17 +85,17 @@ class PreviewerView extends KDView
 
     realPath = unless /^http(s)?:\/\//.test path then "http://#{path}" else path
     cacheBusterPath = "#{realPath}?#{Date.now()}"
-    
+
     @path = realPath
     @iframe.$().attr 'src', "#{cacheBusterPath}"
     @viewerHeader.setPath realPath
-  
+
   refreshIFrame:->
     @iframe.$().attr 'src', "#{@path}"
-    
+
   isDocumentClean:->
     @clean
-  
+
   viewAppended:->
     @addSubView @viewerHeader = new ViewerTopBar {}, @path
     @addSubView @iframe = new KDCustomHTMLView
@@ -116,20 +116,20 @@ class ViewerTopBar extends JView
       callback  : =>
         @parent.openPath @pageLocation.getValue()
         @pageLocation.focus()
-        
+
     @refreshButton = new KDCustomHTMLView
       tagName   : "a"
       attributes:
         href    : "#"
       cssClass  : "refresh-link"
       click     : => @parent.refreshIFrame()
-    
+
   setPath:(path)->
     @pageLocation.unsetClass "validation-error"
     @pageLocation.setValue "#{path}"
-  
+
   pistachio:->
-    
+
     """
     {{> @addressBarIcon}}
     {{> @pageLocation}}

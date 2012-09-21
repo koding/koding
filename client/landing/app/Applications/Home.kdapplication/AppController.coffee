@@ -25,7 +25,7 @@ class Home12345 extends AppController
     @bringFeeds()
   
   bringFeeds:->
-    appManager.tell "Topics", "fetchFeedForHomePage", (err,topics)=>
+    appManager.tell "Topics", "fetchCustomTopics", null, (err,topics)=>
       unless err
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics

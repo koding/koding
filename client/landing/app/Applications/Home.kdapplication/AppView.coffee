@@ -194,18 +194,12 @@ class HomeMainView extends KDScrollView
 
   showAboutDisplay:->
     if not @aboutIsOpen
-      @aboutIsOpen = yes
+      @aboutIsOpen             = yes
       contentDisplayController = @getSingleton "contentDisplayController"
-      controller = new ContentDisplayControllerAbout null, null
-      contentDisplay = controller.getView()
-      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
-
-      # we should only do this here because this is the only place where there's only one contentDisplayController
-      contentDisplayController.registerListener
-        KDEventTypes  : "ContentDisplayWantsToBeHidden"
-        listener      : @
-        callback      : ()=>
-          @aboutIsOpen = no
+      controller               = new ContentDisplayControllerAbout null, null
+      contentDisplay           = controller.getView()
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+      contentDisplayController.on "ContentDisplayWantsToBeHidden", => @aboutIsOpen = no
 
 
 class IntroView extends KDView

@@ -17,7 +17,7 @@ class Payment_Overview extends Payment_TabContent
     @wrapper.addSubView autoRecharge = new Payment_OverviewAutoRecharge delegate : @
     left  = new KDView()
     right = new KDView()
-    split = new KDSplitView
+    split = new SplitView
       views : [left,right]
       resizable : no
       

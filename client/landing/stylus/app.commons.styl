@@ -170,6 +170,8 @@ button.kdbutton.icon-only
       bg            position,-100px -480px
     &.preview
       bg            position,-160px -480px
+    &.compile
+      bg            position,-240px -440px
     &.check
       bg            position,-62px -400px
     &.plus-orange
@@ -244,12 +246,10 @@ button.editor-button
     shadow            none
     border            none
     bg                color,transparent
-    gradient          none
     rounded           3px
     &:hover
       border          none
       cursor          pointer
-      gradient        transparent,transparent
     &:active
       border          none
       shadow          none
@@ -935,6 +935,10 @@ button.cancel-edit-button
     margin              10px 10px 0 0
 
 .application-page
+  padding                 5px
+  bg                      color,white
+  width                   auto
+  borderBox()
   .kddialog-buttons
     .modal-clean-gray
       margin            10px 10px 10px 0
