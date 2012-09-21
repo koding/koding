@@ -41,8 +41,8 @@ KD = @KD or {}
   subscriptions   : []
   classes         : {}
 
-  apiUri: switch KD.config.apiUri
-  appsUri: switch KD.config.appsUri
+  apiUri: KD.config.apiUri
+  appsUri: KD.config.appsUri
 
   whoami:-> KD.getSingleton('mainController').userAccount
   
