@@ -134,7 +134,7 @@ task 'run', (options)->
   socialSupervisor = spawn KODING_CAKE, [
     './workers/social'
     '-c', configFile
-    '-n', 10
+    '-n', 1
     'run'
   ]
   pipeStd(
