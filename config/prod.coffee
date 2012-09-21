@@ -3,7 +3,8 @@ nodePath = require 'path'
 
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+#mongo = 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
 module.exports =
   version       : version
