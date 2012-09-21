@@ -38,7 +38,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
-      bongo.cacheable originType, originId, (err, origin)->
+      KD.remote.cacheable originType, originId, (err, origin)->
         unless err
           appManager.tell "Members", "createContentDisplay", origin
     else

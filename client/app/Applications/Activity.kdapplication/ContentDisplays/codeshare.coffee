@@ -84,7 +84,7 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
         @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeShareActivity
+    return if @getData().constructor is KD.remote.api.CCodeShareActivity
     super()
     # @setTemplate @pistachio()
     # @template.update()
