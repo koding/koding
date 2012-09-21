@@ -2,7 +2,7 @@
 #
 #
 class mail_relay::install {
-    package { ["postfix","mailx","opendkim"]:
+    package { ["postfix","mailx","opendkim","clamav","clamd","clamav-db","clamsmtp"]:
         ensure => present,
     }
 
