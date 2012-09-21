@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, amqp} = require argv.c
+{webPort, mongo, mq} = require argv.c
 webPort = argv.p if argv.p?
 
 projectRoot = require('path').join(__dirname, '/..')
