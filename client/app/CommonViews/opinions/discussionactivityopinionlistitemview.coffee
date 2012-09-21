@@ -54,12 +54,12 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
     """
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
+        <div class="comment-contents">
+          <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+        </div>
         <footer class="activity-opinion-item-footer">
           <span class='type-icon'></span> answer by {{> @author}} •
          <time>{{$.timeago #(meta.createdAt)}}</time>
         </footer>
-        <div class="comment-contents">
-          <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
-      </div>
     </div>
     """

@@ -53,7 +53,8 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+      if not $(event.target).is("a.action-link")
+        appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames @utils.applyMarkdown str
@@ -73,9 +74,8 @@ class DiscussionActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
-      <p>{{@applyTextExpansions #(title)}}</p>
-    <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
-
+      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
@@ -84,8 +84,8 @@ class DiscussionActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
+      {{> @opinionBox}}
     </div>
   </div>
-  {{> @opinionBox}}
     """
 
