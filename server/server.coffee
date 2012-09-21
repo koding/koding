@@ -23,6 +23,7 @@ app.use (req, res, next)->
   next()
 
 process.on 'uncaughtException',(err)->
+  console.log 'there was an uncaught exception'
   console.error err
   console.trace()
 
