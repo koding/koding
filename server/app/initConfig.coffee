@@ -46,6 +46,8 @@ dbUrl = switch process.argv[3] or 'local'
     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
   when "mongohq-dev"
     "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
+  when "stage"
+    "mongodb://koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect"
 
 
 console.log 'connecting to '+dbUrl
