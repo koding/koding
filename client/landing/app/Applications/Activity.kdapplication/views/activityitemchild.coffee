@@ -47,7 +47,7 @@ class ActivityItemChild extends KDView
 
     data = @getData()
     data.on 'TagsChanged', (tagRefs)=>
-      bongo.cacheable tagRefs, (err, tags)=>
+      KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
         # debugger
@@ -67,7 +67,7 @@ class ActivityItemChild extends KDView
 
     @contentDisplayController = @getSingleton "contentDisplayController"
 
-    bongo.cacheable data.originType, data.originId, (err, account)=>
+    KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
 
   settingsMenu:(data)->

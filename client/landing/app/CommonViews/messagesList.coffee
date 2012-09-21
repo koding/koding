@@ -148,7 +148,7 @@ class NotificationListItem extends KDListItemView
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
     else
-      bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
+      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
         if post
           appManager.tell "Activity", "createContentDisplay", post
         else
@@ -160,5 +160,5 @@ class NotificationListItem extends KDListItemView
     # contentDisplayController = @getSingleton('contentDisplayController')
     # list = @getDelegate()
     # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    # bongo.cacheable sourceName, sourceId, (err, source)=>
+    # KD.remote.cacheable sourceName, sourceId, (err, source)=>
     #   appManager.tell "Activity", "createContentDisplay", source

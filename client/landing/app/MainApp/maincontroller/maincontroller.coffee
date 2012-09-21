@@ -30,25 +30,25 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue = []
 
-  authorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+"/1.0/login"
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
+  # authorizeServices:(callback)->
+  #   KD.whoami().fetchNonce (nonce)->
+  #     $.ajax
+  #       url       : KD.config.apiUri+"/1.0/login"
+  #       data      :
+  #         n       : nonce
+  #         env     : KD.env
+  #       xhrFields :
+  #         withCredentials: yes
 
-  deauthorizeServices:(callback)->
-    KD.whoami().fetchNonce (nonce)->
-      $.ajax
-        url       : KD.apiUri+'/1.0/logout'
-        data      :
-          n       : nonce
-          env     : KD.env
-        xhrFields :
-          withCredentials: yes
+  # deauthorizeServices:(callback)->
+  #   KD.whoami().fetchNonce (nonce)->
+  #     $.ajax
+  #       url       : KD.config.apiUri+'/1.0/logout'
+  #       data      :
+  #         n       : nonce
+  #         env     : KD.env
+  #       xhrFields :
+  #         withCredentials: yes
 
   initiateApplication:do->
     modal = null
@@ -78,15 +78,15 @@ class MainController extends KDController
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
           @utils.wait 2500, -> modal?.destroy()
-      @getVisitor().on 'change.login', (account)=> @accountChanged account, connectedState
-      @getVisitor().on 'change.logout', (account)=> @accountChanged account, connectedState
 
-  accountChanged:(account, connectedState)->
+  accountChanged:(account, connectedState={})->
 
     connectedState.connected = yes
     @emit "RemoveModal"
 
     @emit "AccountChanged", account
+
+    @userAccount = account
 
     KDRouter.init()
     unless @mainViewController
@@ -106,24 +106,23 @@ class MainController extends KDController
     if @isUserLoggedIn()
       appManager.quitAll =>
         @createLoggedInState account
-      @authorizeServices =>
-        account = KD.whoami()
-        unless account.getAt('isEnvironmentCreated')
-          @getSingleton('kiteController').createSystemUser (err)=>
-            if err
-              new KDNotificationView
-                title   : 'Fail!'
-                duration: 1000
-            else
-              account.modify isEnvironmentCreated: yes, (err)->
-                if err
-                  console.log err
-                else
-                  console.log "environment is created for #{account.getAt('profile.nickname')}"
+
+      # account = KD.whoami()
+      # unless account.getAt('isEnvironmentCreated')
+      #   @getSingleton('kiteController').createSystemUser (err)=>
+      #     if err
+      #       new KDNotificationView
+      #         title   : 'Fail!'
+      #         duration: 1000
+      #     else
+      #       account.modify isEnvironmentCreated: yes, (err)->
+      #         if err
+      #           console.log err
+      #         else
+      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
 
     else
       @createLoggedOutState account
-      @deauthorizeServices()
     # @getView().removeLoader()
 
   createLoggedOutState:(account)->
@@ -147,7 +146,6 @@ class MainController extends KDController
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
       appManager.openApplication "Activity", yes
-      # appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
@@ -167,7 +165,9 @@ class MainController extends KDController
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
-        bongo.api.JUser.logout ->
+        KD.remote.api.JUser.logout (err, account, replacementToken)=>
+          $.cookie 'clientId', replacementToken if replacementToken
+          @accountChanged account
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
@@ -185,9 +185,9 @@ class MainController extends KDController
 
   setVisitor:(visitor)-> @visitor = visitor
   getVisitor: -> @visitor
-  getAccount: -> @getVisitor().currentDelegate
+  getAccount: -> KD.whoami()
 
-  isUserLoggedIn: -> @getVisitor().currentDelegate instanceof bongo.api.JAccount
+  isUserLoggedIn: -> KD.whoami() instanceof KD.remote.api.JAccount
 
   unmarkUserAsTroll:(data)->
 
@@ -199,7 +199,7 @@ class MainController extends KDController
             title : "@#{acc.profile.nickname} won't be treated as a troll anymore!"
 
     if data.originId
-      bongo.cacheable "JAccount", data.originId, (err, account)->
+      KD.remote.cacheable "JAccount", data.originId, (err, account)->
         kallback account if account
     else if data.bongo_.constructorName is 'JAccount'
       kallback data
@@ -235,7 +235,7 @@ class MainController extends KDController
                     title : "@#{acc.profile.nickname} marked as a troll!"
 
             if data.originId
-              bongo.cacheable "JAccount", data.originId, (err, account)->
+              KD.remote.cacheable "JAccount", data.originId, (err, account)->
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data

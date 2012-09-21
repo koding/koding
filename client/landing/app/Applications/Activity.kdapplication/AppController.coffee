@@ -61,7 +61,7 @@ class Activity12345 extends AppController
         title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
-    unless account instanceof bongo.api.JGuest
+    unless account instanceof KD.remote.api.JGuest
         # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
@@ -161,7 +161,7 @@ class Activity12345 extends AppController
         log '>> error fetching app storage', err
       else
         options.collection = 'activities'
-        flags = KD.whoami().data.globalFlags
+        flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
         $.ajax KD.apiUri+'/1.0'
@@ -171,10 +171,11 @@ class Activity12345 extends AppController
             env     : KD.env
           dataType  : 'jsonp'
           success   : (data)->
-            bongo.reviveFromJSONP data, (err, instances)->
+            KD.remote.reviveFromSnapshots data, (err, instances)->
+              console.log instances
               callback instances
     #
-    # bongo.api.CActivity.teasers selector, options, (err, activities) =>
+    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
     #     callback? activities
     #   else
@@ -230,8 +231,8 @@ class Activity12345 extends AppController
           callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
-    bongo.api.Relationship.within sourceIds, options, (err, rels)->
-      bongo.cacheable rels.map((rel)->
+    KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
+      KD.remote.cacheable rels.map((rel)->
         constructorName : rel.targetName
         id              : rel.targetId
       ), callback
@@ -390,7 +391,7 @@ class ActivityListController extends KDListViewController
         @activityHeader.newActivityArrived()
     else
       switch activity.constructor
-        when bongo.api.CFolloweeBucket
+        when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
 

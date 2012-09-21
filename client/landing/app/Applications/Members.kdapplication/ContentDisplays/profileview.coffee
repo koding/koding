@@ -191,7 +191,7 @@ class ProfileView extends JView
         @prepareMessage formOutput,callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   prepareMessage:(formOutput, callback)=>
@@ -206,4 +206,4 @@ class ProfileView extends JView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
-    bongo.api.JPrivateMessage.create messageDetails, callback
+    KD.remote.api.JPrivateMessage.create messageDetails, callback

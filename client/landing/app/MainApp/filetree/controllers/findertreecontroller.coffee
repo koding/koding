@@ -454,7 +454,6 @@ class NFinderTreeController extends JTreeViewController
       else
         @notify "Download failed!", "error", err
 
-
   ###
   CONTEXT MENU OPERATIONS
   ###

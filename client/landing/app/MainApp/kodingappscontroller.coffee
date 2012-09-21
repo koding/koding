@@ -265,8 +265,8 @@ class KodingAppsController extends KDController
 
   saveCompiledApp:(app, script, callback)->
 
-    @kiteController.run
-      toDo        : "uploadFile"
+    @getSingleton("kiteController").run
+      method        : "uploadFile"
       withArgs    : {
         path      : escapeFilePath "#{getAppPath app}/index.js"
         contents  : script

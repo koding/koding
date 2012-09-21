@@ -106,10 +106,11 @@ class Shell12345 extends KDViewController
       console.log "terminal kill error : #{e}"
     options = @generateTerminalOptions()
     options.type = type ? view.clientType
-    @account.tellKite
-      kiteName :"terminaljs"
-      toDo     :"create"
-      withArgs : options
+    @account.tellKite 
+      kiteName  :"terminaljs"
+      method    :"create"
+      withArgs  : options
+      autoCull  : no
     ,(error,terminal)=>
       if error
         @setNotification "Failed to start terminal : #{error}"
@@ -181,8 +182,9 @@ class Shell12345 extends KDViewController
     KD.singletons.kiteController.run
       kiteName  : "terminaljs"
       # kiteId    : kiteId
-      toDo      : "create"
+      method      : "create"
       withArgs  : options
+      autoCull  : no
     , (error, terminal) =>
       if error
         @setNotification "Failed to start terminal, please close the tab and try again."
@@ -207,7 +209,7 @@ class Shell12345 extends KDViewController
 
   welcomeUser:(isTerminalNew)->
     if isTerminalNew
-      username = KD.getSingleton('mainController').getVisitor().currentDelegate.profile.nickname
+      username = KD.whoami().profile.nickname
       welcomeText = "cowsay mooOOooOOoo what up #{username}! welcome to your terminal... check my w"
       @send "#{welcomeText}\n"
 
@@ -225,8 +227,8 @@ class Shell12345 extends KDViewController
     @terminal.write @bufferedKeyStrokes
     console.log "#{@bufferedKeyStrokes.length} @bufferedKeyStrokes sent at - interval 500msec",new Date if @terminal.log
     @resetBufferedKeyStrokes()
-  ,100
-
+  , 50
+  
   resetBufferedKeyStrokes : -> @bufferedKeyStrokes = []
 
   send: (command) ->

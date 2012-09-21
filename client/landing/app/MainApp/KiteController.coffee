@@ -52,7 +52,7 @@ class KiteController extends KDController
 
     options.kiteName or= "sharedHosting"
     options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.toDo     or= "executeCommand"
+    options.method   or= "executeCommand"
     if command
       options.withArgs = {command}
     else
@@ -66,17 +66,17 @@ class KiteController extends KDController
   setListeners:->
 
     mainController = @getSingleton "mainController"
-
-    mainController.getVisitor().on 'change.login', (account)=>
-      @accountChanged account
+    
+#    mainController.getVisitor().on 'change.login', (account)=> 
+#      @accountChanged account
 
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
-      mainView.putOverlay
-        isRemovable : no
-        cssClass    : "dummy"
-        animated    : yes
-        parent      : "#finder-panel"
+#      mainView.putOverlay
+#        isRemovable : no
+#        cssClass    : "dummy"
+#        animated    : yes
+#        parent      : "#finder-panel"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
@@ -159,7 +159,7 @@ class KiteController extends KDController
       notify _notifications.creatingEnv
 
     @run
-      toDo       : "createSystemUser"
+      method       : "createSystemUser"
       withArgs   :
         fullName : "#{@account.getAt 'profile.firstName'} #{@account.getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)
@@ -176,7 +176,7 @@ class KiteController extends KDController
   ping:(kiteName, callback)->
 
     log "pinging : #{kiteName}"
-    @run toDo : "_ping", (err, res)=>
+    @run method : "_ping", (err, res)=>
       unless err
         @status = yes
         clearInterval @pinger if @pinger

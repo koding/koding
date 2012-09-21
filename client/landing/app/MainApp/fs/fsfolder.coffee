@@ -4,7 +4,7 @@ class FSFolder extends FSFile
 
     # @emit "fs.fetchContents.started"
     # @kiteController.run
-    #   toDo      : "ls"
+    #   method      : "ls"
     #   withArgs  :
     #     command : @path
     # , (err, response)=>

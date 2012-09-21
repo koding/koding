@@ -1,8 +1,7 @@
 class AccountEditUsername extends KDView
 
   viewAppended:->
-
-    bongo.api.JUser.fetchUser (err, user)=>
+    KD.remote.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->
