@@ -13,7 +13,7 @@ class Payment_PurchaseHistory extends Payment_TabContent
 
     left  = new KDView()
     right = new KDView()
-    split = new KDSplitView
+    split = new SplitView
       cssClass : "full-list"
       views : [left,right]
       resizable : no

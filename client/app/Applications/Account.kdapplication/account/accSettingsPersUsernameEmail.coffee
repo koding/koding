@@ -1,17 +1,30 @@
 class AccountEditUsername extends KDView
+
   viewAppended:->
-    # =================
-    # ADDING EMAIL FORM
-    # =================
     KD.remote.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->
+
+    # #
+    # ADDING EMAIL FORM
+    # #
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"
+
+        # bongo.api.JUser.changeEmail formData.email, (err,docs)=>
+        #   if err then warn err
+        #   else
+        #     emailSwappable.swapViews()
+
+        #   new KDNotificationView
+        #     type     : "growl"
+        #     title    : if err then err.msg else "Email successfully updated!"
+        #     duration : 1000
+
     emailForm.addSubView emailLabel = new KDLabelView
       title        : "Your email"
       cssClass     : "main-label"
@@ -51,9 +64,9 @@ class AccountEditUsername extends KDView
     @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
 
-    # =================
+    # #
     # ADDING USERNAME FORM
-    # =================
+    # #
     @addSubView usernameForm = usernameForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView

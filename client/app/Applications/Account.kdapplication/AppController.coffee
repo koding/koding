@@ -50,7 +50,7 @@ class Account12345 extends AppController
     
 
     # SET UP SPLIT VIEW AND TOGGLERS
-    @split = split = new KDSplitView
+    @split = split = new SplitView
       domId     : "account-split-view"
       sizes     : [188,null]
       views     : [navView,wrapperView]

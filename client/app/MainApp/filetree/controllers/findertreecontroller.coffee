@@ -1,10 +1,3 @@
-###
-todo:
-
-  - fix dimmed/selected states
-
-###
-
 class NFinderTreeController extends JTreeViewController
 
   constructor:->
@@ -99,6 +92,10 @@ class NFinderTreeController extends JTreeViewController
     #   delete @aceViews[oldPath]
     #   log "put", file.path
     #   @aceViews[file.path]
+
+  getOpenFolders: ->
+
+    return Object.keys(@listControllers).slice(1)
 
 
   ###
@@ -218,6 +215,8 @@ class NFinderTreeController extends JTreeViewController
 
   confirmDelete:(nodeView, event)->
 
+    extension = nodeView.data?.getExtension() or null
+
     if @selectedNodes.length > 1
       new NFinderDeleteDialog {},
         items     : @selectedNodes
@@ -235,11 +234,11 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         node.getData().remove (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     async.parallel stack, (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} deleted!", "success"
@@ -276,12 +275,14 @@ class NFinderTreeController extends JTreeViewController
     path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
     FSItem.create path, type, (err, file)=>
-      @notify null, null, err if err
-      @refreshFolder @nodes[parentPath], =>
-        @notify "#{type} created!", "success"
-        node = @nodes[file.path]
-        @selectNode node
-        @showRenameDialog node
+      if err
+        @notify null, null, err
+      else
+        @refreshFolder @nodes[parentPath], =>
+          @notify "#{type} created!", "success"
+          node = @nodes[file.path]
+          @selectNode node
+          @showRenameDialog node
 
 
   moveFiles:(nodesToBeMoved, targetNodeView, callback)->
@@ -293,12 +294,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeMoved.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.move sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} moved!", "success"
@@ -316,12 +317,12 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodesToBeCopied.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} copied!", "success"
@@ -333,13 +334,13 @@ class NFinderTreeController extends JTreeViewController
 
     stack = []
     nodes.forEach (node)=>
-      stack.push (callback) =>
+      stack.push (cb) =>
         sourceItem = node.getData()
         targetItem = @nodes[sourceItem.parentPath].getData()
         FSItem.copy sourceItem, targetItem, (err, response)=>
           if err then @notify null, null, err
           else
-            callback err, node
+            cb err, node
 
     callback or= (error, result) =>
       @notify "#{result.length} item#{if result.length > 1 then 's' else ''} duplicated!", "success"
@@ -374,9 +375,11 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.compile.started"
-    name = FSHelper.trimExtension folder.path
-    @getSingleton('kodingAppsController').compileSource name, =>
-      log "ever here"
+    kodingAppsController = @getSingleton('kodingAppsController')
+
+    manifest = KodingAppsController.getManifestFromPath folder.path
+
+    kodingAppsController.compileApp manifest.name, =>
       folder.emit "fs.compile.finished"
       @notify "App compiled!", "success"
       callback?()
@@ -385,65 +388,100 @@ class NFinderTreeController extends JTreeViewController
           @utils.wait =>
             @selectNode @nodes["#{folder.path}/index.js"]
 
+  runApp:(nodeView, callback)->
+
+    folder = nodeView.getData()
+    folder.emit "fs.run.started"
+    kodingAppsController = @getSingleton('kodingAppsController')
+
+    manifest = KodingAppsController.getManifestFromPath folder.path
+
+    kodingAppsController.runApp manifest, =>
+      folder.emit "fs.run.finished"
+      callback?()
+
+
+  cloneRepo:(nodeView)->
+
+    folder = nodeView.getData()
+
+    @notify "not yet there!", "error"
+
+    # folder.emit "fs.clone.started"
+    # @getSingleton('kodingAppsController').cloneApp folder.path, =>
+    #   folder.emit "fs.clone.finished"
+    #   @refreshFolder @nodes[folder.parentPath], =>
+    #     @utils.wait 500, =>
+    #       @selectNode @nodes[folder.path]
+    #       @refreshFolder @nodes[folder.path]
+    #   @notify "App cloned!", "success"
+
   publishApp:(nodeView)->
 
-    folder               = nodeView.getData()
-    name                 = FSHelper.trimExtension folder.path
-    kodingAppsController = @getSingleton('kodingAppsController')
-    kiteController       = @getSingleton('kiteController')
+    folder = nodeView.getData()
 
     folder.emit "fs.publish.started"
+    @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
+      folder.emit "fs.publish.finished"
+      unless err
+        @notify "App published!", "success"
+      else
+        @notify "Publish failed!", "error", err
 
-    kodingAppsController.getApp name, (appScript)=>
+  makeNewApp:(nodeView)->
 
-      log "got the app", name
-      manifest    = KodingAppsController.apps[name]
-      {nickname}  = KD.whoami().profile
-      publishPath = FSHelper.escapeFilePath "/opt/Apps/#{nickname}/#{manifest.name}/#{manifest.version}"
+    folder = nodeView.getData()
 
-      log "trying to publish"
-      log options =
-        method          : "publishApp"
-        withArgs      :
-          version     : manifest.version
-          appName     : manifest.name
-          userAppPath : "#{folder.path}/index.js"
+    folder.emit "fs.newAppCreation.started"
+    @getSingleton('kodingAppsController').makeNewApp (err)=>
+      folder.emit "fs.newAppCreation.finished"
+      @refreshFolder @nodes[folder.path]
+      unless err
+        @notify "App created!", "success"
+      else
+        @notify "App creation failed!", "error", err
 
-      kiteController.run options, (err, res)=>
-        log "publish finished", err, res
-        if err then warn err
-        else
-          log res
-          folder.emit "fs.publish.finished"
-          @notify "App published!", "success"
+  downloadAppSource:(nodeView)->
 
+    folder = nodeView.getData()
 
+    folder.emit "fs.sourceDownload.started"
+    @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+      folder.emit "fs.sourceDownload.finished"
+      @refreshFolder @nodes[folder.parentPath]
+      unless err
+        @notify "Source downloaded!", "success"
+      else
+        @notify "Download failed!", "error", err
 
   ###
   CONTEXT MENU OPERATIONS
   ###
 
-  contextMenuOperationExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  contextMenuOperationCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  contextMenuOperationRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  contextMenuOperationCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
-  contextMenuOperationCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  contextMenuOperationRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  contextMenuOperationDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  contextMenuOperationDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  contextMenuOperationExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
-  contextMenuOperationZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  contextMenuOperationTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  contextMenuOperationUpload:       (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationDownload:     (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
-  contextMenuOperationOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
+  cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
+  cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
+  cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
+  cmDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
+  cmDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
+  cmExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
+  cmZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
+  cmTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
+  cmUpload:       (nodeView, contextMenuItem)-> appManager.notify()
+  cmDownload:     (nodeView, contextMenuItem)-> appManager.notify()
+  cmGitHubClone:  (nodeView, contextMenuItem)-> appManager.notify()
+  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
+  cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
+  cmMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
+  cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
+  cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
 
-  contextMenuOperationOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
-
-  contextMenuOperationPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
-  contextMenuOperationCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
-  contextMenuOperationPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE
@@ -466,9 +504,9 @@ class NFinderTreeController extends JTreeViewController
 
     {action} = contextMenuItem.getData()
     if action
-      if @["contextMenuOperation#{action.capitalize()}"]?
+      if @["cm#{action.capitalize()}"]?
         @contextMenuController.destroyContextMenu()
-      @["contextMenuOperation#{action.capitalize()}"]? nodeView, contextMenuItem
+      @["cm#{action.capitalize()}"]? nodeView, contextMenuItem
 
   ###
   RESET STATES

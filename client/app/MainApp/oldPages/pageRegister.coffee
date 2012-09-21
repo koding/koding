@@ -155,7 +155,7 @@ class RegisterTabs extends KDTabPaneView
   splitView: (leftSide, rightSide) ->
     rightSide = new KDView() unless rightSide?
     @removeSubView @split if @split?
-    @split = new KDSplitView
+    @split = new SplitView
       domId     : "register-splitview"
       views     : [leftSide, rightSide]
       resizable : no

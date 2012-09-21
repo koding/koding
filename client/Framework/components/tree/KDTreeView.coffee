@@ -18,21 +18,21 @@ class KDTreeView extends KDView
   appendTreeItem:(treeItem)->
     @getDomElement().append treeItem.getDomElement()
     treeItem.parent = @
-    treeItem.propagateEvent KDEventType: 'viewAppended'
+    treeItem.emit 'viewAppended'
     @items.push treeItem
-    
+
   appendSubTreeItem:(treeItem,$subTreeWrapper)->
     $subTreeWrapper.append treeItem.getDomElement()
     treeItem.parent = @
     unless !!treeItem.isArchived
-      treeItem.propagateEvent KDEventType: 'viewAppended'
+      treeItem.emit 'viewAppended'
     @items.push treeItem
-  
+
   addSubView:(view, force)->
     warn "you can only add KDTreeItemView type as a list item to KDTreeView"
     if force
       super view
-  
+
   addToSubTree:(parentItem, subItems)->
     parentItem.getDomElement().addClass "has-subitems"
     unless parentItem.$subTreeWrapper?
@@ -43,7 +43,7 @@ class KDTreeView extends KDView
     for item in subItems
       @appendSubTreeItem item, parentItem.$subTreeWrapper
     expandItem parentItem if parentItem.getData().preExpanded ? no
-    
+
 
   createSubTrees:(newItems, controller)->
     for item in newItems
@@ -57,7 +57,7 @@ class KDTreeView extends KDView
           @appendSubTreeItem instantiatedItem,item.$subTreeWrapper if (instantiatedItem = controller.itemForData innerItem)
         item.getDomElement().after item.$subTreeWrapper
         @expandItem item if item.getData().preExpanded ? no
-  
+
   # createAndUnarchiveSubTrees:(newItems, controller)->
   #   for item in newItems
   #     unless !!item.isArchived
@@ -83,10 +83,10 @@ class KDTreeView extends KDView
   #       @createAndUnarchiveSubTrees archivedItems, controller
   #       item.getDomElement().after item.$subTreeWrapper
   #       @expandItem item if item.expanded #FIXME: necessary?
-  #         
+  #
 
   removeSubTree:(parentItem, controller)->
-    return unless parentItem.getData().items 
+    return unless parentItem.getData().items
     remove = (aParentItem)=>
       for own title, itemData of aParentItem.getData().items
         childItem = (controller.itemForData itemData) or controller.archivedItems[itemData.path]
@@ -97,7 +97,7 @@ class KDTreeView extends KDView
       parentItem.getDomElement().removeClass "has-subitems"
       parentItem.getDomElement().removeClass "expanded"
     remove parentItem
-  # 
+  #
   # archiveSubTree:(parentItem, controller)->
   #   return unless parentItem.getData().items
   #   archiveChildrenOf = (aParentItem)=>
@@ -112,14 +112,14 @@ class KDTreeView extends KDView
   #       childItem.getDomElement().detach() #detach leaves bindings
   #       childItem.$subTreeWrapper?.remove()
   #   archiveChildrenOf parentItem
-  #   
+  #
   #   if parentItem.$subTreeWrapper?[0] # HACK!!!!!!!!!!!! I didnt know what I can do more, this one deletes item which not more exist
   #     parentItem.$subTreeWrapper.html ''
-  #   
+  #
   #   parentItem.getData().items = null
   #   parentItem.getDomElement().removeClass "has-subitems"
   #   parentItem.getDomElement().removeClass "expanded"
-  
+
   removeTreeItem:(item)->
     @removeSubTree item
     delete (itemData = item.getData()).parent?.items[itemData.title]
@@ -153,7 +153,7 @@ class KDTreeView extends KDView
     # item.$subTreeWrapper.hide() if item.$subTreeWrapper?
     item.$subTreeWrapper.slideUp 70 if item.$subTreeWrapper?
     @itemDidCollapse item
-      
+
   scrollDown: ->
     unless @__scrollDownInitiated
       @__scrollDownInitiated = yes
@@ -162,7 +162,7 @@ class KDTreeView extends KDView
       @__scrollDownInterval = setInterval =>
         scroll.scrollTop start = start + 12
       , 40
-      
+
   scrollUp: ->
     unless @__scrollUpInitiated
       @__scrollUpInitiated = yes
@@ -171,11 +171,11 @@ class KDTreeView extends KDView
       @__scrollDownInterval = setInterval =>
         scroll.scrollTop start = start - 12
       , 40
-      
+
   stopScroll: ->
     clearInterval @__scrollDownInterval
     @__scrollDownInitiated = no
-    
+
     clearInterval @__scrollDownInterval
     @__scrollUpInitiated = no
 
@@ -193,7 +193,7 @@ class KDTreeView extends KDView
         $outer.animate scrollTop : (oTopScroll + itemTopOffset - oHeight + anItemHeight), 0
       else if itemTopOffset < 0
         $outer.animate scrollTop : (oTopScroll + itemTopOffset), 0
-    
+
   getChildren:(parentId)->
     # log parentId
     #log @data
@@ -211,14 +211,14 @@ class KDTreeView extends KDView
 
   removeAllDropHelpers:()->
     @getDomElement().find(".drop-helper").remove()
-    
-    
+
+
   # DELEGATE METHODS
 
   itemDidExpand:(item)->
     @propagateEvent KDEventType : 'ItemDidExpand', globalEvent : yes, item
     # log 'item did expand'
-  
+
   itemDidCollapse:(item)->
     # log 'item did collapse',item
 

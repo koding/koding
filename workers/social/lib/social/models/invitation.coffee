@@ -80,7 +80,7 @@ module.exports = class JInvitation extends jraphical.Module
         else
           callback null
 
-  @sendBetaInviteFromClient = bongo.secure (client, options,callback)->
+  @sendBetaInviteFromClient = secure (client, options,callback)->
     account = client.connection.delegate
     # unless 'super-admin' in account.globalFlags 
     unless account?.profile?.nickname is 'devrim'
@@ -153,7 +153,7 @@ module.exports = class JInvitation extends jraphical.Module
           else
             log "[JInvitation.sendBetaInvite] something got messed up."
 
-  @grantInvitesFromClient = bongo.secure (client, options,callback)->
+  @grantInvitesFromClient = secure (client, options,callback)->
     account = client.connection.delegate    
     # unless 'super-admin' in account.globalFlags 
     unless account?.profile?.nickname is 'devrim'

@@ -18,7 +18,16 @@ class ActivityItemChild extends KDView
       subItemClass  : TagLinkView
     , data.tags
 
-    @commentBox = new CommentView null, data
+
+    # for discussion, switch to the View that supports nested structures
+    # JDiscussion
+    # -> JOpinion
+    #    -> JComment
+    if data.bongo_.constructorName is "JDiscussion"
+      @commentBox = new OpinionView null, data
+    else
+      @commentBox = new CommentView null, data
+
     @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
 
     account = KD.whoami()

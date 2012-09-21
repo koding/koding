@@ -68,7 +68,7 @@ module.exports = class JTag extends jraphical.Module
         targetType  : JAccount
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp, JStatusUpdate, JAccount]
+        targetType  : [JCodeSnip, JApp, JStatusUpdate, JAccount, JOpinion, JDiscussion]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]

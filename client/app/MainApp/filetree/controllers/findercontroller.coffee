@@ -3,7 +3,7 @@ class NFinderController extends KDViewController
   constructor:(options = {}, data)->
 
     {nickname}  = KD.whoami().profile
-    
+
     options.view = new KDView cssClass : "nfinder file-container"
     treeOptions  = {}
     treeOptions.treeItemClass     = options.treeItemClass     or= NFinderItem
@@ -52,7 +52,6 @@ class NFinderController extends KDViewController
         name        : nickname
         path        : "/Users/#{nickname}"
         type        : "mount"
-
     else
       FSHelper.createFile
         name        : "guest"
@@ -60,7 +59,7 @@ class NFinderController extends KDViewController
         type        : "mount"
     @defaultStructureLoaded = no
     @treeController.initTree [@mount]
-    
+
     if @treeController.getOptions().useStorage
       @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
         @loadDefaultStructure()###
@@ -71,7 +70,7 @@ class NFinderController extends KDViewController
     @defaultStructureLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
-    return unless KD.isLoggedIn()    
+    return unless KD.isLoggedIn()
     {nickname}     = KD.whoami().profile
     kiteController = KD.getSingleton('kiteController')
     @fetchStorage (storage)=>
@@ -90,10 +89,7 @@ class NFinderController extends KDViewController
       # mount = @treeController.nodes["/Users/#{nickname}"].getData()
 
       @mount.emit "fs.fetchContents.started"
-      kiteController.run
-        withArgs  :
-          command : "ls #{recentFolders.join(" ")} -lpva --group-directories-first --time-style=full-iso"
-      , (err, response)=>
+      @multipleLs recentFolders, (err, response)=>
         if response
           files = FSHelper.parseLsOutput recentFolders, response
           @treeController.addNodes files
@@ -102,6 +98,13 @@ class NFinderController extends KDViewController
         kiteController.emit "UserEnvironmentIsCreated"
         @mount.emit "fs.fetchContents.finished"
 
+
+  multipleLs:(pathArray, callback)->
+
+    KD.getSingleton('kiteController').run
+      withArgs  :
+        command : "ls \"#{pathArray.join("\" \"")}\" -lpva --group-directories-first --time-style=full-iso"
+    , callback
 
   fetchStorage:(callback)->
 

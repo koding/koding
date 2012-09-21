@@ -12,7 +12,7 @@ class KDButtonViewWithMenu extends KDButtonView
         <span class='chevron-arrow'></span>
       </div>
       """
-  
+
   setIconOnly:()->
     @$().addClass('icon-only').removeClass('with-icon')
     $icons = @$('span.icon,span.chevron-arrow')
@@ -36,9 +36,9 @@ class KDButtonViewWithMenu extends KDButtonView
       ghost    : @$('.chevron-arrow').clone()
       event    : event
       delegate : @
-    
+
     menu = if "function" is typeof menu then menu() else menu
-    
+
     menu.forEach (menuTreeData)=>
       @buttonMenu.addSubView view = new (contextClass or KDContextMenuTreeView)
         delegate : @
@@ -48,7 +48,7 @@ class KDButtonViewWithMenu extends KDButtonView
         view
       }, menuTreeData
 
-      # @listenTo 
+      # @listenTo
       #   KDEventTypes : "itemsAdded"
       #   listenedToInstance : controller
       #   callback : ()=> @buttonMenu.positionContextMenu()
@@ -56,7 +56,7 @@ class KDButtonViewWithMenu extends KDButtonView
         @buttonMenu.positionContextMenu()
 
     KDView.appendToDOMBody @buttonMenu
-    
+
   # overriden methods because of domElement change
   setTitle:(title)->
     @$('button').append title

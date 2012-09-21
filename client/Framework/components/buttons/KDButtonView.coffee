@@ -26,10 +26,7 @@ class KDButtonView extends KDView
     @disable()                      if options.disabled
 
     if options.loader
-      @listenTo
-        KDEventTypes       : "viewAppended"
-        listenedToInstance : @
-        callback           : -> @setLoader()
+      @on "viewAppended", @setLoader.bind @
 
 
   setDomElement:(cssClass)->
