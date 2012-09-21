@@ -38,7 +38,8 @@ koding = new Bongo {
   queueName: 'koding-social'
 }
 
-koding.mq.connection.on 'ready', -> console.log 'message broker is ready'
+koding.mq.connection.on 'ready', ->
+  console.log 'message broker is ready'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403

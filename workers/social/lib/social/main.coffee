@@ -32,14 +32,14 @@ if require("os").platform() is 'linux'
 
 Bongo = require 'bongo'
 Broker = require 'broker'
-{amqp, mongo, email} = require './config'
+{mq, mongo, email} = require './config'
 
 koding = new Bongo
   root        : __dirname
   mongo       : mongo
   models      : './models'
   queueName   : 'koding-social'
-  mq          : new Broker amqp
+  mq          : new Broker mq
   fetchClient :(sessionToken, callback)->
     koding.models.JUser.authenticateClient sessionToken, (err, account)->
       if err
