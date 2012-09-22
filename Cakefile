@@ -19,12 +19,12 @@ nodePath      = require 'path'
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
-# log = 
+# log =
 #   info  : console.log
 #   debug : console.log
 #   warn  : console.log
 
- 
+
 # create required folders
 mkdirp.sync "./.build/.cache"
 mkdirp.sync "./website_nonstatic"
@@ -44,7 +44,7 @@ clientFileMiddleware  = (options, code, callback)->
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
   {libraries,kdjs} = code
-      
+
   compressJs = (js,callback)->
     totalTicks = 200
     bar = new ProgressBar 'Closure compiling kd.js [:bar] :percent :elapseds',{total: 200,width:50,incomplete:" "}
@@ -56,7 +56,7 @@ clientFileMiddleware  = (options, code, callback)->
 
     tmpFile = "./.build/#{hat()}.txt"
     tmpFileCompiled = tmpFile+".js"
-    fs.writeFile tmpFile,js,(err)-> 
+    fs.writeFile tmpFile,js,(err)->
       execStr = "java -jar #{options.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
       console.log execStr
       exec execStr,(err,stdout,stderr)->
@@ -84,14 +84,14 @@ clientFileMiddleware  = (options, code, callback)->
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
-  
+
   # return callback null,kdjs+libraries
   unless options.uglify
     callback null,(libraries+kdjs)
   else
     compressJs (libraries+kdjs),(err,data)->
       unless err
-        callback null,data         
+        callback null,data
       else
         throw err
 
@@ -125,7 +125,7 @@ task 'buildClient', (options)->
 task 'run', (options)->
   configFile = normalizeConfigPath options.configFile
   config = require configFile
-  broker = spawn './broker/start.sh'
+  # broker = spawn './broker/start.sh'
   serverSupervisor = spawn KODING_CAKE, [
     './server',
     '-c', configFile
@@ -138,7 +138,7 @@ task 'run', (options)->
     'run'
   ]
   pipeStd(
-    broker
+    # broker
     serverSupervisor
     socialSupervisor
   )
@@ -148,7 +148,7 @@ task 'run', (options)->
   # broker = spawn './broker/start.sh'
   # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
   # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  # logPath = options.logPath ? '/tmp'  
+  # logPath = options.logPath ? '/tmp'
   # procs = {broker, server, social}
   # if options.runClient
   #   client = spawn 'cake', ['build']
@@ -166,7 +166,7 @@ task 'buildAll',"build chris's modules", ->
   b = (next) ->
     cmd = "cd ./node_modules/#{buildables[next]} && cake build"
     log.info "building... cmd: #{cmd}"
-    processes.run 
+    processes.run
       cmd     : cmd
       log     : yes       # or provide a path for log file
       restart : no        # or provide a function
@@ -183,10 +183,10 @@ task 'buildAll',"build chris's modules", ->
 
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
-  
+
   options.port      = 3000
   options.host      = "localhost"
-  options.database  = "beta" 
+  options.database  = "beta"
   options.port      = "3000"
   options.dontStart = yes
   options.uglify    = yes
@@ -194,7 +194,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
 
   prompt.start()
   prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
-    
+
     if result.p is "yes"
       log.debug 'version',version
       fs.writeFileSync "./.revision",version
@@ -226,21 +226,21 @@ task 'uninstall', 'uninstall all modules listed in CakeNodeModules.coffee',(opti
   a.stdout.on 'data', l
   a.stderr.on 'data', l
 
-task 'checkModules', 'check node_modules dir',(options)->  
+task 'checkModules', 'check node_modules dir',(options)->
   {our_modules, npm_modules} = require "./CakeNodeModules"
   required_versions = npm_modules
-  npm_modules = (name for name,ver of npm_modules)  
+  npm_modules = (name for name,ver of npm_modules)
   gitIgnore = ((fs.readFileSync "./.gitignore").toString().replace(/\r\n/g,"\n").split "\n")
 
   data = fs.readdirSync "./node_modules"
-  untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)    
-  if untracked_mods.length > 0      
+  untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)
+  if untracked_mods.length > 0
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
     console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
     process.exit()
 
   unignored_mods = (mod for mod in data when mod not in our_modules and "/node_modules/#{mod}" not in gitIgnore)
-  if unignored_mods.length > 0      
+  if unignored_mods.length > 0
     console.log "[ERROR] UN-IGNORED NPM MODULES FOUND:",unignored_mods
     console.log "Don't do git-add before adding them to .gitignore (exactly as: e.g. /node_modules/#{unignored_mods[0]}). Exiting."
     process.exit()
@@ -253,7 +253,7 @@ task 'checkModules', 'check node_modules dir',(options)->
 
   all_mods = npm_modules.concat our_modules
   uninstalled_mods = (mod for mod in all_mods when mod not in data)
-  if uninstalled_mods.length > 0      
+  if uninstalled_mods.length > 0
     console.log "[ERROR] UNINSTALLED MODULES FOUND:",uninstalled_mods
     console.log "Please run: npm install #{uninstalled_mods.join(" ")} (or cake install)"
     console.log "Exiting."
@@ -264,43 +264,43 @@ task 'checkModules', 'check node_modules dir',(options)->
 
 
 task 'writeGitIgnore','updates a part of .gitignore file to avoid conflicts in ./node_modules',(options)->
-  
+
   fs.readFile "./.gitignore",'utf8',(err,data)->
     arr = data.split "\n"
 
-task 'build', 'optimized version for deployment', (options)->  
+task 'build', 'optimized version for deployment', (options)->
   # invoke 'checkModules'
   # # require './server/dependencies.coffee' # check if you have all npm libs to run kfmjs
   # options.port      or= 3000
   # options.host      or= "localhost"
   # options.watch     or= 1000
-  # options.database  ?= "mongohq-dev" 
+  # options.database  ?= "mongohq-dev"
   # options.port      ?= "3000"
   # options.dontStart ?= no
   # options.uglify    ?= no
-  
 
-  # options.target = targetPaths.server ? "/tmp/kd-server.js" 
-  
+
+  # options.target = targetPaths.server ? "/tmp/kd-server.js"
+
   # {dontStart,uglify,database} = options
   # build options
-  
-  
-  
-  
-  
+
+
+
+
+
 
 # ------------- BUILDER START ----------#
 build = (options)->
   log.debug "building with following options, ctrl-c before too late:",options
   debug = if options.debug? then "--debug --prof --prof-lazy" else "--stack_size=2048"
-  run = 
+  run =
     command: ["node", [debug,options.target, process.cwd(), options.database, options.port, options.cron, options.host]]
 
   builder = new Builder options,targetPaths,"",run
-  
+
   sourceCodeAnalyzer.attachListeners builder if options.sourceCodeAnalyze
-  
+
   builder.watcher.initialize()
 
   # EVENTS -
@@ -328,33 +328,33 @@ build = (options)->
               # builder.buildApplications targetPaths.installedApps, targetPaths.apps
               # issueFrontendReloadCommand()
             else
-              if options.dontStart                    
+              if options.dontStart
                 targetPaths.prodPostBuildSteps options,->
                   log.info "build complete, now run: monit start kfmjs or"
                   log.info "export NODE_PATH=#{process.cwd()}/node_modules/ && node #{run.command[1].join ' '}"
               else
                 log.info "build complete, now run:","node #{run.command[1].join ' '}"
-      
-  builder.watcher.on "changeDidHappen",(changes)-> 
+
+  builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
     if changes.Client? and not changes.StylusFiles
       builder.buildClient "",()->
         builder.buildIndex "",()->
           # log.debug "client build is complete"
-      
+
     if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
-      builder.buildServer "",()-> 
+      builder.buildServer "",()->
       builder.processMonitor.restartProcess() unless options.dontStart
-    if changes.Client?.StylusFiles? 
+    if changes.Client?.StylusFiles?
       builder.buildCss "", ->
         builder.buildIndex "", ->
-    if changes.Cake                                  
+    if changes.Cake
       log.debug "Cakefile changed.."
       builder.watcher.reInitialize()
 
     issueFrontendReloadCommand()
 
-  
+
 
   builder.processMonitor.on "processDidExit",(code)->
 
@@ -395,31 +395,31 @@ task 'deploy','',(options)->
   fs.readFile "./.revision","utf8",(err,data)->
     throw err if err
     rev = data.replace "\n",""
-    filename = "kfmjs-#{rev}.tar.gz"    
+    filename = "kfmjs-#{rev}.tar.gz"
     execStr = "cd .. && /usr/bin/tar -czf #{filename} --exclude 'kites/*' --exclude '.git/*' kfmjs"
     log.info "executing #{execStr}"
     exec execStr,(err,stdout,stderr)->
-      s3 = new S3 
+      s3 = new S3
         key     : "AKIAJO74E23N33AFRGAQ"
         secret  : "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"
         bucket  : "koding-updater"
       log.info "starting to upload to s3"
       s3.putFile "../#{filename}",filename,(err,res)->
-        console.log err,res      
+        console.log err,res
         foo = exec "./build/install_sl_vm/install.py --hourly --cores 1 --ram 1 --port 10 --bandwidth 1000 --fqdn web1.prod.system.koding.com",(err,stdout,stderr)->
           # console.log arguments
           depStr = "./build/install_ec2/install_ec2.py --fqdn web#{Date.now()}.beta.system.aws.koding.com --int --kfmjs #{rev} "
           log.info "deploying #{depStr}"
           foo = exec depStr,(err,stdout,stderr)->
             console.log "deployment complete."
-        foo.stdout.on 'data', (data)-> log.info "#{data}".replace /\n+$/, ''      
-        foo.stderr.on 'data', (data)-> log.info "#{data}".replace /\n+$/, ''  
+        foo.stdout.on 'data', (data)-> log.info "#{data}".replace /\n+$/, ''
+        foo.stderr.on 'data', (data)-> log.info "#{data}".replace /\n+$/, ''
 
 task 'parseAnalyzedCss','',(options)->
 
   fs.readFile "/tmp/identicals.css",'utf8',(err,data)->
     stuff = JSON.parse data
-    
+
     log.info stuff
 
 task 'analyzeCss','',(options)->
@@ -430,10 +430,10 @@ task 'analyzeCss','',(options)->
     if arrA?.slice()?.sort?
       cA = arrA.slice().sort().join("")
       cB = arrB.slice().sort().join("")
-      cA is cB    
+      cA is cB
     else
       # log.error "something wrong with this pair of arrays",arrA,arrB
-    
+
 
 
   fs.readFile config.client.css,'utf8',(err,data)->
@@ -467,8 +467,8 @@ task 'analyzeCss','',(options)->
               identicals[name].__content = selector
               counter.chars+=selector.join(";").length
               counter.fns++
-          # log.debug selector,selector2  
-    fs.writeFileSync "/tmp/identicals.css", JSON.stringify identicals,"utf8"    
+          # log.debug selector,selector2
+    fs.writeFileSync "/tmp/identicals.css", JSON.stringify identicals,"utf8"
     log.info "------------------"
     log.info "log file is at /tmp/identicals.css"
     log.info "#{counter.fns} selectors contain identical CSS properties"

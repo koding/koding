@@ -25,9 +25,13 @@ module.exports = deepFreeze
     runtimeOptions:
       version   : version
       mainUri   : 'http://localhost:3000'
+      # broker    :
+      #   apiKey  : 'a19c8bf6d2cad6c7a006'
+      #   sockJS  : 'http://localhost:8008/subscribe'
+      #   auth    : 'http://localhost:3000/auth'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://localhost:8008/subscribe'
+        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         auth    : 'http://localhost:3000/auth'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-apps.koding.com'
@@ -35,7 +39,8 @@ module.exports = deepFreeze
   mq            :
     host        : 'localhost'
     login       : 'guest'
-    password    : 'guest'
+    # password    : 'guest'
+    password    : 'x1srTA7!%Vb}$n|S'
     vhost       : '/'
   email         :
     host        : 'localhost'
