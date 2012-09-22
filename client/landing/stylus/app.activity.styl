@@ -910,6 +910,47 @@ button.activity-status-context
 // Activity Item for Discussions
 
 .activity-discussion-container
+  &:hover
+    div.view-full-discussion
+      background-color #ff9200
+      border-color darken(#ff9200,25%)
+      a
+        color white
+
+  .comment-body
+    max-height 250px
+    overflow hidden
+
+  div.view-full-discussion
+    cursor pointer
+    vendor transition, all 0.5s ease-in-out
+
+    borderBox()
+    height auto
+    width 100%
+    background-color #f7f7f7
+    border 1px solid #e3e3e3
+    // z-index -1
+    margin-top 0px
+    padding-top 5px
+    padding-bottom 5px
+    padding-left 10px
+    rounded 0px 0px 3px 3px
+    span
+      font-size 12px
+      font-weight 500
+      color #FF9200
+      height auto
+    a
+      vendor transition, color 0.2s linear
+      noTextDeco()
+    // &:hover
+    //   background-color #FF9200
+    //   // span
+    //   //   color #f7f7f7
+
+
+
   .comment-title
     margin-bottom:10px
     p
@@ -921,9 +962,9 @@ button.activity-status-context
     font-weight bold
 
 div.activity-opinion.item-content-comment
+  cursor pointer
   p.comment-body
     margin-top 5px
-
 
   footer.activity-opinion-item-footer
     margin-top 5px
@@ -937,7 +978,6 @@ div.show-more-discussion
   padding-left 10px
   a.discussion-view-more
     noTextDeco()
-
 
 // Code Share Stuff
 

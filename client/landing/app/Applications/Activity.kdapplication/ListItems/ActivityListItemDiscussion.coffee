@@ -45,6 +45,12 @@ class DiscussionActivityItemView extends ActivityItemChild
     @$("pre").addClass "prettyprint"
     prettyPrint()
 
+    if @$("p.comment-body").height() >= 250
+      @$("div.view-full-discussion").show()
+    else
+      @$("div.view-full-discussion").hide()
+
+
   render:->
     super()
 
@@ -76,6 +82,9 @@ class DiscussionActivityItemView extends ActivityItemChild
       <h3 class='hidden'></h3>
       <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
       <p class="comment-body has-markdown">{{@applyTextExpansions #(body)}}</p>
+      <div class="view-full-discussion">
+        <a href="#">View the full Discussion</a>
+      </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
