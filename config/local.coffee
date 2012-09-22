@@ -24,14 +24,14 @@ module.exports =
       mainUri   : 'http://localhost:3000'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://zb.koding.com:8008/subscribe'
+        sockJS  : 'http://localhost:8008/subscribe'
         auth    : 'http://localhost:3000/auth'
       apiUri    : 'http://dev-api.koding.com'
       # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :
-    host        : 'http://zb.koding.com/'
+    host        : 'localhost'
     login       : 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'guest'
     vhost       : '/'
   email         :
     host        : 'localhost'
