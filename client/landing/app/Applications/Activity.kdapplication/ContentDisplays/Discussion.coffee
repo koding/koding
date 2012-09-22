@@ -209,6 +209,9 @@ class ContentDisplayDiscussion extends KDView
       </span>
       <div class='discussion-main-opinion'>
         <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
+        {{> @editDiscussionLink}}
+        {{> @deleteDiscussionLink}}
+        <p class='has-markdown context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
         <footer class='discussion-footer clearfix'>
           <div class='type-and-time'>
             <span class='type-icon'></span> by {{> @author}} •
@@ -217,9 +220,6 @@ class ContentDisplayDiscussion extends KDView
             {{> @actionLinks}}
           </div>
         </footer>
-        {{> @editDiscussionLink}}
-        {{> @deleteDiscussionLink}}
-        <p class='has-markdown context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       </div>
     </div>
     </div>
