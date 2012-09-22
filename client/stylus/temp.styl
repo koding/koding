@@ -11,6 +11,72 @@ Temp styles
 }
 
 
+.kdlayeredinput
+  size                      100%, 100%
+
+  .kdlayeredinput-inner-wrapper
+    position                relative
+    size                    100%, 100%
+    borderBox()
+
+    .layer
+      size                  100%, 100%
+      padding               5px
+      font-size             12px
+      line-height           16px
+      color                 #444
+      borderBox()
+
+      &.calculation
+        position            absolute
+        color               pink
+        top                 0
+        left                0
+        z-index             0
+
+      &.presentation
+        bg                  color, white
+        z-index             1
+
+      &.input
+        position            absolute
+        top                 0
+        left                0
+        background-color    transparent
+        border              none
+        z-index             2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // scrollbars(a=#242424)
 //   ::-webkit-scrollbar
 //     width  10px

@@ -325,15 +325,17 @@ class KDInputView extends KDView
 
   change:->
 
-  keyUp:->
+  keyUp:-> yes
 
   keyDown:(event)->
 
     @checkTabKey event if @inputTabKeyEnabled
+    yes
 
   focus:->
 
     @getSingleton("windowController").setKeyView @
+    yes
 
   blur:->
     # this messes up things
@@ -343,6 +345,7 @@ class KDInputView extends KDView
     # hopefully fixed
 
     @getSingleton("windowController").revertKeyView @
+    yes
 
   mouseDown:=>
 

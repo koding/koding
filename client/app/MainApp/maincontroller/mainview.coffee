@@ -54,9 +54,9 @@ class MainView extends KDView
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
 
-    @addSubView @bottomPanel = new BottomPanel
-      cssClass : "bottom-panel"
-    @emit "BottomPanelCreated", @bottomPanel
+    # @addSubView @bottomPanel = new BottomPanel
+    #   cssClass : "bottom-panel"
+    # @emit "BottomPanelCreated", @bottomPanel
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
