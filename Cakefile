@@ -182,6 +182,7 @@ configureBroker = (options,callback=->)->
       {mq_host, "#{config.mq.host}"},
       {mq_user, <<"#{config.mq.login}">>},
       {mq_pass, <<"#{config.mq.password}">>},
+      {pid_file, <<"#{config.broker.pidFile}">>},
       {verbose, true},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
