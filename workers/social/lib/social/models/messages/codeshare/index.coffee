@@ -1,18 +1,22 @@
-class JCodeShareAttachment extends jraphical.Attachment
+{Attachment} = require 'jraphical'
+
+class JCodeShareAttachment extends Attachment
   @setSchema
     description : String
     content     : String
     syntax      : String
 
-class JCodeShare extends JPost
+JPost = require '../post'
+
+module.exports = class JCodeShare extends JPost
 
   {secure} = require 'bongo'
 
   @share()
 
-  @getActivityType =-> CCodeShareActivity
+  @getActivityType =-> require './codeshareactivity'
 
-  @getAuthorType =-> JAccount
+  @getAuthorType =-> require '../../account'
 
   @set
     sharedMethods : JPost.sharedMethods
@@ -101,16 +105,3 @@ class JCodeShare extends JPost
 
   reply: secure (client, comment, callback)->
     JPost::reply.call @, client, JComment, comment, callback
-
-class CCodeShareActivity extends CActivity
-
-  @share()
-
-  @set
-    encapsulatedBy  : CActivity
-    sharedMethods   : CActivity.sharedMethods
-    schema          : CActivity.schema
-    relationships   :
-      subject       :
-        targetType  : JCodeShare
-        as          : 'content'

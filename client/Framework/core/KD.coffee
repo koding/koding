@@ -41,19 +41,9 @@ KD = @KD or {}
   subscriptions   : []
   classes         : {}
 
-  apiUri: switch KD.env
-    when 'beta'
-      'https://api.koding.com'
-    else
-      'https://dev-api.koding.com'
+  apiUri: KD.config.apiUri
+  appsUri: KD.config.appsUri
 
-  appsUri: switch KD.env
-    when 'beta'
-      'http://app.koding.com'
-    else
-      'http://dev-app.koding.com'
- 
-  
   whoami:-> KD.getSingleton('mainController').userAccount
   
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount

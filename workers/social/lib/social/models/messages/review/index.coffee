@@ -1,11 +1,13 @@
-class JReview extends jraphical.Message
+{Message} = require 'jraphical'
+
+class JReview extends Message
 
   {ObjectId, ObjectRef, secure, dash} = require 'bongo'
   {Relationship}  = require 'jraphical'
 
   {log} = console
 
-  @::mixin Likeable::
+  @trait __dirname, '../../../traits/likeable'
 
   @share()
 
@@ -30,7 +32,7 @@ class JReview extends jraphical.Message
       meta         : require 'bongo/bundles/meta'
     relationships  :
       likedBy      :
-        targetType : JAccount
+        targetType : "JAccount"
         as         : 'like'
 
   delete: secure (client, callback)->

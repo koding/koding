@@ -40,6 +40,8 @@ module.exports = class CBucket extends jraphical.Module
     CLikerBucket      = require './likerbucket'
     CReplieeBucket    = require './replieebucket'
     CReplierBucket    = require './replierbucket'
+    CInstallerBucket  = require './installerbucket'
+    CInstalleeBucket  = require './installeebucket'
 
     switch role
       when 'follower'
@@ -54,6 +56,10 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
+      when 'user'
+        switch groupName
+          when 'source' then CInstalleeBucket
+          when 'target' then CInstallerBucket
 
   addToBucket =do ->
     # @helper

@@ -102,7 +102,7 @@ class ContentDisplayDiscussion extends KDView
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    bongo.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner
