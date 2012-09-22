@@ -22,8 +22,8 @@ class OpinionListItemView extends KDListItemView
 
     @avatar = new AvatarView {
       size    :
-        width: 50
-        height: 50
+        width: 40
+        height: 40
       origin
     }
 
@@ -86,7 +86,7 @@ class OpinionListItemView extends KDListItemView
           title    : "Show more"
         partial    :  "See more…"
         click      :=>
-          @markup.css maxHeight : @textMaxHeight
+          @markup.css maxHeight : @textMaxHeight+20
           @smaller.show()
           @larger.hide()
 
@@ -96,7 +96,8 @@ class OpinionListItemView extends KDListItemView
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
-         loggedInId is activity.originId or   # if activity owner
+         # loggedInId is activity.originId or   # if activity owner
+         # ! this will allow activity owners to edit all the answers..
          KD.checkFlag "super-admin", account  # if super-admin
 
         @listenTo
@@ -106,7 +107,7 @@ class OpinionListItemView extends KDListItemView
             if @editForm?
               @editForm?.destroy()
               delete @editForm
-              @$("p.opinion-body-with-markup").show()
+              @$("p.opinion-body").show()
               @$(".opinion-size-links").show() if @needsToResize
             else
               @editForm = new OpinionFormView
@@ -115,7 +116,7 @@ class OpinionListItemView extends KDListItemView
                 cssClass          : "edit-opinion-form opinion-container"
                 callback          : (data)=>
                   @getData().modify data, (err, opinion) =>
-                    @$("p.opinion-body-with-markup").show()
+                    @$("p.opinion-body").show()
                     callback? err, opinion
                     if err
                       new KDNotificationView title : "Your changes weren't saved.", type :"mini"
@@ -123,12 +124,12 @@ class OpinionListItemView extends KDListItemView
                       @getDelegate().emit "DiscussionTeaserShouldRefresh", ->
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
-                      @$("p.opinion-body-with-markup").show()
+                      @$("p.opinion-body").show()
                       @$(".opinion-size-links").show() if @needsToResize
               , data
 
               @addSubView @editForm, "p.opinion-body-edit", yes
-              @$("p.opinion-body-with-markup").hide()
+              @$("p.opinion-body").hide()
               @$(".opinion-size-links").hide() if @needsToResize
 
 
@@ -150,7 +151,7 @@ class OpinionListItemView extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
-    @markup = @$("p.opinion-body-with-markup")
+    @markup = @$("p.opinion-body")
     maxHeight = 300
 
     if @markup.height()>maxHeight
@@ -199,19 +200,11 @@ class OpinionListItemView extends KDListItemView
     """
     <div class='item-content-opinion clearfix'>
       <span class='avatar'>{{> @avatar}}</span>
-        <footer class='opinion-footer clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span> answer by {{> @author}} •
-            <time>{{$.timeago #(meta.createdAt)}}</time>
-            {{> @tags}}
-          </div>
-
-        </footer>
       <div class='opinion-contents clearfix'>
         {{> @deleteLink}}
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
-        <p class='opinion-body-with-markup'>
+        <p class='opinion-body has-markdown'>
           {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
         </p>
         <div class="opinion-size-links">
@@ -219,7 +212,14 @@ class OpinionListItemView extends KDListItemView
           {{>@smaller}}
         </div>
     </div>
-      {{> @actionLinks}}
+        <footer class='opinion-footer clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> answer by {{> @author}} •
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+            {{> @actionLinks}}
+          </div>
+        </footer>
     </div>
     <div class='item-content-opinion-comments clearfix'>
       <div class='opinion-comment'>
