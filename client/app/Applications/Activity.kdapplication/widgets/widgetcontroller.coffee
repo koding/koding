@@ -183,7 +183,7 @@ class ActivityUpdateWidgetController extends KDViewController
   #   else
   #     if submissionStopped
   #       return notifySubmissionStopped()
-  #     bongo.api.JCodeShare.create data, (err, codeshare) =>
+  #     KD.remote.api.JCodeShare.create data, (err, codeshare) =>
   #       callback? err, codeshare
   #       stopSubmission()
   #       if err

@@ -28,7 +28,7 @@ class Apps12345 extends AppController
         allApps             :
           title             : "All Apps"
           dataSource        : (selector, options, callback)=>
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
@@ -38,23 +38,23 @@ class Apps12345 extends AppController
           title             : "Add-ons"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'add-on'
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         serverStacks        :
           title             : "Server Stacks"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'server-stack'
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
         frameworks          :
           title             : "Frameworks"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'framework'
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
             callback 'Coming soon!'
         miscellaneous       :
           title             : "Miscellaneous"
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
-            bongo.api.JApp.someWithRelationship selector, options, callback
+            KD.remote.api.JApp.someWithRelationship selector, options, callback
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
