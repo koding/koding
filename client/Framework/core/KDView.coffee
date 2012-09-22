@@ -24,6 +24,23 @@ class KDView extends KDObject
     )$
     ///
 
+  eventToMethodMap = ->
+    dblclick    : "dblClick"
+    keyup       : "keyUp"
+    keydown     : "keyDown"
+    keypress    : "keyPress"
+    mouseup     : "mouseUp"
+    mousedown   : "mouseDown"
+    mouseenter  : "mouseEnter"
+    mouseleave  : "mouseLeave"
+    mousemove   : "mouseMove"
+    contextmenu : "contextMenu"
+    dragstart   : "dragStart"
+    dragenter   : "dragEnter"
+    dragleave   : "dragLeave"
+    dragover    : "dragOver"
+
+
   overrideAndMergeObjects = (objects)->
     for own title,item of objects.overridden
       continue if objects.overrider[title]
@@ -478,80 +495,45 @@ class KDView extends KDObject
     eventsToBeBound
 
   handleEvent:(event)->
-    # log event.type
-    # thisEvent = @[event.type]? event or yes #this would be way awesomer than lines 98-103, but then we have to break camelcase convention in mouseUp, etc. names....??? worth it?
-    thisEvent = switch event.type
-      when "click"      then @click event
-      when "dblclick"   then @dblClick event
-      when "keyup"      then @keyUp event
-      when "keydown"    then @keyDown event
-      when "keypress"   then @keyPress event
-      when "mouseup"    then @mouseUp event
-      when "mousedown"  then @mouseDown event
-      when "mouseenter" then @mouseEnter event
-      when "mouseleave" then @mouseLeave event
-      when "mousemove"  then @mouseMove event
-      when "contextmenu"then @contextMenu event
-     # when "dragstart"  then @dragStart event
-      when "dragenter"  then @dragEnter event
-      when "dragleave"  then @dragLeave event
-      when "dragover"   then @dragOver event
-      when "drop"       then @drop event
-      when "scroll"     then @scroll event
-      when "paste"      then @paste event
-      # when "resize"     then @resize event
-      when "blur"       then @blur event
-      when "change"     then @change event
-      when "focus"      then @focus event
-      when "error"      then @error event
-      else yes
-    @propagateEvent (KDEventType:event.type.capitalize()),event if @notifiesOthers event
-    @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event if @notifiesOthers event
-    willPropagateToDOM = thisEvent
 
-  scroll:(event)->
-    # log "override keyDown in your subclass to do something useful"
-    yes
+    methodName = eventToMethodMap()[event.type] or event.type
+    result     = if @[methodName]? then @[methodName] event else yes
+    # log result, event.type, "???"
+    @emit event.type, event if result
+    # deprecate below 09/2012 sinan
+    @propagateEvent (KDEventType:event.type.capitalize()),event
+    @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
+    willPropagateToDOM = result
 
-  error:(event)->
-    # log "override keyDown in your subclass to do something useful"
-    yes
+  scroll:(event)->     yes
 
-  keyUp:(event)->
-    # log "override keyDown in your subclass to do something useful"
-    yes
+  error:(event)->      yes
 
-  keyDown:(event)->
-    # log "override keyDown in your subclass to do something useful"
-    yes
+  keyUp:(event)->      yes
 
-  keyPress:(event)->
-    yes
+  keyDown:(event)->    yes
 
-  dblClick:(event)->
-    yes
+  keyPress:(event)->   yes
 
-  click:(event)->
-    yes
+  dblClick:(event)->   yes
 
-  contextMenu:(event)->
-    yes
+  click:(event)->      yes
 
-  mouseMove:(event)->
-    yes
+  contextMenu:(event)->yes
 
-  mouseUp:(event)->
-    # log "override mouseUp in your subclass to do something useful"
-    yes
+  mouseMove:(event)->  yes
+
+  mouseEnter:(event)-> yes
+
+  mouseLeave:(event)-> yes
+
+  mouseUp:(event)->    yes
 
   mouseDown:(event)->
-    # log "override mouseDown in your subclass to do something useful"
     (@getSingleton "windowController").setKeyView null
     yes
 
-  mouseEnter:(event)-> yes
-  mouseLeave:(event)-> yes
-
+  # HTML5 DND
   dragEnter:(e)->
 
     e.preventDefault()
@@ -573,9 +555,7 @@ class KDView extends KDObject
     event.stopPropagation()
     no
 
-  submit:(event)->
-    log "override submit in your subclass to do something useful"
-    no #propagations leads to window refresh
+  submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
     for key,value of options
@@ -656,19 +636,6 @@ class KDView extends KDObject
 
   isViewReady:()->
     @viewIsReady or no
-
-# #
-# EVENT OPTION METHODS- subclasses can ovverride these methods to change defaults
-# #
-
-  notifiesOthers:(event)->#notifies the rest of the code when event happens?
-    yes
-
-  resignsKeyStatus:()->#allows click on other element to make them key instead of this one (i.e. is modal?)
-    yes
-
-  acceptsKeyStatus:()->#can become the key view
-    yes
 
 # #
 # HELPER METHODS
