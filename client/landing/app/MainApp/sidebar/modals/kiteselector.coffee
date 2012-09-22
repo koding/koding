@@ -38,7 +38,7 @@ class KiteSelectorModal extends KDModalView
           "Create a service"  :
             callback          : =>
               kiteName = form.getData().kiteName
-              bongo.api.JKiteCluster.count {kiteName}, (err, count)=>
+              KD.remote.api.JKiteCluster.count {kiteName}, (err, count)=>
                 unless count is 0
                   new KDNotificationView
                     title: 'That kite name is not available; please choose another.'
@@ -121,7 +121,7 @@ class KiteSelectorModal extends KDModalView
           "Create a plan"     :
             callback          : =>
               collectData()
-              bongo.api.JKiteCluster.create accumulator, (err, cluster)=>
+              KD.remote.api.JKiteCluster.create accumulator, (err, cluster)=>
                 if err
                   new KDNotificationView
                     title : err.message

@@ -37,7 +37,7 @@ class DiscussionActivityItemView extends ActivityItemChild
           appManager.tell "Activity", "createContentDisplay", data
 
   viewAppended:()->
-    return if @getData().constructor is bongo.api.CDiscussionActivity
+    return if @getData().constructor is KD.remote.api.CDiscussionActivity
     super()
     @setTemplate @pistachio()
     @template.update()

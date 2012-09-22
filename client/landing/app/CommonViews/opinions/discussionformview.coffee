@@ -110,7 +110,7 @@ class DiscussionFormView extends KDFormView
       callback      : (value) =>
         @emit "opinion.changeMarkdown", value
 
-    if data instanceof bongo.api.JDiscussion
+    if data instanceof KD.remote.api.JDiscussion
       @discussionBody.setValue Encoder.htmlDecode data.body
       @discussionTitle.setValue Encoder.htmlDecode data.title
 
