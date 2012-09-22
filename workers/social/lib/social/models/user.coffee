@@ -382,7 +382,10 @@ module.exports = class JUser extends jraphical.Module
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
 
-  @changeEmail = secure (client,email,callback)->
+  @changeEmail = secure (client,options,callback)->
+
+    {email} = options
+
     @emailAvailable email, (err, res)=>
 
       if err
@@ -392,7 +395,7 @@ module.exports = class JUser extends jraphical.Module
       else
         @fetchUser client, (err,user)->
           account = client.connection.delegate
-          user.changeEmail account, email, callback
+          user.changeEmail account, options, callback
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
@@ -433,16 +436,38 @@ module.exports = class JUser extends jraphical.Module
       password: hashPassword(newPassword, salt)
     }, callback
 
-  changeEmail:(account, email, callback)->
+  changeEmail:(account, options, callback)->
 
-    @update $set: {email}, (err, res)->
-      if err
-        callback err
-      else
-        account.profile.hash = getHash email
-        account.save (err)-> throw err if err
-        callback null
+    {email, pin} = options
 
+    if not pin
+      options =
+        action    : "update-email"
+        user      : @
+        email     : email
+
+      JVerificationToken.requestNewPin options, callback
+
+    else
+      options =
+        action    : "update-email"
+        username  : @getAt 'username'
+        email     : email
+        pin       : pin
+
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+        if err then callback err
+        else if confirmed
+          @update $set: {email}, (err, res)=>
+            if err
+              callback err
+            else
+              account.profile.hash = getHash email
+              account.save (err)-> throw err if err
+              callback null
+        else
+          callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation.create @, (err, confirmation)->

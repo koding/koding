@@ -168,7 +168,7 @@ class Activity12345 extends AppController
           data      :
             t       : 1 if exempt
             data    : JSON.stringify(_.extend options, selector)
-            env     : KD.env
+            env     : KD.config.env
           dataType  : 'jsonp'
           success   : (data)->
             KD.remote.reviveFromSnapshots data, (err, instances)->

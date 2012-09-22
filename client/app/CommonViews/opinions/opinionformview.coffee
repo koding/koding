@@ -123,7 +123,7 @@ class OpinionFormView extends KDFormView
                 modal.buttons.Okay.hideLoader()
                 modal.destroy()
 
-    if data instanceof bongo.api.JOpinion
+    if data instanceof KD.remote.api.JOpinion
       @opinionBody.setValue Encoder.htmlDecode data.body
 
     @on "opinion.changeMarkdown", (value) ->

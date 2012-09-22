@@ -152,7 +152,7 @@ task 'configureRabbitMq',->
 
 task 'run', (options)->
   configFile = normalizeConfigPath options.configFile
-  console.log 'KONFIG', configFile
+  config = require configFile
   broker = spawn './broker/start.sh'
   serverSupervisor = spawn KODING_CAKE, [
     './server',
@@ -162,7 +162,7 @@ task 'run', (options)->
   socialSupervisor = spawn KODING_CAKE, [
     './workers/social'
     '-c', configFile
-    '-n', 10
+    '-n', config.social.numberOfWorkers
     'run'
   ]
   pipeStd(
@@ -231,7 +231,10 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     else
       process.exit()
 
-
+task 'resetGuests', (options)->
+  configFile = normalizeConfigPath options.configFile
+  {resetGuests} = require './workers/guestcleanup/guestinit'
+  resetGuests configFile
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''

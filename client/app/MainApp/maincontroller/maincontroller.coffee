@@ -28,27 +28,7 @@ class MainController extends KDController
         applicationIsReady = yes
         listener() for listener in queue
         @getSingleton('mainView').removeLoader()
-        queue = []
-
-  # authorizeServices:(callback)->
-  #   KD.whoami().fetchNonce (nonce)->
-  #     $.ajax
-  #       url       : KD.config.apiUri+"/1.0/login"
-  #       data      :
-  #         n       : nonce
-  #         env     : KD.env
-  #       xhrFields :
-  #         withCredentials: yes
-
-  # deauthorizeServices:(callback)->
-  #   KD.whoami().fetchNonce (nonce)->
-  #     $.ajax
-  #       url       : KD.config.apiUri+'/1.0/logout'
-  #       data      :
-  #         n       : nonce
-  #         env     : KD.env
-  #       xhrFields :
-  #         withCredentials: yes
+        queue.length = 0
 
   initiateApplication:do->
     modal = null
@@ -69,15 +49,16 @@ class MainController extends KDController
     connectionFails =(connectedState)->
       fail() unless connectedState.connected
     ->
+      console.log 'never happens'
       KD.registerSingleton "kiteController", new KiteController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
-      setTimeout connectionFails.bind(null, connectedState), 5000
-      @on "RemoveModal", =>
-        if modal instanceof KDBlockingModalView
-          modal.setTitle "Connection Established"
-          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-          @utils.wait 2500, -> modal?.destroy()
+      #setTimeout connectionFails.bind(null, connectedState), 5000
+      # @on "RemoveModal", =>
+      #   if modal instanceof KDBlockingModalView
+      #     modal.setTitle "Connection Established"
+      #     modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+      #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
 
