@@ -14,6 +14,11 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
 
     data = @getData()
 
+    @actionLinks = new OpinionActivityActionsView
+      delegate : @
+      cssClass : "reply-header"
+    , data
+
     originId    = data.getAt('originId')
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
@@ -55,11 +60,12 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
         <div class="comment-contents">
-          <p class="comment-body">{{@utils.expandUsernames @utils.applyMarkdown @shortenedText #(body)}}</p>
+          <p class="comment-body has-markdown force-small-markdown">{{@shortenedText @utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
         </div>
         <footer class="activity-opinion-item-footer">
-          <span class='type-icon'></span> answer by {{> @author}} •
+          <span class='type-icon'></span> answer by {{> @author}}
          <time>{{$.timeago #(meta.createdAt)}}</time>
+         {{>@actionLinks}}
         </footer>
     </div>
     """

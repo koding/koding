@@ -26,15 +26,15 @@ class DiscussionActivityItemView extends ActivityItemChild
         tagName     : "div"
         cssClass    : "opinion-first-box"
 
-      @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "first-reply-link"
-        attributes  :
-          title     : "Be the first to reply"
-          href      : "#"
-        partial     : "Be the first to reply!"
-        click       :->
-          appManager.tell "Activity", "createContentDisplay", data
+      # @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
+      #   tagName     : "a"
+      #   cssClass    : "first-reply-link"
+      #   attributes  :
+      #     title     : "Be the first to reply"
+      #     href      : "#"
+      #   partial     : "Be the first to reply!"
+      #   click       :->
+      #     appManager.tell "Activity", "createContentDisplay", data
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussionActivity
@@ -53,7 +53,7 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
-      if not $(event.target).is("a.action-link")
+      if not $(event.target).is("a.action-link, a.count, .like-view")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
@@ -75,7 +75,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
       <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
-      <p class="comment-body">{{@applyTextExpansions #(body)}}</p>
+      <p class="comment-body has-markdown">{{@applyTextExpansions #(body)}}</p>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
