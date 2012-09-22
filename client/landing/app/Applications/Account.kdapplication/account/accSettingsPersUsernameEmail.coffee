@@ -11,7 +11,7 @@ class AccountEditUsername extends KDView
     # #
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
-        bongo.api.JUser.changeEmail
+        KD.remote.api.JUser.changeEmail
           email : formData.email
         , (err, result)=>
           log err
@@ -21,7 +21,7 @@ class AccountEditUsername extends KDView
               duration : 2000
           else
             new VerifyPINModal 'Update E-Mail', (pin)=>
-              bongo.api.JUser.changeEmail
+              KD.remote.api.JUser.changeEmail
                 email : formData.email
                 pin   : pin
               , (err)->
