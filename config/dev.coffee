@@ -36,7 +36,7 @@ module.exports = deepFreeze
       appsUri   : 'https://dev-apps.koding.com'
 
   mq            :
-    host        : 'http://zb.koding.com/'
+    host        : 'zb.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : '/'

@@ -152,29 +152,73 @@ task 'configureRabbitMq',->
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
 
+expandConfigFile = (short)->
+  switch short
+    when "dev","prod","local","stage"
+      long = "./config/#{options.configFile}.coffee"
+    else
+      short
+
+
+
+configureBroker = (options,callback=->)->
+  configFilePath = expandConfigFile options.configFile
+  configFile = normalizeConfigPath configFilePath
+  config = require configFile
+  brokerConfig = """
+  {application, broker,
+   [
+    {description, ""},
+    {vsn, "1"},
+    {registered, []},
+    {applications, [
+                    kernel,
+                    stdlib,
+                    sockjs,
+                    cowboy
+                   ]},
+    {mod, { broker_app, []}},
+    {env, [
+      {mq_host, "#{config.mq.host}"},
+      {mq_user, <<"#{config.mq.login}">>},
+      {mq_pass, <<"#{config.mq.password}">>},
+      {verbose, true},
+      {privateRegEx, ".private$"},
+      {precondition_failed, <<"Request not allowed">>}
+      ]}
+   ]}.
+  """
+
+  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
+  callback null
+
+task 'configureBroker',(options)->
+  configureBroker options
+
 task 'run', (options)->
   if options.configFile is 'dev'
     options.configFile = "./config/#{options.configFile}.coffee"
 
   configFile = normalizeConfigPath options.configFile
   config = require configFile
-  broker = spawn './broker/build.sh'
-  serverSupervisor = spawn KODING_CAKE, [
-    './server',
-    '-c', configFile
-    'run'
-  ]
-  socialSupervisor = spawn KODING_CAKE, [
-    './workers/social'
-    '-c', configFile
-    '-n', config.social.numberOfWorkers
-    'run'
-  ]
-  pipeStd(
-    broker
-    serverSupervisor
-    socialSupervisor
-  )
+  configureBroker options, ->
+    broker = spawn './broker/build.sh'
+    serverSupervisor = spawn KODING_CAKE, [
+      './server',
+      '-c', configFile
+      'run'
+    ]
+    socialSupervisor = spawn KODING_CAKE, [
+      './workers/social'
+      '-c', configFile
+      '-n', config.social.numberOfWorkers
+      'run'
+    ]
+    pipeStd(
+      broker
+      serverSupervisor
+      socialSupervisor
+    )
   # setInterval (->),10000
 
 

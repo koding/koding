@@ -11,11 +11,9 @@
                  ]},
   {mod, { broker_app, []}},
   {env, [
-    %{mq_host, "web0.beta.system.aws.koding.com"},"},
-    {mq_host, "localhost"},
+    {mq_host, "zb.koding.com"},
     {mq_user, <<"guest">>},
-    {mq_pass, <<"guest">>},
-    %{mq_pass, <<"x1srTA7!%Vb}$n|S">>},
+    {mq_pass, <<"s486auEkPzvUjYfeFTMQ">>},
     {verbose, true},
     {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>}
