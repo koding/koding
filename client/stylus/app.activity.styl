@@ -897,13 +897,6 @@ button.activity-status-context
       .icon
         bg(position,-160px -420px)
 
-  // .hoverhook /* hover hook for context menu */
-  //   cursor            pointer !important
-  //   margin            0
-  //   padding           0
-  //   &:hover
-  //     cursor            pointer !important
-
 .kdcontextmenu
   .kdcontextmenutreeview
     .kdview.kdtreeitemview-default.disabledForBeta
@@ -913,16 +906,8 @@ button.activity-status-context
         border-top                    1px solid #666
         gradient(#777,#aaa)
 
-// .opinion-container
-//   // margin-left 63px
-//   width auto
-//   margin-right 20px
 
-// .activity-opinion-list
-//   margin-left 63px
-
-// .kdview.activity-item.discussion
-//   padding                             0px
+// Activity Item for Discussions
 
 .activity-discussion-container
   .comment-title
@@ -930,96 +915,31 @@ button.activity-status-context
     p
       color #e80
       font-weight 500
-    // padding                           22px 0 0px 20px
-    // > .comment-body
-    //   margin-top                      10px
-    //   margin-bottom                   10px
-    //   .data p
-    //     font-weight                   400
-    //     font-size                     12px
-    // > footer
-    //   margin-bottom 10px
+  span.activity-text
+    color #FF9200
+    font-size 11px
+    font-weight bold
 
-//   .activity-opinion-list
-//     border                            none!important
-//     .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
-//       border-top                      1px solid #f2f2f2
-//       border-bottom                   none
-//       margin-left                     72px
-//       &:last-child
-//         border-bottom                 1px solid #f2f2f2
-//         padding-bottom                10px
-//       padding                         0px 0px 0px 0px
-//       max-height                      200px
-//       max-width                       750px
-//       .activity-opinion.item-content-comment span.avatar
-//         margin-right                  20px
-
-// .activity-opinion
-//   &:hover
-//     cursor                            pointer
-//   .comment-contents
-//     margin-left                       25px
-//     margin-right                      25px
+div.activity-opinion.item-content-comment
+  p.comment-body
+    margin-top 5px
 
 
-// .activity-opinion .comment-contents p.comment-body span p
-//   font-size                           12px
-//   font-weight                         400
+  footer.activity-opinion-item-footer
+    margin-top 5px
+    a
+      noTextDeco()
 
-// .activity-opinion-list
-//   margin-top                          15px
-//   a.activity-opinion-more
-//     margin-top                        10px
-// .comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion
-//   border none
-// .comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
-//   border-bottom                       none
+div.show-more-discussion
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  padding-left 10px
+  a.discussion-view-more
+    noTextDeco()
 
 
-
-// .activity-opinion-item-footer
-//   margin-top                          6px
-//   margin-bottom                       10px
-//   color                               #a5a5a5
-
-// .activity-opinion.item-content-comment .comment-contents .comment-body .data p
-//   margin-bottom                       1px
-
-// .activity-opinion-container .show-more-discussion
-//   background-color                    none
-//   margin-top                          -10px
-
-// a.discussion-view-more
-//   background-color                    #FD7E09
-//   padding                             3px 5px
-//   line-height                         16px
-//   margin-left                         85px
-
-//   color                               #fff
-//   font-weight                         400
-//   &:hover
-//     color                             #fff
-
-// .discussion-spacer
-//   height                              20px
-//   display                             block
-//   width                               100%
-
-// .opinion-first-box
-//   height 30px
-//   margin-top 10px
-//   .first-reply-link
-//     text-decoration                     none
-//     line-height                         16px
-//     color #fff
-//     background-color #FD7E09
-//     padding 1px 4px
-//     font-weight 400
-//     margin-left 85px
-//     &:hover
-//       color white
-
+// Code Share Stuff
 
 div.libs-container
   border 1px solid black
