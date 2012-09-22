@@ -11,19 +11,26 @@ class AccountEditUsername extends KDView
     # #
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
-        new KDNotificationView
-          type  : "mini"
-          title : "Currently disabled!"
+        bongo.api.JUser.changeEmail
+          email : formData.email
+        , (err, result)=>
+          log err
+          if err and err.name isnt 'PINExistsError'
+            new KDNotificationView
+              title    : err.message
+              duration : 2000
+          else
+            new VerifyPINModal 'Update E-Mail', (pin)=>
+              bongo.api.JUser.changeEmail
+                email : formData.email
+                pin   : pin
+              , (err)->
+                new KDNotificationView
+                  title    : if err then err.message else "E-mail changed!"
+                  duration : 2000
+                # FIXME update the view in some way
 
-        # bongo.api.JUser.changeEmail formData.email, (err,docs)=>
-        #   if err then warn err
-        #   else
-        #     emailSwappable.swapViews()
-
-        #   new KDNotificationView
-        #     type     : "growl"
-        #     title    : if err then err.msg else "Email successfully updated!"
-        #     duration : 1000
+          emailSwappable.swapViews()
 
     emailForm.addSubView emailLabel = new KDLabelView
       title        : "Your email"

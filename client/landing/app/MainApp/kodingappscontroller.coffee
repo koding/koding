@@ -6,6 +6,7 @@ class KodingAppsController extends KDController
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
+    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
       version       : "0.1"
@@ -13,9 +14,10 @@ class KodingAppsController extends KDController
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
       homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
-      author        : "#{profile.firstName} #{profile.lastName}"
+      author        : "#{fullName}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
+      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
       source        :
         blocks      :
           app       :
@@ -523,11 +525,13 @@ class KodingAppsController extends KDController
     appPath     = getAppPath manifest
     log manifestStr
 
-
     FSItem.create appPath, "folder", (err, fsFolder)=>
       if err then warn err
       else
         stack = []
+        today = new Date().format('yyyy-mm-dd')
+        {profile} = KD.whoami()
+        fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
 
         stack.push (cb)=>
           @kiteController.run
@@ -544,6 +548,33 @@ class KodingAppsController extends KDController
               path      : escapeFilePath "#{fsFolder.path}/index.coffee"
               contents  : "do ->"
           , cb
+
+        stack.push (cb)=>
+          @kiteController.run
+            toDo        : "uploadFile"
+            withArgs    :
+              path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
+              contents  : """
+                              #{today} #{fullName} <@#{profile.nickname}>
+
+                                  * #{name} (index.coffee): Application created.
+                          """
+          , cb
+
+        # Uncomment followings when we have reachable files for skel of Apps
+        #
+        # stack.push (cb)=>
+        #   @kiteController.run
+        #     withArgs  :
+        #       command : "cp -f /opt/Apps/.default/README #{escapeFilePath fsFolder.path}"
+        #   , cb
+
+        # if not isBlank
+        #   stack.push (cb)=>
+        #     @kiteController.run
+        #       withArgs  :
+        #         command : "cp -rf /opt/Apps/.default/resources #{escapeFilePath fsFolder.path}"
+        #     , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err

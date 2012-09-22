@@ -53,12 +53,12 @@ class MainController extends KDController
       KD.registerSingleton "kiteController", new KiteController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
-      setTimeout connectionFails.bind(null, connectedState), 5000
-      @on "RemoveModal", =>
-        if modal instanceof KDBlockingModalView
-          modal.setTitle "Connection Established"
-          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-          @utils.wait 2500, -> modal?.destroy()
+      #setTimeout connectionFails.bind(null, connectedState), 5000
+      # @on "RemoveModal", =>
+      #   if modal instanceof KDBlockingModalView
+      #     modal.setTitle "Connection Established"
+      #     modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+      #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
 
