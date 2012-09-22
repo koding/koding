@@ -123,6 +123,34 @@ task 'buildClient', (options)->
   configFile = normalizeConfigPath options.configFile
   buildClient configFile
 
+task 'configureRabbitMq',->
+  exec 'which rabbitmq-server',(a,stdout,c)->
+    if stdout is ''
+      console.log "Please install RabbitMQ. (do e.g. brew install rabbitmq)"
+    else
+      exec 'rabbitmq-plugins enable rabbitmq_tracing',(a,b,c)->
+        console.log a,b,c
+        exec 'rabbitmq-plugins enable rabbitmq_management_visualiser',(a,b,c)->
+          console.log """
+            I will TRY to download and install https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez
+            you should find the path where rabbitmq plugins are installed, on mac after brew install;
+            /usr/local/Cellar/rabbitmq/2.7.1/lib/rabbitmq/erlang/lib/rabbitmq-2.7.1/plugins
+            it is here. look at the output below, it might be somehwere there..
+            OK TRYING... if that doesn't work, find the path, ping chris on skype :)
+            """
+          exec 'rabbitmq-plugins --invalidOption',(a,b,c)->
+            d = c.split "\n"
+            for line in d
+              if line.indexOf("/plugins") > 0
+                e = line 
+                break
+            e = e.trim().replace /"|]|,/g,""
+            rabbitMqPluginPath = e
+            exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
+              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)-> 
+                console.log a,b,c
+                exec 'rabbitmqctl stop',->
+                  console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
 
 task 'run', (options)->
   if options.configFile is 'dev'
