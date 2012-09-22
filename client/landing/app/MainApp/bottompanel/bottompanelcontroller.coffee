@@ -26,19 +26,6 @@ class BottomPanelController extends KDViewController
 
   toggle:-> if @isVisible then @hide() else @show()
 
-  show:->
-
-    return unless location.hostname is "localhost"
-    @isVisible = yes
-    @bottomPanel.setClass 'in'
-    @wc.addLayer @bottomPanel
-    @split.setFocusedPanel @split.panels[0]
-    # @utils.wait 1500, => @chatSidebar.setClass "out"
-
-  hide:(event)->
-
-    @isVisible = no
-    @bottomPanel.unsetClass 'in'
 
 class BottomChatSideBar extends JView
 
