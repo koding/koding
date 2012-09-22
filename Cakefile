@@ -118,14 +118,19 @@ buildClient =(configFile, callback=->)->
           callback null
 
 task 'buildClient', (options)->
+  if options.configFile is 'dev'
+    options.configFile = "./config/#{options.configFile}.coffee"
   configFile = normalizeConfigPath options.configFile
   buildClient configFile
 
 
 task 'run', (options)->
+  if options.configFile is 'dev'
+    options.configFile = "./config/#{options.configFile}.coffee"
+
   configFile = normalizeConfigPath options.configFile
   config = require configFile
-  # broker = spawn './broker/start.sh'
+  broker = spawn './broker/build.sh'
   serverSupervisor = spawn KODING_CAKE, [
     './server',
     '-c', configFile
@@ -138,11 +143,11 @@ task 'run', (options)->
     'run'
   ]
   pipeStd(
-    # broker
+    broker
     serverSupervisor
     socialSupervisor
   )
-  setInterval (->),10000
+  # setInterval (->),10000
 
 
   # broker = spawn './broker/start.sh'

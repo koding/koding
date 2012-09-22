@@ -15,6 +15,7 @@ module.exports = deepFreeze
   social    :
     numberOfWorkers: 1
   client    :
+    version : version
     minify  : no
     js      : "./website/js/kd.#{version}.js"
     css     : "./website/css/kd.#{version}.css"
@@ -22,25 +23,27 @@ module.exports = deepFreeze
     index   : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
+    useStaticFileServer : no
+    staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
       version   : version
       mainUri   : 'http://localhost:3000'
-      # broker    :
-      #   apiKey  : 'a19c8bf6d2cad6c7a006'
-      #   sockJS  : 'http://localhost:8008/subscribe'
-      #   auth    : 'http://localhost:3000/auth'
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
-        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+        sockJS  : 'http://localhost:8008/subscribe'
         auth    : 'http://localhost:3000/auth'
+      # broker    :
+      #   apiKey  : 'a19c8bf6d2cad6c7a006'
+      #   sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+      #   auth    : 'http://localhost:3000/auth'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-apps.koding.com'
-      # staticFilesBaseUrl: 'http://localhost:3020'
+
   mq            :
     host        : 'localhost'
     login       : 'guest'
-    # password    : 'guest'
-    password    : 'x1srTA7!%Vb}$n|S'
+    password    : 'guest'
+    # password    : 'x1srTA7!%Vb}$n|S'
     vhost       : '/'
   email         :
     host        : 'localhost'
@@ -55,7 +58,7 @@ module.exports = deepFreeze
   logger            :
     mq              :
       host          : 'localhost'
-      login         : 'logger'
-      password      : 'logger'
-      vhost         : 'logs'
+      login         : 'guest'
+      password      : 'guest'
+      vhost         : '/'
   pidFile           : '/tmp/koding.server.pid'

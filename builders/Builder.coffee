@@ -110,11 +110,12 @@ module.exports = class Builder
       index = data
       index = index.replace "js/kd.js","js/kd.#{@options.version}.js?"+Date.now()
       index = index.replace "css/kd.css","css/kd.#{@options.version}.css?"+Date.now()
-      unless @options.useStaticFileServer
-        st = @options.staticFilesBaseUrl
+      if @options.useStaticFileServer is no
+        st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
         index = index.replace ///#{st}///g,""
         log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
       fs.writeFile @options.index,index,(err) -> 
+        console.log index
         throw err if err
         unless err 
           log.info "Index.html is ready."
