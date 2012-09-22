@@ -58,7 +58,6 @@ Includes =
         # metadataLike                : "./server/app/metadata/metadata.like.coffee"
         # metadataExperiencepoints    : "./server/app/metadata/metadata.experiencepoints.coffee"
 
-
       #Models :
         # jchannel                  : "./server/app/bongo/models/channel.coffee"
         # jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
@@ -516,6 +515,7 @@ Includes =
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
+        VerifyPINModal              : "./client/app/CommonViews/VerifyPINModal.coffee"
 
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
