@@ -104,7 +104,6 @@ module.exports = class Builder
   wrapWithJSClosure : (js)-> "(function(){#{js}}).call(this);"
 
   buildIndex : (options,callback)->
-    console.log 'building index', @options
     fs.readFile @options.indexMaster, 'utf-8',(err,data)=>
 
       index = data
@@ -115,7 +114,6 @@ module.exports = class Builder
         index = index.replace ///#{st}///g,""
         log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
       fs.writeFile @options.index,index,(err) -> 
-        console.log index
         throw err if err
         unless err 
           log.info "Index.html is ready."

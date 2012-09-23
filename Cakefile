@@ -40,7 +40,7 @@ else
   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
 clientFileMiddleware  = (options, code, callback)->
-  console.log 'args', options
+  # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
   {libraries,kdjs} = code
@@ -105,17 +105,51 @@ normalizeConfigPath =(path)->
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
-  try
-    config = require configFile
-  catch e
-    console.log 'hello', e
-  builder = new Builder config.client, clientFileMiddleware, ""
+  # try
+  #   config = require configFile
+  # catch e
+  #   console.log 'hello', e
+  # builder = new Builder config.client, clientFileMiddleware, ""
+  # builder.watcher.initialize()
+  # builder.watcher.on 'initDidComplete', ->
+  #   builder.buildClient "", ->
+  #     builder.buildCss "", ->
+  #       builder.buildIndex "", ->
+  #         callback null
+
+  config = require configFile
+  builder = new Builder config.client,clientFileMiddleware,""
+
+
   builder.watcher.initialize()
-  builder.watcher.on 'initDidComplete', ->
-    builder.buildClient "", ->
+
+  builder.watcher.on "initDidComplete",(changes)->
+    builder.buildClient "",()->
+      builder.buildCss "",()->
+        builder.buildIndex "",()->
+          if config.client.watch is yes            
+            log.info "started watching for changes.."
+            builder.watcher.start 1000
+          else
+            log.info "website is ready at #{options.host}:#{options.port}"
+
+  builder.watcher.on "changeDidHappen",(changes)->
+    # log.info changes
+    if changes.Client? and not changes.StylusFiles
+      builder.buildClient "",()->
+        builder.buildIndex "",()->
+          # log.debug "client build is complete"
+
+    if changes.Client?.StylusFiles?
       builder.buildCss "", ->
         builder.buildIndex "", ->
-          callback null
+    if changes.Cake
+      log.debug "Cakefile changed.."
+      builder.watcher.reInitialize()
+
+  builder.watcher.on "CoffeeScript Compile Error",(filePath,error)->
+    log.error "CoffeeScript ERROR, last good known version of #{filePath} is compiled. Please fix this error and recompile. #{error}"
+    spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
   if options.configFile is 'dev'
@@ -368,81 +402,6 @@ task 'build', 'optimized version for deployment', (options)->
 
 
 
-# ------------- BUILDER START ----------#
-build = (options)->
-  log.debug "building with following options, ctrl-c before too late:",options
-  debug = if options.debug? then "--debug --prof --prof-lazy" else "--stack_size=2048"
-  run =
-    command: ["node", [debug,options.target, process.cwd(), options.database, options.port, options.cron, options.host]]
-
-  builder = new Builder options,targetPaths,"",run
-
-  sourceCodeAnalyzer.attachListeners builder if options.sourceCodeAnalyze
-
-  builder.watcher.initialize()
-
-  # EVENTS -
-
-  issueFrontendReloadCommand = ()->
-    if options.autoReload
-      fs.writeFile "./website/js/requiresReload.txt","#{Date.now()}",'utf8',()->
-        log.info "reload command is issued to frontend"
-    else
-      fs.writeFile "./website/js/requiresReload.txt","0",'utf8',()->
-        log.info "Auto reload is not on. Use cake -r to enable."
-
-
-  builder.watcher.on "initDidComplete",(changes)->
-    builder.buildServer "",()->
-      unless options.dontStart
-        builder.processMonitor.flags.forever = yes
-        builder.processMonitor.startProcess()
-      builder.buildClient "",()->
-        builder.buildCss "",()->
-          builder.buildIndex "",()->
-            unless options.dontStart
-              log.info "website is ready at #{options.host}:#{options.port}"
-              builder.watcher.start 1000
-              # builder.buildApplications targetPaths.installedApps, targetPaths.apps
-              # issueFrontendReloadCommand()
-            else
-              if options.dontStart
-                targetPaths.prodPostBuildSteps options,->
-                  log.info "build complete, now run: monit start kfmjs or"
-                  log.info "export NODE_PATH=#{process.cwd()}/node_modules/ && node #{run.command[1].join ' '}"
-              else
-                log.info "build complete, now run:","node #{run.command[1].join ' '}"
-
-  builder.watcher.on "changeDidHappen",(changes)->
-    # log.info changes
-    if changes.Client? and not changes.StylusFiles
-      builder.buildClient "",()->
-        builder.buildIndex "",()->
-          # log.debug "client build is complete"
-
-    if changes.Server?# or changes.Models? -- Don't we need to follow Model files for changes?
-      builder.buildServer "",()->
-      builder.processMonitor.restartProcess() unless options.dontStart
-    if changes.Client?.StylusFiles?
-      builder.buildCss "", ->
-        builder.buildIndex "", ->
-    if changes.Cake
-      log.debug "Cakefile changed.."
-      builder.watcher.reInitialize()
-
-    issueFrontendReloadCommand()
-
-
-
-  builder.processMonitor.on "processDidExit",(code)->
-
-  builder.watcher.on "CoffeeScript Compile Error",(filePath,error)->
-    log.error "CoffeeScript ERROR, last good known version of #{filePath} is compiled. Please fix this error and recompile. #{error}"
-    spawn.apply null, ["say",["coffee script error"]]
-      # builder.resetWatcher()
-      # builder.watcher.initialize()
-
-# ------------- BUILDER END ----------#
 
 
 
