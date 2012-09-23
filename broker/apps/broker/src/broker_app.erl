@@ -48,6 +48,15 @@ start() ->
     application:start(broker).
 
 start(_StartType, _StartArgs) ->
+    PidFile = get_env(pidFile, "./broker.pid"),
+    ShellPid = os:getpid(),
+
+    case file:write_file(PidFile, ShellPid) of
+        ok -> io:format("Pid written to file ~p~n", [PidFile]);
+        {error, Reason} ->
+            io:format("Could not write to file ~p because: ~p~n", [PidFile, Reason])
+    end,
+
     NumberOfAcceptors = 100,
     Port = get_env(port, 8008),
 
