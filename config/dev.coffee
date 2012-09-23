@@ -40,6 +40,7 @@ module.exports = deepFreeze
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : '/'
+    pidFile     : '/var/run/broker.pid'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
