@@ -30,7 +30,6 @@ start_link() ->
     MqHost = get_env(mq_host, "localhost"),
     MqUser = get_env(mq_user, <<"guest">>),
     MqPass = get_env(mq_pass, <<"guest">>),
-    io:format("Connection ~p:~p@~p~n", [MqUser, MqPass, MqHost]),
 
     {ok, Connection} = amqp_connection:start(#amqp_params_network{
         host = MqHost, username = MqUser, password = MqPass
