@@ -48,7 +48,7 @@ start() ->
     application:start(broker).
 
 start(_StartType, _StartArgs) ->
-    PidFile = get_env(pidFile, "./broker.pid"),
+    PidFile = get_env(pid_file, "./broker.pid"),
     ShellPid = os:getpid(),
 
     case file:write_file(PidFile, ShellPid) of
@@ -70,14 +70,6 @@ start(_StartType, _StartArgs) ->
             [<<"subscribe">>, '...'], 
             sockjs_cowboy_handler, 
             SockjsState
-        },
-        {
-            [<<"static">>, '...'], 
-            cowboy_http_static,
-            [
-                {directory, {priv_dir, broker, [<<"www">>]}},
-                {mimetypes, {fun mimetypes:path_to_mimes/2, default}}
-            ]
         },
         {'_', ?MODULE, []} % The rest is handled within this module.
     ],
@@ -110,13 +102,6 @@ handle(Req, State) ->
             {ok, Data} = file:read_file("./apps/broker/priv/www/js/broker.js"),
             cowboy_http_req:reply(200, [{<<"Content-Type">>, "application/javascript"}],
                                Data, Req1);
-
-        [<<"auth">>] ->
-            {Channel, Req3} = cowboy_http_req:qs_val(<<"channel">>, Req1),
-            %PrivateChannel = uuid:to_string(uuid:uuid4()),
-            PrivateChannel = <<"secret-", Channel/binary, ".private">>,
-            cowboy_http_req:reply(200,
-                [{<<"Content-Encoding">>, <<"utf-8">>}], PrivateChannel, Req3);
 
         _ ->
             cowboy_http_req:reply(404, [],
