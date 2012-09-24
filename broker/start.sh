@@ -1,5 +1,8 @@
 #!/bin/sh
+ORIG_DIR="$( pwd )"
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-$DIR/rebar compile -C $DIR/rebar.config deps_dir=$DIR/deps
+cd $DIR
+./rebar compile
+cd $ORIG_DIR
 erl +A 128 -pa $DIR/apps/*/ebin -pa $DIR/deps/*/ebin -s broker_app \
   -eval "io:format(\"~n~nServer is running~n\")." 

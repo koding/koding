@@ -21,7 +21,7 @@ module.exports = deepFreeze
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
-    index       : "./website_nonstatic/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
@@ -35,18 +35,21 @@ module.exports = deepFreeze
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
       apiUri    : 'https://api.koding.com'
+      env       : 'beta'
   mq            :
     host        : 'localhost'
     login       : 'guest'
     password    : 'x1srTA7!%Vb}$n|S'
     vhost       : '/'
+    pidFile     : '/tmp/koding.broker.pid'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
-  guestCleanup:
+  guestCleanup  :
      # define this to limit the number of guset accounts
      # to be cleaned up per collection cycle.
+    poolSize    : 1e4
     batchSize   : undefined
     cron        : '*/10 * * * * *'
   logger        :

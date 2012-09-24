@@ -1,6 +1,8 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
+option '-b', '--runBroker', 'should it run the broker locally?'
+option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 ProgressBar = require './builders/node_modules/progress'
@@ -131,7 +133,7 @@ buildClient =(configFile, callback=->)->
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
-            log.info "website is ready at #{options.host}:#{options.port}"
+            log.info "Done building client"
 
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
@@ -199,6 +201,7 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
+  console.log 'KONFIG', config.mq.pidFile
   brokerConfig = """
   {application, broker,
    [
@@ -223,57 +226,41 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
-
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
 task 'configureBroker',(options)->
   configureBroker options
 
-task 'run', (options)->
-  if options.configFile is 'dev'
-    options.configFile = "./config/#{options.configFile}.coffee"
+task 'buildBroker', (options)->
+  configureBroker options, ->
+    pipeStd(spawn './broker/build.sh')
 
-  configFile = normalizeConfigPath options.configFile
+run =(options)->
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
-  if config.runBroker is yes
-    configureBroker options, ->
-      broker = spawn './broker/build.sh'
+  pipeStd(spawn './broker/start.sh') if options.runBroker
+  serverSupervisor = spawn KODING_CAKE, [
+    './server',
+    '-c', configFile
+    'run'
+  ]
+  socialSupervisor = spawn KODING_CAKE, [
+    './workers/social'
+    '-c', configFile
+    '-n', config.social.numberOfWorkers
+    'run'
+  ]
+  pipeStd(
+    serverSupervisor
+    socialSupervisor
+  )
+
+task 'run', (options)->
+  if options.configureBroker
+    configureBroker options, run.bind(null, options)
   else
-    broker = null
-
-    serverSupervisor = spawn KODING_CAKE, [
-      './server',
-      '-c', configFile
-      'run'
-    ]
-    socialSupervisor = spawn KODING_CAKE, [
-      './workers/social'
-      '-c', configFile
-      '-n', config.social.numberOfWorkers
-      'run'
-    ]
-    pipeStd(
-      broker
-      serverSupervisor
-      socialSupervisor
-    )
-  # setInterval (->),10000
-
-
-  # broker = spawn './broker/start.sh'
-  # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
-  # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  # logPath = options.logPath ? '/tmp'
-  # procs = {broker, server, social}
-  # if options.runClient
-  #   client = spawn 'cake', ['build']
-  #   procs.push client
-  # for own name, proc of procs
-  #   logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
-  #   proc.stdout.pipe(logFile)
-  #   proc.stderr.pipe(logFile)
-
+    run options
 
 task 'buildAll',"build chris's modules", ->
 
