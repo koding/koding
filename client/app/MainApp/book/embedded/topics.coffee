@@ -16,7 +16,7 @@ class BookTopics extends KDView
 
     @utils.wait -> loader.show()
 
-    appManager.tell "Topics", "fetchCustomTopics",
+    appManager.tell "Topics", "fetchSomeTopics",
       limit : 20
     , (err, topics)=>
       loader.hide()
