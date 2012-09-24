@@ -147,7 +147,7 @@ class Topics12345 extends AppController
                 name              : "body"
                 defaultValue      : Encoder.htmlDecode topic.body or ""
 
-  fetchCustomTopics:(options = {}, callback)->
+  fetchSomeTopics:(options = {}, callback)->
     
     options.limit    or= 6
     options.skip     or= 0
@@ -155,8 +155,10 @@ class Topics12345 extends AppController
       "counts.followers": -1
     selector = options.selector or {}
     delete options.selector if options.selector
-    
-    KD.remote.api.JTag.someWithRelationship selector, options, callback
+    if selector
+      KD.remote.api.JTag.byRelevance selector, options, callback
+    else
+      KD.remote.api.JTag.someWithRelationship {}, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
