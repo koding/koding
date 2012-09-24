@@ -15,4 +15,11 @@ class clamav::config {
         notify  => Class["clamav::service"],
     }
 
+    file { "/etc/freshclam.conf":
+        ensure => present,
+        source  => "puppet:///modules/clamav/etc/freshclam.conf",
+        require => Class["clamav::install"],
+        notify  => Class["clamav::service"],
+    }
+
 }

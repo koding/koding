@@ -5,7 +5,6 @@ node ftp inherits base {
    include pure-ftpd
    include ssh
    include clamav
-   include ftp_crontabs
 
     yumrepos { 'koding':
             repo => 'koding',
