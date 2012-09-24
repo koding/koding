@@ -1,5 +1,6 @@
 class ftp_crontabs::clamav {
-    cron { "/usr/bin/freshclam --quiet": 
+    cron { "clamav_update": 
+        command => "/usr/bin/freshclam --quiet --daemon-notify",
         user    => root,
         hour    => '*/8',
         minute  => 0,
