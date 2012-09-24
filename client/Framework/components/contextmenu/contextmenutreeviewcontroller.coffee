@@ -127,7 +127,7 @@ class JContextMenuTreeViewController extends JTreeViewController
     contextMenu = @getDelegate()
     if nodeData.callback and "function" is typeof nodeData.callback
       nodeData.callback.call contextMenu, nodeView, event
-    contextMenu.propagateEvent KDEventType : "ContextMenuItemReceivedClick", nodeView
+    contextMenu.emit "ContextMenuItemReceivedClick", nodeView
     event.stopPropagation()
     no
 
@@ -176,6 +176,6 @@ class JContextMenuTreeViewController extends JTreeViewController
     
     @getSingleton("windowController").revertKeyView()
     contextMenu = @getDelegate()
-    contextMenu.propagateEvent KDEventType : "ContextMenuItemReceivedClick", nodeView
+    contextMenu.emit "ContextMenuItemReceivedClick", nodeView
     contextMenu.destroy()
     return no
