@@ -94,11 +94,8 @@ class RosterController extends KDListViewController
         delegate : itemView
       , items
 
-      @listenTo
-        KDEventTypes       : "ContextMenuItemReceivedClick"
-        listenedToInstance : @contextMenu
-        callback           : (pubInst, contextMenuItem)=>
-          @handleContextMenuClick itemView, contextMenuItem
+      @contextMenu.on "ContextMenuItemReceivedClick",(contextMenuItem)=>
+        @handleContextMenuClick itemView, contextMenuItem
       return @contextMenu
     else
       return no
