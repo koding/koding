@@ -1,0 +1,3 @@
+class hosting_crontabs {
+    
+}
