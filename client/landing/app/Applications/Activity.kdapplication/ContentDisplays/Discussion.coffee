@@ -103,8 +103,6 @@ class ContentDisplayDiscussion extends KDView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-
-
     activity = @getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
@@ -171,16 +169,20 @@ class ContentDisplayDiscussion extends KDView
         # Updating the local data object, then adding the item to the box
         # and increasing the count box
 
-        if data.opinions?
-          data.opinions.push newOpinion
-        else
-          data.opinions = [newOpinion]
 
         unless newOpinion.originId is KD.whoami().getId()
+
+          if data.opinions?
+            data.opinions.push newOpinion
+          else
+            data.opinions = [newOpinion]
+          # The following line would add the new Opinion to the View
           # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
+
+          # newAnswers populated the headerCountString if it is not OwnOpinion
           @newAnswers++
+
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
-          # listeners are not attached -> updating counts will not work
 
         @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
 
@@ -193,10 +195,10 @@ class ContentDisplayDiscussion extends KDView
     else
       countString = count+ " Answers"
 
-    if @newAnswers is 1
-      countString+=" (One new Answer)"
-    else if @newAnswers > 1
-      countString+=" ("+@newAnswers+" new Answers)"
+    # if @newAnswers is 1
+    #   countString+=" (One new Answer)"
+    # else if @newAnswers > 1
+    #   countString+=" ("+@newAnswers+" new Answers)"
 
     '<span class="opinion-count">'+countString+'</span>'
 

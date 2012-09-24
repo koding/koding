@@ -14,27 +14,27 @@ class OpinionViewHeader extends JView
     @newCount         = 0
     @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
-    unless data.repliesCount? and data.repliesCount > @maxCommentToShow
-      @onListCount = data.repliesCount
-      @hide()
-
-    @hide() if data.repliesCount < @maxCommentToShow
+    if @parent?.constructor is not DiscussionActivityOpinionView
+      unless data.repliesCount? and data.repliesCount > @maxCommentToShow
+        @onListCount = data.repliesCount
+        @hide()
+      @hide() if data.repliesCount < @maxCommentToShow
 
     list = @getDelegate()
 
     list.on "AllOpinionsWereAdded", =>
+      @show()
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()
       @allItemsLink.hide()
       @loader.hide()
-
-    remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      @newAnswers = 0
 
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
-      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}»"
+      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}"
       click     : =>
         @loader.show()
         @newItemsLink.unsetClass "in"
@@ -42,19 +42,15 @@ class OpinionViewHeader extends JView
     , data
 
     list.on "RelativeOpinionsWereAdded",  =>
-      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-      if (remainingOpinions)<@maxCommentToShow
-        if remainingOpinions is 1
-          @allItemsLink.updatePartial "View remaining answer"
-        else if remainingOpinions > 1
-          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
-
+      @show()
+      @updateRemainingText()
       if @getDelegate().items.length<@getData().repliesCount
         @loader.hide()
       else
         @loader.hide()
         @allItemsLink.hide()
       @newItemsLink.unsetClass "in"
+      @newAnswers = 0
 
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
@@ -75,17 +71,15 @@ class OpinionViewHeader extends JView
       click     : =>
         list.emit "AllOpinionsLinkWasClicked", @
 
+    @newAnswers = 0
+
     list.on "NewOpinionHasArrived",=>
-      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-      if (remainingOpinions)<@maxCommentToShow
-        if remainingOpinions is 1
-          @allItemsLink.updatePartial "View remaining answer"
-        else if remainingOpinions > 1
-          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+      @updateRemainingText()
       @show()
       @setClass "has-new-items"
       @allItemsLink.show()
-      @newItemsLink.updatePartial "new Answer"
+      @newAnswers++
+      @newItemsLink.updatePartial "#{if @newAnswers is 0 then "No" else @newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
       @newItemsLink.setClass "in"
 
   hide:->
@@ -96,16 +90,40 @@ class OpinionViewHeader extends JView
     @setClass "in"
     super
 
-  viewAppended:->
+  viewAppended:=>
     @setTemplate @pistachio()
     @template.update()
 
-    remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-    if (remainingOpinions)<@maxCommentToShow
-       if remainingOpinions is 1
-          @allItemsLink.updatePartial "View remaining answer"
-        else if remainingOpinions > 1
-          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+    @updateRemainingText()
+
+    # this will hide the bar in the CD when there is nothing there yet
+    if @parent?.constructor is OpinionView
+      @hide() if @getData().repliesCount is 0
+
+  updateRemainingText:=>
+    if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
+      @allItemsLink.updatePartial "View entire Discussion"
+    else
+      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      if (remainingOpinions)<@maxCommentToShow
+          if remainingOpinions is 1
+            @allItemsLink.updatePartial "View remaining answer"
+          else if remainingOpinions > 1
+            @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+          else
+            @allItemsLink.updatePartial ""
+
+  returnRemainingText:=>
+    if @getDelegate().parent.constructor is DiscussionActivityOpinionView
+      "View entire Discussion"
+    else
+      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      if (remainingOpinions)<@maxCommentToShow
+          if remainingOpinions is 1
+            "View remaining answer"
+          else if remainingOpinions > 1
+            "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+
 
   pistachio:->
     """

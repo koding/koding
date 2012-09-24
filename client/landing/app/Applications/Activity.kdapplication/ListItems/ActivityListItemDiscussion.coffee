@@ -17,7 +17,6 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-
     data.on 'ReplyIsAdded', (reply)=>
 
       # JDiscussion needs the new Opinion
@@ -44,9 +43,10 @@ class DiscussionActivityItemView extends ActivityItemChild
         else
           data.opinions = [newOpinion]
 
-        @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
-        @opinionBox.updateCount data.repliesCount
+        # The following line would add the new Opinion to the View
+        # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
 
+        @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
