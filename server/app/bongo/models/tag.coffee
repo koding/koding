@@ -80,11 +80,11 @@ class JTag extends Followable
     else
       callback new KodingError "Access denied"
 
-  fetchContentTeasers:(options, callback)->
+  fetchContentTeasers:(options, selector, callback)->
 
-    [callback, options] = [options, callback] unless callback
+    [callback, selector] = [selector, callback] unless callback
 
-    selector = {}
+    selector or= {}
     selector['data.flags.isLowQuality'] = $ne: yes
 
     @fetchContents selector, options, (err, contents)->
