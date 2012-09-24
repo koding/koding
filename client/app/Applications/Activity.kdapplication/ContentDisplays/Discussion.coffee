@@ -42,18 +42,13 @@ class ContentDisplayDiscussion extends KDView
           callback? err, opinion
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
+            @opinionForm.submitOpinionBtn.hideLoader()
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
             @opinionForm.submitOpinionBtn.hideLoader()
-
-            # this needs to inform the activity item of the new opinion
-
-            # log "updating teaser"
-            # @getData().updateTeaser (err, teaser) =>
-            #   log "err,teaser", err, teaser
-            #   @setData teaser
-
     , data
+
+    @newAnswers = 0
 
     # @jumpToReplyLink = new KDCustomHTMLView
     #   tagName     : "a"
@@ -108,6 +103,8 @@ class ContentDisplayDiscussion extends KDView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
+
+
     activity = @getData()
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
@@ -151,6 +148,43 @@ class ContentDisplayDiscussion extends KDView
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
 
+    activity.on 'ReplyIsAdded',(reply)=>
+
+      # JDiscussion needs the new Opinion
+      if data.bongo_.constructorName is "JDiscussion"
+
+        # Why this workaround, you ask?
+        #
+        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
+        #  without JSONifying it locks up the UI for up to 10 seconds.
+
+        # Create new JOpinion and convert JSON into Object
+
+        newOpinion = new bongo.api.JOpinion
+        opinionData = JSON.parse(reply.opinionData)
+
+        # Copy JSON data to the newly created JOpinion
+
+        for variable of opinionData
+          newOpinion[variable] = opinionData[variable]
+
+        # Updating the local data object, then adding the item to the box
+        # and increasing the count box
+
+        if data.opinions?
+          data.opinions.push newOpinion
+        else
+          data.opinions = [newOpinion]
+
+        unless newOpinion.originId is KD.whoami().getId()
+          # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
+          @newAnswers++
+          @opinionBox.opinionList.emit "NewOpinionHasArrived"
+          # listeners are not attached -> updating counts will not work
+
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+
+
   opinionHeaderCountString:(count)=>
     if count is 0
       countString = "No Answers yet"
@@ -158,6 +192,12 @@ class ContentDisplayDiscussion extends KDView
       countString = "One Answer"
     else
       countString = count+ " Answers"
+
+    if @newAnswers is 1
+      countString+=" (One new Answer)"
+    else if @newAnswers > 1
+      countString+=" ("+@newAnswers+" new Answers)"
+
     '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteDiscussion:(data)->

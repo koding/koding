@@ -22,15 +22,25 @@ class DiscussionActivityOpinionView extends KDView
     @addSubView header = new KDView
       cssClass : "show-more-discussion"
 
+    header.addSubView @linkToContentDisplay = new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "discussion-view-more"
+      partial     : "No answers yet"
+      attributes  :
+        href      : "#"
+      click :->
+        # this is superfluos as long as we have the catch-all click event
+        # appManager.tell "Activity", "createContentDisplay", data
+
     if data.repliesCount > 0
-      header.addSubView linkToContentDisplay = new KDCustomHTMLView
-        tagName     : "a"
-        cssClass    : "discussion-view-more"
-        partial     : "View "+data.repliesCount+" answers"
-        attributes  :
-          href      : "#"
-        click :->
-          # appManager.tell "Activity", "createContentDisplay", data
+      @updateCount data.repliesCount
 
     @addSubView spacer = new KDCustomHTMLView
       cssClass      : "discussion-spacer"
+
+  updateCount:(count)=>
+    unless count is 0
+      @linkToContentDisplay.updatePartial "View #{count} answers"
+    else
+      @linkToContentDisplay.updatePartial "No answers yet"
+
