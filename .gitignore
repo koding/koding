@@ -19,11 +19,6 @@ sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json
-.project
-/go/pkg
-/go/bin
-/go/src/code.google.com
-/go/src/github.com
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -78,3 +73,4 @@ sftp-config.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
 /npm-debug.log
+/erl_crash.dump

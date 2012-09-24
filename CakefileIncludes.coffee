@@ -58,7 +58,6 @@ Includes =
         # metadataLike                : "./server/app/metadata/metadata.like.coffee"
         # metadataExperiencepoints    : "./server/app/metadata/metadata.experiencepoints.coffee"
 
-
       #Models :
         # jchannel                  : "./server/app/bongo/models/channel.coffee"
         # jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
@@ -211,6 +210,7 @@ Includes =
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
+        KDLayeredInput        : "./client/Framework/components/inputs/layeredinput.coffee"
 
         # upload
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
@@ -319,7 +319,7 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
-        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
+        #codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
@@ -328,7 +328,7 @@ Includes =
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
-        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
+        #actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
 
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
@@ -526,6 +526,7 @@ Includes =
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
+        VerifyPINModal              : "./client/app/CommonViews/VerifyPINModal.coffee"
 
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
