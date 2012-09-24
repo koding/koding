@@ -41,7 +41,7 @@ class JAccount extends jraphical.Module
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship'
+        'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit'
@@ -357,6 +357,18 @@ class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, messages
+
+  fetchTopics: (query, page, callback)->
+    _.extend query,
+      targetId  : @getId()
+      as        : 'follower'
+      sourceName: 'JTag'
+    Relationship.some query, page, (err, docs)->
+      if err then callback err
+      else
+        ids = (rel.sourceId for rel in docs)
+        JTag.all _id: $in: ids, (err, tags)->
+          callback err, tags
 
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
