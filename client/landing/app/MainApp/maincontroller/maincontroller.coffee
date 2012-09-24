@@ -49,16 +49,15 @@ class MainController extends KDController
     connectionFails =(connectedState)->
       fail() unless connectedState.connected
     ->
-      console.log 'never happens'
       KD.registerSingleton "kiteController", new KiteController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
-      setTimeout connectionFails.bind(null, connectedState), 5000
-      @on "RemoveModal", =>
-        if modal instanceof KDBlockingModalView
-          modal.setTitle "Connection Established"
-          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-          @utils.wait 2500, -> modal?.destroy()
+      #setTimeout connectionFails.bind(null, connectedState), 5000
+      # @on "RemoveModal", =>
+      #   if modal instanceof KDBlockingModalView
+      #     modal.setTitle "Connection Established"
+      #     modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+      #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
 
@@ -88,20 +87,6 @@ class MainController extends KDController
       appManager.quitAll =>
         @createLoggedInState account
 
-      # account = KD.whoami()
-      # unless account.getAt('isEnvironmentCreated')
-      #   @getSingleton('kiteController').createSystemUser (err)=>
-      #     if err
-      #       new KDNotificationView
-      #         title   : 'Fail!'
-      #         duration: 1000
-      #     else
-      #       account.modify isEnvironmentCreated: yes, (err)->
-      #         if err
-      #           console.log err
-      #         else
-      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
-
     else
       @createLoggedOutState account
     # @getView().removeLoader()
@@ -126,7 +111,8 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
+      # appManager.openApplication "Activity", yes
+      appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>

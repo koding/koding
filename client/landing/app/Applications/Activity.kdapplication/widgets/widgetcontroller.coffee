@@ -42,33 +42,33 @@ class ActivityUpdateWidgetController extends KDViewController
             @codeSnippetWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
-    codeSharePane = mainView.addWidgetPane
-      paneName    : "codeshare"
-      mainContent : codeShareWidget = new ActivityCodeShareWidget
-        delegate  : mainView
-        callback  : (data)=>
-          if submissionStopped
-            return notifySubmissionStopped()
-          else
-
-            # this forces the iframe to load the code and execute it
-            codeShareWidget.codeShareResultView.hide()
-            codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
-
-            # reset widget tab as if it was submitted
-            mainView.resetWidgets()
-
-            # notify the user
-            notifiy = new KDNotificationView
-              title: "Submitting your Code Share"
-              content: "This may take up to ten seconds. Thank you for your patience!"
-              duration: 5000
-
-            # then wait x seconds
-            window.setTimeout =>
-              #only if the browser/tab did not lock up due to script execution, this will run
-              @codeShareWidgetSubmit data, stopSubmission
-            , 5000
+#    codeSharePane = mainView.addWidgetPane
+#      paneName    : "codeshare"
+#      mainContent : codeShareWidget = new ActivityCodeShareWidget
+#        delegate  : mainView
+#        callback  : (data)=>
+#          if submissionStopped
+#            return notifySubmissionStopped()
+#          else
+#
+#            # this forces the iframe to load the code and execute it
+#            codeShareWidget.codeShareResultView.hide()
+#            codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
+#
+#            # reset widget tab as if it was submitted
+#            mainView.resetWidgets()
+#
+#            # notify the user
+#            notifiy = new KDNotificationView
+#              title: "Submitting your Code Share"
+#              content: "This may take up to ten seconds. Thank you for your patience!"
+#              duration: 5000
+#
+#            # then wait x seconds
+#            window.setTimeout =>
+#              #only if the browser/tab did not lock up due to script execution, this will run
+#              @codeShareWidgetSubmit data, stopSubmission
+#            , 5000
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -183,7 +183,7 @@ class ActivityUpdateWidgetController extends KDViewController
   #   else
   #     if submissionStopped
   #       return notifySubmissionStopped()
-  #     bongo.api.JCodeShare.create data, (err, codeshare) =>
+  #     KD.remote.api.JCodeShare.create data, (err, codeshare) =>
   #       callback? err, codeshare
   #       stopSubmission()
   #       if err
