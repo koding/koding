@@ -4,6 +4,7 @@ node ftp inherits base {
    include sudo
    include pure-ftpd
    include ssh
+   include clamav
 
     yumrepos { 'koding':
             repo => 'koding',
