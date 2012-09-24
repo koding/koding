@@ -14,6 +14,11 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
 
     data = @getData()
 
+    log "data is", data
+
+    data.on "OpinionIsDeleted",(mew)=>
+      log " I AM DELETE!"
+
     @actionLinks = new OpinionActivityActionsView
       delegate : @
       cssClass : "reply-header"

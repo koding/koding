@@ -184,12 +184,14 @@ class OpinionListItemView extends KDListItemView
             color    : "#ffffff"
             diameter : 16
           callback   : =>
+            @hide()
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
                 @emit 'OpinionIsDeleted', data
                 @destroy()
+              else @show()
 
               if err then new KDNotificationView
                 type     : "mini"

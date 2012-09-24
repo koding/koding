@@ -971,6 +971,76 @@ div.activity-opinion.item-content-comment
     a
       noTextDeco()
 
+
+div.show-more-opinions
+  border none
+  padding-left 20px
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  size                  auto, 0
+  padding               0 10px
+  line-height           27px
+  vendor                transition, height .15s linear
+  borderBox()
+  &.in
+    height              27px
+
+  &.has-new-items
+    a.new-count
+      display           inline
+  a
+    line-height         14px
+    color               #299FC6
+    font-weight         400
+    noTextDeco()
+    &.new-count
+      font-weight       600
+
+  span.small-loader
+    position            absolute
+    right               15px
+    top                 11px
+
+  .new-items
+    left                  500px
+    opacity               0
+    padding-left          2px
+    padding-right         2px
+    font-weight           600
+    color                 white
+    position              relative
+    bg                    color, #FF9200
+    border                1px solid #FF9200
+    rounded(3px 3px 3px 3px)
+    vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
+
+    &.in
+      opacity             1
+      left                6px
+
+  .new-items:after, .new-items:before
+    right                 100%
+    border                solid transparent
+    content               " "
+    height                0
+    width                 0
+    position              absolute
+    pointer-events        none
+
+  // .new-items:after
+  //   border-right-color    #FF9200
+  //   border-width          4px
+  //   top                   50%
+  //   margin-top            -4px
+
+  // .new-items:before
+  //   border-right-color    #FF9200
+  //   border-width          5px
+  //   top                   50%
+  //   margin-top            -5px
+  //     a.all-count
+  //       noTextDeco()
 div.show-more-discussion
   padding-top 5px
   padding-bottom 5px
