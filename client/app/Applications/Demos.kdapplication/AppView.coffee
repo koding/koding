@@ -11,24 +11,25 @@ class DemosMainView extends KDScrollView
     mainView     = @
 
     @addSubView tokenInput = new KDTokenizedInput
-      match         :
-        topic       : 
-          regex     : /\B#\w.*/
+      match            :
+        topic          :
+          regex        : /\B#\w.*/
           # throttle  : 2000
-          dataSource: (token)->
+          wrapperClass : "highlight-tag"
+          dataSource   : (token)->
             appManager.tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
               log err, topics
               if not err and topics.length > 0
                 tokenInput.showMenu {token, rule : "topic"}, topics
-          callback  : (token, data)->
-            log token, data, "edit input"
-            val = tokenInput.input.getValue()
-            val = val.replace token, "#{data.title}"
-            {input, layer, menu} = tokenInput
-            input.setValue val
-            layer.updatePartial layer.$().html().replace data.title, "<span>#{data.title}</span>"
-            menu.destroy()
-            input.setFocus()
+          # callback  : (token, data)->
+          #   log token, data, "edit input"
+          #   val = tokenInput.input.getValue()
+          #   val = val.replace token, "#{data.title}"
+            # {input, layer, menu} = tokenInput
+            # input.setValue val
+            # layer.updatePartial layer.$().html().replace data.title, "<span>#{data.title}</span>"
+            # menu.destroy()
+            # input.setFocus()
 
         # username    :
         #   regex     : /\B@\w.+/

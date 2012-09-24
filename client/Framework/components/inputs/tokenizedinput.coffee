@@ -22,10 +22,15 @@ class KDTokenizedInput extends JView
 
     @input.unsetClass 'kdinput'
 
-    _oldMatches = []
-    @input.on "keydown", (event)=>
-      val = @input.getValue().replace /\n/g,'<br/>'
-      @layer.updatePartial val
+    _oldMatches       = []
+    @registeredTokens = {}
+
+    for rule of o.match
+      @registeredTokens[rule] = {}
+
+    # @input.on "keydown", (event)=>
+    #   val = @input.getValue().replace /\n/g,'<br/>'
+    #   @layer.updatePartial val
 
     @input.on "keyup", (event)=>
       matchRules = @getOptions().match
@@ -33,7 +38,7 @@ class KDTokenizedInput extends JView
       if matchRules
         for rule, ruleSet of matchRules
           matches = val.match ruleSet.regex
-          
+
           return unless matches
 
           matches.forEach (match,i)->
@@ -49,7 +54,7 @@ class KDTokenizedInput extends JView
               ruleSet.dataSource match
 
   showMenu:(options, data)->
-    
+
     {token,rule} = options
     @menu.destroy() if @menu
     o =
@@ -58,7 +63,23 @@ class KDTokenizedInput extends JView
     @input.setBlur()
     @menu = new JContextMenu o, data
     @menu.on "ContextMenuItemReceivedClick", (menuItem)=>
-      @getOptions().match[rule].callback token, menuItem.getData()
+      @registerSelectedToken {rule, token}, menuItem.getData()
+      # @getOptions().match[rule].callback token, menuItem.getData()
+
+  registerSelectedToken:({rule, token}, data)->
+
+    @registeredTokens[rule][token] = {
+      replacedText : data.title
+      data
+    }
+    log @registeredTokens
+    val = @input.getValue()
+    val = val.replace token, "#{data.title}"
+    @input.setValue val
+    @layer.updatePartial @layer.$().html().replace data.title, "<span>#{data.title}</span>"
+    @menu.destroy()
+    @input.setFocus()
+
 
   pistachio:->
 
