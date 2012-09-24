@@ -5,24 +5,26 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
+# DEV database
 mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
 module.exports = deepFreeze
   projectRoot: nodePath.join __dirname, '..'
-  version   : version
-  webPort   : 3000
-  mongo     : mongo
-  social    :
+  version       : version
+  webPort       : 3000
+  mongo         : mongo
+  social        :
     numberOfWorkers: 1
-  client    :
-    minify  : no
-    js      : "./website/js/kd.#{version}.js"
-    css     : "./website/css/kd.#{version}.css"
-    indexMaster: "./client/index-master.html"
-    index   : "./website/index.html"
+  client        :
+    version     : version
+    minify      : no
+    js          : "./website/js/kd.#{version}.js"
+    css         : "./website/css/kd.#{version}.css"
+    indexMaster : "./client/index-master.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
-    useStaticFileServer : no
+    useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       version   : version
@@ -48,13 +50,13 @@ module.exports = deepFreeze
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
-    poolSize        : 1e4
-    batchSize       : undefined
-    cleanupCron     : '*/10 * * * * *'
-  logger            :
-    mq              :
-      host          : 'localhost'
-      login         : 'logger'
-      password      : 'logger'
-      vhost         : 'logs'
-  pidFile           : '/tmp/koding.server.pid'
+    poolSize    : 1e4
+    batchSize   : undefined
+    cleanupCron : '*/10 * * * * *'
+  logger        :
+    mq          :
+      host      : 'localhost'
+      login     : 'logger'
+      password  : 'logger'
+      vhost     : 'logs'
+  pidFile       : '/tmp/koding.server.pid'

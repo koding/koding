@@ -14,7 +14,7 @@
     {mq_host, "localhost"},
     {mq_user, <<"guest">>},
     {mq_pass, <<"guest">>},
-    {pid_file, <<"undefined">>},
+    {pid_file, <<"/tmp/koding.broker.pid">>},
     {verbose, true},
     {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>}
