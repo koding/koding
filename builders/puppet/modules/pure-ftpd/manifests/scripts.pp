@@ -1,9 +1,6 @@
 #
 #
 class pure-ftpd::scripts {
-    package { "nc":
-        ensure => latest,
-    }
 
     file { "clamav_check":
         path    => '/etc/pure-ftpd/clamav_check.sh',
