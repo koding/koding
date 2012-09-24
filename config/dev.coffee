@@ -54,8 +54,8 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
+      host          : 'zb.koding.com'
       login         : 'guest'
-      password      : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
       vhost         : '/'
   pidFile           : '/tmp/koding.server.pid'

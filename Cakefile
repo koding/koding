@@ -223,12 +223,16 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
+  console.log brokerConfig
 
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
 task 'configureBroker',(options)->
   configureBroker options
+
+task 'buildBroker', (options)->
+  pipeStd(spawn './broker/build.sh')
 
 task 'run', (options)->
   if options.configFile is 'dev'
@@ -237,7 +241,7 @@ task 'run', (options)->
   configFile = normalizeConfigPath options.configFile
   config = require configFile
   configureBroker options, ->
-    broker = spawn './broker/build.sh'
+    broker = spawn './broker/start.sh'
     serverSupervisor = spawn KODING_CAKE, [
       './server',
       '-c', configFile
