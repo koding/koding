@@ -96,7 +96,7 @@ clientFileMiddleware  = (options, code, callback)->
         throw err
 
 pipeStd =(children...)->
-  for child in children
+  for child in children when child?
     child.stdout.pipe process.stdout
     child.stderr.pipe process.stderr
 
@@ -236,8 +236,12 @@ task 'run', (options)->
 
   configFile = normalizeConfigPath options.configFile
   config = require configFile
-  configureBroker options, ->
-    broker = spawn './broker/build.sh'
+  if config.runBroker is yes
+    configureBroker options, ->
+      broker = spawn './broker/build.sh'
+  else
+    broker = null
+
     serverSupervisor = spawn KODING_CAKE, [
       './server',
       '-c', configFile
