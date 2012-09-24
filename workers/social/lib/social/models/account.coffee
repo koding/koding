@@ -146,6 +146,10 @@ module.exports = class JAccount extends jraphical.Module
       content       :
         as          : 'creator'
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
+        
+      feed         :
+        as          : "owner"
+        targetType  : "JFeed"
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options

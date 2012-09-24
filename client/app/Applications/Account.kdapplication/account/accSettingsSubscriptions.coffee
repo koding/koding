@@ -32,7 +32,6 @@ class AccountSubscriptionsList extends KDListView
   showModal:->
     modal = new KDModalView
       title     : "Your cool new package"
-      content   : ""
       overlay   : yes
       cssClass  : "new-kdmodal"
       width     : 500

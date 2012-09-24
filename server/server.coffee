@@ -21,6 +21,8 @@ app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
+console.log fs.statSync("#{projectRoot}/website/")
+
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   console.error err
@@ -70,8 +72,18 @@ app.get '/auth', (req, res)->
         )
         privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
-        koding.mq.emit(channel, 'join', privName)
-        return res.send privName
+        
+        bindKiteQueue = (binding, callback) ->
+          koding.mq.bindQueue(
+            privName, privName, binding,
+            {queueDurable:no, queueExclusive:no},
+            callback
+            )
+
+        bindKiteQueue "client-message", ->
+          bindKiteQueue "disconnected"
+          koding.mq.emit(channel, 'join', {user: username, queue: privName})
+          return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
@@ -79,7 +91,7 @@ app.get "/", (req, res)->
   else
     # log.info "serving index.html"
     res.header 'Content-type', 'text/html'
-    fs.readFile "#{projectRoot}/website_nonstatic/index.html", (err, data) ->
+    fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
 
