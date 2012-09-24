@@ -43,9 +43,12 @@ class ContentDisplayControllerTopic extends KDViewController
           title           : 'Developers'
           dataSource      : -> log 'just developers'
       sort                :
-        'meta.modifiedAt' :
+        'timestamp|new'   :
           title           : 'Latest activity'
           direction       : -1
+        'timestamp|old'   :
+          title           : 'Most activity'
+          direction       : 1
     }, (controller)->
       mainView.addSubView controller.getView()
 
