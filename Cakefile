@@ -223,8 +223,6 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
-  console.log brokerConfig
-
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
@@ -258,22 +256,6 @@ task 'run', (options)->
       serverSupervisor
       socialSupervisor
     )
-  # setInterval (->),10000
-
-
-  # broker = spawn './broker/start.sh'
-  # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
-  # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  # logPath = options.logPath ? '/tmp'
-  # procs = {broker, server, social}
-  # if options.runClient
-  #   client = spawn 'cake', ['build']
-  #   procs.push client
-  # for own name, proc of procs
-  #   logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
-  #   proc.stdout.pipe(logFile)
-  #   proc.stderr.pipe(logFile)
-
 
 task 'buildAll',"build chris's modules", ->
 

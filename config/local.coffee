@@ -7,7 +7,7 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
-module.exports =
+module.exports = deepFreeze
   projectRoot: nodePath.join __dirname, '..'
   version   : version
   webPort   : 3000
@@ -33,13 +33,14 @@ module.exports =
         auth    : 'http://localhost:3000/auth'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-apps.koding.com'
-
+      env       : 'dev'
       # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :
     host        : 'localhost'
     login       : 'guest'
     password    : 'guest'
     vhost       : '/'
+    pidFile     : '/tmp/koding.broker.pid'
   email         :
     host        : 'localhost'
     protocol    : 'http:'

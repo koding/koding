@@ -35,11 +35,13 @@ module.exports = deepFreeze
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
       apiUri    : 'https://api.koding.com'
+      env       : 'beta'
   mq            :
     host        : 'localhost'
     login       : 'guest'
     password    : 'x1srTA7!%Vb}$n|S'
     vhost       : '/'
+    pidFile     : '/tmp/koding.broker.pid'
   email         :
     host        : 'localhost'
     protocol    : 'http:'
