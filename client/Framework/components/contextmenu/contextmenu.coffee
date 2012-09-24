@@ -23,10 +23,10 @@ class JContextMenu extends KDView
 
   positionContextMenu:()->
 
-    event       = @getOptions().event
+    event       = @getOptions().event or {}
     mainHeight  = @getSingleton('mainView').getHeight()
     
-    top         = event.pageY
+    top         = @getOptions().y or event.pageY or 0
     menuHeight  = @getHeight()
     if top + menuHeight > mainHeight
       top = mainHeight - menuHeight - 15
@@ -34,4 +34,4 @@ class JContextMenu extends KDView
     @getDomElement().css
       width     : "172px"
       top       : top
-      left      : event.pageX
+      left      : @getOptions().x or event.pageX or 0
