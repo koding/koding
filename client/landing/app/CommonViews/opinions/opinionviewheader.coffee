@@ -26,8 +26,10 @@ class OpinionViewHeader extends JView
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()
-      @hide()
-      @loader.destroy()
+      @allItemsLink.hide()
+      @loader.hide()
+
+    remainingOpinions = @getData().repliesCount-@getDelegate().items.length
 
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
@@ -35,18 +37,24 @@ class OpinionViewHeader extends JView
       partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}»"
       click     : =>
         @loader.show()
+        @newItemsLink.unsetClass "in"
         list.emit "AllOpinionsLinkWasClicked", @
     , data
 
     list.on "RelativeOpinionsWereAdded",  =>
       remainingOpinions = @getData().repliesCount-@getDelegate().items.length
       if (remainingOpinions)<@maxCommentToShow
-        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
+        if remainingOpinions is 1
+          @allItemsLink.updatePartial "View remaining answer"
+        else if remainingOpinions > 1
+          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+
       if @getDelegate().items.length<@getData().repliesCount
         @loader.hide()
       else
-        @loader.destroy()
-        @allItemsLink.destroy()
+        @loader.hide()
+        @allItemsLink.hide()
+      @newItemsLink.unsetClass "in"
 
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
@@ -67,6 +75,19 @@ class OpinionViewHeader extends JView
       click     : =>
         list.emit "AllOpinionsLinkWasClicked", @
 
+    list.on "NewOpinionHasArrived",=>
+      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      if (remainingOpinions)<@maxCommentToShow
+        if remainingOpinions is 1
+          @allItemsLink.updatePartial "View remaining answer"
+        else if remainingOpinions > 1
+          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+      @show()
+      @setClass "has-new-items"
+      @allItemsLink.show()
+      @newItemsLink.updatePartial "new Answer"
+      @newItemsLink.setClass "in"
+
   hide:->
     @unsetClass "in"
     super
@@ -81,10 +102,13 @@ class OpinionViewHeader extends JView
 
     remainingOpinions = @getData().repliesCount-@getDelegate().items.length
     if (remainingOpinions)<@maxCommentToShow
-        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
+       if remainingOpinions is 1
+          @allItemsLink.updatePartial "View remaining answer"
+        else if remainingOpinions > 1
+          @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
 
   pistachio:->
     """
-      {{> @allItemsLink}}
+      {{> @allItemsLink}}{{> @newItemsLink}}
       {{> @loader}}
     """

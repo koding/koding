@@ -17,24 +17,41 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    if data.repliesCount > 0
-      @opinionBox = new DiscussionActivityOpinionView
-        cssClass    : "activity-opinion-list comment-container"
-      , data
-    else
-      @opinionBox = new KDCustomHTMLView
-        tagName     : "div"
-        cssClass    : "opinion-first-box"
 
-      # @opinionBox.addSubView @opinionFirstLink = new KDCustomHTMLView
-      #   tagName     : "a"
-      #   cssClass    : "first-reply-link"
-      #   attributes  :
-      #     title     : "Be the first to reply"
-      #     href      : "#"
-      #   partial     : "Be the first to reply!"
-      #   click       :->
-      #     appManager.tell "Activity", "createContentDisplay", data
+    data.on 'ReplyIsAdded', (reply)=>
+
+      # JDiscussion needs the new Opinion
+      if data.bongo_.constructorName is "JDiscussion"
+
+        # Why this workaround, you ask?
+        #
+        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
+        #  without JSONifying it locks up the UI for up to 10 seconds.
+
+        # Create new JOpinion and convert JSON into Object
+        newOpinion = new bongo.api.JOpinion
+        opinionData = JSON.parse(reply.opinionData)
+
+        # Copy JSON data to the newly created JOpinion
+        for variable of opinionData
+          newOpinion[variable] = opinionData[variable]
+
+        # Updating the local data object, then adding the item to the box
+        # and increasing the count box
+
+        if data.opinions?
+          data.opinions.push newOpinion
+        else
+          data.opinions = [newOpinion]
+
+        @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
+        @opinionBox.updateCount data.repliesCount
+
+
+    @opinionBox = new DiscussionActivityOpinionView
+      cssClass    : "activity-opinion-list comment-container"
+    , data
+
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussionActivity
