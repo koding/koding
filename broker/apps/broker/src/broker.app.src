@@ -14,6 +14,7 @@
     {mq_host, "zb.koding.com"},
     {mq_user, <<"guest">>},
     {mq_pass, <<"s486auEkPzvUjYfeFTMQ">>},
+    {pid_file, <<"/var/run/broker.pid">>},
     {verbose, true},
     {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>}
