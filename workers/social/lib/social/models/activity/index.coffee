@@ -69,7 +69,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @captureSortCounts =(callback)->
     selector = {
-      type: {$in: ['CStatusActivity','CCodeSnipActivity']}
+      type: {$in: ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']}
       $or: [
         {'sorts.repliesCount' : $exists:no}
         {'sorts.likesCount'   : $exists:no}

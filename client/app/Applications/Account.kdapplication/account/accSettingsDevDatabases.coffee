@@ -29,7 +29,7 @@ class AccountDatabaseListController extends KDListViewController
     super
     list = @getListView()
     @loadItems()
-    
+
     @getView().parent.addSubView addButton = new KDButtonView
       style     : "clean-gray account-header-button"
       title     : ""
@@ -37,14 +37,14 @@ class AccountDatabaseListController extends KDListViewController
       iconOnly  : yes
       iconClass : "plus"
       callback  : ()=> list.showAddModal()
-        
+
     list.on "DeleteDatabaseSubmitted", (listItem)=> @deleteDatabase listItem
     list.on "UpdateDatabaseSubmitted", (listItem, formdata)=> @updateDatabase listItem, formdata
     list.on "AddDatabaseSubmitted", => @addDatabase()
 
     @on "DatabaseDeleted", (listItem)=> list.removeItem listItem
     @on "DatabaseUpdated", (listItem)=>
-    @on "DatabaseAdded", (itemData)=> 
+    @on "DatabaseAdded", (itemData)=>
       list.addItem itemData, null, {type : "slideDown", duration : 100}
       new KDModalView
         title   : "New Database Information"
@@ -63,18 +63,25 @@ class AccountDatabaseListController extends KDListViewController
                   """
 
   loadItems:(callback)->
-    
+
+    @_loaderCount = 2
+    @showLazyLoader no
+
+    hideLoaderWhenFinished = =>
+      @_loaderCount--
+      @hideLazyLoader() if @_loaderCount is 0
+
     for dbtype in ['mysql', 'mongo']
       @talkToKite
         method      : @commands[dbtype].fetch
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
-        # log "RESPONSE: ", response
         if err then warn err
         else
           @instantiateListItems response
           callback?()
+          hideLoaderWhenFinished()
 
   deleteDatabase:(listItem)->
     data     = listItem.getData()
@@ -97,7 +104,7 @@ class AccountDatabaseListController extends KDListViewController
 
     data = listItem.getData()
     log "Requested DB Type", data
-    
+
     @talkToKite
       method          : @commands[data.dbType].update
       withArgs      :
@@ -118,11 +125,9 @@ class AccountDatabaseListController extends KDListViewController
     dbtype = @getListView().modal.modalTabs.forms["On Koding"].inputs.Type.getValue()
 
     {nickname} = KD.whoami().profile
-    pass    = md5.digest("#{Math.random()*1e18}") + md5.digest("#{Math.random()*1e18}")
-    dbName  = md5.digest("#{Math.random()*1e18}").substr(-(15-nickname.length))
-    dbUser  = dbName
-    dbPass  = pass.substr(-40)
-    
+    dbUser = dbName = __utils.generatePassword 15-nickname.length, yes
+    dbPass = __utils.generatePassword 40, no
+
     @talkToKite
       method      : @commands[dbtype].create
       withArgs  : {dbName, dbUser, dbPass}
@@ -135,7 +140,7 @@ class AccountDatabaseListController extends KDListViewController
         @notify "Database created!", "succes"
         @emit "DatabaseAdded", response
         modal.destroy()
-  
+
   talkToKite:(options, callback)->
 
     # log "Run on kite:", options.method
@@ -146,9 +151,9 @@ class AccountDatabaseListController extends KDListViewController
     , (err, response)=>
       if err then warn err
       callback? err, response
-  
+
   notify:(title, type)->
-    
+
     {modal} = @getListView()
     new KDNotificationView
       type      : "mini"
@@ -168,7 +173,7 @@ class AccountDatabaseList extends KDListView
     super options,data
 
   # attachListeners:()->
-  # 
+  #
   #   @items.forEach (item)=>
   #     item.getData().on "update",()->
   #       log "update event called:",item
@@ -179,7 +184,7 @@ class AccountDatabaseList extends KDListView
   #   @propagateEvent KDEventType : "ListViewIsReady"
 
   showAddModal : ->
-    
+
     modal = @modal = new KDModalViewWithForms
       title                   : "Add a Database"
       content                 : ""
@@ -211,7 +216,7 @@ class AccountDatabaseList extends KDListView
             fields            :
               Type            :
                 label         : "Type"
-                itemClass     : KDSelectBox 
+                itemClass     : KDSelectBox
                 type          : "select"
                 name          : "type"
                 defaultValue  : "mysql"
@@ -223,7 +228,7 @@ class AccountDatabaseList extends KDListView
                 ]
               Kind            :
                 label         : "Kind"
-                itemClass     : KDSelectBox 
+                itemClass     : KDSelectBox
                 type          : "select"
                 name          : "type"
                 defaultValue  : "free"
@@ -253,13 +258,13 @@ class AccountDatabaseList extends KDListView
       height    : "auto"
       tabs      :
         forms   : {}
-            
+
     fields =
       # Type    :
       #   label       : "Type"
       #   name        : "type"
       #   defaultValue: "mysql"
-      #   attributes  : {readonly  : yes}        
+      #   attributes  : {readonly  : yes}
       # Title :
       #   label       : "Friendly name"
       #   name        : "title"
@@ -267,7 +272,7 @@ class AccountDatabaseList extends KDListView
       #   defaultValue: data.title if data
       #   nextElement :
       #     Color :
-      #       itemClass : KDSelectBox           
+      #       itemClass : KDSelectBox
       #       type        : "select"
       #       name        : "color"
       #       label       : "Color"
@@ -314,8 +319,8 @@ class AccountDatabaseList extends KDListView
       #       match         : @modal.modalTabs.forms.fields['New Password']
       #     messages        :
       #       match         : "Passwords do not match!"
-        
-    if type is "external"                                     
+
+    if type is "external"
       formSchema.tabs.forms["Link External"] =
         buttons :
           "Link It!"      :
@@ -355,13 +360,13 @@ class AccountDatabaseList extends KDListView
                 @emit "DeleteDatabaseSubmitted", listItem
 
         fields  : fields
-    
+
     modal = @modal = new KDModalViewWithForms formSchema
-          
+
   # addDatabase:(f)=>
 
 
-  
+
     # jr = new KD.remote.api[f.type]
     #   title : f.title   ? "My Dev DB #{(Date.now()+"").substr(-2)}"
     #   host  : f.host    ? "localhost"
@@ -375,35 +380,35 @@ class AccountDatabaseList extends KDListView
     #   unless err
     #     log "added",jr,f
     #     jr.type = f.type
-    #     itemView = @itemClass delegate:@,jr 
+    #     itemView = @itemClass delegate:@,jr
     #     @addItemView itemView
     #     @modal.destroy()
     #   else
     #     log "failed to add.",err
 
   # deleteDatabase:(listItem)=>
-  #   
+  #
   #   jr = listItem.getData()
   #   jr.remove (err)=>
   #     if err
   #       log "failed to delete",err
-  #     else 
-  #       @removeListItem @_listItemToBeUpdated 
+  #     else
+  #       @removeListItem @_listItemToBeUpdated
   #       @modal.destroy()
-  # 
+  #
   # updateDatabase:(listItem, formData)=>
-  # 
+  #
   #   jr = listItem.getData()
   #   jr.title  = f.title  ? jr.title
   #   jr.color  = f.color  ? jr.color
   #   jr.users[0].password = f.password
-  #   
+  #
   #   jr.update (err)->
   #     unless err
   #       log "updated",jr
   #     else
   #       log "failed to update",err
-  #   
+  #
   #   @modal.destroy()
 
 
@@ -416,12 +421,12 @@ class AccountDatabaseListItem extends KDListItemView
     # log "Create Item with Data", data
 
     options.tagName = "li"
-    
+
     data.color or= if data.dbType == "mysql" then "yellow" else "green"
     data.title or= if data.dbType == "mysql" then "MySql DB" else "Mongo DB"
-    
+
     super options,data
-    
+
   click:(event)=>
 
     if $(event.target).is ".action-link"

@@ -1,20 +1,21 @@
 class AppsListItemView extends KDListItemView
-  constructor:(options,data)->
-    options = options ? {} 
+
+  constructor:(options = {},data)->
+
     options.type = "appstore"
-    options.bind = "mouseenter mouseleave"
+
     super options,data
-    
-    # log data
-    
-    thumbOptions = if data.thumbnails[0]?
-      tagName     : 'img'
-      attributes  :
-        src       : '/images/uploads/' + data.thumbnails[0].listThumb
+
+    {icns, name, version, authorNick} = @getData().manifest
+    if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      thumb = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['160'] or icns['128'] or icns['256'] or icns['512'] or icns['64']}"
     else
+      thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
+
+    thumbOptions =
       tagName     : 'img'
       attributes  :
-        src       : '/images/default.app.listthumb.png'
+        src       : thumb
 
     @thumbnail = new KDCustomHTMLView thumbOptions
 
@@ -25,8 +26,8 @@ class AppsListItemView extends KDListItemView
       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
-    @setClass "apps-item"
-
+    if not @getData().approved
+      @setClass "waits-approve"
     @setTemplate @pistachio()
     @template.update()
 
@@ -34,12 +35,12 @@ class AppsListItemView extends KDListItemView
       @alreadyInstalledText()
     else
       @createInstallButton()
-  
+
   createInstallButton:->
-    {profile} = app = @getData()
-    
+    app = @getData()
+
     @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView 
+    @installButton = new KDButtonView
       title : "Install"
       icon  : no
       callback: =>
@@ -49,18 +50,19 @@ class AppsListItemView extends KDListItemView
     @addSubView @installButton, '.button-container'
 
   alreadyInstalledText:->
-    {profile} = app = @getData()
-    
+
     @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView 
+    @installButton = new KDButtonView
       title     : "Installed"
       icon      : no
       disabled  : yes
     @addSubView @installButton, '.button-container'
-  
+
   pistachio:->
     """
-    {{> @thumbnail}}
+    <figure>
+      {{> @thumbnail}}
+    </figure>
     <div class="appmeta clearfix">
       <h3>{a[href=#]{#(title)}}</h3>
       <div class="appstats">
@@ -70,14 +72,14 @@ class AppsListItemView extends KDListItemView
         </p>
         <p class="followers">
           <span class="icon"></span>
-          <a href="#">{{#(counts.tagged) or 0}}</a> Followers
+          <a href="#">{{#(counts.followers) or 0}}</a> Followers
         </p>
       </div>
     </div>
     <div class="appdetails">
       <h3><a href="#">{{#(title)}}</a></h3>
       <article>{{@utils.shortenText #(body)}}</article>
-      <div class="button-container"></div>
+      <div class="button-container">
+      </div>
     </div>
     """
-  

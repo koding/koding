@@ -225,7 +225,7 @@ class MembersContentDisplayView extends KDView
       KDEventTypes : "click"
       listenedToInstance : backLink
       callback : ()=>
-        contentDisplayController.propagateEvent {KDEventType : "ContentDisplayWantsToBeHidden"},@
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 
 class MemberFollowToggleButton extends KDToggleButton

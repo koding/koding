@@ -6,21 +6,27 @@ class ActivityListItemView extends KDListItemView
     # CCodeSnipActivity   : CodesnipActivityItemView
     JCodeSnip           : CodesnipActivityItemView
     JQuestionActivity   : QuestionActivityItemView
-    JDiscussionActivity : DiscussionActivityItemView
+    JDiscussion         : DiscussionActivityItemView
     JLinkActivity       : LinkActivityItemView
+    # THIS WILL DISABLE CODE SHARES
+    # JCodeShare            : CodeShareActivityItemView
 
   getActivityChildCssClass = ->
 
     CFollowerBucket           : "system-message"
     CFolloweeBucket           : "system-message"
     CNewMemberBucket          : "system-message"
+    CInstallerBucket          : "system-message"
+
     CFollowerBucketActivity   : "system-message"
     CFolloweeBucketActivity   : "system-message"
     CNewMemberBucketActivity  : "system-message"
+    CInstallerBucketActivity  : "system-message"
 
   getBucketMap =->
     JAccount  : AccountFollowBucketItemView
     JTag      : TagFollowBucketItemView
+    JApp      : AppFollowBucketItemView
 
   constructor:(options = {},data)->
 

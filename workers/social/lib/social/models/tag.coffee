@@ -53,22 +53,21 @@ module.exports = class JTag extends jraphical.Module
           default   : 0
       synonyms      : [String]
       # owner         : ObjectId
-    relationships   : ->
+    relationships   :->
       JAccount = require './account'
-      JApp = require './app'
-      JCodeSnip = require './messages/codesnip'
-      JStatusUpdate = require './messages/statusupdate'
-      CActivity = require './activity'
-
-      creator       : JAccount
+      creator       :
+        targetType  : JAccount
       activity      :
-        targetType  : CActivity
+        targetType  : "CActivity"
         as          : 'follower'
       follower      :
-        targetType  : JAccount
+        targetType  : "JAccount"
         as          : 'follower'
       content       :
-        targetType  : [JCodeSnip, JApp, JStatusUpdate, JAccount]
+        targetType  : [
+          "JCodeSnip", "JApp", "JStatusUpdate"
+          "JAccount", "JOpinion", "JDiscussion"
+        ]
         as          : 'post'
       # content       :
       #   targetType  : [JCodeSnip, JAccount]

@@ -44,13 +44,11 @@ class Members12345 extends AppController
         followed            :
           title             : "Followers <span class='member-numbers-followers'></span>"
           dataSource        : (selector, options, callback)=>
-            #{currentDelegate} = @getSingleton('mainController').getVisitor()
             KD.whoami().fetchFollowersWithRelationship selector, options, callback
             @setCurrentViewNumber 'followers'
-        recommended         :
+        followings          :
           title             : "Following <span class='member-numbers-following'></span>"
           dataSource        : (selector, options, callback)=>
-            #{currentDelegate} = @getSingleton('mainController').getVisitor()
             KD.whoami().fetchFollowingWithRelationship selector, options, callback
             @setCurrentViewNumber 'following'
       sort                  :
@@ -101,7 +99,7 @@ class Members12345 extends AppController
 
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
-      contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", view
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
 
   createFolloweeContentDisplay:(account, filter)->
     # log "I need to create followee for", account, filter
@@ -124,7 +122,7 @@ class Members12345 extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerMember null, content
     contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createContentDisplay:(account, doShow = yes)->
     controller = new ContentDisplayControllerMember null, account
@@ -136,7 +134,7 @@ class Members12345 extends AppController
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   setCurrentViewNumber:(type)->
     KD.whoami().count? type, (err, count)=>
@@ -170,7 +168,6 @@ class MembersListViewController extends KDListViewController
     @scrollView.setHeight @getView().getHeight() - 28
 
   loadView:(mainView)->
-    log mainView
     super
 
     @getListView().on 'ItemWasAdded', (view)=> @addListenersForItem view
@@ -182,11 +179,13 @@ class MembersListViewController extends KDListViewController
     data = item.getData()
 
     data.on 'FollowCountChanged', (followCounts)=>
-      {followerCount, followingCount, action} = followCounts
+      {followerCount, followingCount, newFollower, oldFollower} = followCounts
       data.counts.followers = followerCount
       data.counts.following = followingCount
       item.setFollowerCount followerCount
-      if action is "follow" then item.unfollowTheButton() else item.followTheButton()
+      switch @getSingleton('mainController').getVisitor().currentDelegate
+        when newFollower, oldFollower
+          if newFollower then item.unfollowTheButton() else item.followTheButton()
 
     item.registerListener KDEventTypes : "FollowButtonClicked",   listener : @, callback : @followAccount
     item.registerListener KDEventTypes : "UnfollowButtonClicked", listener : @, callback : @unfollowAccount

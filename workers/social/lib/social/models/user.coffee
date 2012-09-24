@@ -42,18 +42,18 @@ module.exports = class JUser extends jraphical.Module
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
       users.forEach (user)-> user.changePassword user.getAt('password')
-  
+
   hashPassword =(value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
-    
+
   createSalt = require 'hat'
-  
+
   @share()
   
   @trait __dirname, '../traits/flaggable'
   
   @getFlagRole =-> 'owner'
-  
+
   @set
     indexes         :
       username      : 'unique'
@@ -62,7 +62,7 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : []
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable','changePassword'
+        'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
       ]
 
@@ -77,7 +77,7 @@ module.exports = class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
-      status        : 
+      status        :
         type        : String
         enum        : [
           'invalid status type', [
@@ -101,7 +101,7 @@ module.exports = class JUser extends jraphical.Module
       emailConfirmation :
         targetType      : JEmailConfirmation
         as              : 'confirmation'
-  
+
   sessions  = {}
   users     = {}
   guests    = {}
@@ -175,10 +175,10 @@ module.exports = class JUser extends jraphical.Module
                   $addToSet     :
                     snapshotIds : bucket.getId()
                 , callback
-  
+
   getHash =(value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
-  
+
   fetchTenderAppLink : (callback)->
     {username,email} = @
     nodeRequest.get uri: "http://devrim.kodingen.com/_/tender.php?name=#{username}&email=#{email}", (err,res,body)->
@@ -186,7 +186,7 @@ module.exports = class JUser extends jraphical.Module
         callback err
       else
         callback null, body
-  
+
   @setDefaultHash =->
     @all {}, (err, users)->
       users.forEach (user)->
@@ -381,7 +381,22 @@ module.exports = class JUser extends jraphical.Module
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
-  
+
+  @changeEmail = secure (client,options,callback)->
+
+    {email} = options
+
+    @emailAvailable email, (err, res)=>
+
+      if err
+        callback new KodingError "Something went wrong please try again!"
+      else if res is no
+        callback new KodingError "Email is already in use!"
+      else
+        @fetchUser client, (err,user)->
+          account = client.connection.delegate
+          user.changeEmail account, options, callback
+
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
       if err
@@ -413,20 +428,53 @@ module.exports = class JUser extends jraphical.Module
             r.kodingenUser = if !+chunk then no else yes
             callback null, r
           res.on 'error', (err)-> callback err, r
-  
+
   changePassword:(newPassword, callback)->
     salt = createSalt()
     @update $set: {
       salt
       password: hashPassword(newPassword, salt)
     }, callback
-  
+
+  changeEmail:(account, options, callback)->
+
+    {email, pin} = options
+
+    if not pin
+      options =
+        action    : "update-email"
+        user      : @
+        email     : email
+
+      JVerificationToken.requestNewPin options, callback
+
+    else
+      options =
+        action    : "update-email"
+        username  : @getAt 'username'
+        email     : email
+        pin       : pin
+
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+        if err then callback err
+        else if confirmed
+          @update $set: {email}, (err, res)=>
+            if err
+              callback err
+            else
+              account.profile.hash = getHash email
+              account.save (err)-> throw err if err
+              callback null
+        else
+          callback new KodingError 'PIN is not confirmed.'
+
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err
       else
         confirmation.send callback
-  
+
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
   block:(callback)-> @update {$set: status: 'blocked'}, callback

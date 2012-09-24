@@ -24,12 +24,12 @@ module.exports = class Emailer
     # console.log mailOptions
     setTimeout ->
       Emailer.smtpTransport.sendMail mailOptions, (error, response) ->
-        console.log 'got a response', arguments
+        # console.log 'got a response', arguments
         if error
           # console.log error
           callback error
         else
-          console.log "sent:",mailOptions.to
+          # console.log "sent:",mailOptions.to
           callback null, "Message sent: " + response.message
     ,1000/20
   @simulate : (options,callback)->

@@ -11,7 +11,6 @@ class MainController extends KDController
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "mainController", @
-    KD.registerSingleton "kodingAppsController", new KodingAppsController
     KD.registerSingleton "notificationController", new NotificationController
     @appReady ->
       KD.registerSingleton "activityController", new ActivityController
@@ -29,27 +28,7 @@ class MainController extends KDController
         applicationIsReady = yes
         listener() for listener in queue
         @getSingleton('mainView').removeLoader()
-        queue = []
-
-  # authorizeServices:(callback)->
-  #   KD.whoami().fetchNonce (nonce)->
-  #     $.ajax
-  #       url       : KD.config.apiUri+"/1.0/login"
-  #       data      :
-  #         n       : nonce
-  #         env     : KD.env
-  #       xhrFields :
-  #         withCredentials: yes
-
-  # deauthorizeServices:(callback)->
-  #   KD.whoami().fetchNonce (nonce)->
-  #     $.ajax
-  #       url       : KD.config.apiUri+'/1.0/logout'
-  #       data      :
-  #         n       : nonce
-  #         env     : KD.env
-  #       xhrFields :
-  #         withCredentials: yes
+        queue.length = 0
 
   initiateApplication:do->
     modal = null
@@ -71,13 +50,14 @@ class MainController extends KDController
       fail() unless connectedState.connected
     ->
       KD.registerSingleton "kiteController", new KiteController
+      KD.registerSingleton "kodingAppsController", new KodingAppsController
       connectedState = connected: no
-      setTimeout connectionFails.bind(null, connectedState), 5000
-      @on "RemoveModal", =>
-        if modal instanceof KDBlockingModalView
-          modal.setTitle "Connection Established"
-          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-          @utils.wait 2500, -> modal?.destroy()
+      #setTimeout connectionFails.bind(null, connectedState), 5000
+      # @on "RemoveModal", =>
+      #   if modal instanceof KDBlockingModalView
+      #     modal.setTitle "Connection Established"
+      #     modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+      #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
 
@@ -107,20 +87,6 @@ class MainController extends KDController
       appManager.quitAll =>
         @createLoggedInState account
 
-      # account = KD.whoami()
-      # unless account.getAt('isEnvironmentCreated')
-      #   @getSingleton('kiteController').createSystemUser (err)=>
-      #     if err
-      #       new KDNotificationView
-      #         title   : 'Fail!'
-      #         duration: 1000
-      #     else
-      #       account.modify isEnvironmentCreated: yes, (err)->
-      #         if err
-      #           console.log err
-      #         else
-      #           console.log "environment is created for #{account.getAt('profile.nickname')}"
-
     else
       @createLoggedOutState account
     # @getView().removeLoader()
@@ -145,7 +111,8 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
+      # appManager.openApplication "Activity", yes
+      appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>

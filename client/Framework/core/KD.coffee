@@ -2,7 +2,7 @@
 # if location.hostname is "localhost"
 # window.onerror = (desc,page,line,chr)=> alert "Line: #{line}, desc: #{desc}, chr:#{chr}, page:#{page}"
 
-Function::bind or= do ->  
+Function::bind or= do ->
   {slice} = []
   (context)->
     func = @
@@ -40,13 +40,10 @@ KD = @KD or {}
   singletons      : {}
   subscriptions   : []
   classes         : {}
-  
-  apiUri: switch KD.env
-    when 'beta'
-      'https://api.koding.com'
-    else
-      'https://dev-api.koding.com'
-  
+
+  apiUri: KD.config.apiUri
+  appsUri: KD.config.appsUri
+
   whoami:-> KD.getSingleton('mainController').userAccount
   
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
@@ -68,11 +65,11 @@ KD = @KD or {}
         duration : 3000
     else
       callback?()
-  
+
   socketConnected:()->
     @backendIsConnected = yes
     @propagateEvent "KDBackendConnectedEvent"
-  
+
   setApplicationPartials:(partials)->
     @appPartials = partials
 
@@ -90,7 +87,7 @@ KD = @KD or {}
     @subscriptions = []
     for subscription in newSubscriptions
       @subscriptions.push subscription if subscription?
-  
+
   getAllSubscriptions: ->
     @subscriptions
 
@@ -98,15 +95,15 @@ KD = @KD or {}
     # warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
     @classes[anInstance.constructor.name] ?= anInstance.constructor
-  
+
   unregisterInstance: (anInstanceId)->
     # warn "Instance being unregistered doesn't exist in registry!!", anInstance unless @instances[anInstance.id]
     delete @instances[anInstanceId]
-  
+
   deleteInstance:(anInstanceId)->
     @unregisterInstance anInstanceId
     # anInstance = null #FIXME: Redundant? See unregisterInstance
-  
+
   registerSingleton:(singletonName,object,override = no)->
     if (existingSingleton = KD.singletons[singletonName])?
       if override
@@ -119,19 +116,19 @@ KD = @KD or {}
     else
       # log "singleton registered! KD.singletons[\"#{singletonName}\"]"
       KD.singletons[singletonName] = object
-      
+
   getSingleton:(singletonName)->
     if KD.singletons[singletonName]?
-      KD.singletons[singletonName] 
+      KD.singletons[singletonName]
     else
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
-  
+
   emptyDataCache:()->
     for own id,object of @getAllKDInstances
       if object instanceof KDData
         object.destroy()
-  
+
   getAllKDInstances:()-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
@@ -148,7 +145,7 @@ KD = @KD or {}
     for subscription in @subscriptions
       if (!KDEventType? or !subscription.KDEventType? or !!KDEventType.match(subscription.KDEventType.capitalize()))
         subscription.callback.call subscription.subscribingInstance, publishingInstance, value, {subscription}
-        
+
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
    uniqid = context.data 'data-id'
@@ -156,14 +153,14 @@ KD = @KD or {}
      zIndexContexts[uniqid] = 0
    else
      zIndexContexts[uniqid]++
-  
+
   jsonhTest:->
     method    = 'fetchQuestionTeasers'
     testData  = {
       foo: 10
       bar: 11
     }
-    
+
     start = Date.now()
     $.ajax "/#{method}.jsonh",
       data     : testData
@@ -172,7 +169,7 @@ KD = @KD or {}
         inflated = JSONH.unpack data
         console.log 'success', inflated
         console.log Date.now()-start
-  
+
   registerPage:(name,classFunction)->
     # log "registering a page",name
     @pageClasses ?= {}

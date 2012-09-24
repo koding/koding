@@ -12,7 +12,7 @@ module.exports = class JInvitationRequest extends Model
     indexes           :
       email           : 'unique'
     sharedMethods     :
-      static          : ['create','__importKodingenUsers']
+      static          : ['create'] #,'__importKodingenUsers']
     schema            :
       email           :
         type          : String
