@@ -5,7 +5,7 @@ do ->
     #'/debug/:mode': ({mode})->
     #   mode = decodeURIComponent mode
     #   KD.debugStates[mode] = yes
-  
+
     '/recover/:recoveryToken': ({recoveryToken})->
       mainController.appReady ->
         # TODO: DRY this one
@@ -13,7 +13,7 @@ do ->
         mainController.loginScreen.show()
         mainController.loginScreen.$().css marginTop : 0
         mainController.loginScreen.hidden = no
-        
+
         recoveryToken = decodeURIComponent recoveryToken
         KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)->
           if err or !isValid
@@ -60,7 +60,7 @@ do ->
             # mainController.loginScreen.hidden = no
             # mainController.loginScreen.animateToForm 'register'
         location.replace '#'
-    
+
     '/verify/:confirmationToken': ({confirmationToken})->
       confirmationToken = decodeURIComponent confirmationToken
       KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
@@ -79,3 +79,10 @@ do ->
           if err then warn err
           else if account
             appManager.tell "Members", "createContentDisplay", account
+
+    '/discussion/:title': ({title})->
+
+        KD.remote.api.JDiscussion.one "title": title, (err, discussion)->
+          if err then warn err
+          else if discussion
+            appManager.tell "Activity", "createContentDisplay", discussion

@@ -1,17 +1,37 @@
 class AccountEditUsername extends KDView
+
   viewAppended:->
-    # =================
-    # ADDING EMAIL FORM
-    # =================
     KD.remote.api.JUser.fetchUser (err,user)=>
       @putContents KD.whoami(), user
 
   putContents:(account, user)->
+
+    # #
+    # ADDING EMAIL FORM
+    # #
     @addSubView @emailForm = emailForm = new KDFormView
       callback     : (formData)->
-        new KDNotificationView
-          type  : "mini"
-          title : "Currently disabled!"
+        KD.remote.api.JUser.changeEmail
+          email : formData.email
+        , (err, result)=>
+          log err
+          if err and err.name isnt 'PINExistsError'
+            new KDNotificationView
+              title    : err.message
+              duration : 2000
+          else
+            new VerifyPINModal 'Update E-Mail', (pin)=>
+              KD.remote.api.JUser.changeEmail
+                email : formData.email
+                pin   : pin
+              , (err)->
+                new KDNotificationView
+                  title    : if err then err.message else "E-mail changed!"
+                  duration : 2000
+                # FIXME update the view in some way
+
+          emailSwappable.swapViews()
+
     emailForm.addSubView emailLabel = new KDLabelView
       title        : "Your email"
       cssClass     : "main-label"
@@ -51,9 +71,9 @@ class AccountEditUsername extends KDView
     @listenTo KDEventTypes : "click", listenedToInstance : emailCancel, callback : emailSwappable.swapViews
     @listenTo KDEventTypes : "click", listenedToInstance : emailEdit,   callback : emailSwappable.swapViews
 
-    # =================
+    # #
     # ADDING USERNAME FORM
-    # =================
+    # #
     @addSubView usernameForm = usernameForm = new KDFormView
       callback     : (formData)->
         new KDNotificationView

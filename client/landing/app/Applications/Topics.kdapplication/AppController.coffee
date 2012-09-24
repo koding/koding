@@ -147,14 +147,15 @@ class Topics12345 extends AppController
                 name              : "body"
                 defaultValue      : Encoder.htmlDecode topic.body or ""
 
-  fetchFeedForHomePage:(callback)->
-    options =
-      limit     : 6
-      skip      : 0
-      sort      :
-        "counts.followers": -1
-        # "meta.modifiedAt": -1
-    selector = {}
+  fetchCustomTopics:(options = {}, callback)->
+    
+    options.limit    or= 6
+    options.skip     or= 0
+    options.sort     or=
+      "counts.followers": -1
+    selector = options.selector or {}
+    delete options.selector if options.selector
+    
     KD.remote.api.JTag.someWithRelationship selector, options, callback
 
   # addATopic:(formData)->
@@ -184,7 +185,7 @@ class Topics12345 extends AppController
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
-    contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown",contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

@@ -129,14 +129,11 @@ class LoginView extends KDScrollView
       if @video.$('iframe').length is 0
         @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
 
-    @listenTo
-      KDEventTypes       : "viewAppended"
-      listenedToInstance : @video
-      callback           : =>
-        unless KD.isLoggedIn()
-          @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
-        else
-          @animateToForm 'login'
+    @video.on "viewAppended", =>
+      unless KD.isLoggedIn()
+        @video.setPartial """<iframe src="//player.vimeo.com/video/45156018?color=ffb500" width="89.13%" height="76.60%" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>"""
+      else
+        @animateToForm 'login'
 
     @slideShow = new HomeSlideShowHolder
 
@@ -270,6 +267,7 @@ class LoginView extends KDScrollView
         new KDNotificationView
           title   : error.message
           duration: 1000
+        @loginForm.resetDecoration()
       else
         $.cookie 'clientId', replacementToken if replacementToken
         @getSingleton('mainController').accountChanged account

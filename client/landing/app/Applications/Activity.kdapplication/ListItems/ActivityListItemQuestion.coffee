@@ -2,8 +2,8 @@ class QuestionActivityItemView extends KDView
   click: (event) ->
     super
     if $(event.target).is(".activity-item-right-col p")
-      @contentDisplayController.propagateEvent KDEventType : "ContentDisplayWantsToBeShown", new ContentDisplayQuestionUpdate {},@getData()
-      
+      @contentDisplayController.emit "ContentDisplayWantsToBeShown", (new ContentDisplayQuestionUpdate {},@getData())
+
 
   partial: (activity, account) ->
     data    = @getData()
@@ -12,7 +12,7 @@ class QuestionActivityItemView extends KDView
         profile:
           firstName: 'Loading...'
           lastName: ''
-          
+
     name = "#{account.profile.firstName} #{account.profile.lastName}"
 
     # log data, "<=- this is data", "∆ ∆ QuestionActivityItemView ∆ ∆"
@@ -26,7 +26,7 @@ class QuestionActivityItemView extends KDView
                     <p class='context'>#{data.questionContent}</p>
                     <footer class='clearfix'>
                       <div><span class='tag'>Q&amp;A</span> by <strong>#{name}</strong> <time class='timeago' datetime='#{new Date(activity.time).format 'isoUtcDateTime'}'></time></div>
-                      
+
                       <div class='commentsContainer'></div>
 
                       <!--<div class='stats'><cite><span>1456</span> VIEWS</cite> | <cite><span>2</span> ANSWERS</cite> | <cite><span>5</span> COMMENTS</cite></div>-->

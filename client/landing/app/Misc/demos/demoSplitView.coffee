@@ -37,22 +37,22 @@ page_demoSplitView = (parentView)->
       vertically    : "center"  # top/center/bottom
       horizontally  : "center"    # left/center/right
 
-  topMiddleSplit = new KDSplitView
+  topMiddleSplit = new SplitView
     type  : "horizontal"
     views : [a,b,c]
     sizes : ["33%","34%","33%"]
 
-  bottomSplit = new KDSplitView
+  bottomSplit = new SplitView
     type  : "vertical"
     views : [d,e,f]
     sizes : ["33%","34%","33%"]
 
-  topSplit = new KDSplitView
+  topSplit = new SplitView
     type  : "vertical"
     views : [g,topMiddleSplit,h]
     sizes : ["33%","34%","33%"]
 
-  mainSplit = new KDSplitView
+  mainSplit = new SplitView
     type  : "horizontal"
     views : [topSplit,bottomSplit]
 

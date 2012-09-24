@@ -1,5 +1,5 @@
 class AceSettingsView extends KDTreeItemView
-  
+
   constructor:->
     super
     @setClass "ace-settings-view"
@@ -20,8 +20,8 @@ class AceSettingsView extends KDTreeItemView
       callback      : (state) => button.emit "ace.changeSetting", "highlightSelectedWord", state
     @showInvisibles = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "showInvisibles", state
-    
-    @softWrap       = new KDSelectBox 
+
+    @softWrap       = new KDSelectBox
       selectOptions : __aceSettings.softWrapOptions
       callback      : (value) => button.emit "ace.changeSetting", "softWrap", value
 
@@ -41,7 +41,7 @@ class AceSettingsView extends KDTreeItemView
     @shortcuts      = new KDCustomHTMLView
       tagName       : "a"
       cssClass      : "shortcuts"
-      attributes    : 
+      attributes    :
         href        : "#"
       partial       : "⌘ Keyboard Shortcuts"
       click         : => log "show shortcuts"
@@ -57,17 +57,18 @@ class AceSettingsView extends KDTreeItemView
 
     button  = @getDelegate().getDelegate()
     aceView = button.getDelegate()
-    @setDefaultValues aceView.getSettings()
-    
-  
+    if aceView
+      @setDefaultValues aceView.getSettings()
+
+
   click:(event)->
-    
+
     event.preventDefault()
     event.stopPropagation()
     return no
 
   pistachio:->
-    
+
     """
     <p>Use soft tabs            {{> @useSoftTabs}}</p>
     <p>Show gutter              {{> @showGutter}}</p>
