@@ -34,7 +34,7 @@ class ContentDisplayControllerTopic extends KDViewController
         content           :
           title           : 'All content'
           dataSource      : (selector, options, callback)->
-            topic.fetchContentTeasers (err, teasers)->
+            topic.fetchContentTeasers options, (err, teasers)->
               callback err, teasers
         codeshares        :
           title           : 'Code shares'
