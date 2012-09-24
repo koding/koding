@@ -120,6 +120,10 @@ class KDInputView extends KDView
     (@getSingleton "windowController").setKeyView @
     @$().trigger "focus"
 
+  setBlur:()->
+    (@getSingleton "windowController").setKeyView null
+    @$().trigger "blur"
+
   setSelectOptions:(options)->
     unless options.length
       for optGroup, subOptions of options

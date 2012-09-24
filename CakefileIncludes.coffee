@@ -210,7 +210,8 @@ Includes =
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
-        KDLayeredInput        : "./client/Framework/components/inputs/layeredinput.coffee"
+        KDTokenizedMenu       : "./client/Framework/components/inputs/tokenizedmenu.coffee"
+        KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
 
         # upload
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
