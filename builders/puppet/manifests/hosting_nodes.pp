@@ -8,6 +8,7 @@ node hosting inherits base {
     }
 
     include hosting_configs
+    include hosting_clamav
     include sudo
     include hosting_packages
     include hosting_ssh
