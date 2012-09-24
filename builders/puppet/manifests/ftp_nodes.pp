@@ -16,6 +16,14 @@ node ftp inherits base {
        require_deploy => false,
    }
 
+   monit::nodeapp { "pure-uploadscript":
+       appname   => "pure-uploadscript",
+       isenabled => 'enabled',
+       nodeuser  => false,
+       require_deploy => false,
+   }
+
+
    resolve { "resolver":
         nameserver1 => '172.16.0.23',
         nameserver2 => '8.8.8.8',
