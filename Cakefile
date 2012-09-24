@@ -96,7 +96,7 @@ clientFileMiddleware  = (options, code, callback)->
         throw err
 
 pipeStd =(children...)->
-  for child in children
+  for child in children when child?
     child.stdout.pipe process.stdout
     child.stderr.pipe process.stderr
 
@@ -232,30 +232,32 @@ task 'configureBroker',(options)->
 task 'buildBroker', (options)->
   pipeStd(spawn './broker/build.sh')
 
+run =(options)->
+  pipeStd(spawn './broker/start.sh') if options.runBroker
+  serverSupervisor = spawn KODING_CAKE, [
+    './server',
+    '-c', configFile
+    'run'
+  ]
+  socialSupervisor = spawn KODING_CAKE, [
+    './workers/social'
+    '-c', configFile
+    '-n', config.social.numberOfWorkers
+    'run'
+  ]
+  pipeStd(
+    serverSupervisor
+    socialSupervisor
+  )
+
 task 'run', (options)->
   if options.configFile is 'dev'
     options.configFile = "./config/#{options.configFile}.coffee"
 
   configFile = normalizeConfigPath options.configFile
   config = require configFile
-  configureBroker options, ->
-    broker = spawn './broker/start.sh'
-    serverSupervisor = spawn KODING_CAKE, [
-      './server',
-      '-c', configFile
-      'run'
-    ]
-    socialSupervisor = spawn KODING_CAKE, [
-      './workers/social'
-      '-c', configFile
-      '-n', config.social.numberOfWorkers
-      'run'
-    ]
-    pipeStd(
-      broker
-      serverSupervisor
-      socialSupervisor
-    )
+  if config.runBroker
+    configureBroker options, run
 
 task 'buildAll',"build chris's modules", ->
 

@@ -41,18 +41,30 @@ AccountMixin = do ->
 
       listenerId = 0
 
-      request =(kiteName, method, args, onMethod='once')-> 
-        callbackId = listenerId++
+      channels = {}
+
+      scrub = (method, args, callback) ->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
           scrubbed = scrubber.toDnodeProtocol()
           scrubbed.method or= method
+          callback scrubbed
+
+      request =(kiteName, method, args, onMethod='on')-> 
+        scrub method, args, (scrubbed) ->
+          declaredBefore = channels[getChannelName(kiteName)]
+          fetchChannel kiteName, (channel)->
+            unless declaredBefore?
+              channel[onMethod](
+                "reply-client-message",
+                messageHandler.bind null, kiteName
+              )
+            channel.emit "client-message", JSON.stringify(scrubbed)
+
+      response = (kiteName, method, args) ->
+        scrub method, args, (scrubbed) ->
           fetchChannel kiteName, (channel)=>
-            channel[onMethod](
-              "reply-client-message.#{callbackId}",
-              messageHandler.bind null, kiteName
-            )
-            channel.emit "client-message.#{callbackId}", JSON.stringify(scrubbed)
+            channel.emit "client-message", JSON.stringify(scrubbed)
 
       messageHandler =(kiteName, args) ->
         callback = localStore.get(args.method)
@@ -60,19 +72,47 @@ AccountMixin = do ->
         unscrubbed = scrubber.unscrub args, (callbackId)->
           unless remoteStore.has callbackId
             remoteStore.add callbackId, ->
-              request kiteName, callbackId, [].slice.call arguments
+              response kiteName, callbackId, [].slice.call(arguments)
           remoteStore.get callbackId
         callback.apply @, unscrubbed
 
       getChannelName =(kiteName)-> "private-kite-#{kiteName}"
 
-      fetchChannel =(kiteName, callback)->  
-        KD.remote.fetchChannel getChannelName(kiteName), callback
+      # A helper to delay a call until some condition is met
+      # Types:
+      #  condition = func() -> boolean
+      #  delay = integer (optional), default is 100ms.
+      #  callback = func()
+      waitUntil = (condition, delay, callback) ->
+        unless callback
+          callback = delay
+          delay = 100
+        g = ->
+          if condition()
+            callback()
+            clearInterval h
+        h = setInterval g, delay
+
+      fetchChannel =(kiteName, callback)-> 
+        channelName = getChannelName(kiteName)
+        unless channels[channelName]
+          # Use a cheap hack to ensure the next immediate call to
+          # this will not fetch channel again
+          channels[channelName] = true
+          KD.remote.fetchChannel channelName, (channel) ->
+            channels[channelName] = channel
+            callback channel
+        else
+          # Because we set channels[channelName] to true when there
+          # are consecutive calls to this, we want it to be a Channel
+          # instead, so we wait until the first call is finish.
+          condition = -> channels[channelName] instanceof Channel
+          waitUntil condition, ->
+            callback channels[channelName]
 
       (options, callback=->)->
         scrubber = new Scrubber localStore
         args = [options, callback]
         {method} = options
-        onMethod = if options.autoCull is false then 'on' else 'once'
         delete options.autoCull
-        request options.kiteName, method, args, onMethod
+        request options.kiteName, method, args
