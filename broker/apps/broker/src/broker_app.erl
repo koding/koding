@@ -44,8 +44,8 @@ start() ->
     application:start(ssl),
     application:start(sockjs),
     application:start(cowboy),
-
-    application:start(broker).
+    %lager:start(),
+    application:start(broker, permanent).
 
 start(_StartType, _StartArgs) ->
     PidFile = get_env(pid_file, "./broker.pid"),
