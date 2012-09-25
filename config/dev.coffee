@@ -1,5 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
+colors = require 'colors'
 
 deepFreeze = require 'koding-deep-freeze'
 
@@ -67,4 +68,7 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
       vhost         : rabbitVhost
+  vhostConfigurator:
+    uri         : 'http://zb.koding.com:3008/addVhost'
+    webPort     : 3008
   pidFile           : '/tmp/koding.server.pid'

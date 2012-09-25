@@ -61,4 +61,14 @@ module.exports = deepFreeze
       login     : 'guest'
       password  : 'guest'
       vhost     : '/'
+  vhostConfigurator:
+    explanation :\
+      """
+      Important!  because the dev rabbitmq instance is shared, you
+      need to choose a name for your vhost.  You appear not to
+      have a vhost associated with this repository. Generally
+      speaking, your first name is a good choice.
+      """.replace /\n/g, ' '
+    uri         : 'http://localhost:3008/addVhost'
+    webPort     : 3008
   pidFile       : '/tmp/koding.server.pid'
