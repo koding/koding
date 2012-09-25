@@ -191,11 +191,9 @@ task 'configureRabbitMq',->
 expandConfigFile = (short)->
   switch short
     when "dev","prod","local","stage"
-      long = "./config/#{options.configFile}.coffee"
+      long = "./config/#{short}.coffee"
     else
       short
-
-
 
 configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
