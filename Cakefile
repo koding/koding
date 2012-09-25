@@ -242,14 +242,14 @@ run =(options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
- 
+
   processes.run
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
     log     : false
-    
+
   processes.run
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} -n run"
@@ -257,7 +257,7 @@ run =(options)->
     restartInterval : 1000
     log     : false
 
-  
+
 
   pipeStd(
     processes.get "server"
@@ -280,7 +280,7 @@ task 'run', (options)->
   config = require configFile
   queue = []
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next() 
+    queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options
