@@ -31,7 +31,7 @@
 
 %% Cowboy callbacks
 -export([init/3, handle/2, terminate/2]).
--record (client, {id, socket_id, subscriptions=dict:new()}).
+-record (client, {id, socket_id, vhost = none, subscriptions=dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
 -compile([{parse_transform, lager_transform}]).
 
@@ -49,6 +49,8 @@ start() ->
     application:start(broker, permanent).
 
 start(_StartType, _StartArgs) ->
+    %lager:set_loglevel(lager_console_backend, debug),
+
     PidFile = get_env(pid_file, "./broker.pid"),
     ShellPid = os:getpid(),
 
@@ -124,23 +126,41 @@ handle_client(Conn, init, _State) ->
     Payload = {<<"socket_id">>, SocketId},
     Conn:send(jsx:encode([EventProp, Payload])),
 
-    send_system_event(Conn, Event, [Payload]),
-
     {ok, #client{socket_id=SocketId}};
 
+%%--------------------------------------------------------------------
+%% Handle vhost setting from the client
+%%--------------------------------------------------------------------
+handle_client(Conn, {recv, Data},
+                    State=#client{vhost=none,socket_id=SocketId}) ->
+    case jsx:decode(Data) of
+        [{<<"vhost">>, VHost}] ->
+            Event = <<"connected">>,
+            Payload = {<<"socket_id">>, SocketId},
+            send_system_event(Conn, Event, [Payload], VHost),
+            {ok, State#client{vhost=VHost}};
+        _ ->
+            {ok, State}
+    end;
+
+%%--------------------------------------------------------------------
+%% Handle receiving data when vhost is set
+%%--------------------------------------------------------------------
 handle_client(Conn, {recv, Data}, 
-                    State=#client{subscriptions=Subscriptions}) ->
+                    State=#client{subscriptions=Subscriptions,
+                    vhost=VHost}) ->
+
     [Event, Exchange, _Payload, _Meta] = Decoded = decode(Data),
     Check = {Event, dict:is_key(Exchange, Subscriptions)},
-    NewSubs = handle_event(Conn, Check, Decoded, Subscriptions),
+    NewSubs = handle_event(Conn, Check, Decoded, Subscriptions, VHost),
     {ok, State#client{subscriptions=NewSubs}};
 
-handle_client(Conn, closed, #client{socket_id=SocketId,
+handle_client(Conn, closed, #client{socket_id=SocketId,vhost=VHost,
                                     subscriptions=Subscriptions}) ->
     Event = <<"disconnected">>,
     Sid = {<<"socket_id">>, SocketId},
     Exchanges = {<<"exchanges">>, dict:fetch_keys(Subscriptions)},
-    send_system_event(Conn, Event, [Sid, Exchanges]),
+    send_system_event(Conn, Event, [Sid, Exchanges], VHost),
 
     Handler = fun
         (Sub) ->
@@ -161,15 +181,15 @@ handle_client(_Conn, Other, State) ->
     io:format("Other data ~p~n", [Other]),
     {ok, State}.
 
-handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs) ->
+handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs, VHost) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
-    case broker:subscribe(Conn, Exchange) of
+    case broker:subscribe(Conn, Exchange, VHost) of
         {error, _Error} -> Subs;
         {ok, Subscription} ->
             dict:store(Exchange, Subscription, Subs)
     end;
 
-handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
+handle_event(Conn, {<<"client-presence">>, false}, Data, Subs, VHost) ->
     [_Event, Where, Who, _Meta] = Data,
     % This only acts as a key so that it can be used to
     % remove the subscription later from the dictionary.
@@ -179,32 +199,32 @@ handle_event(Conn, {<<"client-presence">>, false}, Data, Subs) ->
             broker:unsubscribe(Subscription),
             dict:erase(Exchange, Subs);
         error ->
-            case broker:presence(Conn, Where, Who) of
+            case broker:presence(Conn, Where, Who, VHost) of
                 {error, _Error} -> Subs;
                 {ok, Subscription} ->            
                     dict:store(Exchange, Subscription, Subs)
             end
     end;
 
-handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs, _) ->
     [_Event, Exchange, Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:bind(Subscription, Payload),
     Subs;
 
-handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs, _) ->
     [_Event, Exchange, Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:unbind(Subscription, Payload),
     Subs;
 
-handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs, _) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
     Subscription = dict:fetch(Exchange, Subs),
     broker:unsubscribe(Subscription),
     dict:erease(Exchange, Subs);
 
-handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
+handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs, _) ->
     [Event, Exchange, Payload, Meta] = Data,
     RegExp = "^secret-",
     case re:run(Exchange, RegExp) of
@@ -215,16 +235,16 @@ handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs) ->
             Subs
     end;
 
-handle_event(_Conn, _Else, _Data, Subs) ->
+handle_event(_Conn, _Else, _Data, Subs, _) ->
     Subs.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
 
-send_system_event(Conn, Event, Payload) ->
+send_system_event(Conn, Event, Payload, VHost) ->
     SystemExchange = get_env(system_exchange, <<"private-broker">>),
-    {ok, Subscription} = broker:subscribe(Conn, SystemExchange),
+    {ok, Subscription} = broker:subscribe(Conn, SystemExchange, VHost),
     broker:trigger(Subscription, Event, jsx:encode(Payload), []),
     broker:unsubscribe(Subscription).
 
