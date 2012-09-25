@@ -158,24 +158,29 @@ class ContentDisplayDiscussion extends KDView
 
         # Create new JOpinion and convert JSON into Object
 
-        newOpinion = new bongo.api.JOpinion
-        opinionData = JSON.parse(reply.opinionData)
+        # newOpinion = new bongo.api.JOpinion
+        # opinionData = JSON.parse(reply.opinionData)
 
         # Copy JSON data to the newly created JOpinion
 
-        for variable of opinionData
-          newOpinion[variable] = opinionData[variable]
+        # for variable of opinionData
+        #   newOpinion[variable] = opinionData[variable]
 
         # Updating the local data object, then adding the item to the box
         # and increasing the count box
 
 
-        unless newOpinion.originId is KD.whoami().getId()
+        # unless newOpinion.originId is KD.whoami().getId()
+        unless reply.replier.id is KD.whoami().getId()
 
-          if data.opinions?
-            data.opinions.push newOpinion
-          else
-            data.opinions = [newOpinion]
+          # Manually add the opinion to the data...
+
+          # if data.opinions?
+          #   unless data.opinions.indexOf newOpinion is -1
+          #     data.opinions.push newOpinion
+          # else
+          #   data.opinions = [newOpinion]
+
           # The following line would add the new Opinion to the View
           # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
 
@@ -186,6 +191,16 @@ class ContentDisplayDiscussion extends KDView
 
         @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
 
+    activity.on "OpinionWasRemoved",(args)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+    activity.on "ReplyIsRemoved", (replyId)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+      for item,i in @opinionBox.opinionList.items
+        if item.getData()._id is replyId
+          item.hide()
+          item.destroy()
 
   opinionHeaderCountString:(count)=>
     if count is 0
@@ -194,11 +209,6 @@ class ContentDisplayDiscussion extends KDView
       countString = "One Answer"
     else
       countString = count+ " Answers"
-
-    # if @newAnswers is 1
-    #   countString+=" (One new Answer)"
-    # else if @newAnswers > 1
-    #   countString+=" ("+@newAnswers+" new Answers)"
 
     '<span class="opinion-count">'+countString+'</span>'
 
