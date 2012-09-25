@@ -19,7 +19,6 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     data.on 'ReplyIsAdded', (reply)=>
 
-      # JDiscussion needs the new Opinion
       if data.bongo_.constructorName is "JDiscussion"
 
         # Why this workaround, you ask?
@@ -28,30 +27,46 @@ class DiscussionActivityItemView extends ActivityItemChild
         #  without JSONifying it locks up the UI for up to 10 seconds.
 
         # Create new JOpinion and convert JSON into Object
-        newOpinion = new bongo.api.JOpinion
-        opinionData = JSON.parse(reply.opinionData)
+
+        # newOpinion = new bongo.api.JOpinion
+        # opinionData = JSON.parse(reply.opinionData)
 
         # Copy JSON data to the newly created JOpinion
-        for variable of opinionData
-          newOpinion[variable] = opinionData[variable]
+
+        # for variable of opinionData
+        #   newOpinion[variable] = opinionData[variable]
 
         # Updating the local data object, then adding the item to the box
         # and increasing the count box
 
-        if data.opinions?
-          data.opinions.push newOpinion
-        else
-          data.opinions = [newOpinion]
+        # if data.opinions?
+        #   unless data.opinions.indexOf newOpinion is -1
+        #     data.opinions.push newOpinion
+        # else
+        #   data.opinions = [newOpinion]
 
         # The following line would add the new Opinion to the View
         # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
 
-        @opinionBox.opinionList.emit "NewOpinionHasArrived"
+        unless reply.replier.id is KD.whoami().getId()
+          @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
     , data
 
+    data.on "ReplyIsRemoved",(replyId)=>
+
+      # this will remove the item from the list if the data doesnt
+      # contain it anymore, but the list does. the next snapshot refresh
+      # will be okay
+      # ! This is needed, because the "OpinionIsDeleted" event isnt available
+      # for newly added JOpinions, for some reason. --arvid
+
+      for item,i in @opinionBox.opinionList.items
+        if item.getData()._id is replyId
+          item.hide()
+          item.destroy()
 
   viewAppended:()->
     return if @getData().constructor is bongo.api.CDiscussionActivity

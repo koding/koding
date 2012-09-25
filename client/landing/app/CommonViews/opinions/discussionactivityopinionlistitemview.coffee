@@ -14,10 +14,15 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
 
     data = @getData()
 
-    log "data is", data
+    data.on "OpinionIsDeleted",(opinion)=>
 
-    data.on "OpinionIsDeleted",(mew)=>
-      log " I AM DELETE!"
+      # removing opinion from the data until teaser is refreshed
+      opinions = @parent.getData().opinions
+      i = opinions.indexOf data
+      opinions.splice i,1
+
+      #removing item from the view
+      @destroy()
 
     @actionLinks = new OpinionActivityActionsView
       delegate : @

@@ -10,6 +10,11 @@ class OpinionListItemView extends KDListItemView
 
     data = @getData()
 
+    # listener for when this gets deleted by the creator JAccount
+    data.on "OpinionIsDeleted", (things)=>
+      @hide()
+      delete @
+
     originId    = data.getAt('originId')
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
@@ -189,8 +194,13 @@ class OpinionListItemView extends KDListItemView
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'OpinionIsDeleted', data
+
+                # tell the JDiscussion what happened
+                @getDelegate().getData().emit "OpinionWasRemoved",yes
+
+                # this destroys the listviewitem itself
                 @destroy()
+
               else @show()
 
               if err then new KDNotificationView
