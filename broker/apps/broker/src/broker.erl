@@ -18,6 +18,7 @@
 -define (SERVER, ?MODULE).
 
 -include_lib("amqp_client/include/amqp_client.hrl").
+-compile([{parse_transform, lager_transform}]).
 
 %%====================================================================
 %% API
