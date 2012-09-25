@@ -37,6 +37,8 @@ module.exports = class Likeable
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': 1), (err)->
+                  console.log err if err
                 @fetchActivityId? (err, id)->
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
@@ -59,3 +61,5 @@ module.exports = class Likeable
                 console.log err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': -1), (err)->
+                  console.log err if err
