@@ -147,7 +147,7 @@ class Members12345 extends AppController
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
 
   createLikedContentDisplay:(account)->
-    newView = (new MembersLikedContentDisplayView cssClass : "content-display")
+    newView = (new MembersLikedContentDisplayView cssClass : "content-display likes")
     newView.createCommons account
     @createLikedFeedForContentDisplay newView, account
 
