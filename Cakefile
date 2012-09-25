@@ -196,8 +196,6 @@ expandConfigFile = (short="dev")->
     else
       short
 
-
-
 configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
