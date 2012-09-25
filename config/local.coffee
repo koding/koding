@@ -8,8 +8,10 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 # DEV database
 mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
+projectRoot = nodePath.join __dirname, '..'
+
 module.exports = deepFreeze
-  projectRoot: nodePath.join __dirname, '..'
+  projectRoot   : projectRoot
   version       : version
   webPort       : 3000
   mongo         : mongo
@@ -56,7 +58,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'logger'
-      password  : 'logger'
-      vhost     : 'logs'
+      login     : 'guest'
+      password  : 'guest'
+      vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'

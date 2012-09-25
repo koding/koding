@@ -218,6 +218,7 @@ configureBroker = (options,callback=->)->
       {mq_host, "#{config.mq.host}"},
       {mq_user, <<"#{config.mq.login}">>},
       {mq_pass, <<"#{config.mq.password}">>},
+      {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
       {verbose, true},
       {privateRegEx, ".private$"},
