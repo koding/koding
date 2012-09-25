@@ -240,6 +240,8 @@ class JAccount extends jraphical.Module
         teasers = []
         collectTeasers = bongo.race (i, root, fin)->
           root.fetchSource (err, teaser)->
+            if not teaser
+              console.warn "Source does not exists:", root.sourceName, root.sourceId
             if err then callback err
             else
               teasers.push(teaser) if teaser
