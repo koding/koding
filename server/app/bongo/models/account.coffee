@@ -44,7 +44,7 @@ class JAccount extends jraphical.Module
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit'
+        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKiteClusters','setKiteConnection','flagAccount','unflagAccount'
@@ -222,6 +222,30 @@ class JAccount extends jraphical.Module
       callback new KodingError 'Access denied.'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
+
+  fetchLikedContents: secure ({connection}, options, selector, callback)->
+
+    {delegate} = connection
+    [callback, selector] = [selector, callback] unless callback
+
+    selector            or= {}
+    selector.as           = 'like'
+    selector.targetId     = @getId()
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+
+    Relationship.some selector, options, (err, contents)=>
+      if err then callback err, []
+      else if contents.length is 0 then callback null, []
+      else
+        teasers = []
+        collectTeasers = bongo.race (i, root, fin)->
+          root.fetchSource (err, teaser)->
+            if err then callback err
+            else
+              teasers.push(teaser) if teaser
+              fin()
+        , -> callback null, teasers
+        collectTeasers node for node in contents
 
   dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
 
