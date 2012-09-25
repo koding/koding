@@ -450,6 +450,10 @@ class COpinionActivity extends CActivity
         targetType  : JOpinion
         as          : 'opinion'
 
+  # --------------------------------------------------------------------
+  # This is what the CCommentActivity does - is not ready for use yet
+  # --------------------------------------------------------------------
+  # --arvid
 
   # {Relationship} = jraphical
 
