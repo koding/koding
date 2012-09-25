@@ -136,6 +136,7 @@ buildClient =(configFile, callback=->)->
             builder.watcher.start 1000
           else
             log.info "Done building client"
+          callback null
 
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
@@ -156,9 +157,7 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  if options.configFile is 'dev'
-    options.configFile = "./config/#{options.configFile}.coffee"
-  configFile = normalizeConfigPath options.configFile
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   buildClient configFile
 
 task 'configureRabbitMq',->
@@ -196,8 +195,6 @@ expandConfigFile = (short="dev")->
       long = "./config/#{short}.coffee"
     else
       short
-
-
 
 configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
@@ -239,6 +236,7 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
+  console.log "am i here?"
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
@@ -252,7 +250,7 @@ run =(options)->
 
   processes.run
     name    : 'server'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} -n run"
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
     log     : false
