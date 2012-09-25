@@ -37,6 +37,16 @@ class OwnProfileView extends KDView
         appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
+    @likes = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      pistachio   : "{{#(counts.likes)}} <span>Likes</span>"
+      click       : (event)->
+        return if memberData.counts.following is 0
+        appManager.tell "Members", "createLikedContentDisplay", memberData
+    , memberData
+
     @aboutYou     = new PersonalFormAboutView {memberData}
     @skillTagView = new PersonalFormSkillTagView {memberData}
 
@@ -70,6 +80,9 @@ class OwnProfileView extends KDView
           </div>
           <div class="fing">
             {{> @following}}
+          </div>
+          <div class="fing">
+            {{> @likes}}
           </div>
         </div>
 
