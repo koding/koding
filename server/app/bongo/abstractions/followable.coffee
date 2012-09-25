@@ -80,7 +80,8 @@ class Followable extends jraphical.Module
               followingCount  : @getAt('counts.following')
               newFollower     : follower
 
-            follower.updateFollowingCount()
+            follower.updateFollowingCount()# @constructor.name
+
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
@@ -142,7 +143,16 @@ class Followable extends jraphical.Module
           callback err, accounts
 
   updateFollowingCount: ()->
-    Relationship.count targetId:@_id, as:'follower', (error, count)=>
+  # updateFollowingCount: (sourceType)->
+
+    # Relationship.count targetId:@_id, as:'follower',(error, count)=>
+    #   bongo.Model::update.call @, $set: 'counts.following': count, (err)->
+    #     throw err if err
+    #   @emit 'FollowCountChanged'
+    #     followerCount   : @getAt('counts.followers')
+    #     followingCount  : @getAt('counts.following')
+
+    Relationship.count targetId:@_id, as:'follower',(error, count)=>
       bongo.Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
