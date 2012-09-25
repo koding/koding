@@ -148,7 +148,6 @@ class ContentDisplayDiscussion extends KDView
 
     activity.on 'ReplyIsAdded',(reply)=>
 
-      # JDiscussion needs the new Opinion
       if data.bongo_.constructorName is "JDiscussion"
 
         # Why this workaround, you ask?

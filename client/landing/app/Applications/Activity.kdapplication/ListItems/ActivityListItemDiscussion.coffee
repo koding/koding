@@ -21,6 +21,8 @@ class DiscussionActivityItemView extends ActivityItemChild
 
       if data.bongo_.constructorName is "JDiscussion"
 
+        # This would add the actual items to the views once posted
+        #
         # Why this workaround, you ask?
         #
         #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
@@ -57,10 +59,10 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     data.on "ReplyIsRemoved",(replyId)=>
 
-      # this will remove the item from the list if the data doesnt
+      # this will remove the item from the list if the data doesn't
       # contain it anymore, but the list does. the next snapshot refresh
       # will be okay
-      # ! This is needed, because the "OpinionIsDeleted" event isnt available
+      # ! This is needed, because the "OpinionIsDeleted" event isn't available
       # for newly added JOpinions, for some reason. --arvid
 
       for item,i in @opinionBox.opinionList.items
@@ -81,7 +83,6 @@ class DiscussionActivityItemView extends ActivityItemChild
       @$("div.view-full-discussion").show()
     else
       @$("div.view-full-discussion").hide()
-
 
   render:->
     super()
