@@ -81,7 +81,7 @@ class OwnProfileView extends KDView
           <div class="fing">
             {{> @following}}
           </div>
-          <div class="fing">
+          <div class="liks">
             {{> @likes}}
           </div>
         </div>
