@@ -174,7 +174,9 @@ handle_info(_Info, State) ->
 %% cleaning up. When it returns, the gen_server terminates with Reason.
 %% The return value is ignored.
 %%--------------------------------------------------------------------
-terminate(_Reason, _State) ->
+terminate(_Reason, Connection) ->
+    lager:info("Broker server dies, closing connection ~p", [Connection]),
+    amqp_connection:close(Connection),
     ok.
 
 %%--------------------------------------------------------------------
