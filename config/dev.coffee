@@ -7,28 +7,32 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
 
+projectRoot = nodePath.join __dirname, '..'
+
+rabbitVhost = fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+
 module.exports = deepFreeze
-  projectRoot: nodePath.join __dirname, '..'
-  version   : version
-  webPort   : 3000
-  mongo     : mongo
-  runBroker : no
-  configureBroker : no
-  buildClient : yes
-  social    :
+  projectRoot   : projectRoot
+  version       : version
+  webPort       : 3000
+  mongo         : mongo
+  runBroker     : no
+  configureBroker: no
+  buildClient   : yes
+  social        :
     numberOfWorkers: 1
-    watch   : yes
-  client    :
-    version : version
-    minify  : no
-    watch   : yes
-    js      : "./website/js/kd.#{version}.js"
-    css     : "./website/css/kd.#{version}.css"
+    watch       : yes
+  client        :
+    version     : version
+    minify      : no
+    watch       : yes
+    js          : "./website/js/kd.#{version}.js"
+    css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
-    index   : "./website/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
-    useStaticFileServer : no
+    useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
       version   : version
@@ -44,7 +48,7 @@ module.exports = deepFreeze
     host        : 'zb.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
-    vhost       : '/'
+    vhost       : rabbitVhost
     pidFile     : '/var/run/broker.pid'
   email         :
     host        : 'localhost'
@@ -61,5 +65,5 @@ module.exports = deepFreeze
       host          : 'zb.koding.com'
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
-      vhost         : '/'
+      vhost         : rabbitVhost
   pidFile           : '/tmp/koding.server.pid'
