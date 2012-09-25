@@ -67,6 +67,9 @@ class JAccount extends jraphical.Module
         topics              :
           type              : Number
           default           : 0
+        likes               :
+          type              : Number
+          default           : 0
       environmentIsCreated  : Boolean
       profile               :
         about               : String
