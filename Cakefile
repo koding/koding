@@ -129,7 +129,7 @@ buildClient =(configFile, callback=->)->
     builder.buildClient "",()->
       builder.buildCss "",()->
         builder.buildIndex "",()->
-          if config.client.watch is yes            
+          if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
@@ -178,12 +178,12 @@ task 'configureRabbitMq',->
             d = c.split "\n"
             for line in d
               if line.indexOf("/plugins") > 0
-                e = line 
+                e = line
                 break
             e = e.trim().replace /"|]|,/g,""
             rabbitMqPluginPath = e
             exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
-              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)-> 
+              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)->
                 console.log a,b,c
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
@@ -191,7 +191,7 @@ task 'configureRabbitMq',->
 expandConfigFile = (short)->
   switch short
     when "dev","prod","local","stage"
-      long = "./config/#{options.configFile}.coffee"
+      long = "./config/#{short}.coffee"
     else
       short
 

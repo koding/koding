@@ -9,10 +9,10 @@ class ActivitySplitView extends SplitView
 
   _windowDidResize:()=>
     super
-    welcomeHeaderHeight = @$().siblings('h1').outerHeight()
-    # updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight()  # split margin top
-
+    welcomeHeaderHeight = @$().siblings('h1').outerHeight(no)
+    # updateWidgetHeight  = @$().siblings('.activity-update-widget-wrapper').outerHeight(no)  # split margin top
+    log @, @parent.getHeight() - 77 - (welcomeHeaderHeight or 0)
     @$().css
       marginTop : 77 # updateWidgetHeight
-      height    : @parent.getHeight() - welcomeHeaderHeight - 77
+      height    : @parent.getHeight() - (welcomeHeaderHeight or 0) - 77
 
