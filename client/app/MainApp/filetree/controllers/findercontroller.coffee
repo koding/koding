@@ -24,9 +24,10 @@ class NFinderController extends KDViewController
 
     super options, data
 
-    @kiteController = @getSingleton('kiteController')
-    @treeController = new NFinderTreeController treeOptions, []
+    KDObject.on "singleton.kiteController.registered",=>
+      @kiteController = @getSingleton('kiteController')
 
+    @treeController = new NFinderTreeController treeOptions, []
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
     @treeController.on "folder.expanded", (folder)=> @setRecentFolder folder.path
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
