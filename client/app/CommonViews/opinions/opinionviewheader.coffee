@@ -14,6 +14,8 @@ class OpinionViewHeader extends JView
     @newCount         = 0
     @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
+    # The snapshot view should always have a visible Header
+
     if @parent?.constructor is not DiscussionActivityOpinionView
       unless data.repliesCount? and data.repliesCount > @maxCommentToShow
         @onListCount = data.repliesCount
@@ -102,7 +104,9 @@ class OpinionViewHeader extends JView
 
     @updateRemainingText()
 
-    # this will hide the bar in the CD when there is nothing there yet
+    # This will hide the bar in the CD when there is nothing there yet. Once
+    # content pops up, the event handling it will show the bar again
+
     if @parent?.constructor is OpinionView
       @hide() if @getData().repliesCount is 0
 
