@@ -83,6 +83,10 @@ rpc(Subscription, RoutingKey, Payload) ->
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
 init([Connection]) ->
+    % To know when the supervisor shuts down. In that case, this
+    % terminate function will be called to give the gen_server a chance
+    % to clean up.
+    process_flag(trap_exit, true),
     {ok, Connection}.
 
 %%--------------------------------------------------------------------
