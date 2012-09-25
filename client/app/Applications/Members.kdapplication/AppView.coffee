@@ -69,21 +69,6 @@ class MembersListGroupSortItem extends KDListItemView
 #     # searchArea.search()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class MembersListItemView extends KDListItemView
   constructor:(options,data)->
     options = options ? {}
