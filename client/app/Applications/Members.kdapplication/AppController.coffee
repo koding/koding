@@ -107,6 +107,50 @@ class Members12345 extends AppController
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
 
+  createLikedFeedForContentDisplay:(view, account)->
+
+    appManager.tell 'Feeder', 'createContentFeedController', {
+      subItemClass          : ActivityListItemView
+      listCssClass          : "activity-related"
+      limitPerPage          : 8
+      help                  :
+        subtitle            : "Learn Personal feed"
+        tooltip             :
+          title             : "<p class=\"bigtwipsy\">This is the liked feed of a single Koding user.</p>"
+          placement         : "above"
+      filter                :
+        everything          :
+          title             : "Everything"
+          dataSource        : (selector, options, callback)=>
+            account.fetchLikedContents options, callback
+        statusupdates       :
+          title             : 'Status Updates'
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JStatusUpdate']}
+            account.fetchLikedContents options, selector, callback
+        codesnippets        :
+          title             : 'Code Snippets'
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JCodeSnip']}
+            account.fetchLikedContents options, selector, callback
+      sort                :
+        'timestamp|new'   :
+          title           : 'Latest activity'
+          direction       : -1
+        'timestamp|old'   :
+          title           : 'Most activity'
+          direction       : 1
+    }, (controller)=>
+
+      view.addSubView controller.getView()
+      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+
+  createLikedContentDisplay:(account)->
+    newView = (new MembersLikedContentDisplayView cssClass : "content-display")
+    newView.createCommons account
+    @createLikedFeedForContentDisplay newView, account
+
   loadView:(mainView, firstRun = yes)->
     if firstRun
       mainView.on "searchFilterChanged", (value) =>

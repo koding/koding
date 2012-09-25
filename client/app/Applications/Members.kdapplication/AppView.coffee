@@ -199,8 +199,30 @@ class MembersLocationView extends KDCustomHTMLView
     locations = @getData()
     @setPartial locations?[0] or ''
 
+class MembersLikedContentDisplayView extends KDView
+  constructor:(options={}, data)->
+    options = $.extend
+      view : mainView = new KDView
+      cssClass : 'member-followers content-page-members'
+    ,options
 
+    super options, data
 
+  createCommons:(account)->
+    headerTitle = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+    @addSubView header = new HeaderViewSection type : "big", title : headerTitle
+    @listenWindowResize()
+
+    @addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
+    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+
+    contentDisplayController = @getSingleton "contentDisplayController"
+
+    @listenTo
+      KDEventTypes : "click"
+      listenedToInstance : backLink
+      callback : ()=>
+        contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
 
 class MembersContentDisplayView extends KDView
   constructor:(options={}, data)->
