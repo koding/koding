@@ -33,6 +33,7 @@
 -export([init/3, handle/2, terminate/2]).
 -record (client, {id, socket_id, subscriptions=dict:new()}).
 -include_lib("amqp_client/include/amqp_client.hrl").
+-compile([{parse_transform, lager_transform}]).
 
 %% ===================================================================
 %% Application callbacks

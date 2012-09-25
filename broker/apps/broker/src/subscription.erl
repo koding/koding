@@ -23,6 +23,7 @@
 -define (SERVER, ?MODULE).
 -define (MESSAGE_TTL, 5000).
 -include_lib("amqp_client/include/amqp_client.hrl").
+-compile([{parse_transform, lager_transform}]).
 
 %%====================================================================
 %% API
