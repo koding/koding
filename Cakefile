@@ -255,8 +255,6 @@ run =(options)->
     restartInterval : 1000
     log     : false
 
-  
-
   pipeStd(
     processes.get "server"
     processes.get "social"
