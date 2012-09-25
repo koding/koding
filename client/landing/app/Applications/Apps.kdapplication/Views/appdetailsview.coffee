@@ -28,7 +28,7 @@ class AppDetailsView extends KDScrollView
     @_windowDidResize()
 
   _windowDidResize:=>
-    @setHeight @parent.getHeight() - @parent.$('.kdview.profilearea').outerHeight() - @parent.$('>h2').outerHeight()
+    @setHeight @parent.getHeight() - @parent.$('.kdview.profilearea').outerHeight(no) - @parent.$('>h2').outerHeight(no)
 
   click:(event)->
 
