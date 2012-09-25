@@ -83,7 +83,7 @@ start(_StartType, _StartArgs) ->
         cowboy_http_protocol, [{dispatch, Routes}]
     ),
 
-    broker_sup:start_link().
+    app_sup:start_link().
 
 stop(_State) ->
     ok.
