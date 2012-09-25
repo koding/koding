@@ -14,11 +14,12 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = require "processes"
+processes   = new (require "processes")
+{daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
 nodePath      = require 'path'
-
+Watcher       = require "koding-watcher"
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -119,6 +120,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
+  configFile = normalizeConfigPath expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -134,6 +136,7 @@ buildClient =(configFile, callback=->)->
             builder.watcher.start 1000
           else
             log.info "Done building client"
+          callback null
 
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
@@ -154,9 +157,7 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  if options.configFile is 'dev'
-    options.configFile = "./config/#{options.configFile}.coffee"
-  configFile = normalizeConfigPath options.configFile
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   buildClient configFile
 
 task 'configureRabbitMq',->
@@ -188,14 +189,12 @@ task 'configureRabbitMq',->
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
 
-expandConfigFile = (short)->
+expandConfigFile = (short="dev")->
   switch short
     when "dev","prod","local","stage"
-      long = "./config/#{options.configFile}.coffee"
+      long = "./config/#{short}.coffee"
     else
       short
-
-
 
 configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
@@ -237,30 +236,51 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
+  console.log "am i here?"
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
-  serverSupervisor = spawn KODING_CAKE, [
-    './server',
-    '-c', configFile
-    'run'
-  ]
-  socialSupervisor = spawn KODING_CAKE, [
-    './workers/social'
-    '-c', configFile
-    '-n', config.social.numberOfWorkers
-    'run'
-  ]
+ 
+  processes.run
+    name    : 'social'
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    restart : yes
+    restartInterval : 1000
+    log     : false
+    
+  processes.run
+    name    : 'server'
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    restart : yes
+    restartInterval : 1000
+    log     : false
+
   pipeStd(
-    serverSupervisor
-    socialSupervisor
+    processes.get "server"
+    processes.get "social"
   )
+  if config.social.watch? is yes
+    watcher = new Watcher
+      groups:
+        social :
+          folders : ['./workers/social']
+          onChange : (path) ->
+            processes.kill "social"
+        server :
+          folders : ['./server']
+          onChange : ->
+            processes.kill "server"
 
 task 'run', (options)->
-  if options.configureBroker
-    configureBroker options, run.bind(null, options)
-  else
-    run options
+  configFile = normalizeConfigPath expandConfigFile options.configFile
+  config = require configFile
+  queue = []
+  if options.buildClient ? config.buildClient
+    queue.push -> buildClient options.configFile, -> queue.next() 
+  if options.configureBroker ? config.configureBroker
+    queue.push -> configureBroker options, -> queue.next()
+  queue.push -> run options
+  daisy queue
 
 task 'buildAll',"build chris's modules", ->
 
