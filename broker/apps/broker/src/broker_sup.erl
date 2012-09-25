@@ -45,7 +45,7 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    RestartStrategy = one_for_one,
+    RestartStrategy = one_for_all,
     MaxR = 5, 
     MaxT = 10,
     {ok, { {RestartStrategy, MaxR, MaxT}, 

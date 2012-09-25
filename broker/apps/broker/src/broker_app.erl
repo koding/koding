@@ -44,7 +44,7 @@ start() ->
     application:start(ssl),
     application:start(sockjs),
     application:start(cowboy),
-    %lager:start(),
+    lager:start(),
     application:start(broker, permanent).
 
 start(_StartType, _StartArgs) ->
@@ -230,7 +230,7 @@ send_system_event(Conn, Event, Payload) ->
 debug_log(Text, Args) ->
     case application:get_env(broker, verbose) of
         {ok, Val} when Val ->
-            io:format(Text, Args);
+            lager:info(Text, Args);
         _ -> true
     end.
 
