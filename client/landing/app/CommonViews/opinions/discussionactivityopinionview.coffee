@@ -15,6 +15,9 @@ class DiscussionActivityOpinionView extends KDView
 
     @opinionController = new OpinionListViewController view: @opinionList
 
+    # the snapshot opinion list gets populated with 2 items at max initially
+    # it may grow in size later on, when the user populates the data object
+    # through loading items in the content display. this is intentional.
     @addSubView @opinionList
     if data.opinions
       for opinion, i in data.opinions when opinion? and 'object' is typeof opinion

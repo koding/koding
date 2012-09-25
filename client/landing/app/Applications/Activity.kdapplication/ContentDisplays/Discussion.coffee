@@ -50,6 +50,11 @@ class ContentDisplayDiscussion extends KDView
 
     @newAnswers = 0
 
+    # Links to easily navigate to the bottom/top of the page
+    # These are useful since the opinions can be quite long, even when shortened
+    # visually, and the ease of access to the form at the bottom is
+    # paramount
+
     # @jumpToReplyLink = new KDCustomHTMLView
     #   tagName     : "a"
     #   partial     : "Scroll to Reply Box"
@@ -73,11 +78,14 @@ class ContentDisplayDiscussion extends KDView
     </div>
     ###
 
-    @staticLinkBox = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Static Link"
-      attributes  :
-        href      : "/discussion/"+@utils.slugify data.title
+    # The static link box will be useful when we have implemented actual
+    # routing to the single ContentTypes
+
+    # @staticLinkBox = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Static Link"
+    #   attributes  :
+    #     href      : "/discussion/"+@utils.slugify data.title
 
     @actionLinks = new DiscussionActivityActionsView
       delegate    : @opinionBox.opinionList
@@ -190,8 +198,14 @@ class ContentDisplayDiscussion extends KDView
 
         @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
 
+    # When the activity gets deleted correctly, it will emit this event,
+    # which leaves only the count of the custom element to be updated
+
     activity.on "OpinionWasRemoved",(args)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+    # in any case, the JDiscussion emits this event as a failsafe. if the deleted
+    # item can still be found in the list, it needs to be removed
 
     activity.on "ReplyIsRemoved", (replyId)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount

@@ -17,6 +17,12 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
+    # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
+    # with the object references to author/origin and so on in the reply
+    # argument. if the new reply is supposed to be added to the client data
+    # structure, then it must be created as a new  JOpinion and then populated
+    # by the data on the reply.opinionData field (JSON of the actual object)
+
     data.on 'ReplyIsAdded', (reply)=>
 
       if data.bongo_.constructorName is "JDiscussion"
@@ -57,12 +63,17 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass    : "activity-opinion-list comment-container"
     , data
 
+    # When an opinion gets deleted, then the removeReply method of JDiscussion
+    # will emit this event. This is a workaround for the OpinionIsDeleted
+    # event not being caught for opinions that are loaded to the client data
+    # structure after the snapshot is loaded
+
     data.on "ReplyIsRemoved",(replyId)=>
 
       # this will remove the item from the list if the data doesn't
       # contain it anymore, but the list does. the next snapshot refresh
       # will be okay
-      # ! This is needed, because the "OpinionIsDeleted" event isn't available
+      # This is needed, because the "OpinionIsDeleted" event isn't available
       # for newly added JOpinions, for some reason. --arvid
 
       for item,i in @opinionBox.opinionList.items
@@ -78,6 +89,11 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     @$("pre").addClass "prettyprint"
     prettyPrint()
+
+    # Here, the maxheight-reliant "View full discussion"-bar is toggled.
+    # The shortened text is not sufficient since it can contain 500 line breaks
+    # or <code> with very high whitespace amount. This keeps the snapshot view
+    # clean.
 
     if @$("p.comment-body").height() >= 250
       @$("div.view-full-discussion").show()
