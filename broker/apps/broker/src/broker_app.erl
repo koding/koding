@@ -44,8 +44,8 @@ start() ->
     application:start(ssl),
     application:start(sockjs),
     application:start(cowboy),
-
-    application:start(broker).
+    lager:start(),
+    application:start(broker, permanent).
 
 start(_StartType, _StartArgs) ->
     PidFile = get_env(pid_file, "./broker.pid"),
@@ -83,7 +83,7 @@ start(_StartType, _StartArgs) ->
         cowboy_http_protocol, [{dispatch, Routes}]
     ),
 
-    broker_sup:start_link().
+    app_sup:start_link().
 
 stop(_State) ->
     ok.
@@ -230,7 +230,7 @@ send_system_event(Conn, Event, Payload) ->
 debug_log(Text, Args) ->
     case application:get_env(broker, verbose) of
         {ok, Val} when Val ->
-            io:format(Text, Args);
+            lager:info(Text, Args);
         _ -> true
     end.
 

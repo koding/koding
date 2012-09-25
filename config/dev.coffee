@@ -12,8 +12,12 @@ module.exports = deepFreeze
   version   : version
   webPort   : 3000
   mongo     : mongo
+  runBroker : no
+  configureBroker : no
+  buildClient : yes
   social    :
     numberOfWorkers: 1
+    watch   : yes
   client    :
     version : version
     minify  : no
@@ -54,8 +58,8 @@ module.exports = deepFreeze
     cleanupCron     : '*/10 * * * * *'
   logger            :
     mq              :
-      host          : 'localhost'
+      host          : 'zb.koding.com'
       login         : 'guest'
-      password      : 'guest'
+      password      : 's486auEkPzvUjYfeFTMQ'
       vhost         : '/'
   pidFile           : '/tmp/koding.server.pid'

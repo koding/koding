@@ -35,7 +35,7 @@ module.exports = deepFreeze
         auth    : 'https://dev.koding.com/auth'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://apps.koding.com'
-      env       : 'stage'
+      env       : 'dev'
   mq            :
     host        : 'localhost'
     login       : 'guest'

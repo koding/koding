@@ -83,6 +83,10 @@ rpc(Subscription, RoutingKey, Payload) ->
 %% Description: Initiates the server
 %%--------------------------------------------------------------------
 init([Connection]) ->
+    % To know when the supervisor shuts down. In that case, this
+    % terminate function will be called to give the gen_server a chance
+    % to clean up.
+    process_flag(trap_exit, true),
     {ok, Connection}.
 
 %%--------------------------------------------------------------------
@@ -170,7 +174,9 @@ handle_info(_Info, State) ->
 %% cleaning up. When it returns, the gen_server terminates with Reason.
 %% The return value is ignored.
 %%--------------------------------------------------------------------
-terminate(_Reason, _State) ->
+terminate(_Reason, Connection) ->
+    lager:info("Broker server dies, closing connection ~p", [Connection]),
+    amqp_connection:close(Connection),
     ok.
 
 %%--------------------------------------------------------------------

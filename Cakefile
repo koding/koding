@@ -1,6 +1,8 @@
 option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
+option '-b', '--runBroker', 'should it run the broker locally?'
+option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
 ProgressBar = require './builders/node_modules/progress'
@@ -12,11 +14,12 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = require "processes"
+processes   = new (require "processes")
+{daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
 nodePath      = require 'path'
-
+Watcher       = require "koding-watcher"
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -96,7 +99,7 @@ clientFileMiddleware  = (options, code, callback)->
         throw err
 
 pipeStd =(children...)->
-  for child in children
+  for child in children when child?
     child.stdout.pipe process.stdout
     child.stderr.pipe process.stderr
 
@@ -117,6 +120,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
+  configFile = normalizeConfigPath expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -131,7 +135,8 @@ buildClient =(configFile, callback=->)->
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
-            log.info "website is ready at #{options.host}:#{options.port}"
+            log.info "Done building client"
+          callback null
 
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
@@ -152,9 +157,7 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  if options.configFile is 'dev'
-    options.configFile = "./config/#{options.configFile}.coffee"
-  configFile = normalizeConfigPath options.configFile
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   buildClient configFile
 
 task 'configureRabbitMq',->
@@ -186,19 +189,18 @@ task 'configureRabbitMq',->
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
 
-expandConfigFile = (short)->
+expandConfigFile = (short="dev")->
   switch short
     when "dev","prod","local","stage"
-      long = "./config/#{options.configFile}.coffee"
+      long = "./config/#{short}.coffee"
     else
       short
-
-
 
 configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
+  console.log 'KONFIG', config.mq.pidFile
   brokerConfig = """
   {application, broker,
    [
@@ -223,53 +225,62 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
-
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
 task 'configureBroker',(options)->
   configureBroker options
 
-task 'run', (options)->
-  if options.configFile is 'dev'
-    options.configFile = "./config/#{options.configFile}.coffee"
-
-  configFile = normalizeConfigPath options.configFile
-  config = require configFile
+task 'buildBroker', (options)->
   configureBroker options, ->
-    broker = spawn './broker/build.sh'
-    serverSupervisor = spawn KODING_CAKE, [
-      './server',
-      '-c', configFile
-      'run'
-    ]
-    socialSupervisor = spawn KODING_CAKE, [
-      './workers/social'
-      '-c', configFile
-      '-n', config.social.numberOfWorkers
-      'run'
-    ]
-    pipeStd(
-      broker
-      serverSupervisor
-      socialSupervisor
-    )
-  # setInterval (->),10000
+    pipeStd(spawn './broker/build.sh')
 
+run =(options)->
+  console.log "am i here?"
+  configFile = normalizeConfigPath expandConfigFile options.configFile
+  config = require configFile
+  pipeStd(spawn './broker/start.sh') if options.runBroker
+ 
+  processes.run
+    name    : 'social'
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    restart : yes
+    restartInterval : 1000
+    log     : false
+    
+  processes.run
+    name    : 'server'
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    restart : yes
+    restartInterval : 1000
+    log     : false
 
-  # broker = spawn './broker/start.sh'
-  # server = spawn 'node', ['server/index.js', '-c', './config.coffee']
-  # social = spawn 'node', ['workers/social/index.js', '-d', options.database or 'mongohq-dev']
-  # logPath = options.logPath ? '/tmp'
-  # procs = {broker, server, social}
-  # if options.runClient
-  #   client = spawn 'cake', ['build']
-  #   procs.push client
-  # for own name, proc of procs
-  #   logFile = fs.createWriteStream("#{logPath}/#{name}.log", flags:'a')
-  #   proc.stdout.pipe(logFile)
-  #   proc.stderr.pipe(logFile)
+  pipeStd(
+    processes.get "server"
+    processes.get "social"
+  )
+  if config.social.watch? is yes
+    watcher = new Watcher
+      groups:
+        social :
+          folders : ['./workers/social']
+          onChange : (path) ->
+            processes.kill "social"
+        server :
+          folders : ['./server']
+          onChange : ->
+            processes.kill "server"
 
+task 'run', (options)->
+  configFile = normalizeConfigPath expandConfigFile options.configFile
+  config = require configFile
+  queue = []
+  if options.buildClient ? config.buildClient
+    queue.push -> buildClient options.configFile, -> queue.next() 
+  if options.configureBroker ? config.configureBroker
+    queue.push -> configureBroker options, -> queue.next()
+  queue.push -> run options
+  daisy queue
 
 task 'buildAll',"build chris's modules", ->
 

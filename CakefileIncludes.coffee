@@ -289,6 +289,16 @@ Includes =
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
+        # webterm
+        WebTermController     : "./client/app/Applications/WebTerm.kdapplication/AppController.coffee"
+        WebTermView           : "./client/app/Applications/WebTerm.kdapplication/AppView.coffee"
+        WebTerm1              : "./client/app/Applications/WebTerm.kdapplication/src/ControlCodeReader.coffee"
+        WebTerm2              : "./client/app/Applications/WebTerm.kdapplication/src/Cursor.coffee"
+        WebTerm3              : "./client/app/Applications/WebTerm.kdapplication/src/InputHandler.coffee"
+        WebTerm4              : "./client/app/Applications/WebTerm.kdapplication/src/ScreenBuffer.coffee"
+        WebTerm5              : "./client/app/Applications/WebTerm.kdapplication/src/StyledText.coffee"
+        WebTerm6              : "./client/app/Applications/WebTerm.kdapplication/src/Terminal.coffee"
+
       ApplicationPageViews :
 
         # ACTIVITY VIEWS
@@ -709,6 +719,8 @@ Includes =
         app1024             : "./client/stylus/app.1024.styl"
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
+
+        WebTermDefaultTheme : "./client/app/Applications/WebTerm.kdapplication/themes/default.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
