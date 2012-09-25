@@ -10,7 +10,7 @@ mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitVhost = fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+rabbitVhost = try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
 
 module.exports = deepFreeze
   projectRoot   : projectRoot

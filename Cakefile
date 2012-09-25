@@ -310,9 +310,7 @@ configureVhost =(config, callback)->
       console.log explanation.bold.red
       commander.prompt 'Please give your vhost a name: ', (name)->
         assureVhost uri, name, vhostFile, callback
-    else
-      console.log 'EEEEEE', e
-      throw e
+    else throw e
 
 task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
