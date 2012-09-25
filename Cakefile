@@ -311,6 +311,7 @@ configureVhost =(config, callback)->
       commander.prompt 'Please give your vhost a name: ', (name)->
         assureVhost uri, name, vhostFile, callback
     else
+      console.log 'EEEEEE', e
       throw e
 
 task 'run', (options)->
