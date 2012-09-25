@@ -250,12 +250,10 @@ run =(options)->
     
   processes.run
     name    : 'server'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} -n run"
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
     log     : false
-
-  
 
   pipeStd(
     processes.get "server"

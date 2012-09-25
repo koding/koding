@@ -21,8 +21,6 @@ app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
-console.log fs.statSync("#{projectRoot}/website/")
-
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   console.error err
