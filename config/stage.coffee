@@ -37,7 +37,7 @@ module.exports = deepFreeze
         sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         auth    : 'https://dev.koding.com/auth'
         vhost   : 'stage'
-      apiUri    : 'https://dev-api.koding.com'
+      apiUri    : 'https://api.koding.com'
       appsUri   : 'https://apps.koding.com'
       env       : 'dev'
   mq            :
