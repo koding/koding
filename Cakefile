@@ -316,12 +316,19 @@ task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   queue = []
+  if config.vhostConfigurator?
+    queue.push -> configureVhost config, -> queue.next()
+    queue.push ->
+      # we need to clear the cache so that other modules will get the
+      # config that reflects our latest changes to the .rabbitvhost file:
+      configModulePath = require.resolve configFile
+      delete require.cache[configModulePath]
+      queue.next()
+
   if options.buildClient ? config.buildClient
     queue.push -> buildClient options.configFile, -> queue.next() 
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
-  if config.vhostConfigurator?
-    queue.push -> configureVhost config, -> queue.next()
   queue.push -> run options
   daisy queue
 
