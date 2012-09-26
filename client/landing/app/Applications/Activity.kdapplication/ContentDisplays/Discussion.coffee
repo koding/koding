@@ -40,12 +40,11 @@ class ContentDisplayDiscussion extends KDView
       callback  : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
+          @opinionForm.submitOpinionBtn.hideLoader()
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
-            @opinionForm.submitOpinionBtn.hideLoader()
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
-            @opinionForm.submitOpinionBtn.hideLoader()
     , data
 
     @newAnswers = 0

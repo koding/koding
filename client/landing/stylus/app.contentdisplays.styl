@@ -375,6 +375,7 @@ app.contentdisplays.styl
   font-weight                                     300
   line-height                                     140%
   color                                           #5F5F5F
+
   h1,h2,h3,h4,h5,h6
     font-size                                     14px
     line-height                                   140%
@@ -390,17 +391,22 @@ app.contentdisplays.styl
     vendor margin-end                             0px
     display                                       block
     margin-bottom                                 5px
+
   p
     line-height                                   170%
     margin-bottom                                 15px
+
   pre
     font-size                                     14px
     font-weight                                   300
+
   code
     font-size                                     12px
+
   ul
   ol
     margin-bottom                                 15px
+
   a
     font-size                                     14px
     font-weight                                   300
@@ -412,6 +418,7 @@ app.contentdisplays.styl
       font-size                                   12px
       font-weight                                 400
       line-height                                 170%
+
     h1,h2,h3,h4,h5,h6
       font-size                                   12px
 
@@ -439,8 +446,10 @@ div.kdview.activity-item.discussion.content-display-main-section
       max-width                                   800px
       padding-left                                20px
       padding-top                                 20px
+
       &:hover a.delete-link
         opacity                                   0.5
+
       &:hover a.edit-link
         opacity                                   0.5
 
@@ -453,11 +462,13 @@ div.kdview.activity-item.discussion.content-display-main-section
         display                                   block
         float                                     left
         size                                      50px,66px
+
         span
           background-size                         cover
           width                                   50px
           height                                  50px
           display                                 block
+
         .author
           font-size                               9px
           display                                 block
@@ -538,6 +549,7 @@ div.kdview.activity-item.discussion.content-display-main-section
             opacity                               1
 
         p.discussion-body
+
           form.edit-discussion-form.update-options.discussion
             width                                 auto
             height                                auto
@@ -635,6 +647,7 @@ div.kdview.activity-item.discussion.content-display-main-section
               height                              40px
               bg(color,#fff)
               fl()
+
               a
                 display                           block
                 background-position               center
@@ -645,6 +658,7 @@ div.kdview.activity-item.discussion.content-display-main-section
             footer.opinion-footer
               margin-left                         65px
               margin-top                          15px
+
               .type-and-time
                 font-weight                       300
                 font-size                         11px
@@ -671,8 +685,10 @@ div.kdview.activity-item.discussion.content-display-main-section
                 font-weight                       bold
 
             div.opinion-contents
+
               &:hover a.delete-link
                 opacity                           0.5
+
               &:hover a.edit-link
                 opacity                           0.5
 
@@ -779,12 +795,15 @@ div.kdview.activity-item.discussion.content-display-main-section
 
           div.item-content-opinion-comments
             padding-top                           5px
+
             div.opinion-comment
               max-width                           644px
               margin-left                         65px
 
               div.comment-contents
+
                 p.comment-body
+
                   span.data[data-paths=body]
                     color                         #5F5F5F
 
@@ -819,10 +838,12 @@ div.kdview.activity-item.discussion.content-display-main-section
         line-height                               27px
         vendor                                    transition, height .15s linear
         borderBox()
+
         &.in
           height                                  27px
 
         &.has-new-items
+
           a.new-count
             display                               inline
         a
@@ -864,19 +885,20 @@ div.kdview.activity-item.discussion.content-display-main-section
           position                                absolute
           pointer-events                          none
 
-        // .new-items:after
-        //   border-right-color    #FF9200
-        //   border-width          4px
-        //   top                   50%
-        //   margin-top            -4px
+        .new-items:after
+          border-right-color                      #FF9200
+          border-width                            4px
+          top                                     50%
+          margin-top                              -4px
 
-        // .new-items:before
-        //   border-right-color    #FF9200
-        //   border-width          5px
-        //   top                   50%
-        //   margin-top            -5px
-        //     a.all-count
-        //       noTextDeco()
+        .new-items:before
+          border-right-color                      #FF9200
+          border-width                            5px
+          top                                     50%
+          margin-top                              -5px
+
+        a.all-count
+          noTextDeco()
 
     div.content-display-main-section.opinion-form-footer
       margin-left                                 90px
@@ -950,9 +972,11 @@ div.kdview.activity-item.discussion.content-display-main-section
     rounded(4px)
     box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
     background-color                    #E0E0DF
+
     .result-frame-container
       rounded(4px)
       margin-right                      3px
+
       .result-frame
         width                           100%
         min-height                      290px
