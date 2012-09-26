@@ -2,6 +2,7 @@ var Broker = function (app_key, options) {
     this.options = options || {};
     this.sockURL = this.options.sockURL || 'http://'+window.location.hostname+':8008/subscribe';
     this.channel_auth_endpoint = this.options.authEndPoint || 'http://'+window.location.hostname+':8008/auth';
+    this.vhost = this.options.vhost || "/";
     this.key = app_key;
     this.channels = {};
     this.connect();
@@ -10,6 +11,15 @@ var Broker = function (app_key, options) {
 Broker.prototype.connect = function () {
     this.ws = new SockJS(this.sockURL);
     var self = this;
+
+    this.ws.addEventListener('open', function() {
+        self.ws.send(JSON.stringify({vhost: self.vhost}));
+        self.on("channel-change", function (e) {
+            var channel = e.data;
+            self.unsubscribe(channel);
+            self.subscribe(channel);
+        })
+    })
 
     // Initial set up to acquire socket_id
     var initialListener = function (e) {
@@ -31,14 +41,6 @@ Broker.prototype.connect = function () {
         evt.data = data.payload;
         self.ws.dispatchEvent(evt);
     });
-
-    this.ws.addEventListener('open', function() {
-        self.on("channel-change", function (e) {
-            var channel = e.data;
-            self.unsubscribe(channel);
-            self.subscribe(channel);
-        })
-    })
 
     return this; // chainable
 };

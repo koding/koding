@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot} = require argv.c
+{webPort, mongo, mq, projectRoot, kites} = require argv.c
 webPort = argv.p if argv.p?
 
 
@@ -58,7 +58,9 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        koding.mq.on privName, 'disconnect', console.log
+        # koding.mq.on privName, 'disconnected', ->
+        #   console.log 'disconnected', arguments
+
         res.send privName 
       else unless session?
         authenticationFailed(res)
@@ -78,14 +80,22 @@ app.get '/auth', (req, res)->
             callback
             )
 
-        bindKiteQueue "client-message", ->
+        bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
           bindKiteQueue "disconnected"
           koding.mq.emit(channel, 'join', {user: username, queue: privName})
+          koding.mq.connection.on 'error', -> # noop
+          koding.mq.createQueue '', (dcQueue)->
+            dcQueue.bind exchangeName, 'disconnected'
+            dcQueue.subscribe ->
+              dcQueue.destroy()
+              setTimeout ->
+                kiteCmQueue.destroy()
+              , kites?.disconnectTimeout ? 5000
           return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
-    res.send 'this is crawlable content '
+    res.send 'this is crawlable content'
   else
     # log.info "serving index.html"
     res.header 'Content-type', 'text/html'

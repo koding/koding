@@ -14,6 +14,7 @@
     {mq_host, "localhost"},
     {mq_user, <<"guest">>},
     {mq_pass, <<"guest">>},
+    {mq_vhost, <<"/">>},
     {pid_file, <<"/tmp/koding.broker.pid">>},
     {verbose, true},
     {privateRegEx, ".private$"},

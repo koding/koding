@@ -1,3 +1,4 @@
+.rabbitvhost
 .revision
 /.revision
 .DS_Store
@@ -74,3 +75,4 @@ sftp-config.json
 /website/dev/sourceServer.json
 /npm-debug.log
 /erl_crash.dump
+/broker/log
