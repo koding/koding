@@ -9,15 +9,14 @@ app.get '/addVhost', (req, res)->
   {vhost} = req.query
   createVhost vhost, config, (err)->
     if err?
-      res.send {
+      res.send
         type: 'error'
         message: err.message
-      }, 400
+      , 400
     else
-      res.send {
+      res.send
         type: 'success'
         message: "Added vhost: #{vhost}"
-      }
 
 app.get '*', (req, res)-> res.send 404
 
