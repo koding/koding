@@ -29,16 +29,24 @@ Temp styles
       borderBox()
 
       &.presentation
-        bg                  color, white
+        bg                  color, transparent
+        color               transparent
+        white-space         pre-wrap
         z-index             1
-        span
-          bg                color, pink
+        b
+          font-weight       normal
+          vendor            transition, background-color .15s linear
+          bg                color, transparent
+          &.highlight-tag
+            bg              color, gold
+          &.highlight-user
+            bg              color, lightblue
 
       &.input
-        // position            absolute
-        // top                 0
-        // left                0
-        background-color    pink
+        position            absolute
+        top                 0
+        left                0
+        background-color    transparent
         border              none
         z-index             2
 
