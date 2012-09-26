@@ -28,30 +28,33 @@ class KDTokenizedInput extends JView
     for rule of o.match
       @registeredTokens[rule] = []
 
-    @input.on "keydown", (event)=> @decorateLayer()
+    @input.on "keydown", @keyDownOnInput.bind @
+    @input.on "keyup", @keyUpOnInput.bind @
 
-    @input.on "keyup", (event)=>
-      matchRules = @getOptions().match
-      val = @input.getValue()
-      @decorateLayer()
-      {input} = @
-      if matchRules
-        for rule, ruleSet of matchRules
-          val = val.slice(0, input.getCaretPosition())
-          matches = val.match ruleSet.regex
-          # log matches, rule, ruleSet.regex
-          if matches
-            matches.forEach (match,i)->
-              # log match,_oldMatches[i],i
-              unless _oldMatches[i] is match
-                _oldMatches[i] = match
+  keyDownOnInput:(event)->
+    @decorateLayer()
+    # @layer.setClass "hide-tokens"
 
-                if ruleSet.throttle
-                  do _.throttle ->
-                    ruleSet.dataSource match
-                  , ruleSet.throttle
-                else
+  keyUpOnInput:(event)->
+    matchRules = @getOptions().match
+    val = @input.getValue()
+    @decorateLayer()
+    # @layer.unsetClass "hide-tokens"
+    {input} = @
+    if matchRules
+      for rule, ruleSet of matchRules
+        val = val.slice(0, input.getCaretPosition())
+        matches = val.match ruleSet.regex
+        if matches
+          matches.forEach (match,i)->
+            unless _oldMatches[i] is match
+              _oldMatches[i] = match
+              if ruleSet.throttle
+                do _.throttle ->
                   ruleSet.dataSource match
+                , ruleSet.throttle
+              else
+                ruleSet.dataSource match
 
   showMenu:(options, data)->
 
@@ -62,10 +65,8 @@ class KDTokenizedInput extends JView
       y : @input.getY() + @input.getHeight()
     @input.setBlur()
     @menu = new KDTokenizedMenu o, data
-    # log @menu, ">>>>"
     @menu.on "ContextMenuItemReceivedClick", (menuItem)=>
       @registerSelectedToken {rule, token}, menuItem.getData()
-      # @getOptions().match[rule].callback token, menuItem.getData()
 
   registerSelectedToken:({rule, token}, data)->
 
