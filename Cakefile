@@ -18,8 +18,11 @@ processes   = new (require "processes")
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
+http          = require 'http'
+url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
+commander     = require 'commander'
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -221,7 +224,7 @@ configureBroker = (options,callback=->)->
       {mq_pass, <<"#{config.mq.password}">>},
       {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
-      {verbose, true},
+      {verbosity, info},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
       ]}
@@ -238,7 +241,6 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
-  console.log "am i here?"
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
@@ -273,6 +275,44 @@ run =(options)->
           onChange : ->
             processes.kill "server"
 
+assureVhost =(uri, vhost, vhostFile, callback)->
+  addVhost uri, vhost, (res)->
+    if res.type is 'error'
+      console.log 'received an error:'.yellow
+      console.error res.message
+      console.log "it probably doesn't matter; ignoring...".yellow
+    fs.writeFileSync vhostFile, vhost, 'utf8'
+    callback null
+
+addVhost =(uri, vhost, callback)->
+  options = url.parse uri+"?vhost=#{vhost}"
+  req = http.request options, (res)->
+    responseText = ''
+    res.on 'data', (data)-> responseText += data
+    res.on 'end', ->
+      response =\
+        try
+          JSON.parse(responseText)
+        catch e
+          responseText
+      callback response
+  req.on 'error', console.log
+  req.end()
+
+configureVhost =(config, callback)->
+  {uri} = config.vhostConfigurator
+  vhostFile = nodePath.join(config.projectRoot, '.rabbitvhost')
+  try
+    vhost = fs.readFileSync vhostFile, 'utf8'
+    assureVhost uri, vhost, vhostFile, callback
+  catch e
+    if e.code is 'ENOENT'
+      {explanation} = config.vhostConfigurator
+      console.log explanation.bold.red
+      commander.prompt 'Please give your vhost a name: ', (name)->
+        assureVhost uri, name, vhostFile, callback
+    else throw e
+
 task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
@@ -281,6 +321,8 @@ task 'run', (options)->
     queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
+  if config.vhostConfigurator?
+    queue.push -> configureVhost config, -> queue.next()
   queue.push -> run options
   daisy queue
 

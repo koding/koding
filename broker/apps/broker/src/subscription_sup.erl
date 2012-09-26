@@ -43,7 +43,7 @@ init([]) ->
     Restart = transient,
     % For simple_one_for_one, the shutdown wait time is not respected,
     % supervisor will just exit, and each workers terminate on own.
-    Shutdown = 1000,
+    Shutdown = 5000,
     Type = worker,
     % One-element list of the callback module used by child behavior.
     Modules = [subscription],

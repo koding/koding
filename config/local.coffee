@@ -10,6 +10,8 @@ mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect
 
 projectRoot = nodePath.join __dirname, '..'
 
+#rabbitVhost = try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf-8'
+
 module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
@@ -37,6 +39,7 @@ module.exports = deepFreeze
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://localhost:8008/subscribe'
         auth    : 'http://localhost:3000/auth'
+        vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-apps.koding.com'
       env       : 'dev'

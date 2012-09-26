@@ -1,5 +1,6 @@
 fs = require 'fs'
 nodePath = require 'path'
+colors = require 'colors'
 
 deepFreeze = require 'koding-deep-freeze'
 
@@ -9,7 +10,9 @@ mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect
 
 projectRoot = nodePath.join __dirname, '..'
 
-rabbitVhost = fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+rabbitVhost =\
+  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
+  catch e then "/"
 
 module.exports = deepFreeze
   projectRoot   : projectRoot
@@ -67,4 +70,14 @@ module.exports = deepFreeze
       login         : 'guest'
       password      : 's486auEkPzvUjYfeFTMQ'
       vhost         : rabbitVhost
+  vhostConfigurator:
+    explanation :\
+      """
+      Important!  because the dev rabbitmq instance is shared, you
+      need to choose a name for your vhost.  You appear not to
+      have a vhost associated with this repository. Generally
+      speaking, your first name is a good choice.
+      """.replace /\n/g, ' '
+    uri         : 'http://zb.koding.com:3008/addVhost'
+    webPort     : 3008
   pidFile           : '/tmp/koding.server.pid'
