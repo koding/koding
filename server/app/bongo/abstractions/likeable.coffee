@@ -6,15 +6,18 @@ class Likeable
   checkIfLikedBefore: bongo.secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
-    Relationship.one
-      sourceId: @getId()
-      targetId: delegate.getId()
-      as: 'like'
-    , (err, likedBy)=>
-      if likedBy
-        callback null, yes
-      else
-        callback err, no
+    if not delegate
+      callback null, no
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'like'
+      , (err, likedBy)=>
+        if likedBy
+          callback null, yes
+        else
+          callback err, no
 
   like: bongo.secure ({connection}, callback)->
     {delegate} = connection
