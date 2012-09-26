@@ -11,11 +11,7 @@ import (
 )
 
 /*
-#ifdef __APPLE__
-#include <util.h>
-#else
 #include <pty.h>
-#endif
 #cgo LDFLAGS: -lutil
 */
 import "C"
