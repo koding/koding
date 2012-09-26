@@ -22,3 +22,35 @@
      Reason:     killed
      Offender:   [{pid,<0.682.0>},{name,subscription},{mfargs,{subscription,start_link,[]}},{restart_type,transient},{shutdown,1000},{child_type,worker}]
 
+2012-09-25 18:30:39 =CRASH REPORT====
+  crasher:
+    initial call: subscription:init/1
+    pid: <0.218.0>
+    registered_name: []
+    exception exit: {precondition_failed,[{gen_server,init_it,6,[{file,"gen_server.erl"},{line,320}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}
+    ancestors: [subscription_sup,broker_sup,app_sup,<0.72.0>]
+    messages: []
+    links: [<0.193.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 24
+    reductions: 513
+  neighbours:
+2012-09-25 18:30:48 =CRASH REPORT====
+  crasher:
+    initial call: subscription:init/1
+    pid: <0.263.0>
+    registered_name: []
+    exception exit: {precondition_failed,[{gen_server,init_it,6,[{file,"gen_server.erl"},{line,320}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}
+    ancestors: [subscription_sup,broker_sup,app_sup,<0.72.0>]
+    messages: []
+    links: [<0.193.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 24
+    reductions: 513
+  neighbours:
