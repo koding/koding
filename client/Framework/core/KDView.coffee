@@ -495,7 +495,6 @@ class KDView extends KDObject
     eventsToBeBound
 
   handleEvent:(event)->
-
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
     # log result, event.type, "???"
