@@ -51,18 +51,25 @@ class authconfig::config {
         source => 'puppet:///modules/authconfig/sssd.conf',
     }
 
+    file { "/etc/openldap/cacerts":
+        ensure => directory,
+    }
+
     file { "/etc/openldap/cacerts/admin.crt":
         source => 'puppet:///modules/authconfig/cacerts/admin.crt',
+        require => File["/etc/openldap/cacerts"],
         notify => Exec["cacertdir_rehash"],
     }
 
     file { "/etc/openldap/cacerts/admin.csr":
         source => 'puppet:///modules/authconfig/cacerts/admin.crt',
+        require => File["/etc/openldap/cacerts"],
         notify => [Exec["cacertdir_rehash"],Class["authconfig::service"]]
     }
 
     file { "/etc/openldap/cacerts/koding-ca.crt":
         source => 'puppet:///modules/authconfig/cacerts/koding-ca.crt',
+        require => File["/etc/openldap/cacerts"],
         notify => [Exec["cacertdir_rehash"],Class["authconfig::service"]]
     }
 
