@@ -35,6 +35,7 @@ class CommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
+
     bongo.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment/review owner
