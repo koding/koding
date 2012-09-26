@@ -105,6 +105,7 @@ pipeStd =(children...)->
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
+  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
@@ -157,8 +158,8 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient configFile
+  # configFile = normalizeConfigPath expandConfigFile options.configFile
+  buildClient options.configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->

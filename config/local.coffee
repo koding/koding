@@ -17,9 +17,11 @@ module.exports = deepFreeze
   mongo         : mongo
   social        :
     numberOfWorkers: 1
+    watch       : yes
   client        :
     version     : version
     minify      : no
+    watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
