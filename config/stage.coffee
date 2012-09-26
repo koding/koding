@@ -45,6 +45,7 @@ module.exports = deepFreeze
     login       : 'stage'
     password    : '#[85_[*zh7%4;4l6T]F!'
     vhost       : 'stage'
+    pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
   email         :
