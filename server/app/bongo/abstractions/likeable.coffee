@@ -53,6 +53,7 @@ class Likeable
                     likesCount    : count
                     relationship  : docs[0]
                   }
+                @flushOriginSnapshot constructor
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err
@@ -62,3 +63,15 @@ class Likeable
                 @update ($set: 'meta.likes': count), callback
                 delegate.update ($inc: 'counts.likes': -1), (err)->
                   console.log err if err
+                @flushOriginSnapshot constructor
+
+  flushOriginSnapshot:(constructor)->
+    if constructor.name is 'JComment'
+      Relationship.one
+        targetId: @getId()
+        as: 'reply'
+      , (err, rel)->
+        if not err and rel
+          rel.fetchSource (err, source)->
+            if not err and source
+              source.flushSnapshot?()
