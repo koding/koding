@@ -28,7 +28,7 @@ module.exports = deepFreeze
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://api.koding.com'
+    staticFilesBaseUrl: 'https://dev-api.koding.com'
     runtimeOptions:
       version   : version
       mainUri   : 'https://dev.koding.com'
