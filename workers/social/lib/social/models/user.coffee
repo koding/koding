@@ -198,6 +198,7 @@ module.exports = class JUser extends jraphical.Module
   
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
+    console.log 'CREDS', credentials
     constructor = @
     JUser.one {username, status: $ne: 'blocked'}, (err, user)->
       if err
@@ -214,6 +215,7 @@ module.exports = class JUser extends jraphical.Module
             callback createKodingError 'Could not restore your session!'
           else
             replacementToken = createId()
+            console.log 'replacement token', replacementToken
             JGuest.recycle session.guestId
             session.update {
               $set            :
