@@ -4,6 +4,6 @@ class clamav::service {
     hasstatus => true,
     hasrestart => true,
     enable => true,
-    require => Class["clamav::config"],
+    require => [Class["clamav::config"],Class["clamav::initial_update"]]
   } 
 }
