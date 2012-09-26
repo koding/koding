@@ -3,4 +3,5 @@ class clamav {
   include clamav::config
   include clamav::service
   include clamav::crontabs
+  include clamav::initial_update
 }
