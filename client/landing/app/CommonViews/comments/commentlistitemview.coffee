@@ -1,9 +1,9 @@
 class CommentListItemView extends KDListItemView
   constructor:(options,data)->
-    options = $.extend
-      type      : "comment"
-      cssClass  : "kdlistitemview kdlistitemview-comment"
-    ,options
+
+    options.type     or= "comment"
+    options.cssClass or= "kdlistitemview kdlistitemview-comment"
+
     super options,data
 
     data = @getData()
@@ -18,8 +18,8 @@ class CommentListItemView extends KDListItemView
 
     @avatar = new AvatarView {
       size     :
-        width  : 30
-        height : 30
+        width  : options.avatarWidth or 30
+        height : options.avatarHeight or 30
       origin
     }
 
@@ -37,8 +37,8 @@ class CommentListItemView extends KDListItemView
     activity = @getDelegate().getData()
     KD.remote.cacheable data.originId, "JAccount", (err, account)=>
       loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         loggedInId is activity.originId or   # if activity owner
+      if loggedInId is data.originId or       # if comment/review owner
+         loggedInId is activity.originId or   # if activity/app owner
          KD.checkFlag "super-admin", account  # if super-admin
         @deleteLink.unsetClass "hidden"
         @listenTo
@@ -96,7 +96,7 @@ class CommentListItemView extends KDListItemView
               if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
 
   updateTemplate:(force = no)->
     if @getData().getAt 'deletedAt'
