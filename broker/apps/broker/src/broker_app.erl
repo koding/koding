@@ -49,7 +49,7 @@ start() ->
     application:start(broker, permanent).
 
 start(_StartType, _StartArgs) ->
-    %lager:set_loglevel(lager_console_backend, debug),
+    lager:set_loglevel(lager_console_backend, get_env(verbosity, info)),
 
     PidFile = get_env(pid_file, "./broker.pid"),
     ShellPid = os:getpid(),
@@ -78,7 +78,7 @@ start(_StartType, _StartArgs) ->
     ],
     Routes = [{'_',  VhostRoutes}], % any vhost
 
-    debug_log(" [*] Running at http://localhost:~p~n", [Port]),
+    lager:info(" [*] Running at http://localhost:~p", [Port]),
 
     cowboy:start_listener(http, 
         NumberOfAcceptors,
@@ -247,13 +247,6 @@ send_system_event(Conn, Event, Payload, VHost) ->
     {ok, Subscription} = broker:subscribe(Conn, SystemExchange, VHost),
     broker:trigger(Subscription, Event, jsx:encode(Payload), []),
     broker:unsubscribe(Subscription).
-
-debug_log(Text, Args) ->
-    case application:get_env(broker, verbose) of
-        {ok, Val} when Val ->
-            lager:info(Text, Args);
-        _ -> true
-    end.
 
 %%--------------------------------------------------------------------
 %% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
