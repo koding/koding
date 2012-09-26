@@ -1075,7 +1075,7 @@ a.discussion-view-more
     font-weight                       300
 
 .result-button
-  margin-bottom                       10px
+  margin-bottom                       30px
 
 .result-banner
   width 100%
@@ -1091,57 +1091,141 @@ a.discussion-view-more
   margin-bottom 10px
   borderBox()
   rounded 0 4px 4px 4px
-  padding 210px 50px 40px 50px
+  padding 200px 50px 50px 50px
 
 
 div.libs-container
   borderBox()
-  border 1px solid black
-  border-bottom 2px solid #2a2a2a
+  border 1px solid #bbb
+  border-top 1px solid #2a2a2a
+
   &.no-bottom-rounded
-    rounded 0 4px 0 0
+    rounded 0 0 4px 4px
+
   &.bottom-rounded
-    rounded 0 4px 4px 4px
-  background-color darken(#333,0%)
+    rounded 0 0 4px 4px
+
   z-index -1
   opacity 01
   position absolute
-  top 0px
+  bottom 0px
   height auto
   width auto
   right 0px
   left 0px
   vendor transition, height 0.1s linear
-  .libs-box
+
+  div.libs-box
     borderBox()
     overflow-y hidden
     height 1px
-    &.settings-visible
-      height 100px
-    padding 5px
+    padding 0px
     width auto
     font-size 10px
+
+    &.settings-visible
+      height 100px
+
+    div.libs-sub-box
+      borderBox()
+      display inline-block
+      padding 0px 5px
+      height 100%
+      vertical-align top
+
+      libs-bg-color = #f1f1f1
+      libs-border-color = #FF9200
+
+      vendor transition, background-color 0.2s ease-in-out
+      background-color libs-bg-color
+
+      for column in 1 2 3
+        &.html
+        &.css
+        &.js
+          &:nth-child({column})
+            &:hover
+              background-color lighten(libs-bg-color,50%)
+      &.html
+      &.css
+      &.js
+        borderBox()
+        &:first-child
+          rounded(0 0 0 4px)
+        &:last-child
+          rounded(0 0 4px 0)
+
+
+      &.html
+        width 50%
+        &:nth-child(1)
+          border-top 5px solid libs-border-color
+
+        &:nth-child(2)
+          border-top 5px solid darken(libs-border-color,15%)
+
+      &.css
+        width 50%
+        &:nth-child(1)
+          border-top 5px solid libs-border-color
+
+        &:nth-child(2)
+          border-top 5px solid darken(libs-border-color,15%)
+      &.js
+
+        &:nth-child(1)
+          width 30%
+          border-top 5px solid libs-border-color
+          background-color libs-bg-color
+
+        &:nth-child(2)
+          width 40%
+          border-top 5px solid darken(libs-border-color,15%)
+          background-color darken(libs-bg-color, 2%)
+
+        &:nth-child(3)
+          width 30%
+          padding-top 3px
+
+          border-top 5px solid darken(libs-border-color,30%)
+          background-color darken(libs-bg-color,4%)
+
+
+
+
     .kdselectbox
       display block
       margin-bottom 5px
+
     .kdinput
       margin-bottom 5px
       height 16px
       font-size 10px
       line-height 12px
+
     .kd-radio-holder
       display inline-block
+      margin-right 5px
+      input.no-kdinput
+        margin-bottom 2px
+        margin-right: 2px
+
     label.legend-for-text
       display block
+
     label.legend-for-checkbox
       line-height 120%
       display inline-block
+      padding-left 3px
+
     label.legend-for-radios
       margin-bottom 1px
       display block
+
     input.libs-css-checkbox,
     input.libs-js-checkbox
       vertical-align top
+      margin-top 1px
 
 label.settings-label
   rounded(4px)
@@ -1161,18 +1245,23 @@ label.settings-label
     max-width 100%
     margin-left 5px
     height 300px
+    borderBox()
+
 
 .code-snip-holder.share
+  borderBox()
   height 300px
   vendor transition, margin 0.1s linear, height 0.1s linear
   rounded 0 4px 4px 4px
   &.no-top-rounded
-    rounded 0 0 4px 4px
+    rounded 0 4px 0 0
 
 .formline-codeshare
-  margin 5px 0px 0px 168px
+  borderBox()
+
+  margin 5px 0px 15px 168px
   max-width 560px
-  height 330px
+  height 325px
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
@@ -1187,6 +1276,8 @@ label.settings-label
 
 .code-snip-container
   scrollbars()
+  borderBox()
+
   width 100%
   max-width 560px
   text-align left
@@ -1198,9 +1289,13 @@ label.settings-label
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
+
 .code-share-container.create-view
+  borderBox()
+
   overflow-y hidden
   .button-bar
+    z-index -1
     position          absolute
     bg                color,transparent
     bottom            -30px
@@ -1220,7 +1315,8 @@ label.settings-label
         rounded       0 3px 0 0
         border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
   &:hover .button-bar
-    bottom        5px
+    bottom        0px
+    z-index       101
 
 
 .codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
@@ -1228,6 +1324,8 @@ label.settings-label
   borderBox()
 
 .code-share-container
+  borderBox()
+
   height 330px
   > div.kdview.clearfix.kdtabpaneview
     vendor box-shadow none
@@ -1280,9 +1378,9 @@ figure.code-container strong.snippet-extras
     overflow          hidden
     cursor            pointer
     bg                color,rgba(255,255,255,.2)
-    gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+    gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
     rounded           0
-    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.15)
     > div
       margin-right    14px
       b

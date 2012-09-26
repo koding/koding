@@ -223,7 +223,7 @@ class ActivityCodeShareWidget extends KDFormView
       tagName           : "a"
       attributes        :
         href            : "#"
-      partial           : "Click here to see this Code Share!"
+      partial           : "Start this Code Share!"
       cssClass          : "result-banner-button"
       click             : =>
         @codeShareResultButton.setTitle "Reset Code Share"
@@ -282,10 +282,11 @@ class ActivityCodeShareWidget extends KDFormView
       iconOnly  : yes
       iconClass : "config"
       callback  : =>
+
         if not @$("div.libs-container .libs-box").hasClass "settings-visible"
           @$("div.libs-container").css "z-index":100
           @$("div.libs-container .libs-box").addClass "settings-visible"
-          @$(".code-snip-holder.share").css "margin-top": 100
+          @$(".code-snip-holder.share").css "margin-bottom": 100
           @$(".code-snip-holder.share").height(@$(".code-snip-holder.share.snip-html").height()-80)
           @$(".code-snip-holder.share").addClass "no-top-rounded"
 
@@ -295,12 +296,15 @@ class ActivityCodeShareWidget extends KDFormView
           # @$("div.libs-html").css "opacity":0
           @$("div.libs-container").css "z-index":-1
           @$("div.libs-container .libs-box").removeClass "settings-visible"
-          @$(".code-snip-holder.share").css "margin-top":0
+          @$(".code-snip-holder.share").css "margin-bottom":0
           @$(".code-snip-holder.share").height(@$(".code-snip-container").height())
           @$(".code-snip-holder.share").removeClass "no-top-rounded"
 
           @configButton.setIconClass "config"
 
+        @HTMLace.editor.resize()
+        @CSSace.editor.resize()
+        @JSace.editor.resize()
 
     @codeShareButtonBar.addSubView @configButton
     @codeShareButtonBar.addSubView @codeShareResultButton
@@ -313,13 +317,13 @@ class ActivityCodeShareWidget extends KDFormView
     @labelHTMLSelect = new KDLabelView
       title : "Markup:"
     @labelHTMLClasses = new KDLabelView
-      title : "&lt;html&gt; Classes:"
+      title : "Add classes to <abbr title='These additional classes will be added to the html-Element everytime the Code Share is run.'>html</abbr> tag:"
     @labelHTMLExtras = new KDLabelView
-      title : "&lt;head&gt; Elements:"
+      title : "Add tags to <abbr title='You can add meta tags here, among other things'>head</abbr> section:"
     @labelCSSSelect = new KDLabelView
       title : "Stylesheet:"
     @labelCSSPrefix = new KDLabelView
-      title : "Use PrefixFree"
+      title : "Use <abbr title='Prefixfree is a Tool.'>PrefixFree</abbr>"
       cssClass : "legend-for-checkbox"
     @labelCSSResets = new KDLabelView
       title : "Use CSS Reset"
@@ -403,24 +407,24 @@ class ActivityCodeShareWidget extends KDFormView
       name : "classesHTML"
       label : @labelHTMLClasses
       cssClass : "libs-html-input"
-      placeholder : "extra html classes"
+      placeholder : "extra html classes, seperate by spaces"
 
     @libHTMLHeadExtras = new KDInputView
       name : "extrasHTML"
       label: @labelHTMLExtras
       cssClass : "libs-html-input"
-      placeholder : "extra head tags"
+      placeholder : "extra head tags, use html5 markup"
 
     @libCSSExternal = new KDInputView
       name : "externalCSS"
       label : @labelCSSExternals
       cssClass : "libs-html-input"
-      placeholder : "external css files"
+      placeholder : "seperate file URLs by ;"
 
     @libJSExternal = new KDInputView
       name : "externalJS"
       cssClass : "libs-html-input"
-      placeholder : "external JS files"
+      placeholder : "seperate file URLs by ;"
 
     @libCSSPrefix = new KDInputView
       type : "checkbox"
@@ -510,31 +514,66 @@ class ActivityCodeShareWidget extends KDFormView
       title : "Modernizr"
       partial : "Modernizr"
 
+    @boxHTMLMain = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box html"
 
-    @librariesHTMLContent.addSubView @labelHTMLSelect
-    @librariesHTMLContent.addSubView @libHTMLSelect
-    @librariesHTMLContent.addSubView @labelHTMLClasses
-    @librariesHTMLContent.addSubView @libHTMLClasses
-    @librariesHTMLContent.addSubView @labelHTMLExtras
-    @librariesHTMLContent.addSubView @libHTMLHeadExtras
+    @boxHTMLExtra = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box html"
 
-    @librariesCSSContent.addSubView @labelCSSSelect
-    @librariesCSSContent.addSubView @libCSSSelect
-    @librariesCSSContent.addSubView @libCSSPrefix
-    @librariesCSSContent.addSubView @labelCSSPrefix
-    @librariesCSSContent.addSubView @labelCSSResets
-    @librariesCSSContent.addSubView @libCSSResets
-    @librariesCSSContent.addSubView @labelCSSExternals
-    @librariesCSSContent.addSubView @libCSSExternal
+    @boxCSSMain = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box css"
 
-    @librariesJSContent.addSubView @labelJSSelect
-    @librariesJSContent.addSubView @libJSSelect
-    @librariesJSContent.addSubView @labelJSLibraries
-    @librariesJSContent.addSubView @libJSSelectLibs
-    @librariesJSContent.addSubView @libJSModernizr
-    @librariesJSContent.addSubView @labelJSModernizr
-    @librariesJSContent.addSubView @labelJSExternals
-    @librariesJSContent.addSubView @libJSExternal
+    @boxCSSExtra = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box css"
+
+    @boxJSMain = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box js"
+
+    @boxJSLibs = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box js"
+
+    @boxJSExtra = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box js"
+
+    @librariesHTMLContent.addSubView @boxHTMLMain
+    @librariesHTMLContent.addSubView @boxHTMLExtra
+    @librariesCSSContent.addSubView @boxCSSMain
+    @librariesCSSContent.addSubView @boxCSSExtra
+    @librariesJSContent.addSubView @boxJSMain
+    @librariesJSContent.addSubView @boxJSLibs
+    @librariesJSContent.addSubView @boxJSExtra
+
+    @boxHTMLMain.addSubView @labelHTMLSelect
+    @boxHTMLMain.addSubView @libHTMLSelect
+    @boxHTMLExtra.addSubView @labelHTMLClasses
+    @boxHTMLExtra.addSubView @libHTMLClasses
+    @boxHTMLExtra.addSubView @labelHTMLExtras
+    @boxHTMLExtra.addSubView @libHTMLHeadExtras
+
+    @boxCSSMain.addSubView @labelCSSSelect
+    @boxCSSMain.addSubView @libCSSSelect
+    @boxCSSMain.addSubView @libCSSPrefix
+    @boxCSSMain.addSubView @labelCSSPrefix
+    @boxCSSExtra.addSubView @labelCSSResets
+    @boxCSSExtra.addSubView @libCSSResets
+    @boxCSSExtra.addSubView @labelCSSExternals
+    @boxCSSExtra.addSubView @libCSSExternal
+
+    @boxJSMain.addSubView @labelJSSelect
+    @boxJSMain.addSubView @libJSSelect
+    @boxJSLibs.addSubView @labelJSLibraries
+    @boxJSLibs.addSubView @libJSSelectLibs
+    @boxJSExtra.addSubView @libJSModernizr
+    @boxJSExtra.addSubView @labelJSModernizr
+    @boxJSExtra.addSubView @labelJSExternals
+    @boxJSExtra.addSubView @libJSExternal
 
     @librariesHTMLContainer.addSubView @librariesHTMLContent
     @librariesCSSContainer.addSubView @librariesCSSContent
@@ -559,13 +598,7 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareHTMLPane = new KDTabPaneView
       name:"HTML"
 
-    @codeShareHTMLCodeSnipContainer = new KDCustomHTMLView
-      tagName : "div"
-      cssClass :"code-snip-container"
 
-    @codeShareHTMLCodeSnipContainer.addSubView @librariesHTMLContainer
-
-    @codeShareHTMLPane.addSubView @codeShareHTMLCodeSnipContainer
 
     @codeShareHTMLCodeSnipHolder = new KDCustomHTMLView
       tagName:"div"
@@ -575,8 +608,14 @@ class ActivityCodeShareWidget extends KDFormView
     @codeShareHTMLCodeSnipHolder.addSubView @HTMLloader
     @codeShareHTMLCodeSnipHolder.addSubView @aceHTMLWrapper
 
-    @codeShareHTMLCodeSnipContainer.addSubView @codeShareHTMLCodeSnipHolder
+    @codeShareHTMLCodeSnipContainer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass :"code-snip-container"
 
+    @codeShareHTMLCodeSnipContainer.addSubView @codeShareHTMLCodeSnipHolder
+    @codeShareHTMLCodeSnipContainer.addSubView @librariesHTMLContainer
+
+    @codeShareHTMLPane.addSubView @codeShareHTMLCodeSnipContainer
     # CSS Tab
 
     @codeShareCSSPane = new KDTabPaneView
@@ -651,10 +690,10 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".code-snip-container").css "max-width":"560px"
           @$(".formline-codeshare").css "max-width":"560px"
           @$(".code-snip-container").css "height":"300px"
-          @$(".code-share-container").css "height":(330)+"px"
+          @$(".code-share-container").css "height":(330-5)+"px"
           @$(".code-snip-holder.share").css "height":300+"px"
           @$(".kdview.result-pane").css "height":300+"px"
-          @$(".formline-codeshare").css "height":"330px"
+          @$(".formline-codeshare").css "height":330-5+"px"
 
           @HTMLace.editor.resize()
           @CSSace.editor.resize()
@@ -670,10 +709,10 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".code-snip-container").css "max-width":"100%"
           @$(".formline-codeshare").css "max-width":"100%"
           @$(".code-snip-container").css "height":wideScreenHeight+"px"
-          @$(".code-share-container").css "height":(30-1+wideScreenHeight)+"px"
+          @$(".code-share-container").css "height":(30-1-5+wideScreenHeight)+"px"
           @$(".code-snip-holder.share").css "height":wideScreenHeight+"px"
           @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
-          @$(".formline-codeshare").css "height":(30+wideScreenHeight)+"px"
+          @$(".formline-codeshare").css "height":(30-1-5+wideScreenHeight)+"px"
 
           @HTMLace.editor.resize()
           @CSSace.editor.resize()
@@ -876,6 +915,7 @@ class ActivityCodeShareWidget extends KDFormView
       @loadAce()
     else
       @refreshEditorView()
+      @unsetWideScreen()
 
   snippetCount = 0
 
@@ -945,6 +985,8 @@ class ActivityCodeShareWidget extends KDFormView
     @JSace.editor.getSession().on 'change', => @refreshEditorView()
 
     @emit "codeShare.aceLoaded"
+
+    @unsetWideScreen()
 
   refreshEditorView:->
     # log "csw::refreshEditorView called"
