@@ -13,6 +13,9 @@ module.exports = deepFreeze
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
+  runBroker     : no
+  configureBroker: no
+  buildClient   : no
   social        :
     numberOfWorkers: 10
   client        :
@@ -38,9 +41,11 @@ module.exports = deepFreeze
       env       : 'dev'
   mq            :
     host        : 'localhost'
-    login       : 'guest'
-    password    : 'x1srTA7!%Vb}$n|S'
-    vhost       : '/'
+    login       : 'stage'
+    password    : '#[85_[*zh7%4;4l6T]F!'
+    vhost       : 'stage'
+  kites:
+    disconnectTimeout: 3e3
   email         :
     host        : 'localhost'
     protocol    : 'http:'
@@ -54,7 +59,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'logger'
-      password  : 'logger'
-      vhost     : 'logs'
+      login     : 'stage'
+      password  : '#[85_[*zh7%4;4l6T]F!'
+      vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'

@@ -1,6 +1,5 @@
 fs = require 'fs'
 nodePath = require 'path'
-colors = require 'colors'
 
 deepFreeze = require 'koding-deep-freeze'
 
@@ -47,13 +46,14 @@ module.exports = deepFreeze
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-apps.koding.com'
-
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
     pidFile     : '/var/run/broker.pid'
+  kites:
+    disconnectTimeout: 3e3
   email         :
     host        : 'localhost'
     protocol    : 'http:'
