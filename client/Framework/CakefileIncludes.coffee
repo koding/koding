@@ -158,7 +158,6 @@ Includes =
         kdScrollView        : "./client/Framework/themes/default/kd.scrollview.styl"
         kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
         kdFormView          : "./client/Framework/themes/default/kd.form.styl"
-        # kdTipTip            : "./client/stylus/kd.tiptip.styl" => discarded
 
       CssFiles  :
         reset               : "./client/css/style.css"

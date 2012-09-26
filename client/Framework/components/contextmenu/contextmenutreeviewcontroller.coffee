@@ -2,13 +2,13 @@ class JContextMenuTreeViewController extends JTreeViewController
 
   ###
   STATIC CONTEXT
-  ###  
+  ###
 
   uId = 0
   getUId = -> ++uId
   convertToArray = (items, pId = null)->
     results = []
-    
+
     for title, options of items
       id = null
       if title is "customView"
@@ -50,11 +50,11 @@ class JContextMenuTreeViewController extends JTreeViewController
     o.listViewClass     or= JContextMenuTreeView
     o.addListsCollapsed or= yes
     o.putDepthInfo      or= yes
-    super o, data       
+    super o, data
     @expandedNodes        = []
 
   loadView:->
-    
+
     super
     @selectFirstNode()
 
@@ -71,16 +71,16 @@ class JContextMenuTreeViewController extends JTreeViewController
   ###
 
   repairIds:(nodeData)->
-    
-    nodeData.type = "separator" if nodeData.type is "divider" 
+
+    nodeData.type = "separator" if nodeData.type is "divider"
     super
-    
+
   ###
   EXPAND / COLLAPSE
   ###
 
   expand:(nodeView)->
-    
+
     super
     @expandedNodes.push nodeView if nodeView.expanded
 
@@ -89,9 +89,9 @@ class JContextMenuTreeViewController extends JTreeViewController
   ###
 
   organizeSelectedNodes:(listController, nodes, event = {})->
-    
+
     nodeView = nodes[0]
-    
+
     if @expandedNodes.length
       depth1 = nodeView.getData().depth
       @expandedNodes.forEach (expandedNode)=>
@@ -105,21 +105,21 @@ class JContextMenuTreeViewController extends JTreeViewController
   ###
 
   dblClick:(nodeView, event)->
-  
+
   mouseEnter:(nodeView, event)->
-    
+
     if @mouseEnterTimeOut
       clearTimeout @mouseEnterTimeOut
 
     nodeData = nodeView.getData()
-    unless nodeData.type is "separator" 
+    unless nodeData.type is "separator"
       @selectNode nodeView, event
       @mouseEnterTimeOut = setTimeout =>
         @expand nodeView
       , 150
-  
+
   click:(nodeView, event)->
-    
+
     nodeData = nodeView.getData()
     return if nodeData.type is "separator" or nodeData.disabled
 
@@ -136,30 +136,30 @@ class JContextMenuTreeViewController extends JTreeViewController
   ###
 
   performDownKey:(nodeView, event)->
-  
+
     nextNode = super nodeView, event
     if nextNode
       nodeData = nextNode.getData()
-      if nodeData.type is "separator" 
+      if nodeData.type is "separator"
         @performDownKey nextNode, event
-  
+
   performUpKey:(nodeView, event)->
-    
+
     nextNode = super nodeView, event
     if nextNode
       nodeData = nextNode.getData()
-      if nodeData.type is "separator" 
+      if nodeData.type is "separator"
         @performUpKey nextNode, event
 
     return nextNode
 
   performRightKey:(nodeView, event)->
-    
+
     super
     @performDownKey nodeView, event
 
   performLeftKey:(nodeView, event)->
-    
+
     parentNode = super nodeView, event
     if parentNode
       @collapse parentNode
@@ -168,12 +168,12 @@ class JContextMenuTreeViewController extends JTreeViewController
     return nextNode
 
   performEscapeKey:(nodeView, event)->
-    
+
     @getSingleton("windowController").revertKeyView()
     @getDelegate().destroy()
 
   performEnterKey:(nodeView, event)->
-    
+
     @getSingleton("windowController").revertKeyView()
     contextMenu = @getDelegate()
     contextMenu.emit "ContextMenuItemReceivedClick", nodeView

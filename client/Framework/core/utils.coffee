@@ -10,7 +10,7 @@ __utils =
   formatPlural:(count, noun)->
     "#{count or 0} #{if count is 1 then noun else Inflector.pluralize noun}"
 
-  selectText:(element)->
+  selectText:(element, selectionStart, selectionEnd)->
     doc   = document
     if doc.body.createTextRange
       range = document.body.createTextRange()

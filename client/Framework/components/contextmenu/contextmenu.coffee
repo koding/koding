@@ -13,7 +13,7 @@ class JContextMenu extends KDView
       @treeController = new JContextMenuTreeViewController delegate : @, data
       @addSubView @treeController.getView()
       @treeController.getView().on 'ReceivedClickElsewhere', => @destroy()
-    
+
     KDView.appendToDOMBody @
 
   childAppended:->
@@ -25,7 +25,7 @@ class JContextMenu extends KDView
 
     event       = @getOptions().event or {}
     mainHeight  = @getSingleton('mainView').getHeight()
-    
+
     top         = @getOptions().y or event.pageY or 0
     menuHeight  = @getHeight()
     if top + menuHeight > mainHeight

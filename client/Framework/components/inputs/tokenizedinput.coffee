@@ -26,32 +26,32 @@ class KDTokenizedInput extends JView
     @registeredTokens = {}
 
     for rule of o.match
-      @registeredTokens[rule] = {}
+      @registeredTokens[rule] = []
 
-    # @input.on "keydown", (event)=>
-    #   val = @input.getValue().replace /\n/g,'<br/>'
-    #   @layer.updatePartial val
+    @input.on "keydown", (event)=> @decorateLayer()
 
     @input.on "keyup", (event)=>
       matchRules = @getOptions().match
       val = @input.getValue()
+      @decorateLayer()
+      {input} = @
       if matchRules
         for rule, ruleSet of matchRules
+          val = val.slice(0, input.getCaretPosition())
           matches = val.match ruleSet.regex
+          # log matches, rule, ruleSet.regex
+          if matches
+            matches.forEach (match,i)->
+              # log match,_oldMatches[i],i
+              unless _oldMatches[i] is match
+                _oldMatches[i] = match
 
-          return unless matches
-
-          matches.forEach (match,i)->
-            log match,_oldMatches[i],i
-            return if _oldMatches[i] is match
-            _oldMatches[i] = match
-
-            if ruleSet.throttle
-              do _.throttle ->
-                ruleSet.dataSource match
-              , ruleSet.throttle
-            else
-              ruleSet.dataSource match
+                if ruleSet.throttle
+                  do _.throttle ->
+                    ruleSet.dataSource match
+                  , ruleSet.throttle
+                else
+                  ruleSet.dataSource match
 
   showMenu:(options, data)->
 
@@ -61,24 +61,68 @@ class KDTokenizedInput extends JView
       x : @getX()
       y : @input.getY() + @input.getHeight()
     @input.setBlur()
-    @menu = new JContextMenu o, data
+    @menu = new KDTokenizedMenu o, data
+    # log @menu, ">>>>"
     @menu.on "ContextMenuItemReceivedClick", (menuItem)=>
       @registerSelectedToken {rule, token}, menuItem.getData()
       # @getOptions().match[rule].callback token, menuItem.getData()
 
   registerSelectedToken:({rule, token}, data)->
 
-    @registeredTokens[rule][token] = {
-      replacedText : data.title
-      data
-    }
-    log @registeredTokens
+    replacedText = @parseReplacer rule, data
+
+    dataSet = {replacedText, data, token}
+    @registeredTokens[rule].push dataSet
+
     val = @input.getValue()
-    val = val.replace token, "#{data.title}"
+    val = val.replace token, replacedText
     @input.setValue val
-    @layer.updatePartial @layer.$().html().replace data.title, "<span>#{data.title}</span>"
     @menu.destroy()
-    @input.setFocus()
+    @utils.wait =>
+      @input.setFocus()
+      @input.setCaretPosition val.indexOf(replacedText) + replacedText.length
+      @decorateLayer()
+      @getOptions().match[rule].added? data
+
+  decorateLayer:->
+
+    value  = @input.getValue()
+    $layer = @layer.$()
+    $input = @input.$()
+    $layer.text value
+    replacedTextHash = {}
+    $layer.scrollTop $input.scrollTop()
+    for rule, tokens of @registeredTokens
+      for dataSet in tokens
+        replacedTextHash[dataSet.replacedText] = dataSet
+        replacedTextHash[dataSet.replacedText].rule = rule
+        inner = $layer.html()
+        inner = inner.replace dataSet.replacedText, "<b#{if c = @getOptions().match[rule].wrapperClass then ' class=\"'+c+'\"' else ''}>#{dataSet.replacedText}</b>"
+        $layer.html inner
+
+    for replacedText, dataSet of replacedTextHash
+      if @input.getValue().indexOf(replacedText) is -1
+        @getOptions().match[dataSet.rule].removed? dataSet.data
+        for tokenSet,i in @registeredTokens[dataSet.rule]
+          if tokenSet.replacedText is replacedText
+            @registeredTokens[dataSet.rule].splice i, 1
+            log "remove token"
+            break
+
+  parseReplacer:(rule, data)->
+
+    tmpl = @getOptions().match[rule].replaceSignature or "{{#(title)}}"
+    arr  = tmpl.match /\{\{#\([\w|\.]+\)\}\}/g
+    hash = {}
+
+    for match in arr
+      path = match.replace('{{#(', '').replace(')}}','')
+      hash[match] = JsPath.getAt data, path
+
+    for mustache, value of hash
+      tmpl = tmpl.replace mustache, value
+
+    return tmpl
 
 
   pistachio:->
