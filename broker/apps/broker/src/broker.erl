@@ -82,7 +82,6 @@ init([]) ->
     process_flag(trap_exit, true),
     MqVHost = get_env(mq_vhost, <<"/">>),
     {Connection, Connections} = amqp_connection(MqVHost, dict:new()),
-    lager:info("Default connection for vhost ~p is ~p", [MqVHost, Connection]),
     {ok, Connections}.
 
 %%--------------------------------------------------------------------
@@ -93,7 +92,6 @@ init([]) ->
 %%--------------------------------------------------------------------
 handle_call({subscribe, Conn, Exchange, VHost}, From, Connections) ->
     {Connection, NewConnections} = amqp_connection(VHost, Connections),
-    lager:info("Connection for vhost ~p is ~p", [VHost, Connection]),
     Result = subscription_sup:start_subscription(Connection,
                                                 From, 
                                                 Conn, 
