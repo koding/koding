@@ -72,6 +72,9 @@ class JApp extends jraphical.Module
       approved      :
         type        : Boolean
         default     : false
+      repliesCount  :
+        type        : Number
+        default     : 0
 
     relationships   :
       creator       : JAccount
@@ -386,7 +389,9 @@ class JApp extends jraphical.Module
     selector = timestamp:
       if before? then  $lt: before
       else if after? then $gt: after
-    options = {limit, sort: timestamp: 1}
+    options = {sort: timestamp: -1}
+    if limit > 0
+      options.limit = limit
     @fetchReviews selector, options, callback
 
   # @create = secure (client, data, callback)->
