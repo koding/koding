@@ -123,11 +123,10 @@ class FSItem extends KDObject
     for own key, value of options
       @[key] = value
     super
-    console.log 'slkjflsfd', @getSingleton('kiteController')
-    KDObject.on "singleton.kiteController.registered",=>
-      console.log 'hppp'
-      @kiteController = @getSingleton('kiteController')
-
+    @kiteController = @getSingleton('kiteController')
+    unless @kiteController?
+      KDObject.on "singleton.kiteController.registered",=>
+        @kiteController = @getSingleton('kiteController')
 
   remove:(callback)->
 
