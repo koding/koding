@@ -1,7 +1,7 @@
 # FIXME : render runs on every data change in account object which leads to a flash on avatarview. Sinan 08/2012
 
 class AvatarView extends LinkView
-  
+
   constructor:(options = {},data)->
 
     options.cssClass or= ""
