@@ -76,47 +76,30 @@ class ActivityUpdateWidget extends KDView
     icon              : yes
     iconClass         : "update"
     delegate          : @
-    menu              : [
-      items           : [
-        {
-          title       : "Status Update"
-          type        : "default update"
-          callback    : (treeItem, event)=> @changeTab "update", treeItem.getData().title
-        }
-        {
-          title       : "Ask a Question"
-          type        : "default question disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "question", treeItem.getData().title
-        }
-        {
-          title       : "Code Snip"
-          type        : "default codesnip"
-          callback    : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
-        }
-        {
-          title       : "Code Share"
-          type        : "default codeshare disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
-        }
-        {
-          title       : "Discussion"
-          type        : "default discussion"
-          callback    : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
-        }
-        {
-          title       : "Link"
-          disabled    : yes
-          type        : "default link disabledForBeta"
-          callback    : (treeItem, event)=> @changeTab "link", treeItem.getData().title
-        }
-        {
-          title       : "Tutorial"
-          type        : "default tutorial disabledForBeta"
-          disabled    : yes
-          callback    : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
-        }
-      ]
-    ]
+    menu              :
+      "Status Update" :
+        type          : "default update"
+        callback      : (treeItem, event)=> @changeTab "update", treeItem.getData().title
+      "Ask a Question":
+        type          : "default question disabledForBeta"
+        disabled      : yes
+        callback      : (treeItem, event)=> @changeTab "question", treeItem.getData().title
+      "Code Snip"     :
+        type          : "default codesnip"
+        callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
+      "Code Share"    :
+        type          : "default codeshare disabledForBeta"
+        disabled      : yes
+        callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
+      "Discussion"    :
+        type          : "default discussion"
+        callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
+      "Link"          :
+        disabled      : yes
+        type          : "default link disabledForBeta"
+        callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
+      "Tutorial"      :
+        type          : "default tutorial disabledForBeta"
+        disabled      : yes
+        callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
     callback  : =>
