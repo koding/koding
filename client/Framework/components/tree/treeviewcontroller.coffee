@@ -36,6 +36,8 @@ class JTreeViewController extends KDViewController
     o.listViewControllerClass   or= KDListViewController
     o.treeItemClass             or= JTreeItemView
     o.listViewClass             or= JTreeView
+    o.itemChildClass            or= null
+    o.itemChildOptions          or= {}
     o.nodeIdPath                or= "id"
     o.nodeParentIdPath          or= "parentId"
     o.contextMenu                ?= no
@@ -287,14 +289,16 @@ class JTreeViewController extends KDViewController
 
     options = @getOptions()
     @listControllers[listId] = new options.listViewControllerClass
-      id             : "#{@getId()}_#{listId}"
-      wrapper        : no
-      scrollView     : no
-      selection      : no
-      view           : new options.listViewClass
-        tagName      : "ul"
-        type         : "jtree"
-        subItemClass : options.treeItemClass
+      id                 : "#{@getId()}_#{listId}"
+      wrapper            : no
+      scrollView         : no
+      selection          : no
+      view               : new options.listViewClass
+        tagName          : "ul"
+        type             : "jtree"
+        itemClass        : options.treeItemClass
+        itemChildClass   : options.itemChildClass
+        itemChildOptions : options.itemChildOptions
     , items : listItems
 
     @setListenersForList listId
@@ -591,7 +595,7 @@ class JTreeViewController extends KDViewController
     #     tagName      : "ul"
     #     type         : "jtree"
     #     cssClass     : "drag-helper-list"
-    #     subItemClass : JTreeItemView
+    #     itemClass : JTreeItemView
     # , {items}
     #
     # @tempDragList = draggedListController.getView()

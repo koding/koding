@@ -2,10 +2,13 @@ class JContextMenuItem extends JTreeItemView
 
   constructor:(options = {}, data = {})->
 
-    options.type       = "contextitem"
-    options.cssClass or= "default"
+    options.type             = "contextitem"
+    options.cssClass       or= "default"
+
     super options, data
+
     @unsetClass "jtreeitem"
+
     if data
       if data.type is "divider" or data.type is "separator"
         @setClass "separator"
@@ -22,9 +25,9 @@ class JContextMenuItem extends JTreeItemView
       @setTemplate @pistachio()
       @template.update()
 
-  
+
   addCustomView:(data)->
-  
+
     @setClass "custom-view"
     @unsetClass "default"
     @customView = data.view or new KDView

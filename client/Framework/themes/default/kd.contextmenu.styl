@@ -8,9 +8,10 @@
 */
 .jcontextmenu
   position                absolute
-  z-index                 10000
-  overflow                visible
+  display                 inline-block
   height                  auto
+  overflow                visible
+  z-index                 10000
 
   .context-list-wrapper
     overflow              visible
@@ -92,199 +93,199 @@
 **  KDContextMenu STYLES
 */
 
-.kdcontextmenu
-  position        absolute
-  z-index         10000
-  height          auto
-  min-width       150px
-  overflow        visible
-  bg              color,rgba(255,255,255,.95)
-  shadow          0 7px 15px rgba(0,0,0,.17)
-  border          1px solid rgb(187,187,187)
-  rounded         4px
+// .jcontextmenu
+//   position        absolute
+//   z-index         10000
+//   height          auto
+//   min-width       150px
+//   overflow        visible
+//   bg              color,rgba(255,255,255,.95)
+//   shadow          0 7px 15px rgba(0,0,0,.17)
+//   border          1px solid rgb(187,187,187)
+//   rounded         4px
 
-  .kdcontextmenutreeview
-    overflow      visible
-    margin        5px 0
-    size          auto,auto
+//   .kdcontextmenutreeview
+//     overflow      visible
+//     margin        5px 0
+//     size          auto,auto
 
-    .sub-tree-wrapper
-      padding     5px 0
-      position    absolute
-      margin-top  -28px
-      left        100%
-      min-width   150px
-      overflow    visible
-      bg          color,rgba(255,255,255,.95)
-      shadow      0 7px 15px rgba(0,0,0,.17)
-      border      1px solid rgb(187,187,187)
-      rounded     4px
-      size        auto,auto
+//     .sub-tree-wrapper
+//       padding     5px 0
+//       position    absolute
+//       margin-top  -28px
+//       left        100%
+//       min-width   150px
+//       overflow    visible
+//       bg          color,rgba(255,255,255,.95)
+//       shadow      0 7px 15px rgba(0,0,0,.17)
+//       border      1px solid rgb(187,187,187)
+//       rounded     4px
+//       size        auto,auto
 
-    .kdview.kdtreeitemview
-      &.default
-        font-size     .9em
-        position      relative
-        bg            color, transparent
-        padding       3px 0
-        clear         both
-        color         #444
-        border-top    1px solid transparent
-        border-bottom 1px solid transparent
-        size          auto, auto
-        white-space   nowrap
+//     .kdview.kdtreeitemview
+//       &.default
+//         font-size     .9em
+//         position      relative
+//         bg            color, transparent
+//         padding       3px 0
+//         clear         both
+//         color         #444
+//         border-top    1px solid transparent
+//         border-bottom 1px solid transparent
+//         size          auto, auto
+//         white-space   nowrap
 
-        &:hover,&.selected
-          border        1px solid #89bdf2
-          border-width  1px 0
-          border-color  finderSelectedColor2 transparent #ffffff transparent
-          color         white
-          text-shadow   0 -1px 0 rgba(0,0,0,0.22)
-          // background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%)
-          bg            color, finderSelectedColor1
+//         &:hover,&.selected
+//           border        1px solid #89bdf2
+//           border-width  1px 0
+//           border-color  finderSelectedColor2 transparent #ffffff transparent
+//           color         white
+//           text-shadow   0 -1px 0 rgba(0,0,0,0.22)
+//           // background    linear-gradient(top, finderSelectedColor2 0%,finderSelectedColor1 50%)
+//           bg            color, finderSelectedColor1
 
-      &.divider
-        &:hover
-          border-color      transparent!important
-          bg                color,transparent!important
-          bg                image,none!important
+//       &.divider
+//         &:hover
+//           border-color      transparent!important
+//           bg                color,transparent!important
+//           bg                image,none!important
 
-      &.has-subitems
-        .context-menu-item
-          .icon
-            position        absolute
-            display         block
-            top             0
-            right           0
-            size            20px,20px
-            sprite()
-            bg              position,-180px -320px
-        &:hover,&.selected
-          .context-menu-item
-            .icon
-              bg            position,-180px -340px
-
-
-      .context-menu-item
-        margin 0 10px
-
-        a
-          color inherit
-          text-decoration none
+//       &.has-subitems
+//         .context-menu-item
+//           .icon
+//             position        absolute
+//             display         block
+//             top             0
+//             right           0
+//             size            20px,20px
+//             sprite()
+//             bg              position,-180px -320px
+//         &:hover,&.selected
+//           .context-menu-item
+//             .icon
+//               bg            position,-180px -340px
 
 
+//       .context-menu-item
+//         margin 0 10px
 
-  .context-menu-item-separator
-    height auto
-    margin 2px 0
-    border-bottom 1px solid rgb(213,213,213)
+//         a
+//           color inherit
+//           text-decoration none
 
 
-.kdcontextmenulistview
-  .kdview.kdlistitemview
-    overflow    hidden
+
+//   .context-menu-item-separator
+//     height auto
+//     margin 2px 0
+//     border-bottom 1px solid rgb(213,213,213)
+
+
+// .kdcontextmenulistview
+//   .kdview.kdlistitemview
+//     overflow    hidden
 
 
 /*
 **  KDToolTipMenu STYLES
 */
 
-tooltipSize  = 6px
-tooltipColor = #6e9fd1
+// tooltipSize  = 6px
+// tooltipColor = #6e9fd1
 
-.kdtooltipmenu
-  position        absolute
-  height          auto
-  border          1px solid tooltipColor
-  overflow        visible
-  z-index         11000
-  borderBox()
-  shadow(0,5px,15px,rgba(0,0,0,.5))
-  rounded(3px)
-  background      linear-gradient(top, #f2f2f2 0%,#e2e2e2 100%)
+// .kdtooltipmenu
+//   position        absolute
+//   height          auto
+//   border          1px solid tooltipColor
+//   overflow        visible
+//   z-index         11000
+//   borderBox()
+//   shadow(0,5px,15px,rgba(0,0,0,.5))
+//   rounded(3px)
+//   background      linear-gradient(top, #f2f2f2 0%,#e2e2e2 100%)
 
-  h2.kdtooltipheader
-    margin        0
-    padding       0 10px
-    line-height   30px
-    height        29px
-    font-size     13px
-    font-weight   bold
-    color         white
-    border-bottom 1px solid #aaa
-    text-shadow   0 1px 0 #444
-    bg(color,#6e9fd1)
-    size(auto,auto)
+//   h2.kdtooltipheader
+//     margin        0
+//     padding       0 10px
+//     line-height   30px
+//     height        29px
+//     font-size     13px
+//     font-weight   bold
+//     color         white
+//     border-bottom 1px solid #aaa
+//     text-shadow   0 1px 0 #444
+//     bg(color,#6e9fd1)
+//     size(auto,auto)
 
-  .kdtooltipmenutreeview
-    margin 5px 0
-    size(auto,auto)
+//   .kdtooltipmenutreeview
+//     margin 5px 0
+//     size(auto,auto)
 
-    .kdview.kdtreeitemview
-      font-size .9em
-      position relative
-      background-color transparent
-      border-bottom none
-      padding 3px 0
-      clear both
-      color #444
-      border-top    1px solid transparent
-      border-bottom 1px solid transparent
-      size(auto,auto)
-      &:hover
-        color             white
-        text-shadow       0 1px 0 #444
-        border-top        1px solid #8084ee
-        border-bottom     1px solid #6084ee
-        background        linear-gradient(top, tooltipColor 0%,#6a8df8 100%)
+//     .kdview.kdtreeitemview
+//       font-size .9em
+//       position relative
+//       background-color transparent
+//       border-bottom none
+//       padding 3px 0
+//       clear both
+//       color #444
+//       border-top    1px solid transparent
+//       border-bottom 1px solid transparent
+//       size(auto,auto)
+//       &:hover
+//         color             white
+//         text-shadow       0 1px 0 #444
+//         border-top        1px solid #8084ee
+//         border-bottom     1px solid #6084ee
+//         background        linear-gradient(top, tooltipColor 0%,#6a8df8 100%)
 
-      .tooltip-menu-item
-        margin 0 10px
+//       .tooltip-menu-item
+//         margin 0 10px
 
-        a
-          color inherit
-          text-decoration none
-
-
-
-  .tooltip-menu-item-separator
-    height auto
-    margin 2px 0
-    border-bottom 1px solid #eee
+//         a
+//           color inherit
+//           text-decoration none
 
 
-.kdtooltipmenulistview
-  .kdview.kdlistitemview
-    overflow            hidden
 
-.kdtooltipmenu .tip
-  position              absolute
-  display               block
-  border                tooltipSize solid transparent
-  size(0,0)
+//   .tooltip-menu-item-separator
+//     height auto
+//     margin 2px 0
+//     border-bottom 1px solid #eee
 
-.kdtooltipmenu.tip-at-top
-  margin-top            tooltipSize
-  .tip
-    top                 -13px
-    left                10px
-    border-bottom-color tooltipColor
 
-.kdtooltipmenu.tip-at-bottom
-  margin-bottom         tooltipSize
-  .tip
-    bottom              -13px
-    left                10px
-    border-top-color    tooltipColor
+// .kdtooltipmenulistview
+//   .kdview.kdlistitemview
+//     overflow            hidden
 
-.kdtooltipmenu.tip-at-right
-  margin-right          tooltipSize
-  .tip
-    top                 10px
-    border-left-color   tooltipColor
+// .kdtooltipmenu .tip
+//   position              absolute
+//   display               block
+//   border                tooltipSize solid transparent
+//   size(0,0)
 
-.kdtooltipmenu.tip-at-left
-  margin-left           tooltipSize
-  .tip
-    top                 10px
-    border-right-color  tooltipColor
+// .kdtooltipmenu.tip-at-top
+//   margin-top            tooltipSize
+//   .tip
+//     top                 -13px
+//     left                10px
+//     border-bottom-color tooltipColor
+
+// .kdtooltipmenu.tip-at-bottom
+//   margin-bottom         tooltipSize
+//   .tip
+//     bottom              -13px
+//     left                10px
+//     border-top-color    tooltipColor
+
+// .kdtooltipmenu.tip-at-right
+//   margin-right          tooltipSize
+//   .tip
+//     top                 10px
+//     border-left-color   tooltipColor
+
+// .kdtooltipmenu.tip-at-left
+//   margin-left           tooltipSize
+//   .tip
+//     top                 10px
+//     border-right-color  tooltipColor

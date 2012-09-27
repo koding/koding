@@ -16,10 +16,6 @@ class KDListView extends KDView
       item.destroy() if item?
     @items = []
 
-  itemClass:(options,data)->
-
-    new (@getOptions().subItemClass ? KDListItemView) options, data
-
   keyDown:(event)->
 
     event.stopPropagation()
@@ -29,10 +25,13 @@ class KDListView extends KDView
   _addItemHelper:(itemData, options)->
 
     {index, animation, viewOptions} = options
-    viewOptions or= {}
+    {itemChildClass, itemChildOptions} = @getOptions()
+    viewOptions or= @customizeItemOptions?(options, itemData) or {}
     viewOptions.delegate = @
+    viewOptions.childClass = itemChildClass
+    viewOptions.childOptions = itemChildOptions
 
-    itemInstance = @itemClass viewOptions, itemData
+    itemInstance = new (viewOptions.itemClass ? @getOptions().itemClass ? KDListItemView) viewOptions, itemData
     @addItemView itemInstance, index, animation
 
     return itemInstance
@@ -67,6 +66,13 @@ class KDListView extends KDView
           item.destroy()
           return
 
+  destroy:(animated = no, animationType = "slideUp", duration = 100)->
+
+    for item in @items
+      # log "destroying listitem", item
+      item.destroy()
+    super()
+
   addItemView:(itemInstance,index,animation)->
 
     @emit 'ItemWasAdded', itemInstance, index
@@ -78,13 +84,6 @@ class KDListView extends KDView
       @items[if @getOptions().lastToFirst then 'unshift' else 'push'] itemInstance
       @appendItem itemInstance, animation
     itemInstance
-
-  destroy:(animated = no, animationType = "slideUp", duration = 100)->
-
-    for item in @items
-      # log "destroying listitem", item
-      item.destroy()
-    super()
 
   appendItem:(itemInstance, animation)->
     itemInstance.setParent @
@@ -99,6 +98,26 @@ class KDListView extends KDView
       @getDomElement()[if @getOptions().lastToFirst then 'prepend' else 'append'] itemInstance.getDomElement()
     if scroll
       @scrollDown()
+    if @parentIsInDom
+      itemInstance.emit 'viewAppended'
+    null
+
+  appendItemAtIndex:(itemInstance,index,animation)->
+
+    itemInstance.setParent @
+    actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
+    if animation?
+      itemInstance.getDomElement().hide()
+      @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0
+      @items[actualIndex-1].getDomElement()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.getDomElement() if index > 0
+      itemInstance.getDomElement()[animation.type] animation.duration,()=>
+        itemInstance.propagateEvent KDEventType: 'introEffectCompleted'
+        # itemInstance.handleEvent { type : "viewAppended"}
+    else
+      @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0
+      @items[actualIndex-1].getDomElement()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.getDomElement() if index > 0
+      # @items[actualIndex].getDomElement()[if @getOptions().lastToFirst then 'after' else 'before']  itemInstance.getDomElement()
+      # itemInstance.handleEvent { type : "viewAppended"}
     if @parentIsInDom
       itemInstance.emit 'viewAppended'
     null
@@ -142,22 +161,3 @@ class KDListView extends KDView
     else
       return no
 
-  appendItemAtIndex:(itemInstance,index,animation)->
-
-    itemInstance.setParent @
-    actualIndex = if @getOptions().lastToFirst then @items.length - index - 1 else index
-    if animation?
-      itemInstance.getDomElement().hide()
-      @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0
-      @items[actualIndex-1].getDomElement()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.getDomElement() if index > 0
-      itemInstance.getDomElement()[animation.type] animation.duration,()=>
-        itemInstance.propagateEvent KDEventType: 'introEffectCompleted'
-        # itemInstance.handleEvent { type : "viewAppended"}
-    else
-      @getDomElement()[if @getOptions().lastToFirst then 'append' else 'prepend'] itemInstance.getDomElement() if index is 0
-      @items[actualIndex-1].getDomElement()[if @getOptions().lastToFirst then 'before' else 'after']  itemInstance.getDomElement() if index > 0
-      # @items[actualIndex].getDomElement()[if @getOptions().lastToFirst then 'after' else 'before']  itemInstance.getDomElement()
-      # itemInstance.handleEvent { type : "viewAppended"}
-    if @parentIsInDom
-      itemInstance.emit 'viewAppended'
-    null

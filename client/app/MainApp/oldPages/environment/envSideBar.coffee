@@ -21,10 +21,10 @@ class EnvironmentSideBarController extends KDViewController
         delegate : header
       envSideBarSection.hide()
 
-      envSideBarSection.addSubView list = new EnvironmentSideBarAbstractList 
-        subItemClass : EnvironmentSideBarListItems[key],listData
-        
-      envSideBarSection.addSubView new EnvironmentSideBarAddLink 
+      envSideBarSection.addSubView list = new EnvironmentSideBarAbstractList
+        itemClass : EnvironmentSideBarListItems[key],listData
+
+      envSideBarSection.addSubView new EnvironmentSideBarAddLink
         cssClass : "add-item-btn"
         delegate : list,listData
 
@@ -50,22 +50,22 @@ class EnvironmentSideBarController extends KDViewController
           { title : 'zikkim.com Production',  description : 'AWS' }
           { title : 'My Heroku',              description : 'Heroku' }
         ]
- 
+
 class EnvironmentSideBar extends KDView
 
 class EnvironmentSideBarHeaderView extends KDHeaderView
   viewAppended:->
     # @$().prepend "<span class='arrow down'></span>"
     @$().prepend "<span class='arrow'></span>"
-    
+
 class EnvironmentSideBarAccordionSection extends KDView
   viewAppended:->
 
-    @listenTo 
+    @listenTo
       KDEventTypes : "click"
       listenedToInstance : @getDelegate()
       callback : @_toggleView
-  
+
   _toggleView:->
     if @$().is ":visible"
       @$().slideUp 200
@@ -91,13 +91,13 @@ class EnvironmentSideBarAddLink extends KDCustomHTMLView
       partial : "#{partial}"
     ,options
     super options,data
-  
+
   click:->
     log "Add New asdas dasdasd"
 
 
 EnvironmentSideBarListItems = {}
-      
+
 class EnvironmentSideBarListItems.environment extends KDListItemView
   viewAppended:->
     @setClass "environment"
@@ -120,7 +120,7 @@ class EnvironmentSideBarListItems.database extends KDListItemView
   viewAppended:->
     @setClass "database"
     super
-  
+
   partial:(data)->
     """
       <div>
@@ -131,7 +131,7 @@ class EnvironmentSideBarListItems.database extends KDListItemView
       </div>
       </div>
     """
-  
+
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
 
@@ -150,10 +150,10 @@ class EnvironmentSideBarListItems.deployTarget extends KDListItemView
       </div>
       </div>
     """
-  
+
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview #{cssClass}'></li>"
-  
+
   click:->
     @setClass "camiryo"
 
