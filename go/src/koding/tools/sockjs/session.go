@@ -115,11 +115,15 @@ func (session *Session) createNextFrame(frameStart, frameEnd []byte, escape bool
 	}
 
 	messages := make([]interface{}, 0)
-	message, ok := <-session.SendChan
-	if !ok {
-		return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
+	select {
+	case message, ok := <-session.SendChan:
+		if !ok {
+			return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
+		}
+		messages = append(messages, message)
+	case <-time.After(25 * time.Second):
+		return createFrame('h', "", frameStart, frameEnd, escape), false
 	}
-	messages = append(messages, message)
 
 	for moreMessages := true; moreMessages; {
 		select {
