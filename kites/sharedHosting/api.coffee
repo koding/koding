@@ -136,7 +136,7 @@ module.exports = new Kite 'sharedHosting'
 
     {username,uid} = options
     home = nodePath.join(config.usersPath,username)
-    fs.mkdir home,0755,(error)=>
+    fs.mkdir home, 0o0755,(error)=>
       if error?
         log.error "[ERROR] can't make homedir for user #{username} in the #{config.usersPath}: #{error}"
       else
