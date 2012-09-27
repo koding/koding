@@ -226,9 +226,11 @@ class CodeShareResultView extends KDCustomHTMLView
       codeshare.html= Encoder.htmlDecode(codeshare.attachments?[0]?.content) or codeshare.codeHTML
       codeshare.css = Encoder.htmlDecode(codeshare.attachments?[1]?.content) or codeshare.codeCSS
       codeshare.js  = Encoder.htmlDecode(codeshare.attachments?[2]?.content) or codeshare.codeJS
-      @handleMarkdown codeshare, (codeshare_)=>
-        @handleCoffee codeshare_, (result)=>
-          @setResultObject result
+      @handleMarkdown codeshare, (codeshare_md)=>
+        @handleLESS codeshare_md, (codeshare_less)=>
+          @handleStylus codeshare_less, (codeshare_stylus)=>
+            @handleCoffee codeshare_stylus, (codeshare_coffee)=>
+              @setResultObject codeshare_coffee
 
   handleMarkdown:(codeshare, callback)=>
    if codeshare.modeHTML is "markdown"
@@ -253,6 +255,36 @@ class CodeShareResultView extends KDCustomHTMLView
         callback(codeshare)
    else
     callback(codeshare)
+
+  handleLESS:(codeshare, callback)=>
+   if codeshare.modeCSS is "less"
+    try
+      # requirejs (["libs/less.min.js"]), (e,r)->
+      parser = new less.Parser({})
+      parser.parse codeshare.css, (err,css) ->
+        unless err
+          codeshare.css = css.toCSS()
+        else
+          log "While compiling the LESS to CSS, this happened: ",err
+          throw err
+        callback(codeshare)
+    catch err
+      log "While trying to compile the LESS to CSS, this happened: ",err
+      callback(codeshare)
+   else
+    callback(codeshare)
+
+  handleStylus:(codeshare, callback)=>
+   if codeshare.modeCSS is "stylus"
+    try
+      callback(codeshare)
+    catch err
+      log "While trying to compile the Stylus to CSS, this happened: ",err
+      callback(codeshare)
+   else
+    callback(codeshare)
+
+
 
   setResultObject:(codeshare)=>
 
