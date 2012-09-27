@@ -13,7 +13,8 @@ class Activity12345 extends AppController
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
-      'CCodeShareActivity'
+      # THIS WILL DISABLE CODE SHARES
+      # 'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -191,7 +192,8 @@ class Activity12345 extends AppController
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
-          'CCodeShareActivity'
+          # THIS WILL DISABLE CODE SHARES
+          # 'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -261,7 +263,8 @@ class Activity12345 extends AppController
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
-        'CCodeShareActivity'
+        # THIS WILL DISABLE CODE SHARES
+        # 'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -277,7 +280,8 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES
+      # when "JCodeShare"    then @createCodeShareContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -302,14 +306,15 @@ class Activity12345 extends AppController
     contentDisplay = controller.getView()
     @showContentDisplay contentDisplay
 
-  createCodeShareContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Code Share"
-      type        : "codeshare"
-      contentView : new ContentDisplayCodeShare {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+  # THIS WILL DISABLE CODE SHARES
+  # createCodeShareContentDisplay:(activity)->
+  #   controller = new ContentDisplayControllerActivity
+  #     title       : "Code Share"
+  #     type        : "codeshare"
+  #     contentView : new ContentDisplayCodeShare {},activity
+  #   , activity
+  #   contentDisplay = controller.getView()
+  #   @showContentDisplay contentDisplay
 
   createDiscussionContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity

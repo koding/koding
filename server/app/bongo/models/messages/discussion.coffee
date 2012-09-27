@@ -125,9 +125,10 @@ class JOpinion extends JPost
             as        : 'opinion'
           }, (err)-> queue.next(err)
         =>
-          @remove -> queue.next()
+          @emit "OpinionIsDeleted", yes
+          queue.next()
         =>
-          @emit "OpinionIsDeleted", 1
+          @remove()
           callback null
       ]
       daisy queue
@@ -226,12 +227,14 @@ class JDiscussion extends JPost
         @update $inc: repliesCount: -1, -> queue.next()
       =>
         @flushSnapshot rel.getAt('targetId'), -> queue.next()
+      =>
+        @emit 'ReplyIsRemoved', rel.targetId
+        queue.next()
       callback
     ]
     daisy queue
 
   reply: secure (client, comment, callback)->
-
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
@@ -289,11 +292,12 @@ class JDiscussion extends JPost
                                       origin
                                       subject       : ObjectRef(@).data
                                       actorType     : 'replier'
-                                      actionType    : 'reply'
+                                      actionType    : 'opinion'
                                       replier       : ObjectRef(delegate).data
-                                      reply         : ObjectRef(comment).data
+                                      opinion       : ObjectRef(comment).data
                                       repliesCount  : count
                                       relationship  : docs[0]
+                                      opinionData   : JSON.stringify comment
                                     }
                                   @follow client, emitActivity: no, (err)->
                                   @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
@@ -445,3 +449,60 @@ class COpinionActivity extends CActivity
       subject       :
         targetType  : JOpinion
         as          : 'opinion'
+
+  # --------------------------------------------------------------------
+  # This is what the CCommentActivity does - is not ready for use yet
+  # --------------------------------------------------------------------
+  # --arvid
+
+  # {Relationship} = jraphical
+
+  # @share()
+
+  # @set
+  #   encapsulatedBy  : CActivity
+  #   schema          : CActivity.schema
+  #   relationships   :
+  #     subject       :
+  #       targetType  : JOpinion
+  #       as          : 'opinion'
+  # @init = ->
+  #   Relationship.on ['feed','*'], (relationships)=>
+  #     relationships.forEach (relationship)=>
+  #       if relationship.targetName is 'JOpinion' and relationship.as is 'opinion'
+  #         activity = new COpinionActivity
+  #         activity.save (err)->
+  #           if err
+  #             console.log "Couldn't save the activity", err
+  #           else relationship.fetchSource (err, source)->
+  #             if err
+  #               console.log "Couldn't fetch the source", err
+  #             else source.assureOpinionsActivity (err, repliesActivity)->
+  #               if err
+  #                 console.log err
+  #               else activity.addSubject relationship, (err)->
+  #                 if err
+  #                   console.log err
+  #                 else repliesActivity.addSubject relationship, (err)->
+  #                   if err
+  #                     console.log err
+  #                   else source.fetchParticipants? (err, participants)->
+  #                     if err
+  #                       console.log "Couldn't fetch the participants", err
+  #                     else relationship.fetchTarget (err, target)->
+  #                       if err
+  #                         console.log "Couldn't fetch the target", err
+  #                       else participants.forEach (participant)->
+  #                         participant.assureActivity repliesActivity, (err)->
+  #                           if err
+  #                             console.log err
+  #                           else unless participant.getId().equals target.originId
+  #                             participant.addActivity activity,
+  #                               if participant.getId().equals source.originId
+  #                                 'author'
+  #                               else
+  #                                 'commenter'
+  #                             , (err)->
+  #                               if err
+  #                                 console.log "Couldn't add an activity", err
+  # @init()
