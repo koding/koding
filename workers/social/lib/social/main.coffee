@@ -21,10 +21,12 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 
 EXCHANGE_PREFIX = "x"
 
-Feeder = require './feeder'
-feeder = new Feeder
-  mongo: mongo
-  exchangePrefix: EXCHANGE_PREFIX
+# Feeder = require './feeder'
+# feeder = new Feeder
+#   mongo: mongo
+#   exchangePrefix: EXCHANGE_PREFIX
+
+# feeder.handleNewFollowingActivity()
 
 {Relationship} = require 'jraphical'
 
@@ -122,6 +124,10 @@ koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
     handleClient delegate
+
+    {ensureUserFeeds} = require './feeder'
+    #ensureUserFeeds([{title: "followed", description: "ABC"}])
+
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log

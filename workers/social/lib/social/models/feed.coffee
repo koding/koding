@@ -17,6 +17,14 @@ module.exports = class JFeed extends jraphical.Module
         as          : 'container'
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
 
+  saveFeedToAccount = (feed, account, callback) ->
+    feed.save (err) ->
+      if err then callback err
+      else 
+        account.addFeed feed, (err) ->
+          if err then callback err
+          else callback null, feed
+
   @createFeed = (account, options, callback) ->
     {title, description} = options
     feed = new JFeed {
@@ -24,12 +32,14 @@ module.exports = class JFeed extends jraphical.Module
       description
       owner: account.profile.nickname
     }
-    feed.save (err) ->
-      if err
-        callback err
-      else
-        account.addFeed feed, (err) ->
-          if err
-            callback err
-          else
-            callback null, feed
+    saveFeedToAccount feed, account, callback
+
+  @assureFeed = (account, data, callback) ->
+    {title, description} = data
+    selectorOrInitializer =
+      title: title
+      description: description
+      owner: account.profile.nickname
+    @assure selectorOrInitializer, (err, feed) ->
+      if err then callback err
+      else saveFeedToAccount feed, account, callback
