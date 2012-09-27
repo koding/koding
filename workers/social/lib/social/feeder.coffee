@@ -37,10 +37,33 @@ module.exports =
           relationshipsCol.update criteria, criteria, {upsert:true}
 
   ensureExchangeMesh: (options) ->
+    options.host ?= "localhost"
+    options.login ?= "guest"
+    options.password ?= "guest"
+    mq = new Broker options
+    JAccount = require './models/account'
+
+
+    # For every account, declare its exchange
+
+    mq.
+
+    # Remove all exchange bindings
+
+    # Find all followers
+
+    # Establish exchange to exchange for each follower
+
+
+
     # dbUrl = options.mongo ? "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
     # db = mongo.db dbUrl
 
-  # For now, just the 'followed feeds'
+  ###
+  function ensureuserFeeds (Array feeds) -> void()
+  feeds = [feed]
+  feed = {title, description}
+  ###
   ensureUserFeeds: (feeds) ->
     JAccount  = require './models/account'
     JFeed     = require './models/feed'

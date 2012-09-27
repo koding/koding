@@ -125,9 +125,6 @@ koding.on 'auth', (exchange, sessionToken)->
     {delegate} = client.connection
     handleClient delegate
 
-    {ensureUserFeeds} = require './feeder'
-    #ensureUserFeeds([{title: "followed", description: "ABC"}])
-
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
