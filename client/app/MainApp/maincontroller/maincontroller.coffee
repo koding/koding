@@ -63,7 +63,7 @@ class MainController extends KDController
       #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
-
+    console.log 'does it happen?'
     connectedState.connected = yes
     @emit "RemoveModal"
 
