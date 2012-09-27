@@ -30,7 +30,7 @@ class Sidebar extends JView
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -44,7 +44,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -58,7 +58,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account admin"
-        subItemClass : AdminNavigationLink
+        itemClass : AdminNavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -70,7 +70,7 @@ class Sidebar extends JView
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
-        subItemClass : FooterMenuItem
+        itemClass : FooterMenuItem
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()

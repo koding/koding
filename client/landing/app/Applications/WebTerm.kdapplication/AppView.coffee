@@ -3,7 +3,7 @@ class WebTermView extends KDView
     @container = new KDView
       cssClass : "console"
     @addSubView @container
-    
+
     @sessionBox = new KDView
       cssClass: "kddialogview"
       position:
@@ -11,24 +11,24 @@ class WebTermView extends KDView
         left: 10
     @sessionBox.hide()
     @addSubView @sessionBox
-    
+
     label = new KDLabelView
       title: "Select session:"
     @sessionBox.addSubView label
 
     @sessionList = new KDListView
-      subItemClass: WebTermSessionItem
+      itemClass: WebTermSessionItem
     @sessionBox.addSubView @sessionList
-    
+
     label = new KDLabelView
       title: "Create session with name:"
     @sessionBox.addSubView label
-    
+
     sessionNameInput = new KDInputView
       label: label
       defaultValue: (new Date).format "yyyy-mm-dd HH:MM:ss"
     @sessionBox.addSubView sessionNameInput
-    
+
     createSessionButton = new KDButtonView
       title: "Create"
       callback: =>
@@ -36,7 +36,7 @@ class WebTermView extends KDView
         @terminal.createSession sessionNameInput.getValue()
         @setKeyView()
     @sessionBox.addSubView createSessionButton
-    
+
     @terminal = new WebTerm.Terminal @container.$()
     @terminal.showSessionsCallback = (sessions) =>
       return
@@ -61,18 +61,18 @@ class WebTermView extends KDView
     @listenWindowResize()
 
     @focused = true
-    
+
     @on "ReceivedClickElsewhere", =>
       @focused = false
       @terminal.setFocused false
       @getSingleton('windowController').removeLayer @
-    
+
     $(window).bind "blur", =>
       @terminal.setFocused false
-    
+
     $(window).bind "focus", =>
       @terminal.setFocused @focused
-    
+
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
 
@@ -87,11 +87,11 @@ class WebTermView extends KDView
       #@terminal.showSessions()
       @terminal.createSession ""
       @setKeyView()
-  
+
   destroy: ->
     super
     @terminal.server?.close()
-  
+
   setKeyView: ->
     super
     @getSingleton('windowController').addLayer @
@@ -100,23 +100,23 @@ class WebTermView extends KDView
 
   click: ->
     @setKeyView()
-    
+
   keyDown: (event) ->
     @terminal.keyDown event
-  
+
   keyPress: (event) ->
     @terminal.keyPress event
-  
+
   keyUp: (event) ->
     @terminal.keyUp event
-  
+
   _windowDidResize: (event) ->
     @terminal.windowDidResize()
 
 class WebTermSessionItem extends KDListItemView
   constructor: (options = {},data) ->
     super options, data
-  
+
   partial: (data) ->
     link = $(document.createElement("a"))
     link.text data.name

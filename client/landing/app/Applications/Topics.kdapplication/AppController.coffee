@@ -25,7 +25,7 @@ class Topics12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : @listItemClass
+      itemClass          : @listItemClass
       limitPerPage          : 20
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -148,7 +148,7 @@ class Topics12345 extends AppController
                 defaultValue      : Encoder.htmlDecode topic.body or ""
 
   fetchSomeTopics:(options = {}, callback)->
-    
+
     options.limit    or= 6
     options.skip     or= 0
     options.sort     or=
