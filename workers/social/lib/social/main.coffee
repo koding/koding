@@ -87,8 +87,10 @@ handleClient = do ->
   handleOwnActivity = (account) ->
     ownExchangeName = getOwnExchangeName account
     ownExchange = getExchange ownExchangeName
+    activityTypes = ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']
     # Listen to when an activity is posted and publish own activity to MQ
     koding.models.CActivity.on "feed.new", ([model]) ->
+      return unless model.type in activityTypes
       unless account.getId().toString() is model.originId.toString()
         console.log "other feed"
       else
