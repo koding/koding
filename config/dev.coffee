@@ -51,6 +51,10 @@ module.exports = deepFreeze
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
+    vhosts      : [
+      rule      : '^private-kite-'
+      vhost     : 'kite'
+    ]
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
