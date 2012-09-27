@@ -4,9 +4,13 @@ module.exports = class JFeed extends jraphical.Module
   {secure} = require 'bongo'
   @set
     schema:
-      title: String
+      title:
+        type: String
+        required: yes
       description: String
-      owner: String
+      owner:
+        type: String
+        required: yes
       meta: require 'bongo/bundles/meta'
     relationships:
       content       :
