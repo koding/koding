@@ -6,15 +6,18 @@ class Likeable
   checkIfLikedBefore: bongo.secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
-    Relationship.one
-      sourceId: @getId()
-      targetId: delegate.getId()
-      as: 'like'
-    , (err, likedBy)=>
-      if likedBy
-        callback null, yes
-      else
-        callback err, no
+    if not delegate
+      callback null, no
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'like'
+      , (err, likedBy)=>
+        if likedBy
+          callback null, yes
+        else
+          callback err, no
 
   like: bongo.secure ({connection}, callback)->
     {delegate} = connection
@@ -36,6 +39,8 @@ class Likeable
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': 1), (err)->
+                  console.log err if err
                 @fetchActivityId? (err, id)->
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
@@ -51,6 +56,7 @@ class Likeable
                     likesCount    : count
                     relationship  : docs[0]
                   }
+                @flushOriginSnapshot constructor
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err
@@ -58,3 +64,17 @@ class Likeable
                 console.log err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': -1), (err)->
+                  console.log err if err
+                @flushOriginSnapshot constructor
+
+  flushOriginSnapshot:(constructor)->
+    if constructor.name is 'JComment'
+      Relationship.one
+        targetId: @getId()
+        as: 'reply'
+      , (err, rel)->
+        if not err and rel
+          rel.fetchSource (err, source)->
+            if not err and source
+              source.flushSnapshot?()

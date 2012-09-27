@@ -63,6 +63,7 @@ Includes =
         jchannel                  : "./server/app/bongo/models/channel.coffee"
         jemailnotification        : "./server/app/bongo/models/emailnotification.coffee"
         jemailconfirmation        : "./server/app/bongo/models/emailconfirmation.coffee"
+        jverificationtoken        : "./server/app/bongo/models/verify.coffee"
         # bongo models:
         # jactivity                 : "./server/app/bongo/models/activity/activity.coffee"
         # jreplyactivity            : "./server/app/bongo/models/activity/reply.coffee"
@@ -519,6 +520,7 @@ Includes =
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
+        VerifyPINModal              : "./client/app/CommonViews/VerifyPINModal.coffee"
 
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"

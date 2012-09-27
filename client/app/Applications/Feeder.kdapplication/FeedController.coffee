@@ -102,7 +102,7 @@ class FeedController extends KDViewController
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
 
-    options.sort[sort.name] = sort.direction
+    options.sort[sort.name.split('|')[0]] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     console.log options

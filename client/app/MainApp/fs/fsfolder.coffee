@@ -25,13 +25,12 @@ class FSFolder extends FSFile
     , (err, response)=>
       # log "------------------------------------------------------------------"
       # log "l flag response in: #{Date.now()-a} msec."
-      if err
-        warn err
-        @emit "fs.fetchContents.finished", err
-      else
+      if not err or /ls\:\scannot\saccess/.test err
         files = FSHelper.parseLsOutput [@path], response
         @emit "fs.fetchContents.finished", files
         callback? files
+      else
+        @emit "fs.fetchContents.finished", err
 
   # forkRepoCommandMap = ->
 

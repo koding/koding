@@ -43,7 +43,7 @@ class JUser extends jraphical.Module
     sharedMethods   :
       instance      : []
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable','changePassword'
+        'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami'
       ]
 
@@ -371,6 +371,21 @@ class JUser extends jraphical.Module
   @changePassword = bongo.secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
 
+  @changeEmail = bongo.secure (client, options, callback)->
+
+    {email} = options
+
+    @emailAvailable email, (err, res)=>
+
+      if err
+        callback new KodingError "Something went wrong please try again!"
+      else if res is no
+        callback new KodingError "Email is already in use!"
+      else
+        @fetchUser client, (err,user)->
+          account = client.connection.delegate
+          user.changeEmail account, options, callback
+
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
       if err
@@ -409,6 +424,39 @@ class JUser extends jraphical.Module
       salt
       password: hashPassword(newPassword, salt)
     }, callback
+
+  changeEmail:(account, options, callback)->
+
+    {email, pin} = options
+
+    if not pin
+      options =
+        action    : "update-email"
+        user      : @
+        email     : email
+
+      JVerificationToken.requestNewPin options, callback
+
+    else
+      options =
+        action    : "update-email"
+        username  : @getAt 'username'
+        email     : email
+        pin       : pin
+
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+        if err then callback err
+        else if confirmed
+          @update $set: {email}, (err, res)=>
+            if err
+              callback err
+            else
+              account.profile.hash = getHash email
+              account.save (err)-> throw err if err
+              callback null
+        else
+          callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation.create @, (err, confirmation)->

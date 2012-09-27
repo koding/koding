@@ -38,7 +38,7 @@ class FeederResultsController extends KDViewController
         cssClass          : listCssClass
         subItemClass      : subItemClass
         type              : name
-        
+
     listController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
       listener      : @
