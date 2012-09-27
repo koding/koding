@@ -259,18 +259,18 @@ app.activity.styl
         &:hover
           gradient      #eee, #ddd
           rounded       2px
-      .chevron-arrow
+      .chevron
         display         none
-      .chevron-arrow-separator
+      .chevron-separator
         display         none
 
-.kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+.kdview.jcontextmenu.kdbuttonmenu.activity-settings-context
   border-color          rgba(0,0,0,.2)
-  .chevron-arrow-ghost-wrapper
+  .chevron-ghost-wrapper
     border-color        rgba(0,0,0,.2)
     rounded             2px 2px 0 0
     width               19px
-    span.chevron-arrow-ghost
+    span.chevron-ghost
       margin            0 auto
       bg                position, -80px -261px
   .kdcontextmenutreeview
@@ -808,9 +808,9 @@ button.activity-status-context
   //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
   //     gradient          rgb(255,255,255),rgb(242,242,242)
 
-  .chevron-arrow-separator
+  .chevron-separator
     display           none
-  .chevron-arrow
+  .chevron
     top               50%
     margin-top        -9px
     margin-right      5px
@@ -837,10 +837,10 @@ button.activity-status-context
   size                      auto!important,35px
 
 .activity-status-context
-  .chevron-arrow-ghost-wrapper
+  .chevron-ghost-wrapper
     width                   30px
     rounded                 0 3px 0 0
-    .chevron-arrow-ghost
+    .chevron-ghost
       margin                6px 0 0 6px
 
   .icon
@@ -904,7 +904,7 @@ button.activity-status-context
   //   &:hover
   //     cursor            pointer !important
 
-.kdcontextmenu
+.jcontextmenu
   .kdcontextmenutreeview
     .kdview.kdtreeitemview-default.disabledForBeta
     .kdview.kdtreeitemview-default.disabled
