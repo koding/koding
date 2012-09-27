@@ -63,7 +63,7 @@ class OpinionListItemView extends KDListItemView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      subItemClass  : TagLinkView
+      itemClass  : TagLinkView
     , data.meta.tags
 
     @smaller = new KDCustomHTMLView

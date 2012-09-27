@@ -11,7 +11,7 @@ class AccountMountListController extends KDListViewController
       port          : mount.port
       accessibleTo  : []
       jmount        : mount
-      
+
     return item
 
   constructor:->
@@ -46,9 +46,9 @@ class AccountMountListController extends KDListViewController
     ]
     @instantiateListItems items
     # @account.fetchMounts (err,mounts)=>
-    #   items ?= []    
+    #   items ?= []
     #   for mount in mounts
-    #     item = mapBongoInstanceToView mount          
+    #     item = mapBongoInstanceToView mount
     #     items.push item
     #   @instantiateListItems items
 
@@ -60,15 +60,15 @@ class AccountMountListController extends KDListViewController
         jmount = listItem.getData().jmount
         jmount.remove (err)=>
           @getListView().removeListItem @getListView()._listItemToBeUpdated
-      when "update" 
+      when "update"
         jmount = listItem.getData().jmount
-                
+
         jmount.title     = f.title
-        jmount.hostname  = f.hostname   
-        jmount.username  = f.username  
-        jmount.password  = f.password  
-        jmount.port      = f.port      
-        
+        jmount.hostname  = f.hostname
+        jmount.username  = f.username
+        jmount.password  = f.password
+        jmount.port      = f.port
+
         jmount.update (err)=>
           if err
             new KDNotificationView
@@ -81,8 +81,8 @@ class AccountMountListController extends KDListViewController
               type : "growl"
               title : "Mount Updated!"
               duration : 1000
-            
-      
+
+
       when "add"
         switch f.type
           when "ftp"
@@ -91,14 +91,14 @@ class AccountMountListController extends KDListViewController
               hostname      : f.hostname
               username      : f.username
               password      : f.password
-              port          : f.port               
+              port          : f.port
           when "sftp"
             jm = new KD.remote.api.JMountSFTP
               title         : f.title ? f.hostname
               hostname      : f.hostname
               username      : f.username
               password      : f.password
-              port          : f.port               
+              port          : f.port
           when "s3"
             jm = new KD.remote.api.JMountS3
               title         : f.title ? f.hostname
@@ -110,8 +110,8 @@ class AccountMountListController extends KDListViewController
               hostname      : f.hostname
               username      : f.username
               password      : f.password
-              port          : f.port               
-          
+              port          : f.port
+
         jm.save (err)=>
           if err
             new KDNotificationView
@@ -123,7 +123,7 @@ class AccountMountListController extends KDListViewController
             new KDNotificationView
               type : "growl"
               title : "Mount Added!"
-              duration : 1000          
+              duration : 1000
 
 
         # jm.save()
@@ -143,40 +143,40 @@ class AccountMountList extends KDListView
       port          : mount.port
       accessibleTo  : []
       jmount        : mount
-      
+
     return item
 
   constructor:(options,data)->
     options = $.extend
       tagName       : "ul"
-      subItemClass  : AccountMountListItem
+      itemClass  : AccountMountListItem
     ,options
     super options,data
     @account = KD.whoami()
-    
+
     @on "mountAdded",(mount)=>
       log "mountAdded",mount
       newItemData = mapBongoInstanceToView mount
       @addItemView new AccountMountListItem delegate:@,newItemData
 
     @on "ShowAddEditModal",(data,item)  => @showAddEditModal data,item
-    
+
   showAddEditModal:(data,listItem)=>
 
     @_listItemToBeUpdated = listItem
-    
+
     modal = @modal = new KDModalView
       title     : "Add a mount"
       content   : ""
       overlay   : yes
       cssClass  : "new-kdmodal"
       width     : 500
-      height    : "auto" 
+      height    : "auto"
       buttons   : yes
-    
+
     formData = _fe = ()->
       type :
-        label : new KDLabelView 
+        label : new KDLabelView
           title : "Select Type:"
         input : new KDSelectBox
           type        : "select"
@@ -189,57 +189,57 @@ class AccountMountList extends KDListView
             { title : "S3",                   value : "s3" }
             { title : "WebDAV",               value : "webdav" }
             { title : "Dropbox",              value : "dropbox" }
-          ]      
-      title : 
-        label : new KDLabelView 
-          title : "Title:" 
+          ]
+      title :
+        label : new KDLabelView
+          title : "Title:"
         input: new KDInputView
           name        : "title"
           placeholder : "give it a name if you like..."
           defaultValue: data.title if data
-    
+
       hostname :
-        label :  new KDLabelView 
+        label :  new KDLabelView
           title : "Hostname:"
         input : new KDInputView
           name        : "hostname"
           placeholder : "your host address..."
           defaultValue: data.hostname if data
 
-      username : 
-        label : new KDLabelView 
+      username :
+        label : new KDLabelView
           title : "Username:"
-        input : new KDInputView        
+        input : new KDInputView
           name        : "username"
           placeholder : "username..."
           defaultValue: data.username if data
 
-      password : 
-        label: new KDLabelView 
+      password :
+        label: new KDLabelView
           title : "Password:"
         input : new KDInputView
           type        : "password"
           name        : "password"
           placeholder : "password..."
           defaultValue: data.password if data
-      port : 
-        label : new KDLabelView 
+      port :
+        label : new KDLabelView
           title : "Port number:"
         input : new KDInputView
           name        : "port"
           placeholder : "port..."
           defaultValue: data.port if data
 
-      accessKey : 
-        label : new KDLabelView 
+      accessKey :
+        label : new KDLabelView
           title : "Access Key:"
         input : new KDInputView
           name        : "accessKey"
           placeholder : "AWS access key..."
           defaultValue: data.accessKey if data
 
-      secret : 
-        label : new KDLabelView 
+      secret :
+        label : new KDLabelView
           title : "Secret Key:"
         input : new KDInputView
           type        : "password"
@@ -248,7 +248,7 @@ class AccountMountList extends KDListView
           defaultValue: data.secret if data
 
     createForm = (items)=>
-      
+
       attachListenerToTypeSelection = (item)->
         item.on "change",(event,value)->
           # log value,s3Form,form
@@ -259,7 +259,7 @@ class AccountMountList extends KDListView
               lines.password.show()
               lines.port.show()
               lines.accessKey.hide()
-              lines.secret.hide()              
+              lines.secret.hide()
             when "s3"
               lines.accessKey.show()
               lines.secret.show()
@@ -269,26 +269,26 @@ class AccountMountList extends KDListView
               lines.port.hide()
 
       lines = {}
-      form = new KDFormView 
+      form = new KDFormView
         cssClass : "clearfix"
         callback : (formData)=>
           @propagateEvent KDEventType : "UpdateFormSubmitted", {listItem, formData}
-      
+
       height =  items.length*75
 
       for own item in items
-        lines[item] = new KDView cssClass : "modalformline"        
+        lines[item] = new KDView cssClass : "modalformline"
         lines[item].addSubView label = _fe()[item].label
         lines[item].addSubView input = _fe()[item].input
-        attachListenerToTypeSelection input if item is "type"          
+        attachListenerToTypeSelection input if item is "type"
         form.addSubView lines[item]
-      
+
       return {form,lines}
-    
-      
+
+
     {form,lines} = createForm ["type","title","hostname","username","password","port","accessKey","secret"]
     lines.accessKey.hide()
-    lines.secret.hide()    
+    lines.secret.hide()
     modal.addSubView form
     # modal.setHeight 450
 
@@ -304,10 +304,10 @@ class AccountMountList extends KDListView
 
     modal.createButton "cancel",style : "modal-cancel", callback : @destroyModal
     modal.addSubView helpBox = new HelpBox, ".kdmodal-buttons"
-    
 
-    
-    
+
+
+
   destroyModal:=>
     @modal.destroy()
 
@@ -324,14 +324,14 @@ class AccountMountListItem extends KDListItemView
 
   click:(event)->
     # if $(event.target).is ".action-link" then @getDelegate().emit "ShowAddEditModal",@getData(),@
-    
+
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
-    
+
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>
-    """    
+    """
   # partial:(data)->
   #   accessibleClass = if data.accessibleTo?.length > 0 then "class='lightText'" else "class='darkText'"
   #   """

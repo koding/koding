@@ -15,7 +15,7 @@ class ActivityItemChild extends KDView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      subItemClass  : TagLinkView
+      itemClass  : TagLinkView
     , data.tags
 
 

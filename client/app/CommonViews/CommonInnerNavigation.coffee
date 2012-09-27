@@ -2,10 +2,10 @@ class CommonInnerNavigation extends KDView
   constructor:->
     super
     @setClass "common-inner-nav"
-  
+
   setListController:(options,data,isSorter = no)->
     controller = new CommonInnerNavigationListController options, data
-    controller.getListView().registerListener 
+    controller.getListView().registerListener
       KDEventTypes :"CommonInnerNavigationListItemReceivedClick"
       listener     : @
       callback     : (pubInst, data)=>
@@ -26,12 +26,12 @@ class CommonInnerNavigation extends KDView
 
 class CommonInnerNavigationListController extends KDListViewController
   constructor:(options={},data)->
-    options.viewOptions or= subItemClass : options.subItemClass or CommonInnerNavigationListItem
+    options.viewOptions or= itemClass : options.itemClass or CommonInnerNavigationListItem
     options.view or= mainView = new CommonInnerNavigationList options.viewOptions
     super options,data
-    
+
     listView = @getListView()
-    
+
     listView.on 'ItemWasAdded', (view)=>
       view.registerListener
         KDEventTypes    : 'click'
@@ -41,14 +41,14 @@ class CommonInnerNavigationListController extends KDListViewController
             @selectItem view
             @propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
             listView.propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
-    
+
   loadView:(mainView)->
     list = @getListView()
     mainView.setClass "list"
     mainView.addSubView new KDHeaderView size : 'small', title : @getData().title, cssClass : "list-group-title"
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
-  
+
 class CommonInnerNavigationList extends KDListView
   constructor : (options = {},data)->
     options.tagName or= "ul"

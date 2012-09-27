@@ -168,7 +168,7 @@ class AccountDatabaseList extends KDListView
 
     options = $.extend
       tagName       : "ul"
-      subItemClass  : AccountDatabaseListItem
+      itemClass  : AccountDatabaseListItem
     ,options
     super options,data
 
@@ -380,7 +380,7 @@ class AccountDatabaseList extends KDListView
     #   unless err
     #     log "added",jr,f
     #     jr.type = f.type
-    #     itemView = @itemClass delegate:@,jr
+    #     itemView = new (@getOptions().itemClass ? KDListItemView) delegate:@,jr
     #     @addItemView itemView
     #     @modal.destroy()
     #   else

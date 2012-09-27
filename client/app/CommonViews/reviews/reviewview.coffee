@@ -16,7 +16,7 @@ class ReviewView extends KDView
 
     @reviewList = new KDListView
       type          : "comments"
-      subItemClass  : ReviewListItemView
+      itemClass  : ReviewListItemView
       delegate      : @
     , data
 

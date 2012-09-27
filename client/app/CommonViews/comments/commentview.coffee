@@ -16,7 +16,7 @@ class CommentView extends KDView
 
     @commentList = new KDListView
       type          : "comments"
-      subItemClass  : CommentListItemView
+      itemClass  : CommentListItemView
       delegate      : @
     , data
 

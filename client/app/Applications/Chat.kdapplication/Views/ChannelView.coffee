@@ -1,9 +1,9 @@
 class ChannelView extends KDTabPaneView
-  constructor: (options = {}, data) ->  
+  constructor: (options = {}, data) ->
     super options, data
 
     @chatController = new KDListViewController
-      subItemClass: ChatListItemView
+      itemClass: ChatListItemView
     @rosterController = new RosterController
 
     @chatController.getView().setHeight options.listHeight || 500
@@ -60,7 +60,7 @@ class ChannelView extends KDTabPaneView
 
 class RosterController extends KDListViewController
   constructor: (options = {}, data) ->
-    options.subItemClass ?= ChannelListItemView
+    options.itemClass ?= ChannelListItemView
     super options, data
 
   addItem: (item) ->
@@ -84,7 +84,7 @@ class RosterController extends KDListViewController
   getContextMenu: (itemViews, event) ->
     event.stopPropagation()
     event.preventDefault()
-    
+
     @contextMenu.destroy() if @contextMenu
     items = @getContextMenuItems itemViews
     [itemView] = itemViews

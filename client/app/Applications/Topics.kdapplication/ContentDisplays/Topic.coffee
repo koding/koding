@@ -27,7 +27,7 @@ class ContentDisplayControllerTopic extends KDViewController
     topicView.on 'UnfollowButtonClicked', @unfollowAccount
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass        : ActivityListItemView
+      itemClass        : ActivityListItemView
       listCssClass        : "activity-related"
       limitPerPage        : 5
       filter              :
