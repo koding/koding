@@ -16,6 +16,7 @@ module.exports = class JApp extends jraphical.Module
   @trait __dirname, '../traits/filterable'       # brings only static methods
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/taggable'
+  @trait __dirname, '../traits/likeable'
   # 
   {Inflector,JsPath,secure,daisy} = require 'bongo'
   
@@ -27,7 +28,7 @@ module.exports = class JApp extends jraphical.Module
 
     sharedMethods   :
       instance      : [
-        "update",'follow', 'unfollow'
+        "update",'follow', 'unfollow', 'checkIfLikedBefore'
         'fetchFollowersWithRelationship', 'fetchFollowingWithRelationship'
       ]
       static        : [
@@ -51,6 +52,7 @@ module.exports = class JApp extends jraphical.Module
           default   : 0
       thumbnails    : [Object]
       screenshots   : [Object]
+      manifest      : Object
       meta          : require "bongo/bundles/meta"
 
     relationships   :
