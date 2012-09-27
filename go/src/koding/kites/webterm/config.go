@@ -13,7 +13,7 @@ type Config struct {
 var configs = map[string]Config{
 
 	"stage": {
-		amqpUrl:      "amqp://stage:#%5B85_%5B*zh7%254;4l6T%5DF!@web0.beta.system.aws.koding.com",
+		amqpUrl:      "amqp://test:test@web0.beta.system.aws.koding.com",
 		homePrefix:   "/Users/",
 		shellCommand: []string{"/bin/lve_exec", "/bin/bash"},
 	},

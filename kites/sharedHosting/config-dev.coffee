@@ -9,8 +9,8 @@ module.exports =
   # port              : 4566
   amqp              :
     host            : 'web0.beta.system.aws.koding.com'
-    username        : 'guest'
-    password        : 'x1srTA7!%Vb}$n|S'
+    username        : 'test'
+    password        : 'test'
   # pusher            :
   #   appId           : 22120
   #   key             : 'a6f121a130a44c7f5325'
