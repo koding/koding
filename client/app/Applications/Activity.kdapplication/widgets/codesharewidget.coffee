@@ -386,6 +386,14 @@ class ActivityCodeShareWidget extends KDFormView
             title:"CSS"
             value:"css"
           }
+          {
+            title:"LESS"
+            value:"less"
+          }
+          {
+            title:"Stylus"
+            value:"stylus"
+          }
         ]
 
     @libJSSelect = new KDSelectBox
