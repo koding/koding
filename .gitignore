@@ -83,3 +83,4 @@ sftp-config.json
 /npm-debug.log
 /erl_crash.dump
 /broker/log
+/broker/apps/broker/src/broker.app.src

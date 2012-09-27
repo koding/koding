@@ -3,7 +3,7 @@ class Inbox12345 extends AppController
   {race} = Bongo
 
   constructor:(options, data)->
-    view = new (KD.getPageClass 'Inbox') cssClass : "inbox-application"
+    view = new InboxView cssClass : "inbox-application"
     options = $.extend {view},options
     super options,data
     @selection = {}
