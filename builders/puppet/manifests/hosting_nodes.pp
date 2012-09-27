@@ -6,6 +6,10 @@ node hosting inherits base {
     yumrepos { 'koding':
         repo => 'koding',
     }
+    yumrepos { 'erlang':
+        repo => 'erlang',
+    }
+
 
     include hosting_configs
     include hosting_crontabs
