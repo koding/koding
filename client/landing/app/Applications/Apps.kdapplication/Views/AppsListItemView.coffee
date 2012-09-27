@@ -12,26 +12,13 @@ class AppsListItemView extends KDListItemView
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 
-    thumbOptions =
-      tagName     : 'img'
+    @thumbnail = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : =>
+        @thumbnail.$().attr "src", "/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
-
-    @thumbnail = new KDCustomHTMLView thumbOptions
-
-    @removeButton = new KDButtonView
-      title    : "Delete app"
-      callback : =>
-        @getData().delete (err)=>
-          if err then warn err
-          else
-            @emit "AppDeleted", @
-            @destroy()
-
-    @removeButton.hide()
-
-    KD.whoami().fetchRole? (err, role) =>
-      @removeButton.show() if role is "super-admin"
 
   click:(event)->
     if $(event.target).is ".appdetails h3 a span"
@@ -94,7 +81,6 @@ class AppsListItemView extends KDListItemView
       <h3><a href="#">{{#(title)}}</a></h3>
       <article>{{@utils.shortenText #(body)}}</article>
       <div class="button-container">
-        {{> @removeButton}}
       </div>
     </div>
     """

@@ -29,7 +29,12 @@ class MainTabView extends KDTabView
 
   showPane:(pane)->
     super pane
-    pane.getMainView().handleEvent type : "click"
+
+    paneMainView = pane.getMainView()
+    if paneMainView.data?.constructor.name is 'FSFile'
+      @getSingleton('mainController').emit "SelectedFileChanged", paneMainView.data
+
+    paneMainView.handleEvent type : "click"
     @handleEvent {type : "MainTabPaneShown", pane}
 
     return pane
@@ -143,13 +148,11 @@ class MainTabView extends KDTabView
       delegate : pane
       cssClass : "#{type}-page"
 
-
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
-
 
   resizeTabHandles:(event)->
 
@@ -180,8 +183,3 @@ class MainTabView extends KDTabView
       handle.$().css width : handleSize
       subtractor = if handle.$('span').length is 1 then 25 else 25 + (handle.$('span:not(".close-tab")').length * 25)
       handle.$('> b').css width : (handleSize - subtractor)
-
-
-
-
-

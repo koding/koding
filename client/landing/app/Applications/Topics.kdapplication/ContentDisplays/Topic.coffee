@@ -32,20 +32,29 @@ class ContentDisplayControllerTopic extends KDViewController
       limitPerPage        : 5
       filter              :
         content           :
-          title           : 'All content'
+          title           : 'Everything'
           dataSource      : (selector, options, callback)->
-            topic.fetchContentTeasers (err, teasers)->
+            topic.fetchContentTeasers options, (err, teasers)->
               callback err, teasers
-        codeshares        :
-          title           : 'Code shares'
-          dataSource      : -> log 'just code shares'
-        developers        :
-          title           : 'Developers'
-          dataSource      : -> log 'just developers'
+        statusupdates     :
+          title           : 'Status Updates'
+          dataSource      : (selector, options, callback)->
+            selector = {targetName: 'JStatusUpdate'}
+            topic.fetchContentTeasers options, selector, (err, teasers)->
+              callback err, teasers
+        codesnippets      :
+          title           : 'Code Snippets'
+          dataSource      : (selector, options, callback)->
+            selector = {targetName: 'JCodeSnip'}
+            topic.fetchContentTeasers options, selector, (err, teasers)->
+              callback err, teasers
       sort                :
-        'meta.modifiedAt' :
+        'timestamp|new'   :
           title           : 'Latest activity'
           direction       : -1
+        'timestamp|old'   :
+          title           : 'Most activity'
+          direction       : 1
     }, (controller)->
       mainView.addSubView controller.getView()
 

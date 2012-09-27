@@ -67,8 +67,6 @@ class CodesnipActivityItemView extends ActivityItemChild
     </div>
     """
 
-
-
 class CodeSnippetView extends KDCustomHTMLView
 
   openFileIteration = 0

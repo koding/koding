@@ -46,14 +46,18 @@ class Topics12345 extends AppController
                 callback err, items
             else
               bongo.api.JTag.someWithRelationship selector, options, callback
-        followed            :
-          title             : "Followed"
+        following           :
+          title             : "Following"
           dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
-        recommended         :
-          title             : "Recommended"
-          dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
+            KD.whoami().fetchTopics selector, options, (err, items)=>
+              for item in items
+                item.followee = true
+
+              callback err, items
+        # recommended         :
+        #   title             : "Recommended"
+        #   dataSource        : (selector, options, callback)=>
+        #     callback 'Coming soon!'
       sort                  :
         'counts.followers'  :
           title             : "Most popular"
