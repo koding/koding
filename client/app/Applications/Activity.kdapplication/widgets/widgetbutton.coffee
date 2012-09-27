@@ -1,5 +1,10 @@
 class WidgetButton extends KDButtonViewWithMenu
 
+  constructor:(options, data)->
+
+    super options, data
+
+
   setTitle:(title)->
     @$('button').append("<span class='title'>#{title}</span>")
 
