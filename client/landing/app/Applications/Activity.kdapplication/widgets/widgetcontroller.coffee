@@ -95,7 +95,8 @@ class ActivityUpdateWidgetController extends KDViewController
 
     codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
-    codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
+    # THIS WILL DISABLE CODE SHARES
+    # codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
@@ -112,9 +113,10 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JDiscussion"
           mainView.showPane "discussion"
           discussionWidget.switchToEditView activity
-        when "JCodeShare"
-          mainView.showPane "codeshare"
-          codeShareWidget.switchToEditView activity
+        # THIS WILL DISABLE CODE SHARES
+        # when "JCodeShare"
+        #   mainView.showPane "codeshare"
+        #   codeShareWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
@@ -167,26 +169,27 @@ class ActivityUpdateWidgetController extends KDViewController
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
-  codeShareWidgetSubmit:(data, callback)->
-    if data.activity
-      {activity} = data
-      delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
-        unless err
-          new KDNotificationView type : "mini", title : "Updated successfully"
-        else
-          new KDNotificationView type : "mini", title : err.message
-    else
-      if submissionStopped
-        return notifySubmissionStopped()
-      bongo.api.JCodeShare.create data, (err, codeshare) =>
-        callback? err, codeshare
-        stopSubmission()
-        if err
-          new KDNotificationView type : "mini", title : "There was an error, try again later!"
-        else
-          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
+  # THIS WILL DISABLE CODE SHARES
+  # codeShareWidgetSubmit:(data, callback)->
+  #   if data.activity
+  #     {activity} = data
+  #     delete data.activity
+  #     activity.modify data, (err, res)=>
+  #       callback? err, res
+  #       unless err
+  #         new KDNotificationView type : "mini", title : "Updated successfully"
+  #       else
+  #         new KDNotificationView type : "mini", title : err.message
+  #   else
+  #     if submissionStopped
+  #       return notifySubmissionStopped()
+  #     bongo.api.JCodeShare.create data, (err, codeshare) =>
+  #       callback? err, codeshare
+  #       stopSubmission()
+  #       if err
+  #         new KDNotificationView type : "mini", title : "There was an error, try again later!"
+  #       else
+  #         @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
 
 
   questionWidgetSubmit:(data)->
