@@ -3,6 +3,7 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"fmt"
+	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -24,8 +25,6 @@ type WebtermServer struct {
 	process *os.Process
 }
 
-var config Config
-
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	log.Facility = fmt.Sprintf("webterm kite %d", os.Getpid())
@@ -33,23 +32,12 @@ func init() {
 	if os.Getuid() != 0 {
 		panic("Must be run as root.")
 	}
-
-	profile := "default"
-	if len(os.Args) >= 2 {
-		profile = os.Args[1]
-	}
-
-	var ok bool
-	config, ok = configs[profile]
-	if !ok {
-		panic("Configuration not found.")
-	}
 }
 
 func main() {
-	if !config.useWebsockets {
+	if !config.Current.UseWebsockets {
 
-		kite.Start(config.amqpUrl, "webterm", func(user, method string, args interface{}) interface{} {
+		kite.Start(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
 			if method == "createServer" {
 				server := &WebtermServer{user: user}
 				server.remote = args.(map[string]interface{})
@@ -66,7 +54,7 @@ func main() {
 		http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
 			fmt.Printf("WebSocket opened: %p\n", ws)
 
-			server := &WebtermServer{user: config.user}
+			server := &WebtermServer{user: config.Current.User}
 			defer server.Close()
 
 			node := dnode.New(ws)
@@ -120,14 +108,14 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	command := config.shellCommand
+	command := config.Current.ShellCommand
 	// command = append(command, args...)
 
 	pty := pty.New()
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := kite.CreateCommand(command, server.user, config.homePrefix)
+	cmd := kite.CreateCommand(command, server.user, config.Current.HomePrefix)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {
