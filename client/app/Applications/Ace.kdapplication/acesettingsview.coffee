@@ -55,8 +55,7 @@ class AceSettingsView extends KDTreeItemView
     @setTemplate @pistachio()
     @template.update()
 
-    button  = @getDelegate().getDelegate()
-    aceView = button.getDelegate()
+    aceView = @getDelegate()
     if aceView
       @setDefaultValues aceView.getSettings()
 

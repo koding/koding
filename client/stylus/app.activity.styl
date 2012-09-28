@@ -812,8 +812,8 @@ button.activity-status-context
     display           none
   .chevron
     top               50%
-    margin-top        -9px
-    margin-right      5px
+    margin-top        -12px
+    margin-right      4px
     opacity           .6
   .title
     font-size         11px
@@ -845,73 +845,50 @@ button.activity-status-context
 
   .icon
     margin-right            7px
+    size                    20px,20px
     sprite()
-    size(20px,20px)
     blockMid()
-  .context-menu-item
+
+  .kdlistitemview
     margin                  0 !important
     padding                 0 10px !important
-  .context-menu-item a
-    blockMid()
 
-  .update
-    .icon
-      bg(position,-140px -320px)
+  .kdlistitemview.disabled
+    opacity                 .5
     &:hover
-      .icon
-        bg(position,-160px -320px)
-  .discussion
-    .icon
-      bg(position,-140px -340px)
-    &:hover
-      .icon
-        bg(position,-160px -340px)
-  .question
-    .icon
-      bg(position,-140px -360px)
-    &:hover
-      .icon
-        bg(position,-160px -360px)
-  .tutorial
-    .icon
-      bg(position,-140px -380px)
-    &:hover
-      .icon
-        bg(position,-160px -380px)
-  .link
-    .icon
-      bg(position,-140px -400px)
-    &:hover
-      .icon
-        bg(position,-160px -400px)
-  .codesnip
-    .icon
-      bg(position,-140px -420px)
-    &:hover
-      .icon
-        bg(position,-160px -420px)
-  .codeshare
-    .icon
-      bg(position,-140px -420px)
-    &:hover
-      .icon
-        bg(position,-160px -420px)
+      border-top            1px solid #666
+      gradient              #777, #aaa
 
-  // .hoverhook /* hover hook for context menu */
-  //   cursor            pointer !important
-  //   margin            0
-  //   padding           0
-  //   &:hover
-  //     cursor            pointer !important
+  .update .icon
+    bg                      position,-140px -320px
+  .discussion .icon
+    bg                      position,-140px -340px
+  .question .icon
+    bg                      position,-140px -360px
+  .tutorial .icon
+    bg                      position,-140px -380px
+  .link .icon
+    bg                      position,-140px -400px
+  .codesnip .icon
+    bg                      position,-140px -420px
+  .codeshare .icon
+    bg                      position,-140px -420px
 
-.jcontextmenu
-  .kdcontextmenutreeview
-    .kdview.kdtreeitemview-default.disabledForBeta
-    .kdview.kdtreeitemview-default.disabled
-      opacity                         .5
-      &:hover
-        border-top                    1px solid #666
-        gradient(#777,#aaa)
+  .selected
+    .update .icon
+      bg                    position,-160px -320px
+    .discussion .icon
+      bg                    position,-160px -340px
+    .question .icon
+      bg                    position,-160px -360px
+    .tutorial .icon
+      bg                    position,-160px -380px
+    .link .icon
+      bg                    position,-160px -400px
+    .codesnip .icon
+      bg                    position,-160px -420px
+    .codeshare .icon
+      bg                    position,-160px -420px
 
 .kdview.activity-item.discussion
   padding                             0px

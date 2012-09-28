@@ -30,14 +30,17 @@ class KDButtonViewWithMenu extends KDButtonView
     no
 
   createContextMenu:(event)->
-    {style,buttonMenuClass,menu,contextClass,contextControllerClass,itemClass} = @getOptions()
 
-    @buttonMenu = new (buttonMenuClass or JButtonMenu)
-      cssClass : style
-      ghost    : @$('.chevron').clone()
-      event    : event
-      delegate : @
-    , if "function" is typeof menu then menu() else menu
+    o = @getOptions()
+    @buttonMenu = new (o.buttonMenuClass or JButtonMenu)
+      cssClass          : o.style
+      ghost             : @$('.chevron').clone()
+      event             : event
+      delegate          : @
+      treeItemClass     : o.treeItemClass
+      itemChildClass    : o.itemChildClass
+      itemChildOptions  : o.itemChildOptions
+    , if "function" is typeof o.menu then o.menu() else o.menu
 
   # overriden methods because of domElement change
   setTitle:(title)->

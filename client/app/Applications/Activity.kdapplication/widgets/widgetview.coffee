@@ -78,28 +78,28 @@ class ActivityUpdateWidget extends KDView
     delegate          : @
     menu              :
       "Status Update" :
-        type          : "default update"
+        type          : "update"
         callback      : (treeItem, event)=> @changeTab "update", treeItem.getData().title
       "Ask a Question":
-        type          : "default question disabledForBeta"
+        type          : "question"
         disabled      : yes
         callback      : (treeItem, event)=> @changeTab "question", treeItem.getData().title
       "Code Snip"     :
-        type          : "default codesnip"
+        type          : "codesnip"
         callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
       "Code Share"    :
-        type          : "default codeshare disabledForBeta"
+        type          : "codeshare"
         disabled      : yes
         callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
       "Discussion"    :
-        type          : "default discussion"
+        type          : "discussion"
         callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
       "Link"          :
         disabled      : yes
-        type          : "default link disabledForBeta"
+        type          : "link"
         callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
       "Tutorial"      :
-        type          : "default tutorial disabledForBeta"
+        type          : "tutorial"
         disabled      : yes
         callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
     callback          : =>

@@ -39,7 +39,7 @@ class AceView extends JView
       delegate      : @ace
       itemClass  : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
-      menu          : [@getAdvancedSettingsMenuItems()]
+      menu          : @getAdvancedSettingsMenuItems.bind @
 
 
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
@@ -116,9 +116,11 @@ class AceView extends JView
 
   getAdvancedSettingsMenuItems:->
 
-    items : [
-      { type : 'customView', view : new AceSettingsView (delegate : @)}
-    ]
+    settings      :
+      type        : 'customView'
+      view        : new AceSettingsView
+        delegate  : @ace
+
 
   getSaveMenu:->
 
