@@ -103,13 +103,13 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 							panic(err)
 						}
 
-						for {
-							message, ok := <-messageStream
-							if !ok || message.RoutingKey == "disconnected" {
-								break
+						for message := range messageStream {
+							if message.RoutingKey == "disconnected" {
+								message.Cancel(true) // stop consuming
+							} else {
+								log.Debug("Read", message.Body)
+								d.ProcessMessage(message.Body)
 							}
-							log.Debug("Read", message.Body)
-							d.ProcessMessage(message.Body)
 						}
 					}()
 
