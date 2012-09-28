@@ -1,10 +1,10 @@
-__aceSettings =    
+__aceSettings =
 
-  compilerCallNames: 
+  compilerCallNames:
     coffee    :
       class   : 'CoffeeScript'
       method  : 'compile'
-      options : 
+      options :
         bare  : on
 
   softWrapOptions: [
@@ -19,8 +19,8 @@ __aceSettings =
     ,
       value: 'free'
       title: 'Free'
-  ]  
-  
+  ]
+
   fontSizes: [
       value: 10
       title: '10px'
@@ -42,7 +42,7 @@ __aceSettings =
     ,
       value: 24
       title: '24px'
-  ]  
+  ]
 
   tabSizes: [
       value: 2
@@ -54,8 +54,8 @@ __aceSettings =
       value: 8
       title: '8 chars'
   ]
-  
-  themes: 
+
+  themes:
     Bright : [
       { title: 'Chrome',                value: 'chrome' }
       { title: 'Clouds',                value: 'clouds' }
@@ -68,7 +68,7 @@ __aceSettings =
       { title: 'TextMate',              value: 'textmate' }
       { title: 'Tomorrow',              value: 'tomorrow' }
     ].sort (a, b) -> if a.title < b.title then -1 else 1
-    
+
     Dark : [
       { title: 'Clouds Midnight',       value: 'clouds_midnight' }
       { title: 'Cobalt',                value: 'cobalt' }
@@ -131,13 +131,13 @@ __aceSettings =
     xquery      : ["XQuery"       , "xq"]
     yaml        : ["YAML"         , "yaml"]
 
-  getSyntaxOptions : -> 
+  getSyntaxOptions : ->
 
     o = for syntax, info of __aceSettings.syntaxAssociations
       { title : info[0], value : syntax }
-    
+
     o.sort (a, b) -> if a.title < b.title then -1 else 1
-    
+
     return o
 
   aceToHighlightJsSyntaxMap :
