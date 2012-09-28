@@ -36,8 +36,8 @@ class AceView extends JView
       iconOnly      : yes
       iconClass     : "cog"
       type          : "contextmenu"
-      delegate      : @ace
-      itemClass  : AceSettingsView
+      delegate      : @
+      itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
 
