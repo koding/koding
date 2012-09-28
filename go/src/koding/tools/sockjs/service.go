@@ -15,16 +15,17 @@ import (
 )
 
 type Service struct {
-	IFrameContent      []byte
-	IFrameETag         string
-	Websocket          bool
-	CookieNeeded       bool
-	Timeout            time.Duration
-	StreamLimit        int
-	Callback           func(receiveChan <-chan interface{}, sendChan chan<- interface{})
-	Sessions           map[string]*Session
-	SessionsMutex      sync.Mutex
-	LastSessionCleanup time.Time
+	Websocket    bool
+	CookieNeeded bool
+	Timeout      time.Duration
+	StreamLimit  int
+	Callback     func(receiveChan <-chan interface{}, sendChan chan<- interface{})
+
+	iFrameContent      []byte
+	iFrameETag         string
+	sessions           map[string]*session
+	sessionsMutex      sync.Mutex
+	lastSessionCleanup time.Time
 }
 
 func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Duration, streamLimit int, callback func(receiveChan <-chan interface{}, sendChan chan<- interface{})) *Service {
@@ -38,19 +39,21 @@ func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Dur
 	}
 
 	return &Service{
-		IFrameContent:      iFrameContent,
-		IFrameETag:         iFrameETag,
-		Websocket:          websocket,
-		CookieNeeded:       cookieNeeded,
-		Timeout:            timeout,
-		StreamLimit:        streamLimit,
-		Callback:           callback,
-		Sessions:           make(map[string]*Session),
-		LastSessionCleanup: time.Now(),
+		Websocket:    websocket,
+		CookieNeeded: cookieNeeded,
+		Timeout:      timeout,
+		StreamLimit:  streamLimit,
+		Callback:     callback,
+
+		iFrameContent:      iFrameContent,
+		iFrameETag:         iFrameETag,
+		sessions:           make(map[string]*session),
+		sessionsMutex:      sync.Mutex{},
+		lastSessionCleanup: time.Now(),
 	}
 }
 
-func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		err := recover()
 		if err != nil {
@@ -74,14 +77,14 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if strings.HasPrefix(path, "/iframe") && strings.HasSuffix(path, ".html") && !strings.ContainsRune(path[1:], '/') {
 		makeCachable(w)
-		if r.Header.Get("If-None-Match") == service.IFrameETag {
+		if r.Header.Get("If-None-Match") == s.iFrameETag {
 			w.WriteHeader(http.StatusNotModified)
 			return
 		}
 
-		w.Header().Set("ETag", service.IFrameETag)
+		w.Header().Set("ETag", s.iFrameETag)
 		w.Header().Set("Content-Type", "text/html; charset=UTF-8")
-		w.Write(service.IFrameContent)
+		w.Write(s.iFrameContent)
 		return
 
 	} else if path == "" || path == "/" {
@@ -99,15 +102,15 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		enc := json.NewEncoder(w)
 		info := make(map[string]interface{})
-		info["websocket"] = service.Websocket
-		info["cookie_needed"] = service.CookieNeeded
+		info["websocket"] = s.Websocket
+		info["cookie_needed"] = s.CookieNeeded
 		info["origins"] = []string{"*:*"}
 		info["entropy"] = rand.Int31()
 		enc.Encode(info)
 		return
 
 	} else if path == "/websocket" {
-		service.serveRawWebsocket(w, r)
+		s.serveRawWebsocket(w, r)
 		return
 	}
 
@@ -118,34 +121,34 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if parts[2] == "websocket" {
-		service.serveWebsocket(w, r)
+		s.serveWebsocket(w, r)
 		return
 	}
 
-	service.SessionsMutex.Lock()
-	if service.LastSessionCleanup.Add(service.Timeout).Before(time.Now()) {
-		for key, session := range service.Sessions {
-			if session.Broken || session.LastActivity.Add(service.Timeout).Before(time.Now()) {
-				close(session.ReceiveChan)
-				delete(service.Sessions, key)
+	s.sessionsMutex.Lock()
+	if s.lastSessionCleanup.Add(s.Timeout).Before(time.Now()) {
+		for key, session := range s.sessions {
+			if session.Broken || session.LastActivity.Add(s.Timeout).Before(time.Now()) {
+				session.Close()
+				delete(s.sessions, key)
 			}
 		}
-		service.LastSessionCleanup = time.Now()
+		s.lastSessionCleanup = time.Now()
 	}
-	session := service.Sessions[parts[1]]
+	session := s.sessions[parts[1]]
 	if session == nil {
 		if parts[2] == "xhr_send" || parts[2] == "jsonp_send" {
 			http.NotFound(w, r)
-			service.SessionsMutex.Unlock()
+			s.sessionsMutex.Unlock()
 			return
 		}
-		session = service.newSession()
-		service.Sessions[parts[1]] = session
+		session = s.newSession()
+		s.sessions[parts[1]] = session
 	}
 	session.LastActivity = time.Now()
-	service.SessionsMutex.Unlock()
+	s.sessionsMutex.Unlock()
 
-	if service.CookieNeeded {
+	if s.CookieNeeded {
 		newCookie := r.Header.Get("Cookie")
 		if newCookie != "" {
 			session.Cookie = newCookie
@@ -168,7 +171,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		data := make([]byte, r.ContentLength)
 		io.ReadFull(r.Body, data)
-		if session.readMessages(data) {
+		if session.ReadMessages(data) {
 			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			w.WriteHeader(http.StatusNoContent)
 		} else {
@@ -188,7 +191,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if session.readMessages(data) {
+		if session.ReadMessages(data) {
 			w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("ok"))
@@ -205,7 +208,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 
-		session.writeFrames(w, false, chunked, nil, []byte{'\n'}, false)
+		session.WriteFrames(w, false, chunked, nil, []byte{'\n'}, false)
 
 	case "xhr_streaming":
 		if r.Method == "OPTIONS" {
@@ -222,7 +225,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		prelude[2048] = '\n'
 		w.Write(prelude)
-		session.writeFrames(w, true, chunked, nil, []byte{'\n'}, false)
+		session.WriteFrames(w, true, chunked, nil, []byte{'\n'}, false)
 
 	case "eventsource":
 		w.Header().Set("Content-Type", "text/event-stream; charset=UTF-8")
@@ -230,7 +233,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		w.Write([]byte("\r\n"))
-		session.writeFrames(w, true, chunked, []byte("data: "), []byte("\r\n\r\n"), false)
+		session.WriteFrames(w, true, chunked, []byte("data: "), []byte("\r\n\r\n"), false)
 
 	case "htmlfile":
 		callback := r.URL.Query().Get("c")
@@ -244,7 +247,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 
 		w.Write(createHtmlfileContent(callback))
-		session.writeFrames(w, true, chunked, []byte("<script>\np(\""), []byte("\");\n</script>\r\n"), true)
+		session.WriteFrames(w, true, chunked, []byte("<script>\np(\""), []byte("\");\n</script>\r\n"), true)
 
 	case "jsonp":
 		callback := r.URL.Query().Get("c")
@@ -257,7 +260,7 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		makeNotCachable(w)
 		w.WriteHeader(http.StatusOK)
 
-		session.writeFrames(w, false, chunked, []byte(callback+"(\""), []byte("\");\r\n"), true)
+		session.WriteFrames(w, false, chunked, []byte(callback+"(\""), []byte("\");\r\n"), true)
 
 	default:
 		http.NotFound(w, r)
@@ -265,9 +268,9 @@ func (service *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (service *Service) newSession() *Session {
-	session := &Session{
-		Service:         service,
+func (s *Service) newSession() *session {
+	sess := &session{
+		Service:         s,
 		ReceiveChan:     make(chan interface{}, 100),
 		SendChan:        make(chan interface{}, 100),
 		DoConnCheck:     make(chan bool),
@@ -277,10 +280,10 @@ func (service *Service) newSession() *Session {
 		Cookie:          "JSESSIONID=dummy",
 	}
 	go func() {
-		service.Callback(session.ReceiveChan, session.SendChan)
-		close(session.SendChan)
+		s.Callback(sess.ReceiveChan, sess.SendChan)
+		close(sess.SendChan)
 	}()
-	return session
+	return sess
 }
 
 func makeCachable(w http.ResponseWriter) {

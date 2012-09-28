@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type Session struct {
+type session struct {
 	Service                      *Service
 	ReceiveChan, SendChan        chan interface{}
 	DoConnCheck, ConnCheckResult chan bool
@@ -23,7 +23,11 @@ type Session struct {
 	Cookie                       string
 }
 
-func (session *Session) readMessages(data []byte) bool {
+func (s *session) Close() {
+	close(s.ReceiveChan)
+}
+
+func (s *session) ReadMessages(data []byte) bool {
 	var obj interface{}
 	err := json.Unmarshal(data, &obj)
 	if err != nil {
@@ -31,21 +35,21 @@ func (session *Session) readMessages(data []byte) bool {
 	}
 	if messages, ok := obj.([]interface{}); ok {
 		for _, message := range messages {
-			session.ReceiveChan <- message
+			s.ReceiveChan <- message
 		}
 	} else {
-		session.ReceiveChan <- obj
+		s.ReceiveChan <- obj
 	}
 	return true
 }
 
-func (session *Session) writeFrames(w http.ResponseWriter, streaming, chunked bool, frameStart, frameEnd []byte, escape bool) {
+func (s *session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, frameStart, frameEnd []byte, escape bool) {
 	select {
-	case session.ReadSemaphore <- true:
+	case s.ReadSemaphore <- true:
 		// can read
 	default:
-		session.DoConnCheck <- true
-		if <-session.ConnCheckResult {
+		s.DoConnCheck <- true
+		if <-s.ConnCheckResult {
 			w.Write(createFrame('c', `[2010,"Another connection still open"]`, frameStart, frameEnd, escape))
 		} else {
 			w.Write(createFrame('c', `[1002,"Connection interrupted"]`, frameStart, frameEnd, escape))
@@ -53,7 +57,7 @@ func (session *Session) writeFrames(w http.ResponseWriter, streaming, chunked bo
 		return
 	}
 	defer func() {
-		<-session.ReadSemaphore
+		<-s.ReadSemaphore
 	}()
 
 	c := make(chan []byte)
@@ -83,14 +87,14 @@ func (session *Session) writeFrames(w http.ResponseWriter, streaming, chunked bo
 				if streaming {
 					buf.Flush()
 				}
-			case <-session.DoConnCheck:
+			case <-s.DoConnCheck:
 				_, err := conn.Write([]byte("0\r\n"))
 				if err != nil {
-					session.ConnCheckResult <- false
-					session.Broken = true
+					s.ConnCheckResult <- false
+					s.Broken = true
 					return
 				}
-				session.ConnCheckResult <- true
+				s.ConnCheckResult <- true
 			}
 		}
 	}()
@@ -98,8 +102,8 @@ func (session *Session) writeFrames(w http.ResponseWriter, streaming, chunked bo
 	var frame []byte
 	var closed bool
 	total := 0
-	for !closed && total < session.Service.StreamLimit {
-		frame, closed = session.createNextFrame(frameStart, frameEnd, escape)
+	for !closed && total < s.Service.StreamLimit {
+		frame, closed = s.CreateNextFrame(frameStart, frameEnd, escape)
 		total += len(frame)
 		c <- frame
 		if !streaming {
@@ -108,15 +112,15 @@ func (session *Session) writeFrames(w http.ResponseWriter, streaming, chunked bo
 	}
 }
 
-func (session *Session) createNextFrame(frameStart, frameEnd []byte, escape bool) ([]byte, bool) {
-	if session.WriteOpenFrame {
-		session.WriteOpenFrame = false
+func (s *session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]byte, bool) {
+	if s.WriteOpenFrame {
+		s.WriteOpenFrame = false
 		return createFrame('o', "", frameStart, frameEnd, escape), false
 	}
 
 	messages := make([]interface{}, 0)
 	select {
-	case message, ok := <-session.SendChan:
+	case message, ok := <-s.SendChan:
 		if !ok {
 			return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
 		}
@@ -127,7 +131,7 @@ func (session *Session) createNextFrame(frameStart, frameEnd []byte, escape bool
 
 	for moreMessages := true; moreMessages; {
 		select {
-		case message, ok := <-session.SendChan:
+		case message, ok := <-s.SendChan:
 			if ok {
 				messages = append(messages, message)
 			} else {

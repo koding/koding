@@ -57,12 +57,27 @@ func main() {
 			server := &WebtermServer{user: config.Current.User}
 			defer server.Close()
 
-			node := dnode.New(ws)
-			node.SendRemote(server)
-			node.OnRemote = func(remote dnode.Remote) {
+			d := dnode.New()
+			defer d.Close()
+			d.SendRemote(server)
+			d.OnRemote = func(remote dnode.Remote) {
 				server.remote = remote
 			}
-			node.Run()
+
+			go func() {
+				for data := range d.SendChan {
+					websocket.Message.Send(ws, data)
+				}
+			}()
+
+			for {
+				var data []byte
+				err := websocket.Message.Receive(ws, &data)
+				if err != nil {
+					break
+				}
+				d.ProcessMessage(data)
+			}
 
 			fmt.Printf("WebSocket closed: %p\n", ws)
 		}))

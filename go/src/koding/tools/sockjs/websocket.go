@@ -32,30 +32,30 @@ func (service *Service) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 
 	websocket.Handler(func(ws *websocket.Conn) {
 		session := service.newSession() // websockets use completely independent sessions
+		defer session.Close()
+
 		go func() {
-			for {
-				var data []byte
-				err := WebsocketCodec.Receive(ws, &data)
-				if err != nil {
-					break
-				}
-				if len(data) != 0 {
-					if !session.readMessages(data) {
-						ws.Close()
-						break
-					}
-				}
+			var frame []byte
+			closed := false
+			for !closed {
+				frame, closed = session.CreateNextFrame(nil, nil, false)
+				WebsocketCodec.Send(ws, frame)
 			}
-			close(session.ReceiveChan)
 		}()
 
-		var frame []byte
-		closed := false
-		for !closed {
-			frame, closed = session.createNextFrame(nil, nil, false)
-			WebsocketCodec.Send(ws, frame)
+		for {
+			var data []byte
+			err := WebsocketCodec.Receive(ws, &data)
+			if err != nil {
+				break
+			}
+			if len(data) != 0 {
+				if !session.ReadMessages(data) {
+					ws.Close()
+					break
+				}
+			}
 		}
-		ws.Close()
 	}).ServeHTTP(w, r)
 }
 
@@ -66,6 +66,8 @@ func (service *Service) serveRawWebsocket(w http.ResponseWriter, r *http.Request
 	}
 	websocket.Handler(func(ws *websocket.Conn) {
 		receiveChan := make(chan interface{})
+		defer close(receiveChan)
+
 		sendChan := make(chan interface{})
 		go func() {
 			service.Callback(receiveChan, sendChan)
@@ -73,21 +75,19 @@ func (service *Service) serveRawWebsocket(w http.ResponseWriter, r *http.Request
 		}()
 
 		go func() {
-			for {
-				var message string
-				err := websocket.Message.Receive(ws, &message)
-				if err != nil {
-					break
-				}
-				receiveChan <- message
+			for message := range sendChan {
+				websocket.Message.Send(ws, message)
 			}
-			close(receiveChan)
 		}()
 
-		for message := range sendChan {
-			websocket.Message.Send(ws, message)
+		for {
+			var message string
+			err := websocket.Message.Receive(ws, &message)
+			if err != nil {
+				break
+			}
+			receiveChan <- message
 		}
-		ws.Close()
 	}).ServeHTTP(w, r)
 }
 
