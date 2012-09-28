@@ -18,8 +18,9 @@ class AceView extends JView
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
       style         : "editor-button save-menu"
+      type          : "contextmenu"
       delegate      : @
-      menu          : [@getSaveMenu()]
+      menu          : @getSaveMenu.bind @
       callback      : ()=>
         @ace.requestSave()
 
@@ -121,16 +122,13 @@ class AceView extends JView
       view        : new AceSettingsView
         delegate  : @ace
 
-
   getSaveMenu:->
 
-    items : [
-      title : "Save as..."
-      id    : 13
-      parentId : null
-      callback : =>
+    "Save as..." :
+      id         : 13
+      parentId   : null
+      callback   : =>
         @openSaveDialog()
-    ]
 
   _windowDidResize:->
 
