@@ -1,6 +1,6 @@
 {exec} = require 'child_process'
 
-exports.error =(message)->
+exports.error = error = (message)->
   {message} = message if message.message?
   return no unless message
   console.log "There was an error: "
