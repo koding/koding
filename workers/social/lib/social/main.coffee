@@ -128,5 +128,8 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
+# setTimeout ->
+#   koding.models.JGuest._resetAllGuests()
+# , 8e3
 
 console.log 'Koding Social Worker has started.'
