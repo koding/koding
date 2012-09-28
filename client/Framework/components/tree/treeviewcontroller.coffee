@@ -294,6 +294,7 @@ class JTreeViewController extends KDViewController
       scrollView         : no
       selection          : no
       view               : new options.listViewClass
+        type             : options.type
         tagName          : "ul"
         type             : "jtree"
         itemClass        : options.treeItemClass

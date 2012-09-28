@@ -14,6 +14,7 @@ class JContextMenu extends KDView
 
     if data
       @treeController = new JContextMenuTreeViewController
+        type              : o.type
         view              : o.view
         delegate          : @
         treeItemClass     : o.treeItemClass
