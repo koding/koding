@@ -70,7 +70,7 @@ class AceView extends JView
 
   setViewListeners:->
 
-    @advancedSettings.on "ace.changeSetting", (setting, value)=>
+    @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
 
     @advancedSettings.emit "ace.settingsView.setDefaults", @ace
