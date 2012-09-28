@@ -1,4 +1,3 @@
-{exec} = require 'child_process'
 {error, execute} = require './helpers'
 
 module.exports = (vhost, config, callback)->

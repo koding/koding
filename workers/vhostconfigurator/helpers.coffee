@@ -1,3 +1,5 @@
+{exec} = require 'child_process'
+
 exports.error =(message)->
   {message} = message if message.message?
   return no unless message
