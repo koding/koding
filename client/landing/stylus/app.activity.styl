@@ -1180,10 +1180,12 @@ div.libs-container
       width 50%
       vertical-align top
 
-      libs-bg-color = #f1f1f1
+      label-color = #e2e2e2
+      libs-bg-color = lighten(#333,5%) //#f1f1f1
       libs-border-color = #FF9200
 
       vendor transition, background-color 0.2s ease-in-out
+      vendor transition, background 0.2s ease-in-out
       background-color libs-bg-color
 
       for column in 1 2 3 4 5
@@ -1195,11 +1197,13 @@ div.libs-container
 
           &:nth-child({column})
             multiplier = (column - 1)
-            border-top 5px solid darken(libs-border-color,(multiplier * 10%))
+            border-top 5px solid darken(libs-border-color,(multiplier * 20%))
             background-color darken(libs-bg-color, (multiplier * 2%))
 
             &:hover
-              background-color lighten(libs-bg-color,50%)
+              // gradient lighten(libs-bg-color,5%),lighten(libs-bg-color,10%)
+              background-color lighten(libs-bg-color,5%)
+
 
       &.html
       &.css
@@ -1232,47 +1236,61 @@ div.libs-container
           width 30%
           max-width 250px
 
+
+      > label.kdlabel
+        vendor transition, color 0.2s ease-in-out
+        color label-color
+
+      .kdselectbox
+        display block
+        margin-bottom 5px
+
+      .kdinput
+        margin-bottom 5px
+        height 16px
+        font-size 10px
+        line-height 12px
+
+      .kd-radio-holder
+        display inline-block
+        margin-right 5px
+        > label
+          color label-color
+
+        input.no-kdinput
+          margin-bottom 2px
+          margin-right: 2px
+
+      label.legend-for-text
+        display block
+        color label-color
+
+      label.legend-for-checkbox
+        line-height 120%
+        display inline-block
+        padding-left 3px
+        margin-top 5px
+        color label-color
+
+      label.legend-for-radios
+        margin-bottom 1px
+        display block
+        color label-color
+
+      input.libs-css-checkbox,
+      input.libs-js-checkbox
+        vertical-align top
+        margin-top 6px
+
+      &:hover
+        label.kdlabel
+          color lighten(#FF9200,25%)
+
     &.spacer-hidden
 
       div.libs-sub-box:nth-last-child(2)
         rounded(0 0 4px 0)
 
-
-    .kdselectbox
-      display block
-      margin-bottom 5px
-
-    .kdinput
-      margin-bottom 5px
-      height 16px
-      font-size 10px
-      line-height 12px
-
-    .kd-radio-holder
-      display inline-block
-      margin-right 5px
-
-      input.no-kdinput
-        margin-bottom 2px
-        margin-right: 2px
-
-    label.legend-for-text
-      display block
-
-    label.legend-for-checkbox
-      line-height 120%
-      display inline-block
-      padding-left 3px
-      margin-top 5px
-
-    label.legend-for-radios
-      margin-bottom 1px
-      display block
-
-    input.libs-css-checkbox,
-    input.libs-js-checkbox
-      vertical-align top
-      margin-top 6px
 
 label.settings-label
   rounded(4px)
@@ -1417,6 +1435,8 @@ figure.code-container strong.snippet-extras
     margin-top 5px
     display block
 
+// Tab handles for Codeshares
+
 .code-share-container .kdtabhandlecontainer
 
   padding             0
@@ -1424,25 +1444,39 @@ figure.code-container strong.snippet-extras
   border 0
 
   overflow            hidden
-  size                100%,25px
+  // size                100%,25px
   z-index             0
   bg                  color,transparent
   vendor              transition, top .3s linear
 
+  background-image url("../images/koding-bg.png")
+  background-repeat repeat-x
+  background-position -20px, 0px
+
+  height 25px
+  width 4*128px
+  max-width 4*128px
+
+  rounded 4px 4px 0 0
+
+
   .kdtabhandle
-    color             #333
+    width 128px
+    borderBox()
+    color             rgba(255, 255, 255, 0.85)  //#333
     line-height       23px
     font-size         11px
     padding           0 5px 0 10px
-    size              128px,25px
-    border            1px solid #bbb
+    height            25px
+    border            1px solid rgba(176,176,176,.75)
     border-right      1px solid transparent
+    border-bottom  #e2e2e2
     overflow          hidden
     cursor            pointer
+    rounded           0
     bg                color,rgba(255,255,255,.2)
     gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
-    rounded           0
-    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.15)
+    shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
 
     > div
       margin-right    14px
@@ -1477,13 +1511,18 @@ figure.code-container strong.snippet-extras
       rounded       3px 3px 0 0
 
     &.active
-      color         black
+      color rgba(0, 0, 0, 0.85)
       text-shadow   none
       bg            color,white
       gradient      white,white
       shadow        none
-      border 1px solid #ddd
-      border-bottom none
+      // border 1px solid #2e2e2e
+      // bg                color,rgba(255,255,255,.2)
+      // gradient          rgba(100,100,100,.0),rgba(255,255,255,.0)
+      shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+      // border-bottom none
+      &:first-child
+        border-bottom 1px solid #bbb
 
       span.close-tab
         bg          color,transparent
