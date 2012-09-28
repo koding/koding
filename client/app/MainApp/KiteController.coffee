@@ -38,7 +38,6 @@ class KiteController extends KDController
 
     super
 
-    @account   = KD.whoami()
     @kiteIds   = {}
     @status    = no
     @intervals = {}
@@ -60,15 +59,15 @@ class KiteController extends KDController
 
     # notify "Talking to #{options.kiteName} asking #{options.toDo}"
     # debugger
-    @account.tellKite options, (err, response)=>
+    KD.whoami().tellKite options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
 
     mainController = @getSingleton "mainController"
-    
-#    mainController.getVisitor().on 'change.login', (account)=> 
-#      @accountChanged account
+
+#    mainController.getVisitor().on 'change.login', (account)=>
+#      KD.whoami()Changed account
 
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
@@ -93,7 +92,6 @@ class KiteController extends KDController
 
   accountChanged:(account)->
 
-    @account = account
     kiteName = "sharedHosting"
     if KD.isLoggedIn()
       @resetKiteIds kiteName, (err, res)=>
@@ -161,7 +159,7 @@ class KiteController extends KDController
     @run
       method       : "createSystemUser"
       withArgs   :
-        fullName : "#{@account.getAt 'profile.firstName'} #{@account.getAt 'profile.lastName'}"
+        fullName : "#{KD.whoami().getAt 'profile.firstName'} #{KD.whoami().getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)
     , (err, res)=>
       # this callback gets lost
@@ -198,7 +196,7 @@ class KiteController extends KDController
 
   resetKiteIds:(kiteName = "sharedHosting", callback)->
 #
-#    @account.fetchKiteIds {kiteName}, (err,kiteIds)=>
+#    KD.whoami().fetchKiteIds {kiteName}, (err,kiteIds)=>
 #      if err
 #        notify "Backend is not responding, trying to fix..."
 #      else

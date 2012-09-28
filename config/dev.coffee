@@ -83,6 +83,6 @@ module.exports = deepFreeze
       have a vhost associated with this repository. Generally
       speaking, your first name is a good choice.
       """.replace /\n/g, ' '
-    uri         : 'http://zb.koding.com:3008/addVhost'
+    uri         : 'http://zb.koding.com:3008/resetVhost'
     webPort     : 3008
   pidFile           : '/tmp/koding.server.pid'
