@@ -15,6 +15,7 @@
     {mq_user, <<"guest">>},
     {mq_pass, <<"guest">>},
     {mq_vhost, <<"/">>},
+    {vhosts, [{"^private-kite-", <<"kites">>}]},
     {pid_file, <<"/tmp/koding.broker.pid">>},
     {verbose, true},
     {privateRegEx, ".private$"},

@@ -183,7 +183,10 @@ handle_client(_Conn, Other, State) ->
 
 handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs, VHost) ->
     [_Event, Exchange, _Payload, _Meta] = Data,
-    case broker:subscribe(Conn, Exchange, VHost) of
+
+    VHostToUse = get_vhost(Exchange, VHost),
+
+    case broker:subscribe(Conn, Exchange, VHostToUse) of
         {error, _Error} -> Subs;
         {ok, Subscription} ->
             dict:store(Exchange, Subscription, Subs)
@@ -241,6 +244,43 @@ handle_event(_Conn, _Else, _Data, Subs, _) ->
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+
+%%--------------------------------------------------------------------
+%% Function: get_vhost(Exchange, DefaultVHost) -> VHostToUse
+%% Types:
+%%  Exchange = binary(),
+%%  DefaultVHost = binary(),
+%%  VHostToUse = binary 
+%% Description: Determine the VHostToUse for specific Exchange using
+%% the rules defined in this app's env. If no vhost match the Exchange
+%% use the DefaultVHost. Call get_vhost/3 internally.
+%%--------------------------------------------------------------------
+get_vhost(Exchange, DefaultVHost) ->
+    VHostsConfig = get_env(vhosts, []),
+    get_vhost(Exchange, VHostsConfig, DefaultVHost).
+
+%%--------------------------------------------------------------------
+%% Function: get_vhost(Exchange, VHostConfig, DefaultVHost) -> VHostToUse
+%% Types:
+%%  Exchange = binary(),
+%%  VHostConfig = [Config],
+%%  Config = {RegExp, VHostToApply},
+%%  RegExp = regex(),
+%%  VHostToApply = binary,
+%%  DefaultVHost = binary(),
+%%  VHostToUse = binary 
+%% Description: Recursively performs regular expression checking the
+%% VHostConfig for a matching VHost for the Exchange. If not found
+%% until empty list, return the DefaultVHost.
+%%--------------------------------------------------------------------
+get_vhost(Exchange, [], DefaultVhost) ->
+    DefaultVhost;
+
+get_vhost(Exchange, [{RegExp, VHost} | Rest], DefaultVHost) ->
+    case re:run(Exchange, RegExp) of
+        {match, _} -> VHost;
+        nomatch -> get_vhost(Exchange, Rest, DefaultVHost)
+    end.
 
 send_system_event(Conn, Event, Payload, VHost) ->
     SystemExchange = get_env(system_exchange, <<"private-broker">>),
