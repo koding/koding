@@ -8,9 +8,10 @@ module.exports =
   logFile           : "/var/log/node/SharedHosting.log"
   # port              : 4566
   amqp              :
-    host            : 'web0.beta.system.aws.koding.com'
-    username        : 'test'
-    password        : 'test'
+    host            : 'zb.koding.com'
+    username        : 'guest'
+    password        : 's486auEkPzvUjYfeFTMQ'
+    vhost           : 'kite'
   # pusher            :
   #   appId           : 22120
   #   key             : 'a6f121a130a44c7f5325'

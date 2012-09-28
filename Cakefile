@@ -205,6 +205,11 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   console.log 'KONFIG', config.mq.pidFile
+  vhosts = "{vhosts,["+
+    (options.vhosts or []).
+    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
+    join(',')+"]}"
+
   brokerConfig = """
   {application, broker,
    [
@@ -224,6 +229,7 @@ configureBroker = (options,callback=->)->
       {mq_pass, <<"#{config.mq.password}">>},
       {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
+      #{vhosts},
       {verbosity, info},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
