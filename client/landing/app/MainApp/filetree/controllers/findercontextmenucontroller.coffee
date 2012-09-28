@@ -27,11 +27,8 @@ class NFinderContextMenuController extends KDController
         event    : event
         delegate : fileView
       , items
-      @listenTo
-        KDEventTypes       : "ContextMenuItemReceivedClick"
-        listenedToInstance : @contextMenu
-        callback           : (pubInst, contextMenuItem)=>
-          @handleContextMenuClick fileView, contextMenuItem
+      @contextMenu.on "ContextMenuItemReceivedClick", (contextMenuItem)=>
+        @handleContextMenuClick fileView, contextMenuItem
       return @contextMenu
     else
       return no
