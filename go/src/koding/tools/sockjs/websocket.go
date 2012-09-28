@@ -41,6 +41,7 @@ func (service *Service) serveWebsocket(w http.ResponseWriter, r *http.Request) {
 				frame, closed = session.CreateNextFrame(nil, nil, false)
 				WebsocketCodec.Send(ws, frame)
 			}
+			ws.Close()
 		}()
 
 		for {
@@ -78,6 +79,7 @@ func (service *Service) serveRawWebsocket(w http.ResponseWriter, r *http.Request
 			for message := range sendChan {
 				websocket.Message.Send(ws, message)
 			}
+			ws.Close()
 		}()
 
 		for {

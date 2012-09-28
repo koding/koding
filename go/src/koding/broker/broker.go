@@ -20,7 +20,7 @@ func main() {
 
 	mux := &sockjs.Mux{
 		Services: map[string]*sockjs.Service{
-			"/subscribe": sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 128*1024, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
+			"/subscribe": sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 				socketId := fmt.Sprintf("%x", rand.Int63())
 				exchanges := make([]string, 0)
 

@@ -34,7 +34,7 @@ func NewService(jsFileUrl string, websocket, cookieNeeded bool, timeout time.Dur
 	hash.Write(iFrameContent)
 	iFrameETag := "\"" + hex.EncodeToString(hash.Sum(nil)) + "\""
 
-	if streamLimit == 0 {
+	if streamLimit <= 0 {
 		streamLimit = 128 * 1024
 	}
 
