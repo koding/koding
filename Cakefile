@@ -108,6 +108,7 @@ pipeStd =(children...)->
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
+  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
@@ -134,7 +135,7 @@ buildClient =(configFile, callback=->)->
     builder.buildClient "",()->
       builder.buildCss "",()->
         builder.buildIndex "",()->
-          if config.client.watch is yes            
+          if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
@@ -182,12 +183,12 @@ task 'configureRabbitMq',->
             d = c.split "\n"
             for line in d
               if line.indexOf("/plugins") > 0
-                e = line 
+                e = line
                 break
             e = e.trim().replace /"|]|,/g,""
             rabbitMqPluginPath = e
             exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
-              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)-> 
+              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)->
                 console.log a,b,c
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
@@ -204,6 +205,11 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   console.log 'KONFIG', config.mq.pidFile
+  vhosts = "{vhosts,["+
+    (options.vhosts or []).
+    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
+    join(',')+"]}"
+
   brokerConfig = """
   {application, broker,
    [
@@ -223,6 +229,7 @@ configureBroker = (options,callback=->)->
       {mq_pass, <<"#{config.mq.password}">>},
       {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
+      #{vhosts},
       {verbosity, info},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
@@ -243,14 +250,14 @@ run =(options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
- 
+
   processes.run
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
     log     : false
-    
+
   processes.run
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
@@ -326,7 +333,7 @@ task 'run', (options)->
       queue.next()
 
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next() 
+    queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

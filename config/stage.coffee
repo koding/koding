@@ -13,6 +13,9 @@ module.exports = deepFreeze
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
+  runBroker     : no
+  configureBroker: no
+  buildClient   : no
   social        :
     numberOfWorkers: 10
   client        :
@@ -25,7 +28,7 @@ module.exports = deepFreeze
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'https://api.koding.com'
+    staticFilesBaseUrl: 'https://dev-api.koding.com'
     runtimeOptions:
       version   : version
       mainUri   : 'https://dev.koding.com'
@@ -33,14 +36,18 @@ module.exports = deepFreeze
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         auth    : 'https://dev.koding.com/auth'
-      apiUri    : 'https://dev-api.koding.com'
+        vhost   : 'stage'
+      apiUri    : 'https://api.koding.com'
       appsUri   : 'https://apps.koding.com'
       env       : 'dev'
   mq            :
     host        : 'localhost'
-    login       : 'guest'
-    password    : 'x1srTA7!%Vb}$n|S'
-    vhost       : '/'
+    login       : 'stage'
+    password    : '#[85_[*zh7%4;4l6T]F!'
+    vhost       : 'stage'
+    pidFile     : '/var/run/broker.pid'
+  kites:
+    disconnectTimeout: 3e3
   email         :
     host        : 'localhost'
     protocol    : 'http:'
@@ -54,7 +61,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'logger'
-      password  : 'logger'
-      vhost     : 'logs'
+      login     : 'stage'
+      password  : '#[85_[*zh7%4;4l6T]F!'
+      vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'

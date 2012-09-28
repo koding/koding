@@ -20,6 +20,13 @@ sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json
+/go/bin
+/go/pkg
+/go/src/code.google.com
+/go/src/github.com
+/kites/webterm
+/kites/os
+
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -76,3 +83,4 @@ sftp-config.json
 /npm-debug.log
 /erl_crash.dump
 /broker/log
+/broker/apps/broker/src/broker.app.src
