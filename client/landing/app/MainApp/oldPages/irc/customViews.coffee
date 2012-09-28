@@ -506,7 +506,7 @@
 #         eventType: "mouseup"
 #       listenedToInstance: @inputField
 #       callback: ()->
-#         @inputSelectAll()
+#         @selectAll()
 #         yes
 #
 #     @listenTo
@@ -532,7 +532,7 @@
 #         eventType: "mouseup"
 #       listenedToInstance: @inputField
 #       callback: ()->
-#         @inputSelectAll()
+#         @selectAll()
 #
 #     @addSubView searchIcon = new KDCustomHTMLView "span"
 #     searchIcon.setClass "magnifying-glass for-input"
@@ -548,7 +548,7 @@
 #       callback: (inputField,event)->
 #         switch event.which
 #           when 13
-#             @inputField.inputSelectAll()
+#             @inputField.selectAll()
 #             @delegate.joinRoom inputField.getValue(), ()->  #enter
 #           else @delegate.filterRooms inputField.getValue(), ()->
 #
