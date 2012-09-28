@@ -64,13 +64,13 @@ app.get '/auth', (req, res)->
         res.send privName 
       else unless session?
         authenticationFailed(res)
-      else
+      else if /^private-kite/.test type
         {username} = session
         cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
         cipher.update(
           ''+pubName+req.cookies.clientid+Date.now()+Math.random()
         )
-        privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+        privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
         
         bindKiteQueue = (binding, callback) ->
