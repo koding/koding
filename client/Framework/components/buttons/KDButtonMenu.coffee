@@ -9,10 +9,10 @@ class KDButtonMenu extends KDContextMenu
   positionContextMenu:()->
     button        = @getDelegate()
     mainHeight    = $(window).height()
-    buttonHeight  = button.$().outerHeight()
+    buttonHeight  = button.$().outerHeight(no)()
     buttonWidth   = button.$().outerWidth()
     top           = button.getY() + buttonHeight
-    menuHeight    = @$().outerHeight()
+    menuHeight    = @$().outerHeight(no)()
     menuWidth     = @$().outerWidth()
 
     # log buttonHeight, buttonWidth, button
@@ -20,16 +20,16 @@ class KDButtonMenu extends KDContextMenu
     if top + menuHeight > mainHeight
       top = button.getY() - menuHeight
       @setClass "top-menu"
-      ghostCss = 
+      ghostCss =
         top     : "100%"
         height  : buttonHeight
     else
-      ghostCss = 
+      ghostCss =
         top     : -(buttonHeight + 1)
         height  : buttonHeight
 
     @$(".chevron-arrow-ghost-wrapper").css ghostCss
-    
+
     @$().css
       top       : top
       left      : button.getX() + buttonWidth - menuWidth
@@ -46,25 +46,25 @@ class JButtonMenu extends JContextMenu
 
     button        = @getDelegate()
     mainHeight    = $(window).height()
-    buttonHeight  = button.$().outerHeight()
+    buttonHeight  = button.$().outerHeight(no)()
     buttonWidth   = button.$().outerWidth()
     top           = button.getY() + buttonHeight
-    menuHeight    = @$().outerHeight()
+    menuHeight    = @$().outerHeight(no)()
     menuWidth     = @$().outerWidth()
 
     if top + menuHeight > mainHeight
       top = button.getY() - menuHeight
       @setClass "top-menu"
-      ghostCss = 
+      ghostCss =
         top     : "100%"
         height  : buttonHeight
     else
-      ghostCss = 
+      ghostCss =
         top     : -(buttonHeight + 1)
         height  : buttonHeight
 
     @$(".chevron-arrow-ghost-wrapper").css ghostCss
-    
+
     @$().css
       top       : top
       left      : button.getX() + buttonWidth - menuWidth

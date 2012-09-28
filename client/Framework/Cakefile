@@ -18,11 +18,8 @@ processes   = new (require "processes")
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
-http          = require 'http'
-url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
-commander     = require 'commander'
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -108,7 +105,6 @@ pipeStd =(children...)->
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
-  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
@@ -140,7 +136,6 @@ buildClient =(configFile, callback=->)->
             builder.watcher.start 1000
           else
             log.info "Done building client"
-          callback null
 
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
@@ -161,90 +156,10 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  # configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient options.configFile
-
-task 'configureRabbitMq',->
-  exec 'which rabbitmq-server',(a,stdout,c)->
-    if stdout is ''
-      console.log "Please install RabbitMQ. (do e.g. brew install rabbitmq)"
-    else
-      exec 'rabbitmq-plugins enable rabbitmq_tracing',(a,b,c)->
-        console.log a,b,c
-        exec 'rabbitmq-plugins enable rabbitmq_management_visualiser',(a,b,c)->
-          console.log """
-            I will TRY to download and install https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez
-            you should find the path where rabbitmq plugins are installed, on mac after brew install;
-            /usr/local/Cellar/rabbitmq/2.7.1/lib/rabbitmq/erlang/lib/rabbitmq-2.7.1/plugins
-            it is here. look at the output below, it might be somehwere there..
-            OK TRYING... if that doesn't work, find the path, ping chris on skype :)
-            """
-          exec 'rabbitmq-plugins --invalidOption',(a,b,c)->
-            d = c.split "\n"
-            for line in d
-              if line.indexOf("/plugins") > 0
-                e = line
-                break
-            e = e.trim().replace /"|]|,/g,""
-            rabbitMqPluginPath = e
-            exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
-              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)->
-                console.log a,b,c
-                exec 'rabbitmqctl stop',->
-                  console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
-
-expandConfigFile = (short="dev")->
-  switch short
-    when "dev","prod","local","stage"
-      long = "./config/#{short}.coffee"
-    else
-      short
-
-configureBroker = (options,callback=->)->
-  configFilePath = expandConfigFile options.configFile
-  configFile = normalizeConfigPath configFilePath
-  config = require configFile
-  console.log 'KONFIG', config.mq.pidFile
-  vhosts = "{vhosts,["+
-    (options.vhosts or []).
-    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
-    join(',')+"]}"
-
-  brokerConfig = """
-  {application, broker,
-   [
-    {description, ""},
-    {vsn, "1"},
-    {registered, []},
-    {applications, [
-                    kernel,
-                    stdlib,
-                    sockjs,
-                    cowboy
-                   ]},
-    {mod, { broker_app, []}},
-    {env, [
-      {mq_host, "#{config.mq.host}"},
-      {mq_user, <<"#{config.mq.login}">>},
-      {mq_pass, <<"#{config.mq.password}">>},
-      {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
-      {pid_file, <<"#{config.mq.pidFile}">>},
-      #{vhosts},
-      {verbosity, info},
-      {privateRegEx, ".private$"},
-      {precondition_failed, <<"Request not allowed">>}
-      ]}
-   ]}.
-  """
-  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
-  callback null
-
-task 'configureBroker',(options)->
-  configureBroker options
-
-task 'buildBroker', (options)->
-  configureBroker options, ->
-    pipeStd(spawn './broker/build.sh')
+  if options.configFile is 'dev'
+    options.configFile = "./config/#{options.configFile}.coffee"
+  configFile = normalizeConfigPath options.configFile
+  buildClient configFile
 
 run =(options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
@@ -260,10 +175,12 @@ run =(options)->
 
   processes.run
     name    : 'server'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} -n run"
     restart : yes
     restartInterval : 1000
     log     : false
+
+
 
   pipeStd(
     processes.get "server"
@@ -281,57 +198,10 @@ run =(options)->
           onChange : ->
             processes.kill "server"
 
-assureVhost =(uri, vhost, vhostFile, callback)->
-  addVhost uri, vhost, (res)->
-    if res.type is 'error'
-      console.log 'received an error:'.yellow
-      console.error res.message
-      console.log "it probably doesn't matter; ignoring...".yellow
-    fs.writeFileSync vhostFile, vhost, 'utf8'
-    callback null
-
-addVhost =(uri, vhost, callback)->
-  options = url.parse uri+"?vhost=#{vhost}"
-  req = http.request options, (res)->
-    responseText = ''
-    res.on 'data', (data)-> responseText += data
-    res.on 'end', ->
-      response =\
-        try
-          JSON.parse(responseText)
-        catch e
-          responseText
-      callback response
-  req.on 'error', console.log
-  req.end()
-
-configureVhost =(config, callback)->
-  {uri} = config.vhostConfigurator
-  vhostFile = nodePath.join(config.projectRoot, '.rabbitvhost')
-  try
-    vhost = fs.readFileSync vhostFile, 'utf8'
-    assureVhost uri, vhost, vhostFile, callback
-  catch e
-    if e.code is 'ENOENT'
-      {explanation} = config.vhostConfigurator
-      console.log explanation.bold.red
-      commander.prompt 'Please give your vhost a name: ', (name)->
-        assureVhost uri, name, vhostFile, callback
-    else throw e
-
 task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   queue = []
-  if config.vhostConfigurator?
-    queue.push -> configureVhost config, -> queue.next()
-    queue.push ->
-      # we need to clear the cache so that other modules will get the
-      # config that reflects our latest changes to the .rabbitvhost file:
-      configModulePath = require.resolve configFile
-      delete require.cache[configModulePath]
-      queue.next()
-
   if options.buildClient ? config.buildClient
     queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
