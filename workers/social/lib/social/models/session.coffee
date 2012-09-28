@@ -44,7 +44,6 @@ module.exports = class JSession extends Model
     clientId = createId()
     JGuest.obtain null, clientId, (err, guest)=>
       if err
-        console.log err
         @emit 'error', err
       else
         {guestId} = guest
@@ -59,7 +58,7 @@ module.exports = class JSession extends Model
             callback null, session, guest
 
   @fetchSession =(clientId, callback)->
-    selector = {clientId}
+    selector = {clientId}=
     @one selector, (err, session)=>
       if err
         callback err
