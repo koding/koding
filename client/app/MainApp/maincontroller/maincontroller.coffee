@@ -9,13 +9,13 @@ class MainController extends KDController
 
     window.appManager = new ApplicationManager
     KD.registerSingleton "mainController", @
+    KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
 
     @appReady ->
 
-      KD.registerSingleton "kiteController", new KiteController
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
 
@@ -114,8 +114,8 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Activity", yes
-      appManager.openApplication "Demos", yes
+      appManager.openApplication "Activity", yes
+      # appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
