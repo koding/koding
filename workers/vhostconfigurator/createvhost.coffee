@@ -1,16 +1,5 @@
 {exec} = require 'child_process'
-
-error =(message)->
-  {message} = message if message.message?
-  return no unless message
-  console.log "There was an error: "
-  console.error message
-  console.trace()
-  yes
-
-execute =(cmd, callback)->
-  exec cmd, (err, stdout, stderr)->
-    callback stdout unless error err?.message or stderr
+{error, execute} = require './helpers'
 
 module.exports = (vhost, config, callback)->
   execute "rabbitmqctl list_vhosts", (stdout)->
