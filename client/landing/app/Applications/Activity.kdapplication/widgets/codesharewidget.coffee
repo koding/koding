@@ -530,6 +530,10 @@ class ActivityCodeShareWidget extends KDFormView
       tagName : "div"
       cssClass : "libs-sub-box html"
 
+    @boxHTMLSpacer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box spacer"
+
     @boxCSSMain = new KDCustomHTMLView
       tagName : "div"
       cssClass : "libs-sub-box css"
@@ -537,6 +541,10 @@ class ActivityCodeShareWidget extends KDFormView
     @boxCSSExtra = new KDCustomHTMLView
       tagName : "div"
       cssClass : "libs-sub-box css"
+
+    @boxCSSSpacer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box spacer"
 
     @boxJSMain = new KDCustomHTMLView
       tagName : "div"
@@ -550,13 +558,20 @@ class ActivityCodeShareWidget extends KDFormView
       tagName : "div"
       cssClass : "libs-sub-box js"
 
+    @boxJSSpacer = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "libs-sub-box spacer"
+
     @librariesHTMLContent.addSubView @boxHTMLMain
     @librariesHTMLContent.addSubView @boxHTMLExtra
+    @librariesHTMLContent.addSubView @boxHTMLSpacer
     @librariesCSSContent.addSubView @boxCSSMain
     @librariesCSSContent.addSubView @boxCSSExtra
+    @librariesCSSContent.addSubView @boxCSSSpacer
     @librariesJSContent.addSubView @boxJSMain
     @librariesJSContent.addSubView @boxJSLibs
     @librariesJSContent.addSubView @boxJSExtra
+    @librariesJSContent.addSubView @boxJSSpacer
 
     @boxHTMLMain.addSubView @labelHTMLSelect
     @boxHTMLMain.addSubView @libHTMLSelect
@@ -708,6 +723,10 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".kdview.result-pane").css "height":300+"px"
           @$(".formline-codeshare").css "height":330-5+"px"
 
+          @$("div.libs-box div.spacer").hide()
+
+          @$("div.libs-box").addClass "spacer-hidden"
+
           @HTMLace.editor.resize()
           @CSSace.editor.resize()
           @JSace.editor.resize()
@@ -731,6 +750,12 @@ class ActivityCodeShareWidget extends KDFormView
             @$(".code-snip-holder.share").css "height":wideScreenHeight-100+"px"
           @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
           @$(".formline-codeshare").css "height":(30-1-5+wideScreenHeight)+"px"
+
+          @$("div.libs-html div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600-2
+          @$("div.libs-css div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600-2
+          @$("div.libs-js div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-800-2
+
+          @$("div.libs-box").removeClass "spacer-hidden"
 
           @HTMLace.editor.resize()
           @CSSace.editor.resize()

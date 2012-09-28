@@ -1067,9 +1067,6 @@ div.show-more-discussion
 
 // Code Share Stuff
 
-// Code Share Stuff
-
-
 .activity-item.codeshare .activity-item-right-col .code-share-source figure.code-container
 
   width                               100%
@@ -1175,10 +1172,12 @@ div.libs-container
       height 100px
 
     div.libs-sub-box
+      max-width 300px
       borderBox()
       display inline-block
-      padding 0px 5px
+      padding 5px 10px
       height 100%
+      width 50%
       vertical-align top
 
       libs-bg-color = #f1f1f1
@@ -1187,58 +1186,56 @@ div.libs-container
       vendor transition, background-color 0.2s ease-in-out
       background-color libs-bg-color
 
-      for column in 1 2 3
+      for column in 1 2 3 4 5
+
         &.html
         &.css
         &.js
+        &.spacer
+
           &:nth-child({column})
+            multiplier = (column - 1)
+            border-top 5px solid darken(libs-border-color,(multiplier * 10%))
+            background-color darken(libs-bg-color, (multiplier * 2%))
+
             &:hover
               background-color lighten(libs-bg-color,50%)
+
       &.html
       &.css
       &.js
+      &.spacer
         borderBox()
+
         &:first-child
           rounded(0 0 0 4px)
+
         &:last-child
           rounded(0 0 4px 0)
 
 
-      &.html
-        width 50%
-        &:nth-child(1)
-          border-top 5px solid libs-border-color
+      &.spacer
+        min-width 0px
+        max-width 100%
+        width 100%
 
-        &:nth-child(2)
-          border-top 5px solid darken(libs-border-color,15%)
-
-      &.css
-        width 50%
-        &:nth-child(1)
-          border-top 5px solid libs-border-color
-
-        &:nth-child(2)
-          border-top 5px solid darken(libs-border-color,15%)
       &.js
 
         &:nth-child(1)
           width 30%
-          border-top 5px solid libs-border-color
-          background-color libs-bg-color
+          max-width 250px
 
         &:nth-child(2)
           width 40%
-          border-top 5px solid darken(libs-border-color,15%)
-          background-color darken(libs-bg-color, 2%)
 
         &:nth-child(3)
           width 30%
-          padding-top 3px
+          max-width 250px
 
-          border-top 5px solid darken(libs-border-color,30%)
-          background-color darken(libs-bg-color,4%)
+    &.spacer-hidden
 
-
+      div.libs-sub-box:nth-last-child(2)
+        rounded(0 0 4px 0)
 
 
     .kdselectbox
@@ -1254,6 +1251,7 @@ div.libs-container
     .kd-radio-holder
       display inline-block
       margin-right 5px
+
       input.no-kdinput
         margin-bottom 2px
         margin-right: 2px
@@ -1265,6 +1263,7 @@ div.libs-container
       line-height 120%
       display inline-block
       padding-left 3px
+      margin-top 5px
 
     label.legend-for-radios
       margin-bottom 1px
@@ -1273,7 +1272,7 @@ div.libs-container
     input.libs-css-checkbox,
     input.libs-js-checkbox
       vertical-align top
-      margin-top 1px
+      margin-top 6px
 
 label.settings-label
   rounded(4px)
@@ -1301,6 +1300,7 @@ label.settings-label
   height 300px
   vendor transition, margin 0.1s linear, height 0.1s linear
   rounded 0 4px 4px 4px
+
   &.no-top-rounded
     rounded 0 4px 0 0
 
@@ -1313,11 +1313,14 @@ label.settings-label
   vendor transition, max-width .1s linear
   vendor transition, margin .1s linear
   vendor transition, height .1s linear
-  .result-container,
-  .result-frame-container,
+
+  .result-container
+  .result-frame-container
   .result-frame
     height 100%
+
   figure.code-container
+
     pre
       rounded 0 4px 4px 4px
 
@@ -1342,6 +1345,7 @@ label.settings-label
   borderBox()
 
   overflow-y hidden
+
   .button-bar
     z-index -1
     position          absolute
@@ -1351,17 +1355,21 @@ label.settings-label
     overflow          hidden
     shadow            0 -1px 10px rgba(0,0,0,0.3)
     vendor            transition, bottom .15s ease-in-out //.3s
+
     button
       margin          0
       rounded         0
       border-width    1px 1px 0 1px
       border-color    #4B4B4B #111 #4B4B4B #4B4B4B
       fl()
+
       &:first-child
         rounded       3px 0 0 0
+
       &:last-child
         rounded       0 3px 0 0
         border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
   &:hover .button-bar
     bottom        0px
     z-index       101
@@ -1375,10 +1383,12 @@ label.settings-label
   borderBox()
 
   height 330px
+
   > div.kdview.clearfix.kdtabpaneview
     vendor box-shadow none
     height  300px
     padding-top 0px
+
     iframe.result-frame
       min-height 297px
       max-height 100%
@@ -1393,12 +1403,15 @@ figure.code-container strong.snippet-extras
   width 5%
   overflow hidden
   height 10px
+
   span
     display block
     opacity 0
+
   &:hover
     width 25%
     height auto
+
   &:hover span
     opacity 1
     margin-top 5px
@@ -1415,6 +1428,7 @@ figure.code-container strong.snippet-extras
   z-index             0
   bg                  color,transparent
   vendor              transition, top .3s linear
+
   .kdtabhandle
     color             #333
     line-height       23px
@@ -1429,8 +1443,10 @@ figure.code-container strong.snippet-extras
     gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
     rounded           0
     shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.15)
+
     > div
       margin-right    14px
+
       b
         z-index       0
         font-weight   normal
@@ -1468,8 +1484,10 @@ figure.code-container strong.snippet-extras
       shadow        none
       border 1px solid #ddd
       border-bottom none
+
       span.close-tab
         bg          color,transparent
+
       span.error
         color         red
 
@@ -1483,16 +1501,21 @@ figure.code-container strong.snippet-extras
         fl()
       b
         margin-right  0
+
       &:hover
         bg          color,rgba(255,255,255,.3)
         color       rgba(255, 255, 255, 0.9)
+
       &.last
         width       25px
         padding     0 5px 0 7px
+
         b
           hidden()
+
       &.last.first
         width       142px
+
         b
           width     auto
           visible()
