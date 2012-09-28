@@ -24,7 +24,7 @@ app.get '/addVhost', (req, res)->
 
 app.get '/deleteVhost', (req, res)->
   {vhost} = req.query
-  deleteVhost host, config, (err)->
+  deleteVhost vhost, config, (err)->
     if err?
       error err, res
     else
@@ -34,7 +34,7 @@ app.get '/deleteVhost', (req, res)->
 
 app.get '/resetVhost', (req, res)->
   {vhost} = req.query
-  deleteVhost host, config, (err)->
+  deleteVhost vhost, config, (err)->
     if err?
       res.send
         type: 'error'
