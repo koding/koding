@@ -38,7 +38,7 @@ koding = new Bongo {
 }
 
 kiteBroker =\
-  if kites.vhost?
+  if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
   else
     koding.mq
