@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"io"
+	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
@@ -149,7 +150,12 @@ func CreateCommand(command []string, userName, homePrefix string) *exec.Cmd {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
 
-	cmd := exec.Command(command[0], command[1:]...)
+	var cmd *exec.Cmd
+	if config.Current.UseLVE {
+		cmd = exec.Command("/bin/lve_exec", command...)
+	} else {
+		cmd = exec.Command(command[0], command[1:]...)
+	}
 	cmd.Dir = homePrefix + userName
 	cmd.Env = []string{
 		"USER=" + userName,

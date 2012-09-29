@@ -6,35 +6,33 @@ import (
 
 var configs = map[string]Config{
 	"default": {
-		AmqpUri:      "amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com",
-		HomePrefix:   "/Users/",
-		ShellCommand: []string{"/bin/lve_exec", "/bin/bash"},
+		AmqpUri:    "amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com",
+		HomePrefix: "/Users/",
+		UseLVE:     true,
 	},
 
 	"stage": {
-		AmqpUri:      "amqp://stage:#%5B85_%5B*zh7%254;4l6T%5DF!@web0.beta.system.aws.koding.com",
-		HomePrefix:   "/Users/",
-		ShellCommand: []string{"/bin/lve_exec", "/bin/bash"},
+		AmqpUri:    "amqp://stage:#%5B85_%5B*zh7%254;4l6T%5DF!@web0.beta.system.aws.koding.com",
+		HomePrefix: "/Users/",
+		UseLVE:     true,
 	},
 
 	"local": {
-		AmqpUri:      "amqp://guest:guest@localhost",
-		HomePrefix:   "/home/",
-		ShellCommand: []string{"/bin/bash"},
+		AmqpUri:    "amqp://guest:guest@localhost",
+		HomePrefix: "/home/",
 	},
 
 	"websockets": {
 		UseWebsockets: true,
 		User:          "koding",
 		HomePrefix:    "/home/",
-		ShellCommand:  []string{"/bin/bash"},
 	},
 }
 
 type Config struct {
-	AmqpUri      string
-	HomePrefix   string
-	ShellCommand []string
+	AmqpUri    string
+	HomePrefix string
+	UseLVE     bool
 
 	// for webterm's websockets mode
 	UseWebsockets bool
