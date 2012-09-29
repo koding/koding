@@ -7,12 +7,11 @@ import (
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
-	"math/rand"
+	"koding/tools/utils"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 	"unicode/utf8"
 )
 
@@ -23,22 +22,15 @@ type WebtermServer struct {
 	process *os.Process
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-	log.Facility = fmt.Sprintf("webterm kite %d", os.Getpid())
-
-	if os.Getuid() != 0 {
-		panic("Must be run as root.")
-	}
-}
-
 func main() {
+	utils.DefaultStartup("webterm kite", true)
+
 	if config.Current.UseWebsockets {
 		runWebsocket()
 		return
 	}
 
-	kite.Start(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
+	kite.Run(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
 		if method == "createServer" {
 			server := &WebtermServer{user: user}
 			server.remote = args.(map[string]interface{})

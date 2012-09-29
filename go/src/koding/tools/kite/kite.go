@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-func Start(uri, name string, onRootMethod func(user, method string, args interface{}) interface{}) {
+func Run(uri, name string, onRootMethod func(user, method string, args interface{}) interface{}) {
 	runStatusLogger()
 
 	sigtermChannel := make(chan os.Signal)

@@ -3,23 +3,13 @@ package main
 import (
 	"fmt"
 	"koding/tools/kite"
-	"koding/tools/log"
-	"math/rand"
-	"os"
-	"time"
+	"koding/tools/utils"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-	log.Facility = fmt.Sprintf("os kite %d", os.Getpid())
-
-	if os.Getuid() != 0 {
-		panic("Must be run as root.")
-	}
-}
-
 func main() {
-	kite.Start("amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com", "os", func(user, method string, args interface{}) interface{} {
+	utils.DefaultStartup("os kite", true)
+
+	kite.Run("amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com", "os", func(user, method string, args interface{}) interface{} {
 		switch method {
 		case "spawn":
 			return run(args.([]string), user)

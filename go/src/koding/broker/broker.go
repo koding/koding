@@ -6,6 +6,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/config"
 	"koding/tools/sockjs"
+	"koding/tools/utils"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	utils.DefaultStartup("broker", false)
+
 	consumeConn := createConn(config.Current.AmqpUri)
 	publishConn := createConn(config.Current.AmqpUri)
 
