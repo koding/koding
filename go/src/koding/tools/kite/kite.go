@@ -7,6 +7,7 @@ import (
 	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/log"
+	"koding/tools/utils"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -30,17 +31,17 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 			log.Info("Connecting to AMQP server...")
 
 			notifyCloseChannel := make(chan *amqp.Error)
-			consumeConn := createConn(uri)
+			consumeConn := utils.CreateAmqpConnection(uri)
 			consumeConn.NotifyClose(notifyCloseChannel)
 			//defer consumeConn.Close()
-			publishConn := createConn(uri)
+			publishConn := utils.CreateAmqpConnection(uri)
 			publishConn.NotifyClose(notifyCloseChannel)
 			//defer publishConn.Close()
 
 			log.Info("Successfully connected to AMQP server.")
 
-			joinChannel := createChannel(consumeConn)
-			joinStream := declareBindConsumeQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
+			joinChannel := utils.CreateAmqpChannel(consumeConn)
+			joinStream := utils.DeclareBindConsumeAmqpQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 			for {
 				select {
 				case join, ok := <-joinStream:
@@ -86,7 +87,7 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 						}
 
 						go func() {
-							publishChannel := createChannel(publishConn)
+							publishChannel := utils.CreateAmqpChannel(publishConn)
 							defer publishChannel.Close()
 							for data := range d.SendChan {
 								log.Debug("Write", data)
@@ -97,7 +98,7 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 							}
 						}()
 
-						messageChannel := createChannel(consumeConn)
+						messageChannel := utils.CreateAmqpChannel(consumeConn)
 						defer messageChannel.Close()
 						messageStream, err := messageChannel.Consume(queue, "", true, false, false, false, nil)
 						if err != nil {

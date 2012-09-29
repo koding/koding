@@ -16,10 +16,10 @@ import (
 func main() {
 	utils.DefaultStartup("broker", false)
 
-	consumeConn := createConn(config.Current.AmqpUri)
-	publishConn := createConn(config.Current.AmqpUri)
+	consumeConn := utils.CreateAmqpConnection(config.Current.AmqpUri)
+	publishConn := utils.CreateAmqpConnection(config.Current.AmqpUri)
 
-	publishChannel := createChannel(publishConn)
+	publishChannel := utils.CreateAmqpChannel(publishConn)
 
 	mux := &sockjs.Mux{
 		Services: map[string]*sockjs.Service{
@@ -35,7 +35,7 @@ func main() {
 
 				consumerFinished := make(chan bool)
 				func() {
-					consumeChannel := createChannel(consumeConn)
+					consumeChannel := utils.CreateAmqpChannel(consumeConn)
 					defer consumeChannel.Close()
 
 					_, err = consumeChannel.QueueDeclare("", false, true, false, false, nil)
