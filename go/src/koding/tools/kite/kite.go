@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"io"
+	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
@@ -54,33 +55,63 @@ func Start(uri, name string, onRootMethod func(user, method string, args interfa
 
 						joinData := make(map[string]interface{})
 						json.Unmarshal(join.Body, &joinData)
-
 						user := joinData["user"].(string)
 						queue := joinData["queue"].(string)
 
 						changeNumClients <- 1
 						log.Debug("Client connected: " + user)
-
 						defer func() {
 							changeNumClients <- -1
 							log.Debug("Client disconnected: " + user)
 						}()
 
-						conn := newConnection(queue, queue, consumeConn, publishConn)
-						defer conn.Close()
+						closers := make([]io.Closer, 0)
+						defer func() {
+							for _, closer := range closers {
+								closer.Close()
+							}
+						}()
 
-						node := dnode.New(conn)
-						node.OnRootMethod = func(method string, args []interface{}) {
+						d := dnode.New()
+						defer d.Close()
+						d.OnRootMethod = func(method string, args []interface{}) {
 							defer log.RecoverAndLog()
 							result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
 							if result != nil {
 								if closer, ok := result.(io.Closer); ok {
-									conn.notifyClose(closer)
+									closers = append(closers, closer)
 								}
 								args[1].(dnode.Callback)(result)
 							}
 						}
-						node.Run()
+
+						go func() {
+							publishChannel := createChannel(publishConn)
+							defer publishChannel.Close()
+							for data := range d.SendChan {
+								log.Debug("Write", data)
+								err := publishChannel.Publish(queue, "reply-client-message", false, false, amqp.Publishing{Body: data})
+								if err != nil {
+									panic(err)
+								}
+							}
+						}()
+
+						messageChannel := createChannel(consumeConn)
+						defer messageChannel.Close()
+						messageStream, err := messageChannel.Consume(queue, "", true, false, false, false, nil)
+						if err != nil {
+							panic(err)
+						}
+
+						for message := range messageStream {
+							if message.RoutingKey == "disconnected" {
+								message.Cancel(true) // stop consuming
+							} else {
+								log.Debug("Read", message.Body)
+								d.ProcessMessage(message.Body)
+							}
+						}
 					}()
 
 				case err := <-notifyCloseChannel:
@@ -119,7 +150,12 @@ func CreateCommand(command []string, userName, homePrefix string) *exec.Cmd {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
 
-	cmd := exec.Command(command[0], command[1:]...)
+	var cmd *exec.Cmd
+	if config.Current.UseLVE {
+		cmd = exec.Command("/bin/lve_exec", command...)
+	} else {
+		cmd = exec.Command(command[0], command[1:]...)
+	}
 	cmd.Dir = homePrefix + userName
 	cmd.Env = []string{
 		"USER=" + userName,
