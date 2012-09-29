@@ -66,7 +66,18 @@ setInterval ->
     as: 'follower'
   }
   rel = new Relationship(test) #.save console.log
-  Relationship.getCollection().insert(rel.get(yes), (safe:yes), console.log.bind(console, 'ONE'))
+  
+  softPrune = rel.prune()
+  hardPrune = rel.prune(yes)
+
+  require('traverse')([softPrune, hardPrune]).forEach (node)->
+    console.log node.constructor if /Id$/.test @path
+    console.log ''+node if /Id$/.test @path
+    return
+  console.log 'HARD', hardPrune
+
+  Relationship.getCollection().insert(softPrune, (safe:yes), console.log.bind(console, 'prune()'))
+  Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
   # koding.models.JGuest._resetAllGuests()
 , 2e3
 
