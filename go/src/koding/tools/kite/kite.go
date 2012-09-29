@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func Run(uri, name string, onRootMethod func(user, method string, args interface{}) interface{}) {
+func Run(name string, onRootMethod func(user, method string, args interface{}) (error, interface{})) {
 	runStatusLogger()
 
 	sigtermChannel := make(chan os.Signal)
@@ -31,10 +31,10 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 			log.Info("Connecting to AMQP server...")
 
 			notifyCloseChannel := make(chan *amqp.Error)
-			consumeConn := utils.CreateAmqpConnection(uri)
+			consumeConn := utils.CreateAmqpConnection(config.Current.AmqpUri)
 			consumeConn.NotifyClose(notifyCloseChannel)
 			//defer consumeConn.Close()
-			publishConn := utils.CreateAmqpConnection(uri)
+			publishConn := utils.CreateAmqpConnection(config.Current.AmqpUri)
 			publishConn.NotifyClose(notifyCloseChannel)
 			//defer publishConn.Close()
 
@@ -77,12 +77,14 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 						defer d.Close()
 						d.OnRootMethod = func(method string, args []interface{}) {
 							defer log.RecoverAndLog()
-							result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
-							if result != nil {
-								if closer, ok := result.(io.Closer); ok {
-									closers = append(closers, closer)
-								}
-								args[1].(dnode.Callback)(result)
+							err, result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
+							if closer, ok := result.(io.Closer); ok {
+								closers = append(closers, closer)
+							}
+							if err != nil {
+								args[1].(dnode.Callback)(err.Error(), result)
+							} else if result != nil {
+								args[1].(dnode.Callback)(nil, result)
 							}
 						}
 
@@ -134,7 +136,7 @@ func Run(uri, name string, onRootMethod func(user, method string, args interface
 	}
 }
 
-func CreateCommand(command []string, userName, homePrefix string) *exec.Cmd {
+func CreateCommand(command []string, userName string) *exec.Cmd {
 	userData, err := user.Lookup(userName)
 	if err != nil {
 		panic(err)
@@ -157,15 +159,15 @@ func CreateCommand(command []string, userName, homePrefix string) *exec.Cmd {
 	} else {
 		cmd = exec.Command(command[0], command[1:]...)
 	}
-	cmd.Dir = homePrefix + userName
+	cmd.Dir = config.Current.HomePrefix + userName
 	cmd.Env = []string{
 		"USER=" + userName,
 		"LOGNAME=" + userName,
-		"HOME=" + homePrefix + userName,
+		"HOME=" + config.Current.HomePrefix + userName,
 		"SHELL=/bin/bash",
 		"TERM=xterm",
 		"LANG=en_US.UTF-8",
-		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + homePrefix + userName + "/bin",
+		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + config.Current.HomePrefix + userName + "/bin",
 	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{

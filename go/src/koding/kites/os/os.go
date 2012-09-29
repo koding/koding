@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/tools/kite"
 	"koding/tools/utils"
 )
@@ -9,24 +8,34 @@ import (
 func main() {
 	utils.DefaultStartup("os kite", true)
 
-	kite.Run("amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com", "os", func(user, method string, args interface{}) interface{} {
+	kite.Run("os", func(user, method string, args interface{}) (error, interface{}) {
 		switch method {
 		case "spawn":
-			return run(args.([]string), user)
+			array, ok := args.([]interface{})
+			if !ok {
+				return &kite.ArgumentError{"array of strings"}, nil
+			}
+			command := make([]string, len(array))
+			for i, entry := range array {
+				command[i], ok = entry.(string)
+				if !ok {
+					return &kite.ArgumentError{"array of strings"}, nil
+				}
+			}
+			return run(command, user)
 		case "exec":
-			return run([]string{"/bin/bash", "-c", args.(string)}, user)
-		default:
-			panic(fmt.Sprintf("Unknown method: %v.", method))
+			line, ok := args.(string)
+			if !ok {
+				return &kite.ArgumentError{"string"}, nil
+			}
+			return run([]string{"/bin/bash", "-c", line}, user)
 		}
-		return nil
+		return &kite.UnknownMethodError{method}, nil
 	})
 }
 
-func run(command []string, user string) string {
-	cmd := kite.CreateCommand(command, user, "/Users/")
+func run(command []string, user string) (error, string) {
+	cmd := kite.CreateCommand(command, user)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-	return string(output)
+	return err, string(output)
 }

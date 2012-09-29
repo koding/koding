@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -30,15 +29,13 @@ func main() {
 		return
 	}
 
-	kite.Run(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
+	kite.Run("webterm", func(user, method string, args interface{}) (error, interface{}) {
 		if method == "createServer" {
 			server := &WebtermServer{user: user}
 			server.remote = args.(map[string]interface{})
-			return server
-		} else {
-			panic(fmt.Sprintf("Unknown method: %v.", method))
+			return nil, server
 		}
-		return nil
+		return &kite.UnknownMethodError{method}, nil
 	})
 }
 
@@ -83,7 +80,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := kite.CreateCommand(command, server.user, config.Current.HomePrefix)
+	cmd := kite.CreateCommand(command, server.user)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

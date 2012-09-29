@@ -78,7 +78,8 @@ func (d *DNode) collectCallbacks(obj interface{}, path []string, callbackMap map
 		for i, v := range obj.([]interface{}) {
 			d.collectCallbacks(v, append(path, strconv.Itoa(i)), callbackMap)
 		}
-
+	case nil:
+		// skip
 	default:
 		v := reflect.ValueOf(obj)
 		for i := 0; i < v.NumMethod(); i++ {
