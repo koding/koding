@@ -54,8 +54,20 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
-# setTimeout ->
-#   koding.models.JGuest._resetAllGuests()
-# , 8e3
+setInterval ->
+  {Relationship} = require 'jraphical'
+  {ObjectId} = require 'bongo'
+  {extend} = require 'underscore'
+  test = {
+    targetId: ObjectId('4eea4fd93e25516404000004'),
+    targetName: 'JAccount',
+    sourceId: ObjectId('5007591678b8468137000002'),
+    sourceName: 'JAccount',
+    as: 'follower'
+  }
+  rel = new Relationship(test) #.save console.log
+  Relationship.getCollection().insert(rel.get(yes), (safe:yes), console.log.bind(console, 'ONE'))
+  # koding.models.JGuest._resetAllGuests()
+, 2e3
 
 console.log 'Koding Social Worker has started.'

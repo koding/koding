@@ -251,16 +251,18 @@ run =(options)->
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
+  debug = if options.debug then ' -D' else ''
+
   processes.run
     name    : 'social'
-    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
     restart : yes
     restartInterval : 1000
     log     : false
 
   processes.run
     name    : 'server'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
     restart : yes
     restartInterval : 1000
     log     : false
