@@ -72,28 +72,39 @@ func (d *DNode) Close() {
 	close(d.SendChan)
 }
 
-func (d *DNode) collectCallbacks(obj interface{}, path []string, callbackMap map[string]([]string)) {
-	switch obj.(type) {
-	case []interface{}:
-		for i, v := range obj.([]interface{}) {
-			d.collectCallbacks(v, append(path, strconv.Itoa(i)), callbackMap)
-		}
+func (d *DNode) collectCallbacks(rawObj interface{}, path []string, callbackMap map[string]([]string)) {
+	switch obj := rawObj.(type) {
 	case nil:
 		// skip
+	case []interface{}:
+		for i, v := range obj {
+			d.collectCallbacks(v, append(path, strconv.Itoa(i)), callbackMap)
+		}
+	case map[string]interface{}:
+		for key, value := range obj {
+			v := reflect.ValueOf(value)
+			if v.Kind() == reflect.Func {
+				d.registerCallback(key, v, path, callbackMap)
+				delete(obj, key)
+			}
+		}
 	default:
 		v := reflect.ValueOf(obj)
 		for i := 0; i < v.NumMethod(); i++ {
 			name := v.Type().Method(i).Name
 			name = strings.ToLower(name[0:1]) + name[1:]
-
-			pathCopy := make([]string, len(path)+1)
-			copy(pathCopy, path)
-			pathCopy[len(path)] = name
-
-			callbackMap[strconv.Itoa(len(d.callbacks))] = pathCopy
-			d.callbacks = append(d.callbacks, v.Method(i))
+			d.registerCallback(name, v.Method(i), path, callbackMap)
 		}
 	}
+}
+
+func (d *DNode) registerCallback(name string, callback reflect.Value, path []string, callbackMap map[string]([]string)) {
+	pathCopy := make([]string, len(path)+1)
+	copy(pathCopy, path)
+	pathCopy[len(path)] = name
+
+	callbackMap[strconv.Itoa(len(d.callbacks))] = pathCopy
+	d.callbacks = append(d.callbacks, callback)
 }
 
 func (d *DNode) ProcessMessage(data []byte) {
@@ -112,25 +123,25 @@ func (d *DNode) ProcessMessage(data []byte) {
 			d.Send(methodId, args)
 		})
 
-		var obj interface{} = m.Arguments
+		var rawObj interface{} = m.Arguments
 		for i := 0; i < len(path); i++ {
 			isLast := i == len(path)-1
-			switch obj.(type) {
+			switch obj := rawObj.(type) {
 			case []interface{}:
 				index, err := strconv.Atoi(path[i])
 				if err != nil {
 					panic(fmt.Sprintf("Integer expected, got %v.", path[i]))
 				}
 				if isLast {
-					obj.([]interface{})[index] = callback
+					obj[index] = callback
 				} else {
-					obj = obj.([]interface{})[index]
+					rawObj = obj[index]
 				}
 			case map[string]interface{}:
 				if isLast {
-					obj.(map[string]interface{})[path[i]] = callback
+					obj[path[i]] = callback
 				} else {
-					obj = obj.(map[string]interface{})[path[i]]
+					rawObj = obj[path[i]]
 				}
 			default:
 				panic(fmt.Sprintf("Unhandled object type %T of %v.", obj, obj))

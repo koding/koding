@@ -15,7 +15,7 @@ import (
 )
 
 type WebtermServer struct {
-	user    string
+	session *kite.Session
 	remote  dnode.Remote
 	pty     *pty.PTY
 	process *os.Process
@@ -29,18 +29,19 @@ func main() {
 		return
 	}
 
-	kite.Run("webterm", func(user, method string, args interface{}) (error, interface{}) {
+	kite.Run("webterm", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
 		if method == "createServer" {
-			server := &WebtermServer{user: user}
+			server := &WebtermServer{session: session}
 			server.remote = args.(map[string]interface{})
-			return nil, server
+			session.CloseOnDisconnect = append(session.CloseOnDisconnect, server)
+			return server, nil
 		}
-		return &kite.UnknownMethodError{method}, nil
+		return nil, &kite.UnknownMethodError{method}
 	})
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
-	dir, err := os.Open("/var/run/screen/S-" + server.user)
+	dir, err := os.Open("/var/run/screen/S-" + server.session.User)
 	if err != nil {
 		if os.IsNotExist(err) {
 			callback(map[string]string{})
@@ -80,7 +81,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := kite.CreateCommand(command, server.user)
+	cmd := server.session.CreateCommand(command)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

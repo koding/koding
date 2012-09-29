@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func Run(name string, onRootMethod func(user, method string, args interface{}) (error, interface{})) {
+func Run(name string, onRootMethod func(session *Session, method string, args interface{}) (interface{}, error)) {
 	runStatusLogger()
 
 	sigtermChannel := make(chan os.Signal)
@@ -56,31 +56,24 @@ func Run(name string, onRootMethod func(user, method string, args interface{}) (
 
 						joinData := make(map[string]interface{})
 						json.Unmarshal(join.Body, &joinData)
-						user := joinData["user"].(string)
+						userName := joinData["user"].(string)
 						queue := joinData["queue"].(string)
 
 						changeNumClients <- 1
-						log.Debug("Client connected: " + user)
+						log.Debug("Client connected: " + userName)
 						defer func() {
 							changeNumClients <- -1
-							log.Debug("Client disconnected: " + user)
+							log.Debug("Client disconnected: " + userName)
 						}()
 
-						closers := make([]io.Closer, 0)
-						defer func() {
-							for _, closer := range closers {
-								closer.Close()
-							}
-						}()
+						session := newSession(userName)
+						defer session.Close()
 
 						d := dnode.New()
 						defer d.Close()
 						d.OnRootMethod = func(method string, args []interface{}) {
 							defer log.RecoverAndLog()
-							err, result := onRootMethod(user, method, args[0].(map[string]interface{})["withArgs"])
-							if closer, ok := result.(io.Closer); ok {
-								closers = append(closers, closer)
-							}
+							result, err := onRootMethod(session, method, args[0].(map[string]interface{})["withArgs"])
 							if err != nil {
 								args[1].(dnode.Callback)(err.Error(), result)
 							} else if result != nil {
@@ -136,7 +129,13 @@ func Run(name string, onRootMethod func(user, method string, args interface{}) (
 	}
 }
 
-func CreateCommand(command []string, userName string) *exec.Cmd {
+type Session struct {
+	User, Home        string
+	Uid, Gid          int
+	CloseOnDisconnect []io.Closer
+}
+
+func newSession(userName string) *Session {
 	userData, err := user.Lookup(userName)
 	if err != nil {
 		panic(err)
@@ -152,27 +151,42 @@ func CreateCommand(command []string, userName string) *exec.Cmd {
 	if uid == 0 || gid == 0 {
 		panic("SECURITY BREACH: User lookup returned root.")
 	}
+	return &Session{
+		User: userName,
+		Home: config.Current.HomePrefix + userName,
+		Uid:  uid,
+		Gid:  gid,
+	}
+}
 
+func (session *Session) Close() {
+	for _, closer := range session.CloseOnDisconnect {
+		closer.Close()
+	}
+	session.CloseOnDisconnect = nil
+}
+
+func (session *Session) CreateCommand(command []string) *exec.Cmd {
 	var cmd *exec.Cmd
 	if config.Current.UseLVE {
 		cmd = exec.Command("/bin/lve_exec", command...)
 	} else {
 		cmd = exec.Command(command[0], command[1:]...)
 	}
-	cmd.Dir = config.Current.HomePrefix + userName
+	cmd.Dir = session.Home
 	cmd.Env = []string{
-		"USER=" + userName,
-		"LOGNAME=" + userName,
-		"HOME=" + config.Current.HomePrefix + userName,
+		"USER=" + session.User,
+		"LOGNAME=" + session.User,
+		"HOME=" + session.Home,
 		"SHELL=/bin/bash",
 		"TERM=xterm",
 		"LANG=en_US.UTF-8",
-		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + config.Current.HomePrefix + userName + "/bin",
+		"PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:" + session.Home + "/bin",
 	}
 	cmd.SysProcAttr = &syscall.SysProcAttr{
 		Credential: &syscall.Credential{
-			Uid: uint32(uid),
-			Gid: uint32(gid),
+			Uid: uint32(session.Uid),
+			Gid: uint32(session.Gid),
 		},
 	}
 
