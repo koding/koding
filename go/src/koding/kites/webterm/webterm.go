@@ -1,7 +1,6 @@
 package main
 
 import (
-	"code.google.com/p/go.net/websocket"
 	"fmt"
 	"koding/config"
 	"koding/tools/dnode"
@@ -9,7 +8,6 @@ import (
 	"koding/tools/log"
 	"koding/tools/pty"
 	"math/rand"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -35,58 +33,21 @@ func init() {
 }
 
 func main() {
-	if !config.Current.UseWebsockets {
-
-		kite.Start(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
-			if method == "createServer" {
-				server := &WebtermServer{user: user}
-				server.remote = args.(map[string]interface{})
-				return server
-			} else {
-				panic(fmt.Sprintf("Unknown method: %v.", method))
-			}
-			return nil
-		})
-
-	} else {
-
-		fmt.Println("WebSocket server started. Please open terminal.html in your browser.")
-		http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
-			fmt.Printf("WebSocket opened: %p\n", ws)
-
-			server := &WebtermServer{user: config.Current.User}
-			defer server.Close()
-
-			d := dnode.New()
-			defer d.Close()
-			d.SendRemote(server)
-			d.OnRemote = func(remote dnode.Remote) {
-				server.remote = remote
-			}
-
-			go func() {
-				for data := range d.SendChan {
-					websocket.Message.Send(ws, data)
-				}
-			}()
-
-			for {
-				var data []byte
-				err := websocket.Message.Receive(ws, &data)
-				if err != nil {
-					break
-				}
-				d.ProcessMessage(data)
-			}
-
-			fmt.Printf("WebSocket closed: %p\n", ws)
-		}))
-		err := http.ListenAndServe(":8080", nil)
-		if err != nil {
-			panic(err)
-		}
-
+	if config.Current.UseWebsockets {
+		runWebsocket()
+		return
 	}
+
+	kite.Start(config.Current.AmqpUri, "webterm", func(user, method string, args interface{}) interface{} {
+		if method == "createServer" {
+			server := &WebtermServer{user: user}
+			server.remote = args.(map[string]interface{})
+			return server
+		} else {
+			panic(fmt.Sprintf("Unknown method: %v.", method))
+		}
+		return nil
+	})
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
