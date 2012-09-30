@@ -1,7 +1,7 @@
 module.exports = class Emailer
   nodemailer = require 'nodemailer'
 
-  {email} = require './config'
+  email = require './config.email'
 
   @smtpTransport = nodemailer.createTransport "SMTP",
     service: "SES"

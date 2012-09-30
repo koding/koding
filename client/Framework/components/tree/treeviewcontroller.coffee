@@ -639,6 +639,8 @@ class JTreeViewController extends KDViewController
     key = keyMap()[event.which]
     [nodeView] = @selectedNodes
 
+    @emit "keyEventPerformedOnTreeView", event
+
     return unless nodeView
 
     switch key

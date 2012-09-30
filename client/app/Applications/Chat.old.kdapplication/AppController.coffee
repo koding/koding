@@ -1,6 +1,6 @@
 class KDChannel extends KDEventEmitter
   {mq} = bongo
-  
+
   constructor:()->
     @account = KD.whoami()
     @username = @account?.profile?.nickname
@@ -13,20 +13,20 @@ class KDChannel extends KDEventEmitter
     super
 
   joinRoom:(options,callback)->
-    
+
     {name} = options
-    
+
     name ?= __utils.getRandomNumber()
     @name = "private-#{@type}-#{name}"
     mq.fetchChannel @name,(channel,isNew)=>
       console.log arguments
       console.log @username+" joined this channel: #{@name}"
 
-      @room = channel      
+      @room = channel
       @emit "ready"
       @attachListeners()
       @send event:"join"
-      
+
       setTimeout =>
         {master,nrOfParticipants} = @getRoomInfo()
         if nrOfParticipants is 0
@@ -36,7 +36,7 @@ class KDChannel extends KDEventEmitter
           log "There are #{nrOfParticipants} people in this room.",@participants
           @send event:"getScreen",recipient:master
       ,1000
-  
+
   getRoomInfo:->
     i=0
     for username,participant of @participants
@@ -44,18 +44,18 @@ class KDChannel extends KDEventEmitter
       i++
     @master = master
     return master:master,nrOfParticipants:i
-      
-  attachListeners:()->  
+
+  attachListeners:()->
     @room.on 'client-#{@type}-msg',(messages)=>
       for msgObj in messages
         {event,recipient} = msgObj
         if recipient
           @emit "#{event}-#{recipient}",msgObj
         else
-          @emit event,msgObj    
+          @emit event,msgObj
 
-      
-    
+
+
   sendThrottled : _.throttle ->
     if @room
       @room.emit 'client-#{@type}-msg',@messages
@@ -69,8 +69,8 @@ class KDChannel extends KDEventEmitter
           @sendThrottled()
         ,1000
   ,110
-  
-  
+
+
   send : (options,callback) ->
     # console.log "finally sending:",options
     options.date = Date.now()
@@ -80,7 +80,7 @@ class KDChannel extends KDEventEmitter
     @sendThrottled()
 
 class Chat extends KDChannel
-  
+
   constructor:->
     super
     @msgHistory = []
@@ -88,8 +88,8 @@ class Chat extends KDChannel
   attachListeners:->
 
 
-class SharedDoc extends KDChannel  
-  
+class SharedDoc extends KDChannel
+
   constructor:(options)->
     # {isMaster} = options
     # @isMaster = isMaster ? null
@@ -97,15 +97,15 @@ class SharedDoc extends KDChannel
     super
     @type = "sharedDoc"
     @dmp = new diff_match_patch()
-    
+
   attachListeners:->
-    super 
+    super
     #console.log "attachlisteners cagirdik"
     @on "ready",(isNew)=>
       #@isMaster = yes if isNew
 
     @on "patch",({patch,sender,date})=>
-      # if sender isnt @username  
+      # if sender isnt @username
       # console.log "sharedDoc on.patch geldi",arguments
       @registerAndEmitScreen patch,sender,date
 
@@ -124,11 +124,11 @@ class SharedDoc extends KDChannel
       if screen
         @lastScreen = screen
         @emit "screen",screen
-    
+
     @on "getScreen-#{@username}",({sender})=>
       log "#{sender} wanted to get the latest screen from me. sending.."
       @send event:"screen",screen:@lastScreen,recipient:sender
-    
+
     @on "screen-#{@username}",({screen,sender})->
       log "i got screen from #{sender}"
       @lastScreen = screen
@@ -140,27 +140,27 @@ class SharedDoc extends KDChannel
       # nothing changed on screen, no need to emit.
     else
       (@screens[sha1] ?= []).push {patch,sender}
-      
-      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]      
+
+      @currentScreen = (@dmp.patch_apply patch,@lastScreen)[0]
       @lastScreen = @currentScreen
       @emit "patchApplied",@currentScreen,sender
 
-      
-  join :(options,callback)->    
+
+  join :(options,callback)->
     @joinRoom options,(err,res)->
-  
+
   send : (options,callback)->
     # console.log 'zz',arguments
     {newScreen,event} = options
     if newScreen
-      patch = @dmp.patch_make @lastScreen, newScreen      
+      patch = @dmp.patch_make @lastScreen, newScreen
       @lastScreen = newScreen
       super event:"patch",patch:patch
     else
       # log "sending",options
       super options
 
-      
+
 
 
 
@@ -168,30 +168,30 @@ class SharedDoc extends KDChannel
 
 
 class ChatterView extends KDView
-  
+
   viewAppended:->
     # @addSubView @joinButton = new KDButtonView
     #   title    : "Share"
     #   callback : =>
-    #     
-    file = @getSingleton('docManager').createEmptyDocument()
+    #
+    file = FSHelper.createFileFromPath "localfile:/Untitled#{postfix}.txt"
     @addSubView @ace = new Ace {},file
     window.A = @ace
-      # type    : "textarea"      
+      # type    : "textarea"
       # keyup   : =>
       #   @emit 'newScreen',@input.getValue()
-      # 
+      #
       # paste   : =>
-      #   @emit 'newScreen',@input.getValue()        
+      #   @emit 'newScreen',@input.getValue()
     @ace.on "ace.ready",=>
       @emit "userWantsToJoin"
-      
+
       @ace.editor.getSession().on "onTextInput",(e)->
         log "onTextInput",e
 
       @ace.editor.getSession().on "onDocumentChange",(e)->
         log "onDocumentChange",e
-      
+
       @ace.editor.getSession().on "change",(e)=>
         # log "e",e
         {row,column}  = e.data.range.end
@@ -199,73 +199,72 @@ class ChatterView extends KDView
         # @ace.setContents "abc"
         @emit 'cursorPositionChanged',cursorPosition
         # @emit 'newScreen',{screen:@ace.getContents(),event}
-    
+
     # @input.setHeight @getSingleton("windowController").winHeight-100
     # @input.setWidth  @getSingleton("windowController").winWidth-500
-    
+
   click : ->
     @setKeyView()
-  
+
   keyUp:(event) ->
     # log "SHA1-hex",SHA1.hex_sha1 @ace.getContents()
     # log "SHA1-b64",SHA1.b64_sha1 @ace.getContents()
     # log "SHA1-any",SHA1.any_sha1 @ace.getContents()
 
-      
+
     @emit 'newScreen',{screen:@ace.getContents()}
-  
-  keyDown: ->  
-    # log "down",arguments    
-    
+
+  keyDown: ->
+    # log "down",arguments
+
 class Chat12345 extends AppController
-  
+
   constructor:(options = {}, data)->
     options.view = new ChatterView
       #cssClass : "content-page chat"
     @cursorPosition = {}
-    
+
     super options, data
     @view = @getView()
     @sharedDoc = new SharedDoc
-    
+
     @sharedDoc.on "patchApplied",(newScreen,sender)=>
       # view.input.setValue newScreen
       log "#{sender} sent a new patch."
       @setScreen newScreen
-      
+
     @sharedDoc.on "screen",(newScreen)=>
       # view.input.setValue newScreen
       @setScreen newScreen
-  
+
   setScreen:(newScreen)->
     {row,column}  = @cursorPosition
     @view.ace.setContents newScreen
     @view.ace.editor.getSession().getSelection().selectionLead.setPosition row,column
-    
-  
+
+
   loadView:(view)->
 
     view.on 'newScreen',({screen})=>
-      # console.log 'newScreen',scr      
+      # console.log 'newScreen',scr
       @sharedDoc.send {newScreen:screen}
-    
+
     view.on 'userWantsToJoin',=>
       console.log 'user joined'
       @sharedDoc.join {name:"myDoc"}
-    
+
     view.on 'cursorPositionChanged',(cursorPosition)=>
       log "cursorPosition",cursorPosition
       @cursorPosition = cursorPosition
-    
+
   bringToFront:()->
     super name : 'Chat'#, type : 'background'
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
+
+
+
+
+
+
+
+

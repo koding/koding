@@ -10,7 +10,7 @@ class Ace12345 extends KDController
     if view
       file = view.getData()
     else
-      file = @getSingleton('docManager').createEmptyDocument()
+      file = FSHelper.createFileFromPath "localfile:/Untitled.txt"
       view = new AceView {}, file
 
     options =

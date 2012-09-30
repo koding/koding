@@ -100,6 +100,7 @@ class LoginView extends KDScrollView
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       callback : (formData)=>
+        console.log 'hey-o'
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
@@ -261,7 +262,9 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
+    console.log 'before api call'
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
+      console.log 'after api call', arguments
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView

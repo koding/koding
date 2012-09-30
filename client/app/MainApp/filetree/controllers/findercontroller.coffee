@@ -24,26 +24,27 @@ class NFinderController extends KDViewController
 
     super options, data
 
-    @kiteController = @getSingleton('kiteController')
-    @treeController = new NFinderTreeController treeOptions, []
+    KDObject.on "singleton.kiteController.registered",=>
+      @kiteController = @getSingleton('kiteController')
 
+    @treeController = new NFinderTreeController treeOptions, []
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
     @treeController.on "folder.expanded", (folder)=> @setRecentFolder folder.path
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
 
   loadView:(mainView)->
 
-    # mainView.addSubView @treeController.getView()
-    # @reset()
+    mainView.addSubView @treeController.getView()
+    @reset()
 
-    # if @treeController.getOptions().useStorage
-    #   appManager.on "AppManagerOpensAnApplication", (appInst)=>
-    #     if appInst instanceof StartTab12345 and not @defaultStructureLoaded
-    #       @loadDefaultStructure()
+    if @treeController.getOptions().useStorage
+      appManager.on "AppManagerOpensAnApplication", (appInst)=>
+        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
+          @loadDefaultStructure()
 
   reset:->
 
-    ###delete @_storage
+    delete @_storage
     {initialPath} = @treeController.getOptions() # not used, fix this
 
     @mount = if KD.isLoggedIn()
@@ -62,7 +63,7 @@ class NFinderController extends KDViewController
 
     if @treeController.getOptions().useStorage
       @loadDefaultStructureTimer = @utils.wait @treeController.getOptions().initDelay, =>
-        @loadDefaultStructure()###
+        @loadDefaultStructure()
 
   loadDefaultStructure:->
 

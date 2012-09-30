@@ -10,7 +10,7 @@ __utils =
   formatPlural:(count, noun)->
     "#{count or 0} #{if count is 1 then noun else Inflector.pluralize noun}"
 
-  selectText:(element)->
+  selectText:(element, selectionStart, selectionEnd)->
     doc   = document
     if doc.body.createTextRange
       range = document.body.createTextRange()
@@ -154,7 +154,11 @@ __utils =
       suffix    : ' '
 
     text = if text.length > 500
-      morePart = "<span class='collapsedtext hide'><a href='#' class='more-link'>show more...</a>#{text.substr 500}<a href='#' class='less-link'>...show less</a></span>"
+      morePart  = "<span class='collapsedtext hide'>"
+      morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
+      morePart += text.substr 500
+      morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
+      morePart += "</span>"
       shortenedText + morePart
     else
       shortenedText
