@@ -21,12 +21,11 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 
 EXCHANGE_PREFIX = "x"
 
-# Feeder = require './feeder'
-# feeder = new Feeder
-#   mongo: mongo
-#   exchangePrefix: EXCHANGE_PREFIX
-
-# feeder.handleNewFollowingActivity()
+{distributeActivityToFollowers, assureFeed} = require "./feeder"
+distributeActivityToFollowers
+  mq: mq
+  mongo: mongo
+  exchangePrefix: EXCHANGE_PREFIX
 
 {Relationship} = require 'jraphical'
 
@@ -80,7 +79,6 @@ handleClient = do ->
       "#.activity", 
       ownExchangeName, 
       (message, headers, deliveryInfo) ->
-        {exchange, routingKey} = deliveryInfo
         publisher = deliveryInfo.exchange
         unless publisher is getOwnExchangeName account
           ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
@@ -114,6 +112,10 @@ handleClient = do ->
   (account) ->
     nickname = account.profile.nickname
     return if clients[nickname]
+    
+    feed = {title:"followed", description: ""}
+    JFeed = require './models/feed'
+    JFeed.assureFeed account, feed, (err, theFeed) ->
     clients[nickname] = account
     prepareBroker account
     handleFolloweeActivity account

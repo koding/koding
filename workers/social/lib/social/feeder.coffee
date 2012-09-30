@@ -1,21 +1,24 @@
 Broker = require 'broker'
-mongo = require 'mongoskin'
+mongoskin = require 'mongoskin'
 
 module.exports = 
 
   distributeActivityToFollowers: (options = {}) ->
-    options.host ?= "localhost"
-    options.login ?= "guest"
-    options.password ?= "guest"
-    mq = new Broker options
+    {mq, mongo, exchangePrefix} = options
+    mq ?= 
+      host: "localhost"
+      login: "guest"
+      password: "guest"
+      vhost: "/"
+    broker = new Broker mq
 
-    exchangePrefix = options.exchangePrefix ? "x"
+    exchangePrefix = exchangePrefix ? "x"
 
-    dbUrl = options.mongo ? "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
-    db = mongo.db dbUrl
+    dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
+    db = mongoskin.db dbUrl
     feedsCol = db.collection 'jFeeds'
     relationshipsCol = db.collection 'relationships'
-    mq.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
+    broker.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
       # The message will come from feed's owner's exchange with the routing
       # key of format "activityOf.#{followee}", payload is the activity.
       {exchange, routingKey, _consumerTag} = deliveryInfo
@@ -37,27 +40,6 @@ module.exports =
           relationshipsCol.update criteria, criteria, {upsert:true}
 
   ensureExchangeMesh: (options) ->
-    options.host ?= "localhost"
-    options.login ?= "guest"
-    options.password ?= "guest"
-    mq = new Broker options
-    JAccount = require './models/account'
-
-
-    # For every account, declare its exchange
-
-    mq.
-
-    # Remove all exchange bindings
-
-    # Find all followers
-
-    # Establish exchange to exchange for each follower
-
-
-
-    # dbUrl = options.mongo ? "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
-    # db = mongo.db dbUrl
 
   ###
   function ensureuserFeeds (Array feeds) -> void()
