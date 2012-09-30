@@ -14,7 +14,7 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = new (require "processes")
+processes   = new (require "processes") main:true
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
@@ -97,11 +97,6 @@ clientFileMiddleware  = (options, code, callback)->
         callback null,data
       else
         throw err
-
-pipeStd =(children...)->
-  for child in children when child?
-    child.stdout.pipe process.stdout
-    child.stderr.pipe process.stderr
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
@@ -235,6 +230,11 @@ task 'buildBroker', (options)->
   configureBroker options, ->
     pipeStd(spawn './broker/build.sh')
 
+pipeStd =(children...)->
+  for child in children when child?
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
 run =(options)->
   console.log "am i here?"
   configFile = normalizeConfigPath expandConfigFile options.configFile
@@ -242,34 +242,38 @@ run =(options)->
   pipeStd(spawn './broker/start.sh') if options.runBroker
  
   processes.run
-    name    : 'social'
+    name    : 'socialCake'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-    log     : false
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
     
   processes.run
-    name    : 'server'
+    name    : 'serverCake'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
-    log     : false
-
-  pipeStd(
-    processes.get "server"
-    processes.get "social"
-  )
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+  # pipeStd(
+  #   processes.get "server"
+  #   processes.get "social"
+  # )
   if config.social.watch? is yes
     watcher = new Watcher
       groups:
         social :
           folders : ['./workers/social']
           onChange : (path) ->
-            processes.kill "social"
+            processes.kill "socialCake"
         server :
           folders : ['./server']
-          onChange : ->
-            processes.kill "server"
+          onChange : (path)->
+            console.log "changed",path
+            processes.kill "serverCake"
 
 task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
