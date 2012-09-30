@@ -1,11 +1,9 @@
 package main
 
 import (
-	"exp/inotify"
 	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/kite"
-	"koding/tools/log"
 	"koding/tools/utils"
 	"os"
 	"path"
@@ -51,35 +49,11 @@ func main() {
 				return nil, fmt.Errorf("Can only watch inside of home directory.")
 			}
 
-			watcher, err := inotify.NewWatcher()
+			watch, err := NewWatch(absPath, onChange)
 			if err != nil {
 				return nil, err
 			}
-			session.CloseOnDisconnect = append(session.CloseOnDisconnect, watcher)
-			watcher.AddWatch(absPath, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY)
-			go func() {
-				for ev := range watcher.Event {
-					if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY)) != 0 {
-						info, err := os.Stat(ev.Name)
-						if err != nil {
-							log.Warn("Watcher error", err)
-						} else if (ev.Mask & inotify.IN_CREATE) != 0 {
-							onChange(map[string]interface{}{"event": "create", "file": makeFileEntry(info)})
-						} else {
-							onChange(map[string]interface{}{"event": "modify", "file": makeFileEntry(info)})
-						}
-					} else if (ev.Mask & inotify.IN_DELETE) != 0 {
-						onChange(map[string]interface{}{"event": "delete", "file": FileEntry{Name: path.Base(ev.Name)}})
-					} else {
-						log.Warn("Watcher error", ev.Mask)
-					}
-				}
-			}()
-			go func() {
-				for err := range watcher.Error {
-					log.Warn("Watcher error", err)
-				}
-			}()
+			session.CloseOnDisconnect = append(session.CloseOnDisconnect, watch)
 
 			dir, err := os.Open(absPath)
 			defer dir.Close()
@@ -97,7 +71,7 @@ func main() {
 				entries[i] = makeFileEntry(info)
 			}
 
-			return map[string]interface{}{"files": entries, "stopWatching": func() { watcher.Close() }}, nil
+			return map[string]interface{}{"files": entries, "stopWatching": func() { watch.Close() }}, nil
 		}
 
 		return nil, &kite.UnknownMethodError{method}

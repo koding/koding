@@ -54,6 +54,7 @@ func main() {
 				}
 
 				go func() {
+					defer log.RecoverAndLog()
 					defer func() { consumerFinished <- true }()
 
 					stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
