@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	utils.DefaultStartup("os kite", true)
+	utils.Startup("os kite", true)
 
 	kite.Run("os", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
 		switch method {

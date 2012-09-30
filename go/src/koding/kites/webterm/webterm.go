@@ -22,7 +22,7 @@ type WebtermServer struct {
 }
 
 func main() {
-	utils.DefaultStartup("webterm kite", true)
+	utils.Startup("webterm kite", true)
 
 	if config.Current.UseWebsockets {
 		runWebsocket()
