@@ -1141,7 +1141,7 @@ div.show-more-discussion
 
 div.libs-container
   borderBox()
-  border 1px solid #bbb
+  border none
   border-top 1px solid #2a2a2a
 
   &.no-bottom-rounded
@@ -1180,7 +1180,7 @@ div.libs-container
       width 50%
       vertical-align top
 
-      label-color = #e2e2e2
+      label-color = darken(#e2e2e2,25%)
       libs-bg-color = lighten(#333,5%) //#f1f1f1
       libs-border-color = #FF9200
 
@@ -1203,6 +1203,10 @@ div.libs-container
             &:hover
               // gradient lighten(libs-bg-color,5%),lighten(libs-bg-color,10%)
               background-color lighten(libs-bg-color,5%)
+
+              label.kdlabel
+                // color darken(libs-border-color,(multiplier * 20%))
+                color white
 
 
       &.html
@@ -1282,9 +1286,6 @@ div.libs-container
         vertical-align top
         margin-top 6px
 
-      &:hover
-        label.kdlabel
-          color lighten(#FF9200,25%)
 
     &.spacer-hidden
 

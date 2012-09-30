@@ -751,9 +751,9 @@ class ActivityCodeShareWidget extends KDFormView
           @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
           @$(".formline-codeshare").css "height":(30-1-5+wideScreenHeight)+"px"
 
-          @$("div.libs-html div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600-2
-          @$("div.libs-css div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600-2
-          @$("div.libs-js div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-800-2
+          @$("div.libs-html div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
+          @$("div.libs-css div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
+          @$("div.libs-js div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-800
 
           @$("div.libs-box").removeClass "spacer-hidden"
 
