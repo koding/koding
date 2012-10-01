@@ -77,11 +77,9 @@ module.exports = class Followable
           if err
             callback err
           else
-            console.log 'all the way in here'
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
             # callback err, count
-            console.log 'about to send this', @emit+''
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
