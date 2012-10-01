@@ -306,6 +306,9 @@ Includes =
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
         discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
+        codesharebox                : "./client/app/Applications/Activity.kdapplication/views/codesharebox.coffee"
+        codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
+        codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -711,6 +714,7 @@ Includes =
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
+        codeshare           : "./client/stylus/app.codeshare.styl"
 
         temp             : "./client/stylus/temp.styl"
 
