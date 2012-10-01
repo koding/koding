@@ -174,6 +174,9 @@ class Activity12345 extends AppController
             KD.remote.reviveFromSnapshots data, (err, instances)->
               # console.log instances
               callback instances
+
+    # KD.remote.api.CActivity.some selector, options, (err, activities) ->
+    #   callback activities
     #
     # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
@@ -222,13 +225,27 @@ class Activity12345 extends AppController
         createdAt : -1
 
     if not options.skip < options.limit
-      @fetchTeasers selector, options, (activities)=>
-        if activities
-          for activity in activities
-            @activityListController.addItem activity
-          callback? activities
-        else
-          callback?()
+      if @activityListController._state is 'public'
+        @fetchTeasers selector, options, (activities)=>
+          if activities
+            for activity in activities
+              @activityListController.addItem activity
+            callback? activities
+          else
+            callback?()
+
+      else if @activityListController._state is 'private'
+        KD.whoami().fetchFeeds (err, feeds) =>
+          for feed in feeds
+            continue unless feed.title is 'followed'
+            feed.fetchActivities selector, options, (err, activities) =>
+              if not err and activities?
+                for activity in activities
+                  @activityListController.addItem activity
+                callback? activities
+              else
+                callback?()
+
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
@@ -243,28 +260,7 @@ class Activity12345 extends AppController
     controller.noActivityItem.hide()
 
     if show is 'private'
-      # _counter = 0
-      # controller._state = 'private'
-      # controller.itemsOrdered.forEach (item)=>
-      #   if not controller.isInFollowing(item.data)
-      #     item.hide()
-      #     _counter++
-      # if _counter is controller.itemsOrdered.length
-      #   controller.noActivityItem.show()
-      controller.removeAllItems()
-      controller.showLazyLoader no
-
-      KD.whoami().fetchFeeds (err, feeds) =>
-        for feed in feeds
-          continue unless feed.title is 'followed'
-          feed.fetchActivities (err, activities) =>
-            for activity in activities
-              @activityListController.addItem activity
-            controller.isLoading = no
-            controller.hideLazyLoader()
-            #callback?()
-
-      return no
+      controller._state = 'private'
 
     else if show is 'public'
       controller._state = 'public'
@@ -416,8 +412,8 @@ class ActivityListController extends KDListViewController
   addItem:(activity, index, animation = null) ->
     @noActivityItem.hide()
     # log "ADD:", activity
-    if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
-      @getListView().addItem activity, index, animation
+    #if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+    @getListView().addItem activity, index, animation
 
   unhide = (item)-> item.show()
 
