@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+{extend} = require 'underscore'
 
 module.exports = class JFeed extends jraphical.Module
   {secure} = require 'bongo'
@@ -51,7 +52,7 @@ module.exports = class JFeed extends jraphical.Module
       if err then callback err
       else saveFeedToAccount feed, account, callback
 
-  fetchActivities: (callback) ->
+  fetchActivities: (selector, options, callback) ->
     # {connection:{delegate}} = client
     # TODO: Only allow querying from own feed
     CActivity = require "./activity/index"
@@ -59,7 +60,8 @@ module.exports = class JFeed extends jraphical.Module
     Relationship.all {sourceId: @getId(), as: "container"}, (err, rels) ->
     # @fetchContents (err, contents) ->
       ids = (rel.targetId for rel in rels)
-      CActivity.all {_id: {$in: ids}}, callback
+      selector = extend selector, {_id: {$in: ids}}
+      CActivity.some selector, options, callback
 
 
 
