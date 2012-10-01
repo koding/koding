@@ -243,14 +243,27 @@ class Activity12345 extends AppController
     controller.noActivityItem.hide()
 
     if show is 'private'
-      _counter = 0
-      controller._state = 'private'
-      controller.itemsOrdered.forEach (item)=>
-        if not controller.isInFollowing(item.data)
-          item.hide()
-          _counter++
-      if _counter is controller.itemsOrdered.length
-        controller.noActivityItem.show()
+      # _counter = 0
+      # controller._state = 'private'
+      # controller.itemsOrdered.forEach (item)=>
+      #   if not controller.isInFollowing(item.data)
+      #     item.hide()
+      #     _counter++
+      # if _counter is controller.itemsOrdered.length
+      #   controller.noActivityItem.show()
+      controller.removeAllItems()
+      controller.showLazyLoader no
+
+      KD.whoami().fetchFeeds (err, feeds) =>
+        for feed in feeds
+          continue unless feed.title is 'followed'
+          feed.fetchActivities (err, activities) =>
+            for activity in activities
+              @activityListController.addItem activity
+            controller.isLoading = no
+            controller.hideLazyLoader()
+            #callback?()
+
       return no
 
     else if show is 'public'
