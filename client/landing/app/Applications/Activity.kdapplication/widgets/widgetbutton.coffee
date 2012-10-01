@@ -19,13 +19,16 @@ class WidgetButton extends KDButtonViewWithMenu
     @$('button span.icon').attr "class","icon #{tabName}"
     @$('button span.title').text title
 
-class WidgetButtonItem extends JView
+class WidgetButtonItem extends KDCustomHTMLView
 
-  constructor: (options, data) ->
+  constructor: (options = {}, data) ->
 
+    options.tagName = "a"
     super
 
     @setClass "#{@utils.slugify(data.type)}"
+
+  viewAppended: JView::viewAppended
 
   pistachio : ->
     "<span class='icon'/>{{ #(title)}}"
