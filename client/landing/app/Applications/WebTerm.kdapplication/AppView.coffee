@@ -75,14 +75,12 @@ class WebTermView extends KDView
 
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
-
-    AccountMixin.init KD.remote.api if not KD.whoami().tellKite?
-
-    KD.whoami().tellKite
+    
+    KD.singletons.kiteController.run
       kiteName: 'webterm',
       method: 'createServer',
       withArgs: @terminal.clientInterface
-    , (remote) =>
+    , (err, remote) =>
       @terminal.server = remote
       #@terminal.showSessions()
       @terminal.createSession ""
