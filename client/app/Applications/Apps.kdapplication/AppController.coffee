@@ -22,7 +22,7 @@ class Apps12345 extends AppController
 
   createFeed:(view)->
     options =
-      subItemClass          : AppsListItemView
+      itemClass          : AppsListItemView
       limitPerPage          : 10
       filter                :
         allApps             :

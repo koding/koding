@@ -39,4 +39,11 @@ class DemosMainView extends KDScrollView
             appManager.tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
               # log err, members
               if not err and members.length > 0
-                tokenInput.showMenu {token, rule : "username"}, members
+                tokenInput.showMenu {
+                  rule             : "username"
+                  itemChildClass   : MemberAutoCompleteItemView
+                  itemChildOptions :
+                    cssClass       : "honolulu"
+                    userInput      : token.slice(1)
+                  token
+                }, members

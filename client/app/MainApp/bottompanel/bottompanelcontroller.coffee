@@ -38,7 +38,7 @@ class BottomChatSideBar extends JView
       scrollView      : no
       viewOptions     :
         type          : "chat-sidebar users"
-        subItemClass  : BottomChatUserItem
+        itemClass  : BottomChatUserItem
     ,
       items     : [
         { title : "sinan" }
@@ -52,7 +52,7 @@ class BottomChatSideBar extends JView
       scrollView      : no
       viewOptions     :
         type          : "chat-sidebar channels"
-        subItemClass  : BottomChatUserItem
+        itemClass  : BottomChatUserItem
     ,
       items     : [
         { title : "public" }

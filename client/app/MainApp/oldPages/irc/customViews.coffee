@@ -26,7 +26,7 @@
 #     @doResize()
 #
 #     @header.addSubView headerInput = new Chat_HeaderConsole delegate : @
-#     @content.addSubView consoleList = new Chat_IrcListView (subItemClass : Chat_IrcListItemView, delegate: @, autoScroll: yes), (KDDataPath:"consoleMessages", KDDataSource:@getData())
+#     @content.addSubView consoleList = new Chat_IrcListView (itemClass : Chat_IrcListItemView, delegate: @, autoScroll: yes), (KDDataPath:"consoleMessages", KDDataSource:@getData())
 #
 #   doResize: ->
 #     @content.setHeight @getHeight() - @header.getHeight()
@@ -51,7 +51,7 @@
 #   viewAppended:->
 #     super
 #     @header.addSubView headerSearch = new Chat_HeaderSearch delegate : @
-#     @content.addSubView friendsList = new MembersListViewDeprecate (subItemClass : Chat_FriendListItem, delegate: @),(KDDataPath:"Data.friends",KDDataSource: @account)
+#     @content.addSubView friendsList = new MembersListViewDeprecate (itemClass : Chat_FriendListItem, delegate: @),(KDDataPath:"Data.friends",KDDataSource: @account)
 #     @content.addSubView roomsList   = new Chat_RoomsListView {delegate: @}, (KDDataPath:"Data.chatRooms", KDDataSource: @account.chatClient)
 #
 #     @footer.destroy()
@@ -152,8 +152,8 @@
 #     #   { nickname  : "#php", users : 28 }
 #     # ]
 #     #
-#     # @content.addSubView friendsList = new Chat_RoomList (subItemClass : Chat_RoomListItem),{items}
-#     @content.addSubView roomList = new Chat_RoomList (subItemClass : Chat_RoomListItem),(KDDataPath:"rooms", KDDataSource:@getData())
+#     # @content.addSubView friendsList = new Chat_RoomList (itemClass : Chat_RoomListItem),{items}
+#     @content.addSubView roomList = new Chat_RoomList (itemClass : Chat_RoomListItem),(KDDataPath:"rooms", KDDataSource:@getData())
 #     roomList.setScroller scrollView : @content, fractionBelowTrigger : .80
 #
 #     roomList.unsetClass "kdlistview-default"
@@ -422,8 +422,8 @@
 #
 #     @listenWindowResize()
 #
-#     panelLeft.addSubView new Chat_IrcListView (subItemClass : Chat_IrcListItemView, delegate: @, autoScroll: yes), (KDDataPath:"messages", KDDataSource:@getData())
-#     panelRight.addSubView new Chat_MemberListView subItemClass : Chat_MemberListItemView, (KDDataPath:"names", KDDataSource:@getData())
+#     panelLeft.addSubView new Chat_IrcListView (itemClass : Chat_IrcListItemView, delegate: @, autoScroll: yes), (KDDataPath:"messages", KDDataSource:@getData())
+#     panelRight.addSubView new Chat_MemberListView itemClass : Chat_MemberListItemView, (KDDataPath:"names", KDDataSource:@getData())
 #
 #     # @listenTo
 #     #   KDEventTypes        : "focus"
