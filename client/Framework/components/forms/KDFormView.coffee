@@ -36,15 +36,6 @@ class KDFormView extends KDView
       @handleEvent event
     super()
 
-  handleEvent:(event)->
-    # log event.type
-    # thisEvent = @[event.type]? event or yes #this would be way awesomer than lines 98-103, but then we have to break camelcase convention in mouseUp, etc. names....??? worth it?
-    switch event.type
-      when "submit" then thisEvent = @submit event
-    superResponse = super event #always needs to be called for propagation
-    thisEvent = thisEvent ? superResponse #only return superResponse if local handle didn't happen
-    willPropagateToDOM = thisEvent
-
   setDomElement:()->
     cssClass = @getOptions().cssClass ? ""
     @domElement = $ "<form class='kdformview #{cssClass}'></form>"

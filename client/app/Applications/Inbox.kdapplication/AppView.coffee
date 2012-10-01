@@ -1,6 +1,4 @@
-class PageInbox extends KDView
-
-  KD.registerPage "Inbox", PageInbox
+class InboxView extends KDView
 
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Inbox"

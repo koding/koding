@@ -14,12 +14,15 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = new (require "processes")
+processes   = new (require "processes") main:true
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
+http          = require 'http'
+url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
+commander     = require 'commander'
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -98,11 +101,6 @@ clientFileMiddleware  = (options, code, callback)->
       else
         throw err
 
-pipeStd =(children...)->
-  for child in children when child?
-    child.stdout.pipe process.stdout
-    child.stderr.pipe process.stderr
-
 normalizeConfigPath =(path)->
   path ?= './config/dev'
   nodePath.join __dirname, path
@@ -131,7 +129,7 @@ buildClient =(configFile, callback=->)->
     builder.buildClient "",()->
       builder.buildCss "",()->
         builder.buildIndex "",()->
-          if config.client.watch is yes            
+          if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
@@ -179,12 +177,12 @@ task 'configureRabbitMq',->
             d = c.split "\n"
             for line in d
               if line.indexOf("/plugins") > 0
-                e = line 
+                e = line
                 break
             e = e.trim().replace /"|]|,/g,""
             rabbitMqPluginPath = e
             exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
-              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)-> 
+              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)->
                 console.log a,b,c
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
@@ -201,6 +199,11 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   console.log 'KONFIG', config.mq.pidFile
+  vhosts = "{vhosts,["+
+    (options.vhosts or []).
+    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
+    join(',')+"]}"
+
   brokerConfig = """
   {application, broker,
    [
@@ -218,8 +221,10 @@ configureBroker = (options,callback=->)->
       {mq_host, "#{config.mq.host}"},
       {mq_user, <<"#{config.mq.login}">>},
       {mq_pass, <<"#{config.mq.password}">>},
+      {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
-      {verbose, true},
+      #{vhosts},
+      {verbosity, info},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
       ]}
@@ -235,48 +240,103 @@ task 'buildBroker', (options)->
   configureBroker options, ->
     pipeStd(spawn './broker/build.sh')
 
+pipeStd =(children...)->
+  for child in children when child?
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
 run =(options)->
-  console.log "am i here?"
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
- 
+
   processes.run
-    name    : 'social'
+    name    : 'socialCake'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-    log     : false
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
     
   processes.run
-    name    : 'server'
+    name    : 'serverCake'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
-    log     : false
-
-  pipeStd(
-    processes.get "server"
-    processes.get "social"
-  )
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+  # pipeStd(
+  #   processes.get "server"
+  #   processes.get "social"
+  # )
   if config.social.watch? is yes
     watcher = new Watcher
       groups:
         social :
           folders : ['./workers/social']
           onChange : (path) ->
-            processes.kill "social"
+            processes.kill "socialCake"
         server :
           folders : ['./server']
-          onChange : ->
-            processes.kill "server"
+          onChange : (path)->
+            console.log "changed",path
+            processes.kill "serverCake"
+
+assureVhost =(uri, vhost, vhostFile, callback)->
+  addVhost uri, vhost, (res)->
+    if res.type is 'error'
+      console.log 'received an error:'.yellow
+      console.error res.message
+      console.log "it probably doesn't matter; ignoring...".yellow
+    fs.writeFileSync vhostFile, vhost, 'utf8'
+    callback null
+
+addVhost =(uri, vhost, callback)->
+  options = url.parse uri+"?vhost=#{vhost}"
+  req = http.request options, (res)->
+    responseText = ''
+    res.on 'data', (data)-> responseText += data
+    res.on 'end', ->
+      response =\
+        try
+          JSON.parse(responseText)
+        catch e
+          responseText
+      callback response
+  req.on 'error', console.log
+  req.end()
+
+configureVhost =(config, callback)->
+  {uri} = config.vhostConfigurator
+  vhostFile = nodePath.join(config.projectRoot, '.rabbitvhost')
+  try
+    vhost = fs.readFileSync vhostFile, 'utf8'
+    assureVhost uri, vhost, vhostFile, callback
+  catch e
+    if e.code is 'ENOENT'
+      {explanation} = config.vhostConfigurator
+      console.log explanation.bold.red
+      commander.prompt 'Please give your vhost a name: ', (name)->
+        assureVhost uri, name, vhostFile, callback
+    else throw e
 
 task 'run', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   queue = []
+  if config.vhostConfigurator?
+    queue.push -> configureVhost config, -> queue.next()
+    queue.push ->
+      # we need to clear the cache so that other modules will get the
+      # config that reflects our latest changes to the .rabbitvhost file:
+      configModulePath = require.resolve configFile
+      delete require.cache[configModulePath]
+      queue.next()
+
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next() 
+    queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

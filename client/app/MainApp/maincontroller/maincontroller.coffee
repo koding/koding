@@ -4,16 +4,20 @@ class MainController extends KDController
 
   constructor:()->
 
+
     super
 
     window.appManager = new ApplicationManager
-    KD.registerSingleton "docManager", new DocumentManager
+    KD.registerSingleton "mainController", @
+    KD.registerSingleton "kiteController", new KiteController
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
-    KD.registerSingleton "mainController", @
     KD.registerSingleton "notificationController", new NotificationController
+
     @appReady ->
+
       KD.registerSingleton "activityController", new ActivityController
+      KD.registerSingleton "kodingAppsController", new KodingAppsController
 
     @putGlobalEventListeners()
 
@@ -30,28 +34,27 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue.length = 0
 
-  initiateApplication:do->
-    modal = null
-    fail =->
-      modal = new KDBlockingModalView
-        title   : "Couldn't connect to the backend!"
-        content : "<div class='modalformline'>
-                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.</div>"
-        height  : "auto"
-        overlay : yes
-        buttons :
-          "Refresh Now" :
-            style     : "modal-clean-red"
-            callback  : ()->
-              modal.destroy()
-              location.reload yes
+  initiateApplication:->
+  # initiateApplication:do->
+  #   modal = null
+  #   fail =->
+  #     modal = new KDBlockingModalView
+  #       title   : "Couldn't connect to the backend!"
+  #       content : "<div class='modalformline'>
+  #                    We don't know why, but your browser couldn't reach our server.<br><br>Please try again.</div>"
+  #       height  : "auto"
+  #       overlay : yes
+  #       buttons :
+  #         "Refresh Now" :
+  #           style     : "modal-clean-red"
+  #           callback  : ()->
+  #             modal.destroy()
+  #             location.reload yes
 
-    connectionFails =(connectedState)->
-      fail() unless connectedState.connected
-    ->
-      KD.registerSingleton "kiteController", new KiteController
-      KD.registerSingleton "kodingAppsController", new KodingAppsController
-      connectedState = connected: no
+  #   connectionFails =(connectedState)->
+  #     fail() unless connectedState.connected
+  #   ->
+  #     connectedState = connected: no
       #setTimeout connectionFails.bind(null, connectedState), 5000
       # @on "RemoveModal", =>
       #   if modal instanceof KDBlockingModalView
@@ -60,7 +63,7 @@ class MainController extends KDController
       #     @utils.wait 2500, -> modal?.destroy()
 
   accountChanged:(account, connectedState={})->
-
+    console.log 'does it happen?'
     connectedState.connected = yes
     @emit "RemoveModal"
 
@@ -111,8 +114,8 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      # appManager.openApplication "Activity", yes
-      appManager.openApplication "Demos", yes
+      appManager.openApplication "Activity", yes
+      # appManager.openApplication "Demos", yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
@@ -125,10 +128,7 @@ class MainController extends KDController
 
   putGlobalEventListeners:()->
 
-    @listenTo
-      KDEventTypes : "KDBackendConnectedEvent"
-      callback     : ()=>
-        @initiateApplication()
+    KDObject.on "KDBackendConnectedEvent", @initiateApplication.bind @
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'

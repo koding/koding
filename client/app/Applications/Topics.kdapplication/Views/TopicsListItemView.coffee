@@ -72,7 +72,7 @@ class TopicsListItemView extends KDListItemView
     @$clone = $clone = $item.clone()
 
     pos = $item.position()
-    pos.height = $item.outerHeight()
+    pos.height = $item.outerHeight(no)
     $clone.addClass "clone"
     $clone.css pos
     $clone.css "background-color" : "white"

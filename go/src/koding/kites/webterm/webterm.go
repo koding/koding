@@ -1,93 +1,47 @@
 package main
 
 import (
-	"code.google.com/p/go.net/websocket"
-	"fmt"
+	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
 	"koding/tools/pty"
-	"math/rand"
-	"net/http"
+	"koding/tools/utils"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 	"unicode/utf8"
 )
 
 type WebtermServer struct {
-	user    string
+	session *kite.Session
 	remote  dnode.Remote
 	pty     *pty.PTY
 	process *os.Process
 }
 
-var config Config
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
-	log.Facility = fmt.Sprintf("webterm kite %d", os.Getpid())
-
-	if os.Getuid() != 0 {
-		panic("Must be run as root.")
-	}
-
-	profile := "default"
-	if len(os.Args) >= 2 {
-		profile = os.Args[1]
-	}
-
-	var ok bool
-	config, ok = configs[profile]
-	if !ok {
-		panic("Configuration not found.")
-	}
-}
-
 func main() {
-	if !config.useWebsockets {
+	utils.DefaultStartup("webterm kite", true)
 
-		kite.Start(config.amqpUrl, "webterm", func(user, method string, args interface{}) interface{} {
-			if method == "createServer" {
-				server := &WebtermServer{user: user}
-				server.remote = args.(map[string]interface{})
-				return server
-			} else {
-				panic(fmt.Sprintf("Unknown method: %v.", method))
-			}
-			return nil
-		})
-
-	} else {
-
-		fmt.Println("WebSocket server started. Please open terminal.html in your browser.")
-		http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
-			fmt.Printf("WebSocket opened: %p\n", ws)
-
-			server := &WebtermServer{user: config.user}
-			defer server.Close()
-
-			node := dnode.New(ws)
-			node.SendRemote(server)
-			node.OnRemote = func(remote dnode.Remote) {
-				server.remote = remote
-			}
-			node.Run()
-
-			fmt.Printf("WebSocket closed: %p\n", ws)
-		}))
-		err := http.ListenAndServe(":8080", nil)
-		if err != nil {
-			panic(err)
-		}
-
+	if config.Current.UseWebsockets {
+		runWebsocket()
+		return
 	}
+
+	kite.Run("webterm", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+		if method == "createServer" {
+			server := &WebtermServer{session: session}
+			server.remote = args.(map[string]interface{})
+			session.CloseOnDisconnect = append(session.CloseOnDisconnect, server)
+			return server, nil
+		}
+		return nil, &kite.UnknownMethodError{method}
+	})
 }
 
 func (server *WebtermServer) GetSessions(callback dnode.Callback) {
-	dir, err := os.Open("/var/run/screen/S-" + server.user)
+	dir, err := os.Open("/var/run/screen/S-" + server.session.User)
 	if err != nil {
 		if os.IsNotExist(err) {
 			callback(map[string]string{})
@@ -120,14 +74,14 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	command := config.shellCommand
+	command := []string{"/bin/bash"}
 	// command = append(command, args...)
 
 	pty := pty.New()
 	server.pty = pty
 	server.SetSize(sizeX, sizeY)
 
-	cmd := kite.CreateCommand(command, server.user, config.homePrefix)
+	cmd := server.session.CreateCommand(command)
 	pty.AdaptCommand(cmd)
 	err := cmd.Start()
 	if err != nil {

@@ -82,11 +82,11 @@ Includes =
         # notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         # notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         # flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-        
-        
+
+
         # cactivity                 : "./server/app/bongo/models/activity.coffee"
         # cbucket                   : "./server/app/bongo/models/bucket.coffee"
-        
+
         # jlimit                    : "./server/app/bongo/models/limit.coffee"
         # jmount                    : "./server/app/bongo/models/mount.coffee"
         # jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -98,9 +98,9 @@ Includes =
         # jguest                    : "./server/app/bongo/models/guest.coffee"
         # jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         # jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-        
+
         # jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-        
+
         # # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         # fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -210,7 +210,8 @@ Includes =
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
-        KDLayeredInput        : "./client/Framework/components/inputs/layeredinput.coffee"
+        KDTokenizedMenu       : "./client/Framework/components/inputs/tokenizedmenu.coffee"
+        KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
 
         # upload
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
@@ -547,7 +548,7 @@ Includes =
 
         MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
 
-        foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
+        # foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
         sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"
