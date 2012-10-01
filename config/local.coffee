@@ -41,7 +41,7 @@ module.exports = deepFreeze
         auth    : 'http://localhost:3000/auth'
         vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
-      appsUri   : 'https://dev-apps.koding.com'
+      appsUri   : 'http://dev-app.koding.com'
       env       : 'dev'
       # staticFilesBaseUrl: 'http://localhost:3020'
   mq            :

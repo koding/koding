@@ -45,7 +45,8 @@ module.exports = deepFreeze
         auth    : 'http://localhost:3000/auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
-      appsUri   : 'https://dev-apps.koding.com'
+      # Is this correct?
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
