@@ -49,8 +49,9 @@ class FSHelper
         [itemCount] = lines.splice(0,3)
         parentPath = parentPaths[0]
       for line in lines when line
-        unless systemFilesRegExp.test line
-          data.push FSHelper.createFile parseFile parentPath, line
+        unless line[0] is 'l' # broken symlinks has l type
+          unless systemFilesRegExp.test line
+            data.push FSHelper.createFile parseFile parentPath, line
     data
 
   @registry = {}
