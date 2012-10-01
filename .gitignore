@@ -26,6 +26,7 @@ ebin
 /go/src/github.com
 /kites/webterm
 /kites/os
+.project
 
 
 # ignored node modules stuff (they need to be cake installed)
