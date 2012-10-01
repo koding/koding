@@ -1,5 +1,6 @@
 jraphical = require 'jraphical'
 {extend} = require 'underscore'
+KodingError = require '../error'
 
 module.exports = class JFeed extends jraphical.Module
   {secure} = require 'bongo'
@@ -52,19 +53,25 @@ module.exports = class JFeed extends jraphical.Module
       if err then callback err
       else saveFeedToAccount feed, account, callback
 
-  fetchActivities: (selector, options, callback) ->
+  fetchActivities: secure (client, selector, options, callback) ->
     [callback, options] = [options, callback] unless callback
     options or= {}
-    
-    # {connection:{delegate}} = client
-    # TODO: Only allow querying from own feed
-    CActivity = require "./activity/index"
-    {Relationship} = jraphical
-    Relationship.all {sourceId: @getId(), as: "container"}, (err, rels) ->
-    # @fetchContents (err, contents) ->
-      ids = (rel.targetId for rel in rels)
-      selector = extend selector, {_id: {$in: ids}}
-      CActivity.some selector, options, callback
+
+    {connection:{delegate}} = client
+    unless delegate.profile.nickname is @owner
+      callback new KodingError 'Access denined.'
+    else
+      CActivity = require "./activity/index"
+      {Relationship} = jraphical
+
+      Relationship.all {sourceId: @getId(), as: "container"}, (err, rels) ->
+      # @fetchContents (err, contents) ->
+        if err
+          callback()
+        else
+          ids = (rel.targetId for rel in rels)
+          selector = extend selector, {_id: {$in: ids}}
+          CActivity.some selector, options, callback
 
 
 
