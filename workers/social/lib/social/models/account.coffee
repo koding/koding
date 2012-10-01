@@ -180,6 +180,7 @@ module.exports = class JAccount extends jraphical.Module
         callback err, results
 
   setEmailPreferences: secure (client, prefs, callback)->
+    JUser = require './user'
     JUser.fetchUser client, (err, user)->
       if err
         callback err
