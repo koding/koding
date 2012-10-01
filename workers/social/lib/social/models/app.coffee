@@ -11,7 +11,7 @@ module.exports = class JApp extends jraphical.Module
 
   CActivity = require './activity'
   JAccount = require './account'
-  JReview = require './messages/review'
+  #JReview = require './messages/review'
   JTag = require './tag'
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
@@ -78,22 +78,26 @@ module.exports = class JApp extends jraphical.Module
         default     : 0
 
     relationships   :
-      creator       : JAccount
-      review        : JReview
+      creator       :
+        targetType  : "JAccount"
+        as          : "related"
+      # review        :
+      #   targetType  : "JReview"
+      #   as          : "review"
       activity      :
-        targetType  : CActivity
+        targetType  : "CActivity"
         as          : 'activity'
       follower      :
-        targetType  : JAccount
+        targetType  : "JAccount"
         as          : 'follower'
       likedBy       :
-        targetType  : JAccount
+        targetType  : "JAccount"
         as          : 'like'
       participant   :
-        targetType  : JAccount
+        targetType  : "JAccount"
         as          : ['author','reviewer','user']
       tag           :
-        targetType  : JTag
+        targetType  : "JTag"
         as          : 'tag'
 
   @create = secure (client, data, callback)->
@@ -303,7 +307,7 @@ module.exports = class JApp extends jraphical.Module
       if err then callback err else @markInstalled client, _apps, (err, apps)=>
         @markFollowing client, apps, callback
 
-  @markInstalled = bongo.secure (client, apps, callback)->
+  @markInstalled = secure (client, apps, callback)->
     Relationship.all
       targetId  : client.connection.delegate.getId()
       as        : 'user'
