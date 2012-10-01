@@ -295,7 +295,7 @@ class JTreeViewController extends KDViewController
       selection          : no
       view               : new options.listViewClass
         tagName          : "ul"
-        type             : options.type or "jtree"
+        type             : options.type
         itemClass        : options.treeItemClass
         itemChildClass   : options.itemChildClass
         itemChildOptions : options.itemChildOptions
