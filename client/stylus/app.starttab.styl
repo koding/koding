@@ -80,6 +80,8 @@ app.starttab.styl
       .icon-container
         margin-top        0
         opacity           1
+      cite
+        height            13px
     &.dev-mode
       bg                  color, rgba(255, 255, 0, 0.2)
     &.disabled
@@ -125,13 +127,19 @@ app.starttab.styl
       width               100%
 
     cite
-      font-size           11px
+      position            absolute
       display             block
-      color               #777
+      bottom              10px
+      left                0
+      size                100%, 0
+      max-width           100%
+      font-size           11px
+      font-style          normal
+      color               #aaa
       white-space         nowrap
       text-overflow       ellipsis
-      max-width           100%
       overflow            hidden
+      vendor              transition, height .15s linear .6s
 
     span
       noTextDeco()
