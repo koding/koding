@@ -53,6 +53,9 @@ module.exports = class JFeed extends jraphical.Module
       else saveFeedToAccount feed, account, callback
 
   fetchActivities: (selector, options, callback) ->
+    [callback, options] = [options, callback] unless callback
+    options or= {}
+    
     # {connection:{delegate}} = client
     # TODO: Only allow querying from own feed
     CActivity = require "./activity/index"
