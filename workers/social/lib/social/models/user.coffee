@@ -371,15 +371,14 @@ module.exports = class JUser extends jraphical.Module
                                     callback null, account, replacementToken
 
 
-  @fetchUser = secure ({connection},callback)->
-    connection.remote.fetchClientId (clientId)->
-      JSession.one {clientId},(err,session)->
-        if err
-          callback err
-        else
-          {username} = session
-          JUser.one {username}, (err, user)->
-            callback null, user
+  @fetchUser = secure (client, callback)->
+    JSession.one {clientId: client.sessionToken}, (err, session)->
+      if err
+        callback err
+      else
+        {username} = session
+        JUser.one {username}, (err, user)->
+          callback null, user
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
