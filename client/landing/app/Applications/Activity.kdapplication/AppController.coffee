@@ -214,34 +214,36 @@ class Activity12345 extends AppController
     range or= {}
     {skip, limit} = range
 
+    controller = @activityListController
+
     selector =
       type        :
         $in       : @currentFilter
 
     options  =
       limit       : limit or= 20
-      skip        : skip  or= @activityListController.getItemCount()
+      skip        : skip  or= controller.getItemCount()
       sort        :
         createdAt : -1
 
     if not options.skip < options.limit
-      if @activityListController._state is 'public'
+      if controller._state is 'public'
         @fetchTeasers selector, options, (activities)=>
           if activities
             for activity in activities
-              @activityListController.addItem activity
+              controller.addItem activity
             callback? activities
           else
             callback?()
 
-      else if @activityListController._state is 'private'
+      else if controller._state is 'private'
         KD.whoami().fetchFeeds (err, feeds) =>
           for feed in feeds
             continue unless feed.title is 'followed'
             feed.fetchActivities selector, options, (err, activities) =>
               if not err and activities?
                 for activity in activities
-                  @activityListController.addItem activity
+                  controller.addItem activity
                 callback? activities
               else
                 callback?()
