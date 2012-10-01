@@ -34,7 +34,7 @@ class WebTerm.Terminal
     @cursor = new WebTerm.Cursor(this)
     
     @measurebox = $(document.createElement("div"))
-    @measurebox.css "position", "fixed"
+    @measurebox.css "position", "absolute"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
     @updateSizeTimer = null

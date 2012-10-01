@@ -38,7 +38,7 @@ koding = new Bongo {
 }
 
 kiteBroker =\
-  if kites.vhost?
+  if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
   else
     koding.mq
@@ -56,7 +56,7 @@ app.get '/auth', (req, res)->
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
-    res.cookie 'clientId', session.clientId if clientId isnt session.clientId
+    res.cookie 'clientId', session.clientId if session? and clientId isnt session?.clientId
     if err
       authenticationFailed(res, err)
     else
