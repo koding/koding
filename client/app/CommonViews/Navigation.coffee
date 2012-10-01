@@ -25,6 +25,7 @@ class NavigationController extends KDListViewController
 class NavigationList extends KDListView
 
   customizeItemOptions:(options, data)->
+
     if data.title is "Invite Friends"
       options.childClass = NavigationInviteLink
       return options
@@ -192,4 +193,6 @@ class NavigationInviteLink extends KDCustomHTMLView
     , @count.getData()
 
     modal.modalTabs.panes[0].form.buttonField.addSubView inviteHint, null, yes
+
+    return no
 
