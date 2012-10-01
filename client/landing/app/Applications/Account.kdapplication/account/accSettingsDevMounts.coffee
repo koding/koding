@@ -30,15 +30,14 @@ class AccountMountListController extends KDListViewController
 
     @loadItems()
 
-    # @getView().parent.addSubView addButton = new KDButtonView
-    #   style     : "clean-gray account-header-button"
-    #   title     : ""
-    #   icon      : yes
-    #   iconOnly  : yes
-    #   iconClass : "plus"
-    #   callback  : ()=>
-    #     @getListView().showAddEditModal null
-
+    @getView().parent.addSubView addButton = new KDButtonView
+      style     : "clean-gray account-header-button"
+      title     : ""
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "plus"
+      callback  : ()=>
+        @getListView().showAddEditModal null
 
   loadItems:(callback)->
     items = [
@@ -63,11 +62,11 @@ class AccountMountListController extends KDListViewController
       when "update"
         jmount = listItem.getData().jmount
 
-        jmount.title     = f.title
+        # jmount.title     = f.title
         jmount.hostname  = f.hostname
         jmount.username  = f.username
         jmount.password  = f.password
-        jmount.port      = f.port
+        # jmount.port      = f.port
 
         jmount.update (err)=>
           if err
@@ -99,18 +98,18 @@ class AccountMountListController extends KDListViewController
               username      : f.username
               password      : f.password
               port          : f.port
-          when "s3"
-            jm = new KD.remote.api.JMountS3
-              title         : f.title ? f.hostname
-              accessKeyId   : f.accessKey
-              secret        : f.secret
-          when "webdav"
-            jm = new KD.remote.api.JMountWebDav
-              title         : f.title ? f.hostname
-              hostname      : f.hostname
-              username      : f.username
-              password      : f.password
-              port          : f.port
+          # when "s3"
+          #   jm = new KD.remote.api.JMountS3
+          #     title         : f.title ? f.hostname
+          #     accessKeyId   : f.accessKey
+          #     secret        : f.secret
+          # when "webdav"
+          #   jm = new KD.remote.api.JMountWebDav
+          #     title         : f.title ? f.hostname
+          #     hostname      : f.hostname
+          #     username      : f.username
+          #     password      : f.password
+          #     port          : f.port
 
         jm.save (err)=>
           if err
@@ -183,20 +182,21 @@ class AccountMountList extends KDListView
           name        : "type"
           defaultValue: if data then data.type else "ftp"
           selectOptions : [
-            { title : "Select mount type...", value : "none" }
-            { title : "SFTP",                 value : "sftp" }
+            # { title : "Select mount type...", value : "none" }
             { title : "FTP",                  value : "ftp" }
-            { title : "S3",                   value : "s3" }
-            { title : "WebDAV",               value : "webdav" }
-            { title : "Dropbox",              value : "dropbox" }
+            { title : "SFTP",                 value : "sftp" }
+            # { title : "S3",                   value : "s3" }
+            # { title : "WebDAV",               value : "webdav" }
+            # { title : "Dropbox",              value : "dropbox" }
           ]
-      title :
-        label : new KDLabelView
-          title : "Title:"
-        input: new KDInputView
-          name        : "title"
-          placeholder : "give it a name if you like..."
-          defaultValue: data.title if data
+
+      # title :
+      #   label : new KDLabelView
+      #     title : "Title:"
+      #   input: new KDInputView
+      #     name        : "title"
+      #     placeholder : "give it a name if you like..."
+      #     defaultValue: data.title if data
 
       hostname :
         label :  new KDLabelView
@@ -222,30 +222,31 @@ class AccountMountList extends KDListView
           name        : "password"
           placeholder : "password..."
           defaultValue: data.password if data
-      port :
-        label : new KDLabelView
-          title : "Port number:"
-        input : new KDInputView
-          name        : "port"
-          placeholder : "port..."
-          defaultValue: data.port if data
 
-      accessKey :
-        label : new KDLabelView
-          title : "Access Key:"
-        input : new KDInputView
-          name        : "accessKey"
-          placeholder : "AWS access key..."
-          defaultValue: data.accessKey if data
+      # port :
+      #   label : new KDLabelView
+      #     title : "Port number:"
+      #   input : new KDInputView
+      #     name        : "port"
+      #     placeholder : "port..."
+      #     defaultValue: data.port if data
 
-      secret :
-        label : new KDLabelView
-          title : "Secret Key:"
-        input : new KDInputView
-          type        : "password"
-          name        : "secret"
-          placeholder : "AWS Secret"
-          defaultValue: data.secret if data
+      # accessKey :
+      #   label : new KDLabelView
+      #     title : "Access Key:"
+      #   input : new KDInputView
+      #     name        : "accessKey"
+      #     placeholder : "AWS access key..."
+      #     defaultValue: data.accessKey if data
+
+      # secret :
+      #   label : new KDLabelView
+      #     title : "Secret Key:"
+      #   input : new KDInputView
+      #     type        : "password"
+      #     name        : "secret"
+      #     placeholder : "AWS Secret"
+      #     defaultValue: data.secret if data
 
     createForm = (items)=>
 
@@ -253,20 +254,25 @@ class AccountMountList extends KDListView
         item.on "change",(event,value)->
           # log value,s3Form,form
           switch value
-            when "ftp","sftp","webdav"
+            when "ftp","sftp"#,"webdav"
               lines.hostname.show()
               lines.username.show()
               lines.password.show()
-              lines.port.show()
-              lines.accessKey.hide()
-              lines.secret.hide()
-            when "s3"
-              lines.accessKey.show()
-              lines.secret.show()
-              lines.hostname.hide()
-              lines.username.hide()
-              lines.password.hide()
-              lines.port.hide()
+              # lines.port.show()
+              # lines.accessKey.hide()
+              # lines.secret.hide()
+            # when "none"
+            #   lines.hostname.hide()
+            #   lines.username.hide()
+            #   lines.password.hide()
+
+            # when "s3"
+            #   lines.accessKey.show()
+            #   lines.secret.show()
+            #   lines.hostname.hide()
+            #   lines.username.hide()
+            #   lines.password.hide()
+            #   lines.port.hide()
 
       lines = {}
       form = new KDFormView
@@ -286,9 +292,10 @@ class AccountMountList extends KDListView
       return {form,lines}
 
 
-    {form,lines} = createForm ["type","title","hostname","username","password","port","accessKey","secret"]
-    lines.accessKey.hide()
-    lines.secret.hide()
+    # {form,lines} = createForm ["type","title","hostname","username","password","port","accessKey","secret"]
+    {form,lines} = createForm ["type","hostname","username","password"]
+    # lines.accessKey.hide()
+    # lines.secret.hide()
     modal.addSubView form
     # modal.setHeight 450
 
@@ -304,9 +311,6 @@ class AccountMountList extends KDListView
 
     modal.createButton "cancel",style : "modal-cancel", callback : @destroyModal
     modal.addSubView helpBox = new HelpBox, ".kdmodal-buttons"
-
-
-
 
   destroyModal:=>
     @modal.destroy()
@@ -345,7 +349,3 @@ class AccountMountListItem extends KDListItemView
   #     </div>
   #     <a href='#' class='action-link'>Edit</a>
   #   """
-
-
-
-
