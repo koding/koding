@@ -2,12 +2,10 @@ class MainView extends KDView
 
   viewAppended:->
 
-    # @putLoader()
     @addHeader()
     @createMainPanels()
     @createMainTabView()
     @createSideBar()
-    # @removeLoader()
     @windowController = @getSingleton("windowController")
     @listenWindowResize()
 
@@ -34,18 +32,14 @@ class MainView extends KDView
       else
         @sidebar.hideFinderPanel()
 
-  putLoader:->
-
   removeLoader:->
-    # @utils.wait 2000, =>
+
     $loadingScreen = $(".main-loading").eq(0)
     {winWidth,winHeight} = @windowController
     $loadingScreen.css
       marginTop : -winHeight
       opacity   : 0
     @utils.wait 601, =>
-      # @getSingleton("loadingScreen").destroy()
-      # delete KD.singletons.loadingScreen
       $loadingScreen.remove()
       $('body').removeClass 'loading'
 
@@ -54,9 +48,6 @@ class MainView extends KDView
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
 
-    # @addSubView @bottomPanel = new BottomPanel
-    #   cssClass : "bottom-panel"
-    # @emit "BottomPanelCreated", @bottomPanel
 
     @panelWrapper.addSubView @sidebarPanel = new KDView
       domId    : "sidebar-panel"
@@ -65,7 +56,6 @@ class MainView extends KDView
       domId    : "content-panel"
       cssClass : "transition"
 
-    @registerSingleton "bottomPanel",  @bottomPanel,  yes
     @registerSingleton "contentPanel", @contentPanel, yes
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
