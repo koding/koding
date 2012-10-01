@@ -52,7 +52,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount', 'fetchFeeds'
       ]
     schema                  :
       skillTags             : [String]

@@ -21,7 +21,7 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 
 EXCHANGE_PREFIX = "x"
 
-{distributeActivityToFollowers, assureFeed} = require "./feeder"
+{distributeActivityToFollowers} = require "./feeder"
 distributeActivityToFollowers
   mq: mq
   mongo: mongo
@@ -112,7 +112,7 @@ handleClient = do ->
   (account) ->
     nickname = account.profile.nickname
     return if clients[nickname]
-    
+
     feed = {title:"followed", description: ""}
     JFeed = require './models/feed'
     JFeed.assureFeed account, feed, (err, theFeed) ->

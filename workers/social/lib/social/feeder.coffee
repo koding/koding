@@ -29,7 +29,9 @@ module.exports =
 
       feedCriteria = {owner: owner, title: "followed"}
       feedsCol.findOne feedCriteria, {'_id':1}, (err, feed) =>
-        unless err
+        if err
+          console.log err
+        else
           criteria =
             targetName  : "CActivity"
             targetId    : activity._id
@@ -39,14 +41,14 @@ module.exports =
 
           relationshipsCol.update criteria, criteria, {upsert:true}
 
-  ensureExchangeMesh: (options) ->
+  assureExchangeMesh: (options) ->
 
   ###
   function ensureuserFeeds (Array feeds) -> void()
   feeds = [feed]
   feed = {title, description}
   ###
-  ensureUserFeeds: (feeds) ->
+  assureUserFeeds: (feeds) ->
     JAccount  = require './models/account'
     JFeed     = require './models/feed'
 
