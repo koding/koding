@@ -6,7 +6,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # DEV database
-mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
