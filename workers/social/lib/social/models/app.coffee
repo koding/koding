@@ -20,7 +20,7 @@ module.exports = class JApp extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/likeable'
   #
-  {Inflector,JsPath,secure,daisy,ObjectId} = require 'bongo'
+  {Inflector,JsPath,secure,daisy,ObjectId,ObjectRef} = require 'bongo'
   {Relationship} = jraphical
 
   @share()
@@ -328,12 +328,12 @@ module.exports = class JApp extends jraphical.Module
     if delegate.can 'delete', this
       @remove callback
 
-  review: secure (client, review, callback)->
+  review: secure (client, reviewData, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
-      review = new JReview body: review
+      review = new JReview body: reviewData
       exempt = delegate.checkFlag('exempt')
       if exempt
         review.isLowQuality = yes
