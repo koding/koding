@@ -1,45 +1,120 @@
 package main
 
 import (
+	"exp/inotify"
 	"fmt"
+	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
-	"math/rand"
+	"koding/tools/utils"
 	"os"
-	"time"
+	"path"
+	"strings"
 )
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-	log.Facility = fmt.Sprintf("os kite %d", os.Getpid())
-
-	if os.Getuid() != 0 {
-		panic("Must be run as root.")
-	}
-}
-
 func main() {
-	kite.Start("amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com", "os", func(user, method string, args interface{}) interface{} {
+	utils.DefaultStartup("os kite", true)
+
+	kite.Run("os", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
 		switch method {
 		case "spawn":
-			command := make([]string, 1+len(args.([]string)))
-			command[0] = "/bin/lve_exec"
-			copy(command[1:], args.([]string))
-			return run(args.([]string), user)
+			array, ok := args.([]interface{})
+			if !ok {
+				return nil, &kite.ArgumentError{"array of strings"}
+			}
+			command := make([]string, len(array))
+			for i, entry := range array {
+				command[i], ok = entry.(string)
+				if !ok {
+					return nil, &kite.ArgumentError{"array of strings"}
+				}
+			}
+			return run(command, session)
+
 		case "exec":
-			return run([]string{"/bin/lve_exec", "/bin/bash", "-c", args.(string)}, user)
-		default:
-			panic(fmt.Sprintf("Unknown method: %v.", method))
+			line, ok := args.(string)
+			if !ok {
+				return nil, &kite.ArgumentError{"string"}
+			}
+			return run([]string{"/bin/bash", "-c", line}, session)
+
+		case "watch":
+			argMap, ok1 := args.(map[string]interface{})
+			relPath, ok2 := argMap["path"].(string)
+			onChange, ok3 := argMap["onChange"].(dnode.Callback)
+			if !ok1 || !ok2 || !ok3 {
+				return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
+			}
+
+			absPath := path.Clean(path.Join(session.Home, relPath))
+			if !path.IsAbs(absPath) || !strings.HasPrefix(absPath, session.Home) {
+				return nil, fmt.Errorf("Can only watch inside of home directory.")
+			}
+
+			watcher, err := inotify.NewWatcher()
+			if err != nil {
+				return nil, err
+			}
+			session.CloseOnDisconnect = append(session.CloseOnDisconnect, watcher)
+			watcher.AddWatch(absPath, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY)
+			go func() {
+				for ev := range watcher.Event {
+					if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY)) != 0 {
+						info, err := os.Stat(ev.Name)
+						if err != nil {
+							log.Warn("Watcher error", err)
+						} else if (ev.Mask & inotify.IN_CREATE) != 0 {
+							onChange(map[string]interface{}{"event": "create", "file": makeFileEntry(info)})
+						} else {
+							onChange(map[string]interface{}{"event": "modify", "file": makeFileEntry(info)})
+						}
+					} else if (ev.Mask & inotify.IN_DELETE) != 0 {
+						onChange(map[string]interface{}{"event": "delete", "file": FileEntry{Name: path.Base(ev.Name)}})
+					} else {
+						log.Warn("Watcher error", ev.Mask)
+					}
+				}
+			}()
+			go func() {
+				for err := range watcher.Error {
+					log.Warn("Watcher error", err)
+				}
+			}()
+
+			dir, err := os.Open(absPath)
+			defer dir.Close()
+			if err != nil {
+				return nil, err
+			}
+
+			infos, err := dir.Readdir(0)
+			if err != nil {
+				return nil, err
+			}
+
+			entries := make([]FileEntry, len(infos))
+			for i, info := range infos {
+				entries[i] = makeFileEntry(info)
+			}
+
+			return map[string]interface{}{"files": entries, "stopWatching": func() { watcher.Close() }}, nil
 		}
-		return nil
+
+		return nil, &kite.UnknownMethodError{method}
 	})
 }
 
-func run(command []string, user string) string {
-	cmd := kite.CreateCommand(command, user, "/Users/")
+type FileEntry struct {
+	Name  string `json:"name"`
+	IsDir bool   `json:"isDir"`
+}
+
+func makeFileEntry(info os.FileInfo) FileEntry {
+	return FileEntry{Name: info.Name(), IsDir: info.IsDir()}
+}
+
+func run(command []string, session *kite.Session) (string, error) {
+	cmd := session.CreateCommand(command)
 	output, err := cmd.CombinedOutput()
-	if err != nil {
-		panic(err)
-	}
-	return string(output)
+	return string(output), err
 }

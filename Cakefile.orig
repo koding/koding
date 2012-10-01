@@ -103,6 +103,7 @@ clientFileMiddleware  = (options, code, callback)->
 
 normalizeConfigPath =(path)->
   path ?= './config/dev'
+  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
@@ -118,7 +119,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = expandConfigFile configFile
+  configFile = normalizeConfigPath expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -155,8 +156,8 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient configFile
+  # configFile = normalizeConfigPath expandConfigFile options.configFile
+  buildClient options.configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -255,10 +256,15 @@ run =(options)->
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
+<<<<<<< HEAD
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
     
+=======
+    log     : false
+
+>>>>>>> e5e243662be2cf7b770ed325f6adb2f9d5060fbf
   processes.run
     name    : 'serverCake'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"

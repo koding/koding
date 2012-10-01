@@ -14,6 +14,16 @@ rabbitVhost =\
   catch e then "/"
 
 module.exports = deepFreeze
+<<<<<<< HEAD
+  projectRoot: nodePath.join __dirname, '..'
+  version   : version
+  webPort   : 3000
+  mongo     : mongo
+  runBroker : no
+  configureBroker : no
+  buildClient : no
+  social    :
+=======
   projectRoot   : projectRoot
   version       : version
   webPort       : 3000
@@ -22,6 +32,7 @@ module.exports = deepFreeze
   configureBroker: no
   buildClient   : yes
   social        :
+>>>>>>> e5e243662be2cf7b770ed325f6adb2f9d5060fbf
     numberOfWorkers: 1
     watch       : yes
   client        :
@@ -45,8 +56,7 @@ module.exports = deepFreeze
         auth    : 'http://localhost:3000/auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
-      # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-apps.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
