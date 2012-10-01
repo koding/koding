@@ -38,7 +38,7 @@ koding = new Bongo {
 }
 
 kiteBroker =\
-  if kites.vhost?
+  if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
   else
     koding.mq
@@ -64,9 +64,6 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        # koding.mq.on privName, 'disconnected', ->
-        #   console.log 'disconnected', arguments
-
         res.send privName 
       else unless session?
         authenticationFailed(res)
@@ -89,7 +86,7 @@ app.get '/auth', (req, res)->
         bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
           bindKiteQueue "disconnected"
           kiteBroker.emit(channel, 'join', {user: username, queue: privName})
-          kiteBroker.connection.on 'error', -> # noop
+          kiteBroker.connection.on 'error', console.log
           kiteBroker.createQueue '', (dcQueue)->
             dcQueue.bind exchangeName, 'disconnected'
             dcQueue.subscribe ->

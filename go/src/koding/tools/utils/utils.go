@@ -1,10 +1,26 @@
-package kite
+package utils
 
 import (
+	"fmt"
 	"github.com/streadway/amqp"
+	"koding/tools/log"
+	"math/rand"
+	"os"
+	"runtime"
+	"time"
 )
 
-func createConn(uri string) *amqp.Connection {
+func DefaultStartup(facility string, needRoot bool) {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	rand.Seed(time.Now().UnixNano())
+	log.Facility = fmt.Sprintf("%s %d", facility, os.Getpid())
+
+	if needRoot && os.Getuid() != 0 {
+		panic("Must be run as root.")
+	}
+}
+
+func CreateAmqpConnection(uri string) *amqp.Connection {
 	conn, err := amqp.Dial(uri)
 	if err != nil {
 		panic(err)
@@ -12,7 +28,7 @@ func createConn(uri string) *amqp.Connection {
 	return conn
 }
 
-func createChannel(conn *amqp.Connection) *amqp.Channel {
+func CreateAmqpChannel(conn *amqp.Connection) *amqp.Channel {
 	channel, err := conn.Channel()
 	if err != nil {
 		panic(err)
@@ -20,7 +36,7 @@ func createChannel(conn *amqp.Connection) *amqp.Channel {
 	return channel
 }
 
-func declareBindConsumeQueue(channel *amqp.Channel, queue, key, exchange string, autodelete bool) <-chan amqp.Delivery {
+func DeclareBindConsumeAmqpQueue(channel *amqp.Channel, queue, key, exchange string, autodelete bool) <-chan amqp.Delivery {
 	err := channel.ExchangeDeclare(exchange, "topic", true, true, false, false, nil)
 	if err != nil {
 		panic(err)

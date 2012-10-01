@@ -130,8 +130,31 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
-# setTimeout ->
-#   koding.models.JGuest._resetAllGuests()
-# , 8e3
+# setInterval ->
+#   {Relationship} = require 'jraphical'
+#   {ObjectId} = require 'bongo'
+#   {extend} = require 'underscore'
+#   test = {
+#     targetId: ObjectId('4eea4fd93e25516404000004'),
+#     targetName: 'JAccount',
+#     sourceId: ObjectId('5007591678b8468137000002'),
+#     sourceName: 'JAccount',
+#     as: 'follower'
+#   }
+#   rel = new Relationship(test) #.save console.log
+  
+#   softPrune = rel.prune()
+#   hardPrune = rel.prune(yes)
+
+#   require('traverse')([softPrune, hardPrune]).forEach (node)->
+#     console.log node.constructor if /Id$/.test @path
+#     console.log ''+node if /Id$/.test @path
+#     return
+#   console.log 'HARD', hardPrune
+
+#   # Relationship.getCollection().insert(softPrune, (safe:yes), console.log.bind(console, 'prune()'))
+#   # Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
+#   # # koding.models.JGuest._resetAllGuests()
+# , 2e3
 
 console.log 'Koding Social Worker has started.'
