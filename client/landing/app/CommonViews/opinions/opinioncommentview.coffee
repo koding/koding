@@ -14,7 +14,7 @@ class OpinionCommentView extends KDView
   createSubViews:(data)->
     @commentList = new KDListView
       type          : "comments"
-      subItemClass  : OpinionCommentListItemView
+      itemClass  : OpinionCommentListItemView
       delegate      : @
     , data
 

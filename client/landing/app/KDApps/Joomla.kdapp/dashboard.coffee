@@ -124,7 +124,7 @@ class DashboardPane extends Pane
       lastToFirst     : yes
       viewOptions     :
         type          : "wp-blog"
-        subItemClass  : InstalledAppListItem
+        itemClass  : InstalledAppListItem
 
     @listWrapper = @listController.getView()
 

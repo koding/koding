@@ -40,7 +40,7 @@ class SkillTagGroup extends TagGroup
 
     controller = new KDListViewController
       view            : new KDListView
-        subItemClass  : TagCloudListItemView
+        itemClass  : TagCloudListItemView
         cssClass      : "skilltag-cloud"
 
     @listViewWrapper = controller.getView()

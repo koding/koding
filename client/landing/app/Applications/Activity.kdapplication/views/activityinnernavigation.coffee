@@ -3,14 +3,14 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     feedController = @setListController
       type : "feed"
-      subItemClass : ListGroupShowMeItem
+      itemClass : ListGroupShowMeItem
     , @feedMenuData
     @addSubView feedController.getView()
     feedController.selectItem feedController.getItemsOrdered()[0]
 
     filterController = @setListController
       type : "showme"
-      subItemClass : ListGroupShowMeItem
+      itemClass : ListGroupShowMeItem
     , @showMenuData
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]

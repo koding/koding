@@ -201,7 +201,7 @@ class AvatarPopupNotifications extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass : PopupNotificationListItem
+      itemClass : PopupNotificationListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController
@@ -248,7 +248,7 @@ class AvatarPopupMessages extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass  : PopupMessageListItem
+      itemClass  : PopupMessageListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController
