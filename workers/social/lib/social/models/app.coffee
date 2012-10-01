@@ -11,8 +11,9 @@ module.exports = class JApp extends jraphical.Module
 
   CActivity = require './activity'
   JAccount = require './account'
-  #JReview = require './messages/review'
+  JReview = require './messages/review'
   JTag = require './tag'
+
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
   @trait __dirname, '../traits/followable'
@@ -20,6 +21,7 @@ module.exports = class JApp extends jraphical.Module
   @trait __dirname, '../traits/likeable'
   #
   {Inflector,JsPath,secure,daisy,ObjectId} = require 'bongo'
+  {Relationship} = jraphical
 
   @share()
 
@@ -81,9 +83,9 @@ module.exports = class JApp extends jraphical.Module
       creator       :
         targetType  : "JAccount"
         as          : "related"
-      # review        :
-      #   targetType  : "JReview"
-      #   as          : "review"
+      review        :
+        targetType  : "JReview"
+        as          : "review"
       activity      :
         targetType  : "CActivity"
         as          : 'activity'
