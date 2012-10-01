@@ -840,7 +840,9 @@ button.activity-status-context
   border                    1px solid #bbb
   bg                        color,rgba(255,255,255,.95)
   shadow                    0 7px 15px rgba(0,0,0,.17)
+  min-width                 150px
   // border                    1px solid rgb(187,187,187)
+
   .kdlistview-buttonmenu
     rounded                 3px 0 3px 3px
     border                  none
@@ -860,14 +862,27 @@ button.activity-status-context
   .kdlistitemview
     margin                  0 !important
     padding                 0 10px !important
-    > div
+    border-top              1px solid transparent
+    border-bottom           1px solid transparent
+    size                    auto,auto
+    borderBox()
+    > a
+      font-size             12px
       line-height           26px
+      color                 #444
+      noTextDeco()
+    &.selected
+      border-width          1px 0
+      bg                    color, finderSelectedColor1
+      > a
+        text-shadow         0 -1px 0 rgba(0,0,0,0.22)
+        color               white
+        text-shadow         none
+      &:hover
+        bg                  color, finderSelectedColor1
 
   .kdlistitemview.disabled
     opacity                 .5
-    &:hover
-      border-top            1px solid #666
-      gradient              #777, #aaa
 
   .update .icon
     bg                      position,-140px -320px

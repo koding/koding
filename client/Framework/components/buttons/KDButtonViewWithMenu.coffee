@@ -42,6 +42,8 @@ class KDButtonViewWithMenu extends KDButtonView
       itemChildOptions  : o.itemChildOptions
     , if "function" is typeof o.menu then o.menu() else o.menu
 
+    @buttonMenu.on "ContextMenuItemReceivedClick", => @buttonMenu.destroy()
+
   # overriden methods because of domElement change
   setTitle:(title)->
     @$button.append title

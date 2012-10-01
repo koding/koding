@@ -46,6 +46,7 @@ class JContextMenuTreeViewController extends JTreeViewController
 
     o = options
     o.view              or= new KDView cssClass : "context-list-wrapper"
+    o.type              or= "contextmenu"
     o.treeItemClass     or= JContextMenuItem
     o.listViewClass     or= JContextMenuTreeView
     o.addListsCollapsed or= yes
