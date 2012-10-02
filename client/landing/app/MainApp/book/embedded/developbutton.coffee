@@ -8,7 +8,7 @@ class BookDevelopButton extends KDButtonViewWithMenu
       iconOnly      : yes
       # iconClass     : "cog"
       type          : "contextmenu"
-      subItemClass  : AceSettingsView
+      itemClass  : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : [AceView::getAdvancedSettingsMenuItems()]
 

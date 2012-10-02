@@ -259,18 +259,18 @@ app.activity.styl
         &:hover
           gradient      #eee, #ddd
           rounded       2px
-      .chevron-arrow
+      .chevron
         display         none
-      .chevron-arrow-separator
+      .chevron-separator
         display         none
 
-.kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+.kdview.jcontextmenu.kdbuttonmenu.activity-settings-context
   border-color          rgba(0,0,0,.2)
-  .chevron-arrow-ghost-wrapper
+  .chevron-ghost-wrapper
     border-color        rgba(0,0,0,.2)
     rounded             2px 2px 0 0
     width               19px
-    span.chevron-arrow-ghost
+    span.chevron-ghost
       margin            0 auto
       bg                position, -80px -261px
   .kdcontextmenutreeview
@@ -808,12 +808,12 @@ button.activity-status-context
   //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
   //     gradient          rgb(255,255,255),rgb(242,242,242)
 
-  .chevron-arrow-separator
+  .chevron-separator
     display           none
-  .chevron-arrow
+  .chevron
     top               50%
-    margin-top        -9px
-    margin-right      5px
+    margin-top        -11px
+    margin-right      3px
     opacity           .6
   .title
     font-size         11px
@@ -836,82 +836,83 @@ button.activity-status-context
   z-index                   4
   size                      auto!important,35px
 
-.activity-status-context
-  .chevron-arrow-ghost-wrapper
+.kdbuttonmenu.activity-status-context
+  border                    1px solid #bbb
+  bg                        color,rgba(255,255,255,.95)
+  min-width                 150px
+  // border                    1px solid rgb(187,187,187)
+
+  .kdlistview-buttonmenu
+    rounded                 3px 0 3px 3px
+    border                  none
+
+  .chevron-ghost-wrapper
     width                   30px
     rounded                 0 3px 0 0
-    .chevron-arrow-ghost
+    .chevron-ghost
       margin                6px 0 0 6px
 
   .icon
     margin-right            7px
+    size                    20px,20px
     sprite()
-    size(20px,20px)
     blockMid()
-  .context-menu-item
+
+  .kdlistitemview
     margin                  0 !important
     padding                 0 10px !important
-  .context-menu-item a
-    blockMid()
-
-  .update
-    .icon
-      bg(position,-140px -320px)
-    &:hover
-      .icon
-        bg(position,-160px -320px)
-  .discussion
-    .icon
-      bg(position,-140px -340px)
-    &:hover
-      .icon
-        bg(position,-160px -340px)
-  .question
-    .icon
-      bg(position,-140px -360px)
-    &:hover
-      .icon
-        bg(position,-160px -360px)
-  .tutorial
-    .icon
-      bg(position,-140px -380px)
-    &:hover
-      .icon
-        bg(position,-160px -380px)
-  .link
-    .icon
-      bg(position,-140px -400px)
-    &:hover
-      .icon
-        bg(position,-160px -400px)
-  .codesnip
-    .icon
-      bg(position,-140px -420px)
-    &:hover
-      .icon
-        bg(position,-160px -420px)
-  .codeshare
-    .icon
-      bg(position,-140px -420px)
-    &:hover
-      .icon
-        bg(position,-160px -420px)
-
-  // .hoverhook /* hover hook for context menu */
-  //   cursor            pointer !important
-  //   margin            0
-  //   padding           0
-  //   &:hover
-  //     cursor            pointer !important
-
-.kdcontextmenu
-  .kdcontextmenutreeview
-    .kdview.kdtreeitemview-default.disabledForBeta
-    .kdview.kdtreeitemview-default.disabled
-      opacity                         .5
+    border-top              1px solid transparent
+    border-bottom           1px solid transparent
+    size                    auto,auto
+    borderBox()
+    > a
+      font-size             12px
+      line-height           26px
+      color                 #444
+      noTextDeco()
+    &.selected
+      border-width          1px 0
+      bg                    color, finderSelectedColor1
+      > a
+        text-shadow         0 -1px 0 rgba(0,0,0,0.22)
+        color               white
+        text-shadow         none
       &:hover
-        border-top                    1px solid #666
-        gradient(#777,#aaa)
+        bg                  color, finderSelectedColor1
+
+  .kdlistitemview.disabled
+    opacity                 .5
+
+  .update .icon
+    bg                      position,-140px -320px
+  .discussion .icon
+    bg                      position,-140px -340px
+  .question .icon
+    bg                      position,-140px -360px
+  .tutorial .icon
+    bg                      position,-140px -380px
+  .link .icon
+    bg                      position,-140px -400px
+  .codesnip .icon
+    bg                      position,-140px -420px
+  .codeshare .icon
+    bg                      position,-140px -420px
+
+  .selected
+    .update .icon
+      bg                    position,-160px -320px
+    .discussion .icon
+      bg                    position,-160px -340px
+    .question .icon
+      bg                    position,-160px -360px
+    .tutorial .icon
+      bg                    position,-160px -380px
+    .link .icon
+      bg                    position,-160px -400px
+    .codesnip .icon
+      bg                    position,-160px -420px
+    .codeshare .icon
+      bg                    position,-160px -420px
 
 .kdview.activity-item.discussion
   padding                             0px

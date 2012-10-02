@@ -98,7 +98,7 @@ class ContentDisplayControllerMember extends KDViewController
   addActivityView:(account)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : ActivityListItemView
+      itemClass          : ActivityListItemView
       listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       limitPerPage          : 8

@@ -160,9 +160,9 @@ class MainTabView extends KDTabView
       @totalSize    = 0
       @rearrangeVisibleHandlesArray()
       for handle in @visibleHandles
-        @totalSize += handle.$().outerWidth()
+        @totalSize += handle.$().outerWidth(no)
 
-    plusHandleWidth = plusHandle.$().outerWidth()
+    plusHandleWidth = plusHandle.$().outerWidth(no)
     containerSize -= plusHandleWidth
 
     handleSize = if containerSize < @totalSize

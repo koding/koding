@@ -10,7 +10,7 @@ class MembersMainView extends KDView
 
 class MembersInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
-    filterController = @setListController subItemClass : MembersListGroupFilterItem,@filterMenuData
+    filterController = @setListController itemClass : MembersListGroupFilterItem,@filterMenuData
     @addSubView filterListWrapper = filterController.getView()
 
     filterItemToBeSelected = filterController.getItemsOrdered()[0]

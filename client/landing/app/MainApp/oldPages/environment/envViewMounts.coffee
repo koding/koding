@@ -3,13 +3,13 @@ class EnvironmentViewMounts extends KDView
     a = new Date()
     "#{a.getHours()}:#{a.getMinutes()}:#{a.getSeconds()}"
   __getNumber = __utils.getRandomNumber
-  
+
   viewAppended:->
     @setHeight "auto"
     @setClass "mounts-stats"
 
     @addSubView subHeader = new KDHeaderView type:"small",title:"My Mounts"
-    @addSubView list = new EnvironmentMountsList subItemClass : EnvironmentMountsListItem,cssClass:"process-list",(items : @usageData)
+    @addSubView list = new EnvironmentMountsList itemClass : EnvironmentMountsListItem,cssClass:"process-list",(items : @usageData)
 
   usageData :[
       { type : "ftp", host : "blahblah.com",     status: "active" }
@@ -24,7 +24,7 @@ class EnvironmentMountsList extends KDListView
 class EnvironmentMountsListItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview kdlistview #{cssClass}'></li>"
-  
+
   partial:(data)->
     """
       <div class='status-#{data.status}'>
