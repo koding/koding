@@ -9,5 +9,6 @@ KD.remote = new Bongo
       sockURL       : broker.sockJS
       authEndPoint  : broker.auth
       vhost         : broker.vhost
+      autoReconnect : yes
     }
     new Broker broker.apiKey, brokerOptions
