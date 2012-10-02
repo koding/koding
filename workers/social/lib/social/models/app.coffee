@@ -46,11 +46,11 @@ module.exports = class JApp extends jraphical.Module
     schema          :
       identifier    :
         type        : String
-        set         : (value)-> value.trim()
+        set         : (value)-> value?.trim()
         required    : yes
       title         :
         type        : String
-        set         : (value)-> value.trim()
+        set         : (value)-> value?.trim()
         required    : yes
       body          : String
       attachments   : [JAppScriptAttachment]
