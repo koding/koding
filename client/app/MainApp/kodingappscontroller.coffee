@@ -91,6 +91,7 @@ class KodingAppsController extends KDController
     # require ["coffee-script"], (coffee)=>
     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
       if err
+        @putAppsToAppStorage {}
         warn err
         callback err
       else
@@ -162,8 +163,8 @@ class KodingAppsController extends KDController
     @constructor.manifests = {}
     KDApps = {}
     @fetchAppsFromFs (err, apps)=>
+      @emit "AppsRefreshed", apps
       if not err
-        @emit "AppsRefreshed", apps
         callback? err, apps
       else
         callback err
