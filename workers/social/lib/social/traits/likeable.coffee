@@ -1,3 +1,6 @@
+JAccount  = require '../models/account'
+CActivity = require '../models/activity'
+
 module.exports = class Likeable
 
   {ObjectRef,daisy,secure} = require 'bongo'
@@ -17,7 +20,6 @@ module.exports = class Likeable
         callback err, no
 
   like: secure ({connection}, callback)->
-    JAccount  = require '../models/account'
 
     {delegate} = connection
     {constructor} = @
@@ -41,7 +43,6 @@ module.exports = class Likeable
                 delegate.update ($inc: 'counts.likes': 1), (err)->
                   console.log err if err
                 @fetchActivityId? (err, id)->
-                  CActivity = require '../models/activity'
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
                   }, ->
