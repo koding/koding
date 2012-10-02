@@ -21,7 +21,7 @@ class Members12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : MembersListItemView
+      itemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
@@ -67,7 +67,7 @@ class Members12345 extends AppController
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : MembersListItemView
+      itemClass          : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       # singleDataSource      : (selector, options, callback)=>
@@ -163,14 +163,14 @@ class Members12345 extends AppController
     KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
   fetchSomeMembers:(options = {}, callback)->
-    
+
     options.limit    or= 6
     options.skip     or= 0
     options.sort     or= "meta.modifiedAt" : -1
     selector           = options.selector or {}
 
     delete options.selector if options.selector
-    
+
     KD.remote.api.JAccount.byRelevance selector, options, callback
 
 

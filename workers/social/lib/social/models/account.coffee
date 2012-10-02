@@ -13,13 +13,13 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/flaggable'
 
   JAppStorage = require './appstorage'
-  
+
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash} = require 'bongo'
   {Relationship} = jraphical
   @share()
-  Experience = 
+  Experience =
     company           : String
     website           : String
     position          : String
@@ -87,8 +87,8 @@ module.exports = class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
-          
-        lastName            : 
+
+        lastName            :
           type              : String
           default           : ''
         description         : String
@@ -122,11 +122,11 @@ module.exports = class JAccount extends jraphical.Module
       followee      :
         as          : 'followee'
         targetType  : JAccount
-      
+
       activity      :
         as          : 'activity'
         targetType  : "CActivity"
-      
+
       privateMessage:
         as          : ['recipient','sender']
         targetType  : 'JPrivateMessage'
@@ -134,19 +134,19 @@ module.exports = class JAccount extends jraphical.Module
       appStorage    :
         as          : 'appStorage'
         targetType  : "JAppStorage"
-      
+
       limit:
         as          : 'invite'
         targetType  : "JLimit"
-      
+
       tag:
         as          : 'skill'
         targetType  : "JTag"
-      
+
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
-        
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]
+
       feed         :
         as          : "owner"
         targetType  : "JFeed"
@@ -178,8 +178,9 @@ module.exports = class JAccount extends jraphical.Module
         for doc in docs
           results.push doc.profile.fullname
         callback err, results
-  
+
   setEmailPreferences: secure (client, prefs, callback)->
+    JUser = require './user'
     JUser.fetchUser client, (err, user)->
       if err
         callback err
@@ -187,9 +188,9 @@ module.exports = class JAccount extends jraphical.Module
         Object.keys(prefs).forEach (granularity)->
           prefs[granularity] = if prefs[granularity] then 'instant' else 'never'
         user.update {$set: emailFrequency: prefs}, callback
-  
+
   glanceMessages: secure (client, callback)->
-  
+
   glanceActivities: secure (client, callback)->
     @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
       if err
@@ -198,7 +199,7 @@ module.exports = class JAccount extends jraphical.Module
         queue = activities.map (activity)->
           -> activity.mark client, 'glanced', -> queue.fin()
         dash queue, callback
-  
+
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
@@ -215,7 +216,7 @@ module.exports = class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, nonces
-  
+
   fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
@@ -237,7 +238,7 @@ module.exports = class JAccount extends jraphical.Module
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
-  
+
   unflagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
     JAccount.taint @getId()
@@ -250,22 +251,22 @@ module.exports = class JAccount extends jraphical.Module
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
-  
+
   checkFlag:(flag)->
     flags = @getAt('globalFlags')
     flags and (flag in flags)
-  
+
   isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
-  
+
   @getFlagRole =-> 'owner'
-  
+
   can:(action, target)->
     switch action
       when 'delete','flag','reset guests'
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-  
+
   fetchRole: secure ({connection}, callback)->
-    
+
     if isDummyAdmin connection.delegate.profile.nickname
       callback null, "super-admin"
     else
@@ -288,22 +289,22 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchPrivateChannel:(callback)->
     require('bongo').fetchChannel @getPrivateChannelName(), callback
-  
+
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
   addTags: secure (client, tags, callback)->
     Taggable::addTags.call @, client, tags, (err)->
       if err then callback err
       else callback null
-  
+
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
         register = new Register # a register per message...
-        jraphical.Relationship.all 
-          targetName  : 'JPrivateMessage', 
-          targetId    : message.getId(), 
-          sourceId    : 
+        jraphical.Relationship.all
+          targetName  : 'JPrivateMessage',
+          targetId    : message.getId(),
+          sourceId    :
             $ne       : delegate.getId()
         , (err, rels)->
           if err
@@ -314,14 +315,14 @@ module.exports = class JAccount extends jraphical.Module
             fin()
       , callback
       fetchParticipants(message) for message in messages when message?
-    
+
     secure ({connection}, options, callback)->
       [callback, options] = [options, callback] unless callback
       unless @equals connection.delegate
         callback new KodingError 'Access denied.'
       else
         options or= {}
-        selector = 
+        selector =
           if options.as
             as: options.as
           else
@@ -338,23 +339,23 @@ module.exports = class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, messages
-  
+
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
-  
+
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
       callback new KodingError 'Access denied.'
     else
       @fetchActivities selector, options, callback
-  
+
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
-  
+
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
@@ -362,14 +363,14 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError "access denied for guest."
 
-  oldFetchRepos = @::fetchRepos  
+  oldFetchRepos = @::fetchRepos
   fetchRepos: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchRepos.call @,callback
     else
-      callback new KodingError "access denied for guest."    
+      callback new KodingError "access denied for guest."
 
-  oldFetchDatabases = @::fetchDatabases  
+  oldFetchDatabases = @::fetchDatabases
   fetchDatabases: secure (client,callback)->
     if @equals client.connection.delegate
       oldFetchDatabases.call @,callback
@@ -377,16 +378,16 @@ module.exports = class JAccount extends jraphical.Module
       callback new KodingError "access denied for guest."
 
   setClientId:(@clientId)->
-  
+
   getFullName:->
     {profile} = @data
     profile.firstName+' '+profile.lastName
-  
+
   fetchStorage: secure (client, options, callback)->
     account = @
     unless @equals client.connection.delegate
       return callback "Attempt to access unauthorized application storage"
-    
+
     {appId, version} = options
     @fetchAppStorage {}, {targetOptions:query:{appId}}, (error, storage)->
       if error then callback error
@@ -401,26 +402,26 @@ module.exports = class JAccount extends jraphical.Module
                 callback err, newStorage
         else
           callback error, storage
-  
+
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: yes}, console.log
         item.emit 'ContentMarkedAsLowQuality', null
-  
+
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: no}, console.log
         item.emit 'ContentUnmarkedAsLowQuality', null
-  
+
   @taintedAccounts = {}
   @taint =(id)->
     @taintedAccounts[id] = yes
-  
+
   @untaint =(id)->
     delete @taintedAccounts[id]
-  
+
   @isTainted =(id)->
     isTainted = @taintedAccounts[id]
     isTainted

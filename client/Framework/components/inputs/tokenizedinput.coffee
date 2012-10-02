@@ -22,8 +22,8 @@ class KDTokenizedInput extends JView
 
     @input.unsetClass 'kdinput'
 
-    _oldMatches       = []
     @registeredTokens = {}
+    @_oldMatches      = []
 
     for rule of o.match
       @registeredTokens[rule] = []
@@ -36,11 +36,13 @@ class KDTokenizedInput extends JView
     # @layer.setClass "hide-tokens"
 
   keyUpOnInput:(event)->
+    {_oldMatches} = @
     matchRules = @getOptions().match
     val = @input.getValue()
     @decorateLayer()
     # @layer.unsetClass "hide-tokens"
     {input} = @
+    log _oldMatches
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())
@@ -58,11 +60,20 @@ class KDTokenizedInput extends JView
 
   showMenu:(options, data)->
 
-    {token,rule} = options
+    {token, rule} = options
     @menu.destroy() if @menu
     o =
-      x : @getX()
-      y : @input.getY() + @input.getHeight()
+      x                 : @getX()
+      y                 : @input.getY() + @input.getHeight()
+      itemChildClass    : options.itemChildClass
+      itemChildOptions  : options.itemChildOptions
+      treeItemClass     : options.treeItemClass
+      listViewClass     : options.listViewClass
+      addListsCollapsed : options.addListsCollapsed
+      putDepthInfo      : options.putDepthInfo
+
+    # log o
+
     @input.setBlur()
     @menu = new KDTokenizedMenu o, data
     @menu.on "ContextMenuItemReceivedClick", (menuItem)=>

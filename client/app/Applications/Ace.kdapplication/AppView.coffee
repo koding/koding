@@ -18,8 +18,9 @@ class AceView extends JView
     @saveButton = new KDButtonViewWithMenu
       title         : "Save"
       style         : "editor-button save-menu"
+      type          : "contextmenu"
       delegate      : @
-      menu          : [@getSaveMenu()]
+      menu          : @getSaveMenu.bind @
       callback      : ()=>
         @ace.requestSave()
 
@@ -36,10 +37,10 @@ class AceView extends JView
       iconOnly      : yes
       iconClass     : "cog"
       type          : "contextmenu"
-      delegate      : @ace
-      subItemClass  : AceSettingsView
+      delegate      : @
+      itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
-      menu          : [@getAdvancedSettingsMenuItems()]
+      menu          : @getAdvancedSettingsMenuItems.bind @
 
 
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
@@ -70,7 +71,7 @@ class AceView extends JView
 
   setViewListeners:->
 
-    @advancedSettings.on "ace.changeSetting", (setting, value)=>
+    @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
 
     @advancedSettings.emit "ace.settingsView.setDefaults", @ace
@@ -116,19 +117,18 @@ class AceView extends JView
 
   getAdvancedSettingsMenuItems:->
 
-    items : [
-      { type : 'customView', view : new AceSettingsView (delegate : @)}
-    ]
+    settings      :
+      type        : 'customView'
+      view        : new AceSettingsView
+        delegate  : @ace
 
   getSaveMenu:->
 
-    items : [
-      title : "Save as..."
-      id    : 13
-      parentId : null
-      callback : =>
+    "Save as..." :
+      id         : 13
+      parentId   : null
+      callback   : =>
         @openSaveDialog()
-    ]
 
   _windowDidResize:->
 

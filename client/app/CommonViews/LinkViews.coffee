@@ -73,7 +73,7 @@ class FollowedModalView extends KDModalView
   putList: (participants) ->
     controller = new KDListViewController
       view              : new KDListView
-        subItemClass    : listItemMap()[@type]
+        itemClass    : listItemMap()[@type]
         cssClass        : "modal-topic-list"
     , items             : participants
 

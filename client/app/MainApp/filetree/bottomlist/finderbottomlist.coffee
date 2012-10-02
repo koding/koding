@@ -2,7 +2,7 @@ class FinderBottomControls extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : FinderBottomControlsListItem
+      itemClass : FinderBottomControlsListItem
     ,options
     super options,data
 

@@ -4,7 +4,7 @@ class LinkGroup extends KDCustomHTMLView
 
     options.tagName         = 'div'
     options.cssClass        = 'link-group'
-    options.subItemClass  or= ProfileLinkView
+    options.itemClass  or= ProfileLinkView
     options.itemsToShow   or= 3
     options.totalCount    or= data?.length or options.group?.length or 0
     options.hasMore         = options.totalCount > options.itemsToShow
@@ -31,13 +31,10 @@ class LinkGroup extends KDCustomHTMLView
     else
       callback group
 
-  itemClass:(options, data)->
-    new (@getOptions().subItemClass) options, data
-
   createParticipantSubviews:->
     participants = @getData()
     for participant, index in participants
-      @["participant#{index}"] = @itemClass {}, participant
+      @["participant#{index}"] = new (@getOptions().itemClass) {}, participant
     @setTemplate @pistachio()
     @template.update()
 

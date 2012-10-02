@@ -44,6 +44,8 @@ module.exports = class JFeed extends jraphical.Module
     saveFeedToAccount feed, account, callback
 
   @assureFeed = (account, data, callback) ->
+    JAccount = require './account'
+    return unless account instanceof JAccount
     {title, description} = data
     selectorOrInitializer =
       title: title

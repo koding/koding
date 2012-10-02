@@ -1,35 +1,34 @@
 nodePath = require 'path'
 # configuration
+cwd = process.cwd()
 
 module.exports =
   name              : "sharedhosting"
   pidPath           : "/var/run/node/SharedHosting.pid"
   logFile           : "/var/log/node/SharedHosting.log"
-  port              : 4566
-  pusher            :
-    appId           : 18240
-    key             : 'a19c8bf6d2cad6c7a006'
-    secret          : '51f7913fbb446767a9fb'
-  apiUri            : 'https://api.koding.com/1.0'
+  # port              : 4566
+  amqp              :
+    host            : 'web0.beta.system.aws.koding.com'
+    username        : 'test'
+    password        : 'test'
+    vhost           : '/'
+  # pusher            :
+  #   appId           : 22120
+  #   key             : 'a6f121a130a44c7f5325'
+  #   secret          : '9a2f248630abaf977547'
+  # requestHandler    :
+  #   isEnabled       : no
+  apiUri            : 'https://dev-api.koding.com/1.0'
   usersPath         : '/Users/'
   vhostDir          : 'Sites'
   suspendDir        : '/var/www/suspended_vhosts/'
-  defaultVhostFiles : nodePath.join process.cwd(),"defaultVhostFiles"
+  defaultVhostFiles : nodePath.join cwd,"defaultVhostFiles"
   freeUsersGroup    : 'freeusers'
   liteSpeedUser     : 'lsws'
-  defaultDomain     : 'koding.com' # We use this domain in createVHost method
+  defaultDomain     : 'koding.com'
   minAllowedUid     : 600 # minumum allowed UID for OS commands
   debugApi          : true
-  processBaseDir    : process.cwd()
-  cagefsctl         : "/usr/sbin/cagefsctl"
-  baseMountDir      : 'RemoteDrive'
-  ftpfs  :
-    curlftpfs       : '/usr/bin/curlftpfs'
-    opts            : "connect_timeout=15,direct_io,allow_other"
-  sshfs :
-    sshfscmd    : '/usr/bin/sshfs'
-    opts       : "ssh_command='ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no',password_stdin,intr,allow_other,direct_io"
-    optsWithKey : "ssh_command='ssh -o PubkeyAuthentication -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/koding.pem',intr,allow_other,direct_io"
+  processBaseDir    : cwd
   lsws              :
     baseDir            : '/Users'
     controllerPath     : '/opt/lsws/bin/lswsctrl'
@@ -48,4 +47,4 @@ module.exports =
     baseSharedDir : '/Shared'
     baseDir : '/Users'
     setfacl : '/usr/bin/setfacl'
-
+  
