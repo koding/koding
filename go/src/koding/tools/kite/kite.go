@@ -16,7 +16,7 @@ import (
 	"syscall"
 )
 
-func Run(name string, onRootMethod func(session *Session, method string, args interface{}) (interface{}, error)) {
+func Run(name string, onRootMethod func(session *Session, method string, args *dnode.Partial) (interface{}, error)) {
 	utils.RunStatusLogger()
 
 	sigtermChannel := make(chan os.Signal)
@@ -51,13 +51,25 @@ func Run(name string, onRootMethod func(session *Session, method string, args in
 
 					d := dnode.New()
 					defer d.Close()
-					d.OnRootMethod = func(method string, args []interface{}) {
+					d.OnRootMethod = func(method string, args *dnode.Partial) {
 						defer log.RecoverAndLog()
-						result, err := onRootMethod(session, method, args[0].(map[string]interface{})["withArgs"])
+
+						var partials []*dnode.Partial
+						err := args.Unmarshal(&partials)
 						if err != nil {
-							args[1].(dnode.Callback)(err.Error(), result)
+							panic(err)
+						}
+
+						var options map[string]*dnode.Partial
+						partials[0].Unmarshal(&options)
+						var callback dnode.Callback
+						partials[1].Unmarshal(&callback)
+
+						result, err := onRootMethod(session, method, options["withArgs"])
+						if err != nil {
+							callback(err.Error(), result)
 						} else if result != nil {
-							args[1].(dnode.Callback)(nil, result)
+							callback(nil, result)
 						}
 					}
 

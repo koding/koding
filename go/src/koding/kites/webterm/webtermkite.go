@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -8,6 +9,7 @@ import (
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"syscall"
@@ -22,6 +24,14 @@ type WebtermServer struct {
 }
 
 func main() {
+	o := make(map[string]interface{})
+	o["abc"] = 3
+	v := reflect.ValueOf(o)
+	k := reflect.ValueOf("abc")
+	mi := v.MapIndex(k)
+	fmt.Println(mi, mi.Kind(), mi.CanSet())
+	return
+
 	utils.Startup("webterm kite", true)
 
 	if config.Current.UseWebsockets {
@@ -29,10 +39,14 @@ func main() {
 		return
 	}
 
-	kite.Run("webterm", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
 		if method == "createServer" {
+			remote, err := args.Map()
+			if err != nil {
+				return nil, err
+			}
 			server := &WebtermServer{session: session}
-			server.remote = args.(map[string]interface{})
+			server.remote = remote
 			session.CloseOnDisconnect(server)
 			return server, nil
 		}
