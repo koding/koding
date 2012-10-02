@@ -87,8 +87,6 @@ class StartTabMainView extends JView
 
   _windowDidResize:->
 
-
-
   addApps:->
 
     for app in apps
