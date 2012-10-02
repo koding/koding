@@ -81,25 +81,25 @@ module.exports = class JApp extends jraphical.Module
 
     relationships   :
       creator       :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : "related"
       review        :
-        targetType  : "JReview"
+        targetType  : JReview
         as          : "review"
       activity      :
-        targetType  : "CActivity"
+        targetType  : CActivity
         as          : 'activity'
       follower      :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'follower'
       likedBy       :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'like'
       participant   :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : ['author','reviewer','user']
       tag           :
-        targetType  : "JTag"
+        targetType  : JTag
         as          : 'tag'
 
   @create = secure (client, data, callback)->
