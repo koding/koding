@@ -24,8 +24,8 @@ type Message struct {
 	Params  []string `json:"params"`
 }
 
-func NewConn(addr string, panicHandler func()) (*Conn, error) {
-	socket, err := net.Dial("tcp", addr)
+func NewConn(host string, panicHandler func()) (*Conn, error) {
+	socket, err := net.Dial("tcp", host)
 	if err != nil {
 		return nil, err
 	}
