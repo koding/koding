@@ -77,7 +77,7 @@ class KDAutoCompleteController extends KDViewController
     # log "#{data.length} items in auto complete"
     @dropdownPrefix = ""
     @dropdownListView = dropdownListView = new KDAutoCompleteListView {
-      subItemClass  : @getOptions().itemClass
+      itemClass  : @getOptions().itemClass
     },{
       items : data
     }

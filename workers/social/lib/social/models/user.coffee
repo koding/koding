@@ -4,7 +4,7 @@ Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
-  
+
   JAccount  = require './account'
   JSession  = require './session'
   JGuest    = require './guest'
@@ -49,9 +49,9 @@ module.exports = class JUser extends jraphical.Module
   createSalt = require 'hat'
 
   @share()
-  
+
   @trait __dirname, '../traits/flaggable'
-  
+
   @getFlagRole =-> 'owner'
 
   @set
@@ -115,7 +115,7 @@ module.exports = class JUser extends jraphical.Module
   #       callback new KodingError 'No visitor instance was found.'
   #     else
   #       constructor.one {username}, callback
-  
+
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require './registrationpreferences'
     JRegistrationPreferences.one {}, (err, prefs)->
@@ -193,9 +193,9 @@ module.exports = class JUser extends jraphical.Module
         user.fetchOwnAccount (err, account)->
           account.profile.hash = getHash user.email
           account.save (err)-> throw err if err
-  
-  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate 
-  
+
+  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate
+
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
     console.log 'CREDS', credentials
@@ -245,7 +245,7 @@ module.exports = class JUser extends jraphical.Module
       delete client.connection.delegate
       delete client.sessionToken
     JSession.cycleSession sessionToken, callback
-  
+
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences = require './registrationpreferences'
     JInvitation = require './invitation'
@@ -260,13 +260,13 @@ module.exports = class JUser extends jraphical.Module
           status: $in : ['active','sent']
         }, (err, invite)->
           # callback null, yes, invite
-          if err or !invite? 
+          if err or !invite?
             callback createKodingError 'Invalid invitation ID!'
-          else 
+          else
             callback null, yes, invite
       else
         callback createKodingError 'Invitation code is required!'
-  
+
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
       callback null
@@ -312,7 +312,7 @@ module.exports = class JUser extends jraphical.Module
               return callback createKodingError 'You have to agree to the TOS'
             else if not username? or not email?
               return callback createKodingError 'Username and email are required fields'
-            
+
             @verifyKodingenPassword {username, password, kodingenUser}, (err)->
               if err
                 return callback createKodingError 'Wrong password'
@@ -370,16 +370,15 @@ module.exports = class JUser extends jraphical.Module
                                     console.log replacementToken
                                     callback null, account, replacementToken
 
-  
-  @fetchUser = secure ({connection},callback)->
-    connection.remote.fetchClientId (clientId)->
-      JSession.one {clientId},(err,session)->
-        if err
-          callback err
-        else
-          {username} = session
-          JUser.one {username}, (err, user)->
-            callback null, user
+
+  @fetchUser = secure (client, callback)->
+    JSession.one {clientId: client.sessionToken}, (err, session)->
+      if err
+        callback err
+      else
+        {username} = session
+        JUser.one {username}, (err, user)->
+          callback null, user
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback

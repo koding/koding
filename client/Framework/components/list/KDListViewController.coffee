@@ -8,15 +8,24 @@ class KDListViewController extends KDViewController
     options.multipleSelection   ?= no
     options.selection           ?= yes
     options.startWithLazyLoader ?= no
+    options.itemChildClass     or= null
+    options.itemChildOptions   or= {}
+
     @itemsOrdered                = [] unless @itemsOrdered
     @itemsIndexed                = {}
     @selectedItems               = []
     @lazyLoader                  = null
-    viewOptions                  = options.viewOptions or {}
-    viewOptions.lastToFirst      = options.lastToFirst
-    viewOptions.subItemClass     = options.subItemClass if options.subItemClass
 
-    @setListView listView = options.view or new KDListView viewOptions
+    if options.view
+      @setListView listView = options.view
+    else
+      viewOptions                  = options.viewOptions or {}
+      viewOptions.lastToFirst      or= options.lastToFirst
+      viewOptions.itemClass        or= options.itemClass
+      viewOptions.itemChildClass   or= options.itemChildClass
+      viewOptions.itemChildOptions or= options.itemChildOptions
+
+      @setListView listView = new KDListView viewOptions
 
     if options.scrollView
       @scrollView = new KDScrollView
@@ -33,8 +42,7 @@ class KDListViewController extends KDViewController
     listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
     listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
     if options.keyNav
-      listView.on 'KeyDownOnList', (event)=>
-        @keyDownPerformed listView, event
+      listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
   loadView:(mainView)->
 

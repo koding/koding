@@ -120,6 +120,10 @@ class KDInputView extends KDView
     (@getSingleton "windowController").setKeyView @
     @$().trigger "focus"
 
+  setBlur:()->
+    (@getSingleton "windowController").setKeyView null
+    @$().trigger "blur"
+
   setSelectOptions:(options)->
     unless options.length
       for optGroup, subOptions of options
@@ -275,7 +279,43 @@ class KDInputView extends KDView
       @setClass "validation-passed"
       @unsetClass "validation-error"
 
-  inputSelectAll:-> @getDomElement().select()
+
+  setCaretPosition:(pos)-> @selectRange pos, pos
+
+  getCaretPosition:->
+    el = @$()[0]
+    # modern
+    if el.selectionStart
+      return el.selectionStart
+    # ie
+    else if document.selection
+      el.focus()
+      r = document.selection.createRange()
+      return 0 unless r
+      re = el.createTextRange()
+      rc = re.duplicate()
+      re.moveToBookmark r.getBookmark()
+      rc.setEndPoint 'EndToStart', re
+
+      return rc.text.length
+    return 0
+
+  selectAll:-> @getDomElement().select()
+
+  selectRange:(selectionStart, selectionEnd)->
+
+    input = @$()[0]
+
+    if input.setSelectionRange
+      input.focus()
+      input.setSelectionRange selectionStart, selectionEnd
+
+    else if input.createTextRange
+      range = input.createTextRange()
+      range.collapse yes
+      range.moveEnd 'character', selectionEnd
+      range.moveStart 'character', selectionStart
+      range.select()
 
   setAutoGrow:->
 

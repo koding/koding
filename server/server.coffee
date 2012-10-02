@@ -3,7 +3,7 @@
 {webPort, mongo, mq, projectRoot, kites} = require argv.c
 webPort = argv.p if argv.p?
 
-
+{extend} = require 'underscore'
 express = require 'express'
 Broker = require 'broker'
 Bongo = require 'bongo'
@@ -37,6 +37,12 @@ koding = new Bongo {
   queueName: 'koding-social'
 }
 
+kiteBroker =\
+  if kites?.vhost?
+    new Broker extend {}, mq, vhost: kites.vhost
+  else
+    koding.mq
+
 koding.mq.connection.on 'ready', ->
   console.log 'message broker is ready'
 
@@ -50,7 +56,7 @@ app.get '/auth', (req, res)->
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
-    res.cookie 'clientId', session.clientId if clientId isnt session.clientId
+    res.cookie 'clientId', session.clientId if session? and clientId isnt session?.clientId
     if err
       authenticationFailed(res, err)
     else
@@ -58,23 +64,20 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        # koding.mq.on privName, 'disconnected', ->
-        #   console.log 'disconnected', arguments
-
         res.send privName 
       else unless session?
         authenticationFailed(res)
-      else
+      else if type is 'kite'
         {username} = session
         cipher = crypto.createCipher('aes-256-cbc', '2bB0y1u~64=d|CS')
         cipher.update(
           ''+pubName+req.cookies.clientid+Date.now()+Math.random()
         )
-        privName = ['secret', type, cipher.final('hex')+".#{username}"].join '-'
+        privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
         
         bindKiteQueue = (binding, callback) ->
-          koding.mq.bindQueue(
+          kiteBroker.bindQueue(
             privName, privName, binding,
             {queueDurable:no, queueExclusive:no},
             callback
@@ -82,9 +85,9 @@ app.get '/auth', (req, res)->
 
         bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
           bindKiteQueue "disconnected"
-          koding.mq.emit(channel, 'join', {user: username, queue: privName})
-          koding.mq.connection.on 'error', -> # noop
-          koding.mq.createQueue '', (dcQueue)->
+          kiteBroker.emit(channel, 'join', {user: username, queue: privName})
+          kiteBroker.connection.on 'error', console.log
+          kiteBroker.createQueue '', (dcQueue)->
             dcQueue.bind exchangeName, 'disconnected'
             dcQueue.subscribe ->
               dcQueue.destroy()

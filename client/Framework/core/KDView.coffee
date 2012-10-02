@@ -347,7 +347,7 @@ class KDView extends KDObject
 
   getHeight:()->
     # @getDomElement()[0].clientHeight
-    @getDomElement().outerHeight()
+    @getDomElement().outerHeight(no)
 
   setHeight:(h)->
     @getDomElement()[0].style.height = "#{h}px"

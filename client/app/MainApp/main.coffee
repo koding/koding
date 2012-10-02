@@ -33,8 +33,8 @@ mainController = new MainController
 
 
 KD.remote.on 'loggedInStateChanged', (account)->
-  mainController.accountChanged account, {connected: no}
   KD.socketConnected()
+  mainController.accountChanged account, {connected: no}
   AccountMixin.init(KD.remote.api)
 
 # Pistachio.MODE = if KD.env is 'dev' then 'development' else 'production'

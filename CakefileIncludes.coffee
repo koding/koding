@@ -82,11 +82,11 @@ Includes =
         # notifying                 : "./server/app/bongo/abstractions/notifying.coffee"
         # notifiable                : "./server/app/bongo/abstractions/notifiable.coffee"
         # flaggable                 : "./server/app/bongo/abstractions/flaggable.coffee"
-        
-        
+
+
         # cactivity                 : "./server/app/bongo/models/activity.coffee"
         # cbucket                   : "./server/app/bongo/models/bucket.coffee"
-        
+
         # jlimit                    : "./server/app/bongo/models/limit.coffee"
         # jmount                    : "./server/app/bongo/models/mount.coffee"
         # jrepo                     : "./server/app/bongo/models/repo.coffee"
@@ -98,9 +98,9 @@ Includes =
         # jguest                    : "./server/app/bongo/models/guest.coffee"
         # jvisitor                  : "./server/app/bongo/models/visitor.coffee"
         # jhyperlink                : "./server/app/bongo/models/hyperlink.coffee"
-        
+
         # jregistrationpreferences  : "./server/app/bongo/models/registrationpreferences.coffee"
-        
+
         # # jterminal                  : "./server/app/bongo/models/terminal.coffee"
 
         # fsWatcher                  : "./server/app/bongo/models/fsWatcher.coffee"
@@ -115,6 +115,7 @@ Includes =
         # jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         # jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
         # japp                      : "./server/app/bongo/models/app.coffee"
+        # jreview                   : "./server/app/bongo/models/messages/review.coffee"
 
         # jinvitation               : "./server/app/bongo/models/invitation.coffee"
         # jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
@@ -210,7 +211,8 @@ Includes =
         KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
         KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
         KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
-        KDLayeredInput        : "./client/Framework/components/inputs/layeredinput.coffee"
+        KDTokenizedMenu       : "./client/Framework/components/inputs/tokenizedmenu.coffee"
+        KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
 
         # upload
         KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
@@ -534,6 +536,11 @@ Includes =
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
 
+        ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
+        ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
+        ReviewListItemView          : "./client/app/CommonViews/reviews/reviewlistitemview.coffee"
+        ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
+
         OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
         DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"
         DiscussionActivityOpinionLI   : "./client/app/CommonViews/opinions/discussionactivityopinionlistitemview.coffee"
@@ -547,7 +554,7 @@ Includes =
 
         MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
 
-        foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
+        # foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"
         sidebar                     : "./client/app/MainApp/sidebar/sidebarview.coffee"
         sidebarResizeHandle         : "./client/app/MainApp/sidebar/sidebarresizehandle.coffee"

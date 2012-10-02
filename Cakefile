@@ -14,7 +14,7 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = new (require "processes")
+processes   = new (require "processes") main:true
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
@@ -101,11 +101,6 @@ clientFileMiddleware  = (options, code, callback)->
       else
         throw err
 
-pipeStd =(children...)->
-  for child in children when child?
-    child.stdout.pipe process.stdout
-    child.stderr.pipe process.stderr
-
 normalizeConfigPath =(path)->
   path ?= './config/dev'
   nodePath.join __dirname, path
@@ -123,7 +118,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = normalizeConfigPath expandConfigFile configFile
+  configFile = expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -134,7 +129,7 @@ buildClient =(configFile, callback=->)->
     builder.buildClient "",()->
       builder.buildCss "",()->
         builder.buildIndex "",()->
-          if config.client.watch is yes            
+          if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
           else
@@ -160,8 +155,8 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  # configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient options.configFile
+  configFile = normalizeConfigPath expandConfigFile options.configFile
+  buildClient configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -182,12 +177,12 @@ task 'configureRabbitMq',->
             d = c.split "\n"
             for line in d
               if line.indexOf("/plugins") > 0
-                e = line 
+                e = line
                 break
             e = e.trim().replace /"|]|,/g,""
             rabbitMqPluginPath = e
             exec "wget -O #{rabbitMqPluginPath}/rabbit_presence_exchange.ez https://github.com/downloads/tonyg/presence-exchange/rabbit_presence_exchange-20120411.01.ez",(a,b,c)->
-              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)-> 
+              exec 'rabbitmq-plugins enable rabbit_presence_exchange',(a,b,c)->
                 console.log a,b,c
                 exec 'rabbitmqctl stop',->
                   console.log "ALL DONE. (hopefully) - start RabbitMQ server, run: rabbitmq-server (to detach: -detached)"
@@ -204,6 +199,11 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   console.log 'KONFIG', config.mq.pidFile
+  vhosts = "{vhosts,["+
+    (options.vhosts or []).
+    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
+    join(',')+"]}"
+
   brokerConfig = """
   {application, broker,
    [
@@ -223,6 +223,7 @@ configureBroker = (options,callback=->)->
       {mq_pass, <<"#{config.mq.password}">>},
       {mq_vhost, <<"#{config.mq.vhost ? '/'}">>},
       {pid_file, <<"#{config.mq.pidFile}">>},
+      #{vhosts},
       {verbosity, info},
       {privateRegEx, ".private$"},
       {precondition_failed, <<"Request not allowed">>}
@@ -239,40 +240,51 @@ task 'buildBroker', (options)->
   configureBroker options, ->
     pipeStd(spawn './broker/build.sh')
 
+pipeStd =(children...)->
+  for child in children when child?
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
 run =(options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
- 
+
+  debug = if options.debug then ' -D' else ''
+
   processes.run
-    name    : 'social'
-    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    name    : 'socialCake'
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
     restart : yes
     restartInterval : 1000
-    log     : false
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
     
   processes.run
-    name    : 'server'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    name    : 'serverCake'
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
     restart : yes
     restartInterval : 1000
-    log     : false
-
-  pipeStd(
-    processes.get "server"
-    processes.get "social"
-  )
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+  # pipeStd(
+  #   processes.get "server"
+  #   processes.get "social"
+  # )
   if config.social.watch? is yes
     watcher = new Watcher
       groups:
         social :
           folders : ['./workers/social']
           onChange : (path) ->
-            processes.kill "social"
+            processes.kill "socialCake"
         server :
           folders : ['./server']
-          onChange : ->
-            processes.kill "server"
+          onChange : (path)->
+            console.log "changed",path
+            processes.kill "serverCake"
 
 assureVhost =(uri, vhost, vhostFile, callback)->
   addVhost uri, vhost, (res)->
@@ -326,7 +338,7 @@ task 'run', (options)->
       queue.next()
 
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next() 
+    queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

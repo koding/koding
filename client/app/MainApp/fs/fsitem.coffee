@@ -123,6 +123,7 @@ class FSItem extends KDObject
     for own key, value of options
       @[key] = value
     super
+
     @kiteController = @getSingleton('kiteController')
 
   remove:(callback)->

@@ -47,7 +47,7 @@ class Payment_Tabs extends MainTabView
       if pane.active
         if balanceView.tabsExpanded
           balanceView.collapseTabs()
-          @getDelegate().accountNav.makeAllItemsUnselected()
+          @getDelegate().accountNav.deselectAllItems()
         else
           balanceView.expandTabs()
       else

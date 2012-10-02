@@ -16,7 +16,8 @@
     {mq_pass, <<"guest">>},
     {mq_vhost, <<"/">>},
     {pid_file, <<"/tmp/koding.broker.pid">>},
-    {verbose, true},
+    {vhosts,[]},
+    {verbosity, info},
     {privateRegEx, ".private$"},
     {precondition_failed, <<"Request not allowed">>}
     ]}

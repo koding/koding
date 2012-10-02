@@ -133,7 +133,7 @@ class Activity12345 extends AppController
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
-      subItemClass      : ActivityListItemView
+      itemClass      : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
@@ -172,7 +172,7 @@ class Activity12345 extends AppController
           dataType  : 'jsonp'
           success   : (data)->
             KD.remote.reviveFromSnapshots data, (err, instances)->
-              console.log instances
+              # console.log instances
               callback instances
     #
     # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
@@ -335,7 +335,7 @@ class ActivityListController extends KDListViewController
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
     viewOptions.comments      or= yes
-    viewOptions.subItemClass  or= options.subItemClass
+    viewOptions.itemClass  or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
     super

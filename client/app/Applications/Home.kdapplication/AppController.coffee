@@ -23,9 +23,9 @@ class Home12345 extends AppController
     widgetHolder.showLoaders()
 
     @bringFeeds()
-  
+
   bringFeeds:->
-    appManager.tell "Topics", "fetchCustomTopics", null, (err,topics)=>
+    appManager.tell "Topics", "fetchSomeTopics", null, (err,topics)=>
       unless err
         @mainView.widgetHolder.topicsLoader.hide()
         @topicsController.instantiateListItems topics
@@ -39,7 +39,7 @@ class Home12345 extends AppController
       unless err
         @mainView.widgetHolder.membersLoader.hide()
         @membersController.instantiateListItems topics
-      
+
   createListControllers:->
     @createTopicsList()
     @createActivity()
@@ -48,7 +48,7 @@ class Home12345 extends AppController
   createTopicsList:->
     @topicsController = new KDListViewController
       view            : new KDListView
-        subItemClass  : HomeTopicItemView
+        itemClass  : HomeTopicItemView
 
     @mainView.widgetHolder.topics = @topicsController.getView()
 
@@ -56,14 +56,14 @@ class Home12345 extends AppController
     @activityController = new KDListViewController
       view            : new KDListView
         lastToFirst   : no
-        subItemClass  : HomeActivityItem
+        itemClass  : HomeActivityItem
 
     @mainView.widgetHolder.activity = @activityController.getView()
 
   createMembersList:->
     @membersController = new KDListViewController
       view            : new KDListView
-        subItemClass  : HomeMemberItemView
-        
+        itemClass  : HomeMemberItemView
+
 
     @mainView.widgetHolder.members = @membersController.getView()

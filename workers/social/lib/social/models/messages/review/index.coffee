@@ -1,6 +1,6 @@
 {Message} = require 'jraphical'
 
-class JReview extends Message
+module.exports = class JReview extends Message
 
   {ObjectId, ObjectRef, secure, dash} = require 'bongo'
   {Relationship}  = require 'jraphical'
