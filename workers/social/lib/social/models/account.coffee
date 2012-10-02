@@ -243,7 +243,7 @@ module.exports = class JAccount extends jraphical.Module
       else if contents.length is 0 then callback null, []
       else
         teasers = []
-        collectTeasers = bongo.race (i, root, fin)->
+        collectTeasers = race (i, root, fin)->
           root.fetchSource (err, teaser)->
             if err then callback err
             else if not teaser

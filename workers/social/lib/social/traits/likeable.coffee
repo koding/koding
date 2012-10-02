@@ -17,7 +17,8 @@ module.exports = class Likeable
         callback err, no
 
   like: secure ({connection}, callback)->
-    JAccount = require '../models/account'
+    JAccount  = require '../models/account'
+
     {delegate} = connection
     {constructor} = @
     unless delegate instanceof JAccount
@@ -40,9 +41,10 @@ module.exports = class Likeable
                 delegate.update ($inc: 'counts.likes': 1), (err)->
                   console.log err if err
                 @fetchActivityId? (err, id)->
+                  CActivity = require '../models/activity'
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
-                  }, log
+                  }, ->
                 @fetchOrigin? (err, origin)=>
                   if err then log "Couldn't fetch the origin"
                   else @emit 'LikeIsAdded', {
