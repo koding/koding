@@ -54,50 +54,84 @@ class AboutView extends JView
 
   putTeam:->
 
-    for teamMember in @theTeam
-
-      {name, job, image, nickname} = teamMember
-
-      member = new KDCustomHTMLView
-        cssClass    : 'teammember'
-        partial     : """
-          <img src="#{image}" />
-          <p><strong>#{name}</strong>#{job}</p>
-        """
-
+    for memberData in @theTeam
+      member = new AboutMemberView {}, memberData
       @addSubView member, ".about-page-right"
 
   theTeam:
     [
         name      : 'Devrim Yasar'
+        nickname  : 'devrim'
         job       : 'Co-Founder &amp; CEO'
         image     : '../images/people/devrim.jpg'
       ,
         name      : 'Sinan Yasar'
+        nickname  : 'sinan'
         job       : 'Co-Founder &amp; Chief UI Engineer'
         image     : '../images/people/sinan.jpg'
       ,
         name      : 'Chris Thorn (w/ Milo)'
+        nickname  : 'chris'
         job       : 'Director of Engineering'
         image     : '../images/people/chris.jpg'
       ,
         name      : 'Aleksey Mykhailov'
+        nickname  : 'aleksey-m'
         job       : 'Sys Admin &amp; node.js Developer'
         image     : '../images/people/aleksey.jpg'
       ,
         name      : 'Gökmen Göksel'
+        nickname  : 'gokmen'
         job       : 'Software Engineer'
         image     : '../images/people/gokmen.jpg'
       ,
         name      : 'Son Tran-Nguyen'
+        nickname  : 'sntran'
         job       : 'Software Engineer'
         image     : '../images/people/son.jpg'
       ,
         name      : 'Arvid Kahl'
+        nickname  : 'arvidkahl'
         job       : 'Software Engineer'
         image     : '../images/people/arvid.jpg'
       ,
         name      : 'Richard Musiol'
+        nickname  : 'neelance'
         job       : 'Software Engineer'
         image     : '../images/people/richard.jpg'
     ]
+
+
+class AboutMemberView extends KDCustomHTMLView
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = 'teammember'
+
+    super options, data
+
+    # @memberLink = new ProfileLinkView null, null
+
+  viewAppended: JView::viewAppended
+
+  pistachio:->
+
+    {name, job, image, nickname} = @getData()
+
+    """
+      <img src="#{image}" />
+      <p>
+        <a href='#!/member/#{nickname}'><strong>#{name}</strong></a>
+        #{job}
+      </p>
+    """
+
+
+
+
+
+
+
+
+
+

@@ -154,20 +154,19 @@ class Members12345 extends AppController
     @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
-    options =
-      limit     : 6
-      skip      : 0
-      sort      :
-        "meta.modifiedAt": -1
+    options  =
+      limit  : 6
+      skip   : 0
+      sort   : "meta.modifiedAt" : -1
     selector = {}
     KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
   fetchSomeMembers:(options = {}, callback)->
 
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or= "meta.modifiedAt" : -1
-    selector           = options.selector or {}
+    options.limit or= 6
+    options.skip  or= 0
+    options.sort  or= "meta.modifiedAt" : -1
+    selector        = options.selector or {}
 
     delete options.selector if options.selector
 
