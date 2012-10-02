@@ -132,6 +132,7 @@ module.exports = class Followable
           callback err, accounts
 
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
+    JAccount = require '../models/account'
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
