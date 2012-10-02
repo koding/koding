@@ -14,15 +14,188 @@ div.codeshare-box
 
   // TabView
   &.codeshare-tabs
-    border 1px solid black
-
+    borderBox()
     width 800px
     max-width 800px
     min-width 400px
 
-    height 300px
+    height 351px
 
-    div.codeshare-code-wrapper
+    div.codeshare-tabview
+      borderBox()
       height 300px
-      max-width 800px
-      width 800px
+      background-color #333
+
+
+      div.kdtabpaneview
+        borderBox()
+
+        div.codeshare-code-wrapper
+          borderBox()
+          position relative
+          height 300px
+          max-height 300px
+          max-width 800px
+          width 800px
+          background-color #333
+
+          figure.kdview
+            borderBox()
+            padding 20px
+
+            div.ace_scroller
+              background-color #333
+
+
+          div.codeshare-config
+            position absolute
+            top 0
+            bottom 0
+            right 0
+            height auto
+            width 200px
+            background-color #2E2E2E
+            border-left 1px solid white
+            z-index -1
+            &.active
+              z-index 100
+
+    div.codeshare-tabhandlecontainer
+
+      padding             0
+      margin              0
+      border 0
+
+      overflow            hidden
+      // size                100%,25px
+      z-index             0
+      bg                  color,transparent
+      vendor              transition, top .3s linear
+
+      background-image url("../images/koding-bg.png")
+      background-repeat repeat-x
+      background-position -20px, 0px
+
+      height 25px
+      // width 4*128px
+      // max-width 4*128px
+
+      rounded 4px 4px 0 0
+
+
+      .kdtabhandle
+        width 150px
+        borderBox()
+        color             rgba(255, 255, 255, 0.85)  //#333
+        line-height       23px
+        font-size         11px
+        padding           0 5px 0 10px
+        height            25px
+        border            1px solid rgba(176,176,176,.75)
+        border-right      1px solid transparent
+        border-bottom  #e2e2e2
+        overflow          hidden
+        cursor            pointer
+        rounded           0
+        bg                color,rgba(255,255,255,.2)
+        gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
+        shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+
+        > div
+          margin-right    14px
+
+          b
+            z-index       0
+            font-weight   normal
+            text-overflow ellipsis
+            white-space   nowrap
+            overflow      hidden
+            width         100%
+            margin-right  0
+            display       block
+
+        span.close-tab
+          z-index     10
+          bg          color,transparent
+
+        &:hover
+          bg          color,rgba(255,255,255,.3)
+
+        &:first-child
+          rounded       3px 0 0 0
+          margin-left   0
+
+        &:last-child
+          border-right  1px solid #bbb //rgba(255,255,255,.15)
+          rounded       0 3px 0 0
+          margin-left   0
+
+        &.first.last
+          rounded       3px 3px 0 0
+
+        &.active
+          color rgba(0, 0, 0, 0.85)
+          text-shadow   none
+          bg            color,white
+          gradient      white,white
+          shadow        none
+          // border 1px solid #2e2e2e
+          // bg                color,rgba(255,255,255,.2)
+          // gradient          rgba(100,100,100,.0),rgba(255,255,255,.0)
+          shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+          // border-bottom none
+          &:first-child
+            border-bottom 1px solid #bbb
+
+          span.close-tab
+            bg          color,transparent
+
+          span.error
+            color         red
+
+        &.plus
+          padding       0 0 0 16px
+          span.icon
+            margin      1px 5px 0 -5px
+            size        20px,20px
+            sprite()
+            bg          position,-60px -260px
+            fl()
+          b
+            margin-right  0
+
+          &:hover
+            bg          color,rgba(255,255,255,.3)
+            color       rgba(255, 255, 255, 0.9)
+
+          &.last
+            width       25px
+            padding     0 5px 0 7px
+
+            b
+              hidden()
+
+          &.last.first
+            width       142px
+
+            b
+              width     auto
+              visible()
+
+        .chevron-arrow-separator
+          display         none
+
+        .chevron-arrow
+          position        absolute
+          left            2px
+          top             2px
+          size            20px,20px
+          bg              position,-120px -480px
+
+        span.error
+          color           lightCoral
+          font-style      normal
+  div.codeshare-button-bar
+    background-color #1C1C1C
+    rounded 0 0 4px 4px
+

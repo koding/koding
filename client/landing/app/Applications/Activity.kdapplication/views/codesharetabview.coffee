@@ -20,36 +20,80 @@ class CodeShareTabHandleView extends KDView
     @setWidth mainView.codeShareView.getWidth() - 100
 
   addPlusHandle:()->
+    mainView = @getDelegate()
 
     @addSubView @plusHandle = new KDCustomHTMLView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus last'
       partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
       delegate : @
       click    : =>
-        unless @plusHandle.$().hasClass('first')
           contextMenu = new JContextMenu
             event    : event
             delegate : @plusHandle
           ,
-            'New Tab'              :
+            'PHP file'              :
               callback             : (source, event)=>
-                appManager.tell "StartTab", 'openFreshTab'
+                mainView.emit "addCodeSharePane", "php"
                 contextMenu.destroy()
               separator            : yes
-            'Ace Editor'           :
+            'Python file'              :
               callback             : (source, event)=>
-                appManager.newFileWithApplication "Ace"
+                mainView.emit "addCodeSharePane", "python"
                 contextMenu.destroy()
-            'CodeMirror'           :
-              callback             : (source, event)=> appManager.notify()
-            'yMacs'                :
-              callback             : (source, event)=> appManager.notify()
-            'Pixlr'                :
-              callback             : (source, event)=> appManager.notify()
               separator            : yes
-            'Search the App Store' :
-              callback             : (source, event)=> appManager.notify()
-            'Contribute An Editor' :
+            'Ruby file'              :
+              callback             : (source, event)=>
+                mainView.emit "addCodeSharePane", "ruby"
+                contextMenu.destroy()
+              separator            : yes
+
+
+            'Markup':
+              children:
+                'HTML':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "html"
+                    contextMenu.destroy()
+                'HAML':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "haml"
+                    contextMenu.destroy()
+                'XML':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "xml"
+                    contextMenu.destroy()
+                'XPATH':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "xpath"
+                    contextMenu.destroy()
+
+            'Cascading Stylesheets':
+              children:
+                'CSS':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "css"
+                    contextMenu.destroy()
+                'LESS':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "less"
+                    contextMenu.destroy()
+
+            'JS-based':
+              children:
+                'JavaScript':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "javascript"
+                    contextMenu.destroy()
+                'CoffeeScript':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "coffee"
+                    contextMenu.destroy()
+                'IcedCoffee':
+                  callback             : (source, event)=>
+                    mainView.emit "addCodeSharePane", "icedcoffee"
+                    contextMenu.destroy()
+
+            'Contribute A Language' :
               callback             : (source, event)=> appManager.notify()
 
 
@@ -57,11 +101,7 @@ class CodeShareTabHandleView extends KDView
     @plusHandle.destroy()
 
   _plusHandleClicked: () ->
-    if @plusHandle?.__shouldAdd
-      @plusHandle.delegate.propagateEvent KDEventType : 'AddEditorClick', @plusHandle
-      # appManager.newFileWithApplication "Ace"
-    else
-      appManager.openApplication "StartTab"
+    @plusHandle.delegate.emit 'AddEditorClick', @plusHandle
 
   _repositionPlusHandle:(event)->
 
@@ -77,11 +117,10 @@ class CodeShareTabHandleView extends KDView
     if appTabCount is 0
       @plusHandle.setClass "first last"
       @plusHandle.$('b').removeClass "hidden"
-      @plusHandle.__shouldAdd = no
+
     else
       visibleTabs[0].tabHandle.setClass "first"
       @removePlusHandle()
       @addPlusHandle()
       @plusHandle.unsetClass "first"
       @plusHandle.setClass "last"
-      @plusHandle.__shouldAdd = yes

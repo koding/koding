@@ -5,7 +5,10 @@ class CodeShareTabPaneView extends KDTabPaneView
       name         : no      # a String
     ,options
     super options,data
+
     @name = options.name
+    @hasConfig = options.allowEdit or no
+
     @setClass "clearfix"
     @setHeight @$().parent().height()
 
@@ -38,6 +41,14 @@ class CodeShareTabPaneView extends KDTabPaneView
 
     @codeViewLoader.show()
 
+    @codeViewConfig = new CodeShareConfigView
+      cssClass : "codeshare-config"
+      type : data.CodeShareItemType.syntax
+    , data
+
+
+
+
     @codeView.on "ace.ready", =>
       @codeViewLoader.destroy()
       @codeView.setShowGutter no
@@ -46,8 +57,9 @@ class CodeShareTabPaneView extends KDTabPaneView
       @codeView.setFontSize(12, no)
       @codeView.setSyntax data.CodeShareItemType.syntax or "javascript"
       @codeView.editor.getSession().on 'change', =>
-        @refreshEditorView()
+        # @refreshEditorView()
       @emit "codeSnip.aceLoaded"
+
 
 
   refreshEditorView:->
@@ -76,5 +88,24 @@ class CodeShareTabPaneView extends KDTabPaneView
     <div class="codeshare-code-wrapper">
     {{> @codeViewLoader}}
     {{> @codeView}}
+    {{> @codeViewConfig}}
     </div>
+    """
+
+
+class CodeShareConfigView extends KDView
+  constructor:(options,data)->
+    super options,data
+    log "config for",data
+
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <p>Config</p>
+
     """
