@@ -295,7 +295,7 @@ class KodingAppsController extends KDController
       manifest        = @constructor.manifests[appName]
       userAppPath     = getAppPath manifest
       options         =
-        toDo          : "publishApp"
+        method        : "publishApp"
         withArgs      :
           version     : manifest.version
           appName     : manifest.name
@@ -335,7 +335,7 @@ class KodingAppsController extends KDController
       return no
 
     options         =
-      toDo          : "approveApp"
+      method        : "approveApp"
       withArgs      :
         version     : app.manifest.version
         appName     : app.manifest.name
@@ -448,7 +448,7 @@ class KodingAppsController extends KDController
                 callback? err
               else
                 options =
-                  toDo          : "installApp"
+                  method        : "installApp"
                   withArgs      :
                     owner       : acc.profile.nickname
                     appPath     : getAppPath app.manifest
@@ -536,7 +536,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/.manifest"
               contents  : manifestStr
@@ -544,7 +544,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/index.coffee"
               contents  : "do ->"
@@ -552,7 +552,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
               contents  : """
@@ -595,7 +595,7 @@ class KodingAppsController extends KDController
         return
 
       @kiteController.run
-        toDo        : "downloadApp"
+        method      : "downloadApp"
         withArgs    :
           owner     : manifest.authorNick
           appName   : manifest.name
