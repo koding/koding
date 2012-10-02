@@ -130,6 +130,20 @@ class AppView extends KDView
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
 
+    {icns, name, version, authorNick} = app.manifest
+    thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
+      "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+    else
+      "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    @thumb = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : =>
+        @thumb.$().attr "src", "/images/default.app.thumb.png"
+      attributes  :
+        src       : thumb
+
     # # @forkButton = new KDButtonView
     #   title     : "Fork"
     #   style     : "clean-gray"
@@ -150,21 +164,11 @@ class AppView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-  putThumb:(manifest)->
-
-    {icns, name, version, authorNick} = manifest
-    src = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-    else
-      "#{KD.apiUri + '/images/default.app.thumb.png'}"
-
-    return "<img src='#{src}'/>"
-
   pistachio:->
     """
     <div class="profileleft">
       <span>
-        <a class='profile-avatar' href='#'>{{ @putThumb #(manifest)}}</a>
+        <a class='profile-avatar' href='#'>{{> @thumb}}</a>
       </span>
     </div>
     <section class="right-overflow">
