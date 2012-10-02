@@ -2,15 +2,15 @@ class ChatView extends KDView
   viewAppended: ->
     @rosterTabView = new KDTabView
     @chatTabView = new KDTabView
-    
+
     @addSubView splitView = new KDSplitView
       sizes: ["20%","80%"]
       views: [@rosterTabView, @chatTabView]
 
-    @rosterTabView.addPane new TabPaneViewWithList 
+    @rosterTabView.addPane new TabPaneViewWithList
       name: "topics"
       unclosable: true
-      subItemClass: ChannelListItemView
+      itemClass: ChannelListItemView
 
   ###
   # Called by ChatController to create a tab view for new channel

@@ -6,6 +6,7 @@ deepFreeze = require 'koding-deep-freeze'
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -45,7 +46,8 @@ module.exports = deepFreeze
         auth    : 'http://localhost:3000/auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
-      appsUri   : 'https://dev-apps.koding.com'
+      # Is this correct?
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'

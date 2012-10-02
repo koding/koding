@@ -53,6 +53,9 @@ __utils =
 
   trimIllegalChars :(word)->
 
+  curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
+
+
   getUrlParams:(tag)->
     tag ?= window.location.search
     hashParams = {};

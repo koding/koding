@@ -19,7 +19,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
     #   itemsToShow   : 3
-    #   subItemClass  : TagFollowBucketItemView
+    #   itemClass  : TagFollowBucketItemView
     # }
 
   render:->

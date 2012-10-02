@@ -537,7 +537,7 @@ class NFinderTreeController extends JTreeViewController
 
   click:(nodeView, event)->
 
-    if $(event.target).is ".chevron-arrow"
+    if $(event.target).is ".chevron"
       @contextMenu nodeView, event
       return no
     super
@@ -619,7 +619,7 @@ class NFinderTreeController extends JTreeViewController
   performDownKey:(nodeView, event)->
 
     if event.altKey
-      offset = nodeView.$('.chevron-arrow').offset()
+      offset = nodeView.$('.chevron').offset()
       event.pageY = offset.top
       event.pageX = offset.left
       @contextMenu nodeView, event

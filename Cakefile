@@ -118,7 +118,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = normalizeConfigPath expandConfigFile configFile
+  configFile = expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -250,9 +250,11 @@ run =(options)->
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
+  debug = if options.debug then ' -D' else ''
+
   processes.run
     name    : 'socialCake'
-    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
     restart : yes
     restartInterval : 1000
     stdout  : process.stdout
@@ -261,7 +263,7 @@ run =(options)->
     
   processes.run
     name    : 'serverCake'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
     restart : yes
     restartInterval : 1000
     stdout  : process.stdout
