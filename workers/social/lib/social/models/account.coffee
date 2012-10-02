@@ -13,6 +13,7 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/flaggable'
 
   JAppStorage = require './appstorage'
+  JTag = require './tag'
 
   @getFlagRole = 'content'
 
@@ -46,10 +47,10 @@ module.exports = class JAccount extends jraphical.Module
       ]
       instance    : [
         'on','modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship',
+        'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit'
+        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount', 'fetchFeeds'
@@ -70,6 +71,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         topics              :
+          type              : Number
+          default           : 0
+        likes               :
           type              : Number
           default           : 0
       environmentIsCreated  : Boolean
@@ -224,6 +228,36 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
 
+  fetchLikedContents: secure ({connection}, options, selector, callback)->
+
+    {delegate} = connection
+    [callback, selector] = [selector, callback] unless callback
+
+    selector            or= {}
+    selector.as           = 'like'
+    selector.targetId     = @getId()
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+
+    Relationship.some selector, options, (err, contents)=>
+      if err then callback err, []
+      else if contents.length is 0 then callback null, []
+      else
+        teasers = []
+        collectTeasers = race (i, root, fin)->
+          root.fetchSource (err, post)->
+            if err
+              callback err
+              fin()
+            else if not post
+              console.warn "Source does not exists:", root.sourceName, root.sourceId
+              fin()
+            else
+              post.fetchTeaser (err, teaser)->
+                if not err and teaser then teasers.push(teaser)
+                fin()
+        , -> callback null, teasers
+        collectTeasers node for node in contents
+
   dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
 
   flagAccount: secure (client, flag, callback)->
@@ -339,6 +373,18 @@ module.exports = class JAccount extends jraphical.Module
                 callback err
               else
                 callback null, messages
+
+  fetchTopics: (query, page, callback)->
+    query       =
+      targetId  : @getId()
+      as        : 'follower'
+      sourceName: 'JTag'
+    Relationship.some query, page, (err, docs)->
+      if err then callback err
+      else
+        ids = (rel.sourceId for rel in docs)
+        JTag.all _id: $in: ids, (err, tags)->
+          callback err, tags
 
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate

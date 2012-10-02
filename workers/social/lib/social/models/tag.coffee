@@ -1,5 +1,7 @@
 
 jraphical = require 'jraphical'
+CActivity = require './activity'
+JAccount  = require './account'
 
 module.exports = class JTag extends jraphical.Module
 
@@ -58,10 +60,10 @@ module.exports = class JTag extends jraphical.Module
       creator       :
         targetType  : JAccount
       activity      :
-        targetType  : "CActivity"
+        targetType  : CActivity
         as          : 'follower'
       follower      :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'follower'
       content       :
         targetType  : [

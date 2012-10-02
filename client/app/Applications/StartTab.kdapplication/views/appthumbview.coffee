@@ -102,3 +102,26 @@ class StartTabAppThumbView extends KDCustomHTMLView
       <p>{{> @img}}</p>
       <cite>{{ #(name)}} {{ #(version)}}</cite>
     """
+
+
+class GetMoreAppsButton extends StartTabAppThumbView
+
+  constructor:(options)->
+
+    data =
+      name        : 'Get more Apps'
+      version     : ''
+      author      : 'Koding'
+      description : "Get more Apps from Koding AppStore"
+
+    super options, data
+
+    @img.$().attr "src", "/images/icn-appcatalog.png"
+
+    @compile = new KDView
+
+  click : (event)->
+
+    return if $(event.target).closest('.icon-container').length > 0
+    @showLoader()
+    appManager.openApplication 'Apps', => @hideLoader()
