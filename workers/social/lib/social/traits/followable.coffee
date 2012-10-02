@@ -1,5 +1,5 @@
 jraphical = require 'jraphical'
-{KodingError} = require '../error.coffee'
+KodingError = require '../error.coffee'
 CBucket = require '../models/bucket'
 
 module.exports = class Followable

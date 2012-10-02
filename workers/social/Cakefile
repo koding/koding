@@ -5,6 +5,7 @@ processes = new (require 'processes')
 option '-c', '--configPath [CONFIG]', 'Which config file to use.'
 option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
 option '-s', '--silent', 'Set this flag to suppress stdout'
+option '-D', '--debug', 'Start the node project with the debugger'
 
 task 'run', ({numberOfWorkers, configPath, silent})->
   configPath ?= '../../config/dev'
