@@ -53,7 +53,7 @@ func main() {
 			if err != nil {
 				return nil, err
 			}
-			session.CloseOnDisconnect = append(session.CloseOnDisconnect, watch)
+			session.CloseOnDisconnect(watch)
 
 			dir, err := os.Open(absPath)
 			defer dir.Close()

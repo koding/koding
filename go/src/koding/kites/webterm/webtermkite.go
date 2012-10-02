@@ -33,7 +33,7 @@ func main() {
 		if method == "createServer" {
 			server := &WebtermServer{session: session}
 			server.remote = args.(map[string]interface{})
-			session.CloseOnDisconnect = append(session.CloseOnDisconnect, server)
+			session.CloseOnDisconnect(server)
 			return server, nil
 		}
 		return nil, &kite.UnknownMethodError{method}

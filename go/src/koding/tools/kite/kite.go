@@ -100,9 +100,9 @@ func Run(name string, onRootMethod func(session *Session, method string, args in
 }
 
 type Session struct {
-	User, Home        string
-	Uid, Gid          int
-	CloseOnDisconnect []io.Closer
+	User, Home string
+	Uid, Gid   int
+	closers    []io.Closer
 }
 
 func NewSession(userName string) *Session {
@@ -129,11 +129,15 @@ func NewSession(userName string) *Session {
 	}
 }
 
+func (session *Session) CloseOnDisconnect(closer io.Closer) {
+	session.closers = append(session.closers, closer)
+}
+
 func (session *Session) Close() {
-	for _, closer := range session.CloseOnDisconnect {
+	for _, closer := range session.closers {
 		closer.Close()
 	}
-	session.CloseOnDisconnect = nil
+	session.closers = nil
 }
 
 func (session *Session) CreateCommand(command []string) *exec.Cmd {
