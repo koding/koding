@@ -1,8 +1,7 @@
-class BottomPanelController extends KDViewController
+class BottomPanelController extends KDController
 
   loadView:(bottomPanel)->
 
-    @isVisible   = no
     @bottomPanel = bottomPanel
     @wc          = @getSingleton("windowController")
 
@@ -24,7 +23,16 @@ class BottomPanelController extends KDViewController
     @split.on "panelSplitted", (panel)->
       panel.addSubView new KDView
 
-  toggle:-> if @isVisible then @hide() else @show()
+  togglePanel:(name)->
+
+  createPanel:(name)->
+
+  destroyPanel:(name)->
+
+  showPanel:(name)->
+
+  hidePanel:(name)->
+
 
 
 class BottomChatSideBar extends JView
