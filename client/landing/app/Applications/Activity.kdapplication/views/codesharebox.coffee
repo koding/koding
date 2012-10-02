@@ -43,9 +43,9 @@ class CodeShareBox extends KDView
     # Options Defaults
 
     options.viewMode      or= "TabView"  # TabView or SplitView (later)
-    options.allowEditing  or= yes        # yes for Create/Edit/Fork
-    options.allowClosing  or= yes
-    options.showButtonBar or= yes
+    options.allowEditing  ?= yes        # yes for Create/Edit/Fork
+    options.allowClosing  ?= yes
+    options.showButtonBar ?= yes
 
     # Instance Defaults
 
@@ -99,19 +99,18 @@ class CodeShareBox extends KDView
 
       for CodeShareItem,i in codeShare.CodeShareItems
         newPane         = new CodeShareTabPaneView
-          name          : CodeShareItem.CodeShareItemType.syntax # beautify!
+          name          : CodeShareItem.CodeShareItemType.syntax
           allowEditing  : @allowEditing
           type          : "codeshare"
           tabHandleView : new CodeShareTabHandleView
             syntax : CodeShareItem.CodeShareItemType.syntax
+            disabled : not @allowEditing
         , CodeShareItem
-
         @codeShareView.addPane newPane
         @codeShareView.showPane @codeShareView.panes[0]
 
 
       @on "addCodeSharePane",(addType)=>
-
         newData = {
           CodeShareItemSource   : "..."
           CodeShareItemTitle    : "new Codeshare"
@@ -121,20 +120,26 @@ class CodeShareBox extends KDView
             encoding            : @defaultEncoding
           }
         }
-
         newPane         = new CodeShareTabPaneView
           name          : addType or "text"
           allowEditing  : @allowEditing
           type          : "codeshare"
+          tabHandleView : new CodeShareTabHandleView
+            syntax      : addType
         , newData
-
         @codeShareView.addPane newPane
 
-  createButtonBar:->
+  createButtonBar:=>
     codeShare = @getData()
     @codeShareButtonBar = new KDCustomHTMLView
       tagName:"div"
       cssClass:"codeshare-button-bar"
+
+    unless @allowEditing
+      @codeShareButtonBar.hide()
+    else
+      @codeView?.setClass "has-button-bar"
+      @codeShareView?.setClass "has-button-bar"
 
     @configButton = new KDButtonView
       title     : ""
@@ -297,5 +302,4 @@ class CodeShareBox extends KDView
     {{> @codeShareViewTabHandleView}}
     {{> @codeShareView}}
     {{> @codeShareButtonBar}}
-
     """

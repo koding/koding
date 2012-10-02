@@ -10,6 +10,7 @@ class CodeShareTabHandleView extends KDView
     super options,data
     @syntaxSelect    = new KDSelectBox
         name          : "syntax"
+        disabled      : options.disabled or no
         selectOptions : __aceSettings.getSyntaxOptions()
         defaultValue  : options.syntax or "text"
         callback      : (value) =>
@@ -34,14 +35,14 @@ class CodeShareTabHandleView extends KDView
 
 class CodeShareTabHandleContainerView extends KDView
   viewAppended:->
-
     mainView = @getDelegate()
-    @addPlusHandle()
 
-    mainView.codeShareView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
-    mainView.codeShareView.on "PaneRemoved", => @_repositionPlusHandle()
-
-    @listenWindowResize()
+    # Add Plus only when an Editor exists
+    if mainView.allowEditing
+      @addPlusHandle()
+      mainView.codeShareView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
+      mainView.codeShareView.on "PaneRemoved", => @_repositionPlusHandle()
+      @listenWindowResize()
 
   click:(event)->
     @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')

@@ -283,28 +283,28 @@ class ActivityCodeShareWidget extends KDFormView
       iconClass : "config"
       callback  : =>
 
-        if not @$("div.libs-container .libs-box").hasClass "settings-visible"
-          @$("div.libs-container").css "z-index":100
-          @$("div.libs-container .libs-box").addClass "settings-visible"
-          @$(".code-snip-holder.share").css "margin-bottom": 100
-          @$(".code-snip-holder.share").height(@$(".code-snip-holder.share.snip-html").height()-80)
-          @$(".code-snip-holder.share").addClass "no-top-rounded"
+        # if not @$("div.libs-container .libs-box").hasClass "settings-visible"
+        #   @$("div.libs-container").css "z-index":100
+        #   @$("div.libs-container .libs-box").addClass "settings-visible"
+        #   @$(".code-snip-holder.share").css "margin-bottom": 100
+        #   @$(".code-snip-holder.share").height(@$(".code-snip-holder.share.snip-html").height()-80)
+        #   @$(".code-snip-holder.share").addClass "no-top-rounded"
 
-          @configButton.setIconClass "config-active"
+        #   @configButton.setIconClass "config-active"
 
-        else
-          # @$("div.libs-html").css "opacity":0
-          @$("div.libs-container").css "z-index":-1
-          @$("div.libs-container .libs-box").removeClass "settings-visible"
-          @$(".code-snip-holder.share").css "margin-bottom":0
-          @$(".code-snip-holder.share").height(@$(".code-snip-container").height())
-          @$(".code-snip-holder.share").removeClass "no-top-rounded"
+        # else
+        #   # @$("div.libs-html").css "opacity":0
+        #   @$("div.libs-container").css "z-index":-1
+        #   @$("div.libs-container .libs-box").removeClass "settings-visible"
+        #   @$(".code-snip-holder.share").css "margin-bottom":0
+        #   @$(".code-snip-holder.share").height(@$(".code-snip-container").height())
+        #   @$(".code-snip-holder.share").removeClass "no-top-rounded"
 
-          @configButton.setIconClass "config"
+        #   @configButton.setIconClass "config"
 
-        @HTMLace.editor.resize()
-        @CSSace.editor.resize()
-        @JSace.editor.resize()
+        # @HTMLace.editor.resize()
+        # @CSSace.editor.resize()
+        # @JSace.editor.resize()
 
     @codeShareButtonBar.addSubView @configButton
     @codeShareButtonBar.addSubView @codeShareResultButton
@@ -708,62 +708,62 @@ class ActivityCodeShareWidget extends KDFormView
 
   unsetWideScreen:(wideScreenHeight)=>
 
-          @$(".formline-codeshare").css "margin-left":"168px"
-          @$(".formline-codeshare").css "margin-right":"0px"
-          @$(".code-snip-container").css "max-width":"560px"
-          @$(".formline-codeshare").css "max-width":"560px"
-          if not @$("div.libs-box").hasClass "settings-visible"
-            @$(".code-snip-container").css "height":"300px"
-            @$(".code-share-container").css "height":(330-5)+"px"
-            @$(".code-snip-holder.share").css "height":300+"px"
-          else
-            @$(".code-snip-container").css "height":"300px"
-            @$(".code-share-container").css "height":(330-5)+"px"
-            @$(".code-snip-holder.share").css "height":200+"px"
-          @$(".kdview.result-pane").css "height":300+"px"
-          @$(".formline-codeshare").css "height":330-5+"px"
+          # @$(".formline-codeshare").css "margin-left":"168px"
+          # @$(".formline-codeshare").css "margin-right":"0px"
+          # @$(".code-snip-container").css "max-width":"560px"
+          # @$(".formline-codeshare").css "max-width":"560px"
+          # if not @$("div.libs-box").hasClass "settings-visible"
+          #   @$(".code-snip-container").css "height":"300px"
+          #   @$(".code-share-container").css "height":(330-5)+"px"
+          #   @$(".code-snip-holder.share").css "height":300+"px"
+          # else
+          #   @$(".code-snip-container").css "height":"300px"
+          #   @$(".code-share-container").css "height":(330-5)+"px"
+          #   @$(".code-snip-holder.share").css "height":200+"px"
+          # @$(".kdview.result-pane").css "height":300+"px"
+          # @$(".formline-codeshare").css "height":330-5+"px"
 
-          @$("div.libs-box div.spacer").hide()
+          # @$("div.libs-box div.spacer").hide()
 
-          @$("div.libs-box").addClass "spacer-hidden"
+          # @$("div.libs-box").addClass "spacer-hidden"
 
-          @HTMLace.editor.resize()
-          @CSSace.editor.resize()
-          @JSace.editor.resize()
+          # @HTMLace.editor.resize()
+          # @CSSace.editor.resize()
+          # @JSace.editor.resize()
 
-          @isWideScreen = no
-          @wideScreenBtn.setTitle "Increase Editor Size"
-          @wideScreenBtn.setIconClass "maximize"
+          # @isWideScreen = no
+          # @wideScreenBtn.setTitle "Increase Editor Size"
+          # @wideScreenBtn.setIconClass "maximize"
 
   setWideScreen:(wideScreenHeight)=>
-          @$(".formline-codeshare").css "margin-left":"10px"
-          @$(".formline-codeshare").css "margin-right":"10px"
-          @$(".code-snip-container").css "max-width":"100%"
-          @$(".formline-codeshare").css "max-width":"100%"
-          if not @$("div.libs-box").hasClass "settings-visible"
-            @$(".code-snip-container").css "height":wideScreenHeight+"px"
-            @$(".code-share-container").css "height":(30-1-5+wideScreenHeight)+"px"
-            @$(".code-snip-holder.share").css "height":wideScreenHeight+"px"
-          else
-            @$(".code-snip-container").css "height":wideScreenHeight+"px"
-            @$(".code-share-container").css "height":(30-1-5+wideScreenHeight)+"px"
-            @$(".code-snip-holder.share").css "height":wideScreenHeight-100+"px"
-          @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
-          @$(".formline-codeshare").css "height":(30-1-5+wideScreenHeight)+"px"
+          # @$(".formline-codeshare").css "margin-left":"10px"
+          # @$(".formline-codeshare").css "margin-right":"10px"
+          # @$(".code-snip-container").css "max-width":"100%"
+          # @$(".formline-codeshare").css "max-width":"100%"
+          # if not @$("div.libs-box").hasClass "settings-visible"
+          #   @$(".code-snip-container").css "height":wideScreenHeight+"px"
+          #   @$(".code-share-container").css "height":(30-1-5+wideScreenHeight)+"px"
+          #   @$(".code-snip-holder.share").css "height":wideScreenHeight+"px"
+          # else
+          #   @$(".code-snip-container").css "height":wideScreenHeight+"px"
+          #   @$(".code-share-container").css "height":(30-1-5+wideScreenHeight)+"px"
+          #   @$(".code-snip-holder.share").css "height":wideScreenHeight-100+"px"
+          # @$(".kdview.result-pane").css "height":wideScreenHeight+"px"
+          # @$(".formline-codeshare").css "height":(30-1-5+wideScreenHeight)+"px"
 
-          @$("div.libs-html div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
-          @$("div.libs-css div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
-          @$("div.libs-js div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-800
+          # @$("div.libs-html div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
+          # @$("div.libs-css div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-600
+          # @$("div.libs-js div.libs-box div.spacer").show().css "width":@$(".formline-codeshare").width()-800
 
-          @$("div.libs-box").removeClass "spacer-hidden"
+          # @$("div.libs-box").removeClass "spacer-hidden"
 
-          @HTMLace.editor.resize()
-          @CSSace.editor.resize()
-          @JSace.editor.resize()
+          # @HTMLace.editor.resize()
+          # @CSSace.editor.resize()
+          # @JSace.editor.resize()
 
-          @isWideScreen = yes
-          @wideScreenBtn.setTitle "Reduce Editor Size"
-          @wideScreenBtn.setIconClass "minimize"
+          # @isWideScreen = yes
+          # @wideScreenBtn.setTitle "Reduce Editor Size"
+          # @wideScreenBtn.setIconClass "minimize"
 
 
   submit:=>

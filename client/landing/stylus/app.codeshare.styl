@@ -15,17 +15,27 @@ div.codeshare-box
   // TabView
   &.codeshare-tabs
     borderBox()
-    width 800px
-    max-width 800px
+    width auto
+    height auto
     min-width 400px
-
-    height 351px
+    max-width 800px
+    min-height 75px
+    max-height 351px
+    margin-bottom 10px
 
     div.codeshare-tabview
       borderBox()
-      height 300px
+      height inherit
+      min-height 50px
+      max-height 300px
       background-color #333
+      rounded 0 0 4px 4px
 
+      &.has-button-bar
+        rounded 0 0 0 0
+
+        div.codeshare-code-wrapper
+          rounded 0 0 0 0
 
       div.kdtabpaneview
         borderBox()
@@ -33,11 +43,30 @@ div.codeshare-box
         div.codeshare-code-wrapper
           borderBox()
           position relative
-          height 300px
-          max-height 300px
-          max-width 800px
-          width 800px
+          height auto
+          min-height inherit
+          max-height inherit
+          min-width inherit
+          max-width inherit
+          width auto
           background-color #333
+          rounded 0 0 4px 4px
+
+
+          figure.code-container
+            min-height inherit
+            height inherit
+            max-height inherit
+            margin 0
+            padding 0
+
+            div.kdview
+
+              pre.subview
+                height inherit
+                max-height inherit
+                min-height inherit
+                rounded 0 0 4px 4px
 
           figure.kdview
             borderBox()
@@ -45,7 +74,6 @@ div.codeshare-box
 
             div.ace_scroller
               background-color #333
-
 
           div.codeshare-config
             position absolute
@@ -66,19 +94,13 @@ div.codeshare-box
       margin              0
       border 0
 
-      overflow            hidden
-      // size                100%,25px
+      overflow hidden
       z-index             0
       bg                  color,transparent
       vendor              transition, top .3s linear
-
-      background-image url("../images/koding-bg.png")
-      background-repeat repeat-x
-      background-position -20px, 0px
+      background-color rgba(0,0,0,0)
 
       height 25px
-      // width 4*128px
-      // max-width 4*128px
 
       rounded 4px 4px 0 0
 
@@ -98,13 +120,20 @@ div.codeshare-box
         cursor            pointer
         rounded           0
         bg                color,rgba(255,255,255,.2)
-        gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
+        gradient          rgba(51,51,51,.8),rgba(75,75,75,.8)
+        // gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
         shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
 
         div.kdselectbox
           border none
           background rgba(255,255,255,0.0)
           outline none
+          vendor box-shadow, none
+          vertical-align baseline
+
+          &.disabled
+            span.arrows
+              opacity 0
 
           &.focus
             outline           none
@@ -127,11 +156,11 @@ div.codeshare-box
           span.title
             color #e2e2e2
             vendor text-shadow none
-            size              auto,24px
-            line-height       25px
+            size              auto,20px
+            line-height       21px
 
           span.arrows
-            top 3px
+            top 1px
             background-position -80px -200px
 
           // select
@@ -189,7 +218,6 @@ div.codeshare-box
               color #2e2e2e
               vendor text-shadow none
             span.arrows
-              top 3px
               background-position -60px -280px
           // select
 
@@ -244,7 +272,525 @@ div.codeshare-box
         span.error
           color           lightCoral
           font-style      normal
+
+
   div.codeshare-button-bar
     background-color #1C1C1C
     rounded 0 0 4px 4px
+
+
+
+
+// LEGACY
+
+
+// // Code Share Stuff
+
+// .activity-item.codeshare .activity-item-right-col .code-share-source figure.code-container
+
+//   width                               100%
+//   display                             inline-block
+//   vertical-align                      top
+
+//   pre code,
+//   code
+//     min-height                        250px
+//     max-height                        250px
+
+// .result-container
+//     borderBox()
+//     width                               100%
+//     margin-bottom 10px
+//     rounded 0 4px 4px 4px
+//     box-shadow                          inset 0 1px 2px rgba(0,0,0,0.10)
+//     background-color                    #E0E0DF
+//     .result-frame-container
+//       rounded 0 4px 4px 4px
+//       margin-right                      3px
+//       .result-frame
+//         width                           100%
+//         min-height                      290px
+//         max-height                      290px
+//         padding                           0
+//         rounded 0 4px 4px 4px
+
+// .code-share-source
+// //   .kdview.kdtabhandlecontainer
+// //     padding 0 10px
+// //     background-color white
+// //     border-bottom none
+// //     .kdtabhandle.active
+// //       vendor border-top-left-radius 4px
+// //       vendor border-top-right-radius 4px
+// // //       height 30px
+// //   div.code-share-container.kdtabview.kdscrollview
+// //     height 340px
+
+//   pre.subview
+//     padding                           5px 10px 0 10px
+//     min-height                        295px
+//     max-height                        295px
+//     margin-right                      3px
+//     scrollbars()
+//     rounded 0 4px 4px 4px
+
+//   pre.subview span
+//     font-size                         10px
+//     font-weight                       300
+
+// .result-button
+//   margin-bottom                       30px
+
+// .result-banner
+//   width 100%
+//   background-color #2E2E2E
+//   opacity 1
+//   a
+//     text-decoration none
+//     color #e80
+//     font-weight 300
+//     font-size 32px
+//   height 100%
+//   position relative
+//   margin-bottom 10px
+//   borderBox()
+//   rounded 0 4px 4px 4px
+//   padding 200px 50px 50px 50px
+
+
+// div.libs-container
+//   borderBox()
+//   border none
+//   border-top 1px solid #2a2a2a
+
+//   &.no-bottom-rounded
+//     rounded 0 0 4px 4px
+
+//   &.bottom-rounded
+//     rounded 0 0 4px 4px
+
+//   z-index -1
+//   opacity 01
+//   position absolute
+//   bottom 0px
+//   height auto
+//   width auto
+//   right 0px
+//   left 0px
+//   vendor transition, height 0.1s linear
+
+//   div.libs-box
+//     borderBox()
+//     overflow-y hidden
+//     height 1px
+//     padding 0px
+//     width auto
+//     font-size 10px
+
+//     &.settings-visible
+//       height 100px
+
+//     div.libs-sub-box
+//       max-width 300px
+//       borderBox()
+//       display inline-block
+//       padding 5px 10px
+//       height 100%
+//       width 50%
+//       vertical-align top
+
+//       label-color = darken(#e2e2e2,25%)
+//       libs-bg-color = lighten(#333,5%) //#f1f1f1
+//       libs-border-color = #FF9200
+
+//       vendor transition, background-color 0.2s ease-in-out
+//       vendor transition, background 0.2s ease-in-out
+//       background-color libs-bg-color
+
+//       for column in 1 2 3 4 5
+
+//         &.html
+//         &.css
+//         &.js
+//         &.spacer
+
+//           &:nth-child({column})
+//             multiplier = (column - 1)
+//             border-top 5px solid darken(libs-border-color,(multiplier * 20%))
+//             background-color darken(libs-bg-color, (multiplier * 2%))
+
+//             &:hover
+//               // gradient lighten(libs-bg-color,5%),lighten(libs-bg-color,10%)
+//               background-color lighten(libs-bg-color,5%)
+
+//               label.kdlabel
+//                 // color darken(libs-border-color,(multiplier * 20%))
+//                 color white
+
+
+//       &.html
+//       &.css
+//       &.js
+//       &.spacer
+//         borderBox()
+
+//         &:first-child
+//           rounded(0 0 0 4px)
+
+//         &:last-child
+//           rounded(0 0 4px 0)
+
+
+//       &.spacer
+//         min-width 0px
+//         max-width 100%
+//         width 100%
+
+//       &.js
+
+//         &:nth-child(1)
+//           width 30%
+//           max-width 250px
+
+//         &:nth-child(2)
+//           width 40%
+
+//         &:nth-child(3)
+//           width 30%
+//           max-width 250px
+
+
+//       > label.kdlabel
+//         vendor transition, color 0.2s ease-in-out
+//         color label-color
+
+//       .kdselectbox
+//         display block
+//         margin-bottom 5px
+
+//       .kdinput
+//         margin-bottom 5px
+//         height 16px
+//         font-size 10px
+//         line-height 12px
+
+//       .kd-radio-holder
+//         display inline-block
+//         margin-right 5px
+//         > label
+//           color label-color
+
+//         input.no-kdinput
+//           margin-bottom 2px
+//           margin-right: 2px
+
+//       label.legend-for-text
+//         display block
+//         color label-color
+
+//       label.legend-for-checkbox
+//         line-height 120%
+//         display inline-block
+//         padding-left 3px
+//         margin-top 5px
+//         color label-color
+
+//       label.legend-for-radios
+//         margin-bottom 1px
+//         display block
+//         color label-color
+
+//       input.libs-css-checkbox,
+//       input.libs-js-checkbox
+//         vertical-align top
+//         margin-top 6px
+
+
+//     &.spacer-hidden
+
+//       div.libs-sub-box:nth-last-child(2)
+//         rounded(0 0 4px 0)
+
+
+// label.settings-label
+//   rounded(4px)
+//   padding 4px 8px
+//   line-height 120%
+//   font-size 12px
+//   border 1px solid black
+//   position absolute
+//   right 0px
+//   top 5px
+//   z-index 99
+//   color white
+//   background-color #444
+//   font-weight 300
+
+// .formline > div.result-container
+//     max-width 100%
+//     margin-left 5px
+//     height 300px
+//     borderBox()
+
+
+// .code-snip-holder.share
+//   borderBox()
+//   height 300px
+//   vendor transition, margin 0.1s linear, height 0.1s linear
+//   rounded 0 4px 4px 4px
+
+//   &.no-top-rounded
+//     rounded 0 4px 0 0
+
+// .formline-codeshare
+//   borderBox()
+
+//   margin 5px 0px 15px 168px
+//   max-width 560px
+//   height 325px
+//   vendor transition, max-width .1s linear
+//   vendor transition, margin .1s linear
+//   vendor transition, height .1s linear
+
+//   .result-container
+//   .result-frame-container
+//   .result-frame
+//     height 100%
+
+//   figure.code-container
+
+//     pre
+//       rounded 0 4px 4px 4px
+
+
+// .code-snip-container
+//   scrollbars()
+//   borderBox()
+
+//   width 100%
+//   max-width 560px
+//   text-align left
+//   padding 0px 0px 0px 0px
+//   display inline-block
+//   position relative
+//   height 300px
+//   overflow-y hidden
+//   vendor transition, max-width .1s linear
+//   vendor transition, margin .1s linear
+//   vendor transition, height .1s linear
+
+// .code-share-container.create-view
+//   borderBox()
+
+//   overflow-y hidden
+
+//   .button-bar
+//     z-index -1
+//     position          absolute
+//     bg                color,transparent
+//     bottom            -30px
+//     left             6px
+//     overflow          hidden
+//     shadow            0 -1px 10px rgba(0,0,0,0.3)
+//     vendor            transition, bottom .15s ease-in-out //.3s
+
+//     button
+//       margin          0
+//       rounded         0
+//       border-width    1px 1px 0 1px
+//       border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+//       fl()
+
+//       &:first-child
+//         rounded       3px 0 0 0
+
+//       &:last-child
+//         rounded       0 3px 0 0
+//         border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
+//   &:hover .button-bar
+//     bottom        0px
+//     z-index       101
+
+
+// .codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
+//   height auto
+//   borderBox()
+
+// .code-share-container
+//   borderBox()
+
+//   height 330px
+
+//   > div.kdview.clearfix.kdtabpaneview
+//     vendor box-shadow none
+//     height  300px
+//     padding-top 0px
+
+//     iframe.result-frame
+//       min-height 297px
+//       max-height 100%
+
+// .codeshare-buttons
+//   margin-left 170px
+//   padding 0 0 0 0 !important
+
+// figure.code-container strong.snippet-extras
+//   top 30px
+//   background-color darken(#0896BD, 25%)
+//   width 5%
+//   overflow hidden
+//   height 10px
+
+//   span
+//     display block
+//     opacity 0
+
+//   &:hover
+//     width 25%
+//     height auto
+
+//   &:hover span
+//     opacity 1
+//     margin-top 5px
+//     display block
+
+// // Tab handles for Codeshares
+
+// .code-share-container .kdtabhandlecontainer
+
+//   padding             0
+//   margin              0
+//   border 0
+
+//   overflow            hidden
+//   // size                100%,25px
+//   z-index             0
+//   bg                  color,transparent
+//   vendor              transition, top .3s linear
+
+//   background-image url("../images/koding-bg.png")
+//   background-repeat repeat-x
+//   background-position -20px, 0px
+
+//   height 25px
+//   width 4*128px
+//   max-width 4*128px
+
+//   rounded 4px 4px 0 0
+
+
+//   .kdtabhandle
+//     width 128px
+//     borderBox()
+//     color             rgba(255, 255, 255, 0.85)  //#333
+//     line-height       23px
+//     font-size         11px
+//     padding           0 5px 0 10px
+//     height            25px
+//     border            1px solid rgba(176,176,176,.75)
+//     border-right      1px solid transparent
+//     border-bottom  #e2e2e2
+//     overflow          hidden
+//     cursor            pointer
+//     rounded           0
+//     bg                color,rgba(255,255,255,.2)
+//     gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
+//     shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+
+//     > div
+//       margin-right    14px
+
+//       b
+//         z-index       0
+//         font-weight   normal
+//         text-overflow ellipsis
+//         white-space   nowrap
+//         overflow      hidden
+//         width         100%
+//         margin-right  0
+//         display       block
+
+//     span.close-tab
+//       z-index     10
+//       bg          color,transparent
+
+//     &:hover
+//       bg          color,rgba(255,255,255,.3)
+
+//     &:first-child
+//       rounded       3px 0 0 0
+//       margin-left   0
+
+//     &:last-child
+//       border-right  1px solid #bbb //rgba(255,255,255,.15)
+//       rounded       0 3px 0 0
+//       margin-left   0
+
+//     &.first.last
+//       rounded       3px 3px 0 0
+
+//     &.active
+//       color rgba(0, 0, 0, 0.85)
+//       text-shadow   none
+//       bg            color,white
+//       gradient      white,white
+//       shadow        none
+//       // border 1px solid #2e2e2e
+//       // bg                color,rgba(255,255,255,.2)
+//       // gradient          rgba(100,100,100,.0),rgba(255,255,255,.0)
+//       shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+//       // border-bottom none
+//       &:first-child
+//         border-bottom 1px solid #bbb
+
+//       span.close-tab
+//         bg          color,transparent
+
+//       span.error
+//         color         red
+
+//     &.plus
+//       padding       0 0 0 16px
+//       span.icon
+//         margin      1px 5px 0 -5px
+//         size        20px,20px
+//         sprite()
+//         bg          position,-60px -260px
+//         fl()
+//       b
+//         margin-right  0
+
+//       &:hover
+//         bg          color,rgba(255,255,255,.3)
+//         color       rgba(255, 255, 255, 0.9)
+
+//       &.last
+//         width       25px
+//         padding     0 5px 0 7px
+
+//         b
+//           hidden()
+
+//       &.last.first
+//         width       142px
+
+//         b
+//           width     auto
+//           visible()
+
+//     .chevron-arrow-separator
+//       display         none
+
+//     .chevron-arrow
+//       position        absolute
+//       left            2px
+//       top             2px
+//       size            20px,20px
+//       bg              position,-120px -480px
+
+//     span.error
+//       color           lightCoral
+//       font-style      normal
+
 

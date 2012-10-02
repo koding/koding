@@ -15,6 +15,11 @@ class CodesnipActivityItemView extends ActivityItemChild
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
 
+    @anotherTest = new CodeShareBox
+      name : "hi"
+      allowEditing:yes
+    ,data
+
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
@@ -49,6 +54,7 @@ class CodesnipActivityItemView extends ActivityItemChild
   pistachio:->
 
     """
+    {{> @anotherTest}}
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
