@@ -46,8 +46,7 @@ class CodeShareTabPaneView extends KDTabPaneView
       type : data.CodeShareItemType.syntax
     , data
 
-
-
+    # INSTANCE LISTENERS
 
     @codeView.on "ace.ready", =>
       @codeViewLoader.destroy()
@@ -59,8 +58,6 @@ class CodeShareTabPaneView extends KDTabPaneView
       @codeView.editor.getSession().on 'change', =>
         # @refreshEditorView()
       @emit "codeSnip.aceLoaded"
-
-
 
   refreshEditorView:->
     lines = @codeView.editor.selection.doc.$lines
@@ -83,6 +80,12 @@ class CodeShareTabPaneView extends KDTabPaneView
     @setTemplate @pistachio()
     @template.update()
 
+    # LISTENERS for Syntax changer (needs to be here for getHandle access)
+
+    @getHandle().on "codeShare.changeSyntax",(syntax) =>
+      @codeView.setSyntax syntax
+
+
   pistachio:->
     """
     <div class="codeshare-code-wrapper">
@@ -96,8 +99,6 @@ class CodeShareTabPaneView extends KDTabPaneView
 class CodeShareConfigView extends KDView
   constructor:(options,data)->
     super options,data
-    log "config for",data
-
 
   viewAppended:->
     super()

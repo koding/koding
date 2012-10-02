@@ -1,7 +1,38 @@
 class CodeShareTabView extends KDTabView
   viewAppended:->
 
+###
+# The syntax selector in the Tab needs an encapsulating class
+###
 class CodeShareTabHandleView extends KDView
+  constructor:(options,data)->
+
+    super options,data
+    @syntaxSelect    = new KDSelectBox
+        name          : "syntax"
+        selectOptions : __aceSettings.getSyntaxOptions()
+        defaultValue  : options.syntax or "text"
+        callback      : (value) =>
+          @applyNewSyntax value
+
+
+  applyNewSyntax:(value)=>
+    @parent.emit "codeShare.changeSyntax", value
+
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    {{> @syntaxSelect}}
+    """
+
+
+
+class CodeShareTabHandleContainerView extends KDView
   viewAppended:->
 
     mainView = @getDelegate()
