@@ -91,9 +91,11 @@ func (d *DNode) collectCallbacks(rawObj interface{}, path []string, callbackMap 
 	default:
 		v := reflect.ValueOf(obj)
 		for i := 0; i < v.NumMethod(); i++ {
-			name := v.Type().Method(i).Name
-			name = strings.ToLower(name[0:1]) + name[1:]
-			d.registerCallback(name, v.Method(i), path, callbackMap)
+			if v.Type().Method(i).PkgPath == "" { // exported
+				name := v.Type().Method(i).Name
+				name = strings.ToLower(name[0:1]) + name[1:]
+				d.registerCallback(name, v.Method(i), path, callbackMap)
+			}
 		}
 	}
 }
