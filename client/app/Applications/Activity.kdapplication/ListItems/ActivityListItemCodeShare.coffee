@@ -10,6 +10,11 @@ class CodeShareActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
+    @testView = new CodeShareBox
+      viewMode : "TabView"
+      allowEditing:no
+    ,data
+
     @codeShareContainer = new KDTabView
       cssClass: "code-share-container"
 
@@ -177,6 +182,7 @@ class CodeShareActivityItemView extends ActivityItemChild
 
   pistachio:->
     """
+    {{> @testView}}
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
