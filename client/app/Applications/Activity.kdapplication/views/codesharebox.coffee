@@ -28,6 +28,8 @@ class CodeShareBox extends KDView
 
   constructor:(options={}, data)->
 
+    # log "Codeshare called on a",data?.bongo_?.constructorName," object:",data
+
     options = $.extend
       cssClass    : "codeshare-box"
       tooltip     :
@@ -38,24 +40,54 @@ class CodeShareBox extends KDView
 
     super options,data
 
+    # Options Defaults
+
     options.viewMode      or= "TabView"  # TabView or SplitView (later)
-    options.allowEditing  or= no         # yes for Create/Edit/Fork
+    options.allowEditing  or= yes        # yes for Create/Edit/Fork
+    options.allowClosing  or= yes
+    options.showButtonBar or= yes
+
+    # Instance Defaults
+
+    @allowEditing    = options.allowEditing
+    @allowClosing    = options.allowClosing
+    @defaultEncoding = "utf8"
 
     ###
+    ====================================================================
     Sanitizing data (converting legacy items into current data model)
+    ====================================================================
     ###
 
     if data?.bongo_?.constructorName is "JCodeSnip"
       codeShare = @convertFromJCodeSnip data
 
-    if data?.bongo_?.constructorName is "JCodeShare" and data?.modeHTML?
+    if data?.bongo_?.constructorName is "JCodeShare" and data?.attachments?
       codeShare = @convertFromLegacyCodeShare data
 
     @setData codeShare
 
-    if options.viewMode is "TabView"
+    ###
+    ====================================================================
+    Adding the respective Views (TabView,SplitView,anything we add)
+    ====================================================================
+    ###
+
+    if options.viewMode is "TabView" then @createTabView()
+    if options.showButtonBar         then @createButtonBar()
+
+
+  createTabView:->
+
+      codeShare = @getData()
+
       @setClass "codeshare-tabs"
+
+      # The CodeShareTabHandleView is in charge of adding a Plus button
+      # and Syntax selection
+
       @codeShareViewTabHandleView = new CodeShareTabHandleView
+        tabClass : CodeShareTabView
         cssClass : "codeshare-tabhandlecontainer kdtabhandlecontainer"
         delegate : @
 
@@ -65,23 +97,66 @@ class CodeShareBox extends KDView
         delegate : @
 
       for CodeShareItem,i in codeShare.CodeShareItems
+        syntaxSelect = new KDSelectBox
+          name          : "syntax"
+          selectOptions : __aceSettings.getSyntaxOptions()
+          defaultValue  : CodeShareItem.CodeShareItemType.syntax
+          callback      : (value) =>
+            log "I am",@
+            @emit "codeSnip.changeSyntax", value
         newPane = new CodeShareTabPaneView
           name:CodeShareItem.CodeShareItemType.syntax # beautify!
-          allowEditing:options.allowEditing
+          allowEditing:@allowEditing
           type:"codeshare"
+          tabHandleView:syntaxSelect
         , CodeShareItem
 
         @codeShareView.addPane newPane
+        @codeShareView.showPane @codeShareView.panes[0]
 
-      # plus button
+      @on "addCodeSharePane",(addType)=>
 
+        newData = {
+          CodeShareItemSource: "..."
+          CodeShareItemTitle: "new Codeshare"
+          CodeShareItemOptions:{}
+          CodeShareItemType:{
+            syntax:addType or "text"
+            encoding:@defaultEncoding
+          }
+        }
+
+        newPane = new CodeShareTabPaneView
+          name:addType or "text"
+          allowEditing:@allowEditing
+          type:"codeshare"
+        , newData
+
+        @codeShareView.addPane newPane
+
+  createButtonBar:->
+    codeShare = @getData()
+    @codeShareButtonBar = new KDCustomHTMLView
+      tagName:"div"
+      cssClass:"codeshare-button-bar"
+
+    @configButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "config"
+      callback  : =>
+        log "Button pressed"
+
+    @codeShareButtonBar.addSubView @configButton
 
 
 
 
 
   convertFromLegacyCodeShare:(codeshare)->
-      # log "Encountered a legacy codeshare while sanitizing data"
+      # log "Encountered a legacy codeshare while sanitizing data",codeshare
 
       codeShare = {
         body    : codeshare?.body or ""
@@ -98,7 +173,7 @@ class CodeShareBox extends KDView
           CodeShareItemSource : attachment.content or ""
           CodeShareItemTitle  : attachment.title or "Untitled"
           CodeShareItemType   : {
-            encoding          : "utf8"
+            encoding          : @defaultEncoding
             legacyType        : attachment.type or "typeless"
           }
           CodeShareItemOptions: {}
@@ -107,20 +182,20 @@ class CodeShareBox extends KDView
         # Generate Options that correspond to the syntax choice
         newOptions = {}
 
-        if attachment.syntax is "html"
+        if attachment.syntax? and attachment.syntax is "html"
           newOptions.additionalHTMLClasses          = codeshare.classesHTML or ""
           newOptions.additionalHEADElements         = codeshare.extrasHTML or ""
 
           newCodeShareItem.CodeShareItemType.syntax = codeshare.modeHTML or "html"
 
-        else if attachment.syntax is "css"
+        else if attachment.syntax? and attachment.syntax is "css"
           newOptions.externalCSSFiles               = codeshare.externalCSS or ""
           newOptions.usesPrefixFree                 = codeshare.prefixCSS or no
           newOptions.usesReset                      = codeshare.resetCSS or "none"
 
           newCodeShareItem.CodeShareItemType.syntax = codeshare.modeCSS or "css"
 
-        else if attachment.syntax is "javascript"
+        else if attachment.syntax? and attachment.syntax is "javascript"
           newOptions.externalJSFiles                = codeshare.externalJS or ""
           newOptions.usesLibraries                  = [codeshare.libsJS] or []
           newOptions.usesModernizr                   = codeshare.modernizeJS or no
@@ -134,7 +209,7 @@ class CodeShareBox extends KDView
       return codeShare
 
   convertFromJCodeSnip:(codesnip)->
-      # log "Encountered a codesnip while sanitizing data"
+      # log "Encountered a codesnip while sanitizing data",codesnip
 
       codeShare = {
         body    : codesnip?.body or ""
@@ -151,7 +226,7 @@ class CodeShareBox extends KDView
           CodeShareItemSource : attachment.content or ""
           CodeShareItemTitle  : attachment.title or "Untitled"
           CodeShareItemType   : {
-            encoding : "utf8"
+            encoding : @defaultEncoding
             legacyType: attachment.type or "typeless"
             syntax : attachment.syntax or "text"
           }
@@ -206,6 +281,11 @@ class CodeShareBox extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+    if @allowClosing is yes
+      @codeShareView.showHandleCloseIcons()
+    else
+      @codeShareView.hideHandleCloseIcons()
+
 
 
     # temp for beta
@@ -220,5 +300,6 @@ class CodeShareBox extends KDView
     """
     {{> @codeShareViewTabHandleView}}
     {{> @codeShareView}}
+    {{> @codeShareButtonBar}}
 
     """
