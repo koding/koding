@@ -83,10 +83,10 @@ class CodeShareBox extends KDView
 
       @setClass "codeshare-tabs"
 
-      # The CodeShareTabHandleView is in charge of adding a Plus button
+      # The CodeShareTabHandleContainerView is in charge of adding a Plus button
       # and Syntax selection
 
-      @codeShareViewTabHandleView = new CodeShareTabHandleView
+      @codeShareViewTabHandleView = new CodeShareTabHandleContainerView
         tabClass : CodeShareTabView
         cssClass : "codeshare-tabhandlecontainer kdtabhandlecontainer"
         delegate : @
@@ -96,40 +96,36 @@ class CodeShareBox extends KDView
         tabHandleContainer : @codeShareViewTabHandleView
         delegate : @
 
+
       for CodeShareItem,i in codeShare.CodeShareItems
-        syntaxSelect = new KDSelectBox
-          name          : "syntax"
-          selectOptions : __aceSettings.getSyntaxOptions()
-          defaultValue  : CodeShareItem.CodeShareItemType.syntax
-          callback      : (value) =>
-            log "I am",@
-            @emit "codeSnip.changeSyntax", value
-        newPane = new CodeShareTabPaneView
-          name:CodeShareItem.CodeShareItemType.syntax # beautify!
-          allowEditing:@allowEditing
-          type:"codeshare"
-          tabHandleView:syntaxSelect
+        newPane         = new CodeShareTabPaneView
+          name          : CodeShareItem.CodeShareItemType.syntax # beautify!
+          allowEditing  : @allowEditing
+          type          : "codeshare"
+          tabHandleView : new CodeShareTabHandleView
+            syntax : CodeShareItem.CodeShareItemType.syntax
         , CodeShareItem
 
         @codeShareView.addPane newPane
         @codeShareView.showPane @codeShareView.panes[0]
 
+
       @on "addCodeSharePane",(addType)=>
 
         newData = {
-          CodeShareItemSource: "..."
-          CodeShareItemTitle: "new Codeshare"
-          CodeShareItemOptions:{}
-          CodeShareItemType:{
-            syntax:addType or "text"
-            encoding:@defaultEncoding
+          CodeShareItemSource   : "..."
+          CodeShareItemTitle    : "new Codeshare"
+          CodeShareItemOptions  : {}
+          CodeShareItemType     : {
+            syntax              : addType or "text"
+            encoding            : @defaultEncoding
           }
         }
 
-        newPane = new CodeShareTabPaneView
-          name:addType or "text"
-          allowEditing:@allowEditing
-          type:"codeshare"
+        newPane         = new CodeShareTabPaneView
+          name          : addType or "text"
+          allowEditing  : @allowEditing
+          type          : "codeshare"
         , newData
 
         @codeShareView.addPane newPane
