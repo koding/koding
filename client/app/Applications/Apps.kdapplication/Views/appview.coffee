@@ -97,15 +97,10 @@ class AppView extends KDView
 
 
     if app.versions?.length > 1
-      menu =
-        type : "contextmenu"
-        items : []
+      menu = {}
 
       for version,i in app.versions
-        menu.items.push
-          id       : i
-          title    : "Install version #{version}"
-          parentId : null
+        menu["Install version #{version}"] =
           callback : (item)=>
             appsController.installApp app, app.versions[item.data.id], (err)=>
               if err then warn err
@@ -118,7 +113,7 @@ class AppView extends KDView
           diameter: 30
           color   : "#ffffff"
         delegate      : @
-        menu          : [menu]
+        menu          : menu
         callback      : ->
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
