@@ -60,6 +60,7 @@ class MainView extends KDView
     @registerSingleton "sidebarPanel", @sidebarPanel, yes
 
   addHeader:()->
+
     @addSubView @header = new KDView
       tagName : "header"
 
@@ -78,17 +79,12 @@ class MainView extends KDView
     @addLoginButtons()
 
   addLoginButtons:->
+
     @header.addSubView @buttonHolder = new KDView
       cssClass  : "button-holder hidden"
 
     mainController = @getSingleton('mainController')
 
-    # @buttonHolder.addSubView new KDButtonView
-    #   title     : "About Koding"
-    #   domId     : "about-button"
-    #   callback  : =>
-    #     mainController.propagateEvent KDEventType : "AboutButtonClicked", globalEvent : yes
-    #
     @buttonHolder.addSubView new KDButtonView
       title     : "Sign In"
       style     : "koding-blue"
@@ -104,6 +100,7 @@ class MainView extends KDView
           mainController.loginScreen.animateToForm "register"
 
   createMainTabView:->
+
     @mainTabHandleHolder = new MainTabHandleHolder
       domId    : "main-tab-handle-holder"
       cssClass : "kdtabhandlecontainer"
@@ -121,6 +118,7 @@ class MainView extends KDView
     @contentPanel.addSubView @mainTabHandleHolder
 
   createSideBar:->
+
     @sidebar = new Sidebar domId : "sidebar", delegate : @
     @emit "SidebarCreated", @sidebar
     @sidebarPanel.addSubView @sidebar
@@ -128,6 +126,7 @@ class MainView extends KDView
   changeHomeLayout:(isLoggedIn)->
 
   decorateLoginState:(isLoggedIn = no)->
+
     if isLoggedIn
       $('body').addClass "loggedIn"
       @mainTabView.showHandleContainer()
