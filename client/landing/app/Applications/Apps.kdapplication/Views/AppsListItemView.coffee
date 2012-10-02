@@ -12,12 +12,13 @@ class AppsListItemView extends KDListItemView
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 
-    thumbOptions =
-      tagName     : 'img'
+    @thumbnail = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : =>
+        @thumbnail.$().attr "src", "/images/default.app.listthumb.png"
       attributes  :
         src       : thumb
-
-    @thumbnail = new KDCustomHTMLView thumbOptions
 
   click:(event)->
     if $(event.target).is ".appdetails h3 a span"
