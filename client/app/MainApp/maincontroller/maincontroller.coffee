@@ -1,11 +1,14 @@
 class MainController extends KDController
 
-  wasLoggedIn = no
+  connectedState =
+    connected   : no
+    wasLoggedIn : no
 
-  constructor:()->
+  constructor:(options = {}, data)->
 
+    options.failWait = 5000 # duration in miliseconds to show a connection failed modal
 
-    super
+    super options, data
 
     window.appManager = new ApplicationManager
     KD.registerSingleton "mainController", @
@@ -18,7 +21,9 @@ class MainController extends KDController
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
+      KD.registerSingleton "bottomPanelController", new BottomPanelController
 
+    @setFailTimer()
     @putGlobalEventListeners()
 
   appReady:do ->
@@ -34,39 +39,11 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue.length = 0
 
-  initiateApplication:->
-  # initiateApplication:do->
-  #   modal = null
-  #   fail =->
-  #     modal = new KDBlockingModalView
-  #       title   : "Couldn't connect to the backend!"
-  #       content : "<div class='modalformline'>
-  #                    We don't know why, but your browser couldn't reach our server.<br><br>Please try again.</div>"
-  #       height  : "auto"
-  #       overlay : yes
-  #       buttons :
-  #         "Refresh Now" :
-  #           style     : "modal-clean-red"
-  #           callback  : ()->
-  #             modal.destroy()
-  #             location.reload yes
+  accountChanged:(account)->
 
-  #   connectionFails =(connectedState)->
-  #     fail() unless connectedState.connected
-  #   ->
-  #     connectedState = connected: no
-  #     setTimeout connectionFails.bind(null, connectedState), 5000
-  #     @on "RemoveModal", =>
-  #       if modal instanceof KDBlockingModalView
-  #         modal.setTitle "Connection Established"
-  #         modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
-  #         @utils.wait 2500, -> modal?.destroy()
-
-  accountChanged:(account, connectedState={})->
-    console.log 'does it happen?'
     connectedState.connected = yes
-    @emit "RemoveModal"
 
+    @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
     @userAccount = account
@@ -85,18 +62,15 @@ class MainController extends KDController
     else
       $('body').removeClass 'super'
 
-
     if @isUserLoggedIn()
       appManager.quitAll =>
         @createLoggedInState account
-
     else
       @createLoggedOutState account
-    # @getView().removeLoader()
 
   createLoggedOutState:(account)->
 
-    if wasLoggedIn
+    if connectedState.wasLoggedIn
       @loginScreen.slideDown =>
         appManager.quitAll =>
           @mainViewController.sidebarController.accountChanged account
@@ -110,7 +84,8 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
-    wasLoggedIn = yes
+
+    connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
@@ -127,8 +102,6 @@ class MainController extends KDController
       appManager.openApplication path, yes
 
   putGlobalEventListeners:()->
-
-    KDObject.on "KDBackendConnectedEvent", @initiateApplication.bind @
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
       if pageInfo.pageName is 'Logout'
@@ -206,3 +179,30 @@ class MainController extends KDController
                 kallback account if account
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
+
+  setFailTimer: do->
+    modal = null
+    fail  = ->
+      modal = new KDBlockingModalView
+        title   : "Couldn't connect to the backend!"
+        content : "<div class='modalformline'>
+                     We don't know why, but your browser couldn't reach our server.<br><br>Please try again.
+                   </div>"
+        height  : "auto"
+        overlay : yes
+        buttons :
+          "Refresh Now" :
+            style     : "modal-clean-red"
+            callback  : ()->
+              modal.destroy()
+              location.reload yes
+
+    checkConnectionState = ->
+      fail() unless connectedState.connected
+    ->
+      @utils.wait @getOptions().failWait, checkConnectionState
+      @on "RemoveFailModal", =>
+        if modal
+          modal.setTitle "Connection Established"
+          modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+          @utils.wait 2500, -> modal?.destroy()
