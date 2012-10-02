@@ -21,7 +21,7 @@ class Members12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass          : MembersListItemView
+      itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
@@ -67,7 +67,7 @@ class Members12345 extends AppController
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass          : MembersListItemView
+      itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       # singleDataSource      : (selector, options, callback)=>
@@ -110,7 +110,7 @@ class Members12345 extends AppController
   createLikedFeedForContentDisplay:(view, account)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : ActivityListItemView
+      itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
       limitPerPage          : 8
       help                  :
