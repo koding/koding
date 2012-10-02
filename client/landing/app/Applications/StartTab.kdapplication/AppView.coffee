@@ -62,10 +62,6 @@ class StartTabMainView extends JView
       cssClass : 'app-item-container'
       delegate : @
 
-    @noAppsWarning = new KDView
-      cssClass : 'no-apps hidden'
-      partial  : 'you have no apps!'
-
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
 
@@ -91,8 +87,6 @@ class StartTabMainView extends JView
 
   _windowDidResize:->
 
-
-
   addApps:->
 
     for app in apps
@@ -113,7 +107,6 @@ class StartTabMainView extends JView
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
       {{> @appItemContainer}}
-      {{> @noAppsWarning}}
     </div>
     <div class='start-tab-split-options expanded'>
       <h3>Start with a workspace</h3>
@@ -135,11 +128,9 @@ class StartTabMainView extends JView
   decorateApps:(apps)->
 
     @removeAppIcons()
-    if apps
-      @noAppsWarning.hide()
-      @putAppIcons apps
-    else
-      @noAppsWarning.show()
+    @putAppIcons apps
+    @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
+      delegate : @
 
   removeAppIcons:->
 

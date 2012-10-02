@@ -75,7 +75,7 @@ class WebTermView extends KDView
 
     $(document).on "paste", (event) =>
       @terminal.server.input event.originalEvent.clipboardData.getData("text/plain") if @focused
-    
+
     KD.singletons.kiteController.run
       kiteName: 'webterm',
       method: 'createServer',
