@@ -1,6 +1,4 @@
-class PageInbox extends KDView
-
-  KD.registerPage "Inbox", PageInbox
+class InboxView extends KDView
 
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Inbox"
@@ -47,7 +45,7 @@ class PageInbox extends KDView
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
       delegate          : @
-      subItemClass      : InboxMessagesListItem
+      itemClass      : InboxMessagesListItem
 
     inboxMessageListController = new InboxMessageListController
       delegate          : @
@@ -111,7 +109,7 @@ class PageInbox extends KDView
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
-        subItemClass  : NotificationListItem
+        itemClass  : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
@@ -136,7 +134,7 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     options.cssClass = "clearfix member-suggestion-item"
     super
 
-    {userInput} = @getDelegate()
+    userInput = options.userInput or @getDelegate().userInput
 
     @avatar = new AutoCompleteAvatarView {},data
     @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data

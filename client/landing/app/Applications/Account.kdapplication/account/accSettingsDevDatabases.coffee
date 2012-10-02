@@ -64,16 +64,29 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
 
-    @_loaderCount = 2
+    dbTypes = ['mysql', 'mongo']
+    @_loaderCount = dbTypes.length
     @showLazyLoader no
 
     hideLoaderWhenFinished = =>
       @_loaderCount--
       @hideLazyLoader() if @_loaderCount is 0
 
-    for dbtype in ['mysql', 'mongo']
+    setTimeout =>
+      for i in dbTypes
+        hideLoaderWhenFinished()
+      @scrollView.addSubView timeout = new KDCustomHTMLView
+        cssClass : "lazy-loader"
+        partial  : "Fetching database list failed. <a href='#'>Retry</a>"
+        click    : (ins, event)=>
+          if $(event.target).is "a"
+            @loadItems()
+            timeout.destroy()
+    , 10000
+
+    for dbtype in dbTypes
       @talkToKite
-        method      : @commands[dbtype].fetch
+        method    : @commands[dbtype].fetch
         withArgs  :
           dbUser  : KD.whoami().profile.nickname
       , (err, response)=>
@@ -168,7 +181,7 @@ class AccountDatabaseList extends KDListView
 
     options = $.extend
       tagName       : "ul"
-      subItemClass  : AccountDatabaseListItem
+      itemClass  : AccountDatabaseListItem
     ,options
     super options,data
 
@@ -380,7 +393,7 @@ class AccountDatabaseList extends KDListView
     #   unless err
     #     log "added",jr,f
     #     jr.type = f.type
-    #     itemView = @itemClass delegate:@,jr
+    #     itemView = new (@getOptions().itemClass ? KDListItemView) delegate:@,jr
     #     @addItemView itemView
     #     @modal.destroy()
     #   else
@@ -410,9 +423,6 @@ class AccountDatabaseList extends KDListView
   #       log "failed to update",err
   #
   #   @modal.destroy()
-
-
-
 
 
 class AccountDatabaseListItem extends KDListItemView

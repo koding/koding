@@ -8,7 +8,7 @@ class DiscussionActivityOpinionView extends KDView
   createSubViews:(data)->
     @opinionList = new KDListView
       type          : "comments"
-      subItemClass  : DiscussionActivityOpinionListItemView
+      itemClass  : DiscussionActivityOpinionListItemView
       delegate      : @
     , data
 

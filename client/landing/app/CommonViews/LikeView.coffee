@@ -74,7 +74,6 @@ class LikeView extends KDView
         @_lastUpdatedCount = likes.length
 
   click:(event)->
-
     if $(event.target).is("a.action-link")
       if KD.isLoggedIn()
         @getData().like (err)=>

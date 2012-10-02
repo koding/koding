@@ -34,10 +34,10 @@ class Chat12345 extends AppController
     # Need to declare in here so that it will switch to the tab
     channelPaneInstance = view.addChannelTab name
 
-    if channel = @channels[name]      
+    if channel = @channels[name]
       return channel
 
-    channel = new ChannelController 
+    channel = new ChannelController
       name: name
       view: channelPaneInstance
 
@@ -46,8 +46,8 @@ class Chat12345 extends AppController
 
     # Delegates to the channel to handle received message
     channelName = "client-#{name}"
-    @broadcaster.on channelName, (msg) =>      
-      @deliverMessageToChannel channel, msg      
+    @broadcaster.on channelName, (msg) =>
+      @deliverMessageToChannel channel, msg
 
     @channels[name] = channel
 
@@ -72,7 +72,7 @@ class Chat12345 extends AppController
     # and broadcast it to corresponding channels.
     view.on "ChatMessageSent", (messageBody) =>
       @parseMessage messageBody, name
-      @broadcastOwnMessage messageBody, name 
+      @broadcastOwnMessage messageBody, name
       # Also broadcast to public channel
       if name isnt PUBLIC
         @broadcastOwnMessage messageBody, PUBLIC, name
@@ -83,11 +83,11 @@ class Chat12345 extends AppController
       listener      : @
       callback      : (pubInst,event)=>
         {callback,inputValue,blacklist} = event
-        @fetchAutoCompleteForMentionField inputValue,blacklist,callback 
+        @fetchAutoCompleteForMentionField inputValue,blacklist,callback
 
   ###
   # Parses the message body for any reference to a channel, then
-  # joins the user to that channel. It will then broadcast the 
+  # joins the user to that channel. It will then broadcast the
   # message body to the newly joined channel.
   ###
   parseMessage: (message, fromChannel) ->
@@ -102,7 +102,7 @@ class Chat12345 extends AppController
   # channel reference will be rendered from the view.
   ###
   broadcastOwnMessage: (messageBody, toChannel, fromChannel) ->
-    chatItem = 
+    chatItem =
       author: @username
       body: messageBody
       meta: {createdAt: new Date().toISOString()}
@@ -139,9 +139,9 @@ class TabPaneViewWithList extends KDTabPaneView
   constructor: (options = {}, data) ->
     super options, data
     controllerOptions = options.controllerOptions or {}
-    
-    if options.subItemClass
-      controllerOptions.subItemClass = options.subItemClass
+
+    if options.itemClass
+      controllerOptions.itemClass = options.itemClass
 
     @listController = new KDListViewController controllerOptions
     @listView = @listController.getListView()
@@ -166,7 +166,7 @@ class ChannelLinkView extends KDCustomHTMLView
     options.tagName or= 'a'
     super options, data
 
-  viewAppended:->    
+  viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 

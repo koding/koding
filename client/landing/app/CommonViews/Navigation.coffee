@@ -24,11 +24,11 @@ class NavigationController extends KDListViewController
 
 class NavigationList extends KDListView
 
-  itemClass:(options,data)->
+  customizeItemOptions:(options, data)->
+
     if data.title is "Invite Friends"
-      new NavigationInviteLink options, data
-    else
-      super
+      options.childClass = NavigationInviteLink
+      return options
 
 class NavigationLink extends KDListItemView
 
@@ -59,15 +59,20 @@ class AdminNavigationLink extends NavigationLink
     cb = @getData().callback
     cb.call @ if cb
 
-class NavigationInviteLink extends NavigationLink
+class NavigationInviteLink extends KDCustomHTMLView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
+    options.tagName  = "a"
+    options.cssClass = "title"
+
+    super options, data
 
     @hide()
     @count = new KDCustomHTMLView
-      pistachio: "{{#(quota)-#(usage)}}"
+      tagName   : "span"
+      cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
+      pistachio : "{{#(quota)-#(usage)}}"
 
     @utils.wait 10000, =>
       KD.whoami().fetchLimit? 'invite', (err, limit)=>
@@ -100,8 +105,7 @@ class NavigationInviteLink extends NavigationLink
     @template.update()
 
   pistachio:->
-    "<a class='title' href='#'><span class='main-nav-icon #{__utils.slugify @getData().title}'>{{> @count}}</span>#{@getData().title}</a>"
-
+    "{{> @count}}#{@getData().title}"
 
   # take this somewhere else
   # was a beta quick solution
@@ -189,4 +193,6 @@ class NavigationInviteLink extends NavigationLink
     , @count.getData()
 
     modal.modalTabs.panes[0].form.buttonField.addSubView inviteHint, null, yes
+
+    return no
 

@@ -4,7 +4,7 @@ class AceSettingsView extends KDTreeItemView
     super
     @setClass "ace-settings-view"
 
-    button = @getDelegate().getDelegate()
+    button = @getDelegate()
 
     @useSoftTabs    = new KDOnOffSwitch
       callback      : (state) => button.emit "ace.changeSetting", "useSoftTabs", state
@@ -55,8 +55,7 @@ class AceSettingsView extends KDTreeItemView
     @setTemplate @pistachio()
     @template.update()
 
-    button  = @getDelegate().getDelegate()
-    aceView = button.getDelegate()
+    aceView = @getDelegate()
     if aceView
       @setDefaultValues aceView.getSettings()
 

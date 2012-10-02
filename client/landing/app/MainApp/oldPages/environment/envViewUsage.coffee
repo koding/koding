@@ -10,7 +10,7 @@ class EnvironmentViewUsage extends KDView
       icon      : yes
       iconClass : "resources"
       callback  : ()-> log "Add Resources!"
-    @addSubView list = new EnvironmentUsageList subItemClass : EnvironmentUsageListItem,(items : @usageData)
+    @addSubView list = new EnvironmentUsageList itemClass : EnvironmentUsageListItem,(items : @usageData)
 
   usageData :[
       { title : "storage", used  : 100,total : 100,unit  : "MB" }
@@ -35,7 +35,7 @@ class EnvironmentUsageList extends KDListView
 
 class EnvironmentUsageListItem extends KDListItemView
   colors : [ "#FFD666", "#FFCB52", "#FFC042", "#FFB433", "#FFA024", "#FF8E14", "#FF7C0A", "#FF6A00", "#F05800", "#E64900" ]
-  
+
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview kdlistview #{cssClass}'></li>"
 
@@ -56,7 +56,7 @@ class EnvironmentUsageListItem extends KDListItemView
         backgroundColor : color
       ,
         duration      : 800
-        specialEasing : 
+        specialEasing :
           width           : 'easeInQuart'
           backgroundColor : 'linear'
         complete      : ()-> noop
