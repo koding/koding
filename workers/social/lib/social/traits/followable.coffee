@@ -80,13 +80,14 @@ module.exports = class Followable
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
             # callback err, count
+            action = "follow"
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')
               followingCount  : @getAt('counts.following')
               follower        : follower
-              action          : "follow"
+              action          : action
 
-            follower.updateFollowingCount()
+            follower.updateFollowingCount @, action
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
@@ -110,12 +111,13 @@ module.exports = class Followable
         Module::update.call @, $set: 'counts.followers': count, (err)->
           throw err if err
         callback err, count
+        action = "unfollow"
         @emit 'FollowCountChanged'
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')
           follower        : follower
-          action          : "unfollow"
-        follower.updateFollowingCount()
+          action          : action
+        follower.updateFollowingCount @, action
 
   fetchFollowing: (query, page, callback)->
     JAccount = require '../models/account'
@@ -132,6 +134,7 @@ module.exports = class Followable
           callback err, accounts
 
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
+    JAccount = require '../models/account'
     @fetchFollowers query, page, (err, accounts)->
       if err then callback err else JAccount.markFollowing client, accounts, callback
 
@@ -151,10 +154,12 @@ module.exports = class Followable
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
-  updateFollowingCount: ()->
+  updateFollowingCount: (followee, action)->
     Relationship.count targetId:@_id, as:'follower', (error, count)=>
       Model::update.call @, $set: 'counts.following': count, (err)->
         throw err if err
       @emit 'FollowCountChanged'
         followerCount   : @getAt('counts.followers')
         followingCount  : @getAt('counts.following')
+        followee        : followee
+        action          : action

@@ -100,14 +100,16 @@ handleClient = do ->
   
   handleFollowAction = (account) ->
     ownExchangeName = getOwnExchangeName account
-    account.on "FollowCountChanged", () ->
-      console.log "FollowCountChanged111", arguments
-      return unless action? is "follow" or "unfollow"
+    # Receive when the account follows somebody
+    mq.on "event-"+account.getId(), "FollowCountChanged", ({followee, action}) ->
+      console.log action
+      return unless action is "follow" or action is "unfollow"
+      console.log "following changed", followee, action
       # Set up the exchange-to-exchange binding for followings.
-      followerNick = follower.profile.nickname
-      routingKey = "#{followerNick}.activity"
+      followeeNick = "#{EXCHANGE_PREFIX}#{followee.profile.nickname}"
+      routingKey = "#{followeeNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      mq[method] ownExchangeName, "x#{followerNick}", routingKey
+      mq[method] ownExchangeName, followeeNick, routingKey
 
   (account) ->
     nickname = account.profile.nickname
@@ -116,6 +118,7 @@ handleClient = do ->
     feed = {title:"followed", description: ""}
     JFeed = require './models/feed'
     JFeed.assureFeed account, feed, (err, theFeed) ->
+
     clients[nickname] = account
     prepareBroker account
     handleFolloweeActivity account
