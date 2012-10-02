@@ -16,12 +16,14 @@ class MainController extends KDController
     KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
-    @setFailTimer()
+
     @appReady ->
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
+      KD.registerSingleton "bottomPanelController", new BottomPanelController
 
+    @setFailTimer()
     @putGlobalEventListeners()
 
   appReady:do ->
@@ -82,6 +84,7 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
+
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
