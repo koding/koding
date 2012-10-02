@@ -11,12 +11,6 @@ class KDObject extends KDEventEmitter
     @listeningTo = []
     super
 
-  # inheritanceChain:()->
-  #   proto = @__proto__
-  #   chain = @constructor.name
-  #   while proto = proto.__proto__
-  #     chain += ".#{proto.constructor.name}"
-  #   chain
   if KD.MODE is 'development'
     interfere:(o)-> o
     o:(o)-> @interfere o
@@ -41,23 +35,6 @@ class KDObject extends KDEventEmitter
     options.newLink
     options.chain + ".#{options.newLink}"
 
-
-  # on:(eventName,callback)->
-  #   @registerListener
-  #     KDEventTypes : eventName.capitalize()
-  #     callback : callback
-  #   @
-  #
-  # emit:()->
-  #   arr = $.extend [],arguments
-  #   eventName = arr[0].capitalize()
-  #   data = arr[1...arr.length]
-  #   if @listeners
-  #     for subscription in @listeners
-  #       if !!(new RegExp subscription.KDEventType).test eventName
-  #         subscription.callback.apply null, data
-  #   @
-
   listenToOnce:(KDEventTypes,callback,obj)->
     options = @_listenToAdapter KDEventTypes, callback, obj
     if (obj = options.obj)?
@@ -76,24 +53,8 @@ class KDObject extends KDEventEmitter
     @_listenTo options
 
   _listenToAdapter:(KDEventTypes, callback, obj)->
-  #
-  # @listenTo
-  #   KDEventTypes        : [arrayOfStrings]|string
-  #   listenedToInstance  : [arrayOfObjects]|object
-  #   callback            :
-  #
-  #     KDEventTypes =
-  #       className : "blah1"
-  #       eventType : "click"
-  #       ,
-  #       className : "blah2"
-  #       eventType : "submit"
-  #       ,
-  #       className : "Data"
-  #       property  : "account.profile"
-  #
 
-# temporary migration code
+    # temporary migration code
     #listenTo:({KDEventTypes,listenedToInstance,callback,callbacks})->
     if KDEventTypes.KDEventTypes? # for backwards compatibility
       options = KDEventTypes
@@ -110,7 +71,8 @@ class KDObject extends KDEventEmitter
       obj = options.listenedToInstance
       callback = options.callback
       callbacks = options.callbacks
-# /temporary migration code
+
+    # /temporary migration code
     {KDEventTypes, callback, callbacks, obj}
 
   _listenTo:({KDEventTypes, callback, callbacks, obj})->
@@ -142,18 +104,10 @@ class KDObject extends KDEventEmitter
         (@subscriptionsByEvent[KDEventType] or= []).push {KDEventType, listener, callback}
         count = ((@subscriptionCountByListenerId[listener.id] or= {})[KDEventType] or= 0)
         count++
-        # @listeners.push
-        #   listener            : listener
-        #   KDEventType         : KDEventType.capitalize()
-        #   callback            : callback # ? KDEventType
     else
       (@subscriptionsByEvent.KDAnyEvent or= []).push {KDEventType : 'KDAnyEvent', listener, callback}
       count = ((@subscriptionCountByListenerId[listener.id] or= {}).KDAnyEvent or= 0)
       count++
-      # @listeners.push
-      #   listener            : listener
-      #   KDEventType         : null
-      #   callback            : callback
     listener?.setListeningTo @
 
   registerListenOncer:({KDEventTypes, callback, listener})->
@@ -185,10 +139,6 @@ class KDObject extends KDEventEmitter
     if 'KDAnyEvent' of @subscriptionsByEvent
       for subscription in @subscriptionsByEvent.KDAnyEvent
         subscription.callback.call subscription.listener, @, data, {subscription}
-    # if @listeners
-    #   for subscription in @listeners
-    #     if (!KDEventType? or !(path = subscription.KDEventType)? or !!(new RegExp path).test KDEventType.capitalize())
-    #       subscription.callback.call subscription.listener, @, data, {subscription}
     KD.propagateEvent KDEventType, @, data if globalEvent
 
   removeListener:( {listener} )->
@@ -201,27 +151,14 @@ class KDObject extends KDEventEmitter
           count--
         _i++
       subscriptionCountByListenerId[listener][eventType] = 0
-    # remainingSubscriptions = []
-    # for subscription in @listeners
-    #   remainingSubscriptions.push subscription if subscription.listener isnt listener
-
-    # log remainingSubscriptions,@
-    # @listeners = remainingSubscriptions
 
   requireLogin:KD.requireLogin
-  # DUP
-  # registerKDObjectInstance : ->
-  #   KD.registerInstance @
-  #   @setDelegate @
 
-  registerKDObjectInstance: ->
-    KD.registerInstance @
+  registerKDObjectInstance: -> KD.registerInstance @
 
-  setData:(data)->
-    @data = data if data?
+  setData:(data)-> @data = data if data?
 
-  getData:->
-    @data
+  getData:-> @data
 
   setOptions:(options)->
     @options = options ? {}
@@ -247,20 +184,12 @@ class KDObject extends KDEventEmitter
 
   getDelegate:->@delegate
 
-  destroy: do ->
-    terminate = (ctor)->
-      # for key,value of ctor
-      #   delete ctor[key]
-    ()->
-      # log "destroying",@
-      @emit 'KDObjectWillBeDestroyed'
-      KD.removeSubscriptions @
-      for obj in @listeningTo
-        obj.removeListener listener : @
+  destroy:()->
 
-      id = @id
-      terminate @
-      KD.deleteInstance id
+    @emit 'KDObjectWillBeDestroyed'
+    KD.removeSubscriptions @
+    for obj in @listeningTo
+      obj.removeListener listener : @
 
-  @emptyDataCache = ()->
-    KD.emptyDataCache()
+    id = @id
+    KD.deleteInstance id

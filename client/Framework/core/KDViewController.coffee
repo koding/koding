@@ -1,42 +1,34 @@
 class KDViewController extends KDController
-  constructor:(options,data)->
-    @setData data
-    @setOptions options
-    @setDelegate options.delegate if options?.delegate?
-    super options,data
 
-    if options?.view?
-      @setView options.view
+  constructor:->
 
-  setData:(data)->
-    @data = data ? {}
-  getData:-> @data
+    super
 
-  setOptions:(options)->
-    @options = options ? {}
-  getOptions:-> @options
+    @setView @getOptions().view if @getOptions().view?
 
   bringToFront:(options = {}, view = @getView())->
+
     @propagateEvent
-      KDEventType  : 'ApplicationWantsToBeShown'
-      globalEvent  : yes
+      KDEventType : 'ApplicationWantsToBeShown'
+      globalEvent : yes
     ,
-      options : options
-      data    : view
+      options     : options
+      data        : view
 
   initAndBringToFront:(options, callback)->
+
     @bringToFront()
     callback()
 
   loadView:(mainView)->
 
   getView:()-> @mainView
-  setView:(aViewInstance)->
-    @mainView = aViewInstance
-    if aViewInstance.isViewReady() then @loadView @getView()
-    else
-      aViewInstance.on 'viewAppended', @loadView.bind(@, aViewInstance)
-      aViewInstance.on 'KDObjectWillBeDestroyed', => @destroy()
 
-  # DELEGATE METHOD
-  hashDidChange:(params,query)->
+  setView:(aViewInstance)->
+
+    @mainView = aViewInstance
+    cb = @loadView.bind(@, aViewInstance)
+    if aViewInstance.isViewReady() then do cb
+    else
+      aViewInstance.on 'viewAppended', cb
+      aViewInstance.on 'KDObjectWillBeDestroyed', => @destroy()
