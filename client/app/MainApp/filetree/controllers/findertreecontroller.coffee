@@ -16,7 +16,7 @@ class NFinderTreeController extends JTreeViewController
       @getView().setClass "no-context-menu"
 
     @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
-    @getSingleton('mainController').on "SelectedFileChanged", (file)=> @higlightFile file
+    @getSingleton('mainController').on "SelectedFileChanged", (file)=> @highlightFile file
 
   addNode:(nodeData, index)->
 
@@ -47,7 +47,7 @@ class NFinderTreeController extends JTreeViewController
           @selectNode @nodes[newFile.path]
         @listenedPaths[file.path] = file.path
 
-  higlightFile:(file)->
+  highlightFile:(file)->
     @selectNode @nodes[file.path]
 
   navigateToNewFile:(newFile)=>
