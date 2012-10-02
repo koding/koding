@@ -101,6 +101,42 @@ div.codeshare-box
         gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
         shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
 
+        div.kdselectbox
+          border none
+          background rgba(255,255,255,0.0)
+          outline none
+
+          &.focus
+            outline           none
+            shadow            none
+            // shadow            0 1px 0 rgba(255, 255, 255, 0.67)\, 0 0 15px #f4ad11
+            border            none
+
+          select
+            position          absolute
+            cursor            pointer
+            display           block
+            vendor            appearance,none
+            opacity           0.00001
+            top               0
+            left              0
+            size              100%,100%
+            z-index           100
+
+
+          span.title
+            color #e2e2e2
+            vendor text-shadow none
+            size              auto,24px
+            line-height       25px
+
+          span.arrows
+            top 3px
+            background-position -80px -200px
+
+          // select
+
+
         > div
           margin-right    14px
 
@@ -144,6 +180,19 @@ div.codeshare-box
           // gradient          rgba(100,100,100,.0),rgba(255,255,255,.0)
           shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
           // border-bottom none
+
+          div.kdselectbox
+            border none
+            background rgba(255,255,255,0.0)
+
+            span.title
+              color #2e2e2e
+              vendor text-shadow none
+            span.arrows
+              top 3px
+              background-position -60px -280px
+          // select
+
           &:first-child
             border-bottom 1px solid #bbb
 
