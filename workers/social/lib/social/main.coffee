@@ -129,7 +129,12 @@ handleClient = do ->
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
-    handleClient delegate
+
+    unless delegate instanceof koding.models.JGuest
+      handleClient delegate
+    else
+      koding.models.JAccount.once "AccountLoggedIn", (account) ->
+        handleClient account
 
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 

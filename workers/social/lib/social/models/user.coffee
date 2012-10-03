@@ -237,6 +237,7 @@ module.exports = class JUser extends jraphical.Module
                     callback err
                   else
                     connection.delegate = account
+                    JAccount.emit "AccountLoggedIn", account
                     callback null, account, replacementToken
 
   @logout = secure (client, callback)->
@@ -382,7 +383,7 @@ module.exports = class JUser extends jraphical.Module
                               JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
                                 console.log 'An error granting invitations', err if err
                               createNewMemberActivity account
-                              console.log replacementToken
+                              JAccount.emit "AccountLoggedIn", account
                               callback null, account, replacementToken
     daisy queue
 
