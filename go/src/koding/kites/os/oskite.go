@@ -7,7 +7,7 @@ import (
 	"koding/tools/utils"
 	"os"
 	"path"
-	"strings"
+	"syscall"
 )
 
 func main() {
@@ -44,9 +44,13 @@ func main() {
 				return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
 			}
 
-			absPath := path.Clean(path.Join(session.Home, relPath))
-			if !path.IsAbs(absPath) || !strings.HasPrefix(absPath, session.Home) {
-				return nil, fmt.Errorf("Can only watch inside of home directory.")
+			absPath := path.Join(session.Home, relPath)
+			info, err := os.Stat(absPath)
+			if err != nil {
+				return nil, err
+			}
+			if int(info.Sys().(*syscall.Stat_t).Uid) != session.Uid {
+				return nil, fmt.Errorf("You can only watch your own directories.")
 			}
 
 			watch, err := NewWatch(absPath, onChange)

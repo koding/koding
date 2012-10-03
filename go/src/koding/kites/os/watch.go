@@ -72,7 +72,7 @@ func init() {
 				} else {
 					event = "modify"
 				}
-				info, err := os.Stat(ev.Name)
+				info, err := os.Lstat(ev.Name)
 				if err != nil {
 					log.Warn("Watcher error", err)
 					continue
