@@ -66,26 +66,37 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @appStorage = new AppStorage 'KodingApps', '1.0'
 
+    @fetchedFromFs = no
+
   # #
   # FETCHERS
   # #
 
   fetchApps:(callback)->
 
+    log "FETCH_APPS * *", @constructor.manifests
+
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
     else
-      @fetchAppsFromDb (err, apps)=>
-        if err
-          @fetchAppsFromFs (err, apps)=>
-            if err then callback()
-            else
-              callback null, apps
-        else
-          callback? err, apps
+      if not @fetchedFromFs
+        @fetchAppsFromFs (err, apps)=>
+          if err then callback()
+          else
+            callback null, apps
+      else
+        @fetchAppsFromDb (err, apps)=>
+          if err
+            @fetchAppsFromFs (err, apps)=>
+              if err then callback()
+              else
+                callback null, apps
+          else
+            callback? err, apps
 
   fetchAppsFromFs:(callback)->
 
+    log "FETCH_FROM * FS *"
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
     # require ["coffee-script"], (coffee)=>
@@ -134,9 +145,11 @@ class KodingAppsController extends KDController
 
           @putAppsToAppStorage manifests
           callback? null, manifests
+          @fetchedFromFs = yes
 
   fetchAppsFromDb:(callback)->
 
+    log "FETCH_FROM * DB *"
     @appStorage.fetchValue 'apps', (apps)=>
       if apps and Object.keys(apps).length > 0
         @constructor.manifests = apps
