@@ -172,7 +172,7 @@ module.exports = new Kite 'sharedHosting'
         if err then cb err
         else
           exec "stat #{versionedPath}", (err, stdout, stderr)->
-            if err or stderr.length
+            unless err or stderr.length
               cb "[ERROR] Version is already published, change version and try again!"
             else
               exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
