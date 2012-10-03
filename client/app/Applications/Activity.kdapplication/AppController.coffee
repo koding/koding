@@ -155,28 +155,41 @@ class Activity12345 extends AppController
         @activityListController.isLoading = no
         @activityListController.hideLazyLoader()
 
-  fetchTeasers:(selector,options,callback)->
-    appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
-      if err
-        log '>> error fetching app storage', err
-      else
-        options.collection = 'activities'
-        flags = KD.whoami().globalFlags
-        exempt = flags?.indexOf 'exempt'
-        exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-        $.ajax KD.apiUri+'/1.0'
-          data      :
-            t       : if exempt then 1 else undefined
-            data    : JSON.stringify(_.extend options, selector)
-            env     : KD.config.env
-          dataType  : 'jsonp'
-          success   : (data)->
-            KD.remote.reviveFromSnapshots data, (err, instances)->
-              # console.log instances
-              callback instances
+  performFetchingTeasers:(type, selector, options, callback) ->
+    if type is 'public'
+      appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+        if err
+          log '>> error fetching app storage', err
+        else
+          options.collection = 'activities'
+          flags = KD.whoami().globalFlags
+          exempt = flags?.indexOf 'exempt'
+          exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+          $.ajax KD.apiUri+'/1.0'
+            data      :
+              t       : if exempt then 1 else undefined
+              data    : JSON.stringify(_.extend options, selector)
+              env     : KD.config.env
+            dataType  : 'jsonp'
+            success   : (data) -> callback null, data
 
-    # KD.remote.api.CActivity.some selector, options, (err, activities) ->
-    #   callback activities
+    else if type is 'private'
+      KD.whoami().fetchFeeds (err, feeds) =>
+        for feed in feeds
+          continue unless feed.title is 'followed'
+          feed.fetchActivities selector, options, (err, data) =>
+            if err
+              callback err
+            else
+              for datum in data
+                datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
+              callback null, data
+
+  fetchTeasers:(selector,options,callback)->
+    type = @activityListController._state
+    @performFetchingTeasers type, selector, options, (err, data) ->
+      KD.remote.reviveFromSnapshots data, (err, instances)->
+        callback instances
     #
     # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
@@ -227,27 +240,13 @@ class Activity12345 extends AppController
         createdAt : -1
 
     if not options.skip < options.limit
-      if controller._state is 'public'
-        @fetchTeasers selector, options, (activities)=>
-          if activities
-            for activity in activities
-              controller.addItem activity
-            callback? activities
-          else
-            callback?()
-
-      else if controller._state is 'private'
-        KD.whoami().fetchFeeds (err, feeds) =>
-          for feed in feeds
-            continue unless feed.title is 'followed'
-            feed.fetchActivities selector, options, (err, activities) =>
-              if not err and activities?
-                for activity in activities
-                  controller.addItem activity
-                callback? activities
-              else
-                callback?()
-
+      @fetchTeasers selector, options, (activities)=>
+        if activities
+          for activity in activities
+            controller.addItem activity
+          callback? activities
+        else
+          callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
     KD.remote.api.Relationship.within sourceIds, options, (err, rels)->

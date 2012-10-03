@@ -73,7 +73,7 @@ module.exports = class JFeed extends jraphical.Module
         else
           ids = (rel.targetId for rel in rels)
           selector = extend selector, {_id: {$in: ids}}
-          CActivity.some selector, options, callback
-
+          CActivity.someData selector, {snapshot: true}, options, (err, cursor) ->
+            cursor.toArray callback
 
 
