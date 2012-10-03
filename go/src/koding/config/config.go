@@ -1,6 +1,8 @@
 package config
 
 import (
+	"flag"
+	"fmt"
 	"os"
 )
 
@@ -45,17 +47,18 @@ type Config struct {
 	User          string
 }
 
+var Profile string
 var Current Config
 
 func init() {
-	profile := "default"
-	if len(os.Args) >= 2 {
-		profile = os.Args[1]
-	}
+	flag.StringVar(&Profile, "c", "default", "Configuration profile")
+}
 
+func LoadConfig() {
 	var ok bool
-	Current, ok = configs[profile]
+	Current, ok = configs[Profile]
 	if !ok {
-		panic("Configuration not found.")
+		fmt.Printf("Configuration not found: %v\n", Profile)
+		os.Exit(1)
 	}
 }
