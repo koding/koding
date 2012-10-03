@@ -66,6 +66,10 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @appStorage = new AppStorage 'KodingApps', '1.0'
 
+    @appStorage.fetchStorage (storage)=>
+      if not @appStorage.getValue 'shortcuts'
+        @putDefaultShortcutsToAppStorage()
+
     @fetchedFromFs = no
 
   # #
@@ -178,10 +182,46 @@ class KodingAppsController extends KDController
       else
         callback err
 
+  putDefaultShortcutsToAppStorage:->
+
+    shortcuts       =
+      Ace           :
+        name        : 'Ace'
+        type        : 'koding-app'
+        icon        : 'icn-ace.png'
+        description : 'Code Editor'
+        author      : 'Mozilla'
+      Terminal      :
+        name        : 'Terminal'
+        type        : 'koding-app'
+        icon        : 'icn-terminal.png'
+        description : 'Koding Terminal'
+        author      : 'Koding'
+        path        : 'WebTerm'
+      CodeMirror    :
+        name        : 'CodeMirror'
+        type        : 'comingsoon'
+        icon        : 'icn-codemirror.png'
+        description : 'Code Editor'
+        author      : 'Marijn Haverbeke'
+      yMacs         :
+        name        : 'yMacs'
+        type        : 'comingsoon'
+        icon        : 'icn-ymacs.png'
+        description : 'Code Editor'
+        author      : 'Mihai Bazon'
+      Pixlr         :
+        name        : 'Pixlr'
+        type        : 'comingsoon'
+        icon        : 'icn-pixlr.png'
+        description : 'Image Editor'
+        author      : 'Autodesk'
+
+    @appStorage.setValue 'shortcuts', shortcuts
+
   putAppsToAppStorage:(apps)->
 
-    @appStorage.setValue 'apps', apps, (err)=>
-      log err if err
+    @appStorage.setValue 'apps', apps
 
   defineApp:(name, script)->
 
