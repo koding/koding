@@ -76,7 +76,7 @@ class CodeShareBox extends KDView
     ###
 
     if options.viewMode is "TabView" then @createTabView()
-    if options.showButtonBar         then @createButtonBar()
+    # if options.showButtonBar         then @createButtonBar()
 
 
   createTabView:->
@@ -99,22 +99,23 @@ class CodeShareBox extends KDView
         delegate : @
 
 
-      for CodeShareItem,i in codeShare.CodeShareItems
-        newPane         = new CodeShareTabPaneView
-          name          : CodeShareItem.CodeShareItemType.syntax
-          allowEditing  : @allowEditing
-          type          : "codeshare"
-          tabHandleView : new CodeShareTabHandleView
-            syntax : CodeShareItem.CodeShareItemType.syntax
-            disabled : not @allowEditing
-        , CodeShareItem
-        @codeShareView.addPane newPane
-        @codeShareView.showPane @codeShareView.panes[0]
+      if codeShare.CodeShareItems
+        for CodeShareItem,i in codeShare.CodeShareItems
+          newPane         = new CodeShareTabPaneView
+            name          : CodeShareItem.CodeShareItemType.syntax
+            allowEditing  : @allowEditing
+            type          : "codeshare"
+            tabHandleView : new CodeShareTabHandleView
+              syntax : CodeShareItem.CodeShareItemType.syntax
+              disabled : not @allowEditing
+          , CodeShareItem
+          @codeShareView.addPane newPane
+          @codeShareView.showPane @codeShareView.panes[0]
 
 
       @on "addCodeSharePane",(addType)=>
         newData = {
-          CodeShareItemSource   : "..."
+          CodeShareItemSource   : @prepareDefaultItemSource addType
           CodeShareItemTitle    : "new Codeshare"
           CodeShareItemOptions  : {}
           CodeShareItemType     : {
@@ -131,32 +132,43 @@ class CodeShareBox extends KDView
         , newData
         @codeShareView.addPane newPane
 
-  createButtonBar:=>
-    codeShare = @getData()
-    @codeShareButtonBar = new KDCustomHTMLView
-      tagName:"div"
-      cssClass:"codeshare-button-bar"
+  # createButtonBar:=>
+  #   codeShare = @getData()
+  #   @codeShareButtonBar = new KDCustomHTMLView
+  #     tagName:"div"
+  #     cssClass:"codeshare-button-bar"
 
-    unless @allowEditing
-      @codeShareButtonBar.hide()
+  #   unless @allowEditing
+  #     @codeShareButtonBar.hide()
+  #   else
+  #     @codeView?.setClass "has-button-bar"
+  #     @codeShareView?.setClass "has-button-bar"
+
+  #   @configButton = new KDButtonView
+  #     title     : ""
+  #     style     : "dark"
+  #     icon      : yes
+  #     iconOnly  : yes
+  #     iconClass : "config"
+  #     callback  : =>
+  #       log "Button pressed"
+
+  # @codeShareButtonBar.addSubView @configButton
+
+  prepareDefaultItemSource:(addType)->
+    if addType is "php"
+      'echo "Hello World"'
+    else if addType is "html"
+      "<body><h1>Hello World</h1></body>"
+    else if  addType is "javascript"
+      "console.log('Hello World');"
     else
-      @codeView?.setClass "has-button-bar"
-      @codeShareView?.setClass "has-button-bar"
-
-    @configButton = new KDButtonView
-      title     : ""
-      style     : "dark"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "config"
-      callback  : =>
-        log "Button pressed"
-
-    @codeShareButtonBar.addSubView @configButton
+      "Enter your Code here"
 
 
-
-
+  resetTabs:=>
+    for pane in @codeShareView?.panes
+      @codeShareView.removePane pane
 
   convertFromLegacyCodeShare:(codeshare)->
       # log "Encountered a legacy codeshare while sanitizing data",codeshare
@@ -309,5 +321,4 @@ class CodeShareBox extends KDView
     """
     {{> @codeShareViewTabHandleView}}
     {{> @codeShareView}}
-    {{> @codeShareButtonBar}}
     """

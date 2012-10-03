@@ -787,6 +787,24 @@ class ActivityCodeShareWidget extends KDFormView
     # @addCustomData "codeCSS", Encoder.htmlEncode @CSSace.getContents()
     # @addCustomData "codeJS", Encoder.htmlEncode @JSace.getContents()
 
+    newCodeShareItems = []
+
+    for pane in @codeShareBoxView?.codeShareView?.panes
+      newCodeShareItem = {
+        CodeShareItemSource : pane.codeView.getContents()
+        CodeShareItemTitle  : pane.name
+        CodeShareItemOptions: {}
+        CodeShareItemType   : {
+          syntax            : pane.codeView.syntaxMode
+        }
+      }
+      newCodeShareItems.push newCodeShareItem
+
+    @addCustomData "CodeShareItems", newCodeShareItems
+    @addCustomData "CodeShareOptions", {}
+
+    @removeCustomData "syntax"
+
     @once "FormValidationPassed", =>
       setTimeout =>
         @reset()
@@ -797,6 +815,10 @@ class ActivityCodeShareWidget extends KDFormView
   reset:=>
     @submitBtn.setTitle "Post your Code Share"
     @removeCustomData "activity"
+    @removeCustomData "CodeShareItems"
+    @removeCustomData "CodeShareOptions"
+
+    @codeShareBoxView.resetTabs()
 
     @title.setValue ''
     @description.setValue ''
@@ -1054,25 +1076,9 @@ class ActivityCodeShareWidget extends KDFormView
       allowEditing:yes
       allowClosing:yes
       hideTabs:no
-    ,{
-      CodeShareItems:
-        [
-          {
-            CodeShareItemSource   : "..."
-            CodeShareItemTitle    : "new Codeshare"
-            CodeShareItemOptions  : {}
-            CodeShareItemType     :
-              {
-                syntax              : "text"
-                encoding            : "utf8"
-              }
-          }
-        ]
-      CodeShareOptions:
-        {
+    ,{}
 
-        }
-      }
+    @codeShareBoxView.setClass "codeshare-edit-widget"
 
 
     @setClass "update-options codeshare"
