@@ -43,14 +43,16 @@ class CodeShareBox extends KDView
     # Options Defaults
 
     options.viewMode      or= "TabView"  # TabView or SplitView (later)
-    options.allowEditing  ?= yes        # yes for Create/Edit/Fork
+    options.allowEditing  ?= yes         # yes for Create/Edit/Fork
     options.allowClosing  ?= yes
     options.showButtonBar ?= yes
+    options.hideTabs      ?= no          # legacy, for single-view codesnips
 
     # Instance Defaults
 
     @allowEditing    = options.allowEditing
     @allowClosing    = options.allowClosing
+    @hideTabs        = options.hideTabs
     @defaultEncoding = "utf8"
 
     ###
@@ -286,6 +288,12 @@ class CodeShareBox extends KDView
       @codeShareView.showHandleCloseIcons()
     else
       @codeShareView.hideHandleCloseIcons()
+
+    if @hideTabs
+      @codeShareView.hideHandleContainer()
+      @codeShareView.setClass "has-no-tabs"
+    else
+      @codeShareView.showHandleContainer()
 
 
 

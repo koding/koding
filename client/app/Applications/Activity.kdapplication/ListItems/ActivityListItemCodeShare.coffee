@@ -10,139 +10,16 @@ class CodeShareActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
-    @testView = new CodeShareBox
+    @codeShareBoxView = new CodeShareBox
       viewMode : "TabView"
       allowEditing:no
+      allowClosing:no
     ,data
 
-    @codeShareContainer = new KDTabView
-      cssClass: "code-share-container"
 
-    @codeShareResultPane = new KDTabPaneView
-      name:"Code Share"
-
-    @codeShareHTMLPane = new KDTabPaneView
-      name:"HTML"
-
-    @codeShareCSSPane = new KDTabPaneView
-      name:"CSS"
-
-    @codeShareJSPane = new KDTabPaneView
-      name:"JavaScript"
-
-    codeShareHTMLData = @getData().attachments[0]
-    codeShareCSSData = @getData().attachments[1]
-    codeShareJSData = @getData().attachments[2]
-
-    codeShareHTMLData.syntax = @getData().modeHTML or "html"
-    codeShareCSSData.syntax = @getData().modeCSS or "css"
-    codeShareJSData.syntax = @getData().modeJS or "javascript"
-
-    codeShareHTMLData.title = @getData().title
-    codeShareCSSData.title = @getData().title
-    codeShareJSData.title = @getData().title
-
-    @codeShareHTMLView = new CodeShareSnippetView {}, codeShareHTMLData, @getData()
-    @codeShareCSSView = new CodeShareSnippetView {}, codeShareCSSData, @getData()
-    @codeShareJSView = new CodeShareSnippetView {}, codeShareJSData, @getData()
-
-    @codeShareResultView = new CodeShareResultView {}, data
-    @codeShareResultView.hide()
-
-    @codeShareResultButton = new KDButtonView
-      title              : "Run Code Share"
-      cssClass           : "clean-gray result-button"
-      click              : =>
-        @codeShareResultButton.setTitle "Reset Code Share"
-        @codeShareResultView.show()
-        @resultBanner.hide()
-        @codeShareCloseButton.show()
-        @codeShareResultView.resetResultFrame()
-        @utils.wait 500, =>
-          @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
-        @codeShareContainer.showPane @codeShareResultPane
-
-    @codeShareCloseButton = new KDButtonView
-      title             : "Stop and Close Code Share"
-      cssClass          : "clean-gray hidden"
-      click             : =>
-        @codeShareResultView.hide()
-        @codeShareResultView.stopResultFrame()
-        @codeShareResultView.resetResultFrame()
-        @codeShareResultButton.setTitle "Run Code Share"
-        @resultBanner.show()
-        @codeShareCloseButton.hide()
-
-    @codeShareForkButton = new KDButtonView
-      title            : "Fork this Code Share"
-      cssClass         : "clean-gray fork-button"
-      click            : =>
-        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', @getData()
-
-    @resultBanner = new KDCustomHTMLView
-      tagName     : "div"
-      cssClass    : "result-banner"
-      partial     : ""
-
-    @resultBannerButton = new KDCustomHTMLView
-      name              : "resultBannerButton"
-      tagName           : "a"
-      attributes        :
-        href            : "#"
-      partial           : "Click here to see this Code Share!"
-      cssClass          : "result-banner-button"
-      click             : =>
-        @codeShareResultButton.setTitle "Reset Code Share"
-        @codeShareResultView.show()
-        @resultBanner.hide()
-        @codeShareCloseButton.show()
-        @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
-
-    @resultBanner.addSubView @resultBannerButton
-
-    @codeShareResultPane.addSubView @resultBanner
-
-    @codeShareResultPane.addSubView @codeShareResultView
-    @codeShareHTMLPane.addSubView @codeShareHTMLView
-    @codeShareCSSPane.addSubView @codeShareCSSView
-    @codeShareJSPane.addSubView @codeShareJSView
-
-
-    @codeShareContainer.addPane @codeShareResultPane
-    @codeShareContainer.addPane @codeShareHTMLPane
-    @codeShareContainer.addPane @codeShareCSSPane
-    @codeShareContainer.addPane @codeShareJSPane
-
-    @codeShareResultPane.hideTabCloseIcon()
-    @codeShareHTMLPane.hideTabCloseIcon()
-    @codeShareCSSPane.hideTabCloseIcon()
-    @codeShareJSPane.hideTabCloseIcon()
-
-    # hover switching enabled by default
-    @codeShareContainer.$(".kdtabhandle").hover (event)->
-      $(event.target).closest(".kdtabhandle").click()
-    , noop
-
-    @codeShareContainer.showPane @codeShareResultPane
 
   render:->
     super()
-
-    codeShareHTMLData = @getData().attachments[0]
-    codeShareCSSData = @getData().attachments[1]
-    codeShareJSData = @getData().attachments[2]
-
-    codeShareHTMLData.title = @getData().title
-    codeShareCSSData.title = @getData().title
-    codeShareJSData.title = @getData().title
-
-    @codeShareHTMLView.setData codeShareHTMLData
-    @codeShareCSSView.setData codeShareCSSData
-    @codeShareJSView.setData codeShareJSData
-
-    @codeShareHTMLView.render()
-    @codeShareCSSView.render()
-    @codeShareJSView.render()
 
   click:(event)->
     super
@@ -155,34 +32,35 @@ class CodeShareActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    maxHeight = 30
-    views = [@codeShareJSView,@codeShareCSSView,@codeShareHTMLView]
+    maxHeight = 40
+    views = @codeShareBoxView.codeShareView.panes
 
     for view in views
-      if view.getHeight()>maxHeight
-        maxHeight = view.getHeight()
+      thisHeight = view.$("pre.subview").height()
+      if thisHeight>maxHeight
+        maxHeight = thisHeight
 
     @$("pre.subview").css height:maxHeight
 
-    initiallyPausedObserver = setInterval =>
-      codeShareOffset    = @$(".code-share-source").offset().top
-      scrollViewTop    = @parent.parent.parent.$().scrollTop()
-      scrollviewHeight = @parent.parent.parent.$().innerHeight()+scrollViewTop
 
-      if codeShareOffset+scrollViewTop < scrollviewHeight
-        if not @initiallyPaused
-          @initiallyPaused = true
-          @codeShareResultButton.setTitle "Reset Code Share"
-          @codeShareResultView.show()
-          @resultBanner.hide()
-          @codeShareCloseButton.show()
-          @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
-          clearInterval initiallyPausedObserver
-    ,500
+    # initiallyPausedObserver = setInterval =>
+    #   codeShareOffset    = @$(".code-share-source").offset().top
+    #   scrollViewTop    = @parent.parent.parent.$().scrollTop()
+    #   scrollviewHeight = @parent.parent.parent.$().innerHeight()+scrollViewTop
+
+    #   if codeShareOffset+scrollViewTop < scrollviewHeight
+    #     if not @initiallyPaused
+    #       @initiallyPaused = true
+    #       @codeShareResultButton.setTitle "Reset Code Share"
+    #       @codeShareResultView.show()
+    #       @resultBanner.hide()
+    #       @codeShareCloseButton.show()
+    #       @codeShareResultView.emit "CodeShareSourceHasChanges", @getData()
+    #       clearInterval initiallyPausedObserver
+    # ,500
 
   pistachio:->
     """
-    {{> @testView}}
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
@@ -190,12 +68,9 @@ class CodeShareActivityItemView extends ActivityItemChild
       <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
       <div class="code-share-source">
 
-      {{> @codeShareContainer}}
+      {{> @codeShareBoxView}}
 
       </div>
-      {{> @codeShareResultButton}}
-      {{> @codeShareCloseButton}}
-      {{> @codeShareForkButton}}
 
       <footer class='clearfix'>
         <div class='type-and-time'>

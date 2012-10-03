@@ -19,9 +19,10 @@ div.codeshare-box
     height auto
     min-width 400px
     max-width 800px
-    min-height 75px
+    min-height 60px
     max-height 351px
     margin-bottom 10px
+    overflow visible
 
     div.codeshare-tabview
       borderBox()
@@ -29,16 +30,24 @@ div.codeshare-box
       min-height 50px
       max-height 300px
       background-color #333
-      rounded 0 0 4px 4px
+      rounded 0 4px 4px 4px
+      overflow visible
+
+      &.has-no-tabs
+        vendor border-top-left-radius,4px
+        vendor border-top-right-radius,4px
 
       &.has-button-bar
-        rounded 0 0 0 0
+        vendor border-bottom-right-radius,0
+        vendor border-bottom-right-radius,0
 
         div.codeshare-code-wrapper
-          rounded 0 0 0 0
+          vendor border-bottom-right-radius,0
+          vendor border-bottom-right-radius,0
 
       div.kdtabpaneview
         borderBox()
+        overflow visible
 
         div.codeshare-code-wrapper
           borderBox()
@@ -50,8 +59,8 @@ div.codeshare-box
           max-width inherit
           width auto
           background-color #333
-          rounded 0 0 4px 4px
-
+          rounded 4px 4px 4px 4px
+          overflow visible
 
           figure.code-container
             min-height inherit
@@ -59,18 +68,32 @@ div.codeshare-box
             max-height inherit
             margin 0
             padding 0
+            overflow visible
 
             div.kdview
-
               pre.subview
                 height inherit
                 max-height inherit
-                min-height inherit
-                rounded 0 0 4px 4px
+                min-height 40px
+                rounded 4px 4px 4px 4px
 
           figure.kdview
             borderBox()
             padding 20px
+
+
+            //.code-wrapper.ace_editor
+            // overflow                visible
+            // size                    100%,100%
+            // .ace_sb
+            //   overflow-y            auto
+            // .ace_scroller
+            //   overflow-x            auto
+            //   bg                    color,rgba(51,51,51,1)
+            // .ace_gutter
+            //   color                 #999
+            //   bg                    color, #444!important
+            //   border                none
 
             div.ace_scroller
               background-color #333
