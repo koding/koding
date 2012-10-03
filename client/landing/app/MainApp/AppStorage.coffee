@@ -35,7 +35,7 @@ class AppStorage
     @fetchStorage (storage)=>
       storage.update {
         $set: pack
-      }, callback
+      }, callback() if callback
 
   unsetKey: (key, callback, group = 'bucket')->
 
