@@ -153,8 +153,12 @@ class ApplicationManager extends KDObject
       #     requirejs [appUrl], (appInstance)->
       #       callback appInstance
       requirejs ["js/KDApplications/#{path}/AppController.js?#{KD.version}"], (appInstance)->
-        appManager.addAppInstance path, appInstance
-        callback appInstance
+        if appInstance
+          appManager.addAppInstance path, appInstance
+          callback appInstance
+        else
+          callback new KDNotificationView
+            title : "Application does not exists!"
 
   initializeAppInstance:(path, appInstance, initFunctionName, callback)->
     appManager = @
