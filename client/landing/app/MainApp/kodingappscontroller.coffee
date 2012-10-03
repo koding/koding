@@ -182,6 +182,12 @@ class KodingAppsController extends KDController
       else
         callback err
 
+  removeShortcut:(shortcut, callback)->
+    @appStorage.fetchValue 'shortcuts', (shortcuts)=>
+      delete shortcuts[shortcut]
+      @appStorage.setValue 'shortcuts', shortcuts, (err)=>
+        callback err
+
   putDefaultShortcutsToAppStorage:->
 
     shortcuts       =
