@@ -618,8 +618,12 @@ Includes =
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         # BOTTOM PANEL
-        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
-        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
+        bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
+        bottomChatPanel           : "./client/app/MainApp/bottompanels/chat/chatpanel.coffee"
+        bottomChatSidebar         : "./client/app/MainApp/bottompanels/chat/chatsidebar.coffee"
+        bottomChatUserItem        : "./client/app/MainApp/bottompanels/chat/chatuseritem.coffee"
+        bottomTerminalPanel       : "./client/app/MainApp/bottompanels/terminal/terminalpanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
