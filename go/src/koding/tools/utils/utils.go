@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"flag"
 	"fmt"
+	"koding/config"
 	"koding/tools/log"
 	"math/rand"
 	"os"
@@ -15,11 +17,19 @@ var ShuttingDown bool = false
 
 func Startup(facility string, needRoot bool) {
 	if needRoot && os.Getuid() != 0 {
-		panic("Must be run as root.")
+		fmt.Println("Must be run as root.")
+		os.Exit(1)
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	rand.Seed(time.Now().UnixNano())
+
+	flag.Parse()
+	if flag.NArg() != 0 {
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+	config.LoadConfig()
 	log.Facility = fmt.Sprintf("%s %d", facility, os.Getpid())
 	log.Info(fmt.Sprintf("Process '%v' started.", facility))
 

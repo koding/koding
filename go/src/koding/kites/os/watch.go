@@ -23,7 +23,7 @@ func NewWatch(path string, callback dnode.Callback) (*Watch, error) {
 	watchMutex.Lock()
 	defer watchMutex.Unlock()
 
-	err := watcher.AddWatch(path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY)
+	err := watcher.AddWatch(path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
 	if err != nil {
 		return nil, err
 	}
@@ -66,20 +66,16 @@ func init() {
 		for ev := range watcher.Event {
 			var event string
 			var file FileEntry
-			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY)) != 0 {
-				if (ev.Mask & inotify.IN_CREATE) != 0 {
-					event = "create"
-				} else {
-					event = "modify"
-				}
-				info, err := os.Stat(ev.Name)
+			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY | inotify.IN_MOVED_TO)) != 0 {
+				event = "added"
+				info, err := os.Lstat(ev.Name)
 				if err != nil {
 					log.Warn("Watcher error", err)
 					continue
 				}
 				file = makeFileEntry(info)
-			} else if (ev.Mask & inotify.IN_DELETE) != 0 {
-				event = "delete"
+			} else if (ev.Mask & (inotify.IN_DELETE | inotify.IN_MOVED_FROM)) != 0 {
+				event = "removed"
 				file = FileEntry{Name: path.Base(ev.Name)}
 			} else {
 				continue

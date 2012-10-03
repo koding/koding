@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"koding/tools/dnode"
 	"koding/tools/irc"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -14,12 +14,14 @@ func main() {
 	kite.Run("irc", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
 		switch method {
 		case "connect":
-			addr, ok := args.(string)
-			if !ok {
-				return nil, &kite.ArgumentError{"string"}
+			argMap, ok1 := args.(map[string]interface{})
+			host, ok2 := argMap["host"].(string)
+			onMessage, ok3 := argMap["onMessage"].(dnode.Callback)
+			if !ok1 || !ok2 || !ok3 {
+				return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
 			}
 
-			conn, err := irc.NewConn(addr, log.RecoverAndLog)
+			conn, err := irc.NewConn(host, log.RecoverAndLog)
 			if err != nil {
 				return nil, err
 			}
@@ -27,7 +29,7 @@ func main() {
 
 			go func() {
 				for message := range conn.ReceiveChannel {
-					fmt.Println(message)
+					onMessage(message)
 				}
 			}()
 
