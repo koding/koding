@@ -1,6 +1,28 @@
 class CodeShareTabView extends KDTabView
   viewAppended:->
 
+    @on "codeShare.openAllFiles",=>
+      for pane in @panes
+        data=pane.getData()
+        fileName      = "localfile:/#{data.CodeShareItemTitle}"
+        file          = FSHelper.createFileFromPath fileName
+        file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
+        file.syntax   = data.CodeShareItemType.syntax
+        appManager.openFileWithApplication file, 'Ace'
+
+    super
+
+  resizeTabs:=>
+    views = @panes
+
+    maxHeight=40
+    for view in views
+      thisHeight = view.$(".codeshare-code-wrapper").height()
+      if thisHeight>maxHeight
+        maxHeight = thisHeight
+    @$(".codeshare-code-wrapper").css height:maxHeight
+    view.emit "codeShare.resizeEditor" for view in views
+
 ###
 # The syntax selector in the Tab needs an encapsulating class
 ###
@@ -68,16 +90,25 @@ class CodeShareTabHandleContainerView extends KDView
             event    : event
             delegate : @plusHandle
           ,
+
+            'HTML, CSS and JavaScript'              :
+              callback             : (source, event)=>
+                mainView.emit "addCodeSharePaneSet", "hcj"
+                contextMenu.destroy()
+              separator            : yes
+
             'PHP file'              :
               callback             : (source, event)=>
                 mainView.emit "addCodeSharePane", "php"
                 contextMenu.destroy()
               separator            : yes
+
             'Python file'              :
               callback             : (source, event)=>
                 mainView.emit "addCodeSharePane", "python"
                 contextMenu.destroy()
               separator            : yes
+
             'Ruby file'              :
               callback             : (source, event)=>
                 mainView.emit "addCodeSharePane", "ruby"

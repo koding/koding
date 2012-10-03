@@ -64,7 +64,7 @@ class CodeShareBox extends KDView
     if data?.bongo_?.constructorName is "JCodeSnip"
       codeShare = @convertFromJCodeSnip data
 
-    if data?.bongo_?.constructorName is "JCodeShare" and data?.attachments?
+    if data?.bongo_?.constructorName is "JCodeShare" and data?.attachments?[0]?
       codeShare = @convertFromLegacyCodeShare data
 
     @setData codeShare
@@ -112,25 +112,48 @@ class CodeShareBox extends KDView
           @codeShareView.addPane newPane
           @codeShareView.showPane @codeShareView.panes[0]
 
+      @on "addCodeSharePane",(addType="text")=>
+        @addCodeSharePane addType
 
-      @on "addCodeSharePane",(addType)=>
-        newData = {
-          CodeShareItemSource   : @prepareDefaultItemSource addType
-          CodeShareItemTitle    : "new Codeshare"
-          CodeShareItemOptions  : {}
-          CodeShareItemType     : {
-            syntax              : addType or "text"
-            encoding            : @defaultEncoding
-          }
-        }
-        newPane         = new CodeShareTabPaneView
-          name          : addType or "text"
-          allowEditing  : @allowEditing
-          type          : "codeshare"
-          tabHandleView : new CodeShareTabHandleView
-            syntax      : addType
-        , newData
-        @codeShareView.addPane newPane
+      @on "addCodeSharePanes",(addTypes=["text"])=>
+
+        paneAddedCount = 0
+        paneAddCount = addTypes.length
+
+        @codeShareView.on "PaneAdded",(pane)=>
+          pane.on "codeShare.aceLoaded",=>
+            paneAddedCount++
+            if paneAddedCount is paneAddCount
+              @codeShareView.resizeTabs()
+
+        for addType in addTypes
+          @addCodeSharePane addType
+
+
+
+
+
+      @on "addCodeSharePaneSet",(setName="")=>
+        if setName is "hcj" then @emit "addCodeSharePanes", ["html","css","javascript"]
+
+  addCodeSharePane:(addType)=>
+    newData = {
+      CodeShareItemSource   : @prepareDefaultItemSource addType
+      CodeShareItemTitle    : "new Codeshare"
+      CodeShareItemOptions  : {}
+      CodeShareItemType     : {
+        syntax              : addType or "text"
+        encoding            : @defaultEncoding
+      }
+    }
+    newPane         = new CodeShareTabPaneView
+      name          : addType or "text"
+      allowEditing  : @allowEditing
+      type          : "codeshare"
+      tabHandleView : new CodeShareTabHandleView
+        syntax      : addType
+    , newData
+    @codeShareView.addPane newPane
 
   # createButtonBar:=>
   #   codeShare = @getData()
