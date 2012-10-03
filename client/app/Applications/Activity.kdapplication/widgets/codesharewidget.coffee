@@ -857,9 +857,22 @@ class ActivityCodeShareWidget extends KDFormView
     # @codeShareResultView.hide()
     # @resultBanner.show()
 
-  switchToEditView:(activity)->
+  switchToEditView:(activity)=>
+
+    log "now in editview",activity
     @submitBtn.setTitle "Edit your Code Share"
     @addCustomData "activity", activity
+
+    {CodeShareItems,CodeShareOptions,title,body,tags} = activity
+
+    @title.setValue Encoder.htmlDecode title
+    @description.setValue Encoder.htmlDecode body
+
+    if CodeShareItems
+      @codeShareBoxView.emit "addCodeSharePanes",CodeShareItems
+
+    @tagController.reset()
+    @tagController.setDefaultValue tags or []
 
     ## checkbox debug ## log "csw::switchToEditView (activity.prefixCSS):",activity.prefixCSS, "(activity.prefixCSSCheck):", activity.prefixCSSCheck
 
@@ -869,12 +882,8 @@ class ActivityCodeShareWidget extends KDFormView
     # CSScontent = activity.attachments[1]?.content
     # JScontent = activity.attachments[2]?.content
 
-    # @tagController.reset()
-    # @tagController.setDefaultValue tags or []
 
     # fillForm = =>
-    #   @title.setValue Encoder.htmlDecode title
-    #   @description.setValue Encoder.htmlDecode body
 
     #   @HTMLace.setContents Encoder.htmlDecode HTMLcontent
     #   @CSSace.setContents Encoder.htmlDecode CSScontent

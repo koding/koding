@@ -14,15 +14,23 @@ CodeShare
       CodeShareItemSource
         - actual source, e.g "<p>This is text</p>"
       CodeShareItemType
-        - language name, syntax, e.g. "php"
+        syntax
+          - language name, syntax, e.g. "php"
       CodeShareItemOptions
         (additional run infos)
         (additional libraries)
   CodeShareOptions
-    ViewType (Tabs, Split)
-    EditMode (yes/no)
+    - maybe original creator data, licensing, prefered display mode
+
+TODO
+
+  - config views
+  - enable locking of single tabs (for something like tutorials)
+
 
 ###
+
+
 
 class CodeShareBox extends KDView
 
@@ -78,6 +86,8 @@ class CodeShareBox extends KDView
     if options.viewMode is "TabView" then @createTabView()
     # if options.showButtonBar         then @createButtonBar()
 
+  @convertToCodeShare:(data)->
+
 
   createTabView:->
 
@@ -99,6 +109,8 @@ class CodeShareBox extends KDView
         delegate : @
 
 
+      # populate view with items from data
+
       if codeShare.CodeShareItems
         for CodeShareItem,i in codeShare.CodeShareItems
           newPane         = new CodeShareTabPaneView
@@ -112,13 +124,16 @@ class CodeShareBox extends KDView
           @codeShareView.addPane newPane
           @codeShareView.showPane @codeShareView.panes[0]
 
-      @on "addCodeSharePane",(addType="text")=>
-        @addCodeSharePane addType
 
-      @on "addCodeSharePanes",(addTypes=["text"])=>
+      # event handlers for adding new/existing panes to the view
+
+      @on "addCodeSharePane",(addItem="text")=>
+        @addCodeSharePane addItem
+
+      @on "addCodeSharePanes",(addItems=["text"])=>
 
         paneAddedCount = 0
-        paneAddCount = addTypes.length
+        paneAddCount = addItems.length
 
         @codeShareView.on "PaneAdded",(pane)=>
           pane.on "codeShare.aceLoaded",=>
@@ -126,33 +141,46 @@ class CodeShareBox extends KDView
             if paneAddedCount is paneAddCount
               @codeShareView.resizeTabs()
 
-        for addType in addTypes
-          @addCodeSharePane addType
-
-
-
+        for addItem in addItems
+            @addCodeSharePane addItem
 
 
       @on "addCodeSharePaneSet",(setName="")=>
         if setName is "hcj" then @emit "addCodeSharePanes", ["html","css","javascript"]
 
-  addCodeSharePane:(addType)=>
-    newData = {
-      CodeShareItemSource   : @prepareDefaultItemSource addType
-      CodeShareItemTitle    : "new Codeshare"
-      CodeShareItemOptions  : {}
-      CodeShareItemType     : {
-        syntax              : addType or "text"
-        encoding            : @defaultEncoding
+  addCodeSharePane:(addItem)=>
+
+    # addItem is something like "php" or "html"
+    if 'string' is typeof addItem
+      newData = {
+        CodeShareItemSource   : @prepareDefaultItemSource addItem
+        CodeShareItemTitle    : "new Codeshare"
+        CodeShareItemOptions  : {}
+        CodeShareItemType     : {
+          syntax              : addItem or "text"
+          encoding            : @defaultEncoding
+        }
       }
-    }
-    newPane         = new CodeShareTabPaneView
-      name          : addType or "text"
-      allowEditing  : @allowEditing
-      type          : "codeshare"
-      tabHandleView : new CodeShareTabHandleView
-        syntax      : addType
-    , newData
+      newPane         = new CodeShareTabPaneView
+        name          : addItem or "text"
+        allowEditing  : @allowEditing
+        type          : "codeshare"
+        tabHandleView : new CodeShareTabHandleView
+          syntax      : addItem
+      , newData
+
+    # addItem is an actual CodeShareItem
+    else if 'object' is typeof addItem
+      newData = addItem
+
+      newPane         = new CodeShareTabPaneView
+        name          : addItem?.CodeShareItemTitle or "text"
+        allowEditing  : @allowEditing
+        type          : "codeshare"
+        tabHandleView : new CodeShareTabHandleView
+          syntax      : addItem?.CodeShareItemType?.syntax or "text"
+      , newData
+
     @codeShareView.addPane newPane
 
   # createButtonBar:=>
@@ -190,8 +218,11 @@ class CodeShareBox extends KDView
 
 
   resetTabs:=>
+    log @codeShareView.panes
     for pane in @codeShareView?.panes
-      @codeShareView.removePane pane
+      log pane
+      if pane then @codeShareView.removePane pane
+    log @codeShareView.panes
 
   convertFromLegacyCodeShare:(codeshare)->
       # log "Encountered a legacy codeshare while sanitizing data",codeshare
