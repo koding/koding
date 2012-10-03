@@ -61,9 +61,15 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 						}
 
 						var options map[string]*dnode.Partial
-						partials[0].Unmarshal(&options)
+						err = partials[0].Unmarshal(&options)
+						if err != nil {
+							panic(err)
+						}
 						var callback dnode.Callback
-						partials[1].Unmarshal(&callback)
+						err = partials[1].Unmarshal(&callback)
+						if err != nil {
+							panic(err)
+						}
 
 						result, err := onRootMethod(session, method, options["withArgs"])
 						if err != nil {

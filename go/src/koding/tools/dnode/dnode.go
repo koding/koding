@@ -2,7 +2,6 @@ package dnode
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -20,97 +19,6 @@ type DNode struct {
 	callbacks    []reflect.Value
 }
 
-type Partial struct {
-	Raw       []byte
-	dnode     *DNode
-	callbacks map[string]([]string)
-}
-
-func (p *Partial) MarshalJSON() ([]byte, error) {
-	return p.Raw, nil
-}
-
-func (p *Partial) UnmarshalJSON(data []byte) error {
-	if p == nil {
-		return errors.New("json.Partial: UnmarshalJSON on nil pointer")
-	}
-	p.Raw = append(p.Raw[0:0], data...)
-	return nil
-}
-
-func (p *Partial) Unmarshal(v interface{}) error {
-	err := json.Unmarshal(p.Raw, v)
-	if err != nil {
-		return err
-	}
-
-	for id, path := range p.callbacks {
-		methodId, err := strconv.Atoi(id)
-		if err != nil {
-			panic(err)
-		}
-
-		value := reflect.ValueOf(v)
-		i := 0
-	PATH_LOOP:
-		for ; i < len(path); i++ {
-			for value.Kind() == reflect.Ptr {
-				if _, ok := value.Interface().(*Partial); ok {
-					break PATH_LOOP
-				}
-				value = reflect.ValueOf(value.Elem().Interface())
-			}
-
-			switch value.Kind() {
-			case reflect.Slice:
-				index, err := strconv.Atoi(path[i])
-				if err != nil {
-					panic(fmt.Sprintf("Integer expected, got '%v'.", path[i]))
-				}
-				value = value.Index(index)
-			case reflect.Map:
-				value = value.MapIndex(reflect.ValueOf(path[i]))
-			default:
-				panic(fmt.Sprintf("Unhandled object of type '%T'.", value.Interface()))
-			}
-		}
-
-		fmt.Printf("%T\n", value.Interface())
-		if partial, ok := value.Interface().(*Partial); ok {
-			partial.dnode = p.dnode
-			if partial.callbacks == nil {
-				partial.callbacks = make(map[string]([]string))
-			}
-			partial.callbacks[id] = path[i:]
-		} else {
-			callback := reflect.ValueOf(Callback(func(args ...interface{}) {
-				p.dnode.Send(methodId, args)
-			}))
-			value.Set(callback)
-		}
-	}
-
-	return nil
-}
-
-func (p *Partial) Array() ([]interface{}, error) {
-	var a []interface{}
-	err := p.Unmarshal(&a)
-	if err != nil {
-		return nil, err
-	}
-	return a, nil
-}
-
-func (p *Partial) Map() (map[string]interface{}, error) {
-	var m map[string]interface{}
-	err := p.Unmarshal(&m)
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 type message struct {
 	Method    interface{}           `json:"method"`
 	Arguments *Partial              `json:"arguments"`
@@ -119,8 +27,6 @@ type message struct {
 }
 
 type Remote map[string]interface{}
-
-type Callback func(args ...interface{})
 
 func New() *DNode {
 	d := DNode{
@@ -138,17 +44,20 @@ func (d *DNode) SendRemote(object interface{}) {
 }
 
 func (d *DNode) Send(method interface{}, arguments []interface{}) {
+	callbacks := make(map[string]([]string))
+	d.collectCallbacks(arguments, make([]string, 0), callbacks)
+
 	rawArgs, err := json.Marshal(arguments)
 	if err != nil {
 		panic(err)
 	}
+
 	message := message{
 		method,
 		&Partial{Raw: rawArgs},
 		[]string{},
-		make(map[string]([]string)),
+		callbacks,
 	}
-	d.collectCallbacks(arguments, make([]string, 0), message.Callbacks)
 	data, err := json.Marshal(message)
 	if err != nil {
 		panic(err)
@@ -211,8 +120,16 @@ func (d *DNode) ProcessMessage(data []byte) {
 	if err != nil {
 		panic(err)
 	}
-	m.Arguments.dnode = d
-	m.Arguments.callbacks = m.Callbacks
+	for id, path := range m.Callbacks {
+		methodId, err := strconv.Atoi(id)
+		if err != nil {
+			panic(err)
+		}
+		callback := Callback(func(args ...interface{}) {
+			d.Send(methodId, args)
+		})
+		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
+	}
 
 	index, err := strconv.Atoi(fmt.Sprint(m.Method))
 	if err == nil {

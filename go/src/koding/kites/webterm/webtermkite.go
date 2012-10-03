@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/config"
 	"koding/tools/dnode"
 	"koding/tools/kite"
@@ -9,7 +8,6 @@ import (
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"syscall"
@@ -24,14 +22,6 @@ type WebtermServer struct {
 }
 
 func main() {
-	o := make(map[string]interface{})
-	o["abc"] = 3
-	v := reflect.ValueOf(o)
-	k := reflect.ValueOf("abc")
-	mi := v.MapIndex(k)
-	fmt.Println(mi, mi.Kind(), mi.CanSet())
-	return
-
 	utils.Startup("webterm kite", true)
 
 	if config.Current.UseWebsockets {

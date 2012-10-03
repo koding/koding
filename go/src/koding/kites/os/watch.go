@@ -2,7 +2,6 @@ package main
 
 import (
 	"exp/inotify"
-	"fmt"
 	"koding/tools/dnode"
 	"koding/tools/log"
 	"os"
@@ -49,7 +48,6 @@ func (watch *Watch) Close() error {
 
 	if len(watches) == 0 {
 		watcher.RemoveWatch(watch.Path)
-		fmt.Println("removed")
 	}
 
 	return nil
