@@ -102,6 +102,8 @@ module.exports = class JApp extends jraphical.Module
         targetType  : JTag
         as          : 'tag'
 
+  @getAuthorType =-> JAccount
+
   @create = secure (client, data, callback)->
 
     console.log "creating the JApp"
