@@ -17,7 +17,7 @@ module.exports = class JVocabulary extends Module
         targetType  : 'JTag'
         as          : 'vocabulary'
 
-  @create (client, formData, callback)->
+  @create =(client, formData, callback)->
     JGroup = require './group'
     vocabulary = new @
       title       : formData.title
@@ -29,7 +29,7 @@ module.exports = class JVocabulary extends Module
           else queue.next()
     ]
     if formData.group
-      queue.push->
+      queue.push ->
         JGroup.one slug: formData.group, (err, group)->
           if err then callback err
           else unless group?
