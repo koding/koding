@@ -126,9 +126,16 @@ class StartTabMainView extends JView
       @decorateApps apps
 
   decorateApps:(apps)->
-
     @removeAppIcons()
     @putAppIcons apps
+
+    shortcuts = @getSingleton("kodingAppsController").appStorage.getValue('shortcuts') or {}
+    for shortcut, manifest of shortcuts
+      do (shortcut, manifest)=>
+        @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
+          delegate : @
+        , manifest
+
     @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
       delegate : @
 
