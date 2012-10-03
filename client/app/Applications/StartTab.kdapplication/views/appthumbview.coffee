@@ -118,3 +118,54 @@ class GetMoreAppsButton extends StartTabAppThumbView
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
     appManager.openApplication 'Apps', => @hideLoader()
+
+
+class AppShortcutButton extends StartTabAppThumbView
+
+  constructor:(options, data)->
+
+    super options, data
+
+    @img.$().attr "src", "/images/#{data.icon}"
+
+    @compile = new KDView
+    @delete  = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon delete"
+      tooltip  :
+        title  : "Click to delete"
+      click    : =>
+        @delete.hideTooltip()
+        modal = new KDModalView
+          title          : "Delete App"
+          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Delete       :
+              style      : "modal-clean-red"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : =>
+                @showLoader()
+                @getSingleton("kodingAppsController").removeShortcut data.name, (err)=>
+                  modal.buttons.Delete.hideLoader()
+                  modal.destroy()
+                  @hideLoader()
+                  if not err then @destroy()
+
+  click : (event)->
+
+    return if $(event.target).closest('.icon-container').length > 0
+
+    {type, name, path} = @getData()
+    path = name if not path
+
+    if type is 'koding-app'
+      @showLoader()
+      appManager.openApplication path, => @hideLoader()
+    else if type is 'comingsoon'
+      new KDNotificationView
+        title : 'Coming Soon!'
+    return no
