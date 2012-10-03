@@ -74,8 +74,6 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    log "FETCH_APPS * *", @constructor.manifests
-
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
     else
@@ -96,7 +94,6 @@ class KodingAppsController extends KDController
 
   fetchAppsFromFs:(callback)->
 
-    log "FETCH_FROM * FS *"
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
     # require ["coffee-script"], (coffee)=>
@@ -149,7 +146,6 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    log "FETCH_FROM * DB *"
     @appStorage.fetchValue 'apps', (apps)=>
       if apps and Object.keys(apps).length > 0
         @constructor.manifests = apps

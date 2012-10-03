@@ -13,6 +13,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     {icns, name, version, author, description, authorNick} = manifest = @getData()
 
+    version or= ''
+
     if not authorNick
       authorNick = KD.whoami().profile.nickname
 
@@ -25,7 +27,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        # @img.$().attr "src", "#{KD.apiUri + '/images/default.app.listthumb.png'}"
         @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : thumb
@@ -59,12 +60,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           """
       click    : -> no
 
-    # @delete = new KDCustomHTMLView
-    #   tagName  : "span"
-    #   cssClass : "icon delete"
-    #   tooltip  :
-    #     title  : "Click to delete"
-    #   click    : -> no
+    @delete = new KDView
 
     @setClass "dev-mode" if @getData().devMode
 
@@ -80,7 +76,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @showLoader()
     @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
 
-
   showLoader:->
 
     @loader.show()
@@ -92,9 +87,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img.$().css "opacity", "1"
 
   pistachio:->
-    # {{> @delete}}
     """
       <div class='icon-container'>
+        {{> @delete}}
         {{> @info}}
         {{> @compile}}
       </div>
@@ -103,14 +98,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
       <cite>{{ #(name)}} {{ #(version)}}</cite>
     """
 
-
 class GetMoreAppsButton extends StartTabAppThumbView
 
   constructor:(options)->
 
     data =
       name        : 'Get more Apps'
-      version     : ''
       author      : 'Koding'
       description : "Get more Apps from Koding AppStore"
 
