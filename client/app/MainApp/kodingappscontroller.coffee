@@ -69,7 +69,6 @@ class KodingAppsController extends KDController
     @appStorage.fetchStorage (storage)=>
       if not @appStorage.getValue 'shortcuts'
         @putDefaultShortcutsToAppStorage()
-        @appStorage.fetchStorage()
 
     @fetchedFromFs = no
 
