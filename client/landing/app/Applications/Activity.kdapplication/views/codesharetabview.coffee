@@ -26,6 +26,8 @@ class CodeShareTabHandleView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+
+
   pistachio:->
     """
     {{> @syntaxSelect}}
@@ -43,6 +45,11 @@ class CodeShareTabHandleContainerView extends KDView
       mainView.codeShareView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
       mainView.codeShareView.on "PaneRemoved", => @_repositionPlusHandle()
       @listenWindowResize()
+
+    # TODO: find out why some hovers will not register
+    @$("*").hover (event)->
+      $(event.target).closest(".kdtabhandle").click()
+    , noop
 
   click:(event)->
     @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')

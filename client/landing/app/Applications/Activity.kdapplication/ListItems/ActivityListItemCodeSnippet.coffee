@@ -15,9 +15,10 @@ class CodesnipActivityItemView extends ActivityItemChild
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
 
-    @anotherTest = new CodeShareBox
-      name : "hi"
-      allowEditing:yes
+    @codeShareBoxView = new CodeShareBox
+      allowEditing:no
+      allowClosing:no
+      hideTabs:yes
     ,data
 
     # log data.meta.tags
@@ -54,13 +55,12 @@ class CodesnipActivityItemView extends ActivityItemChild
   pistachio:->
 
     """
-    {{> @anotherTest}}
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {h3{#(title)}}
       <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
-      {{> @codeSnippetView}}
+      {{> @codeShareBoxView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
