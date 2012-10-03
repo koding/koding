@@ -101,10 +101,11 @@ handleClient = do ->
   handleFollowAction = (account) ->
     ownExchangeName = getOwnExchangeName account
     # Receive when the account follows somebody
-    mq.on "event-"+account.getId(), "FollowCountChanged", ({followee, action}) ->
-      console.log action
+    mq.on "event-"+account.getId(), "FollowCountChanged", (data) ->
+      # data are a list of arguments
+      {action, followee, follower} = data[0]
+      return unless followee?
       return unless action is "follow" or action is "unfollow"
-      console.log "following changed", followee, action
       # Set up the exchange-to-exchange binding for followings.
       followeeNick = "#{EXCHANGE_PREFIX}#{followee.profile.nickname}"
       routingKey = "#{followeeNick}.activity"
