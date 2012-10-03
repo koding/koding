@@ -25,13 +25,10 @@ class CodeShareTabPaneView extends KDTabPaneView
       listenedToInstance  : @
       callback            : @aboutToBeDestroyed
 
-    if @hasEditor
-      @createCodeEditor data
-    else
-      @createCodeViewer data
-
   createCodeViewer:(data)=>
-    @codeView = new CodeShareView {},data
+    @codeView = new CodeShareView
+      delegate: @getDelegate()
+    ,data
 
   createCodeEditor:(data)=>
     @codeViewLoader = new KDLoaderView
@@ -66,11 +63,17 @@ class CodeShareTabPaneView extends KDTabPaneView
       @codeView.setSyntax data.CodeShareItemType.syntax or "javascript"
       @codeView.editor.getSession().on 'change', =>
         @refreshEditorView()
-      @refreshEditorView()
       @emit "codeShare.aceLoaded"
 
     @on "codeShare.aceLoaded",=>
+      @refreshEditorView()
       @codeView.editor.resize()
+
+    @on "codeShare.resizeEditor",=>
+      @codeView.editor.resize()
+
+
+
 
   refreshEditorView:->
     lines = @codeView.editor.selection.doc.$lines
@@ -89,6 +92,12 @@ class CodeShareTabPaneView extends KDTabPaneView
   aboutToBeDestroyed: noop
 
   viewAppended:->
+
+    if @hasEditor
+      @createCodeEditor @getData()
+    else
+      @createCodeViewer @getData()
+
     super()
     @setTemplate @pistachio()
     @template.update()
@@ -191,6 +200,15 @@ class CodeShareView extends KDCustomHTMLView
         file.syntax   = CodeShareItemType.syntax
         appManager.openFileWithApplication file, 'Ace'
 
+    @openAllButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "open"
+      callback  : =>
+        @getDelegate().emit "codeShare.openAllFiles"
+
     @copyButton = new KDButtonView
       title     : ""
       style     : "dark"
@@ -215,7 +233,7 @@ class CodeShareView extends KDCustomHTMLView
       @codeView.render()
       @applySyntaxColoring syntax
     else
-      log "Could not set Syntax - Missing from Syntax Map"
+      log "Could not set Syntax #{syntax}- Missing from Syntax Map"
 
 
 
@@ -239,7 +257,7 @@ class CodeShareView extends KDCustomHTMLView
           catch err
             console.warn "Error applying highlightjs syntax #{syntax}:", err
     else
-      log "Syntax not found in Syntax Map"
+      log "Syntax #{syntax} not found in Syntax Map"
 
   viewAppended: ->
 
@@ -253,12 +271,13 @@ class CodeShareView extends KDCustomHTMLView
     @saveButton.$().twipsy twOptions("Save")
     @copyButton.$().twipsy twOptions("Select all")
     @openButton.$().twipsy twOptions("Open")
+    @openAllButton.$().twipsy twOptions("Open All")
 
   pistachio:->
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """
