@@ -10,28 +10,43 @@ app.codeshare.styl
 */
 }
 
+codeShareMaxHeight = 270px
+
 div.codeshare-box
+
 
   // TabView
   &.codeshare-tabs
+    scrollbars(#333)
     borderBox()
     width auto
     height auto
     min-width 400px
     max-width 800px
     min-height 60px
-    max-height 351px
+    max-height codeShareMaxHeight + 51px
     margin-bottom 10px
     overflow visible
 
+    &.codeshare-edit-widget
+      max-width 560px
+      min-width 560px
+      margin-left 16+153px
+
+      div.codeshare-tabview
+        padding 20px 20px 20px 20px
+
     div.codeshare-tabview
       borderBox()
+      min-width inherit
+      max-width inherit
       height inherit
       min-height 50px
-      max-height 300px
+      max-height codeShareMaxHeight + 0px
       background-color #333
       rounded 0 4px 4px 4px
       overflow visible
+      padding 0
 
       &.has-no-tabs
         vendor border-top-left-radius,4px
@@ -48,6 +63,11 @@ div.codeshare-box
       div.kdtabpaneview
         borderBox()
         overflow visible
+        padding-top 0
+        vendor box-shadow, none
+        shadow none
+        background-color #333
+        rounded 4px
 
         div.codeshare-code-wrapper
           borderBox()
@@ -61,6 +81,34 @@ div.codeshare-box
           background-color #333
           rounded 4px 4px 4px 4px
           overflow visible
+          max-height codeShareMaxHeight - 40px
+
+          div.code-wrapper.ace_editor
+            max-height inherit
+            height inherit
+            background-color #333
+
+            overflow                visible
+            // size                    100%,100%
+            div.ace_sb
+              overflow-y            auto
+
+            div.ace_scroller
+              overflow-x            auto
+              bg                    color,rgba(51,51,51,1)
+              max-height inherit
+              height inherit
+              background-color #333
+
+              div.ace_content
+                max-height inherit
+                height inherit
+                background-color #333
+
+            div.ace_gutter
+              color                 #999
+              bg                    color, #444!important
+              border                none
 
           figure.code-container
             min-height inherit
@@ -69,6 +117,8 @@ div.codeshare-box
             margin 0
             padding 0
             overflow visible
+            background-color #333
+            rounded 4px
 
             div.kdview
               pre.subview
@@ -76,24 +126,14 @@ div.codeshare-box
                 max-height inherit
                 min-height 40px
                 rounded 4px 4px 4px 4px
+                background-color #333
 
           figure.kdview
             borderBox()
-            padding 20px
+            // padding 20px
+            max-height codeShareMaxHeight - 40px
+            background-color #333
 
-
-            //.code-wrapper.ace_editor
-            // overflow                visible
-            // size                    100%,100%
-            // .ace_sb
-            //   overflow-y            auto
-            // .ace_scroller
-            //   overflow-x            auto
-            //   bg                    color,rgba(51,51,51,1)
-            // .ace_gutter
-            //   color                 #999
-            //   bg                    color, #444!important
-            //   border                none
 
             div.ace_scroller
               background-color #333
@@ -124,6 +164,10 @@ div.codeshare-box
       background-color rgba(0,0,0,0)
 
       height 25px
+      width 100%
+
+      max-width inherit
+      min-width inherit
 
       rounded 4px 4px 0 0
 

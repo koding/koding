@@ -16,17 +16,13 @@ class CodeShareTabHandleView extends KDView
         callback      : (value) =>
           @applyNewSyntax value
 
-
   applyNewSyntax:(value)=>
     @parent.emit "codeShare.changeSyntax", value
-
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
-
-
 
   pistachio:->
     """
@@ -45,10 +41,12 @@ class CodeShareTabHandleContainerView extends KDView
       mainView.codeShareView.on "PaneDidShow", (event)=> @_repositionPlusHandle event
       mainView.codeShareView.on "PaneRemoved", => @_repositionPlusHandle()
       @listenWindowResize()
+      @_repositionPlusHandle()
 
     # TODO: find out why some hovers will not register
     @$("*").hover (event)->
-      $(event.target).closest(".kdtabhandle").click()
+      if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
+        $(event.target).closest(".kdtabhandle").click()
     , noop
 
   click:(event)->
@@ -63,7 +61,7 @@ class CodeShareTabHandleContainerView extends KDView
 
     @addSubView @plusHandle = new KDCustomHTMLView
       cssClass : 'kdtabhandle add-editor-menu visible-tab-handle plus last'
-      partial  : "<span class='icon'></span><b class='hidden'>Click here to start</b>"
+      partial  : "<span class='icon'></span><b class='hidden'>New Code Tab</b>"
       delegate : @
       click    : =>
           contextMenu = new JContextMenu

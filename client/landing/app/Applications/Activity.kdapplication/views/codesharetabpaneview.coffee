@@ -81,7 +81,7 @@ class CodeShareTabPaneView extends KDTabPaneView
     lineHeight  = @codeView.editor.renderer.lineHeight
     container   = @codeView.editor.container
     height      = lineAmount * lineHeight
-    @$('.codeshare-code-wrapper').height height + 20
+    @$('.codeshare-code-wrapper').height height + 0
     @codeView.editor.resize()
 
   becameActive: noop
