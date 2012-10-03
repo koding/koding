@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/config"
 	"koding/tools/dnode"
+	"koding/tools/kite"
 	"net/http"
 )
 
@@ -13,7 +14,7 @@ func runWebsocket() {
 	http.Handle("/", websocket.Handler(func(ws *websocket.Conn) {
 		fmt.Printf("WebSocket opened: %p\n", ws)
 
-		server := &WebtermServer{user: config.Current.User}
+		server := &WebtermServer{session: kite.NewSession(config.Current.User)}
 		defer server.Close()
 
 		d := dnode.New()
