@@ -33,9 +33,6 @@ div.codeshare-box
       min-width 560px
       margin-left 16+153px
 
-      div.codeshare-tabview
-        padding 20px 20px 20px 20px
-
     div.codeshare-tabview
       borderBox()
       min-width inherit
@@ -46,7 +43,31 @@ div.codeshare-box
       background-color #333
       rounded 0 4px 4px 4px
       overflow visible
-      padding 0
+      overflow-y hidden
+
+      .button-bar
+        position          absolute
+        bg                color,transparent
+        z-index 100
+        bottom            -30px
+        right             6px
+        overflow          hidden
+        shadow            0 -1px 10px rgba(0,0,0,0.3)
+        vendor            transition, bottom .15s ease-in-out //.3s
+        button
+          margin          0
+          rounded         0
+          border-width    1px 1px 0 1px
+          border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+          fl()
+          &:first-child
+            rounded       3px 0 0 0
+          &:last-child
+            rounded       0 3px 0 0
+            border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
+      &:hover .button-bar
+          bottom        0
 
       &.has-no-tabs
         vendor border-top-left-radius,4px
@@ -69,6 +90,10 @@ div.codeshare-box
         background-color #333
         rounded 4px
 
+        &.has-editor
+          overflow-y hidden
+          padding 20px
+
         div.codeshare-code-wrapper
           borderBox()
           position relative
@@ -87,9 +112,8 @@ div.codeshare-box
             max-height inherit
             height inherit
             background-color #333
-
             overflow                visible
-            // size                    100%,100%
+
             div.ace_sb
               overflow-y            auto
 
@@ -130,10 +154,8 @@ div.codeshare-box
 
           figure.kdview
             borderBox()
-            // padding 20px
             max-height codeShareMaxHeight - 40px
             background-color #333
-
 
             div.ace_scroller
               background-color #333
@@ -152,7 +174,6 @@ div.codeshare-box
               z-index 100
 
     div.codeshare-tabhandlecontainer
-
       padding             0
       margin              0
       border 0
@@ -205,7 +226,6 @@ div.codeshare-box
           &.focus
             outline           none
             shadow            none
-            // shadow            0 1px 0 rgba(255, 255, 255, 0.67)\, 0 0 15px #f4ad11
             border            none
 
           select
@@ -219,7 +239,6 @@ div.codeshare-box
             size              100%,100%
             z-index           100
 
-
           span.title
             color #e2e2e2
             vendor text-shadow, 0 -1px 0 rgba(0, 0, 0, 0.61)
@@ -229,9 +248,6 @@ div.codeshare-box
           span.arrows
             top 1px
             background-position -80px -200px
-
-          // select
-
 
         > div
           margin-right    14px
@@ -339,13 +355,6 @@ div.codeshare-box
         span.error
           color           lightCoral
           font-style      normal
-
-
-  div.codeshare-button-bar
-    background-color #1C1C1C
-    rounded 0 0 4px 4px
-
-
 
 
 // LEGACY

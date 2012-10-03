@@ -31,6 +31,9 @@ class CodeShareTabPaneView extends KDTabPaneView
     ,data
 
   createCodeEditor:(data)=>
+
+    @setClass "has-editor"
+
     @codeViewLoader = new KDLoaderView
       size          :
         width       : 30
@@ -52,6 +55,61 @@ class CodeShareTabPaneView extends KDTabPaneView
       type : data.CodeShareItemType.syntax
     , data
 
+    @saveButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "save"
+      callback  : ->
+        new KDNotificationView
+          title     : "Currently disabled!"
+          type      : "mini"
+          duration  : 2500
+
+    @runButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "play"
+      callback  : ->
+        new KDNotificationView
+          title     : "Currently disabled!"
+          type      : "mini"
+          duration  : 2500
+
+    @openButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "open"
+      callback  : ->
+        fileName      = "localfile:/#{CodeShareItemTitle}"
+        file          = FSHelper.createFileFromPath fileName
+        file.contents = Encoder.htmlDecode(CodeShareItemSource)
+        file.syntax   = CodeShareItemType.syntax
+        appManager.openFileWithApplication file, 'Ace'
+
+    @openAllButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "maximize"
+      callback  : =>
+        @getDelegate().emit "codeShare.openAllFiles"
+
+    @copyButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "select-all"
+      callback  : =>
+        @utils.selectText @codeView.$()[0]
+
     # INSTANCE LISTENERS
 
     @codeView.on "ace.ready", =>
@@ -63,6 +121,7 @@ class CodeShareTabPaneView extends KDTabPaneView
       @codeView.setSyntax data.CodeShareItemType.syntax or "javascript"
       @codeView.editor.getSession().on 'change', =>
         @refreshEditorView()
+        @getDelegate().resizeTabs()
       @emit "codeShare.aceLoaded"
 
     @on "codeShare.aceLoaded",=>
@@ -118,6 +177,7 @@ class CodeShareTabPaneView extends KDTabPaneView
       {{> @codeView}}
       {{> @codeViewConfig}}
       </div>
+      <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
       """
     else
      """
@@ -185,7 +245,17 @@ class CodeShareView extends KDCustomHTMLView
           type      : "mini"
           duration  : 2500
 
-        # CodeSnippetView.emit 'CodeSnippetWantsSave', data
+    @runButton = new KDButtonView
+      title     : ""
+      style     : "dark"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "play"
+      callback  : ->
+        new KDNotificationView
+          title     : "Currently disabled!"
+          type      : "mini"
+          duration  : 2500
 
     @openButton = new KDButtonView
       title     : ""
@@ -205,7 +275,7 @@ class CodeShareView extends KDCustomHTMLView
       style     : "dark"
       icon      : yes
       iconOnly  : yes
-      iconClass : "open"
+      iconClass : "maximize"
       callback  : =>
         @getDelegate().emit "codeShare.openAllFiles"
 
@@ -269,6 +339,7 @@ class CodeShareView extends KDCustomHTMLView
       title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
 
     @saveButton.$().twipsy twOptions("Save")
+    @runButton.$().twipsy twOptions("Run")
     @copyButton.$().twipsy twOptions("Select all")
     @openButton.$().twipsy twOptions("Open")
     @openAllButton.$().twipsy twOptions("Open All")
@@ -277,7 +348,7 @@ class CodeShareView extends KDCustomHTMLView
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """
