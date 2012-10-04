@@ -14,7 +14,7 @@ class Activity12345 extends AppController
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES
-      # 'CCodeShareActivity'
+      'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -194,7 +194,7 @@ class Activity12345 extends AppController
           'CNewMemberBucket'
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES
-          # 'CCodeShareActivity'
+          'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -265,7 +265,7 @@ class Activity12345 extends AppController
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES
-        # 'CCodeShareActivity'
+        'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -282,7 +282,7 @@ class Activity12345 extends AppController
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       # THIS WILL DISABLE CODE SHARES
-      # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      when "JCodeShare"    then @createCodeShareContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -308,14 +308,14 @@ class Activity12345 extends AppController
     @showContentDisplay contentDisplay
 
   # THIS WILL DISABLE CODE SHARES
-  # createCodeShareContentDisplay:(activity)->
-  #   controller = new ContentDisplayControllerActivity
-  #     title       : "Code Share"
-  #     type        : "codeshare"
-  #     contentView : new ContentDisplayCodeShare {},activity
-  #   , activity
-  #   contentDisplay = controller.getView()
-  #   @showContentDisplay contentDisplay
+  createCodeShareContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Code Share"
+      type        : "codeshare"
+      contentView : new ContentDisplayCodeShare {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
 
   createDiscussionContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity

@@ -83,12 +83,14 @@ module.exports = class JDiscussion extends JPost
         @update $inc: repliesCount: -1, -> queue.next()
       =>
         @flushSnapshot rel.getAt('targetId'), -> queue.next()
+      =>
+        @emit 'ReplyIsRemoved', rel.targetId
+        queue.next()
       callback
     ]
     daisy queue
 
   reply: secure (client, comment, callback)->
-
     {delegate} = client.connection
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
@@ -146,11 +148,12 @@ module.exports = class JDiscussion extends JPost
                                       origin
                                       subject       : ObjectRef(@).data
                                       actorType     : 'replier'
-                                      actionType    : 'reply'
+                                      actionType    : 'opinion'
                                       replier       : ObjectRef(delegate).data
-                                      reply         : ObjectRef(comment).data
+                                      opinion       : ObjectRef(comment).data
                                       repliesCount  : count
                                       relationship  : docs[0]
+                                      opinionData   : JSON.stringify comment
                                     }
                                   @follow client, emitActivity: no, (err)->
                                   @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?

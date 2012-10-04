@@ -313,6 +313,9 @@ Includes =
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
         discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
+        codesharebox                : "./client/app/Applications/Activity.kdapplication/views/codesharebox.coffee"
+        codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
+        codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -321,7 +324,7 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
-        #codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
+        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
@@ -330,7 +333,7 @@ Includes =
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
-        #actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
+        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
 
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
@@ -651,6 +654,7 @@ Includes =
 
         marked            : "./client/libs/marked.js"
         google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
+        lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
@@ -718,6 +722,7 @@ Includes =
         terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
+        codeshare           : "./client/stylus/app.codeshare.styl"
 
         temp             : "./client/stylus/temp.styl"
 
@@ -733,14 +738,6 @@ Includes =
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
-        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
-        # deprecated!
-        # buttons       : "./client/css/buttons.css"
-        # wmd           : "./client/css/wmd.css"
-        # terminal      : "./client/css/terminal.css"
-        # iconic        : "./client/css/iconic.css"
-        # mediaqueries  : "./client/css/mediaqueries.css"
-        # multiselect : "./client/css/jquery.multiselect.css"
-        # tipTip    : "./client/css/tipTip.css"
-        # fonts     : "./client/css/fonts.css"
+        prettify            : "./client/css/prettify.css"
+
 module.exports = Includes
