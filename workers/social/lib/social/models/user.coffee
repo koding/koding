@@ -5,11 +5,11 @@ Flaggable = require '../traits/flaggable'
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
 
-  JAccount  = require './account'
-  JSession  = require './session'
-  JGuest    = require './guest'
   JEmailConfirmation = require './emailconfirmation'
   JInvitation = require './invitation'
+  JAccount    = require './account'
+  JSession    = require './session'
+  JGuest      = require './guest'
 
   createId = require 'hat'
 
@@ -60,7 +60,7 @@ module.exports = class JUser extends jraphical.Module
       email         : 'unique'
 
     sharedMethods   :
-      instance      : []
+      instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
@@ -471,6 +471,7 @@ module.exports = class JUser extends jraphical.Module
           callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
+    JEmailConfirmation = require './emailconfirmation'
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err

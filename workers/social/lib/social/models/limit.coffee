@@ -1,9 +1,9 @@
 jraphical = require 'jraphical'
 
 module.exports = class JLimit extends jraphical.Module
-  
+
   @share()
-  
+
   @set
     schema      :
       quota     :
@@ -12,5 +12,5 @@ module.exports = class JLimit extends jraphical.Module
       usage     :
         type    : Number
         default : 0
-  
+
   getValue:-> @getAt('quota') - @getAt('usage')
