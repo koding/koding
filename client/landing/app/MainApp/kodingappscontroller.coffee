@@ -154,11 +154,6 @@ class KodingAppsController extends KDController
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      if err
-        new KDNotificationView
-          title    : "App list is out-dated, refreshing apps..."
-          duration : 2000
-        @refreshApps noop
       callback err, response
 
   # #
@@ -471,7 +466,14 @@ class KodingAppsController extends KDController
     unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      kallback @constructor.manifests[name]
+      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+        if err
+          new KDNotificationView
+            title    : "App list is out-dated, refreshing apps..."
+            duration : 2000
+          @refreshApps noop
+        else
+          kallback @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
