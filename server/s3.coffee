@@ -15,11 +15,7 @@ mime = require 'mime'
 module.exports = (config)->
 
   s3CreatePath =(username, filename, extension)->
-    unless extension
-      [filename, extension] = [extension, filename]
-      hash = hat()
-    else
-      hash = require('crypto').createHash('sha1').update(filename).digest('hex')
+    hash = require('crypto').createHash('sha1').update(filename).digest('hex')
     "/users/#{username}/#{hash}.#{extension}"
 
   s3 = require('aws2js').load('s3', config.awsAccessKeyId, config.awsSecretAccessKey)
