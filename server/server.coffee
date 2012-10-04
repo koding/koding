@@ -14,6 +14,7 @@ hat = require 'hat'
 app = express.createServer()
 
 app.use express.bodyParser()
+app.use express.basicAuth 'koding', '314159'
 app.use express.cookieParser()
 app.use express.session {"secret":"foo"}
 app.use gzippo.staticGzip "#{projectRoot}/website/"
