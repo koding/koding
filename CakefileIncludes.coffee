@@ -284,6 +284,8 @@ Includes =
 
         # DiffScript            :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
 
+        # groups
+        GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
@@ -358,6 +360,11 @@ Includes =
         TopicSplitViewController      : "./client/app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee"
         topicsInnerNavigation         : "./client/app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee"
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
+
+        # GROUPS VIEWS
+        groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
+        groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
+        groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"

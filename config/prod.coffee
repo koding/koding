@@ -13,6 +13,12 @@ module.exports = deepFreeze
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
+  uploads       :
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccessKeyId      : 'AKIAIBHGXKRDSOQZESGQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
   social        :
     numberOfWorkers: 10
   client        :

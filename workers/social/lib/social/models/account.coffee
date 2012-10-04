@@ -147,6 +147,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
+      group         :
+        as          : 'member'
+        targetType  : 'JGroup'
+
       content       :
         as          : 'creator'
         targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]

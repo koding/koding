@@ -1,42 +1,37 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites} = require argv.c
+{webPort, mongo, mq, projectRoot, kites, uploads} = require argv.c
 webPort = argv.p if argv.p?
 
 {extend} = require 'underscore'
 express = require 'express'
 Broker = require 'broker'
-Bongo = require 'bongo'
+# Bongo = require 'bongo'
 gzippo = require 'gzippo'
 fs = require 'fs'
 hat = require 'hat'
 
 app = express.createServer()
 
+delete express.bodyParser.parse['multipart/form-data']
+
 app.use express.bodyParser()
 app.use express.cookieParser()
+app.use express.basicAuth 'koding', '314159'
 app.use express.session {"secret":"foo"}
 app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
+s3 = require('./s3')(uploads.s3)
+
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
-  console.error err
+  throw err
   console.trace()
 
-koding = new Bongo {
-  mongo
-  root: __dirname
-  models: [
-    '../workers/social/lib/social/models/session.coffee'
-    '../workers/social/lib/social/models/guest.coffee'
-  ]
-  mq: new Broker mq
-  queueName: 'koding-social'
-}
-
+koding = require './bongo'
 kiteBroker =\
   if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
@@ -95,6 +90,22 @@ app.get '/auth', (req, res)->
                 kiteCmQueue.destroy()
               , kites?.disconnectTimeout ? 5000
           return res.send privName
+
+app.post '/upload', s3..., (req, res)->
+  res.send(for own key, file of req.files
+    origName  : file.name
+    newName   : file.s3ObjectName
+  )
+
+app.get '/upload/test', (req, res)->
+  res.send \
+    """
+    <form method=\"post\" action="/upload" enctype=\"multipart/form-data\">
+      <p>Title: <input type=\"text\" name=\"title\" /></p>
+      <p>Image: <input type=\"file\" name=\"image\" /></p>
+      <p><input type=\"submit\" value=\"Upload\" /></p>
+    </form>
+    """
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?

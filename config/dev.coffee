@@ -21,7 +21,14 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
+  uploads       :
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccountId        : '616271189586'
+      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
   social        :
     numberOfWorkers: 1
     watch       : yes

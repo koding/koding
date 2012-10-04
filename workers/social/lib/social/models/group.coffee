@@ -2,18 +2,24 @@
 
 module.exports = class JGroup extends Module
 
-  {Inflector, ObjectRef} = require 'bongo'
+  {Inflector, ObjectRef, secure} = require 'bongo'
+
+  @trait __dirname, '../traits/followable'
+  @trait __dirname, '../traits/filterable'
+  @trait __dirname, '../traits/taggable'
+
+  @share()
 
   @set
     indexes         :
       slug          : 'unique'
     sharedMethods   :
-      static        : ['create']
+      static        : ['create','byRelevance','someWithRelationship']
     schema          :
       title         :
         type        : String
         required    : yes
-      description   : String
+      body          : String
       avatar        : String
       slug          :
         type        : String
@@ -48,18 +54,33 @@ module.exports = class JGroup extends Module
         targetType  : 'JTag'
         as          : 'tag'
 
-  @create =(client, formData, callback)->
+  @create = secure (client, formData, callback)->
+    {delegate} = client.connection
     group = new @ formData
     group.save (err)->
       if err
         callback err
       else
-        group.addMember client, (err)->
+        group.addMember delegate, (err)->
           if err
             callback err
           else
-            group.addAdmin client, (err)->
+            group.addAdmin delegate, (err)->
               if err
                 callback err
               else
                 callback null, group
+
+  @findSuggestions = (seed, options, callback)->
+    {limit, blacklist, skip}  = options
+
+    @some {
+      title   : seed
+      _id     :
+        $nin  : blacklist
+      visibility: 'visible'
+    },{
+      skip
+      limit
+      sort    : 'title' : 1
+    }, callback

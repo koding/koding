@@ -317,6 +317,8 @@ class Sidebar extends JView
     items : [
         title : "Activity"
       ,
+        title : "Groups"
+      ,
         title : "Topics"
       ,
         title : "Members"

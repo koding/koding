@@ -1,0 +1,16 @@
+body {
+    background-color: #778;
+}
+
+.container {
+    border-radius: 25px;
+    border: 5px solid #cb261c;
+    width: 720px;
+    height: 100%;
+    margin: 20px auto;
+    background: -webkit-gradient(linear, 0% 100%, 0% -10%, from(#BBD), to(white));
+}
+
+.inner {
+    margin: 30px;
+}
