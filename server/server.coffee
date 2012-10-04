@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites} = require argv.c
+{webPort, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
 webPort = argv.p if argv.p?
 
 {extend} = require 'underscore'
@@ -14,13 +14,15 @@ hat = require 'hat'
 app = express.createServer()
 
 app.use express.bodyParser()
-app.use express.basicAuth 'koding', '314159'
 app.use express.cookieParser()
 app.use express.session {"secret":"foo"}
 app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
+
+if basicAuth
+  app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
