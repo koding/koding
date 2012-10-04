@@ -234,17 +234,15 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
+
       @fetchCompiledApp manifest, (err, script)=>
         if err
-          if not /cat\:/.test err
-            @compileApp name, (err)=>
-              if err
-                new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-                callback err
-              else
-                callback err, KDApps[name]
-          else
-            callback err
+          @compileApp name, (err)=>
+            if err
+              new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+              callback err
+            else
+              callback err, KDApps[name]
         else
           @defineApp name, script
           callback err, KDApps[name]
