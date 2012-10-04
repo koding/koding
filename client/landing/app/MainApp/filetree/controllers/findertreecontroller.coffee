@@ -122,6 +122,7 @@ class NFinderTreeController extends JTreeViewController
       when "file"
         @openFile nodeView
         @emit "file.opened", nodeData
+        @setBlurState()
 
   openFile:(nodeView, event)->
 
