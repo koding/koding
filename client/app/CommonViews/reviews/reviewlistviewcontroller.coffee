@@ -47,7 +47,7 @@ class ReviewListViewController extends KDListViewController
       listView.emit "BackgroundActivityStarted"
       @_hasBackgrounActivity = yes
       @_removedBefore = no
-      @fetchRelativeReviews 10, meta.createdAt
+      @fetchRelativeReviews -1, meta.createdAt
 
     listView.registerListener
       KDEventTypes  : "ReviewSubmitted"
@@ -81,16 +81,12 @@ class ReviewListViewController extends KDListViewController
         @removeAllItems()
         @_removedBefore = yes
 
-      @instantiateListItems reivews[_limit-10...], yes
+      @instantiateListItems reivews, yes
 
-      if reivews.length is _limit
-        startTime = reivews[reivews.length-1].meta.createdAt
-        @fetchRelativeReviews 11, startTime
-      else
-        listView = @getListView()
-        listView.emit "BackgroundActivityFinished"
-        listView.emit "AllCommentsWereAdded"
-        @_hasBackgrounActivity = no
+      listView = @getListView()
+      listView.emit "BackgroundActivityFinished"
+      listView.emit "AllCommentsWereAdded"
+      @_hasBackgrounActivity = no
 
   replaceAllReviews:(reivews)->
     @removeAllItems()

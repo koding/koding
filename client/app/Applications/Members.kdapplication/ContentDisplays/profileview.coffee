@@ -76,6 +76,16 @@ class ProfileView extends JView
         appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
     , memberData
 
+    @likes = new KDView
+      tagName     : 'a'
+      attributes  :
+        href      : '#'
+      pistachio   : "{{#(counts.likes)}} <span>Likes</span>"
+      click       : (event)->
+        return if memberData.counts.following is 0
+        appManager.tell "Members", "createLikedContentDisplay", memberData
+    , memberData
+
     @sendMessageLink = new MemberMailLink {}, memberData
 
     memberData.locationTags or= []
@@ -135,6 +145,9 @@ class ProfileView extends JView
           </div>
           <div class="fing">
             {{> @following}}
+          </div>
+           <div class="liks">
+            {{> @likes}}
           </div>
           <div class='contact'>
             {{> @sendMessageLink}}

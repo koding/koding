@@ -1,4 +1,6 @@
-jraphical = require 'jraphical'
+
+jraphical   = require 'jraphical'
+KodingError = require '../error'
 
 class JAppScriptAttachment extends jraphical.Attachment
   @setSchema
@@ -10,9 +12,10 @@ class JAppScriptAttachment extends jraphical.Attachment
 module.exports = class JApp extends jraphical.Module
 
   CActivity = require './activity'
-  JAccount = require './account'
-  JReview = require './messages/review'
-  JTag = require './tag'
+  JAccount  = require './account'
+  CBucket   = require './bucket'
+  JReview   = require './messages/review'
+  JTag      = require './tag'
 
 
   @trait __dirname, '../traits/filterable'       # brings only static methods
@@ -81,26 +84,28 @@ module.exports = class JApp extends jraphical.Module
 
     relationships   :
       creator       :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : "related"
       review        :
-        targetType  : "JReview"
+        targetType  : JReview
         as          : "review"
       activity      :
-        targetType  : "CActivity"
+        targetType  : CActivity
         as          : 'activity'
       follower      :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'follower'
       likedBy       :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'like'
       participant   :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : ['author','reviewer','user']
       tag           :
-        targetType  : "JTag"
+        targetType  : JTag
         as          : 'tag'
+
+  @getAuthorType =-> JAccount
 
   @create = secure (client, data, callback)->
 
