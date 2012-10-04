@@ -75,6 +75,7 @@ ebin
 /node_modules/.DS_Store
 /node_modules/csv
 node_modules/cron/
+/node_modules/libxml-to-js
 
 # Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
 
