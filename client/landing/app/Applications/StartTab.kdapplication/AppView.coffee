@@ -12,7 +12,8 @@ class StartTabMainView extends JView
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")
     appsController.on "AppsRefreshed", (apps)=>
-      @decorateApps apps
+      @getSingleton("kodingAppsController").appStorage.fetchStorage (storage)=>
+        @decorateApps apps
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
