@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites, uploads} = require argv.c
+{webPort, mongo, mq, projectRoot, kites, uploads, basicAuth} = require argv.c
 webPort = argv.p if argv.p?
 
 {extend} = require 'underscore'
@@ -10,6 +10,7 @@ Broker = require 'broker'
 gzippo = require 'gzippo'
 fs = require 'fs'
 hat = require 'hat'
+nodePath = require 'path'
 
 app = express.createServer()
 
@@ -17,12 +18,14 @@ delete express.bodyParser.parse['multipart/form-data']
 
 app.use express.bodyParser()
 app.use express.cookieParser()
-app.use express.basicAuth 'koding', '314159'
 app.use express.session {"secret":"foo"}
 app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
+
+if basicAuth
+  app.use express.basicAuth basicAuth.username, basicAuth.password
 
 s3 = require('./s3')(uploads.s3)
 
@@ -93,16 +96,29 @@ app.get '/auth', (req, res)->
 
 app.post '/upload', s3..., (req, res)->
   res.send(for own key, file of req.files
-    origName  : file.name
-    newName   : file.s3ObjectName
+    filename  : file.filename
+    resource  : nodePath.join uploads.distribution, file.path
   )
 
 app.get '/upload/test', (req, res)->
   res.send \
     """
-    <form method=\"post\" action="/upload" enctype=\"multipart/form-data\">
+    <script>
+      function submitForm(form) {
+        var file, fld;
+        input = document.getElementById('image');
+        file = input.files[0];
+        fld = document.createElement('input');
+        fld.hidden = true;
+        fld.name = input.name + '-size';
+        fld.value = file.size;
+        form.appendChild(fld);
+        return true;
+      }
+    </script>
+    <form method=\"post\" action="/upload" enctype=\"multipart/form-data\" onsubmit="return submitForm(this)">
       <p>Title: <input type=\"text\" name=\"title\" /></p>
-      <p>Image: <input type=\"file\" name=\"image\" /></p>
+      <p>Image: <input type=\"file\" name=\"image\" id=\"image\" /></p>
       <p><input type=\"submit\" value=\"Upload\" /></p>
     </form>
     """
