@@ -1,9 +1,5 @@
 class SlidingSplit extends KDSplitView
 
-  constructor:->
-
-    super
-
   viewAppended:->
 
     @scrollContainer = @getOptions().scrollContainer or @parent
