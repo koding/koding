@@ -16,6 +16,9 @@ module.exports = deepFreeze
   runBroker     : no
   configureBroker: no
   buildClient   : no
+  basicAuth     :
+    username    : 'koding'
+    password    : '314159'
   social        :
     numberOfWorkers: 10
   client        :
