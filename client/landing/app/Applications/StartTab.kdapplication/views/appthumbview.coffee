@@ -124,6 +124,9 @@ class AppShortcutButton extends StartTabAppThumbView
 
   constructor:(options, data)->
 
+    if data.type is 'comingsoon'
+      data.disabled = yes
+
     super options, data
 
     @img.$().attr "src", "/images/#{data.icon}"
@@ -165,7 +168,7 @@ class AppShortcutButton extends StartTabAppThumbView
     if type is 'koding-app'
       @showLoader()
       appManager.openApplication path, => @hideLoader()
-    else if type is 'comingsoon'
-      new KDNotificationView
-        title : 'Coming Soon!'
+    # else if type is 'comingsoon'
+    #   new KDNotificationView
+    #     title : 'Coming Soon!'
     return no
