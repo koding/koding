@@ -127,20 +127,22 @@ class StartTabMainView extends JView
 
   decorateApps:(apps)->
     @removeAppIcons()
+    @showLoader()
     @refreshButton.hide()
     @putAppIcons apps
 
-    @getSingleton("kodingAppsController").appStorage.fetchValue 'shortcuts', (shortcuts)=>
-      for shortcut, manifest of shortcuts
-        do (shortcut, manifest)=>
-          @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
-            delegate : @
-          , manifest
+    shortcuts = @getSingleton("kodingAppsController").appStorage.getValue 'shortcuts'
 
-      @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
-        delegate : @
-      @hideLoader()
-      @refreshButton.show()
+    for shortcut, manifest of shortcuts
+      do (shortcut, manifest)=>
+        @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
+          delegate : @
+        , manifest
+
+    @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
+      delegate : @
+    @hideLoader()
+    @refreshButton.show()
 
   removeAppIcons:->
 
@@ -149,7 +151,6 @@ class StartTabMainView extends JView
 
   putAppIcons:(apps)->
 
-    @refreshButton.show()
     for app, manifest of apps
       do (app, manifest)=>
         @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView
