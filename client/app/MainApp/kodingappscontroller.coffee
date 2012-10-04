@@ -154,9 +154,12 @@ class KodingAppsController extends KDController
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      if err then warn err
+      if err
+        new KDNotificationView
+          title    : "App list is out-dated, refreshing apps..."
+          duration : 2000
+        @refreshApps noop
       callback err, response
-
 
   # #
   # MISC
