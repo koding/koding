@@ -374,7 +374,7 @@ class KDInputView extends KDView
 
   focus:->
 
-    @getSingleton("windowController").setKeyView @
+    @setKeyView @
     yes
 
   blur:->
