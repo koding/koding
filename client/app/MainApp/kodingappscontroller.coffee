@@ -70,8 +70,6 @@ class KodingAppsController extends KDController
       if not @appStorage.getValue 'shortcuts'
         @putDefaultShortcutsToAppStorage()
 
-    @fetchedFromFs = no
-
   # #
   # FETCHERS
   # #
@@ -81,20 +79,14 @@ class KodingAppsController extends KDController
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
     else
-      if not @fetchedFromFs
-        @fetchAppsFromFs (err, apps)=>
-          if err then callback()
-          else
-            callback null, apps
-      else
-        @fetchAppsFromDb (err, apps)=>
-          if err
-            @fetchAppsFromFs (err, apps)=>
-              if err then callback()
-              else
-                callback null, apps
-          else
-            callback? err, apps
+      @fetchAppsFromDb (err, apps)=>
+        if err
+          @fetchAppsFromFs (err, apps)=>
+            if err then callback()
+            else
+              callback null, apps
+        else
+          callback? err, apps
 
   fetchAppsFromFs:(callback)->
 
@@ -146,7 +138,6 @@ class KodingAppsController extends KDController
 
           @putAppsToAppStorage manifests
           callback? null, manifests
-          @fetchedFromFs = yes
 
   fetchAppsFromDb:(callback)->
 
@@ -259,7 +250,7 @@ class KodingAppsController extends KDController
   runApp:(manifest, callback)->
 
     {options, name, devMode} = manifest
-    {stylesheets}   = manifest.source if manifest.source
+    {stylesheets} = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
