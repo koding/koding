@@ -1,5 +1,13 @@
 JPost = require '../post'
 
+
+JAccount = require '../../account'
+JComment = require '../comment'
+JDiscussion = require '../discussion'
+JTag = require '../../tag'
+CActivity = require '../../activity'
+CRepliesActivity = require '../../activity/repliesactivity'
+
 module.exports = class JOpinion extends JPost
 
   # @mixin Followable

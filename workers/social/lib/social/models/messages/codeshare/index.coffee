@@ -26,7 +26,6 @@ module.exports = class JCodeShare extends JPost
     relationships : JPost.relationships
 
   @create = secure (client, data, callback)->
-    log "Creating from data",data
     codeShare=
       meta        : data.meta
       title       : data.title

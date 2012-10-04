@@ -2,6 +2,9 @@ jraphical = require 'jraphical'
 
 JAccount = require '../account'
 JComment = require './comment'
+# JDiscussion = require './discussion'
+# JOpinion = require './opinion'
+
 JTag = require '../tag'
 CActivity = require '../activity'
 CRepliesActivity = require '../activity/repliesactivity'

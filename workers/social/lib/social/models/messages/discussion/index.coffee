@@ -1,5 +1,12 @@
 JPost = require '../post'
 
+JAccount = require '../../account'
+JComment = require '../comment'
+JOpinion = require '../opinion'
+JTag = require '../../tag'
+CActivity = require '../../activity'
+CRepliesActivity = require '../../activity/repliesactivity'
+
 module.exports = class JDiscussion extends JPost
 
   # @mixin Followable
@@ -110,7 +117,7 @@ module.exports = class JDiscussion extends JPost
           else
             delegate.addContent comment, (err)->
               if err
-                log 'error adding content to delegate', err
+                log 'JDiscussion error adding content to delegate', err
             @addOpinion comment,
               flags:
                 isLowQuality    : exempt
