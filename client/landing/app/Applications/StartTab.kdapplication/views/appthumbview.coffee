@@ -11,9 +11,11 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description, authorNick} = manifest = @getData()
+    {icns, name, version, author, description, authorNick, additionalinfo} = manifest = @getData()
 
-    version or= ''
+    additionalinfo or= ''
+    description    or= ''
+    version        or= ''
 
     if not authorNick
       authorNick = KD.whoami().profile.nickname
@@ -56,6 +58,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           <div class='app-tip'>
             <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
             <p class='app-desc'>#{description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{additionalinfo}
           <div>
           """
       click    : -> no
@@ -126,6 +129,8 @@ class AppShortcutButton extends StartTabAppThumbView
 
     if data.type is 'comingsoon'
       data.disabled = yes
+
+    data.additionalinfo = "<cite>This is a shortcut for an internal Koding Application</cite>"
 
     super options, data
 
