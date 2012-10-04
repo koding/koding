@@ -397,10 +397,10 @@ class JTreeViewController extends KDViewController
         listController.deselectAllItems()
     @selectedNodes = []
 
-  selectNode:(nodeView, event)->
+  selectNode:(nodeView, event, setFocus = yes)->
 
     return unless nodeView
-    @setFocusState()
+    if setFocus then @setFocusState()
     @listControllers[@getNodePId nodeView.getData()].selectItem nodeView, event
 
   deselectNode:(nodeView, event)->
