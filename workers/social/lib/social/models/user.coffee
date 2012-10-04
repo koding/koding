@@ -439,6 +439,8 @@ module.exports = class JUser extends jraphical.Module
 
   changeEmail:(account, options, callback)->
 
+    JVerificationToken = require './verificationtoken'
+
     {email, pin} = options
 
     if not pin
