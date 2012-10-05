@@ -738,6 +738,5 @@ Includes =
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
-        prettify            : "./client/css/prettify.css"
 
 module.exports = Includes
