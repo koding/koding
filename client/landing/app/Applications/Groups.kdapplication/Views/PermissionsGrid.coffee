@@ -72,8 +72,8 @@ class PermissionsGrid extends KDView
         <tr>
           <td class="permission">#{permission}</td>
           #{if privacy is 'public' then "<td>#{
-            _getCheckbox module, permission, 'guest'}</td>
-          }" else ''}
+            _getCheckbox module, permission, 'guest'
+          }</td>" else ''}
           <td>#{_getCheckbox module, permission, 'member'}</td>
           <td>#{_getCheckbox module, permission, 'moderator'}</td>
           <td>#{_getCheckbox module, permission, 'admin'}</td>
