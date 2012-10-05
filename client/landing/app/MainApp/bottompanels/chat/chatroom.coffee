@@ -4,7 +4,7 @@ class BottomChatRoom extends JView
 
     super
 
-    @input = new KDTokenizedInput
+    @input = tokenInput = new KDTokenizedInput
       match                :
         topic              :
           regex            : /\B#\w.*/
