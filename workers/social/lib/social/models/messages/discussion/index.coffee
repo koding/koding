@@ -92,9 +92,11 @@ module.exports = class JDiscussion extends JPost
 
   reply: secure (client, comment, callback)->
     {delegate} = client.connection
+    JAccount = require '../../account'
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
+      JOpinion = require '../opinion'
       comment = new JOpinion
         body: comment.body
         title: comment.body
@@ -111,6 +113,9 @@ module.exports = class JDiscussion extends JPost
             delegate.addContent comment, (err)->
               if err
                 log 'error adding content to delegate', err
+            # delegate.addSubject comment, (err)->
+            #   if err
+            #     log 'error adding subject to delegate', err
             @addOpinion comment,
               flags:
                 isLowQuality    : exempt
@@ -135,6 +140,7 @@ module.exports = class JDiscussion extends JPost
                         else
                               callback null, comment
                               @fetchActivityId (err, id)->
+                                CActivity = '../activity'
                                 CActivity.update {_id: id}, {
                                   $set:
                                     'sorts.repliesCount'  : count

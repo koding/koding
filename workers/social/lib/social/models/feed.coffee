@@ -10,4 +10,4 @@ module.exports = class JFeed extends jraphical.Module
     relationships:
       content       :
         as          : 'container'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JDiscussion", "JOpinion"]
