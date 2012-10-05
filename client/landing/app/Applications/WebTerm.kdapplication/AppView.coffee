@@ -40,7 +40,12 @@ class WebTermView extends KDView
     @terminal = new WebTerm.Terminal @container.$()
     @terminal.sessionEndedCallback = (sessions) =>
       @getSingleton('mainView').mainTabView.removePaneByView this
+      #@propagateEvent
+      #  KDEventType  : "ApplicationWantsToClose"
+      #  globalEvent  : yes
+      #, {options: null, data: this}
       return
+      
       @server.getSessions (sessions) =>
         keys = Object.keys sessions
         keys.sort (a, b) ->
@@ -58,7 +63,7 @@ class WebTermView extends KDView
             mainView: this
         @sessionBox.show()
     @terminal.setTitleCallback = (title) =>
-      @tabPane.setTitle title
+      #@tabPane.setTitle title
 
     @listenWindowResize()
 
