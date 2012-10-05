@@ -1012,3 +1012,107 @@ div.kdview.activity-item.discussion.content-display-main-section
 .formline .fullscreen-button
   float                               right
   margin-top                          5px
+
+// prettify styles for discussion code blocks
+
+/* Pretty printing styles. Used with prettify.js. */
+/* Vim sunburst theme by David Leibovic */
+/* converted to Stylus with love (and "stylus --css")*/
+
+pre .str, code .str
+  color #65B042
+
+pre .kwd, code .kwd
+  color #E28964
+
+pre .com, code .com
+  color #AEAEAE
+  font-style italic
+
+pre .typ, code .typ
+  color #89bdff
+
+pre .lit, code .lit
+  color #3387CC
+
+pre .pun, code .pun
+  color #fff
+
+pre .pln, code .pln
+  color #fff
+
+pre .tag, code .tag
+  color #89bdff
+
+pre .atn, code .atn
+  color #bdb76b
+
+pre .atv, code .atv
+  color #65B042
+
+pre .dec, code .dec
+  color #3387CC
+
+pre.prettyprint, code.prettyprint
+  background-color #333
+  rounded 3px
+  padding 1px 4px
+
+pre.prettyprint
+  width auto
+  margin 1em 0px 1em 0px
+  padding 1em
+  white-space pre-wrap
+
+  code
+    background-color #333
+
+li > code.prettyprint,
+a > code.prettyprint,
+em > code.prettyprint,
+p > code.prettyprint
+  background-color #e6e6e6
+
+ol.linenums
+  margin-top 0
+  margin-bottom 0
+  color #AEAEAE
+
+li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8
+  list-style-type none
+
+@media print
+  pre .str, code .str
+    color #060
+
+  pre .kwd, code .kwd
+    color #006
+    font-weight bold
+
+  pre .com, code .com
+    color #600
+    font-style italic
+
+  pre .typ, code .typ
+    color #404
+    font-weight bold
+
+  pre .lit, code .lit
+    color #044
+
+  pre .pun, code .pun
+    color #440
+
+  pre .pln, code .pln
+    color #000
+
+  pre .tag, code .tag
+    color #006
+    font-weight bold
+
+  pre .atn, code .atn
+    color #404
+
+  pre .atv, code .atv
+    color #060
+
