@@ -1,7 +1,3 @@
-#####
-# Base Class KDInputView
-#####
-
 class KDInputView extends KDView
 
   constructor:(o = {}, data)->

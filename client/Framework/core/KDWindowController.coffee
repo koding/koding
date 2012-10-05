@@ -115,7 +115,7 @@ class KDWindowController extends KDController
 
     return if newKeyView is @keyView
     # debugger
-    # log newKeyView, "newKeyView" if newKeyView
+    log newKeyView, "newKeyView" if newKeyView
 
     @oldKeyView = @keyView
     @keyView = newKeyView
