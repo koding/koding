@@ -4,17 +4,21 @@ module.exports = class JGroup extends Module
 
   {Inflector, ObjectRef, secure} = require 'bongo'
 
-  @trait __dirname, '../traits/followable'
-  @trait __dirname, '../traits/filterable'
-  @trait __dirname, '../traits/taggable'
+  @trait __dirname, '../../traits/followable'
+  @trait __dirname, '../../traits/filterable'
+  @trait __dirname, '../../traits/taggable'
+  @trait __dirname, '../../traits/protected'
 
   @share()
 
   @set
+    memberRoles     : ['admin','moderator','member','guest']
+    permissions     : ['grant permissions']
     indexes         :
       slug          : 'unique'
     sharedMethods   :
-      static        : ['create','byRelevance','someWithRelationship']
+      static        : ['create','byRelevance','someWithRelationship','__resetAllGroups']
+      instance      : ['join','leave','fetchPermissionSet']
     schema          :
       title         :
         type        : String
@@ -32,6 +36,9 @@ module.exports = class JGroup extends Module
         enum        : ['invalid visibility type', ['visible', 'hidden']]
       parent        : ObjectRef
     relationships   :
+      permissions   :
+        targetType  : 'JPermissionSet'
+        as          : 'owner'
       member        :
         targetType  : 'JAccount'
         as          : 'group'
@@ -54,7 +61,12 @@ module.exports = class JGroup extends Module
         targetType  : 'JTag'
         as          : 'tag'
 
+  @__resetAllGroups = secure (client, callback)->
+    {delegate} = client.connection
+    @drop callback if delegate.can 'reset groups'
+
   @create = secure (client, formData, callback)->
+    JPermissionSet = require './permissionset'
     {delegate} = client.connection
     group = new @ formData
     group.save (err)->
@@ -69,7 +81,16 @@ module.exports = class JGroup extends Module
               if err
                 callback err
               else
-                callback null, group
+                permissions = new JPermissionSet
+                permissions.save (err)->
+                  if err
+                    callback err
+                  else
+                    group.addPermissions permissions, (err)->
+                      if err
+                        callback err
+                      else
+                        callback null, group
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -84,3 +105,22 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  fetchPermissionSet: secure (client, callback)->
+    {permissionsByModule} = require '../../traits/protected'
+    {delegate} = client.connection
+    @fetchPermissions (err, permissionSet)->
+      if err
+        callback err
+      else
+        callback null, {
+          permissionsByModule
+          permissions: permissionSet.permissions
+        }
+
+
+  join: secure (client, callback)->
+    callback 'JGroup#join is unimplemented'
+
+  leave: secure (client, callback)->
+    callback 'JGroup#leave is unimplemented'

@@ -5,6 +5,8 @@ module.exports = class JVocabulary extends Module
   {daisy} = require 'bongo'
   {KodingError} = require '../error'
 
+  @trait __dirname, '../traits/protected'
+
   @set
     schema          :
       title         : String
@@ -16,6 +18,13 @@ module.exports = class JVocabulary extends Module
       tag           :
         targetType  : 'JTag'
         as          : 'vocabulary'
+    permissions     : [
+      'create vocabularies'
+      'edit vocabularies'
+      'delete vocabularies'
+      'edit own vocabularies'
+      'delete own vocabularies'
+    ]
 
   @create =(client, formData, callback)->
     JGroup = require './group'

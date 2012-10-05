@@ -159,6 +159,39 @@ class GroupsController extends AppController
                   { title : "Hidden",     value : "hidden" }
                 ]
 
+  editPermissions:(group)->
+    group.getData().fetchPermissionSet (err, permissionSet)->
+      if err
+        new KDNotificationView title: err
+      else
+        permissionsGrid = new PermissionsGrid {
+          privacy: group.getData().privacy
+          permissionSet
+        }
+        modal = new KDModalView
+          title     : "Edit permissions"
+          content   : ""
+          overlay   : yes
+          cssClass  : "new-kdmodal"
+          width     : 500
+          height    : "auto"
+          buttons:
+            Save          :
+              style       : "modal-clean-gray"
+              loader      :
+                color     : "#444444"
+                diameter  : 12
+              callback    : ->
+                console.log 'hehehehe'
+                group.getData().updatePermissions permissionsGrid.getPermissions()
+            Cancel        :
+              style       : "modal-clean-gray"
+              loader      :
+                color     : "#ffffff"
+                diameter  : 16
+              callback    : -> modal.destroy()
+        modal.addSubView permissionsGrid
+
   loadView:(mainView, firstRun = yes)->
 
     if firstRun
@@ -172,11 +205,11 @@ class GroupsController extends AppController
 
     KD.whoami().fetchRole? (err, role) =>
       if role is "super-admin"
-        @listItemClass = TopicsListItemViewEditable
+        @listItemClass = GroupsListItemViewEditable
         if firstRun
-          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
-            @updateTopic topicItem
-
+          @getSingleton('mainController').on "GroupItemEditLinkClicked", (groupItem)=>
+            @editPermissions groupItem
+            
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 

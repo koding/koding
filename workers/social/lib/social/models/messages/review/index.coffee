@@ -8,32 +8,42 @@ module.exports = class JReview extends Message
   {log} = console
 
   @trait __dirname, '../../../traits/likeable'
+  @trait __dirname, '../../../traits/protected'
 
   @share()
 
   @getDefaultRole =-> 'review'
 
   @set
-    sharedMethods  :
-      instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
-    schema         :
-      isLowQuality : Boolean
-      body         :
-        type       : String
-        required   : yes
-      originType   :
-        type       : String
-        required   : yes
-      originId     :
-        type       : ObjectId
-        required   : yes
-      deletedAt    : Date
-      deletedBy    : ObjectRef
-      meta         : require 'bongo/bundles/meta'
-    relationships  :
-      likedBy      :
-        targetType : "JAccount"
-        as         : 'like'
+    permissions     : [
+      'read reviews'
+      'create reviews'
+      'edit reviews'
+      'delete reviews'
+      'edit own reviews'
+      'delete own reviews'
+      'reply to reviews'
+    ]
+    sharedMethods   :
+      instance      : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
+    schema          :
+      isLowQuality  : Boolean
+      body          :
+        type        : String
+        required    : yes
+      originType    :
+        type        : String
+        required    : yes
+      originId      :
+        type        : ObjectId
+        required    : yes
+      deletedAt     : Date
+      deletedBy     : ObjectRef
+      meta          : require 'bongo/bundles/meta'
+    relationships   :
+      likedBy       :
+        targetType  : "JAccount"
+        as          : 'like'
 
   delete: secure (client, callback)->
     {delegate} = client.connection

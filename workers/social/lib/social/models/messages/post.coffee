@@ -15,6 +15,7 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
   @trait __dirname, '../../traits/likeable'
+  @trait __dirname, '../../traits/protected'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -35,6 +36,15 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    permissions: [
+      'read posts'
+      'create posts'
+      'edit posts'
+      'delete posts'
+      'edit own posts'
+      'delete own posts'
+      'reply to posts'
+    ]
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'

@@ -148,8 +148,8 @@ module.exports = class JAccount extends jraphical.Module
         targetType  : "JTag"
 
       group         :
-        as          : 'member'
-        targetType  : 'JGroup'
+        targetType  : require './group'
+        as          : require('./group').memberRoles
 
       content       :
         as          : 'creator'
@@ -300,7 +300,7 @@ module.exports = class JAccount extends jraphical.Module
 
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests'
+      when 'delete','flag','reset guests','reset groups'
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
 
   fetchRole: secure ({connection}, callback)->
