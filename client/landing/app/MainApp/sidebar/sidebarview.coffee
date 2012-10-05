@@ -315,15 +315,12 @@ class Sidebar extends JView
     id    : "navigation"
     title : "navigation"
     items : [
-        title : "Activity"
-      ,
-        title : "Topics"
-      ,
-        title : "Members"
-      ,
-        title : "Develop",        loggedIn : yes,  path : "StartTab"
-      ,
-        title : "Apps"
+      { title : "Activity" }
+      { title : "Topics" }
+      { title : "Members" }
+      { title : "Groups",  path : "GroupsFake" }
+      { title : "Develop", loggedIn : yes,  path : "StartTab" }
+      { title : "Apps" }
     ]
 
   accNavItems =
