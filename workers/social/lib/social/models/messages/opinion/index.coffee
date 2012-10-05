@@ -1,13 +1,5 @@
 JPost = require '../post'
 
-
-JAccount = require '../../account'
-JComment = require '../comment'
-JDiscussion = require '../discussion'
-JTag = require '../../tag'
-CActivity = require '../../activity'
-CRepliesActivity = require '../../activity/repliesactivity'
-
 module.exports = class JOpinion extends JPost
 
   # @mixin Followable
@@ -46,8 +38,6 @@ module.exports = class JOpinion extends JPost
     meta        : require 'bongo/bundles/meta'
   }
 
-  JComment = require '../comment'
-
   @set
     emitFollowingActivities: yes
     taggedContentRole : 'opinion'
@@ -56,7 +46,7 @@ module.exports = class JOpinion extends JPost
     schema        : schema
     relationships     :
       comment         :
-        type          : JComment
+        type          : "JComment"
         as            : 'reply'
       participant     :
         targetType    : "JAccount"
@@ -157,4 +147,5 @@ module.exports = class JOpinion extends JPost
 
   reply: secure (client, comment, callback)->
     JComment = require '../comment'
+    console.log "In JOpinion:Reply, calling JPost::reply"
     JPost::reply.call @, client, JComment, comment, callback

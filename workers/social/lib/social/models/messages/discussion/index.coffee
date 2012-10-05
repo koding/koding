@@ -1,12 +1,5 @@
 JPost = require '../post'
 
-JAccount = require '../../account'
-JComment = require '../comment'
-JOpinion = require '../opinion'
-JTag = require '../../tag'
-CActivity = require '../../activity'
-CRepliesActivity = require '../../activity/repliesactivity'
-
 module.exports = class JDiscussion extends JPost
 
   # @mixin Followable
@@ -99,9 +92,15 @@ module.exports = class JDiscussion extends JPost
 
   reply: secure (client, comment, callback)->
     {delegate} = client.connection
+
+    JAccount = require '../../account'
+
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
+      JComment = require '../comment'
+      JOpinion = require '../opinion'
+
       comment = new JOpinion
         body: comment.body
         title: comment.body
@@ -142,6 +141,9 @@ module.exports = class JDiscussion extends JPost
                         else
                               callback null, comment
                               @fetchActivityId (err, id)->
+
+                                CActivity = require '../../activity'
+
                                 CActivity.update {_id: id}, {
                                   $set:
                                     'sorts.repliesCount'  : count
