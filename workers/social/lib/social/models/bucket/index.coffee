@@ -52,7 +52,7 @@ module.exports = class CBucket extends jraphical.Module
         switch groupName
           when 'source' then CLikeeBucket
           when 'target' then CLikerBucket
-      when 'reply' or 'opinion'
+      when 'reply', 'opinion'
         switch groupName
           when 'source' then CReplieeBucket
           when 'target' then CReplierBucket
