@@ -14,7 +14,7 @@ prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = new (require "processes") main:true
+processes   = new (require "processes")
 {daisy}     = require 'sinkrow'
 {spawn, exec} = require 'child_process'
 fs            = require "fs"
@@ -101,8 +101,14 @@ clientFileMiddleware  = (options, code, callback)->
       else
         throw err
 
+pipeStd =(children...)->
+  for child in children when child?
+    child.stdout.pipe process.stdout
+    child.stderr.pipe process.stderr
+
 normalizeConfigPath =(path)->
   path ?= './config/dev'
+  # console.log __dirname, path
   nodePath.join __dirname, path
 
 buildClient =(configFile, callback=->)->
@@ -118,7 +124,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = expandConfigFile configFile
+  configFile = normalizeConfigPath expandConfigFile configFile
   config = require configFile
   builder = new Builder config.client,clientFileMiddleware,""
 
@@ -155,8 +161,8 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient configFile
+  # configFile = normalizeConfigPath expandConfigFile options.configFile
+  buildClient options.configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -198,11 +204,11 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  console.log 'KONFIG', config.mq.pidFile
-  vhosts = "{vhosts,["+
-    (options.vhosts or []).
-    map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
-    join(',')+"]}"
+  
+  vhosts = "{vhosts,[" + (options.vhosts or []).
+    map(({rule, vhost})-> """{"#{rule}",<<"#{vhost}">>}""").
+    join(',') +
+    "]}"
 
   brokerConfig = """
   {application, broker,
@@ -230,7 +236,7 @@ configureBroker = (options,callback=->)->
       ]}
    ]}.
   """
-  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
+  fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src", brokerConfig
   callback null
 
 task 'configureBroker',(options)->
@@ -240,51 +246,41 @@ task 'buildBroker', (options)->
   configureBroker options, ->
     pipeStd(spawn './broker/build.sh')
 
-pipeStd =(children...)->
-  for child in children when child?
-    child.stdout.pipe process.stdout
-    child.stderr.pipe process.stderr
-
 run =(options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
-  debug = if options.debug then ' -D' else ''
+  processes.run
+    name    : 'social'
+    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+    restart : yes
+    restartInterval : 1000
+    log     : no
 
   processes.run
-    name    : 'socialCake'
-    cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
+    name    : 'server'
+    cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-    
-  processes.run
-    name    : 'serverCake'
-    cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
-    restart : yes
-    restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-  # pipeStd(
-  #   processes.get "server"
-  #   processes.get "social"
-  # )
-  if config.social.watch? is yes
+    log     : no
+
+  pipeStd(
+    processes.get "server"
+    processes.get "social"
+  )
+  if config.social.watch?
     watcher = new Watcher
       groups:
         social :
           folders : ['./workers/social']
           onChange : (path) ->
-            processes.kill "socialCake"
+            processes.kill "social"
         server :
           folders : ['./server']
-          onChange : (path)->
-            console.log "changed",path
-            processes.kill "serverCake"
+          onChange : ->
+            processes.kill "server"
 
 assureVhost =(uri, vhost, vhostFile, callback)->
   addVhost uri, vhost, (res)->
@@ -333,8 +329,7 @@ task 'run', (options)->
     queue.push ->
       # we need to clear the cache so that other modules will get the
       # config that reflects our latest changes to the .rabbitvhost file:
-      configModulePath = require.resolve configFile
-      delete require.cache[configModulePath]
+      delete require.cache[require.resolve configFile]
       queue.next()
 
   if options.buildClient ? config.buildClient
