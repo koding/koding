@@ -50,7 +50,7 @@ class KDView extends KDObject
   @appendToDOMBody = (view)->
     $("body").append view.$()
     view.parentIsInDom = yes
-    view.emit 'viewAppended', view
+    view.emit "viewAppended", view
 
 # #
 # INSTANCE LEVEL
@@ -79,16 +79,14 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', =>
-      data
-      @render()
+    data?.on? 'update', => @render()
 
     @setInstanceVariables options
     @defaultInit options,data
 
-    if location.hostname is 'localhost'
+    if location.hostname is "localhost"
       @listenTo
-        KDEventTypes        : 'click'
+        KDEventTypes        : "click"
         listenedToInstance  : @
         callback            : (publishingInstance, event)=>
           if event.metaKey and event.altKey and event.ctrlKey
@@ -181,7 +179,6 @@ class KDView extends KDObject
       @setTemplate options.pistachio
       @template.update()
 
-    @setDelegate options.delegate                 if options.delegate
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
 
 
@@ -498,10 +495,11 @@ class KDView extends KDObject
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
     # log result, event.type, "???"
-    @emit event.type, event if result
-    # deprecate below 09/2012 sinan
-    @propagateEvent (KDEventType:event.type.capitalize()),event
-    @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
+    if result
+      @emit event.type, event
+      # deprecate below 09/2012 sinan
+      @propagateEvent (KDEventType:event.type.capitalize()),event
+      @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
     willPropagateToDOM = result
 
   scroll:(event)->     yes

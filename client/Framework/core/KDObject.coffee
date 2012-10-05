@@ -5,6 +5,7 @@ class KDObject extends KDEventEmitter
     @id or= options.id or __utils.getUniqueId()
     @setOptions options
     @setData data
+    @setDelegate options.delegate if options.delegate
     @registerKDObjectInstance()
     @subscriptionsByEvent = {}
     @subscriptionCountByListenerId = {}
@@ -179,8 +180,7 @@ class KDObject extends KDEventEmitter
 
   getId:()->@id
 
-  setDelegate:(anInstance)->
-    @delegate = anInstance
+  setDelegate:(anInstance)-> @delegate = anInstance
 
   getDelegate:->@delegate
 

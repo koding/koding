@@ -6,23 +6,9 @@ class KDViewController extends KDController
 
     @setView @getOptions().view if @getOptions().view?
 
-  bringToFront:(options = {}, view = @getView())->
-
-    @propagateEvent
-      KDEventType : 'ApplicationWantsToBeShown'
-      globalEvent : yes
-    ,
-      options     : options
-      data        : view
-
-  initAndBringToFront:(options, callback)->
-
-    @bringToFront()
-    callback()
-
   loadView:(mainView)->
 
-  getView:()-> @mainView
+  getView:-> @mainView
 
   setView:(aViewInstance)->
 
