@@ -64,7 +64,7 @@ handleClient = do ->
     mq.bindQueue(
       getWorkerQueueName(), 
       ownExchangeName, 
-      "activityOf.#", 
+      "#.activity", 
       workerQueueOptions
     )
 
@@ -74,15 +74,15 @@ handleClient = do ->
     # When client logs in, listen to message from own exchange and
     # publish followees' activies to own exchange on a different
     # routing so that worker queue can consume from it.
-    mq.on(
-      ownExchangeName,
-      "#.activity", 
-      ownExchangeName, 
-      (message, headers, deliveryInfo) ->
-        publisher = deliveryInfo.exchange
-        unless publisher is getOwnExchangeName account
-          ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-    )
+    # mq.on(
+    #   ownExchangeName,
+    #   "#.activity", 
+    #   ownExchangeName, 
+    #   (message, headers, deliveryInfo) ->
+    #     publisher = deliveryInfo.exchange
+    #     unless publisher is getOwnExchangeName account
+    #       ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+    # )
 
   handleOwnActivity = (account) ->
     ownExchangeName = getOwnExchangeName account
@@ -139,31 +139,5 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
-# setInterval ->
-#   {Relationship} = require 'jraphical'
-#   {ObjectId} = require 'bongo'
-#   {extend} = require 'underscore'
-#   test = {
-#     targetId: ObjectId('4eea4fd93e25516404000004'),
-#     targetName: 'JAccount',
-#     sourceId: ObjectId('5007591678b8468137000002'),
-#     sourceName: 'JAccount',
-#     as: 'follower'
-#   }
-#   rel = new Relationship(test) #.save console.log
-  
-#   softPrune = rel.prune()
-#   hardPrune = rel.prune(yes)
-
-#   require('traverse')([softPrune, hardPrune]).forEach (node)->
-#     console.log node.constructor if /Id$/.test @path
-#     console.log ''+node if /Id$/.test @path
-#     return
-#   console.log 'HARD', hardPrune
-
-#   # Relationship.getCollection().insert(softPrune, (safe:yes), console.log.bind(console, 'prune()'))
-#   # Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
-#   # # koding.models.JGuest._resetAllGuests()
-# , 2e3
 
 console.log 'Koding Social Worker has started.'
