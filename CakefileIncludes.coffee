@@ -245,7 +245,13 @@ Includes =
         KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
 
         # autocomplete
-        KDAutoCompleteController : "./client/Framework/components/autocomplete/KDAutoCompleteController.coffee"
+        KDAutoCompleteC       : "./client/Framework/components/autocomplete/autocompletecontroller.coffee"
+        KDAutoComplete        : "./client/Framework/components/autocomplete/autocomplete.coffee"
+        KDAutoCompleteList    : "./client/Framework/components/autocomplete/autocompletelist.coffee"
+        KDAutoCompleteListItem: "./client/Framework/components/autocomplete/autocompletelistitem.coffee"
+        MultipleInput         : "./client/Framework/components/autocomplete/multipleinputview.coffee"
+        KDAutoCompleteMisc    : "./client/Framework/components/autocomplete/autocompletemisc.coffee"
+        KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
 
       Applications :
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
