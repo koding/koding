@@ -24,7 +24,7 @@ class ContentDisplayControllerTopic extends KDViewController
     topicView = @addTopicView topic
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass        : ActivityListItemView
+      itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
       limitPerPage        : 5
       filter              :
