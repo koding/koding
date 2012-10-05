@@ -78,7 +78,6 @@ module.exports = class CBucket extends jraphical.Module
               callback err
             else if rel
               konstructor = Base.constructors[rel.sourceName]
-              console.log "konstruktor is",konstructor
               konstructor.one _id: rel.sourceId, (err, activity)->
                 if err
                   callback err

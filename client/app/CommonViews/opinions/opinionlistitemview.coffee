@@ -53,7 +53,8 @@ class OpinionListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-    @commentBox = new OpinionCommentView null, data
+    @commentBox = new CommentView null, data
+    # @commentBox = new OpinionCommentView null, data
 
     @commentBox.on "DiscussionTeaserShouldRefresh",=>
       @parent.emit "DiscussionTeaserShouldRefresh"
