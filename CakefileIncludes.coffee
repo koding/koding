@@ -327,6 +327,7 @@ Includes =
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
 
         # Activity content displays
+        activityContentDisplay      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee"
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
@@ -335,7 +336,6 @@ Includes =
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
         # Activity content displays commons
-        actContentDisplayController : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayControllerActivity.coffee"
         ContentDisplayAvatar        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee"
         ContentDisplayMeta          : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayMeta.coffee"
         ContentDisplayMetaTags      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayTags.coffee"

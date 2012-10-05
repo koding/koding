@@ -290,41 +290,30 @@ class Activity12345 extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Status Update"
-      type        : "status"
-      contentView : new ContentDisplayStatusUpdate {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
 
   createCodeSnippetContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Code Snippet"
-      type        : "codesnip"
-      contentView : new ContentDisplayCodeSnippet {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    @showContentDisplay new ContentDisplayCodeSnippet
+      title : "Code Snippet"
+      type  : "codesnip"
+    ,activity
 
   # THIS WILL DISABLE CODE SHARES
   # createCodeShareContentDisplay:(activity)->
-  #   controller = new ContentDisplayControllerActivity
+  #   @showContentDisplay new ContentDisplayCodeShare
   #     title       : "Code Share"
   #     type        : "codeshare"
-  #     contentView : new ContentDisplayCodeShare {},activity
   #   , activity
-  #   contentDisplay = controller.getView()
-  #   @showContentDisplay contentDisplay
+
 
   createDiscussionContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
+    @showContentDisplay new ContentDisplayDiscussion
       title : "Discussion"
       type  : "discussion"
-      contentView : new ContentDisplayDiscussion {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    ,activity
 
 class ActivityListController extends KDListViewController
 
