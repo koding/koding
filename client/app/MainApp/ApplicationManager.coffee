@@ -126,6 +126,7 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
+      "./client/app/Applications/GroupsFake.kdapplication"  : GroupsFakeController
     if classes[path]?
       new classes[path]
 

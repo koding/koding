@@ -318,7 +318,7 @@ class Sidebar extends JView
       { title : "Activity" }
       { title : "Topics" }
       { title : "Members" }
-      { title : "Groups" }
+      { title : "Groups",  path : "GroupsFake" }
       { title : "Develop", loggedIn : yes,  path : "StartTab" }
       { title : "Apps" }
     ]
