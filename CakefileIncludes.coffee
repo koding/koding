@@ -427,6 +427,8 @@ Includes =
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
+        GroupsFakeController          : "./client/app/Applications/GroupsFake.kdapplication/AppController.coffee"
+
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"

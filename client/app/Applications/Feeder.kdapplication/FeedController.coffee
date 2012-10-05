@@ -9,7 +9,7 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      itemClass  : options.itemClass
+      itemClass     : options.itemClass
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @

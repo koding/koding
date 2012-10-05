@@ -2,7 +2,7 @@ class TopicsInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
     showController = @setListController {},@showMenuData
     @addSubView showListWrapper = showController.getView()
-    
+
     showItemToBeSelected = showController.getItemsOrdered()[0]
     showController.selectItem showItemToBeSelected
 
@@ -14,7 +14,7 @@ class TopicsInnerNavigation extends CommonInnerNavigation
     ,10
 
     @addSubView helpBox = new HelpBox
-  
+
   showMenuData :
     title : "SHOW ME",
     items : [

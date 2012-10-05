@@ -1,16 +1,25 @@
 class WebTermController extends AppController
+
   constructor: (options = {}, data) ->
-    options.view = new WebTermView
+
+    options.view     = new WebTermView
     options.cssClass = "webterm"
+
     super options, data
 
   bringToFront: ->
-    terminalView = new WebTermView
-    terminalView.tabPane = @getSingleton('mainView').mainTabView.createTabPane
-      name: "Terminal"
-      type: "application"
-      cssClass: "webterm"
-      hiddenHandle: no
-    , terminalView
+
+    data = new WebTermView
+
+    options =
+      name         : "Terminal"
+      hiddenHandle : no
+      type         : "application"
+      cssClass     : "webterm"
+
+    @propagateEvent
+      KDEventType  : "ApplicationWantsToBeShown"
+      globalEvent  : yes
+    , {options, data}
 
 WebTerm = {}
