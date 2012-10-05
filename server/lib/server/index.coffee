@@ -27,8 +27,6 @@ app.use (req, res, next)->
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-s3 = require('./s3')(uploads.s3)
-
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   throw err
@@ -94,34 +92,38 @@ app.get '/auth', (req, res)->
               , kites?.disconnectTimeout ? 5000
           return res.send privName
 
-app.post '/upload', s3..., (req, res)->
-  res.send(for own key, file of req.files
-    filename  : file.filename
-    resource  : nodePath.join uploads.distribution, file.path
-  )
+if uploads?.enableStreamingUploads
+  
+  s3 = require('./s3')(uploads.s3)
 
-app.get '/upload/test', (req, res)->
-  res.send \
-    """
-    <script>
-      function submitForm(form) {
-        var file, fld;
-        input = document.getElementById('image');
-        file = input.files[0];
-        fld = document.createElement('input');
-        fld.hidden = true;
-        fld.name = input.name + '-size';
-        fld.value = file.size;
-        form.appendChild(fld);
-        return true;
-      }
-    </script>
-    <form method=\"post\" action="/upload" enctype=\"multipart/form-data\" onsubmit="return submitForm(this)">
-      <p>Title: <input type=\"text\" name=\"title\" /></p>
-      <p>Image: <input type=\"file\" name=\"image\" id=\"image\" /></p>
-      <p><input type=\"submit\" value=\"Upload\" /></p>
-    </form>
-    """
+  app.post '/upload', s3..., (req, res)->
+    res.send(for own key, file of req.files
+      filename  : file.filename
+      resource  : nodePath.join uploads.distribution, file.path
+    )
+
+  app.get '/upload/test', (req, res)->
+    res.send \
+      """
+      <script>
+        function submitForm(form) {
+          var file, fld;
+          input = document.getElementById('image');
+          file = input.files[0];
+          fld = document.createElement('input');
+          fld.hidden = true;
+          fld.name = input.name + '-size';
+          fld.value = file.size;
+          form.appendChild(fld);
+          return true;
+        }
+      </script>
+      <form method=\"post\" action="/upload" enctype=\"multipart/form-data\" onsubmit="return submitForm(this)">
+        <p>Title: <input type=\"text\" name=\"title\" /></p>
+        <p>Image: <input type=\"file\" name=\"image\" id=\"image\" /></p>
+        <p><input type=\"submit\" value=\"Upload\" /></p>
+      </form>
+      """
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?

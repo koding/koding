@@ -41,8 +41,8 @@ module.exports = (config)->
           filename  : part.filename
           extension : mime.extension part.mime
         part.pipe file.stream
-      form.on 'end', -> next()
       form.parse req
+      next()
 
     (req, res, next) ->
       clientId = req.cookies.clientid

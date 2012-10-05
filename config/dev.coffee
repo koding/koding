@@ -23,6 +23,7 @@ module.exports = deepFreeze
   configureBroker: no
   buildClient   : yes
   uploads       :
+    enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccountId        : '616271189586'
