@@ -66,6 +66,10 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @appStorage = new AppStorage 'KodingApps', '1.0'
 
+    @appStorage.fetchStorage (storage)=>
+      if not @appStorage.getValue 'shortcuts'
+        @putDefaultShortcutsToAppStorage()
+
   # #
   # FETCHERS
   # #
@@ -91,6 +95,7 @@ class KodingAppsController extends KDController
     # require ["coffee-script"], (coffee)=>
     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
       if err
+        @putAppsToAppStorage {}
         warn err
         callback err
       else
@@ -149,9 +154,7 @@ class KodingAppsController extends KDController
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      if err then warn err
       callback err, response
-
 
   # #
   # MISC
@@ -162,16 +165,58 @@ class KodingAppsController extends KDController
     @constructor.manifests = {}
     KDApps = {}
     @fetchAppsFromFs (err, apps)=>
+      @emit "AppsRefreshed", apps
       if not err
-        @emit "AppsRefreshed", apps
         callback? err, apps
       else
         callback err
 
+  removeShortcut:(shortcut, callback)->
+    @appStorage.fetchValue 'shortcuts', (shortcuts)=>
+      delete shortcuts[shortcut]
+      @appStorage.setValue 'shortcuts', shortcuts, (err)=>
+        callback err
+
+  putDefaultShortcutsToAppStorage:->
+
+    shortcuts       =
+      Ace           :
+        name        : 'Ace'
+        type        : 'koding-app'
+        icon        : 'icn-ace.png'
+        description : 'Code Editor'
+        author      : 'Mozilla'
+      Terminal      :
+        name        : 'Terminal'
+        type        : 'koding-app'
+        icon        : 'icn-terminal.png'
+        description : 'Koding Terminal'
+        author      : 'Koding'
+        path        : 'WebTerm'
+      CodeMirror    :
+        name        : 'CodeMirror'
+        type        : 'comingsoon'
+        icon        : 'icn-codemirror.png'
+        description : 'Code Editor'
+        author      : 'Marijn Haverbeke'
+      yMacs         :
+        name        : 'yMacs'
+        type        : 'comingsoon'
+        icon        : 'icn-ymacs.png'
+        description : 'Code Editor'
+        author      : 'Mihai Bazon'
+      Pixlr         :
+        name        : 'Pixlr'
+        type        : 'comingsoon'
+        icon        : 'icn-pixlr.png'
+        description : 'Image Editor'
+        author      : 'Autodesk'
+
+    @appStorage.setValue 'shortcuts', shortcuts
+
   putAppsToAppStorage:(apps)->
 
-    @appStorage.setValue 'apps', apps, (err)=>
-      log err if err
+    @appStorage.setValue 'apps', apps
 
   defineApp:(name, script)->
 
@@ -184,6 +229,7 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
+
       @fetchCompiledApp manifest, (err, script)=>
         if err
           @compileApp name, (err)=>
@@ -203,7 +249,7 @@ class KodingAppsController extends KDController
   runApp:(manifest, callback)->
 
     {options, name, devMode} = manifest
-    {stylesheets}   = manifest.source if manifest.source
+    {stylesheets} = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
@@ -294,7 +340,7 @@ class KodingAppsController extends KDController
       manifest        = @constructor.manifests[appName]
       userAppPath     = getAppPath manifest
       options         =
-        toDo          : "publishApp"
+        method        : "publishApp"
         withArgs      :
           version     : manifest.version
           appName     : manifest.name
@@ -334,7 +380,7 @@ class KodingAppsController extends KDController
       return no
 
     options         =
-      toDo          : "approveApp"
+      method        : "approveApp"
       withArgs      :
         version     : app.manifest.version
         appName     : app.manifest.name
@@ -420,7 +466,14 @@ class KodingAppsController extends KDController
     unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      kallback @constructor.manifests[name]
+      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+        if err
+          new KDNotificationView
+            title    : "App list is out-dated, refreshing apps..."
+            duration : 2000
+          @refreshApps noop
+        else
+          kallback @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
@@ -447,7 +500,7 @@ class KodingAppsController extends KDController
                 callback? err
               else
                 options =
-                  toDo          : "installApp"
+                  method        : "installApp"
                   withArgs      :
                     owner       : acc.profile.nickname
                     appPath     : getAppPath app.manifest
@@ -535,7 +588,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/.manifest"
               contents  : manifestStr
@@ -543,7 +596,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/index.coffee"
               contents  : "do ->"
@@ -551,7 +604,7 @@ class KodingAppsController extends KDController
 
         stack.push (cb)=>
           @kiteController.run
-            toDo        : "uploadFile"
+            method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
               contents  : """
@@ -594,7 +647,7 @@ class KodingAppsController extends KDController
         return
 
       @kiteController.run
-        toDo        : "downloadApp"
+        method      : "downloadApp"
         withArgs    :
           owner     : manifest.authorNick
           appName   : manifest.name

@@ -14,21 +14,19 @@ type DNode struct {
 	Closed       bool
 	OnRemote     func(remote Remote)
 	OnReady      func()
-	OnRootMethod func(method string, args []interface{})
+	OnRootMethod func(method string, args *Partial)
 	closeMutex   sync.Mutex
 	callbacks    []reflect.Value
 }
 
 type message struct {
 	Method    interface{}           `json:"method"`
-	Arguments []interface{}         `json:"arguments"`
+	Arguments *Partial              `json:"arguments"`
 	Links     []string              `json:"links"`
 	Callbacks map[string]([]string) `json:"callbacks"`
 }
 
 type Remote map[string]interface{}
-
-type Callback func(args ...interface{})
 
 func New() *DNode {
 	d := DNode{
@@ -46,13 +44,20 @@ func (d *DNode) SendRemote(object interface{}) {
 }
 
 func (d *DNode) Send(method interface{}, arguments []interface{}) {
+	callbacks := make(map[string]([]string))
+	d.collectCallbacks(arguments, make([]string, 0), callbacks)
+
+	rawArgs, err := json.Marshal(arguments)
+	if err != nil {
+		panic(err)
+	}
+
 	message := message{
 		method,
-		arguments,
+		&Partial{Raw: rawArgs},
 		[]string{},
-		make(map[string]([]string)),
+		callbacks,
 	}
-	d.collectCallbacks(arguments, make([]string, 0), message.Callbacks)
 	data, err := json.Marshal(message)
 	if err != nil {
 		panic(err)
@@ -115,7 +120,6 @@ func (d *DNode) ProcessMessage(data []byte) {
 	if err != nil {
 		panic(err)
 	}
-
 	for id, path := range m.Callbacks {
 		methodId, err := strconv.Atoi(id)
 		if err != nil {
@@ -124,50 +128,37 @@ func (d *DNode) ProcessMessage(data []byte) {
 		callback := Callback(func(args ...interface{}) {
 			d.Send(methodId, args)
 		})
-
-		var rawObj interface{} = m.Arguments
-		for i := 0; i < len(path); i++ {
-			isLast := i == len(path)-1
-			switch obj := rawObj.(type) {
-			case []interface{}:
-				index, err := strconv.Atoi(path[i])
-				if err != nil {
-					panic(fmt.Sprintf("Integer expected, got %v.", path[i]))
-				}
-				if isLast {
-					obj[index] = callback
-				} else {
-					rawObj = obj[index]
-				}
-			case map[string]interface{}:
-				if isLast {
-					obj[path[i]] = callback
-				} else {
-					rawObj = obj[path[i]]
-				}
-			default:
-				panic(fmt.Sprintf("Unhandled object type %T of %v.", obj, obj))
-			}
-		}
+		m.Arguments.callbacks = append(m.Arguments.callbacks, CallbackSpec{path, callback})
 	}
 
 	index, err := strconv.Atoi(fmt.Sprint(m.Method))
 	if err == nil {
-		args := make([]reflect.Value, len(m.Arguments))
-		for i, v := range m.Arguments {
-			args[i] = reflect.ValueOf(v)
+		args, err := m.Arguments.Array()
+		if err != nil {
+			panic(err)
 		}
-		d.callbacks[index].Call(args)
+		callArgs := make([]reflect.Value, len(args))
+		for i, v := range args {
+			callArgs[i] = reflect.ValueOf(v)
+		}
+		d.callbacks[index].Call(callArgs)
+
 	} else if m.Method == "methods" {
-		remote := m.Arguments[0].(map[string]interface{})
+		var args [](map[string]interface{})
+		err = m.Arguments.Unmarshal(&args)
+		if err != nil {
+			panic(err)
+		}
 		if d.OnRemote != nil {
-			d.OnRemote(remote)
+			d.OnRemote(args[0])
 		}
 		if d.OnReady != nil {
 			d.OnReady()
 		}
+
 	} else if d.OnRootMethod != nil {
 		d.OnRootMethod(fmt.Sprint(m.Method), m.Arguments)
+
 	} else {
 		panic(fmt.Sprintf("Unknown method: %v.", m.Method))
 	}

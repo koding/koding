@@ -16,6 +16,9 @@ module.exports = deepFreeze
   runBroker     : no
   configureBroker: no
   buildClient   : no
+  basicAuth     :
+    username    : 'koding'
+    password    : '314159'
   social        :
     numberOfWorkers: 10
   client        :
@@ -38,7 +41,7 @@ module.exports = deepFreeze
         auth    : 'https://dev.koding.com/auth'
         vhost   : 'stage'
       apiUri    : 'https://api.koding.com'
-      appsUri   : 'https://apps.koding.com'
+      appsUri   : 'http://dev-app.koding.com'
       env       : 'dev'
   mq            :
     host        : 'localhost'
