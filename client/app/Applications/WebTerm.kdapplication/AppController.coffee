@@ -5,9 +5,8 @@ class WebTermController extends AppController
     super options, data
 
   bringToFront: ->
-    mainView = @getSingleton('mainView')
     terminalView = new WebTermView
-    terminalView.tabPane = mainView.mainTabView.createTabPane
+    terminalView.tabPane = @getSingleton('mainView').mainTabView.createTabPane
       name: "Terminal"
       type: "application"
       cssClass: "webterm"
