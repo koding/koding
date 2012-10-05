@@ -48,4 +48,5 @@ module.exports = class JCodeShare extends JPost
     JPost::modify.call @, client, codeShare, callback
 
   reply: secure (client, comment, callback)->
+    JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback

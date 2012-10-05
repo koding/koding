@@ -46,15 +46,17 @@ module.exports = class JOpinion extends JPost
     meta        : require 'bongo/bundles/meta'
   }
 
+  JComment = require '../comment'
+
   @set
     emitFollowingActivities: yes
-    taggedContentRole : 'reply'
+    taggedContentRole : 'opinion'
     tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
     schema        : schema
     relationships     :
       comment         :
-        type          : "JComment"
+        type          : JComment
         as            : 'reply'
       participant     :
         targetType    : "JAccount"
@@ -154,4 +156,5 @@ module.exports = class JOpinion extends JPost
     JPost::modify.call @, client, opinion, callback
 
   reply: secure (client, comment, callback)->
+    JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback

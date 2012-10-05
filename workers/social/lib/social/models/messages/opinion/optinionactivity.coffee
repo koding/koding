@@ -10,4 +10,4 @@ module.exports = class COpinionActivity extends CActivity
     relationships   :
       subject       :
         targetType  : "JOpinion"
-        as          : 'opinion'
+        as          : 'reply'
