@@ -1,7 +1,7 @@
 class GroupsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
-    options.type = "topics"
+    options.type = "groups"
     super options,data
 
     @titleLink = new KDCustomHTMLView
@@ -37,13 +37,15 @@ class GroupsListItemView extends KDListItemView
         top           : 11
       states          : [
         "Join", (callback)->
-          data.follow (err, response)=>
+          data.join (err, response)=>
+            console.log arguments
             @hideLoader()
             unless err
               @setClass 'following-btn following-topic'
               callback? null
         "Leave", (callback)->
-          data.unfollow (err, response)=>
+          data.leave (err, response)=>
+            console.log arguments
             @hideLoader()
             unless err
               @unsetClass 'following-btn following-topic'
@@ -102,7 +104,7 @@ class GroupsListItemView extends KDListItemView
             <a href="#">{{#(counts.followers) or 0}}</a> Followers
           </p>
         </div>
-        <div class="button-container">{{> @followButton}}</div>
+        <div class="button-container">{{> @joinButton}}</div>
       </div>
     </div>
     """
@@ -125,7 +127,7 @@ class GroupsListItemView extends KDListItemView
     @locationList = new TopicsLocationView {}, @getData().locations
     @addSubView @locationList, '.personal'
 
-class ModalTopicsListItem extends TopicsListItemView
+class ModalGroupsListItem extends TopicsListItemView
 
   constructor:(options,data)->
 
@@ -143,7 +145,7 @@ class ModalTopicsListItem extends TopicsListItemView
     """
     <div class="topictext">
       <div class="topicmeta">
-        <div class="button-container">{{> @followButton}}</div>
+        <div class="button-container">{{> @joinButton}}</div>
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
@@ -157,7 +159,7 @@ class ModalTopicsListItem extends TopicsListItemView
     </div>
     """
 
-class TopicsListItemViewEditable extends TopicsListItemView
+class GroupsListItemViewEditable extends GroupsListItemView
 
   constructor:(options = {}, data)->
 
