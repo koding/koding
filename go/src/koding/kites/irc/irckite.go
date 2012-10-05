@@ -11,17 +11,18 @@ import (
 func main() {
 	utils.Startup("irc kite", false)
 
-	kite.Run("irc", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+	kite.Run("irc", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
 		switch method {
 		case "connect":
-			argMap, ok1 := args.(map[string]interface{})
-			host, ok2 := argMap["host"].(string)
-			onMessage, ok3 := argMap["onMessage"].(dnode.Callback)
-			if !ok1 || !ok2 || !ok3 {
+			var params struct {
+				Host      string         `json:"host"`
+				OnMessage dnode.Callback `json:"onMessage"`
+			}
+			if args.Unmarshal(&params) != nil || params.Host == "" || params.OnMessage == nil {
 				return nil, &kite.ArgumentError{"{ host: [string], onMessage: [function] }"}
 			}
 
-			conn, err := irc.NewConn(host, log.RecoverAndLog)
+			conn, err := irc.NewConn(params.Host, log.RecoverAndLog)
 			if err != nil {
 				return nil, err
 			}
@@ -29,7 +30,7 @@ func main() {
 
 			go func() {
 				for message := range conn.ReceiveChannel {
-					onMessage(message)
+					params.OnMessage(message)
 				}
 			}()
 

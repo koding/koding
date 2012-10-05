@@ -19,6 +19,7 @@ type WebtermServer struct {
 	remote  dnode.Remote
 	pty     *pty.PTY
 	process *os.Process
+    user    string
 }
 
 func main() {
@@ -29,10 +30,14 @@ func main() {
 		return
 	}
 
-	kite.Run("webterm", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
 		if method == "createServer" {
+			remote, err := args.Map()
+			if err != nil {
+				return nil, err
+			}
 			server := &WebtermServer{session: session}
-			server.remote = args.(map[string]interface{})
+			server.remote = remote
 			session.CloseOnDisconnect(server)
 			return server, nil
 		}
