@@ -573,34 +573,32 @@ class KDView extends KDObject
 
     handle = if options.handle and options.handle instanceof KDView then handle else @
 
-    @listenTo
-      KDEventTypes       : "mousedown"
-      listenedToInstance : handle
-      callback           : (pubInst, event)=>
+    handle.on "mousedown", (event)=>
+      if "string" is typeof options.handle
+        return if $(event.target).closest(options.handle).length is 0
 
-        if "string" is typeof options.handle
-          return if $(event.target).closest(options.handle).length is 0
+      @dragIsAllowed = yes
 
-        top    = parseInt @$()[0].style.top, 10
-        right  = parseInt @$()[0].style.right, 10
-        bottom = parseInt @$()[0].style.bottom, 10
-        left   = parseInt @$()[0].style.left, 10
+      top    = parseInt @$()[0].style.top, 10
+      right  = parseInt @$()[0].style.right, 10
+      bottom = parseInt @$()[0].style.bottom, 10
+      left   = parseInt @$()[0].style.left, 10
 
-        @dragState.startX     = event.pageX
-        @dragState.startY     = event.pageY
-        @dragState.top        = top
-        @dragState.right      = right
-        @dragState.bottom     = bottom
-        @dragState.left       = left
+      @dragState.startX     = event.pageX
+      @dragState.startY     = event.pageY
+      @dragState.top        = top
+      @dragState.right      = right
+      @dragState.bottom     = bottom
+      @dragState.left       = left
 
-        @dragState.directionX = unless isNaN left then "left" else "right"
-        @dragState.directionY = unless isNaN top  then "top"  else "bottom"
+      @dragState.directionX = unless isNaN left then "left" else "right"
+      @dragState.directionY = unless isNaN top  then "top"  else "bottom"
 
-        @getSingleton('windowController').setDragView @
-        @emit "DragStarted", event, @dragState
-        event.stopPropagation()
-        event.preventDefault()
-        return no
+      @getSingleton('windowController').setDragView @
+      @emit "DragStarted", event, @dragState
+      event.stopPropagation()
+      event.preventDefault()
+      return no
 
   drag:(event, delta)->
 
