@@ -26,34 +26,29 @@ module.exports =
       activity = JSON.parse message
       regEx = new RegExp "^#{exchangePrefix}"
       owner = ObjectId(exchange.replace regEx, "")
-
-      selector = 'profile.nickname': owner
-      accountsCol.findOne selector, _id: true, (err, account) ->
-        if err
-          console.log "Failed to find the publisher account", err
+      
+      selector = sourceId: owner, as: "follower"
+      # Get the follower's id
+      cursor = relationshipsCol.find selector, {targetId: true}
+      cursor.each (err, rel) ->
+        if err or not rel
+          #console.log "Failed to find follower", err
         else
-          selector = sourceId: owner, as: "follower"
-          # Get the follower's id
-          cursor = relationshipsCol.find selector, {targetId: true}
-          cursor.each (err, rel) ->
-            if err or not rel
-              #console.log "Failed to find follower", err
+          selector = {owner: rel.targetId, title: "followed"}
+          # Get the follower's feed
+          feedsCol.findOne selector, _id:true, (err, feed) ->
+
+            if err or not feed
+              #console.log err
             else
-              selector = {owner: rel.targetId, title: "followed"}
-              # Get the follower's feed
-              feedsCol.findOne selector, _id:true, (err, feed) ->
+              criteria =
+                targetName  : "CActivity"
+                targetId    : activity._id
+                sourceName  : "JFeed"
+                sourceId    : feed._id
+                as          : "container"
 
-                if err or not feed
-                  #console.log err
-                else
-                  criteria =
-                    targetName  : "CActivity"
-                    targetId    : activity._id
-                    sourceName  : "JFeed"
-                    sourceId    : feed._id
-                    as          : "container"
-
-                  relationshipsCol.update criteria, criteria, {upsert:true}
+              relationshipsCol.update criteria, criteria, {upsert:true}
 
 
   assureExchangeMesh: (options) ->
