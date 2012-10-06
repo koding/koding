@@ -30,7 +30,7 @@ class Sidebar extends JView
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -44,7 +44,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -58,7 +58,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account admin"
-        subItemClass : AdminNavigationLink
+        itemClass : AdminNavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -70,7 +70,7 @@ class Sidebar extends JView
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
-        subItemClass : FooterMenuItem
+        itemClass : FooterMenuItem
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -315,15 +315,12 @@ class Sidebar extends JView
     id    : "navigation"
     title : "navigation"
     items : [
-        title : "Activity"
-      ,
-        title : "Topics"
-      ,
-        title : "Members"
-      ,
-        title : "Develop",        loggedIn : yes,  path : "StartTab"
-      ,
-        title : "Apps"
+      { title : "Activity" }
+      { title : "Topics" }
+      { title : "Members" }
+      { title : "Groups",  path : "GroupsFake" }
+      { title : "Develop", loggedIn : yes,  path : "StartTab" }
+      { title : "Apps" }
     ]
 
   accNavItems =

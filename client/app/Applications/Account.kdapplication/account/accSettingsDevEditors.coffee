@@ -15,7 +15,7 @@ class AccountEditorList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountEditorListItem
+      itemClass : AccountEditorListItem
     ,options
     super options,data
 

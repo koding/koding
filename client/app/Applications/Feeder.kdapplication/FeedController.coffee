@@ -9,7 +9,7 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      subItemClass  : options.subItemClass
+      itemClass     : options.itemClass
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
@@ -102,7 +102,7 @@ class FeedController extends KDViewController
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
 
-    options.sort[sort.name] = sort.direction
+    options.sort[sort.name.split('|')[0]] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
@@ -122,7 +122,7 @@ class FeedController extends KDViewController
     options          = @getFeedOptions()
     selector         = @getFeedSelector()
     windowController = @getSingleton('windowController')
-    subItemClass     = @getOptions().subItemClass
+    itemClass     = @getOptions().itemClass
 
     @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
@@ -132,7 +132,7 @@ class FeedController extends KDViewController
         listController = @emitLoadCompleted filter
         unless err
           listController.instantiateListItems items
-          windowController.emit "FeederListViewItemCountChanged", listController.itemsOrdered.length, subItemClass, filter.name
+          windowController.emit "FeederListViewItemCountChanged", listController.itemsOrdered.length, itemClass, filter.name
           if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
             @loadFeed filter
         else

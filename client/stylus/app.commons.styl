@@ -225,20 +225,20 @@ button.editor-button
 .kdbuttonwithmenu-wrapper.editor-button
   button
     padding-right   33px!important
-  .chevron-arrow
+  .chevron
     top             2px
   &.small
-    .chevron-arrow
+    .chevron
       top           0
 
-.kdview.kdcontextmenu.kdbuttonmenu
+.kdview.jcontextmenu.kdbuttonmenu
   &.editor-button
-    .chevron-arrow-ghost-wrapper
-      .chevron-arrow-ghost
+    .chevron-ghost-wrapper
+      .chevron-ghost
         margin-top  2px
   &.small
-    .chevron-arrow-ghost-wrapper
-      .chevron-arrow-ghost
+    .chevron-ghost-wrapper
+      .chevron-ghost
         margin-top  0
 
 
@@ -274,14 +274,14 @@ button.editor-button
       size            17px,17px
       top             0
 
-  .chevron-arrow,.chevron-arrow-separator
+  .chevron,.chevron-separator
     hidden()
 
-.kdview.kdcontextmenu.kdbuttonmenu
+.kdview.jcontextmenu.kdbuttonmenu
   &.editor-advanced-settings-menu
-    .chevron-arrow-ghost-wrapper
+    .chevron-ghost-wrapper
       border-color    #bababa
-      .chevron-arrow-ghost
+      .chevron-ghost
         margin-top    0
         bg            position,-60px -300px
         bg            color,#f5f5f5
@@ -1017,20 +1017,20 @@ button.cancel-edit-button
         position            absolute
         top                 0
         right               0
+        size                20px,20px
         blockMid()
-        size(20px,20px)
         sprite()
-        bg(position,-140px -500px)
+        bg                  position,-140px -500px
     .feed,.showme,.actions
       padding-bottom        18px
     ul
       margin                0
       width                 93px
     li
-      color               #7C603B
-      line-height         16px
-      margin-bottom       6px
-      font-size           12px
+      color                 #7C603B
+      line-height           16px
+      margin-bottom         6px
+      font-size             12px
       a
         color               #7c603b
         display             block
@@ -1038,15 +1038,15 @@ button.cancel-edit-button
         cursor              pointer
         text-decoration     none
         &:hover
-          color               #299FC6
-          font-weight         normal
+          color             #299FC6
+          font-weight       normal
       a.active
         color               linkColor1
         font-weight         bold
     li.selected
       a
-        color #FF9200
-        font-weight bold
+        color               #FF9200
+        font-weight         bold
 
   .list.feed
     border-bottom         1px solid #f2f2f2

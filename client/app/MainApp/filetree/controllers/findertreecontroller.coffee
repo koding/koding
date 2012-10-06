@@ -16,6 +16,7 @@ class NFinderTreeController extends JTreeViewController
       @getView().setClass "no-context-menu"
 
     @getSingleton('mainController').on "NewFileIsCreated", (newFile)=> @navigateToNewFile newFile
+    @getSingleton('mainController').on "SelectedFileChanged", (view)=> @highlightFile view
 
   addNode:(nodeData, index)->
 
@@ -46,6 +47,16 @@ class NFinderTreeController extends JTreeViewController
           @selectNode @nodes[newFile.path]
         @listenedPaths[file.path] = file.path
 
+  highlightFile:(view)->
+
+    @selectNode @nodes[view.data.path], null, no
+
+    if view.ace?
+      if view.ace.editor?
+        view.ace.editor.focus()
+      else
+        view.ace.on "ace.ready", ->
+          view.ace.editor.focus()
 
   navigateToNewFile:(newFile)=>
 
@@ -60,8 +71,6 @@ class NFinderTreeController extends JTreeViewController
       #   @addNode newFile, index
 
       @selectNode @nodes[newFile.path]
-
-
 
     # #
     # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
@@ -113,6 +122,7 @@ class NFinderTreeController extends JTreeViewController
       when "file"
         @openFile nodeView
         @emit "file.opened", nodeData
+        @setBlurState()
 
   openFile:(nodeView, event)->
 
@@ -537,7 +547,7 @@ class NFinderTreeController extends JTreeViewController
 
   click:(nodeView, event)->
 
-    if $(event.target).is ".chevron-arrow"
+    if $(event.target).is ".chevron"
       @contextMenu nodeView, event
       return no
     super
@@ -619,7 +629,7 @@ class NFinderTreeController extends JTreeViewController
   performDownKey:(nodeView, event)->
 
     if event.altKey
-      offset = nodeView.$('.chevron-arrow').offset()
+      offset = nodeView.$('.chevron').offset()
       event.pageY = offset.top
       event.pageX = offset.left
       @contextMenu nodeView, event

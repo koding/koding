@@ -115,6 +115,7 @@ Includes =
         # jquestion                 : "./server/app/bongo/models/messages/question.coffee"
         # jprivatemessage           : "./server/app/bongo/models/messages/privatemessage.coffee"
         # japp                      : "./server/app/bongo/models/app.coffee"
+        # jreview                   : "./server/app/bongo/models/messages/review.coffee"
 
         # jinvitation               : "./server/app/bongo/models/invitation.coffee"
         # jinvitationrequest        : "./server/app/bongo/models/invitationrequest.coffee"
@@ -426,6 +427,8 @@ Includes =
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
+        GroupsFakeController          : "./client/app/Applications/GroupsFake.kdapplication/AppController.coffee"
+
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
@@ -534,6 +537,11 @@ Includes =
         CommentViewHeader           : "./client/app/CommonViews/comments/commentviewheader.coffee"
         CommentListItemView         : "./client/app/CommonViews/comments/commentlistitemview.coffee"
         CommentNewCommentForm       : "./client/app/CommonViews/comments/newcommentform.coffee"
+
+        ReviewView                  : "./client/app/CommonViews/reviews/reviewview.coffee"
+        ReviewListViewController    : "./client/app/CommonViews/reviews/reviewlistviewcontroller.coffee"
+        ReviewListItemView          : "./client/app/CommonViews/reviews/reviewlistitemview.coffee"
+        ReviewNewReviewForm         : "./client/app/CommonViews/reviews/newreviewform.coffee"
 
         OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
         DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"

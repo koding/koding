@@ -2,18 +2,18 @@ class KeyboardHelperView extends KDListView
   constructor:(options,data)->
     options = $.extend
       title        : ""
-      subItemClass : KeySetView
+      itemClass : KeySetView
     ,options
     super options,data
-  
+
   viewAppended:->
     @setPartial "<li class='title'>#{@getOptions().title}</li>" if @getOptions().title
     super
 
   setDomElement:(cssClass)->
     @domElement = $ "<ul class='kdview keyboard-helper #{cssClass}'></ul>"
-    
-  
+
+
 class KeySetView extends KDListItemView
   constructor:->
     super
@@ -28,14 +28,14 @@ class KeySetView extends KDListItemView
     for keyGroup,i in keyGroups
       @createKeyGroup keyGroup
       @setPartial "<cite>+</cite>" if i isnt keyGroups.length - 1
-      
+
     @setPartial "<h6>#{title}</h6>"
-  
+
   getKeyGroups:(keySet)->
     keyGroups = keySet.split("+")
     groups = for group,i in keyGroups
       group = if /,/.test group then group.split(",") else [group]
-  
+
   createKeyGroup:(keyGroup)->
     for key in keyGroup
       @addSubView new KeyView null,key
@@ -65,16 +65,16 @@ class KeyView extends KDCustomHTMLView
       cssClass : "keyview"
     ,options
     super options,data
-  
+
   viewAppended:->
     text     = @getData()
     printing = sanitizePrinting text
     @setPartial printing
     @setClass "key-#{text}"
-    @setClass "large" if printing.length > 1 
-    
-    
-    
+    @setClass "large" if printing.length > 1
+
+
+
 
 class KeyboardHelperModalView extends KDModalView
   constructor:(options,data)->
@@ -108,7 +108,7 @@ class KeyboardHelperModalView extends KDModalView
     # TODO: it is now displayed with setPositions method fix that and make .display work
     @display()
     @setPositions()
-    
+
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).on "keydown.modal",(e)=>
       @destroy() if e.which is 27
@@ -123,6 +123,6 @@ class KeyboardHelperModalView extends KDModalView
   click:(e)->
     @destroy() if $(e.target).is(".close-icon")
 
-  setTitle:(title)-> 
+  setTitle:(title)->
     @getDomElement().find(".kdmodal-title").append("<span class='title'>#{title}</span>")
     @modalTitle = title

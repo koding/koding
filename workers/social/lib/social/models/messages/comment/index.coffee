@@ -1,10 +1,11 @@
 jraphical = require 'jraphical'
+JAccount = require '../../account'
 
 module.exports = class JComment extends jraphical.Reply
-  
+
   {ObjectId,ObjectRef,dash,daisy,secure} = require 'bongo'
   {Relationship}  = require 'jraphical'
-  
+
   @trait __dirname, '../../../traits/likeable'
 
   @share()
@@ -28,7 +29,7 @@ module.exports = class JComment extends jraphical.Reply
       meta         : require 'bongo/bundles/meta'
     relationships  :
       likedBy      :
-        targetType : 'JAccount'
+        targetType : JAccount
         as         : 'like'
 
   delete: secure (client, callback)->
