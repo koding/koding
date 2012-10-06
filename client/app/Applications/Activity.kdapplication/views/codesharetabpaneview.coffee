@@ -129,7 +129,7 @@ class CodeShareTabPaneView extends KDTabPaneView
       @codeView.editor.resize()
 
     @on "codeShare.resizeEditor",=>
-      @codeView.editor.resize()
+      @codeView?.editor?.resize()
 
 
 
