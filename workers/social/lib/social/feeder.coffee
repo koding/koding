@@ -1,5 +1,6 @@
 Broker = require 'broker'
 mongoskin = require 'mongoskin'
+{ObjectId} = require 'bongo'
 
 module.exports = 
   distributeActivityToFollowers: (options = {}) ->
@@ -11,7 +12,7 @@ module.exports =
       vhost: "/"
     broker = new Broker mq
 
-    exchangePrefix = exchangePrefix ? "x"
+    exchangePrefix = exchangePrefix ? "followable-"
 
     dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
     db = mongoskin.db dbUrl
@@ -24,14 +25,14 @@ module.exports =
       {exchange, routingKey, _consumerTag} = deliveryInfo
       activity = JSON.parse message
       regEx = new RegExp "^#{exchangePrefix}"
-      owner = exchange.replace regEx, ""
+      owner = ObjectId(exchange.replace regEx, "")
 
       selector = 'profile.nickname': owner
       accountsCol.findOne selector, _id: true, (err, account) ->
         if err
           console.log "Failed to find the publisher account", err
         else
-          selector = sourceId: account._id, as: "follower"
+          selector = sourceId: owner, as: "follower"
           # Get the follower's id
           cursor = relationshipsCol.find selector, {targetId: true}
           cursor.each (err, rel) ->

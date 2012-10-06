@@ -19,7 +19,7 @@ Broker = require 'broker'
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email} = KONFIG
 
-EXCHANGE_PREFIX = "x"
+EXCHANGE_PREFIX = "followable-"
 
 {distributeActivityToFollowers} = require "./feeder"
 distributeActivityToFollowers
@@ -48,7 +48,7 @@ handleClient = do ->
   {CActivity, JTag, JAccount, JFeed} = koding.models
 
   getOwnExchangeName = (account) ->
-    "#{EXCHANGE_PREFIX}#{account.profile.nickname}"
+    "#{EXCHANGE_PREFIX}#{account._id}"
 
   getExchange = (exchangeName) ->
     mq.connection.exchanges[exchangeName]
@@ -107,11 +107,8 @@ handleClient = do ->
       {action, followee, follower} = data[0]
       return unless followee?
       return unless action is "follow" or action is "unfollow"
-      types = ['JAccount', 'JTag']
-      #return unless typeof followee in types
-      console.log "followee", followee
       # Set up the exchange-to-exchange binding for followings.
-      followeeNick = "#{EXCHANGE_PREFIX}#{followee.profile.nickname}"
+      followeeNick = "#{EXCHANGE_PREFIX}#{followee._id}"
       routingKey = "#{followeeNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
       mq[method] ownExchangeName, followeeNick, routingKey
