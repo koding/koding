@@ -2,7 +2,6 @@ Broker = require 'broker'
 mongoskin = require 'mongoskin'
 
 module.exports = 
-
   distributeActivityToFollowers: (options = {}) ->
     {mq, mongo, exchangePrefix} = options
     mq ?= 
@@ -27,33 +26,6 @@ module.exports =
       regEx = new RegExp "^#{exchangePrefix}"
       owner = exchange.replace regEx, ""
 
-      # # The message will come from feed's owner's exchange with the routing
-      # # key of format "activityOf.#{followee}", payload is the activity.
-  
-      # feedCriteria = {owner: owner, title: "followed"}
-      # feedsCol.findOne feedCriteria, {'_id':1}, (err, feed) =>
-      #   if err
-      #     console.log err
-      #   else
-      #     criteria =
-      #       targetName  : "CActivity"
-      #       targetId    : activity._id
-      #       sourceName  : "JFeed"
-      #       sourceId    : feed._id
-      #       as          : "container"
-
-      #     relationshipsCol.update criteria, criteria, {upsert:true}
-
-      #### ABOVE FAILED ###
-
-      # Message come from publisher
-      # JAccount.one 'profile.nickname': owner, (err, account) ->
-      #   account.fetchFollowers (err, followers) ->
-      #     for follower in followers
-      #       feedCriteria = {owner: follower.profile.nickname, title: "followed"}
-      #       JFeed.someData feedCriteria, {_id: true}, (err, feed) ->
-
-      # Get the publisher's id
       selector = 'profile.nickname': owner
       accountsCol.findOne selector, _id: true, (err, account) ->
         if err
@@ -66,26 +38,21 @@ module.exports =
             if err or not rel
               #console.log "Failed to find follower", err
             else
-              selector = _id: rel.targetId
-              # Get the follower's nickname
-              accountsCol.findOne selector, {"profile.nickname": true}, (err, follower) ->
-                if err
-                  console.log "Failed to get follower's nickname", err
-                else
-                  selector = {owner: follower.profile.nickname, title: "followed"}
-                  # Get the follower's feed
-                  feedsCol.findOne selector, _id:true, (err, feed) ->
-                    if err or not feed
-                      console.log err
-                    else
-                      criteria =
-                        targetName  : "CActivity"
-                        targetId    : activity._id
-                        sourceName  : "JFeed"
-                        sourceId    : feed._id
-                        as          : "container"
+              selector = {owner: rel.targetId, title: "followed"}
+              # Get the follower's feed
+              feedsCol.findOne selector, _id:true, (err, feed) ->
 
-                      relationshipsCol.update criteria, criteria, {upsert:true}
+                if err or not feed
+                  #console.log err
+                else
+                  criteria =
+                    targetName  : "CActivity"
+                    targetId    : activity._id
+                    sourceName  : "JFeed"
+                    sourceId    : feed._id
+                    as          : "container"
+
+                  relationshipsCol.update criteria, criteria, {upsert:true}
 
 
   assureExchangeMesh: (options) ->

@@ -45,6 +45,7 @@ koding = new Bongo
 handleClient = do ->
   clients = {}
   {mq} = koding
+  {CActivity, JTag, JAccount, JFeed} = koding.models
 
   getOwnExchangeName = (account) ->
     "#{EXCHANGE_PREFIX}#{account.profile.nickname}"
@@ -89,7 +90,7 @@ handleClient = do ->
     ownExchange = getExchange ownExchangeName
     activityTypes = ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']
     # Listen to when an activity is posted and publish own activity to MQ
-    koding.models.CActivity.on "feed.new", ([model]) ->
+    CActivity.on "feed.new", ([model]) ->
       return unless model.type in activityTypes
       unless account.getId().toString() is model.originId.toString()
         console.log "other feed"
@@ -106,6 +107,9 @@ handleClient = do ->
       {action, followee, follower} = data[0]
       return unless followee?
       return unless action is "follow" or action is "unfollow"
+      types = ['JAccount', 'JTag']
+      #return unless typeof followee in types
+      console.log "followee", followee
       # Set up the exchange-to-exchange binding for followings.
       followeeNick = "#{EXCHANGE_PREFIX}#{followee.profile.nickname}"
       routingKey = "#{followeeNick}.activity"
@@ -117,7 +121,6 @@ handleClient = do ->
     return if clients[nickname]
 
     feed = {title:"followed", description: ""}
-    JFeed = require './models/feed'
     JFeed.assureFeed account, feed, (err, theFeed) ->
 
     clients[nickname] = account

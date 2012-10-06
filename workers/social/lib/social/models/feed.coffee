@@ -3,7 +3,7 @@ jraphical = require 'jraphical'
 KodingError = require '../error'
 
 module.exports = class JFeed extends jraphical.Module
-  {secure} = require 'bongo'
+  {secure, ObjectId} = require 'bongo'
   @share()
 
   @set
@@ -13,7 +13,7 @@ module.exports = class JFeed extends jraphical.Module
         required    : yes
       description   : String
       owner         :
-        type        : String
+        type        : ObjectId
         required    : yes
       meta          : require 'bongo/bundles/meta'
     relationships   :
@@ -39,7 +39,7 @@ module.exports = class JFeed extends jraphical.Module
     feed = new JFeed {
       title
       description
-      owner: account.profile.nickname
+      owner: account._id
     }
     saveFeedToAccount feed, account, callback
 
@@ -50,7 +50,7 @@ module.exports = class JFeed extends jraphical.Module
     selectorOrInitializer =
       title: title
       description: description
-      owner: account.profile.nickname
+      owner: account._id
     @assure selectorOrInitializer, (err, feed) ->
       if err then callback err
       else saveFeedToAccount feed, account, callback
@@ -60,7 +60,7 @@ module.exports = class JFeed extends jraphical.Module
     options or= {}
 
     {connection:{delegate}} = client
-    unless delegate.profile.nickname is @owner
+    unless delegate._id.toString() is @owner.toString()
       callback new KodingError 'Access denined.'
     else
       CActivity = require "./activity/index"
