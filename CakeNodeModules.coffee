@@ -2,7 +2,8 @@ module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
-    "kite-amqp","amqp","broker","koding-eventemitter2"
+    "kite-amqp","amqp","broker","koding-eventemitter2",'koding-cake','koding-deep-freeze','koding-log-tailer',
+    'koding-logger','koding-watcher'
   ]
   npm_modules :
     bitly           : '1.2.4'
@@ -12,7 +13,8 @@ module.exports =
     dropbox         : '0.3.3'
     everyauth       : '0.2.23'
     express         : '2.5.9'
-
+    commander       : '1.0.4'
+    colors          : '0.6.0-1'
     gzippo          : '0.1.4'
     hashish         : '0.0.4'
     hat             : '0.0.3'

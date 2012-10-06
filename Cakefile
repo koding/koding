@@ -246,6 +246,7 @@ pipeStd =(children...)->
     child.stderr.pipe process.stderr
 
 run =(options)->
+  invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   pipeStd(spawn './broker/start.sh') if options.runBroker
