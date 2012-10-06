@@ -69,8 +69,15 @@ div.codeshare-box
           bottom        0
 
       &.has-no-tabs
+        // in this mode, there are no tabs at the top at all
         vendor border-top-left-radius,4px
         vendor border-top-right-radius,4px
+
+      &.has-expanded-tabs
+        // in this mode, there are tabs at the top, fully covering
+        // the width of the box. if this class is not set, the top right
+        // corner is rounded
+        vendor border-top-right-radius,0
 
       &.has-button-bar
         vendor border-bottom-right-radius,0
@@ -198,7 +205,7 @@ div.codeshare-box
         color             rgba(255, 255, 255, 0.85)  //#333
         line-height       23px
         font-size         11px
-        padding           0 5px 0 10px
+        padding           0 5px 0 0px
         height            25px
         border            1px solid rgba(176,176,176,.75)
         border-right      1px solid transparent
@@ -218,7 +225,7 @@ div.codeshare-box
           vendor box-shadow, none
           vertical-align baseline
 
-          &.disabled
+          &.hide-arrows
             span.arrows
               opacity 0
 
@@ -243,6 +250,7 @@ div.codeshare-box
             vendor text-shadow, 0 -1px 0 rgba(0, 0, 0, 0.61)
             size              auto,20px
             line-height       21px
+            // overflow-x hidden
 
           span.arrows
             top 1px
