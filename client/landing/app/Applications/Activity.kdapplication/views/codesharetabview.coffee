@@ -55,19 +55,49 @@ class CodeShareTabView extends KDTabView
       plusHandleWidth = plusHandle.$().outerWidth(no)
       containerSize -= plusHandleWidth
 
+    handleCount = @visibleHandles.length
+
     handleSize = if containerSize < @totalSize
-      containerSize / @visibleHandles.length
+      Math.floor(containerSize / handleCount)
     else
-      if containerSize / @visibleHandles.length > 130
+      if containerSize / handleCount > 130
         130
       else
-        containerSize / @visibleHandles.length
+        Math.floor(containerSize / handleCount)
 
-    for handle in @visibleHandles
-      handle.$().css width : handleSize
-      subtractor = if handle.$('span').length is 1 then 25 else 25 + (handle.$('span:not(".close-tab")').length * 25)
-      handle.$('> b').css width : (handleSize - subtractor)
+    remainingPixelsShouldBeAdded = containerSize / handleCount < 130
+    remainingPixels = containerSize - handleSize * handleCount
 
+    # log "Numbers are ",@totalSize, containerSize, handleCount
+    # , handleSize, remainingPixels, remainingPixelsShouldBeAdded
+
+    for handle,i in @visibleHandles
+      if i is handleCount-1 and remainingPixelsShouldBeAdded
+        handle.$().css width : handleSize + remainingPixels
+      else
+        handle.$().css width : handleSize
+
+      # handling the tabhandle content dimensions relative to the current
+      # css values
+      handlePadding = handle.$().css "padding-right"
+      handleViewMarginRight = handle.$("div.kdview").css "margin-right"
+      handleTitlePaddingLeft = handle.$("span.title").css "padding-left"
+
+      if @getDelegate().options.allowClosing
+        subtractor = parseInt(handlePadding, 10) + parseInt(handleViewMarginRight, 10) + 2
+        subtractor -= remainingPixels if i is handleCount-1 and remainingPixelsShouldBeAdded
+      else
+        subtractor = parseInt(handleTitlePaddingLeft, 10)
+
+      handle.$('> div.kdview').css width : (handleSize - subtractor)
+      handle.$('> div.kdview span.title').css width : (handleSize - subtractor - 22)
+      # handle.$('> div.kdview select').css width : (handleSize - subtractor)
+
+
+    if remainingPixelsShouldBeAdded and handleCount > 0
+      @setClass "has-expanded-tabs"
+    else
+      @unsetClass "has-expanded-tabs"
 
 ###
 # The syntax selector in the Tab needs an encapsulating class
@@ -78,11 +108,13 @@ class CodeShareTabHandleView extends KDView
     super options,data
     @syntaxSelect    = new KDSelectBox
         name          : "syntax"
-        disabled      : options.disabled or no
+        cssClass      : "hide-arrows" if options.disabled
         selectOptions : __aceSettings.getSyntaxOptions()
         defaultValue  : options.syntax or "text"
         callback      : (value) =>
           @applyNewSyntax value
+
+
 
   applyNewSyntax:(value)=>
     @parent.emit "codeShare.changeSyntax", value
@@ -91,6 +123,20 @@ class CodeShareTabHandleView extends KDView
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    @$("*").hover (event)->
+      if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
+        $(event.target).closest(".kdtabhandle").click()
+    , noop
+
+    # if disabled, this should intercept the click event. however, overriding
+    # the kdview listener is not working
+
+    # @syntaxSelect.listenTo
+    #     KDEventTypes        : 'click'
+    #     listenedToInstance  : @
+    #     callback            : (publishingInstance, event)=>
+    #       log "Do something unless this is not an edit tab"
 
   pistachio:->
     """
@@ -112,10 +158,11 @@ class CodeShareTabHandleContainerView extends KDView
       @_repositionPlusHandle()
 
     # TODO: find out why some hovers will not register
-    @$("*").hover (event)->
-      if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
-        $(event.target).closest(".kdtabhandle").click()
-    , noop
+    # @$("*").hover (event)->
+    #   if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
+    #     log $(event.target).parent()
+    #     $(event.target).closest(".kdtabhandle").click()
+    # , noop
 
   click:(event)->
     @_plusHandleClicked() if $(event.target).closest('.kdtabhandle').is('.plus')
