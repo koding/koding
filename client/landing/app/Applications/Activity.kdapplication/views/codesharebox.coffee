@@ -11,10 +11,10 @@ CodeShare
   CodeShareTitle
   CodeShareItems
     CodeShareItem
-      CodeShareItemSource
+      CodeShareItemSource : String
         - actual source, e.g "<p>This is text</p>"
       CodeShareItemType
-        syntax
+        syntax : String
           - language name, syntax, e.g. "php"
       CodeShareItemOptions
         (additional run infos)
@@ -218,11 +218,11 @@ class CodeShareBox extends KDView
 
 
   resetTabs:=>
-    log @codeShareView.panes
+    # log @codeShareView.panes
     for pane in @codeShareView?.panes
-      log pane
+      # log pane
       if pane then @codeShareView.removePane pane
-    log @codeShareView.panes
+    # log @codeShareView.panes
 
   convertFromLegacyCodeShare:(codeshare)->
       # log "Encountered a legacy codeshare while sanitizing data",codeshare
