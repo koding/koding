@@ -160,9 +160,9 @@ class GroupsController extends AppController
                 ]
 
   editPermissions:(group)->
-    group.getData().fetchPermissionSet (err, permissionSet)->
+    group.getData().fetchPermissions (err, permissionSet)->
       if err
-        new KDNotificationView title: err
+        new KDNotificationView title: err.message
       else
         permissionsGrid = new PermissionsGrid {
           privacy: group.getData().privacy
@@ -182,8 +182,11 @@ class GroupsController extends AppController
                 color     : "#444444"
                 diameter  : 12
               callback    : ->
-                console.log 'hehehehe'
-                group.getData().updatePermissions permissionsGrid.getPermissions()
+                group.getData().updatePermissions(
+                  permissionsGrid.reducedList()
+                  console.log.bind(console)
+                )
+                modal.destroy()
             Cancel        :
               style       : "modal-clean-gray"
               loader      :
