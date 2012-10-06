@@ -303,6 +303,22 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete','flag','reset guests','reset groups'
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
 
+  fetchRoles: (group, callback)->
+    Relationship.someData {
+      targetId: group.getId()
+      sourceId: @getId()
+    }, {as:1}, (err, cursor)->
+      if err
+        callback err
+      else
+        cursor.toArray (err, roles)->
+          if err
+            callback err
+          else
+            roles = (roles ? []).map (role)-> role.as
+            roles.push 'guest' unless roles.length
+            callback null, roles
+
   fetchRole: secure ({connection}, callback)->
 
     if isDummyAdmin connection.delegate.profile.nickname

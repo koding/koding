@@ -21,7 +21,7 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
