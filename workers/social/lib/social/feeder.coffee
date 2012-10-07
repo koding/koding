@@ -24,7 +24,8 @@ module.exports =
       {exchange, routingKey, _consumerTag} = deliveryInfo
       activityId = ObjectId message
       regEx = new RegExp "^#{exchangePrefix}"
-      owner = ObjectId(exchange.replace regEx, "")
+      ownerString = exchange.replace regEx, ""
+      owner = ObjectId ownerString
 
       selector = sourceId: owner, as: "follower"
       # Get the followers

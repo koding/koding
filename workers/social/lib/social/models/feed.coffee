@@ -75,5 +75,3 @@ module.exports = class JFeed extends jraphical.Module
           selector = extend selector, {_id: {$in: ids}}
           CActivity.someData selector, {snapshot: true}, options, (err, cursor) ->
             cursor.toArray callback
-
-

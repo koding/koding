@@ -360,10 +360,8 @@ module.exports = class JUser extends jraphical.Module
                     if err
                       callback err
                     else
-                      JFeed.createFeed account,
-                        title: "followed"
-                        description: ""
-                      , (err, feed) ->
+                      feedData = {title:"followed", description: "Followed Feed"}
+                      account.createFeed feedData, (err, feed) ->
                         if err
                           callback err
                         else
