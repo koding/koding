@@ -45,6 +45,7 @@ func main() {
 			consumerFinished := make(chan bool)
 			defer close(consumerFinished)
 			func() {
+				defer log.RecoverAndLog()
 				consumeChannel := utils.CreateAmqpChannel(consumeConn)
 				defer consumeChannel.Close()
 
@@ -53,14 +54,14 @@ func main() {
 					panic(err)
 				}
 
+				stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
+				if err != nil {
+					panic(err)
+				}
+
 				go func() {
 					defer log.RecoverAndLog()
 					defer func() { consumerFinished <- true }()
-
-					stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
-					if err != nil {
-						panic(err)
-					}
 
 					for message := range stream {
 						body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
@@ -81,7 +82,7 @@ func main() {
 					case "client-subscribe":
 						channel := message["channel"]
 						if channel != "updateInstances" {
-							err = consumeChannel.QueueBind("", "*", channel, false, nil)
+							err = consumeChannel.QueueBind("", "#", channel, false, nil)
 							if err != nil {
 								panic(err)
 							}
@@ -92,7 +93,7 @@ func main() {
 						sendChan <- string(body)
 
 					case "client-unsubscribe":
-						err = consumeChannel.QueueUnbind("", "*", message["channel"], nil)
+						err = consumeChannel.QueueUnbind("", "#", message["channel"], nil)
 						if err != nil {
 							panic(err)
 						}
@@ -163,7 +164,7 @@ func main() {
 
 		err = server.Serve(listener)
 		if err != nil {
-			panic(err)
+			log.Warn("Server error: " + err.Error())
 		}
 	})
 }
