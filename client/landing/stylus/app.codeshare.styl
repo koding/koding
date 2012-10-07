@@ -141,6 +141,7 @@ div.codeshare-box
               border                none
 
           figure.code-container
+            borderBox()
             min-height inherit
             height inherit
             max-height inherit
@@ -151,12 +152,23 @@ div.codeshare-box
             rounded 4px
 
             div.kdview
+              borderBox()
+              max-height inherit
+              height inherit
+              min-height inherit
+
               pre.subview
+                borderBox()
                 height inherit
                 max-height inherit
                 min-height 40px
                 rounded 4px 4px 4px 4px
                 background-color #333
+
+                code
+                  borderBox()
+                  height inherit
+                  max-height codeShareMaxHeight - 60px
 
           figure.kdview
             borderBox()
