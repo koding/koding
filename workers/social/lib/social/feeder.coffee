@@ -25,13 +25,11 @@ module.exports =
       activityId = ObjectId message
       regEx = new RegExp "^#{exchangePrefix}"
       owner = ObjectId(exchange.replace regEx, "")
-      console.log "Publisher", owner
 
       selector = sourceId: owner, as: "follower"
       # Get the followers
       cursor = relationshipsCol.find selector, {targetId: true}
       cursor.each (err, rel) ->
-        console.log rel
         if err or not rel
           #console.log "Failed to find follower", err
         else

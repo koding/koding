@@ -55,19 +55,22 @@ handleClient = do ->
 
   getWorkerQueueName = () -> "koding-feeder"
 
-  prepareBroker = (account) ->
-    ownExchangeName = getOwnExchangeName account
-    # Bind to feed worker queue
+  bindToWorkerQueue = (exchangeName, callback) ->
     workerQueueOptions =
       exchangeAutoDelete: false
       queueExclusive: false
     # This effectively declares own exchange.
     mq.bindQueue(
       getWorkerQueueName(), 
-      ownExchangeName, 
+      exchangeName, 
       "#.activity", 
-      workerQueueOptions
+      workerQueueOptions,
+      callback
     )
+
+  prepareBroker = (account) ->
+    ownExchangeName = getOwnExchangeName account
+    bindToWorkerQueue ownExchangeName
 
   handleFolloweeActivity = (account) ->
     ownExchangeName = getOwnExchangeName account
@@ -102,9 +105,12 @@ handleClient = do ->
 
         # Publish to all mentioned topics' followers' feeds
         activity.fetchTeaser (err, {tags}) ->
-          for {slug} in tags
-            exchangeName = getOwnExchangeName slug
-            mq.emit exchangeName, "#{exchangeName}.activity", payload, options
+          for tag in tags
+            do ->
+              exchangeName = getOwnExchangeName tag
+              bindToWorkerQueue exchangeName, ->
+                mq.createExchange exchangeName, {autoDelete: false}, (tagExchange) ->
+                  tagExchange.publish "#{exchangeName}.activity", payload, options
   
   handleFollowAction = (account) ->
     ownExchangeName = getOwnExchangeName account
