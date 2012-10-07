@@ -42,6 +42,7 @@ var Server string = "gl.koding.com:12201"
 var conn net.Conn
 
 func init() {
+	flag.IntVar(&MaxLevel, "l", 6, "Log level")
 	flag.BoolVar(&Verbose, "v", false, "Logging to console instead of Graylog")
 	Hostname, _ = os.Hostname()
 }
