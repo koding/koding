@@ -174,16 +174,14 @@ class Activity12345 extends AppController
             success   : (data) -> callback null, data
 
     else if type is 'private'
-      KD.whoami().fetchFeeds (err, feeds) =>
-        for feed in feeds
-          continue unless feed.title is 'followed'
-          feed.fetchActivities selector, options, (err, data) =>
-            if err
-              callback err
-            else
-              for datum in data
-                datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
-              callback null, data
+      KD.whoami().getFeedByTitle "followed", (err, feed) ->
+        feed.fetchActivities selector, options, (err, data) ->
+          if err
+            callback err
+          else
+            for datum in data
+              datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
+            callback null, data
 
   fetchTeasers:(selector,options,callback)->
     type = @activityListController._state
