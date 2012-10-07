@@ -90,14 +90,21 @@ handleClient = do ->
     ownExchange = getExchange ownExchangeName
     activityTypes = ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']
     # Listen to when an activity is posted and publish own activity to MQ
-    CActivity.on "feed.new", ([model]) ->
-      return unless model.type in activityTypes
-      unless account.getId().toString() is model.originId.toString()
+    CActivity.on "ActivityIsCreated", (activity) ->
+      return unless activity.type in activityTypes
+      unless account.getId().toString() is activity.originId.toString()
         console.log "other feed"
       else
         options = deliveryMode: 2
-        payload = JSON.stringify model
+        payload = activity._id.toString()
+        # Publish to all user's folowers' feeds
         ownExchange.publish "#{ownExchangeName}.activity", payload, options
+
+        # Publish to all mentioned topics' followers' feeds
+        activity.fetchTeaser (err, {tags}) ->
+          for {slug} in tags
+            exchangeName = getOwnExchangeName slug
+            mq.emit exchangeName, "#{exchangeName}.activity", payload, options
   
   handleFollowAction = (account) ->
     ownExchangeName = getOwnExchangeName account
@@ -107,11 +114,13 @@ handleClient = do ->
       {action, followee, follower} = data[0]
       return unless followee?
       return unless action is "follow" or action is "unfollow"
+      # contructor.name
       # Set up the exchange-to-exchange binding for followings.
+      # followee can be JAccount, JTag, or JStatusUpdate.
       followeeNick = "#{EXCHANGE_PREFIX}#{followee._id}"
       routingKey = "#{followeeNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      mq[method] ownExchangeName, followeeNick, routingKey
+      mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
 
   (account) ->
     nickname = account.profile.nickname

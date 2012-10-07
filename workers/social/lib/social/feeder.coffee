@@ -21,16 +21,17 @@ module.exports =
     accountsCol = db.collection 'jAccounts'
 
     broker.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
-      
       {exchange, routingKey, _consumerTag} = deliveryInfo
-      activity = JSON.parse message
+      activityId = ObjectId message
       regEx = new RegExp "^#{exchangePrefix}"
       owner = ObjectId(exchange.replace regEx, "")
-      
+      console.log "Publisher", owner
+
       selector = sourceId: owner, as: "follower"
-      # Get the follower's id
+      # Get the followers
       cursor = relationshipsCol.find selector, {targetId: true}
       cursor.each (err, rel) ->
+        console.log rel
         if err or not rel
           #console.log "Failed to find follower", err
         else
@@ -43,7 +44,7 @@ module.exports =
             else
               criteria =
                 targetName  : "CActivity"
-                targetId    : activity._id
+                targetId    : activityId
                 sourceName  : "JFeed"
                 sourceId    : feed._id
                 as          : "container"
