@@ -40,7 +40,7 @@ class CodeShareActivityItemView extends ActivityItemChild
       if thisHeight>maxHeight
         maxHeight = thisHeight
 
-    @$("pre.subview").css height:maxHeight
+    @$("pre.subview").css height:maxHeight + 20
 
   pistachio:->
     """
