@@ -8,9 +8,9 @@ class CodeShareTabView extends KDTabView
   viewAppended:->
 
     @on "codeShare.openAllFiles",=>
-      for pane in @panes
+      for pane,i in @panes
         data=pane.getData()
-        fileName      = "localfile:/#{data.CodeShareItemTitle}"
+        fileName      = "localfile:/#{data.CodeShareItemTitle}_#{i}"
         file          = FSHelper.createFileFromPath fileName
         file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
         file.syntax   = data.CodeShareItemType.syntax
