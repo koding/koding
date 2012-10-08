@@ -345,11 +345,10 @@ module.exports = class JAccount extends jraphical.Module
             callback err
           else unless rels?.length
             message.participants = []
-            fin()
           else
             # only include unique participants.
             message.participants = (rel for rel in rels when register.sign rel.sourceId)
-            fin()
+          fin()
       , callback
       fetchParticipants(message) for message in messages when message?
 
@@ -432,26 +431,6 @@ module.exports = class JAccount extends jraphical.Module
     {profile} = @data
     profile.firstName+' '+profile.lastName
 
-  fetchStorage: secure (client, options, callback)->
-    account = @
-    unless @equals client.connection.delegate
-      return callback "Attempt to access unauthorized application storage"
-
-    {appId, version} = options
-    @fetchAppStorage {}, {targetOptions:query:{appId}}, (error, storage)->
-      if error then callback error
-      else
-        unless storage?
-          log.info 'creating new storage for application', appId, version
-          newStorage = new JAppStorage {appId, version}
-          newStorage.save (error) =>
-            if error then callback error
-            else
-              account.addAppStorage newStorage, (err)->
-                callback err, newStorage
-        else
-          callback error, storage
-
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
@@ -463,6 +442,34 @@ module.exports = class JAccount extends jraphical.Module
       contents.forEach (item)->
         item.update {$set: isLowQuality: no}, console.log
         item.emit 'ContentUnmarkedAsLowQuality', null
+
+  fetchStorage: secure (client, options, callback)->
+    account = @
+    unless @equals client.connection.delegate
+      return callback "Attempt to access unauthorized application storage"
+
+    {appId, version} = options
+    @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
+      if err then callback err
+      else unless storage?
+        log.info 'creating new storage for application', appId, version
+        newStorage = new JAppStorage {appId, version}
+        newStorage.save (err) =>
+          if err then callback error
+          else
+            # manually add the relationship so that we can
+            # query the edge instead of the target C.T.
+            rel = new Relationship
+              targetId    : newStorage.getId()
+              targetName  : 'JAppStorage'
+              sourceId    : @getId()
+              sourceName  : 'JAccount'
+              as          : 'appStorage'
+              data        : {appId, version}
+            rel.save (err)-> callback err, newStorage
+      else
+        callback err, storage
+
 
   @taintedAccounts = {}
   @taint =(id)->
