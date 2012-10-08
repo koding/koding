@@ -1,15 +1,17 @@
-Broker = require 'broker'
-mongoskin = require 'mongoskin'
-{ObjectId} = require 'bongo'
-
 module.exports = 
   distributeActivityToFollowers: (options = {}) ->
+    mongoskin = require 'mongoskin'
+    Broker = require 'broker'
+    {ObjectId} = require 'bongo'
+
     {mq, mongo, exchangePrefix} = options
+    
     mq ?= 
       host: "localhost"
       login: "guest"
       password: "guest"
       vhost: "/"
+
     broker = new Broker mq
 
     exchangePrefix = exchangePrefix ? "followable-"

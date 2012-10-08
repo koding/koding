@@ -9,7 +9,6 @@ module.exports = class JUser extends jraphical.Module
   JAccount  = require './account'
   JSession  = require './session'
   JGuest    = require './guest'
-  JEmailConfirmation = require './emailconfirmation'
   JInvitation = require './invitation'
   JFeed     = require './feed'
 
@@ -101,7 +100,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'owner'
       emailConfirmation :
-        targetType      : JEmailConfirmation
+        targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -575,6 +574,7 @@ module.exports = class JUser extends jraphical.Module
           callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
+    JEmailConfirmation = require './emailconfirmation'
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err
