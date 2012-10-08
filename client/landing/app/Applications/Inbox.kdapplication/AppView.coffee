@@ -109,7 +109,7 @@ class InboxView extends KDView
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
-        itemClass  : NotificationListItem
+        itemClass     : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
