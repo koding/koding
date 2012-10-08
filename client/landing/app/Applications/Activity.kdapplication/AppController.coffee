@@ -97,6 +97,10 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
+    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+      if activity.constructor.name in @currentFilter
+        @activityListController.followedActivityArrived activity
+
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
@@ -179,7 +183,7 @@ class Activity12345 extends AppController
               callback err 
             else 
               for datum in data 
-                datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
+                datum.snapshot = datum.snapshot?.replace /&quot;/g, '"'
               callback null, data
 
     else if type is 'private'
@@ -425,24 +429,40 @@ class ActivityListController extends KDListViewController
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()
 
+  followedActivityArrived: (activity) ->
+    if @_state is 'private'
+      view = @addHiddenItem activity, 0
+      @activityHeader.newActivityArrived()
+
   newActivityArrived:(activity)->
+    return unless @_state is 'public'
     unless @isMine activity
-      if @_state is 'public'
-        view = @addHiddenItem activity, 0
-        @activityHeader.newActivityArrived()
-      else if @_state is 'private'
-        @isInFollowing activity, (result) =>
-          if result
-            view = @addHiddenItem activity, 0
-            @activityHeader.newActivityArrived()
-      # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
-      #   view = @addHiddenItem activity, 0
-      #   @activityHeader.newActivityArrived()
+      view = @addHiddenItem activity, 0
+      @activityHeader.newActivityArrived()
     else
       switch activity.constructor
         when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
+
+    # unless @isMine activity
+    #   if @_state is 'public'
+    #     view = @addHiddenItem activity, 0
+    #     @activityHeader.newActivityArrived()
+    #   else if @_state is 'private'
+    #     @isInFollowing activity, (result) =>
+    #       if result
+    #         view = @addHiddenItem activity, 0
+    #         @activityHeader.newActivityArrived()
+
+      # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+      #   view = @addHiddenItem activity, 0
+      #   @activityHeader.newActivityArrived()
+    # else
+    #   switch activity.constructor
+    #     when KD.remote.api.CFolloweeBucket
+    #       @addItem activity, 0
+    #   @ownActivityArrived activity
 
   addHiddenItem:(activity, index, animation = null)->
     instance = @getListView().addHiddenItem activity, index, animation
