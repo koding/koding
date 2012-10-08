@@ -1,32 +1,3 @@
-class BottomPanelController extends KDViewController
-
-  loadView:(bottomPanel)->
-
-    @isVisible   = no
-    @bottomPanel = bottomPanel
-    @wc          = @getSingleton("windowController")
-
-    bottomPanel.on "ToggleBottomPanel", => @toggle()
-    bottomPanel.on "ReceivedClickElsewhere", (event)=> @hide event
-
-    bottomPanel.addSubView @chatSidebar = new BottomChatSideBar
-      cssClass : "chat-sidebar"
-
-    bottomPanel.addSubView splitWrapper = new KDScrollView
-      cssClass : "split-wrapper"
-
-
-    splitWrapper.addSubView @split = new SlidingSplit
-      cssClass : "chat-split"
-      sizes    : [null]
-      views    : [new KDView]
-
-    @split.on "panelSplitted", (panel)->
-      panel.addSubView new KDView
-
-  toggle:-> if @isVisible then @hide() else @show()
-
-
 class BottomChatSideBar extends JView
 
   constructor: (options, data) ->
@@ -38,7 +9,7 @@ class BottomChatSideBar extends JView
       scrollView      : no
       viewOptions     :
         type          : "chat-sidebar users"
-        itemClass  : BottomChatUserItem
+        itemClass     : BottomChatUserItem
     ,
       items     : [
         { title : "sinan" }
@@ -78,11 +49,3 @@ class BottomChatSideBar extends JView
       <h2>Active Channels</h2>
       {{> @channelList}}
     """
-
-class BottomChatUserItem extends KDListItemView
-
-  viewAppended: JView::viewAppended
-
-  pistachio:-> """<a href=#>{{ #(title)}}</a>"""
-
-  # partial:-> """#{@getData().title}"""
