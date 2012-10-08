@@ -19,7 +19,6 @@ type WebtermServer struct {
 	remote  dnode.Remote
 	pty     *pty.PTY
 	process *os.Process
-    user    string
 }
 
 func main() {
