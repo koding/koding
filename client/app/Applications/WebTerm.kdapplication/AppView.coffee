@@ -38,14 +38,11 @@ class WebTermView extends KDView
     @sessionBox.addSubView createSessionButton
 
     @terminal = new WebTerm.Terminal @container.$()
+
     @terminal.sessionEndedCallback = (sessions) =>
-      @getSingleton('mainView').mainTabView.removePaneByView this
-      #@propagateEvent
-      #  KDEventType  : "ApplicationWantsToClose"
-      #  globalEvent  : yes
-      #, {options: null, data: this}
+      @emit "WebTerm.terminated"
       return
-      
+
       @server.getSessions (sessions) =>
         keys = Object.keys sessions
         keys.sort (a, b) ->
@@ -104,15 +101,19 @@ class WebTermView extends KDView
     @terminal.setFocused true
 
   click: ->
+    log "WTF"
     @setKeyView()
 
   keyDown: (event) ->
+    log "WTF1"
     @terminal.keyDown event
 
   keyPress: (event) ->
+    log "WTF2"
     @terminal.keyPress event
 
   keyUp: (event) ->
+    log "WTF3"
     @terminal.keyUp event
 
   _windowDidResize: (event) ->
