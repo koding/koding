@@ -1,0 +1,123 @@
+Wed Jul 19 2012 Moses Mendoza 1.0.5
+ * Update apt repository location.
+ * (#13913) removing out of date content
+
+2012-04-11 - Loren A. Linden Levy <lindenle@gmail.com> - 1.0.4
+ * need dependencies now too (3ceea56)
+ * need puppet version in community template (37add07)
+ * changed repo location see http://yum.puppetlabs.com/base/README.txt (796646f)
+
+Fri Apr 20 2012 Jeff McCune <jeff@puppetlabs.com> - 1.0.3
+(maint) Fix Module metadata.  The name is cloud_provisioner not cloud-provisioner
+
+Fri Mar 23 2012 Michael Stahnke <stahnma@puppetlabs.com> - v1.0.2
+(#13095) Add fedora support to puppet-community.
+(#12717) Don't append to answers file if puppet agent certname already present
+(#12499) Watch for error states during instance creation
+(#12352) Reset Fog::Compute::AWS::Mock objects
+(#7220) Refactor to use default_to for option defaults
+(#12229) Make setting Created-By tag optional
+(#12228) Add endpoint option to creation of fog compute
+(#12267) Make filter for termination configurable
+(#12225) Define connection options in their own methods
+(#11324 and #11323) Properly validate tags and facts input
+(#11304) Add custom tag support
+(#10235) Add keyname to list of attributes
+(#10971) Adding --facts options for install action
+(#10871) Added spec test for Fog credentials
+(#11015) Retry on failed auth for slow provisions
+(#10871) Allow alternate fog credentials
+(#10189) Add AWS availability zone option -- Adds the ability to create instances in specific AWS availability zones within a region
+
+Mon Nov 07 2011 Michael Stahnke <stahnma@puppetlabs.com> - v1.0.0
+(#10197) Add HTTP authentication to classify action
+(#10377) Fix backtrace in classify when connection refused
+(maint) Update doc strings for classify action
+(#10377) Add spec test for --enc-ssl option
+(#10377) Change classify spec to use let memos
+(#10377) Add --enc-ssl option and https support to classify action
+(#10184) Fix 2 failing specs for CP installer method
+(#8676) Catch the Errno::EHOSTUNREACH exception and retry
+(#10184) Fixing failing spec test
+(#10184) Adding a new puppet-community install script
+(#10181) Default puppetagent-certname to random guid plus node dns name
+(#10206) Use exception class as key
+(#10172) Use the Puppet::CloudProvisioner::Utils#retry_action method
+(#10178) Use the Puppet::CloudPack::Utils#retry_action method
+(#10171) Refactor the `retry_action` + unit tests
+Adding a new `retry_action` method
+(#10042) Add enc-server/enc-port optoins
+(#10057) Fix failing unit tests
+(#10057) Pass keyfile to the ssh_remote_execute
+(#10061) Test correct certname is used in bootstrap action
+(#10062) Fix certificate signing
+(#10061) Fix certname used for classification by bootstrap
+(#10059) Handle nodes post to dashboard response
+Adding Rakefile to create release tarballs
+
+Mon Oct 10 2011 Michael Stahnke <stahnma@puppetlabs.com> - v0.6.0rc2
+* Fill in license template
+* (#9805) Ensure tempfiles do not get garbage collected
+* (#9781) Add test coverage for dashboard classify
+* (#9670) Check if node groups are already assigned to nodes
+* (#9681) Fail if the specified node group does not exist
+* (#9679) Check if node exists before creating
+* (#9621) Return the puppet agent certname to the user
+* (#9563) Retry when Errno::ETIMEDOUT is encountered.
+* (#9778) Log no classification method selected by default
+* (#9699) Fix keyname option
+* (#9621) Fix misuse of --certname option in install action
+* (#9621) Install Puppet Enterprise using HTTP get
+* (#9621) Add logic for install payload to handle remote urls
+* (#9590) Add ProgressBar class to draw progress bars
+* (#9608) Ensure --keyfile agent is always a downcase value
+* (#9618) PE script should accept any tar
+* (#9608) Add ssh-agent support via --keyfile=agent
+* (maint) Update watchr autotest script with growl
+* (#9585)(UX) Add list_keynames action, rename keypair to keyname
+* Remove UTF-8 characters in comments causing error: invalid multibyte char (US-ASCII)
+* (#9581) Node_aws actions should require face
+* (#9536) Explicitly catch tcp connection resets.
+* (#9426) Add acceptance tests
+* (#9510) Increase timeout wrapped around ssh
+* (#9442) Fixup puppet node_aws list example output
+* (#9442) Rename EC2 specific actions to node_aws subcommand
+* (#8184) update spec test to work with Fog v0.11.0
+* (#9048) Update tests to expand path
+* Whitespace only change.
+* (#8706) Fix spec tests of option validation
+
+2011-07-20 Jeff McCune <jeff@puppetlabs.com> - v0.6.0rc1
+* Initial public release
+* Add --type option to launch different EC2 instance sizes
+* (#7510) Add inline documentation for actions and options
+* (#8286) Warn if the payload used with the install action is not a tar.gz
+file
+* (#8265) Make the platform flag optional and default to 'AWS' (Note,
+puppet-provisioner provisions AWS EC2 instances in this release)
+* (#7511) Add the ability to launch instances in any EC2 region using the
+--region option.  The default region is us-east-1
+* (#8157) Improve the feedback of the terminate action by explicitly stating
+the instance has been terminated.
+* (#8185) Add a list action to list EC2 instances and their current status.
+* (#8343) Print the EC2 instance public DNS name as soon as it is available
+* (#8350) Change all output to use Puppet's configured log destination
+* (#8348) Add a fingerprint action to make a best effort to obtain the SSH
+public host key fingerprint from the launched EC2 instance.
+* (#7508) Add the ability to install Puppet using rubygems on a target system.
+* (#7508) Improve the install action using template scripts to install Puppet
+on launched systems.
+* (#8403) Replace dependency on uuidgen Mac OS X executable with guid gem.
+* (#8422) Catch the exit status of installation script and display an error if
+they're non zero.
+* (#8204) Include a puppet enterprise install script that downloads from S3.
+This should improve install times on low bandwidth connections.
+* (#8472) Add support for non-root logins when installing puppet on a target
+system.
+* (#8493) Rename cloudpack to cloud-provisioner
+* (#8513) Make puppet classification of node optional
+* (#8501) Improve the robustness of SSH connections to the target system
+* (#8517) Add ability to install Puppet Dashboard on the target system
+
+2011-06-29 Jeff McCune <jeff@puppetlabs.com> - 0.0.1
+* Initial tag.  This is not an official release.
