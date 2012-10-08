@@ -78,19 +78,18 @@ handleClient = do ->
     # When client logs in, listen to message from own exchange and
     # publish followees' activies to own exchange on a different
     # routing so that worker queue can consume from it.
-    # mq.on(
-    #   ownExchangeName,
-    #   "#.activity", 
-    #   ownExchangeName, 
-    #   (message, headers, deliveryInfo) ->
-    #     publisher = deliveryInfo.exchange
-    #     unless publisher is getOwnExchangeName account
-    #       console.log "followed activity"
-    #       activityId = ObjectId message
-    #       CActivity.one {_id: activityId}, (err, activity) ->
-    #         #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-    #         account.emit "FollowedActivityArrived", activity
-    # )
+    mq.on(
+      ownExchangeName,
+      "#.activity", 
+      ownExchangeName, 
+      (message, headers, deliveryInfo) ->
+        publisher = deliveryInfo.exchange
+        unless publisher is getOwnExchangeName account
+          activityId = Bongo.ObjectId message
+          CActivity.one {_id: activityId}, (err, activity) ->
+            #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+            account.emit "FollowedActivityArrived", activity
+    )
 
   handleOwnActivity = (account) ->
     ownExchangeName = getOwnExchangeName account
