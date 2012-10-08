@@ -253,7 +253,7 @@ class Activity12345 extends AppController
     if not options.skip < options.limit
       @fetchTeasers selector, options, (activities)=>
         if activities
-          for activity in activities
+          for activity in activities when activity?
             controller.addItem activity
           callback? activities
         else
