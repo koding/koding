@@ -154,6 +154,22 @@ module.exports = class Followable
         JTag.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
+  isFollowing: secure (client, sourceId, sourceName, callback) ->
+    unless @equals client.connection.delegate
+      callback new KodingError 'Access denied'
+    else
+      selector =
+        targetId: @getId()
+        as: 'follower'
+        sourceId: sourceId
+        sourceName: sourceName
+      Relationship.one selector, (err, rel) ->
+        if rel? and not err?
+          callback yes
+        else 
+          callback no
+
+
   updateFollowingCount: (followee, action)->
     Relationship.count targetId:@_id, as:'follower', (error, count)=>
       Model::update.call @, $set: 'counts.following': count, (err)->

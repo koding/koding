@@ -85,7 +85,11 @@ handleClient = do ->
     #   (message, headers, deliveryInfo) ->
     #     publisher = deliveryInfo.exchange
     #     unless publisher is getOwnExchangeName account
-    #       ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+    #       console.log "followed activity"
+    #       activityId = ObjectId message
+    #       CActivity.one {_id: activityId}, (err, activity) ->
+    #         #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+    #         account.emit "FollowedActivityArrived", activity
     # )
 
   handleOwnActivity = (account) ->
@@ -105,6 +109,7 @@ handleClient = do ->
 
         # Publish to all mentioned topics' followers' feeds
         activity.fetchTeaser (err, {tags}) ->
+          return unless tags?
           for tag in tags
             do ->
               exchangeName = getOwnExchangeName tag

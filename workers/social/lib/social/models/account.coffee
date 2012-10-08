@@ -55,7 +55,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount', 'getFeedByTitle',
-        'fetchFeeds', 'createFeed'
+        'fetchFeeds', 'createFeed', 'addGlobalListener', 'isFollowing'
       ]
     schema                  :
       skillTags             : [String]
