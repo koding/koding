@@ -45,14 +45,17 @@ class Topics12345 extends AppController
               KD.remote.api.JTag.byRelevance @_searchValue, options, callback
             else
               KD.remote.api.JTag.someWithRelationship selector, options, callback
-        followed            :
-          title             : "Followed"
+        following           :
+          title             : "Following"
           dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
-        recommended         :
-          title             : "Recommended"
-          dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
+            KD.whoami().fetchTopics selector, options, (err, items)=>
+              for item in items
+                item.followee = true
+              callback err, items
+        # recommended         :
+        #   title             : "Recommended"
+        #   dataSource        : (selector, options, callback)=>
+        #     callback 'Coming soon!'
       sort                  :
         'counts.followers'  :
           title             : "Most popular"

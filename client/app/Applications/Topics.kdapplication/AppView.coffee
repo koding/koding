@@ -13,7 +13,7 @@ class TopicsComingSoon extends KDView
     """
 
 class TopicsMainView extends KDView
-  
+
   constructor:(options,data)->
     options = $.extend
       ownScrollBars : yes

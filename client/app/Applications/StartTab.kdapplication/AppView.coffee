@@ -12,7 +12,8 @@ class StartTabMainView extends JView
     mainView       = @getSingleton('mainView')
     appsController = @getSingleton("kodingAppsController")
     appsController.on "AppsRefreshed", (apps)=>
-      @decorateApps apps
+      @getSingleton("kodingAppsController").appStorage.fetchStorage (storage)=>
+        @decorateApps apps
 
     # mainView.sidebar.finderResizeHandle.on "DragInAction", =>
     #   log "DragInAction", mainView.contentPanel.getWidth()
@@ -62,10 +63,6 @@ class StartTabMainView extends JView
       cssClass : 'app-item-container'
       delegate : @
 
-    @noAppsWarning = new KDView
-      cssClass : 'no-apps hidden'
-      partial  : 'you have no apps!'
-
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
 
@@ -91,8 +88,6 @@ class StartTabMainView extends JView
 
   _windowDidResize:->
 
-
-
   addApps:->
 
     for app in apps
@@ -113,7 +108,6 @@ class StartTabMainView extends JView
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
       {{> @appItemContainer}}
-      {{> @noAppsWarning}}
     </div>
     <div class='start-tab-split-options expanded'>
       <h3>Start with a workspace</h3>
@@ -129,17 +123,26 @@ class StartTabMainView extends JView
     @removeAppIcons()
     @showLoader()
     @getSingleton("kodingAppsController").fetchApps (err, apps)=>
-      @hideLoader()
       @decorateApps apps
 
   decorateApps:(apps)->
-
     @removeAppIcons()
-    if apps
-      @noAppsWarning.hide()
-      @putAppIcons apps
-    else
-      @noAppsWarning.show()
+    @showLoader()
+    @refreshButton.hide()
+    @putAppIcons apps
+
+    shortcuts = @getSingleton("kodingAppsController").appStorage.getValue 'shortcuts'
+
+    for shortcut, manifest of shortcuts
+      do (shortcut, manifest)=>
+        @appItemContainer.addSubView @appIcons[manifest.name] = new AppShortcutButton
+          delegate : @
+        , manifest
+
+    @appItemContainer.addSubView @appIcons['GET_MORE_APPS'] = new GetMoreAppsButton
+      delegate : @
+    @hideLoader()
+    @refreshButton.show()
 
   removeAppIcons:->
 
@@ -148,8 +151,6 @@ class StartTabMainView extends JView
 
   putAppIcons:(apps)->
 
-    @refreshButton.show()
-    @hideLoader()
     for app, manifest of apps
       do (app, manifest)=>
         @appItemContainer.addSubView @appIcons[manifest.name] = new StartTabAppThumbView

@@ -9,7 +9,7 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      itemClass  : options.itemClass
+      itemClass     : options.itemClass
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
@@ -102,7 +102,7 @@ class FeedController extends KDViewController
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
 
-    options.sort[sort.name] = sort.direction
+    options.sort[sort.name.split('|')[0]] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
