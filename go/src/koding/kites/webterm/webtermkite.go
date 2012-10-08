@@ -22,18 +22,22 @@ type WebtermServer struct {
 }
 
 func main() {
-	utils.DefaultStartup("webterm kite", true)
+	utils.Startup("webterm kite", true)
 
 	if config.Current.UseWebsockets {
 		runWebsocket()
 		return
 	}
 
-	kite.Run("webterm", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+	kite.Run("webterm", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
 		if method == "createServer" {
+			remote, err := args.Map()
+			if err != nil {
+				return nil, err
+			}
 			server := &WebtermServer{session: session}
-			server.remote = args.(map[string]interface{})
-			session.CloseOnDisconnect = append(session.CloseOnDisconnect, server)
+			server.remote = remote
+			session.CloseOnDisconnect(server)
 			return server, nil
 		}
 		return nil, &kite.UnknownMethodError{method}

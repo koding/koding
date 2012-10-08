@@ -264,7 +264,7 @@ module.exports = new Kite 'sharedHosting'
       else
         exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
           if err or stderr then cb err
-          else cb
+          else cb null
 
   createSystemUser : (options,callback)->
     #

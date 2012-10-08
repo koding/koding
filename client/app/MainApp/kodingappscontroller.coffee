@@ -66,6 +66,10 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @appStorage = new AppStorage 'KodingApps', '1.0'
 
+    @appStorage.fetchStorage (storage)=>
+      if not @appStorage.getValue 'shortcuts'
+        @putDefaultShortcutsToAppStorage()
+
   # #
   # FETCHERS
   # #
@@ -150,9 +154,7 @@ class KodingAppsController extends KDController
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      if err then warn err
       callback err, response
-
 
   # #
   # MISC
@@ -169,10 +171,52 @@ class KodingAppsController extends KDController
       else
         callback err
 
+  removeShortcut:(shortcut, callback)->
+    @appStorage.fetchValue 'shortcuts', (shortcuts)=>
+      delete shortcuts[shortcut]
+      @appStorage.setValue 'shortcuts', shortcuts, (err)=>
+        callback err
+
+  putDefaultShortcutsToAppStorage:->
+
+    shortcuts       =
+      Ace           :
+        name        : 'Ace'
+        type        : 'koding-app'
+        icon        : 'icn-ace.png'
+        description : 'Code Editor'
+        author      : 'Mozilla'
+      Terminal      :
+        name        : 'Terminal'
+        type        : 'koding-app'
+        icon        : 'icn-terminal.png'
+        description : 'Koding Terminal'
+        author      : 'Koding'
+        path        : 'WebTerm'
+      CodeMirror    :
+        name        : 'CodeMirror'
+        type        : 'comingsoon'
+        icon        : 'icn-codemirror.png'
+        description : 'Code Editor'
+        author      : 'Marijn Haverbeke'
+      yMacs         :
+        name        : 'yMacs'
+        type        : 'comingsoon'
+        icon        : 'icn-ymacs.png'
+        description : 'Code Editor'
+        author      : 'Mihai Bazon'
+      Pixlr         :
+        name        : 'Pixlr'
+        type        : 'comingsoon'
+        icon        : 'icn-pixlr.png'
+        description : 'Image Editor'
+        author      : 'Autodesk'
+
+    @appStorage.setValue 'shortcuts', shortcuts
+
   putAppsToAppStorage:(apps)->
 
-    @appStorage.setValue 'apps', apps, (err)=>
-      log err if err
+    @appStorage.setValue 'apps', apps
 
   defineApp:(name, script)->
 
@@ -185,6 +229,7 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
+
       @fetchCompiledApp manifest, (err, script)=>
         if err
           @compileApp name, (err)=>
@@ -204,7 +249,7 @@ class KodingAppsController extends KDController
   runApp:(manifest, callback)->
 
     {options, name, devMode} = manifest
-    {stylesheets}   = manifest.source if manifest.source
+    {stylesheets} = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
@@ -421,7 +466,14 @@ class KodingAppsController extends KDController
     unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      kallback @constructor.manifests[name]
+      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+        if err
+          new KDNotificationView
+            title    : "App list is out-dated, refreshing apps..."
+            duration : 2000
+          @refreshApps noop
+        else
+          kallback @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 

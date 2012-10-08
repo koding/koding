@@ -61,7 +61,7 @@ module.exports = class JUser extends jraphical.Module
       email         : 'unique'
 
     sharedMethods   :
-      instance      : []
+      instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
@@ -541,6 +541,8 @@ module.exports = class JUser extends jraphical.Module
     }, callback
 
   changeEmail:(account, options, callback)->
+
+    JVerificationToken = require './verificationtoken'
 
     {email, pin} = options
 
