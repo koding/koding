@@ -15,6 +15,7 @@ class Activity12345 extends AppController
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES
       'CCodeShareActivity'
+      'CLinkActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -195,6 +196,7 @@ class Activity12345 extends AppController
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES
           'CCodeShareActivity'
+          'CLinkActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -266,6 +268,7 @@ class Activity12345 extends AppController
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES
         'CCodeShareActivity'
+        'CLinkActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -283,6 +286,7 @@ class Activity12345 extends AppController
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       # THIS WILL DISABLE CODE SHARES
       when "JCodeShare"    then @createCodeShareContentDisplay activity
+      when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -293,6 +297,15 @@ class Activity12345 extends AppController
     controller = new ContentDisplayControllerActivity
       title       : "Status Update"
       type        : "status"
+      contentView : new ContentDisplayStatusUpdate {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
+
+  createLinkContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Link"
+      type        : "link"
       contentView : new ContentDisplayStatusUpdate {},activity
     , activity
     contentDisplay = controller.getView()

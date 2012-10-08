@@ -70,11 +70,17 @@ class ActivityUpdateWidgetController extends KDViewController
               @codeShareWidgetSubmit data, stopSubmission
             , 5
 
-
     mainView.addWidgetPane
       paneName    : "link"
       mainContent : linkWidget = new ActivityLinkWidget
-        callback  : @linkWidgetSubmit
+        cssClass  : "link-widget"
+        callback  : (formData)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @linkWidgetSubmit formData, stopSubmission
+            updateWidget.switchToSmallView()
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "tutorial"
@@ -117,6 +123,9 @@ class ActivityUpdateWidgetController extends KDViewController
         # THIS WILL DISABLE CODE SHARES
         when "JCodeShare"
           mainView.showPane "codeshare"
+          codeShareWidget.switchToEditView activity
+        when "JLink"
+          mainView.showPane "link"
           codeShareWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
@@ -186,10 +195,6 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
 
-      # CODESHARE CREATE
-
-      log "Submit Data is",data
-
       KD.remote.api.JCodeShare.create data, (err, codeshare) =>
         callback? err, codeshare
         stopSubmission()
@@ -205,10 +210,33 @@ class ActivityUpdateWidgetController extends KDViewController
     KD.remote.api.JActivity.create {type: 'qa', activity: data}, (error) ->
       warn 'couldnt ask question', error if error
 
-  linkWidgetSubmit:(data)->
-    log 'sharing link', data
-    KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
-      warn 'couldnt save link', error if error
+
+  linkWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+
+      KD.remote.api.JLink.create data, (err, link) =>
+        callback? err, link
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), link
+
+  # linkWidgetSubmit:(data)->
+  #   log 'sharing link', data
+  #   KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
+  #     warn 'couldnt save link', error if error
 
   tutorialWidgetSubmit:(data)->
     log 'sharing tutorial', data
