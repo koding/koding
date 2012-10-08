@@ -126,6 +126,7 @@ class CodeShareTabPaneView extends KDTabPaneView
         @refreshEditorView()
         @getDelegate().resizeTabs()
       @emit "codeShare.aceLoaded"
+      @getDelegate().resizeTabs()
       callback
 
     @on "codeShare.aceLoaded",=>
