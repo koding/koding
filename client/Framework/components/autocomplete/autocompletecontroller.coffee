@@ -54,7 +54,7 @@ class KDAutoCompleteController extends KDViewController
 
     switch event.which
       when 13, 9 #enter, tab
-        unless autoCompleteView.getValue() is ""
+        if autoCompleteView.getValue() isnt "" and event.shiftKey isnt yes
           @submitAutoComplete autoCompleteView.getValue()
         else
           return yes
@@ -97,7 +97,7 @@ class KDAutoCompleteController extends KDViewController
     windowController = @getSingleton('windowController')
 
     @dropdown = new KDListViewController
-      view          : dropdownListView
+      view : dropdownListView
 
     dropdownWrapper = @dropdown.getView()
 
