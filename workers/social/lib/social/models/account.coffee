@@ -343,6 +343,9 @@ module.exports = class JAccount extends jraphical.Module
         , (err, rels)->
           if err
             callback err
+          else unless rels?.length
+            message.participants = []
+            fin()
           else
             # only include unique participants.
             message.participants = (rel for rel in rels when register.sign rel.sourceId)
