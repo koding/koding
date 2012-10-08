@@ -101,19 +101,15 @@ class WebTermView extends KDView
     @terminal.setFocused true
 
   click: ->
-    log "WTF"
     @setKeyView()
 
   keyDown: (event) ->
-    log "WTF1"
     @terminal.keyDown event
 
   keyPress: (event) ->
-    log "WTF2"
     @terminal.keyPress event
 
   keyUp: (event) ->
-    log "WTF3"
     @terminal.keyUp event
 
   _windowDidResize: (event) ->
