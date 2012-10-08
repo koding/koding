@@ -139,6 +139,7 @@ class CodeShareBox extends KDView
           pane.on "codeShare.aceLoaded",=>
             paneAddedCount++
             if paneAddedCount is paneAddCount
+              log "resizeTabs()"
               @codeShareView.resizeTabs()
 
         for addItem in addItems
@@ -218,11 +219,29 @@ class CodeShareBox extends KDView
 
 
   resetTabs:=>
-    # log @codeShareView.panes
-    for pane in @codeShareView?.panes
-      # log pane
-      if pane then @codeShareView.removePane pane
-    # log @codeShareView.panes
+    # log "resetting tabs", @codeShareView.panes
+    deleteTab = =>
+      if @codeShareView?.panes?.length>0 then setTimeout =>
+        pane = @codeShareView?.panes[0]
+        # log "remaining", @codeShareView.panes
+        setTimeout =>
+          # log "removing", pane
+          @codeShareView?.removePane pane
+          deleteTab()
+        , 50
+      , 50
+
+    deleteTab()
+
+    # the following 2 approaches result in .panes that log as [view1,view2,undefined]
+    # why is that?
+
+    # while @codeShareView?.panes?
+    #   pane = @codeShareView.panes[0]
+    #   @codeShareView.removePane pane
+
+    # for pane in @codeShareView?.panes
+    #   if pane then @codeShareView.removePane pane
 
   convertFromLegacyCodeShare:(codeshare)->
       # log "Encountered a legacy codeshare while sanitizing data",codeshare
@@ -341,7 +360,6 @@ class CodeShareBox extends KDView
 
   render:->
     super()
-    log "We were rendered"
 
   viewAppended:->
 

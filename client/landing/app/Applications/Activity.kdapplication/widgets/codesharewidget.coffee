@@ -819,6 +819,7 @@ class ActivityCodeShareWidget extends KDFormView
     @removeCustomData "CodeShareOptions"
 
     @codeShareBoxView.resetTabs()
+    @codeShareBoxView.render()
 
     @title.setValue ''
     @description.setValue ''

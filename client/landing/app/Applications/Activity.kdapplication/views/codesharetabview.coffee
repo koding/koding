@@ -29,7 +29,7 @@ class CodeShareTabView extends KDTabView
       if thisHeight>maxHeight
         maxHeight = thisHeight
     @$(".codeshare-code-wrapper").css height:maxHeight
-    view.emit "codeShare.resizeEditor" for view in views
+    #view.emit "codeShare.resizeEditor" for view in views
 
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []
@@ -124,9 +124,9 @@ class CodeShareTabHandleView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-    @$("*").hover (event)->
+    @$("div").hover (event)->
       if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
-        $(event.target).closest(".kdtabhandle").click()
+        $(event.target).closest(".kdtabhandle:not(.active)").click()
     , noop
 
     # if disabled, this should intercept the click event. however, overriding
