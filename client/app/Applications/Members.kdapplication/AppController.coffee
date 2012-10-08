@@ -5,10 +5,6 @@ class Members12345 extends AppController
     ,options
     super options,data
 
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      if @_searchValue and itemClass is MembersListItemView and filterName is 'everything'
-        @setCurrentViewHeader count
-
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -63,6 +59,9 @@ class Members12345 extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
+      controller.on "FeederListViewItemCountChanged", (count, filter)=>
+        if @_searchValue and filter is 'everything'
+          @setCurrentViewHeader count
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
