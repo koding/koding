@@ -12,6 +12,22 @@ class CodeShareTabPaneView extends KDTabPaneView
     @setClass "clearfix"
     @setHeight @$().parent().height()
 
+
+    @codeViewLoader = new KDLoaderView
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#ffffff"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
+
+    @codeViewLoader.hide()
+
+
     @listenTo
       KDEventTypes        : [ eventType : "KDTabPaneActive" ]
       listenedToInstance  : @
@@ -30,25 +46,12 @@ class CodeShareTabPaneView extends KDTabPaneView
       delegate: @getDelegate()
     ,data
 
-  createCodeEditor:(data)=>
+  createCodeEditor:(data, callback=noop)=>
 
     @setClass "has-editor"
 
-    @codeViewLoader = new KDLoaderView
-      size          :
-        width       : 30
-      loaderOptions :
-        color       : "#ffffff"
-        shape       : "spiral"
-        diameter    : 30
-        density     : 30
-        range       : 0.4
-        speed       : 1
-        FPS         : 24
 
-    @codeView = new Ace {}, FSHelper.createFileFromPath "localfile:/codeShare.txt"
-
-    @codeViewLoader.show()
+    @codeView = new Ace {}, FSHelper.createFileFromPath "localfile:/codeShare#{Math.random()}.txt"
 
     @codeViewConfig = new CodeShareConfigView
       cssClass : "codeshare-config"
@@ -123,6 +126,7 @@ class CodeShareTabPaneView extends KDTabPaneView
         @refreshEditorView()
         @getDelegate().resizeTabs()
       @emit "codeShare.aceLoaded"
+      callback
 
     @on "codeShare.aceLoaded",=>
       @refreshEditorView()
@@ -150,16 +154,21 @@ class CodeShareTabPaneView extends KDTabPaneView
   becameInactive: noop
   aboutToBeDestroyed: noop
 
-  viewAppended:->
+  viewAppended:=>
 
     if @hasEditor
       @createCodeEditor @getData()
+      @codeViewLoader.show()
+
     else
       @createCodeViewer @getData()
 
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    @codeViewLoader.show()
+
 
     # LISTENERS for Syntax changer (needs to be here for getHandle access)
 
@@ -251,6 +260,7 @@ class CodeShareView extends KDCustomHTMLView
       icon      : yes
       iconOnly  : yes
       iconClass : "play"
+      disabled  : yes
       callback  : ->
         new KDNotificationView
           title     : "Currently disabled!"
