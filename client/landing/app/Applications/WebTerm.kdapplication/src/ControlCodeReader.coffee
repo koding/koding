@@ -207,6 +207,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "D": (params) -> terminal.cursor.move -(params[0] ? 1), 0
           "G": (params) -> terminal.cursor.moveTo (params[0] ? 1) - 1, terminal.cursor.y
           "H": (params) -> terminal.cursor.moveTo (params[1] ? 1) - 1, getOrigin() + (params[0] ? 1) - 1
+          "I": (params) -> terminal.cursor.moveTo (Math.floor(terminal.cursor.x / 8) + (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
           "J": switchParameter 0
             0: ->
               terminal.writeEmptyText terminal.sizeX - terminal.cursor.x
@@ -225,6 +226,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "S": (params) -> terminal.screenBuffer.scroll (params[0] ? 1)
           "T": (params) -> terminal.screenBuffer.scroll -(params[0] ? 1)
           "X": (params) -> terminal.writeEmptyText params[0] ? 1
+          "Z": (params) -> terminal.cursor.moveTo (Math.ceil(terminal.cursor.x / 8) - (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
           "c": switchRawParameter 0
             0:   -> terminal.server.controlSequence "\x1B[>?1;2c"
             ">": -> terminal.server.controlSequence "\x1B[>0;261;0c"

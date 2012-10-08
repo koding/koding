@@ -126,6 +126,7 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
+      "./client/app/Applications/GroupsFake.kdapplication"  : GroupsFakeController
     if classes[path]?
       new classes[path]
 
@@ -153,8 +154,12 @@ class ApplicationManager extends KDObject
       #     requirejs [appUrl], (appInstance)->
       #       callback appInstance
       requirejs ["js/KDApplications/#{path}/AppController.js?#{KD.version}"], (appInstance)->
-        appManager.addAppInstance path, appInstance
-        callback appInstance
+        if appInstance
+          appManager.addAppInstance path, appInstance
+          callback appInstance
+        else
+          callback new KDNotificationView
+            title : "Application does not exists!"
 
   initializeAppInstance:(path, appInstance, initFunctionName, callback)->
     appManager = @
