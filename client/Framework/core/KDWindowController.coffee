@@ -8,6 +8,8 @@ todo:
 ###
 class KDWindowController extends KDController
 
+  @keyViewHistory = []
+
   constructor:(options,data)->
     @windowResizeListeners = {}
     @keyView
@@ -115,10 +117,15 @@ class KDWindowController extends KDController
 
     return if newKeyView is @keyView
     # debugger
-    log newKeyView, "newKeyView" if newKeyView
+    # unless newKeyView
+    #   debugger
+    # log newKeyView, "newKeyView" if newKeyView
 
     @oldKeyView = @keyView
     @keyView = newKeyView
+
+    @constructor.keyViewHistory.push newKeyView
+
     newKeyView?.emit 'KDViewBecameKeyView'
     @emit 'WindowChangeKeyView', newKeyView
 
