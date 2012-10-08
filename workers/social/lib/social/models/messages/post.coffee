@@ -142,6 +142,7 @@ module.exports = class JPost extends jraphical.Message
               snapshotIds: status.getId()
           , ->
             callback null, teaser
+            CActivity.emit "ActivityIsCreated", activity
             queue.next()
         ->
           status.addParticipant delegate, 'author'
