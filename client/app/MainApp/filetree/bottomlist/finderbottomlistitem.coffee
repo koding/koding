@@ -1,20 +1,22 @@
 class FinderBottomControlsListItem extends KDListItemView
-  constructor:(options,data)->
-    options = $.extend
-      tagName      : "li"
-    ,options
-    super options,data
+
+  constructor:(options = {},data)->
+
+    options.tagName or= "li"
+
+    super options, data
 
   click:(event)->
+
     if @getData().path?
-      appManager.openApplication @getData().path if @getData().path? 
+      appManager.openApplication @getData().path if @getData().path?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else
       new KDNotificationView
         title : "Coming Soon!"
         duration : 1000
-  
+
   viewAppended:->
     super
 
@@ -76,4 +78,3 @@ class FinderBottomControlsListItem extends KDListItemView
 
     @_keyHelperModal.addSubView filetreeKeyHelperController.getView()
     @_keyHelperModal.addSubView editorKeyHelperController.getView()
-    

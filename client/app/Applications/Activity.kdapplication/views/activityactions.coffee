@@ -65,7 +65,7 @@ class ActivityActionLink extends KDCustomHTMLView
       cssClass  : "action-link"
       attributes:
         href    : "#"
-      partial   : "..."
+      partial   : "Like"
     , options
     super options,data
 

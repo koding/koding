@@ -13,38 +13,32 @@ import (
 func main() {
 	utils.Startup("os kite", true)
 
-	kite.Run("os", func(session *kite.Session, method string, args interface{}) (interface{}, error) {
+	kite.Run("os", func(session *kite.Session, method string, args *dnode.Partial) (interface{}, error) {
 		switch method {
 		case "spawn":
-			array, ok := args.([]interface{})
-			if !ok {
+			var command []string
+			if args.Unmarshal(&command) != nil {
 				return nil, &kite.ArgumentError{"array of strings"}
-			}
-			command := make([]string, len(array))
-			for i, entry := range array {
-				command[i], ok = entry.(string)
-				if !ok {
-					return nil, &kite.ArgumentError{"array of strings"}
-				}
 			}
 			return run(command, session)
 
 		case "exec":
-			line, ok := args.(string)
-			if !ok {
+			var line string
+			if args.Unmarshal(&line) != nil {
 				return nil, &kite.ArgumentError{"string"}
 			}
 			return run([]string{"/bin/bash", "-c", line}, session)
 
 		case "watch":
-			argMap, ok1 := args.(map[string]interface{})
-			relPath, ok2 := argMap["path"].(string)
-			onChange, ok3 := argMap["onChange"].(dnode.Callback)
-			if !ok1 || !ok2 || !ok3 {
+			var params struct {
+				Path     string         `json:"path"`
+				OnChange dnode.Callback `json:"onChange"`
+			}
+			if args.Unmarshal(&params) != nil || params.OnChange == nil {
 				return nil, &kite.ArgumentError{"{ path: [string], onChange: [function] }"}
 			}
 
-			absPath := path.Join(session.Home, relPath)
+			absPath := path.Join(session.Home, params.Path)
 			info, err := os.Stat(absPath)
 			if err != nil {
 				return nil, err
@@ -53,7 +47,7 @@ func main() {
 				return nil, fmt.Errorf("You can only watch your own directories.")
 			}
 
-			watch, err := NewWatch(absPath, onChange)
+			watch, err := NewWatch(absPath, params.OnChange)
 			if err != nil {
 				return nil, err
 			}

@@ -27,7 +27,7 @@ ebin
 /kites/webterm
 /kites/os
 .project
-
+/kites/terminal/.tmp
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -74,6 +74,7 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
+/node_modules/process
 node_modules/cron/
 
 # Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
