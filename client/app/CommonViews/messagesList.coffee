@@ -101,6 +101,10 @@ class NotificationListItem extends KDListItemView
 
     {group} = @snapshot
 
+    # Cleanup my activities on my content
+    myid = KD.whoami()._id
+    group = (member for member in group when member.id isnt myid)
+
     @participants = new options.linkGroupClass {group}
     @avatar       = new options.avatarClass
       size     :
