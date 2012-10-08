@@ -1,7 +1,3 @@
-#####
-# Radio Group Class
-#####
-
 class KDInputRadioGroup extends KDInputView
   constructor:(options)->
     @setType "radio"
