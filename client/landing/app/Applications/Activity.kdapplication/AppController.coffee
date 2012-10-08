@@ -165,15 +165,34 @@ class Activity12345 extends AppController
           flags = KD.whoami().globalFlags
           exempt = flags?.indexOf 'exempt'
           exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
-          $.ajax KD.apiUri+'/1.0'
-            data      :
-              t       : if exempt then 1 else undefined
-              data    : JSON.stringify(_.extend options, selector)
-              env     : KD.config.env
-            dataType  : 'jsonp'
-            success   : (data) -> callback null, data
+          # $.ajax KD.apiUri+'/1.0'
+          #   data      :
+          #     t       : if exempt then 1 else undefined
+          #     data    : JSON.stringify(_.extend options, selector)
+          #     env     : KD.config.env
+          #   dataType  : 'jsonp'
+          #   success   : (data) -> callback null, data
+          unless exempt
+            selector['isLowQuality'] = {'$ne':yes}
+          KD.remote.api.CActivity.some selector, options, (err, data) ->
+            if err 
+              callback err 
+            else 
+              for datum in data 
+                datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
+              callback null, data
 
     else if type is 'private'
+      # KD.whoami().fetchFeeds (err, feeds) => 
+      #   for feed in feeds 
+      #     continue unless feed.title is 'followed' 
+      #     feed.fetchActivities selector, options, (err, data) => 
+      #       if err 
+      #         callback err 
+      #       else 
+      #         for datum in data 
+      #           datum.snapshot = datum.snapshot.replace /&quot;/g, '"' 
+      #       callback null, data 
       KD.whoami().getFeedByTitle "followed", (err, feed) ->
         feed.fetchActivities selector, options, (err, data) ->
           if err
@@ -383,8 +402,22 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  isInFollowing:(activity)->
-    activity.originId in @_following or activity.anchor?.id in @_following
+  isInFollowing:(activity, callback)->
+    # if activity.originId in @_following or activity.anchor?.id in @_following
+    #   return true
+    # else
+
+    account = KD.whoami()
+    {originId, anchor} = activity
+    account.isFollowing originId, 'JAccount', (result) ->
+      if result
+        callback true
+      else
+        activity.fetchTeaser? (err, {tags}) =>
+          callback false unless tags?
+          tagIds = tags.map((tag) -> tag._id)
+          account.isFollowing {$in: tagIds}, 'JTag', (result) ->
+            callback result
 
   ownActivityArrived:(activity)->
     view = @getListView().addHiddenItem activity, 0
@@ -394,9 +427,17 @@ class ActivityListController extends KDListViewController
 
   newActivityArrived:(activity)->
     unless @isMine activity
-      if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+      if @_state is 'public'
         view = @addHiddenItem activity, 0
         @activityHeader.newActivityArrived()
+      else if @_state is 'private'
+        @isInFollowing activity, (result) =>
+          if result
+            view = @addHiddenItem activity, 0
+            @activityHeader.newActivityArrived()
+      # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
+      #   view = @addHiddenItem activity, 0
+      #   @activityHeader.newActivityArrived()
     else
       switch activity.constructor
         when KD.remote.api.CFolloweeBucket
