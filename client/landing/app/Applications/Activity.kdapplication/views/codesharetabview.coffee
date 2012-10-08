@@ -116,6 +116,8 @@ class CodeShareTabHandleView extends KDView
 
 
 
+
+
   applyNewSyntax:(value)=>
     @parent.emit "codeShare.changeSyntax", value
 
@@ -123,6 +125,10 @@ class CodeShareTabHandleView extends KDView
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    @parent.setClass "syntax-" + @syntaxSelect.options.defaultValue
+
+    @$(".kdselectbox").attr title:__aceSettings.syntaxAssociations[@syntaxSelect.getValue()][0]
 
     @$("div").hover (event)->
       if not $(event.target).is(".kdtabhandle.plus") and not $(event.target).parent().is(".kdtabhandle.plus")
