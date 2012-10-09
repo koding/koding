@@ -115,10 +115,10 @@ class TopicView extends KDView
 
         <div class="profilestats">
           <div class="posts">
-            {{@utils.formatPlural #(counts.post), 'Post'}}
+            <a href='#'><cite/>{{@utils.formatPlural #(counts.post), 'Post'}}</a>
           </div>
           <div class="fers">
-            <a href='#'>{{@utils.formatPlural #(counts.followers), 'Follower'}}</a>
+            <a href='#'><cite/>{{@utils.formatPlural #(counts.followers), 'Follower'}}</a>
           </div>
         </div>
       </div>
