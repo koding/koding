@@ -30,14 +30,14 @@ class AccountMountListController extends KDListViewController
 
     @loadItems()
 
-    @getView().parent.addSubView addButton = new KDButtonView
-      style     : "clean-gray account-header-button"
-      title     : ""
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "plus"
-      callback  : ()=>
-        @getListView().showAddEditModal null
+    # @getView().parent.addSubView addButton = new KDButtonView
+    #   style     : "clean-gray account-header-button"
+    #   title     : ""
+    #   icon      : yes
+    #   iconOnly  : yes
+    #   iconClass : "plus"
+    #   callback  : ()=>
+    #     @getListView().showAddEditModal null
 
   loadItems:(callback)->
     items = [
