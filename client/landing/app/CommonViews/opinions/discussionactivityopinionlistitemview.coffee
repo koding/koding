@@ -30,11 +30,6 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       #removing item from the view
       @destroy()
 
-    @actionLinks = new OpinionActivityActionsView
-      delegate : @
-      cssClass : "reply-header"
-    , data
-
     originId    = data.getAt('originId')
     originType  = data.getAt('originType')
     deleterId   = data.getAt('deletedBy')?.getId?()
@@ -49,7 +44,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
 
     @avatar = new AvatarStaticView
       tagName : "span"
-      size    : {width: 30, height: 30}
+      size    : {width: 20, height: 20}
       origin  : origin
 
   viewAppended:->
@@ -65,23 +60,13 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
     else
       appManager.tell "Activity", "createContentDisplay", @parent.getData()
 
-  shortenedText: (text)->
-    if text.length>200
-      return text.substr(0,200)+" ..."
-    else
-      return text
-
   pistachio:->
     """
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
-        <div class="comment-contents">
-          <p class="comment-body has-markdown force-small-markdown">{{@shortenedText @utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
-        </div>
         <footer class="activity-opinion-item-footer">
-          <span class='type-icon'></span> answer by {{> @author}}
+           {{> @author}} posted an answer
          <time>{{$.timeago #(meta.createdAt)}}</time>
-         {{>@actionLinks}}
         </footer>
     </div>
     """

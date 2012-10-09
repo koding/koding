@@ -985,11 +985,16 @@ button.activity-status-context
 
 div.activity-opinion.item-content-comment
   cursor pointer
+
+  > span.avatar
+    height 20px !important
+    width 20px !important
+
   p.comment-body
     margin-top 5px
 
   footer.activity-opinion-item-footer
-    margin-top 5px
+    margin-top 2px
     a
       noTextDeco()
 
@@ -1073,11 +1078,11 @@ div.show-more-discussion
   a.discussion-view-more
     noTextDeco()
 
-form.link-widget.update-options
-  div.formline
-    div.link-wrapper
+// form.link-widget.update-options, form.status-widget
+
+//   div.formline
+div.link-embed-box
       borderBox()
-      // border 1px solid black
       rounded 4px
       div.link-embed
         borderBox()
@@ -1089,16 +1094,21 @@ form.link-widget.update-options
           border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
           padding 10px
 
-div.activity-item.link, div.activity-item.status
-  div.activity-item-right-col
-    div.link-embed
-      borderBox()
-      width auto
-      div.embed
-        borderBox()
-        margin-top 15px
-        rounded 4px
-        border 1px solid black
-        border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
-        padding 10px
+form.status-widget
+  div.formline
+    div.link-embed-box
+      margin-left 153px
+
+// div.activity-item.link, div.activity-item.status
+//   div.activity-item-right-col
+//     div.link-embed
+//       borderBox()
+//       width auto
+//       div.embed
+//         borderBox()
+//         margin-top 15px
+//         rounded 4px
+//         border 1px solid black
+//         border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+//         padding 10px
 
