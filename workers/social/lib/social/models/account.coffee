@@ -196,7 +196,7 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
       if err
         callback err
       else
@@ -325,11 +325,6 @@ module.exports = class JAccount extends jraphical.Module
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
-
-  addTags: secure (client, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)->
-      if err then callback err
-      else callback null
 
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
