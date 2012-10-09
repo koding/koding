@@ -316,6 +316,7 @@ Includes =
         codesharebox                : "./client/app/Applications/Activity.kdapplication/views/codesharebox.coffee"
         codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
+        embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
