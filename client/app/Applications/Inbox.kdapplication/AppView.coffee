@@ -6,17 +6,14 @@ class InboxView extends KDView
     # Common left pane
     @commonInnerNavigation = new InboxInnerNavigation
 
-    @commonInnerNavigation.registerListener
-      KDEventTypes : "CommonInnerNavigationListItemReceivedClick"
-      listener     : @
-      callback     : (pubInst, data)=>
-        return if data.disabledForBeta
-        {type,action} = data
-        @showTab type
-        if action is "change-tab"
-          @showTab data.type
-        else
-          @sort data.type
+    @commonInnerNavigation.on "NavItemReceivedClick", (data)=>
+      return if data.disabledForBeta
+      {type,action} = data
+      @showTab type
+      if action is "change-tab"
+        @showTab data.type
+      else
+        @sort data.type
 
     @inboxTabs = new KDTabView
       cssClass  : "inbox-tabview"
@@ -109,7 +106,7 @@ class InboxView extends KDView
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
-        itemClass  : NotificationListItem
+        itemClass     : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
