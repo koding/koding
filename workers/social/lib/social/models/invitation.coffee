@@ -16,7 +16,6 @@ module.exports = class JInvitation extends jraphical.Module
   JAccount = require './account'
   JLimit = require './limit'
   JUser = require './user'
-  JLimit = require './limit'
 
 
   @share()

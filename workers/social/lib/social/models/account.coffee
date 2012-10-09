@@ -11,7 +11,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
-  @trait __dirname, '../traits/hasFeed'
 
   JAppStorage = require './appstorage'
   JTag = require './tag'
@@ -54,8 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount', 'getFeedByTitle',
-        'fetchFeeds', 'createFeed', 'addGlobalListener', 'isFollowing'
+        'fetchAllKites','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]
@@ -260,7 +258,7 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
