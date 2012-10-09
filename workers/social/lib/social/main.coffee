@@ -13,21 +13,27 @@ if require("os").platform() is 'linux'
     if err?
       console.log "[WARN] Can't write pid to /var/run/node/kfmjs.pid. monit can't watch this process."
 
+# dbUrl = switch argv.d or 'mongohq-dev'
+#   when "local"
+#     "mongodb://localhost:27017/koding?auto_reconnect"
+#   when "sinan"
+#     "mongodb://localhost:27017/kodingen?auto_reconnect"
+#   when "vpn"
+#     "mongodb://kodingen_user:Cvy3_exwb6JI@10.70.15.2:27017/kodingen?auto_reconnect"
+#   when "beta"
+#     "mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect"
+#   when "beta-local"
+#     "mongodb://beta_koding_user:lkalkslakslaksla1230000@web0.beta.system.aws.koding.com:27017/beta_koding?auto_reconnect"
+#   when "wan"
+#     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
+#   when "mongohq-dev"
+#     "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
+
 Bongo = require 'bongo'
 Broker = require 'broker'
 
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email} = KONFIG
-
-EXCHANGE_PREFIX = "followable-"
-
-{distributeActivityToFollowers} = require "./feeder"
-distributeActivityToFollowers
-  mq: mq
-  mongo: mongo
-  exchangePrefix: EXCHANGE_PREFIX
-
-{Relationship} = require 'jraphical'
 
 koding = new Bongo
   root        : __dirname
@@ -42,121 +48,36 @@ koding = new Bongo
       else
         callback {sessionToken, connection:delegate:account}
 
-handleClient = do ->
-  clients = {}
-  {mq} = koding
-  {CActivity, JTag, JAccount, JFeed} = koding.models
-
-  getOwnExchangeName = (account) ->
-    "#{EXCHANGE_PREFIX}#{account._id}"
-
-  getExchange = (exchangeName) ->
-    mq.connection.exchanges[exchangeName]
-
-  getWorkerQueueName = () -> "koding-feeder"
-
-  bindToWorkerQueue = (exchangeName, callback) ->
-    workerQueueOptions =
-      exchangeAutoDelete: false
-      queueExclusive: false
-    # This effectively declares own exchange.
-    mq.bindQueue(
-      getWorkerQueueName(), 
-      exchangeName, 
-      "#.activity", 
-      workerQueueOptions,
-      callback
-    )
-
-  prepareBroker = (account) ->
-    ownExchangeName = getOwnExchangeName account
-    bindToWorkerQueue ownExchangeName
-
-  handleFolloweeActivity = (account) ->
-    ownExchangeName = getOwnExchangeName account
-    ownExchange = getExchange ownExchangeName
-    # When client logs in, listen to message from own exchange and
-    # publish followees' activies to own exchange on a different
-    # routing so that worker queue can consume from it.
-    mq.on(
-      ownExchangeName,
-      "#.activity", 
-      ownExchangeName, 
-      (message, headers, deliveryInfo) ->
-        publisher = deliveryInfo.exchange
-        unless publisher is getOwnExchangeName account
-          activityId = Bongo.ObjectId message
-          CActivity.one {_id: activityId}, (err, activity) ->
-            #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-            account.emit "FollowedActivityArrived", activity
-    )
-
-  handleOwnActivity = (account) ->
-    ownExchangeName = getOwnExchangeName account
-    ownExchange = getExchange ownExchangeName
-    activityTypes = ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']
-    # Listen to when an activity is posted and publish own activity to MQ
-    CActivity.on "ActivityIsCreated", (activity) ->
-      return unless activity.type in activityTypes
-      unless account.getId().toString() is activity.originId.toString()
-        console.log "other feed"
-      else
-        options = deliveryMode: 2
-        payload = activity._id.toString()
-        # Publish to all user's folowers' feeds
-        ownExchange.publish "#{ownExchangeName}.activity", payload, options
-
-        # Publish to all mentioned topics' followers' feeds
-        activity.fetchTeaser (err, {tags}) ->
-          return unless tags?
-          for tag in tags
-            do ->
-              exchangeName = getOwnExchangeName tag
-              bindToWorkerQueue exchangeName, ->
-                mq.createExchange exchangeName, {autoDelete: false}, (tagExchange) ->
-                  tagExchange.publish "#{exchangeName}.activity", payload, options
-  
-  handleFollowAction = (account) ->
-    ownExchangeName = getOwnExchangeName account
-    # Receive when the account follows somebody
-    mq.on "event-"+account.getId(), "FollowCountChanged", (data) ->
-      # data are a list of arguments
-      {action, followee, follower} = data[0]
-      return unless followee?
-      return unless action is "follow" or action is "unfollow"
-      # contructor.name
-      # Set up the exchange-to-exchange binding for followings.
-      # followee can be JAccount, JTag, or JStatusUpdate.
-      followeeNick = "#{EXCHANGE_PREFIX}#{followee._id}"
-      routingKey = "#{followeeNick}.activity"
-      method = "#{action.replace 'follow', 'bind'}Exchange"
-      mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
-
-  (account) ->
-    nickname = account.profile.nickname
-    return if clients[nickname]
-
-    feed = {title:"followed", description: ""}
-    JFeed.assureFeed account, feed, (err, theFeed) ->
-
-    clients[nickname] = account
-    prepareBroker account
-    handleFolloweeActivity account
-    handleOwnActivity account
-    handleFollowAction account
-
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
-
-    unless delegate instanceof koding.models.JGuest
-      handleClient delegate
-    else
-      koding.models.JAccount.once "AccountLoggedIn", (account) ->
-        handleClient account
-
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
+# setInterval ->
+#   {Relationship} = require 'jraphical'
+#   {ObjectId} = require 'bongo'
+#   {extend} = require 'underscore'
+#   test = {
+#     targetId: ObjectId('4eea4fd93e25516404000004'),
+#     targetName: 'JAccount',
+#     sourceId: ObjectId('5007591678b8468137000002'),
+#     sourceName: 'JAccount',
+#     as: 'follower'
+#   }
+#   rel = new Relationship(test) #.save console.log
+  
+#   softPrune = rel.prune()
+#   hardPrune = rel.prune(yes)
 
+#   require('traverse')([softPrune, hardPrune]).forEach (node)->
+#     console.log node.constructor if /Id$/.test @path
+#     console.log ''+node if /Id$/.test @path
+#     return
+#   console.log 'HARD', hardPrune
+
+#   # Relationship.getCollection().insert(softPrune, (safe:yes), console.log.bind(console, 'prune()'))
+#   # Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
+#   # # koding.models.JGuest._resetAllGuests()
+# , 2e3
 console.log 'Koding Social Worker has started.'

@@ -185,7 +185,7 @@ Broker.prototype.connect = function (callback) {
   });
 
   this.ws.addEventListener('close', function () {
-    self.emit('disconnected');
+    self.emit('disconnected', Object.keys(self.channels));
     self.channels = {};
     if (self.autoReconnect) {
       self.setBackoffTimeout(self.connect.bind(self));

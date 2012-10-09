@@ -5,7 +5,6 @@ module.exports = class CBucket extends jraphical.Module
   {Base, Model, ObjectRef, ObjectId, dash, daisy} = require 'bongo'
 
   @trait __dirname, '../../traits/notifying'
-  @trait __dirname, '../../traits/flaggable'
   
   @set
     broadcastable   : yes

@@ -1,76 +1,28 @@
-module.exports = 
-  distributeActivityToFollowers: (options = {}) ->
-    mongoskin = require 'mongoskin'
-    Broker = require 'broker'
-    {ObjectId} = require 'bongo'
+module.exports = class Feeder
+	Broker = require 'broker'
+	mongo = require 'mongoskin'
 
-    {mq, mongo, exchangePrefix} = options
-    
-    mq ?= 
-      host: "localhost"
-      login: "guest"
-      password: "guest"
-      vhost: "/"
+	constructor: (options = {}) ->
+		options.host ?= "localhost"
+		options.login ?= "guest"
+		options.password ?= "guest"
+		@mq = new Broker options
+		db = mongo.db "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
+		@feeds = db.collection 'jFeeds'
+		@relationships = db.collection 'relationships'
 
-    broker = new Broker mq
+		@mq.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
+			{exchange, routingKey, consumerTag} = deliveryInfo
+			activity = JSON.parse message
 
-    exchangePrefix = exchangePrefix ? "followable-"
+			@feeds.findOne {owner: owner}, {'_id':1}, (err, feed) =>
+				unless err
+					criteria =
+						targetName: "CActivity"
+						targetId: activity._id
+						sourceName: "JFeed"
+						sourceId: feed._id
 
-    dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
-    db = mongoskin.db dbUrl
-    feedsCol = db.collection 'jFeeds'
-    relationshipsCol = db.collection 'relationships'
-    accountsCol = db.collection 'jAccounts'
-
-    broker.subscribe "koding-feeder", {exclusive: false}, (message, headers, deliveryInfo) =>
-      {exchange, routingKey, _consumerTag} = deliveryInfo
-      activityId = ObjectId message
-      regEx = new RegExp "^#{exchangePrefix}"
-      ownerString = exchange.replace regEx, ""
-      owner = ObjectId ownerString
-
-      selector = sourceId: owner, as: "follower"
-      # Get the followers
-      cursor = relationshipsCol.find selector, {targetId: true}
-      cursor.each (err, rel) ->
-        if err or not rel
-          #console.log "Failed to find follower", err
-        else
-          selector = {owner: rel.targetId, title: "followed"}
-          # Get the follower's feed
-          feedsCol.findOne selector, _id:true, (err, feed) ->
-
-            if err or not feed
-              #console.log err
-            else
-              criteria =
-                targetName  : "CActivity"
-                targetId    : activityId
-                sourceName  : "JFeed"
-                sourceId    : feed._id
-                as          : "container"
-
-              relationshipsCol.update criteria, criteria, {upsert:true}
-
-
-  assureExchangeMesh: (options) ->
-
-  ###
-  function ensureuserFeeds (Array feeds) -> void()
-  feeds = [feed]
-  feed = {title, description}
-  ###
-  assureUserFeeds: (feeds) ->
-    JAccount  = require './models/account'
-    JFeed     = require './models/feed'
-
-    JAccount.someData {}, {}, (err, cursor) ->
-      if err
-        console.log "Error finding users"
-      else
-        cursor.each (err, doc) ->
-          account = new JAccount doc
-          for feedInfo in feeds
-            JFeed.assureFeed account, feedInfo, (err, feed) ->
-
+					@relationships.update criteria, criteria, {upsert:true}
+		
 

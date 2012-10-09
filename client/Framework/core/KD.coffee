@@ -120,11 +120,6 @@ KD = @KD or {}
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
 
-  emptyDataCache:()->
-    for own id,object of @getAllKDInstances
-      if object instanceof KDData
-        object.destroy()
-
   getAllKDInstances:()-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
@@ -160,9 +155,7 @@ KD = @KD or {}
         console.log Date.now()-start
 
 noop  = ->
-# KD.log   = log   = if console?.log   and (KD.debugStates.all or KD.debugStates.log)   then console.log.bind(console)   else noop
-# KD.warn  = warn  = if console?.warn  and (KD.debugStates.all or KD.debugStates.warn)  then console.warn.bind(console)  else noop
-# KD.error = error = if console?.error and (KD.debugStates.all or KD.debugStates.error) then console.error.bind(console) else noop
+
 KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
 KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
 KD.error = error = if console?.error then console.error.bind(console) else noop

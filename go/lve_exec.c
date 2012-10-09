@@ -28,5 +28,6 @@ int main (int argc, char *argv[]) {
 		return 71;
 	}
 	
+	chdir(getenv("PWD")); // overwrite PWD with itself, because LVE seems to make the file pointer invalid
 	return execvp(argv[1], &argv[1]);
 }
