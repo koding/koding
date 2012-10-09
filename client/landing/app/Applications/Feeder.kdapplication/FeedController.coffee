@@ -110,6 +110,7 @@ class FeedController extends KDViewController
   emitLoadStarted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
+    @showNoItemFound listController, filter
     return listController
 
   emitLoadCompleted:(filter)=>
@@ -119,6 +120,14 @@ class FeedController extends KDViewController
 
   emitCountChanged:(count, filter)->
     @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
+
+  showNoItemFound:(controller, filter)->
+    {noItemFoundText} = filter
+    if @noItemFound? then @noItemFound.destroy()
+    controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+    @noItemFound.hide()
 
   loadFeed:(filter = @selection)->
 
@@ -133,6 +142,8 @@ class FeedController extends KDViewController
       filter.dataSource selector, options, (err, items)=>
         listController = @emitLoadCompleted filter
         unless err
+          if items.length is 0 and listController.getItemCount() is 0
+            @noItemFound.show()
           listController.instantiateListItems items
           @emitCountChanged listController.itemsOrdered.length, filter.name
           if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
