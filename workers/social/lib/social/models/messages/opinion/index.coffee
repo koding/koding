@@ -40,29 +40,11 @@ module.exports = class JOpinion extends JPost
 
   @set
     emitFollowingActivities: yes
-    taggedContentRole : 'reply'
+    taggedContentRole : 'opinion'
     tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
     schema        : schema
-    relationships     :
-      comment         :
-        type          : "JComment"
-        as            : 'reply'
-      participant     :
-        targetType    : "JAccount"
-        as            : ['author','commenter']
-      likedBy         :
-        targetType    : "JAccount"
-        as            : 'like'
-      repliesActivity :
-        targetType    : "CRepliesActivity"
-        as            : 'repliesActivity'
-      tag             :
-        targetType    : "JTag"
-        as            : 'tag'
-      follower        :
-        as            : 'follower'
-        targetType    : "JAccount"
+    relationships : JPost.relationships
 
   @getActivityType =-> require './opinionactivity'
 
@@ -82,6 +64,10 @@ module.exports = class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
+
+  reply: secure (client, comment, callback)->
+    JComment = require '../comment'
+    JPost::reply.call @, client, JComment, comment, callback
 
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
@@ -144,6 +130,3 @@ module.exports = class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost::modify.call @, client, opinion, callback
-
-  reply: secure (client, comment, callback)->
-    JPost::reply.call @, client, JComment, comment, callback

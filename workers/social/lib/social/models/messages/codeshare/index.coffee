@@ -12,6 +12,7 @@ module.exports = class JCodeShare extends JPost
 
   {secure} = require 'bongo'
 
+  {log} = console
   @share()
 
   @getActivityType =-> require './codeshareactivity'
@@ -30,37 +31,9 @@ module.exports = class JCodeShare extends JPost
       title       : data.title
       body        : data.body
 
-      modeHTML    : data.modeHTML or "html"
-      modeCSS     : data.modeCSS or "css"
-      modeJS      : data.modeJS or "javascript"
+      CodeShareItems : data.CodeShareItems or {}
+      CodeShareOptions : data.CodeShareOptions or {}
 
-      classesHTML : data.classesHTML or ""
-      extrasHTML  : data.extrasHTML or ""
-
-      prefixCSS   : data.prefixCSS
-      resetsCSS   : data.resetsCSS
-
-      libsJS      : data.libsJS
-      modernizeJS : data.modernizeJS
-
-      externalCSS : data.externalCSS
-      externalJS  : data.externalJS
-
-      attachments : [{
-        type      : 'JCodeShareAttachment'
-        content   : data.codeHTML
-        syntax    : 'html'
-      },
-      {
-        type      : 'JCodeShareAttachment'
-        content   : data.codeCSS
-        syntax    : 'css'
-      },
-      {
-        type      : 'JCodeShareAttachment'
-        content   : data.codeJS
-        syntax    : 'javascript'
-      }]
     JPost.create.call @, client, codeShare, callback
 
   modify: secure (client, data, callback)->
@@ -69,39 +42,11 @@ module.exports = class JCodeShare extends JPost
       title       : data.title
       body        : data.body
 
-      modeHTML    : data.modeHTML or "html"
-      modeCSS     : data.modeCSS or "css"
-      modeJS      : data.modeJS or "javascript"
-
-      classesHTML : data.classesHTML or ""
-      extrasHTML  : data.extrasHTML or ""
-
-      prefixCSS   : data.prefixCSS
-      resetsCSS   : data.resetsCSS
-
-      libsJS      : data.libsJS
-      modernizeJS : data.modernizeJS
-
-      externalCSS : data.externalCSS
-      externalJS  : data.externalJS
-
-      attachments : [{
-        type      : 'JCodeShareAttachment'
-        content   : data.codeHTML
-        syntax    : 'html'
-      },
-      {
-        type      : 'JCodeShareAttachment'
-        content   : data.codeCSS
-        syntax    : 'css'
-      },
-      {
-        type      : 'JCodeShareAttachment'
-        content   : data.codeJS
-        syntax    : 'javascript'
-      }]
+      CodeShareItems : data.CodeShareItems or {}
+      CodeShareOptions : data.CodeShareOptions or {}
 
     JPost::modify.call @, client, codeShare, callback
 
   reply: secure (client, comment, callback)->
+    JComment = require '../comment'
     JPost::reply.call @, client, JComment, comment, callback
