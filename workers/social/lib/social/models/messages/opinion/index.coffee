@@ -18,32 +18,12 @@ module.exports = class JOpinion extends JPost
 
   @share()
 
-  schema = extend {}, Message.schema, {
-    isLowQuality  : Boolean
-    counts        :
-      followers   :
-        type      : Number
-        default   : 0
-      following   :
-        type      : Number
-        default   : 0
-    originType  :
-      type      : String
-      required  : yes
-    originId    :
-      type      : ObjectId
-      required  : yes
-    deletedAt   : Date
-    deletedBy   : ObjectRef
-    meta        : require 'bongo/bundles/meta'
-  }
-
   @set
     emitFollowingActivities: yes
-    taggedContentRole : 'opinion'
+    taggedContentRole : 'content'
     tagRole           : 'tag'
     sharedMethods : JPost.sharedMethods
-    schema        : schema
+    schema        : JPost.schema
     relationships : JPost.relationships
 
   @getActivityType =-> require './opinionactivity'
@@ -64,6 +44,10 @@ module.exports = class JOpinion extends JPost
       body        : data.body
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
+
+
+  # TODO : comments only get added to snapshot when a new opinion is posted
+
 
   reply: secure (client, comment, callback)->
     JComment = require '../comment'
