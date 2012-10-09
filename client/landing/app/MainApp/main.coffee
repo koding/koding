@@ -51,49 +51,49 @@ firstLoad = yes
 connectionLostModalId = null
 connectionLostNotification = null
 
-initConnectionEvents = _.once (conn)->
-  conn.on 'end', ->
-    #
-    # CONNECTIVITY NOTIFICATIONS PART START
-    #
-    setTimeout -> # to avoid modal to appear on page refresh
+KD.remote.on 'connected', -> console.log('kd connected')
 
-      if connectionLostNotification?
-        connectionLostNotification.destroy()
-        connectionLostNotification = null
+KD.remote.on 'disconnected', ->
+  #
+  # CONNECTIVITY NOTIFICATIONS PART START
+  #
+  setTimeout -> # to avoid modal to appear on page refresh
 
-      # THE MODAL APPEARS WHEN CONNECTION IS LOST
-      unless connectionLostModalId?
-        connectionLostModalId = KDModalController.createAndShowNewModal
-          type    : 'blocking'
-          title   : "Server connection lost"
-          content : """
-            <div class='modalformline'>
-              Your internet connection may be down, or our server is.<br/><br/>
-              If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-              <span class='small-loader fade in'></span> Trying to reconnect...
-            </div>
-            """
-          height  : "auto"
-          overlay : yes
-          buttons :
-            "Close and Refresh later" :
-              style     : "modal-clean-red"
-              callback  : ()->
-                @propagateEvent KDEventType:'KDModalShouldClose'
-                connectionLostModalId = null
-                if connectionLostNotification?
-                  connectionLostNotification.destroy()
-                  connectionLostNotification = null
+    if connectionLostNotification?
+      connectionLostNotification.destroy()
+      connectionLostNotification = null
 
-                updateModalActive = no
+    # THE MODAL APPEARS WHEN CONNECTION IS LOST
+    unless connectionLostModalId?
+      connectionLostModalId = KDModalController.createAndShowNewModal
+        type    : 'blocking'
+        title   : "Server connection lost"
+        content : """
+          <div class='modalformline'>
+            Your internet connection may be down, or our server is.<br/><br/>
+            If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
+            <span class='small-loader fade in'></span> Trying to reconnect...
+          </div>
+          """
+        height  : "auto"
+        overlay : yes
+        buttons :
+          "Close and Refresh later" :
+            style     : "modal-clean-red"
+            callback  : ()->
+              @propagateEvent KDEventType:'KDModalShouldClose'
+              connectionLostModalId = null
+              if connectionLostNotification?
+                connectionLostNotification.destroy()
+                connectionLostNotification = null
 
-                # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED BEFORE CONNECTION RE-ESTABLISHES
-                connectionLostNotification = new KDNotificationView
-                  title    : "Server Connection Has Been Lost"
-                  content  : "Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
-                  duration : 999999999
-    ,500
+              updateModalActive = no
+
+              # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED BEFORE CONNECTION RE-ESTABLISHES
+              connectionLostNotification = new KDNotificationView
+                title    : "Server Connection Has Been Lost"
+                content  : "Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
+                duration : 0
 
 KD.remote.connect -> console.log 'koding is now connected to the backend'
 
