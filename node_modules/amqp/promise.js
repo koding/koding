@@ -5,6 +5,7 @@ exports.Promise = function () {
   events.EventEmitter.call(this);
   this._blocking = false;
   this.hasFired = false;
+  this.hasAcked = false;
   this._values = undefined;
 };
 inherits(exports.Promise, events.EventEmitter);
@@ -47,6 +48,14 @@ exports.Promise.prototype.emitSuccess = function() {
 
   this._values = Array.prototype.slice.call(arguments);
   this.emit.apply(this, ['success'].concat(this._values));
+};
+
+exports.Promise.prototype.emitAck = function() {
+  if (this.hasAcked) return;
+  this.hasAcked = 'true';
+
+  this._values = Array.prototype.slice.call(arguments);
+  this.emit.apply(this, ['ack'].concat(this._values));
 };
 
 exports.Promise.prototype.emitError = function() {

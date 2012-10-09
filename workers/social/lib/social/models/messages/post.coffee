@@ -41,7 +41,7 @@ module.exports = class JPost extends jraphical.Message
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
-        'on','reply','restComments','commentsByRange'
+        'on','addGlobalListener', 'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
@@ -142,6 +142,7 @@ module.exports = class JPost extends jraphical.Message
               snapshotIds: status.getId()
           , ->
             callback null, teaser
+            CActivity.emit "ActivityIsCreated", activity
             queue.next()
         ->
           status.addParticipant delegate, 'author'
