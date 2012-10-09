@@ -155,13 +155,14 @@ class AvatarPopup extends KDView
 
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
-  show:->
-    super()
 
-    if (visitor = KD.getSingleton('mainController').getVisitor())
-      {profile} = visitor.currentDelegate
-      if @statusField.getOptions().placeholder is ""
-        @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
+  # show:->
+  #   super()
+
+  #   if (visitor = KD.getSingleton('mainController').getVisitor())
+  #     {profile} = visitor.currentDelegate
+  #     if @statusField.getOptions().placeholder is ""
+  #       @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
 
   viewAppended:->
     super()
@@ -176,7 +177,7 @@ class AvatarPopupShareStatus extends AvatarPopup
 
   updateStatus:(status)->
 
-    bongo.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err
         appManager.tell 'Activity', 'ownActivityArrived', reply
         new KDNotificationView
@@ -200,7 +201,7 @@ class AvatarPopupNotifications extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass : PopupNotificationListItem
+      itemClass : PopupNotificationListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController
@@ -247,7 +248,7 @@ class AvatarPopupMessages extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass  : PopupMessageListItem
+      itemClass  : PopupMessageListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController

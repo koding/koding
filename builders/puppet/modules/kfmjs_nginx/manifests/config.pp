@@ -27,7 +27,15 @@ class kfmjs_nginx::config {
         require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["kfmjs_nginx::service"],
     }
-    
+     file { "/etc/nginx/conf.d/mq.koding.com.conf":
+        ensure  => file,
+        source  => "puppet:///modules/kfmjs_nginx/etc/conf.d/mq.koding.com.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["kfmjs_nginx::service"],
+    }
+   
     file { "/etc/nginx/conf.d/dev-api.koding.com.conf":
         ensure  => file,
         source  => "puppet:///modules/kfmjs_nginx/etc/conf.d/dev-api.koding.com.conf",
@@ -36,6 +44,16 @@ class kfmjs_nginx::config {
         require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
         notify  => Class["kfmjs_nginx::service"],
     }
+
+    file { "/etc/nginx/conf.d/dev.koding.com.conf":
+        ensure  => file,
+        source  => "puppet:///modules/kfmjs_nginx/etc/conf.d/dev.koding.com.conf",
+        owner   => 'root',
+        group   => 'root',
+        require => [Class["kfmjs_nginx::install"],File['/etc/nginx/nginx.conf']],
+        notify  => Class["kfmjs_nginx::service"],
+    }
+
     file { "/etc/nginx/conf.d/default.conf":
         ensure  => file,
         source  => "puppet:///modules/kfmjs_nginx/etc/conf.d/default.conf",

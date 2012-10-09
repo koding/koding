@@ -8,11 +8,8 @@ class ActivityListHeader extends JView
     @_newItemsCount = 0
 
     @showNewItemsLink = new KDCustomHTMLView
-      tagName     : "div"
-      partial     : "<span>0</span> new items. <a href='#'>Update</a>"
-      attributes  :
-        href      : "#"
-        title     : "Show new activities"
+      cssClass    : "new-updates"
+      partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
       click       : =>
         @updateShowNewItemsLink yes
 
@@ -25,6 +22,8 @@ class ActivityListHeader extends JView
       callback     : (state) =>
         @appStorage.setValue 'liveUpdates', state, =>
         @updateShowNewItemsLink()
+        @getSingleton('activityController').flags = liveUpdates : state
+        @getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
@@ -37,8 +36,10 @@ class ActivityListHeader extends JView
       @lowQualitySwitch = new KDCustomHTMLView
 
     @appStorage.fetchStorage (storage)=>
-      @liveUpdateButton.setValue @appStorage.getValue 'liveUpdates', off
-      @lowQualitySwitch.setValue? @appStorage.getValue 'showLowQualityContent', off
+      state = @appStorage.getValue('liveUpdates') or off
+      @liveUpdateButton.setValue state
+      @getSingleton('activityController').flags = liveUpdates : state
+      @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->
     "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}}{{> @showNewItemsLink}}"

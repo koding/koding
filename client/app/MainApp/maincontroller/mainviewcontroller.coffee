@@ -8,6 +8,10 @@ class MainViewController extends KDViewController
     mainView.on "SidebarCreated", (sidebar)=>
       @sidebarController = new SidebarController view : sidebar
 
+    # mainView.on "BottomPanelCreated", (bottomPanel)=>
+    #   @bottomPanelController = new BottomPanelController view : bottomPanel
+
+
     KDView.appendToDOMBody mainView
 
   loadView:(mainView)->

@@ -45,5 +45,24 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    RestartStrategy = one_for_all,
+    MaxR = 5, 
+    MaxT = 10,
+    {ok, { {RestartStrategy, MaxR, MaxT}, 
+        [broker_spec(), subscription_sup_spec()]} }.
 
+broker_spec() ->
+    StartFunc = {broker, start_link, []},
+    Restart = transient,
+    Shutdown = 5000,
+    Type = worker,
+    Modules = [broker],
+    {broker, StartFunc, Restart, Shutdown, Type, Modules}.
+
+subscription_sup_spec() ->
+    StartFunc = {subscription_sup, start_link, []},
+    Restart = transient,
+    Shutdown = infinity,
+    Type = supervisor,
+    Modules = [subscription_sup],
+    {subscription_sup, StartFunc, Restart, Shutdown, Type, Modules}.

@@ -13,10 +13,6 @@ class TopicsComingSoon extends KDView
     """
 
 class TopicsMainView extends KDView
-  listControllerClassMap = ->
-    all         : TopicsListViewController
-    followed    : TopicsListViewControllerFollowed
-    recommended : TopicsListViewControllerRecommended
 
   constructor:(options,data)->
     options = $.extend

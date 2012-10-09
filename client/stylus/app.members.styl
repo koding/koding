@@ -27,7 +27,9 @@ app.members.styl
   .activityhead
     margin-left   0
     border-left   none
-    span
+    span.member-numbers-all
+    span.member-numbers-followers
+    span.member-numbers-following
       padding-left 5px
       font-size   13px
       color #A5A5A5
@@ -239,11 +241,20 @@ app.members.styl
           color             #4c4c4c
           font-size         14px
           font-weight       700
+    .liks
+      a
+        bg              position, -100px -500px
+        span.data
+          color             #4c4c4c
+          font-size         14px
+          font-weight       700
+
     .contact
       a
         bg              position, 0 -749px
         span
           color         #FF9200
+
   .skilltags
     margin              20px 0
     label
@@ -266,6 +277,13 @@ app.members.styl
 
   .members-contentpage-list
     margin-top 0
+
+.troll-switch
+  display               inline-block
+  position              absolute
+  text-decoration       none
+  top                   10px
+  right                 10px
 
 .search-tags span
   color         white
@@ -329,6 +347,7 @@ app.members.styl
     absPos          0,0,none,none
     noTextDeco()
 
+.content-display.likes
 .content-display.followers
 .content-display.following
 .content-display.followings

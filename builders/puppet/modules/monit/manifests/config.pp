@@ -16,7 +16,8 @@ class monit::config {
         group => "root",
         mode => 0700,
         #require => [Class["monit::install"],Class["gluster_client"],Class["nodejs_rpm::install"]], 
-        require => [Class["monit::install"],Class["nodejs_rpm::install"]], 
+        #require => [Class["monit::install"],Class["nodejs_rpm::install"]], 
+        require => [Class["monit::install"]], 
         notify  => Class["monit::service"],
         source => "puppet:///modules/monit/etc/monit.conf",
         before  => Exec["restart_monit"]

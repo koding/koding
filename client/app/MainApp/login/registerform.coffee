@@ -14,6 +14,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         # defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
+        defaultValue  : "Xerces"
         validate      :
           event       : "blur"
           rules       :
@@ -25,6 +26,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
+        defaultValue  : 'KK'
         # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
@@ -38,7 +40,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
-        # defaultValue  : "sinanyasar+xx@gmail.com"
+        defaultValue  : "chris"+Math.round(Math.random()*100)+"@jraphical.com"
         validate      :
           event       : "blur"
           rules       :
@@ -50,7 +52,7 @@ class RegisterInlineForm extends LoginViewInlineForm
               email = input.getValue()
               if input.valid
                 @email.loader.show()
-                bongo.api.JUser.emailAvailable email, (err, response)=>
+                KD.remote.api.JUser.emailAvailable email, (err, response)=>
                   @email.loader.hide()
                   if err then warn err
                   else
@@ -71,7 +73,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       size        :
         width     : 20
         height    : 20
-    , profile     : 
+    , profile     :
         hash      : md5.digest "there is no such email"
         firstName : "New koding user"
     @avatar.hide()
@@ -81,7 +83,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
-        # defaultValue     : "xx"
+        defaultValue     : "chris"+Math.round(Math.random()*100)
         validate         :
           rules          :
             required     : yes
@@ -104,9 +106,9 @@ class RegisterInlineForm extends LoginViewInlineForm
             placement    : "right"
             offset       : 2
             title        : """
-                            Only lowercase letters and numbers are allowed, 
-                            max 25 characters. Also keep in mind that the username you select will 
-                            be a part of your kodingen domain, and can't be changed later. 
+                            Only lowercase letters and numbers are allowed,
+                            max 25 characters. Also keep in mind that the username you select will
+                            be a part of your kodingen domain, and can't be changed later.
                             i.e. http://username.kodingen.com <h1></h1>
                            """
 
@@ -115,7 +117,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
-        # defaultValue  : "123123123"
+        defaultValue  : "123123123"
         validate      :
           event       : "blur"
           rules       :
@@ -131,7 +133,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
       inputOptions    :
-        # defaultValue  : "123123123"
+        defaultValue  : "123123123"
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
@@ -147,7 +149,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           if @kodingenUser
             input.setValue @password.input.getValue()
             @invitationCode.input.$().focus()
-          
+
 
     @button = new KDButtonView
       title         : "REGISTER"
@@ -156,7 +158,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       loader        :
         color       : "#ffffff"
         diameter    : 21
-    
+
     @disabledNotice = new KDCustomHTMLView
       tagName       : "section"
       cssClass      : "disabled-notice"
@@ -167,7 +169,7 @@ class RegisterInlineForm extends LoginViewInlineForm
                       if you want to be notified when registrations are enabled again.
                       </p>
                       """
-    
+
     @invitationCode = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
@@ -175,26 +177,26 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase     : "lowercase"
         placeholder   : "your code..."
         # defaultValue  : "111"
-        # defaultValue  : "futureinsights"
+        defaultValue  : "twitterfriends"
         validate      :
           event       : "blur"
           rules       :
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
-    
+
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
         @password.input.setValue ''
         @password.input.validate()
-      
+
       @button.hideLoader()
       @invitationCode.notify msg
 
 
   usernameCheckTimer = null
-  
+
   reset:->
 
     inputs = KDFormView.findChildInputs @
@@ -212,7 +214,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     if input.valid
       usernameCheckTimer = setTimeout =>
         @username.loader.show()
-        bongo.api.JUser.usernameAvailable name, (err, response)=>
+        KD.remote.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
           {kodingUser, kodingenUser, forbidden} = response
           if err
@@ -244,13 +246,13 @@ class RegisterInlineForm extends LoginViewInlineForm
     return
 
   showOldUserFeedback:->
-    
+
     @addCustomData "kodingenUser", "on"
     @kodingenUser = yes
     @parent.setClass "taller"
     @username.setClass "kodingen"
     @password.input.$().attr "placeholder", "Type your kodingen password"
-    
+
     {validate} = @password.input.getOptions()
     delete validate.rules.minLength
     @password.input.setValidation validate
@@ -260,7 +262,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @$('p.kodingen-user-notification').height 54
 
   hideOldUserFeedback:->
-    
+
     @removeCustomData "kodingenUser"
     @kodingenUser = no
     @parent.unsetClass "taller"
@@ -277,8 +279,8 @@ class RegisterInlineForm extends LoginViewInlineForm
   userAvatarFeedback:(input)->
 
     if input.valid
-      @avatar.setData 
-        profile     : 
+      @avatar.setData
+        profile     :
           hash      : md5.digest input.getValue()
           firstName : "New koding user"
       @avatar.render()
@@ -302,7 +304,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         {origin} = invite
         @invitationCode.input.setValue invite.code
         @email.input.setValue invite.inviteeEmail
-        if origin instanceof bongo.api.JAccount
+        if origin instanceof KD.remote.api.JAccount
           @addSubView new AvatarStaticView({size: width : 30, height : 30}, origin), '.invited-by .wrapper'
           @addSubView new ProfileTextView({}, origin), '.invited-by .wrapper'
         else
@@ -318,7 +320,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     <div>
       {{> @passwordConfirm}}
       <p class='kodingen-user-notification'>
-        <b>This</b> is a reserved Kodingen username, if you own this 
+        <b>This</b> is a reserved Kodingen username, if you own this
         account please type your Kodingen password above to unlock your old
         username for the new Koding.
       </p>

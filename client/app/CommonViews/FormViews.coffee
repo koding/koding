@@ -63,8 +63,10 @@ class PersonalFormNameView extends AbstractPersonalFormView
       validate      :
         rules       :
           required  : yes
+          maxLength : 25
         messages    :
           required  : "First name is required!"
+          maxLength : "Sorry, maximum 25 chars can be entered for the firstname!"
 
     @lastName = new KDInputView
       cssClass      : 'lastname editable'
@@ -72,6 +74,11 @@ class PersonalFormNameView extends AbstractPersonalFormView
       name          : 'lastName'
       attributes    :
         size        : Encoder.htmlDecode(profile.lastName).length
+      validate      :
+        rules       :
+          maxLength : 25
+        messages    :
+          maxLength : "Sorry, maximum 25 chars can be entered for the lastname!"
 
     @nameView = new ProfileTextView
       tagName       : "p"
@@ -155,6 +162,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       validate      :
         rules       :
           required  : yes
+          maxLength : 500
 
     @aboutInfo = new PersonalAboutView
       tooltip            :
@@ -201,9 +209,16 @@ class PersonalAboutView extends JView
     {profile} = @getData()
     profile.about or= options.defaultPlaceHolder
 
+  click:(event)->
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+
   pistachio:->
     """
-      <p>{{ @utils.applyTextExpansions #(profile.about) }}</p>
+      <p>{{ @utils.applyTextExpansions #(profile.about), yes }}</p>
     """
 
 class PersonalFormLocationView extends AbstractPersonalFormView
@@ -222,6 +237,9 @@ class PersonalFormLocationView extends AbstractPersonalFormView
       type          : 'text'
       defaultValue  : @memberData.locationTags[0] or 'Earth'
       name          : 'locationTags'
+      validate      :
+        rules       :
+          maxLength : 30
 
     if @memberData.locationTags.length < 1
       @memberData.locationTags[0] = "Earth"
@@ -365,7 +383,7 @@ class SkillTagAutoCompleteController extends KDAutoCompleteController
     super
 
   putDefaultValues:(stringTags)->
-    bongo.api.JTag.some
+    KD.remote.api.JTag.some
       title     :
         $in     : stringTags
     ,

@@ -1,5 +1,5 @@
 class CodesnipActivityItemView extends ActivityItemChild
-  
+
   constructor:(options, data)->
     options = $.extend
       cssClass    : "activity-item codesnip"
@@ -9,7 +9,7 @@ class CodesnipActivityItemView extends ActivityItemChild
         selector  : "span.type-icon"
     ,options
     super options,data
-    
+
     codeSnippetData = @getData().attachments[0]
     codeSnippetData.title = @getData().title
 
@@ -19,26 +19,28 @@ class CodesnipActivityItemView extends ActivityItemChild
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
     #   itemsToShow   : 3
-    #   subItemClass  : TagFollowBucketItemView
+    #   itemClass  : TagFollowBucketItemView
     # }
-  
+
   render:->
     super()
-    
+
     codeSnippetData = @getData().attachments[0]
     codeSnippetData.title = @getData().title
-    
+
     @codeSnippetView.setData codeSnippetData
     @codeSnippetView.render()
-    
-  
+
+
   click:(event)->
+
     super
+
     if $(event.target).is(".activity-item-right-col h3")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
-    return if @getData().constructor is bongo.api.CCodeSnipActivity
+    return if @getData().constructor is KD.remote.api.CCodeSnipActivity
     super()
     @setTemplate @pistachio()
     @template.update()
@@ -51,7 +53,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {h3{#(title)}}
-      <p class='context'>{{@utils.applyTextExpansions #(body)}}</p>
+      <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
       {{> @codeSnippetView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
@@ -64,8 +66,6 @@ class CodesnipActivityItemView extends ActivityItemChild
       {{> @commentBox}}
     </div>
     """
-
-
 
 class CodeSnippetView extends KDCustomHTMLView
 
@@ -83,10 +83,10 @@ class CodeSnippetView extends KDCustomHTMLView
     #   syntax or= 'javascript'
     #   @codeView.setTheme 'merbivore'
     #   @codeView.setSyntax syntax
-    # 
+    #
     # @codeView.on 'sizes.height.change', ({height}) =>
     #   @$('.wrapper').height height
-    
+
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     @codeView = new KDCustomHTMLView
@@ -96,10 +96,10 @@ class CodeSnippetView extends KDCustomHTMLView
 
     @codeView.setClass hjsSyntax if hjsSyntax
     @codeView.unsetClass "kdcustomhtml"
-    
+
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
-      partial  : __aceSettings.syntaxAssociations[syntax][0] or syntax
+      partial  : __aceSettings.syntaxAssociations[syntax]?[0] or syntax ? "text"
 
     @saveButton = new KDButtonView
       title     : ""
@@ -112,7 +112,7 @@ class CodeSnippetView extends KDCustomHTMLView
           title     : "Currently disabled!"
           type      : "mini"
           duration  : 2500
-        
+
         # CodeSnippetView.emit 'CodeSnippetWantsSave', data
 
     @openButton = new KDButtonView
@@ -157,7 +157,7 @@ class CodeSnippetView extends KDCustomHTMLView
             hljs.highlightBlock snipView.codeView.$()[0],'  '
           catch err
             console.warn "Error applying highlightjs syntax #{syntax}:", err
-  
+
   viewAppended: ->
 
     @setTemplate @pistachio()
@@ -179,4 +179,3 @@ class CodeSnippetView extends KDCustomHTMLView
     </div>
     {{> @syntaxMode}}
     """
-  

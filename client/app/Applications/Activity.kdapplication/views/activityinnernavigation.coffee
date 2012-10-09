@@ -3,14 +3,14 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     feedController = @setListController
       type : "feed"
-      subItemClass : ListGroupShowMeItem
+      itemClass : ListGroupShowMeItem
     , @feedMenuData
     @addSubView feedController.getView()
     feedController.selectItem feedController.getItemsOrdered()[0]
 
     filterController = @setListController
       type : "showme"
-      subItemClass : ListGroupShowMeItem
+      itemClass : ListGroupShowMeItem
     , @showMenuData
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
@@ -39,7 +39,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Status Updates",   type : "CStatusActivity" }
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
         { title : "Q&A",              type : "qa",         disabledForBeta : yes }
-        { title : "Discussions",      type : "discussion", disabledForBeta : yes }
+        { title : "Discussions",      type : "CDiscussionActivity" }
         { title : "Links",            type : "link",       disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }

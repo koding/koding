@@ -1,9 +1,9 @@
 class Inbox12345 extends AppController
 
-  {race} = bongo
+  {race} = Bongo
 
   constructor:(options, data)->
-    view = new (KD.getPageClass 'Inbox') cssClass : "inbox-application"
+    view = new InboxView cssClass : "inbox-application"
     options = $.extend {view},options
     super options,data
     @selection = {}
@@ -23,18 +23,15 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
-    currentDelegate.fetchMail? options, callback
+    KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
-    bongo.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
+    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
   loadView:(mainView)->
     mainView.createCommons()
     mainView.createTabs()
-
-    {currentDelegate} = KD.getSingleton('mainController').getVisitor()
 
     mainView.registerListener
       KDEventTypes : "ToFieldHasNewInput"
@@ -56,37 +53,38 @@ class Inbox12345 extends AppController
 
     {newMessageBar} = mainView
 
-    mainView.registerListener
-      KDEventTypes: 'MessageIsSelected'
-      listener    : @
-      callback    :(pubInst,{item, event})=>
-        data = item.getData()
-        data.mark 'read', (err)->
-          item.unsetClass 'unread' unless err
-        # unless event.shiftKey
-        #   @deselectMessages()
-        @deselectMessages()
-        if item.paneView?
-          {paneView} = item
-          mainView.inboxMessagesContainer.showPane item.paneView
-        else
-          paneView = new KDTabPaneView
-            name: data.subject
-            hiddenHandle: yes
-          mainView.inboxMessagesContainer.addPane paneView
-          detail = new InboxMessageDetail cssClass : "message-detail", data
+    mainView.on 'MessageIsSelected', ({item, event})=>
+      data = item.getData()
+      data.mark 'read', (err)->
+        item.unsetClass 'unread' unless err
+      # unless event.shiftKey
+      #   @deselectMessages()
+      @deselectMessages()
+      if item.paneView?
+        {paneView} = item
+        mainView.inboxMessagesContainer.showPane item.paneView
+      else
+        paneView = new KDTabPaneView
+          name: data.subject
+          hiddenHandle: yes
+        mainView.inboxMessagesContainer.addPane paneView
+        detail = new InboxMessageDetail cssClass : "message-detail", data
 
-          detail.registerListener
-            KDEventTypes: 'viewAppended'
-            listener: @
-            callback: =>
-              data.restComments 0, (err, comments)-> # log arguments, data
+        detail.on 'viewAppended', ->
+          data.restComments 0, (err, comments)-> # log arguments, data
 
-          paneView.addSubView detail
-          paneView.detail = detail
-          item.paneView = paneView
-        newMessageBar.enableMessageActionButtons()
-        @selectMessage data, item, paneView
+        paneView.addSubView detail
+        paneView.detail = detail
+        item.paneView = paneView
+
+      mainView.messagesSplit.resizePanel "33%", 0
+      # this is to change resize behavior of the split
+      # initially it has full width first panel
+      # after a message opens we change the defaults
+      mainView.messagesSplit.getOptions().sizes = ["33%", null]
+
+      newMessageBar.enableMessageActionButtons()
+      @selectMessage data, item, paneView
 
     newMessageBar.registerListener
       KDEventTypes  : "AutoCompleteNeedsMemberData"
@@ -144,7 +142,7 @@ class Inbox12345 extends AppController
 
   goToMessages:(message)->
     @getView().showTab "messages"
-    @mainView.propagateEvent KDEventType : 'MessageSelectedFromOutside', {item: message}
+    @mainView.emit 'MessageSelectedFromOutside', message
 
   selectMessage:(data, item, paneView)->
     @selection[data.getId()] = {
@@ -158,7 +156,7 @@ class Inbox12345 extends AppController
 
   sendMessage:(messageDetails, callback)->
     # log "I just send a new message: ", messageDetails
-    bongo.api.JPrivateMessage.create messageDetails, callback
+    KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)=>
     {body, subject, recipients} = formOutput

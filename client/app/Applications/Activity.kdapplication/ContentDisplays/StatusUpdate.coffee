@@ -31,12 +31,12 @@ class ContentDisplayStatusUpdate extends KDView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      subItemClass  : TagLinkView
+      itemClass  : TagLinkView
     , data.tags
 
   viewAppended:()->
 
-    # return if @getData().constructor is bongo.api.CStatusActivity
+    # return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()

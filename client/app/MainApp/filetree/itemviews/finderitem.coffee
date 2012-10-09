@@ -2,19 +2,21 @@ class NFinderItem extends JTreeItemView
 
   constructor:(options = {},data)->
 
-    options.tagName   or= "li"
-    options.type      or= "finderitem"
+    options.tagName or= "li"
+    options.type    or= "finderitem"
+
     super options, data
-    @isLoading    = no
-    @beingDeleted = no
-    @beingEdited  = no
-    
+
+    @isLoading        = no
+    @beingDeleted     = no
+    @beingEdited      = no
+
     childConstructor = switch data.type
       when "folder"  then NFolderItemView
       when "section" then NSectionItemView
       when "mount"   then NMountItemView
       else NFileItemView
-    
+
     @childView = new childConstructor {}, data
     @childView.$().css "margin-left", (data.depth+1)*10
 
@@ -23,25 +25,25 @@ class NFinderItem extends JTreeItemView
     if @deleteView
       @deleteView.destroy()
       delete @deleteView
-    
+
     if @renameView
-      @renameView.destroy() 
+      @renameView.destroy()
       delete @renameView
-    
+
     @childView.show()
     @beingDeleted = no
     @beingEdited = no
     @callback = null
     @unsetClass "being-deleted being-edited"
-    # @setKeyView()
-  
+    @getDelegate().setKeyView()
+
   confirmDelete:(callback)->
-    
+
     @callback = callback
     @showDeleteView()
-    
+
   showDeleteView:->
-    
+
     return if @deleteView
     @setClass "being-deleted"
     @beingDeleted = yes
@@ -54,7 +56,7 @@ class NFinderItem extends JTreeItemView
     @deleteView.setKeyView()
 
   showRenameView:(callback)->
-    
+
     return if @renameView
     @setClass "being-edited"
     @beingEdited = yes
@@ -67,8 +69,8 @@ class NFinderItem extends JTreeItemView
       @callback? newValue
       @resetView()
     @renameView.input.setFocus()
-    
-  pistachio:-> 
+
+  pistachio:->
 
     """
     {{> @childView}}

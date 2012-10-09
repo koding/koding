@@ -1,4 +1,4 @@
-class SplitViewWithOlderSiblings extends KDSplitView
+class SplitViewWithOlderSiblings extends SplitView
   viewAppended:->
     super
     siblings        = @parent.getSubViews()

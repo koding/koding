@@ -1,10 +1,13 @@
 <?php
 
 define("TIME_ZONE",    "America/New_York");
+define('TRACE_LOG', '/home/cthorn/koding/website/1.0/.tmp/dev-api-trace.log');
+
 date_default_timezone_set(TIME_ZONE);
 
 $query = $_GET;
 $query['data'] = json_decode($query['data'],true);
+
 
 if ($query['env']=="vpn"){
   $dbName = "kodingen";
@@ -12,6 +15,14 @@ if ($query['env']=="vpn"){
   $dbPort = "27017";
   $dbUser = "kodingen_user";
   $dbPass = "Cvy3_exwb6JI";
+}
+elseif ($query['env'] == 'stage') {
+  error_log('local db');
+  $dbName = "koding_stage";
+  $dbHost = "localhost";
+  $dbPort = "38017";
+  $dbUser = "koding_stage_user";
+  $dbPass = "dkslkds84ddj";
 }
 elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == 'dev-api.koding.com') {
   $dbName = "koding_copy";
@@ -21,6 +32,7 @@ elseif ($query['env'] == "mongohq-dev" || $_SERVER['HTTP_X_FORWARDED_HOST'] == '
   $dbPass = "633939V3R6967W93A";
 }
 else {
+  error_log('local db');
   $dbName = "beta_koding";
   $dbHost = "localhost";
   $dbPort = "27017";

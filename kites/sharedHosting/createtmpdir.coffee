@@ -8,8 +8,9 @@ config = require './config'
 module.exports = createTmpDir =(username, callback=->)->
   tmpDir = "#{config.usersPath}#{username}/.tmp"
   fs.stat tmpDir, (err, stat)->
+    console.log "Creating:::", tmpDir, err, stat
     if err
-      fs.mkdir tmpDir, 0755, (err)->
+      fs.mkdir tmpDir, 0o0755, (err)->
         if err
           callback err
           log.error err

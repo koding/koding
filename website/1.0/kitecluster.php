@@ -4,7 +4,7 @@ require_once 'helpers.php';
 
 class KiteLoadBalancer {
   // abstract public function get_next_kite_uri(&$cluster);
-  public static function create($loadBalancing) {
+  public static function create ($loadBalancing) {
     switch($loadBalancing->strategy) {
     // case 'round robin'        :
     default :
@@ -37,11 +37,17 @@ class KiteTrustPolicy {
           return preg_match($hostname_preg, strtolower($hostname));
         };
         break;
+      case 'untrustedKite':
+      default:
+        $this->rules['untrustedKite'] = function ($service_key) use ($rule) {
+          return TRUE;
+        };
+        break;
       }
     }
   }
 
-  public function test($rule, $value) {
+  public function test ($rule, $value) {
     $test = $this->rules[$rule];
     return @$test($value);
   }
@@ -53,17 +59,19 @@ class KiteCluster {
     $this->name = $cluster->name;
     $this->interface = $cluster->interface;
     $this->loadBalancer = KiteLoadBalancer::create($cluster->loadBalancing);
+    if (!isset($cluster->trustPolicy)) {
+      $cluster->trustPolicy = (object) array('untrustedKite' => array());
+    }
     $this->trustPolicy = new KiteTrustPolicy($cluster->trustPolicy);
     $this->initialize();
   }
   
-  private function initialize() {
+  private function initialize () {
     $db = get_mongo_db();
     $active_cluster = $db->jKiteClusters->findOne(array(
       'kiteName' => $this->kite_name,
     ));
     if (!isset($active_cluster)) {
-      error_log($this->kite_name.' not saved');
       $active_cluster = array(
         'kiteName'  => $this->kite_name,
         'kites'     => array(),
@@ -73,16 +81,16 @@ class KiteCluster {
     }
   }
   
-  public function get_kites () {
-    $record = $this->get_record();
-    return $record['kites'];
-  }
-  
   private function get_record () {
     $db = get_mongo_db();
     return $db->jKiteClusters->findOne(array(
       'kiteName' => $this->kite_name,
     ));
+  }
+  
+  public function get_kites () {
+    $record = $this->get_record();
+    return $record['kites'];
   }
   
   public function get_next_kite_uri () {
@@ -94,7 +102,6 @@ class KiteCluster {
   }
   
   public function add_kite ($uri) {
-    trace('trying to add a kite', $uri);
     if (in_array($uri, $this->get_kites())) {
       if ($this->kite_name == 'pinger') {
         return TRUE;

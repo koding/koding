@@ -1,15 +1,17 @@
 module.exports =
   our_modules : [
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
-    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse","amqp"
+    "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
+    "kite-amqp","amqp","broker","koding-eventemitter2",'koding-cake','koding-deep-freeze','koding-log-tailer'
+    'koding-logger','koding-watcher'
   ]
+
   npm_modules :
     bitly           : '1.2.4'
     braintree       : '1.1.0'
-    'coffee-script' : '1.1.2'
+    'coffee-script' : '1.3.3'
     dateformat      : '1.0.2-1.2.3'
     dropbox         : '0.3.3'
-    eventemitter2   : '0.4.1'
     everyauth       : '0.2.23'
     express         : '2.5.9'
 
@@ -17,8 +19,8 @@ module.exports =
     hashish         : '0.0.4'
     hat             : '0.0.3'
     inspect         : '0.0.2'
-
-    # ldapjs          : '0.4.8' # sharedhosting kite req. moved to ./kites/sharedhosting
+    colors          : '0.6.0-1'
+    commander       : '1.0.4'
     log             : '1.2.0'
     log4js          : '0.4.1'
 
@@ -32,13 +34,11 @@ module.exports =
     nodeunit        : '0.5.3'
     optimist        : '0.3.1'
     
-    postmark        : '0.1.6'
-    profiler        : '1.1.0'
-    request         : '2.9.202'
-    stylus          : '0.21.2'
-    underscore      : '1.2.3'
-    url             : '0.4.9'
-    validator       : '0.2.0'
+    request			: '2.9.202'
+    stylus			: '0.21.2'
+    underscore	    : '1.2.3'
+    url				: '0.4.9'
+    validator	    : '0.2.0'
     'http-proxy'    : '0.8.1'
     jsonify         : '0.0.0'
     cron            : '0.3.4'
