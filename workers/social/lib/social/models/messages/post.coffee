@@ -41,7 +41,7 @@ module.exports = class JPost extends jraphical.Message
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
-        'on','reply','restComments','commentsByRange'
+        'on','addGlobalListener', 'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]

@@ -2,10 +2,10 @@ class FeederFacetsController extends KDViewController
   constructor:(options, data)->
     options.view or= new KDView cssClass: 'common-inner-nav'
     super
-    
+
   loadView:(mainView)->
     options = @getOptions()
-    
+
     @filterController = new CommonInnerNavigationListController {},
       title     : options.filterTitle or 'FILTER'
       items     : (
@@ -13,7 +13,7 @@ class FeederFacetsController extends KDViewController
         type    : type
         action  : 'filter'
       ) for own type, item of options.filters
-      
+
     @sortController = new CommonInnerNavigationListController {},
       title     : options.sortTitle or 'SORT'
       items     : (
@@ -21,39 +21,32 @@ class FeederFacetsController extends KDViewController
         type    : type
         action  : 'sort'
       ) for own type, item of options.sorts
-      
+
     view = @getView()
-      
+
     if @filterController.getData().items.length > 1
-      @filterController.registerListener
-        KDEventTypes  : 'CommonInnerNavigationListItemReceivedClick'
-        listener      : @
-        callback      : (pubInst, item)=>
-          @propagateEvent KDEventType: 'FilterDidChange', item
+      @filterController.on 'NavItemReceivedClick', (item)=>
+        @propagateEvent KDEventType: 'FilterDidChange', item
       view.addSubView @filterController.getView()
-    
+
     if @sortController.getData().items.length > 1
-      @sortController.registerListener
-        KDEventTypes  : 'CommonInnerNavigationListItemReceivedClick'
-        listener      : @
-        callback      : (pubInst, item)=>
-          @propagateEvent KDEventType: 'SortDidChange', item
-        view.addSubView @sortController.getView()
-    
-    
+      @sortController.on 'NavItemReceivedClick', (item)=>
+        @propagateEvent KDEventType: 'SortDidChange', item
+      view.addSubView @sortController.getView()
+
+
     view.addSubView new HelpBox @getOptions().help
-    
-  
+
+
   highlight:(filterName,sortName)->
 
     for item in @filterController.itemsOrdered
       if item.getData().type is filterName and @filterController.itemsOrdered.length > 1
         @filterController.selectItem item
-    
+
     for item in @sortController.itemsOrdered
       if item.getData().type is sortName and @sortController.itemsOrdered.length > 1
         @sortController.selectItem item
 
 
-      
-    
+

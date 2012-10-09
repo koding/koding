@@ -198,12 +198,12 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
       if err
         callback err
       else
-        queue = activities.map (activity)->
-          -> activity.mark client, 'glanced', -> queue.fin()
+        queue = activities.map (activity)->->
+          activity.mark client, 'glanced', -> queue.fin()
         dash queue, callback
 
   fetchNonces: secure (client, callback)->
@@ -260,7 +260,7 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -347,11 +347,10 @@ module.exports = class JAccount extends jraphical.Module
             callback err
           else unless rels?.length
             message.participants = []
-            fin()
           else
             # only include unique participants.
             message.participants = (rel for rel in rels when register.sign rel.sourceId)
-            fin()
+          fin()
       , callback
       fetchParticipants(message) for message in messages when message?
 
@@ -440,19 +439,26 @@ module.exports = class JAccount extends jraphical.Module
       return callback "Attempt to access unauthorized application storage"
 
     {appId, version} = options
-    @fetchAppStorage {}, {targetOptions:query:{appId}}, (error, storage)->
-      if error then callback error
+    @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
+      if err then callback err
+      else unless storage?
+        log.info 'creating new storage for application', appId, version
+        newStorage = new JAppStorage {appId, version}
+        newStorage.save (err) =>
+          if err then callback error
+          else
+            # manually add the relationship so that we can
+            # query the edge instead of the target C.T.
+            rel = new Relationship
+              targetId    : newStorage.getId()
+              targetName  : 'JAppStorage'
+              sourceId    : @getId()
+              sourceName  : 'JAccount'
+              as          : 'appStorage'
+              data        : {appId, version}
+            rel.save (err)-> callback err, newStorage
       else
-        unless storage?
-          log.info 'creating new storage for application', appId, version
-          newStorage = new JAppStorage {appId, version}
-          newStorage.save (error) =>
-            if error then callback error
-            else
-              account.addAppStorage newStorage, (err)->
-                callback err, newStorage
-        else
-          callback error, storage
+        callback err, storage
 
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->

@@ -7,9 +7,17 @@ class WebTermController extends AppController
 
     super options, data
 
+    {view} =  @getOptions()
+
+    view.on "WebTerm.terminated", =>
+      @propagateEvent
+       KDEventType  : "ApplicationWantsToClose"
+       globalEvent  : yes
+      , {options: null, data: view}
+
   bringToFront: ->
 
-    data = new WebTermView
+    data = @getOptions().view
 
     options =
       name         : "Terminal"

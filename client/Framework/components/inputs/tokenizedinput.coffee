@@ -32,6 +32,7 @@ class KDTokenizedInput extends JView
     @input.on "keyup", @keyUpOnInput.bind @
 
   keyDownOnInput:(event)->
+    log "asdasd"
     @decorateLayer()
     # @layer.setClass "hide-tokens"
 

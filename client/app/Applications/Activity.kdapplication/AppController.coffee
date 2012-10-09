@@ -24,6 +24,7 @@ class Activity12345 extends AppController
     # devrim is currently working on refactoring them - 3/15/12 sah
 
     # i kind of cleared that mess, still needs work - 26 April 2012 sinan
+    # remove this shit, do it with kitecontroller :) - 8 October 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -116,11 +117,8 @@ class Activity12345 extends AppController
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
-    activityInnerNavigation.registerListener
-      KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
-      listener      : @
-      callback      : (pubInst, data)=>
-        @filter data.type, loadIfMoreItemsIsNecessary
+    activityInnerNavigation.on "NavItemReceivedClick", (data)=>
+      @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -311,41 +309,30 @@ class Activity12345 extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Status Update"
-      type        : "status"
-      contentView : new ContentDisplayStatusUpdate {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
 
   createCodeSnippetContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Code Snippet"
-      type        : "codesnip"
-      contentView : new ContentDisplayCodeSnippet {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    @showContentDisplay new ContentDisplayCodeSnippet
+      title : "Code Snippet"
+      type  : "codesnip"
+    ,activity
 
   # THIS WILL DISABLE CODE SHARES
   # createCodeShareContentDisplay:(activity)->
-  #   controller = new ContentDisplayControllerActivity
+  #   @showContentDisplay new ContentDisplayCodeShare
   #     title       : "Code Share"
   #     type        : "codeshare"
-  #     contentView : new ContentDisplayCodeShare {},activity
   #   , activity
-  #   contentDisplay = controller.getView()
-  #   @showContentDisplay contentDisplay
+
 
   createDiscussionContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
+    @showContentDisplay new ContentDisplayDiscussion
       title : "Discussion"
       type  : "discussion"
-      contentView : new ContentDisplayDiscussion {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    ,activity
 
 class ActivityListController extends KDListViewController
 
@@ -381,7 +368,7 @@ class ActivityListController extends KDListViewController
 
     super
 
-    @fetchFollowings()
+    #@fetchFollowings()
 
   fetchFollowings:->
     # To filter followings activites we need to fetch followings data
@@ -397,10 +384,6 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   isInFollowing:(activity, callback)->
-    # if activity.originId in @_following or activity.anchor?.id in @_following
-    #   return true
-    # else
-
     account = KD.whoami()
     {originId, anchor} = activity
     account.isFollowing originId, 'JAccount', (result) ->
@@ -434,25 +417,6 @@ class ActivityListController extends KDListViewController
         when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
-
-    # unless @isMine activity
-    #   if @_state is 'public'
-    #     view = @addHiddenItem activity, 0
-    #     @activityHeader.newActivityArrived()
-    #   else if @_state is 'private'
-    #     @isInFollowing activity, (result) =>
-    #       if result
-    #         view = @addHiddenItem activity, 0
-    #         @activityHeader.newActivityArrived()
-
-      # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
-      #   view = @addHiddenItem activity, 0
-      #   @activityHeader.newActivityArrived()
-    # else
-    #   switch activity.constructor
-    #     when KD.remote.api.CFolloweeBucket
-    #       @addItem activity, 0
-    #   @ownActivityArrived activity
 
   addHiddenItem:(activity, index, animation = null)->
     instance = @getListView().addHiddenItem activity, index, animation

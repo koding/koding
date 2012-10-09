@@ -21,7 +21,7 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 
 EXCHANGE_PREFIX = "followable-"
 
-{distributeActivityToFollowers} = require "./feeder"
+{distributeActivityToFollowers, assureExchangeMesh} = require "./feeder"
 distributeActivityToFollowers
   mq: mq
   mongo: mongo
@@ -157,6 +157,5 @@ koding.on 'auth', (exchange, sessionToken)->
 
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
-koding.connect console.log
-
 console.log 'Koding Social Worker has started.'
+koding.connect console.log

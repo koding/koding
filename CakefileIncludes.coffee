@@ -245,7 +245,13 @@ Includes =
         KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
 
         # autocomplete
-        KDAutoCompleteController : "./client/Framework/components/autocomplete/KDAutoCompleteController.coffee"
+        KDAutoCompleteC       : "./client/Framework/components/autocomplete/autocompletecontroller.coffee"
+        KDAutoComplete        : "./client/Framework/components/autocomplete/autocomplete.coffee"
+        KDAutoCompleteList    : "./client/Framework/components/autocomplete/autocompletelist.coffee"
+        KDAutoCompleteListItem: "./client/Framework/components/autocomplete/autocompletelistitem.coffee"
+        MultipleInput         : "./client/Framework/components/autocomplete/multipleinputview.coffee"
+        KDAutoCompleteMisc    : "./client/Framework/components/autocomplete/autocompletemisc.coffee"
+        KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
 
       Applications :
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
@@ -327,6 +333,7 @@ Includes =
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
 
         # Activity content displays
+        activityContentDisplay      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee"
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
@@ -335,7 +342,6 @@ Includes =
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
         # Activity content displays commons
-        actContentDisplayController : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayControllerActivity.coffee"
         ContentDisplayAvatar        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee"
         ContentDisplayMeta          : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayMeta.coffee"
         ContentDisplayMetaTags      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayTags.coffee"
@@ -620,8 +626,13 @@ Includes =
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         # BOTTOM PANEL
-        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
-        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
+        bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
+        bottomChatPanel           : "./client/app/MainApp/bottompanels/chat/chatpanel.coffee"
+        bottomChatRoom            : "./client/app/MainApp/bottompanels/chat/chatroom.coffee"
+        bottomChatSidebar         : "./client/app/MainApp/bottompanels/chat/chatsidebar.coffee"
+        bottomChatUserItem        : "./client/app/MainApp/bottompanels/chat/chatuseritem.coffee"
+        bottomTerminalPanel       : "./client/app/MainApp/bottompanels/terminal/terminalpanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"

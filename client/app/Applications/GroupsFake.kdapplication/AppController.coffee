@@ -48,7 +48,6 @@ class GroupsFakeController extends AppController
     }, (controller)=>
       mainView.addSubView @_lastSubview = controller.getView()
 
-
   dummyData =
 
     [
