@@ -35,8 +35,8 @@ class BottomChatSideBar extends JView
     @userList    = userController.getView()
     @channelList = channelController.getView()
 
-    @channelList.on 'viewAppended', =>
-      log "e"
+    # @channelList.on 'viewAppended', =>
+    #   log "e"
 
   show:-> @setClass "out"
 
