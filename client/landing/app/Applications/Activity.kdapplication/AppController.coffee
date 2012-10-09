@@ -98,6 +98,10 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
+    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+      if activity.constructor.name in @currentFilter
+        @activityListController.followedActivityArrived activity
+
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
@@ -209,21 +213,23 @@ class Activity12345 extends AppController
     range or= {}
     {skip, limit} = range
 
+    controller = @activityListController
+
     selector =
       type        :
         $in       : @currentFilter
 
     options  =
       limit       : limit or= 20
-      skip        : skip  or= @activityListController.getItemCount()
+      skip        : skip  or= controller.getItemCount()
       sort        :
         createdAt : -1
 
     if not options.skip < options.limit
       @fetchTeasers selector, options, (activities)=>
         if activities
-          for activity in activities
-            @activityListController.addItem activity
+          for activity in activities when activity?
+            controller.addItem activity
           callback? activities
         else
           callback?()
