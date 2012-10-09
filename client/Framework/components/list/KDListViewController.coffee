@@ -65,6 +65,13 @@ class KDListViewController extends KDViewController
 
     @emit "AllItemsAddedToList"
 
+    # Implement no Item found widget support FIXME GG
+    #
+    # if items.length is 0
+    #   options = @getOptions()
+    #   if options.noItemFoundWidget?
+    #     @getListView().addItem options.noItemFoundWidget
+
     return newItems
 
   ###
