@@ -8,7 +8,7 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
-      'CLinkActivity'
+      # 'CLinkActivity'
       'CCodeSnipActivity'
       'CDiscussionActivity'
       'CFollowerBucketActivity'
@@ -189,7 +189,7 @@ class Activity12345 extends AppController
           'CStatusActivity'
           'CCodeSnipActivity'
           'CDiscussionActivity'
-          'CLinkActivity'
+          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
@@ -259,7 +259,7 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
-        'CLinkActivity'
+        # 'CLinkActivity'
         'CCodeSnipActivity'
         'CDiscussionActivity'
         'CFollowerBucketActivity'
@@ -282,9 +282,9 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES
-      when "JCodeShare"    then @createCodeShareContentDisplay activity
-      when "JLink"         then @createLinkContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES/LINKS
+      # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->

@@ -30,7 +30,7 @@ class ActivityDiscussionWidget extends KDFormView
       cssClass    : "discussion-body"
       type        : "textarea"
       autogrow    : yes
-      placeholder : "What do you want to talk about?"
+      placeholder : "What do you want to talk about? (You can use markdown here)"
       validate    :
         rules     :
           required: yes
@@ -63,7 +63,7 @@ class ActivityDiscussionWidget extends KDFormView
             top       : 55
             left      : 55
           overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
+          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' placeholder='What do you want to talk about? (You can use markdown here)' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
           buttons     :
             Cancel    :
               title   : "Discard changes"
