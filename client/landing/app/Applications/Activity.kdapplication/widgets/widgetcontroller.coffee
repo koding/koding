@@ -42,33 +42,34 @@ class ActivityUpdateWidgetController extends KDViewController
             @codeSnippetWidgetSubmit data, stopSubmission
             mainView.resetWidgets()
 
-#    codeSharePane = mainView.addWidgetPane
-#      paneName    : "codeshare"
-#      mainContent : codeShareWidget = new ActivityCodeShareWidget
-#        delegate  : mainView
-#        callback  : (data)=>
-#          if submissionStopped
-#            return notifySubmissionStopped()
-#          else
-#
-#            # this forces the iframe to load the code and execute it
-#            codeShareWidget.codeShareResultView.hide()
-#            codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
-#
-#            # reset widget tab as if it was submitted
-#            mainView.resetWidgets()
-#
-#            # notify the user
-#            notifiy = new KDNotificationView
-#              title: "Submitting your Code Share"
-#              content: "This may take up to ten seconds. Thank you for your patience!"
-#              duration: 5000
-#
-#            # then wait x seconds
-#            window.setTimeout =>
-#              #only if the browser/tab did not lock up due to script execution, this will run
-#              @codeShareWidgetSubmit data, stopSubmission
-#            , 5000
+    codeSharePane = mainView.addWidgetPane
+      paneName    : "codeshare"
+      mainContent : codeShareWidget = new ActivityCodeShareWidget
+        delegate  : mainView
+        callback  : (data)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+
+            # # this forces the iframe to load the code and execute it
+            # codeShareWidget.codeShareResultView.hide()
+            # codeShareWidget.codeShareResultView.emit "CodeShareSourceHasChanges", data
+
+            # reset widget tab as if it was submitted
+            mainView.resetWidgets()
+
+            # notify the user
+            notifiy = new KDNotificationView
+              title: "Submitting your Code Share"
+              content: "This may take up to ten seconds. Thank you for your patience!"
+              duration: 5
+
+            # then wait x seconds
+            window.setTimeout =>
+              #only if the browser/tab did not lock up due to script execution, this will run
+              @codeShareWidgetSubmit data, stopSubmission
+            , 5
+
 
     mainView.addWidgetPane
       paneName    : "link"
@@ -96,7 +97,7 @@ class ActivityUpdateWidgetController extends KDViewController
     codeSnippetPane.on 'PaneDidShow', -> codeWidget.widgetShown()
 
     # THIS WILL DISABLE CODE SHARES
-    # codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
+    codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
 
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
@@ -114,9 +115,9 @@ class ActivityUpdateWidgetController extends KDViewController
           mainView.showPane "discussion"
           discussionWidget.switchToEditView activity
         # THIS WILL DISABLE CODE SHARES
-        # when "JCodeShare"
-        #   mainView.showPane "codeshare"
-        #   codeShareWidget.switchToEditView activity
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          codeShareWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
@@ -170,26 +171,33 @@ class ActivityUpdateWidgetController extends KDViewController
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), codesnip
 
   # THIS WILL DISABLE CODE SHARES
-  # codeShareWidgetSubmit:(data, callback)->
-  #   if data.activity
-  #     {activity} = data
-  #     delete data.activity
-  #     activity.modify data, (err, res)=>
-  #       callback? err, res
-  #       unless err
-  #         new KDNotificationView type : "mini", title : "Updated successfully"
-  #       else
-  #         new KDNotificationView type : "mini", title : err.message
-  #   else
-  #     if submissionStopped
-  #       return notifySubmissionStopped()
-  #     KD.remote.api.JCodeShare.create data, (err, codeshare) =>
-  #       callback? err, codeshare
-  #       stopSubmission()
-  #       if err
-  #         new KDNotificationView type : "mini", title : "There was an error, try again later!"
-  #       else
-  #         @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
+
+  codeShareWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, res)=>
+        callback? err, res
+        unless err
+          new KDNotificationView type : "mini", title : "Updated successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+
+      # CODESHARE CREATE
+
+      log "Submit Data is",data
+
+      KD.remote.api.JCodeShare.create data, (err, codeshare) =>
+        callback? err, codeshare
+        stopSubmission()
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), codeshare
+
 
 
   questionWidgetSubmit:(data)->

@@ -42,9 +42,55 @@ class DiscussionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionLink}}{{> @opinionCount}} ·
+    {{> @opinionLink}} · {{> @opinionCount}} <span class="activity-text">#{if @getData().repliesCount is 0 then "No " else ""}answers</span> ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
     {{> @likeView}}
     """
+
+
+class OpinionActivityActionsView extends ActivityActionsView
+
+  constructor :->
+    super
+
+    activity = @getData()
+
+    @commentCount?.destroy()
+
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Take me there!"
+      click       : (pubInst, event)=>
+        @emit "DiscussionActivityLinkClicked"
+
+    , activity
+
+    @on "DiscussionActivityLinkClicked", =>
+      unless @parent instanceof ContentDisplayDiscussion
+        appManager.tell "Activity", "createContentDisplay", @getData()
+      else
+        @getDelegate().emit "OpinionLinkReceivedClick"
+
+  viewAppended:->
+    @setClass "activity-actions"
+    @setTemplate @pistachio()
+    @template.update()
+    @attachListeners()
+    @loader.hide()
+
+  attachListeners:->
+    activity    = @getData()
+
+  pistachio:->
+    """
+    {{> @loader}}
+    {{> @commentCount}} <span class="activity-text">#{if @getData().repliesCount is 0 then "No " else ""}comments</span> ·
+    <span class='optional'>
+    {{> @shareLink}} ·
+    </span>
+    {{> @likeView}}
+    """
+
+
