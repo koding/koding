@@ -35,6 +35,8 @@ Broker = require 'broker'
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email} = KONFIG
 
+broker = new Broker mq
+
 broker.on 'connected', console.log.bind console, 'connected'
 broker.on 'disconnected', console.log.bind console, 'disconnected'
 
