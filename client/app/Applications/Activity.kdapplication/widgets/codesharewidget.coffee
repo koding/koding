@@ -858,6 +858,9 @@ class ActivityCodeShareWidget extends KDFormView
     # @codeShareResultView.hide()
     # @resultBanner.show()
 
+  setCodeShareData:(CodeShareItems)->
+    @codeShareBoxView.emit "addCodeSharePanes",CodeShareItems
+
   switchToEditView:(activity)=>
 
     log "now in editview",activity

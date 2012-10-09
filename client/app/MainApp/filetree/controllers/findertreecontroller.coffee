@@ -464,6 +464,31 @@ class NFinderTreeController extends JTreeViewController
       else
         @notify "Download failed!", "error", err
 
+  createCodeShare:({data})->
+
+    CodeShares = []
+    @notify "Fetching file list..."
+
+    data.fetchContents (items)=>
+      @notify "Fetching file contents..."
+      files = (file for file in items when file.constructor.name is 'FSFile')
+      count = 0
+      # Poor mans queue mechanism
+      for file in files
+        do (file)->
+          file.fetchContents (err, content)->
+            count+=1
+            if not err and content
+              CodeShare =
+                CodeShareItemOptions : {}
+                CodeShareItemSource  : content
+                CodeShareItemTitle   : file.name
+                CodeShareItemType    :
+                  syntax             : @utils.getFileExtension file.path
+              CodeShares.push CodeShare
+            if count == files.length
+              @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
+
   ###
   CONTEXT MENU OPERATIONS
   ###
@@ -490,6 +515,7 @@ class NFinderTreeController extends JTreeViewController
   cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
   cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> appManager.notify()
 
