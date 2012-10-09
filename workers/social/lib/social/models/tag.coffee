@@ -1,5 +1,7 @@
 
 jraphical = require 'jraphical'
+CActivity = require './activity'
+JAccount  = require './account'
 
 module.exports = class JTag extends jraphical.Module
 
@@ -58,10 +60,10 @@ module.exports = class JTag extends jraphical.Module
       creator       :
         targetType  : JAccount
       activity      :
-        targetType  : "CActivity"
+        targetType  : CActivity
         as          : 'follower'
       follower      :
-        targetType  : "JAccount"
+        targetType  : JAccount
         as          : 'follower'
       content       :
         targetType  : [
@@ -85,9 +87,13 @@ module.exports = class JTag extends jraphical.Module
     else
       callback new KodingError "Access denied"
 
-  fetchContentTeasers:->
-    [args..., callback] = arguments
-    @fetchContents args..., (err, contents)->
+  fetchContentTeasers:(options, selector, callback)->
+    [callback, selector] = [selector, callback] unless callback
+
+    selector or= {}
+    selector['data.flags.isLowQuality'] = $ne: yes
+
+    @fetchContents selector, options, (err, contents)->
       if err then callback err
       else if contents.length is 0 then callback null, []
       else

@@ -1,16 +1,23 @@
 jraphical = require 'jraphical'
+JAccount = require '../../account'
 
 module.exports = class JComment extends jraphical.Reply
-  
+
   {ObjectId,ObjectRef,dash,daisy,secure} = require 'bongo'
   {Relationship}  = require 'jraphical'
-  
+
   @trait __dirname, '../../../traits/likeable'
+  @trait __dirname, '../../../traits/notifying'
 
   @share()
 
+  constructor:->
+    super
+    @notifyOriginWhen 'LikeIsAdded'
+
   @set
     sharedMethods  :
+      static       : ['fetchRelated']
       instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
     schema         :
       isLowQuality : Boolean
@@ -28,7 +35,7 @@ module.exports = class JComment extends jraphical.Reply
       meta         : require 'bongo/bundles/meta'
     relationships  :
       likedBy      :
-        targetType : 'JAccount'
+        targetType : JAccount
         as         : 'like'
 
   delete: secure (client, callback)->
@@ -63,3 +70,11 @@ module.exports = class JComment extends jraphical.Reply
         , -> queue.fin()
     ]
     dash queue, callback
+
+  @fetchRelated = (targetId, callback)->
+    Relationship.one
+      as         : 'reply'
+      targetId   : targetId
+    , (err, rel)->
+      if not err and rel then rel.fetchSource callback
+      else callback err, null

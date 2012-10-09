@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites} = require argv.c
+{webPort, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
 webPort = argv.p if argv.p?
 
 {extend} = require 'underscore'
@@ -21,6 +21,9 @@ app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
 
+if basicAuth
+  app.use express.basicAuth basicAuth.username, basicAuth.password
+
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   console.error err
@@ -38,7 +41,7 @@ koding = new Bongo {
 }
 
 kiteBroker =\
-  if kites.vhost?
+  if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
   else
     koding.mq
@@ -56,7 +59,7 @@ app.get '/auth', (req, res)->
   return res.send 'user error', 400 unless channel?
   clientId = req.cookies.clientid
   JSession.fetchSession clientId, (err, session)->
-    res.cookie 'clientId', session.clientId if clientId isnt session.clientId
+    res.cookie 'clientId', session.clientId if session? and clientId isnt session?.clientId
     if err
       authenticationFailed(res, err)
     else
@@ -64,9 +67,6 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        # koding.mq.on privName, 'disconnected', ->
-        #   console.log 'disconnected', arguments
-
         res.send privName 
       else unless session?
         authenticationFailed(res)
@@ -89,7 +89,7 @@ app.get '/auth', (req, res)->
         bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
           bindKiteQueue "disconnected"
           kiteBroker.emit(channel, 'join', {user: username, queue: privName})
-          kiteBroker.connection.on 'error', -> # noop
+          kiteBroker.connection.on 'error', console.log
           kiteBroker.createQueue '', (dcQueue)->
             dcQueue.bind exchangeName, 'disconnected'
             dcQueue.subscribe ->

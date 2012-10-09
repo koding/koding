@@ -1,7 +1,7 @@
 # FIXME : render runs on every data change in account object which leads to a flash on avatarview. Sinan 08/2012
 
 class AvatarView extends LinkView
-  
+
   constructor:(options = {},data)->
 
     options.cssClass or= ""
@@ -28,11 +28,12 @@ class AvatarView extends LinkView
     return unless account
     {profile} = account
     options = @getOptions()
-    host = "#{location.protocol}//#{location.host}/"
+    fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
     # @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
 
-    # this is a temp fix to avoid avatar flashing on each account change - Sinan 08/2012
-    bgImg = "url(#{location.protocol}//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent(host + 'images/defaultavatar/default.avatar.' + options.size.width + '.png')})"
+    # this is a temp fix to avoid avatar flashing on every account change - Sinan 08/2012
+    bgImg = "url(//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent fallbackUri})"
+
     if @bgImg isnt bgImg
       @$().css "background-image", bgImg
       @bgImg = bgImg

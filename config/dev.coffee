@@ -5,7 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-mongo = 'dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect'
+mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
+# mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
 
 projectRoot = nodePath.join __dirname, '..'
 
@@ -45,7 +46,8 @@ module.exports = deepFreeze
         auth    : 'http://localhost:3000/auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
-      appsUri   : 'https://dev-apps.koding.com'
+      # Is this correct?
+      appsUri   : 'http://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
@@ -83,6 +85,6 @@ module.exports = deepFreeze
       have a vhost associated with this repository. Generally
       speaking, your first name is a good choice.
       """.replace /\n/g, ' '
-    uri         : 'http://zb.koding.com:3008/addVhost'
+    uri         : 'http://zb.koding.com:3008/resetVhost'
     webPort     : 3008
   pidFile           : '/tmp/koding.server.pid'

@@ -2,18 +2,15 @@ global.options = { heartbeat: 1 };
 
 require('./harness');
 
-connects = 0;
-var closed = 0;
-
-var hb = setInterval(function() {
-  puts(" -> heartbeat");
-  connection.heartbeat();
-}, 1000);
+var closed = false;
 
 setTimeout(function() {
   assert.ok(!closed);
-  clearInterval(hb);
-  setTimeout(function() { assert.ok(closed); }, 3000);
+  // Change the local heartbeat interval (without changing the negotiated
+  // interval).  This will cause the server to notice we've dropped off,
+  // and close the connection.
+  connection.options['heartbeat'] = 0;
+  setTimeout(function() { assert.ok(closed); }, 3500);
 }, 5000);
 
 connection.on('heartbeat', function() {
@@ -21,10 +18,9 @@ connection.on('heartbeat', function() {
 });
 connection.on('close', function() {
   puts("closed");
-  closed = 1;
+  closed = true;
 });
 connection.addListener('ready', function () {
-  connects++;
   puts("connected to " + connection.serverProperties.product);
 
   var e = connection.exchange();

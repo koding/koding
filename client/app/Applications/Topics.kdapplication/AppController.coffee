@@ -10,9 +10,6 @@ class Topics12345 extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
-
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -25,7 +22,7 @@ class Topics12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : @listItemClass
+      itemClass          : @listItemClass
       limitPerPage          : 20
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
@@ -45,14 +42,17 @@ class Topics12345 extends AppController
               KD.remote.api.JTag.byRelevance @_searchValue, options, callback
             else
               KD.remote.api.JTag.someWithRelationship selector, options, callback
-        followed            :
-          title             : "Followed"
+        following           :
+          title             : "Following"
           dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
-        recommended         :
-          title             : "Recommended"
-          dataSource        : (selector, options, callback)=>
-            callback 'Coming soon!'
+            KD.whoami().fetchTopics selector, options, (err, items)=>
+              for item in items
+                item.followee = true
+              callback err, items
+        # recommended         :
+        #   title             : "Recommended"
+        #   dataSource        : (selector, options, callback)=>
+        #     callback 'Coming soon!'
       sort                  :
         'counts.followers'  :
           title             : "Most popular"
@@ -65,6 +65,8 @@ class Topics12345 extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
+      controller.on "FeederListViewItemCountChanged", (count)=>
+        if @_searchValue then @setCurrentViewHeader count
 
   loadView:(mainView, firstRun = yes)->
 
@@ -148,7 +150,7 @@ class Topics12345 extends AppController
                 defaultValue      : Encoder.htmlDecode topic.body or ""
 
   fetchSomeTopics:(options = {}, callback)->
-    
+
     options.limit    or= 6
     options.skip     or= 0
     options.sort     or=

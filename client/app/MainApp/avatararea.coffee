@@ -10,7 +10,8 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = 0
 
   updateCount:(newCount = 0)->
-    # log "UPDATING COUNT:: ", newCount
+    # if newCount > 0
+    #   log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
     @count = newCount
 
@@ -68,20 +69,26 @@ class AvatarAreaIconMenu extends KDView
 
   attachListeners:->
 
-    # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
-    #   @notificationsIcon.updateCount @notificationsIcon.count + 1
+    @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
+      @notificationsIcon.updateCount @notificationsIcon.count + 1
 
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
 
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
-      if count > 0 then @avatarNotificationsPopup.noNotification.hide() else @avatarNotificationsPopup.noNotification.show()
+      if count > 0
+        @avatarNotificationsPopup.noNotification.hide()
+      else
+        @avatarNotificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
     @avatarMessagesPopup.listController.on 'MessageCountDidChange', (count)=>
       @utils.killWait @avatarMessagesPopup.loaderTimeout
-      if count > 0 then @avatarMessagesPopup.noMessage.hide() else @avatarMessagesPopup.noMessage.show()
+      if count > 0
+        @avatarMessagesPopup.noMessage.hide()
+      else
+        @avatarMessagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
     @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
@@ -201,7 +208,7 @@ class AvatarPopupNotifications extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass : PopupNotificationListItem
+      itemClass : PopupNotificationListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController
@@ -248,7 +255,7 @@ class AvatarPopupMessages extends AvatarPopup
     super()
 
     @_popupList = new PopupList
-      subItemClass  : PopupMessageListItem
+      itemClass  : PopupMessageListItem
       # lastToFirst   : yes
 
     @listController = new MessagesListController

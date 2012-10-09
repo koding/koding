@@ -10,7 +10,7 @@ class MessagesListView extends KDListView
 class MessagesListController extends KDListViewController
 
   constructor:(options, data)->
-    options.subItemClass        or= InboxMessagesListItem
+    options.itemClass        or= InboxMessagesListItem
     options.listView            or= new MessagesListView
     options.startWithLazyLoader   = yes
     super options, data
@@ -68,6 +68,7 @@ class NotificationListItem extends KDListItemView
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
+    JComment        : "your comment."
 
   bucketNameMap = ->
     CReplieeBucketActivity  : "comment"
@@ -99,6 +100,10 @@ class NotificationListItem extends KDListItemView
     #   id              : participant.targetOriginId
 
     {group} = @snapshot
+
+    # Cleanup my activities on my content
+    myid = KD.whoami()._id
+    group = (member for member in group when member.id isnt myid)
 
     @participants = new options.linkGroupClass {group}
     @avatar       = new options.avatarClass
@@ -145,16 +150,20 @@ class NotificationListItem extends KDListItemView
 
   click:->
 
+    showPost = (err, post)->
+      if post
+        appManager.tell "Activity", "createContentDisplay", post
+      else
+        new KDNotificationView
+          title : "This post has been deleted!"
+          duration : 1000
+
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
+    else if @snapshot.anchor.constructorName is "JComment"
+      KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
-      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
-        if post
-          appManager.tell "Activity", "createContentDisplay", post
-        else
-          new KDNotificationView
-            title : "This post has been deleted!"
-            duration : 1000
+      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
 
     # {sourceName,sourceId} = @getData()[0]
     # contentDisplayController = @getSingleton('contentDisplayController')

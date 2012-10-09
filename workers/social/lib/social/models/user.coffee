@@ -4,12 +4,13 @@ Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
+  {daisy} = require 'sinkrow'
   
   JAccount  = require './account'
   JSession  = require './session'
   JGuest    = require './guest'
-  JEmailConfirmation = require './emailconfirmation'
   JInvitation = require './invitation'
+  JFeed     = require './feed'
 
   createId = require 'hat'
 
@@ -49,9 +50,9 @@ module.exports = class JUser extends jraphical.Module
   createSalt = require 'hat'
 
   @share()
-  
+
   @trait __dirname, '../traits/flaggable'
-  
+
   @getFlagRole =-> 'owner'
 
   @set
@@ -60,7 +61,7 @@ module.exports = class JUser extends jraphical.Module
       email         : 'unique'
 
     sharedMethods   :
-      instance      : []
+      instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
@@ -99,7 +100,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'owner'
       emailConfirmation :
-        targetType      : JEmailConfirmation
+        targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -115,7 +116,7 @@ module.exports = class JUser extends jraphical.Module
   #       callback new KodingError 'No visitor instance was found.'
   #     else
   #       constructor.one {username}, callback
-  
+
   @isRegistrationEnabled =(callback)->
     JRegistrationPreferences = require './registrationpreferences'
     JRegistrationPreferences.one {}, (err, prefs)->
@@ -193,9 +194,9 @@ module.exports = class JUser extends jraphical.Module
         user.fetchOwnAccount (err, account)->
           account.profile.hash = getHash user.email
           account.save (err)-> throw err if err
-  
-  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate 
-  
+
+  @whoami = secure ({connection:{delegate}}, callback)-> callback delegate
+
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
     console.log 'CREDS', credentials
@@ -235,6 +236,7 @@ module.exports = class JUser extends jraphical.Module
                     callback err
                   else
                     connection.delegate = account
+                    JAccount.emit "AccountLoggedIn", account
                     callback null, account, replacementToken
 
   @logout = secure (client, callback)->
@@ -245,7 +247,7 @@ module.exports = class JUser extends jraphical.Module
       delete client.connection.delegate
       delete client.sessionToken
     JSession.cycleSession sessionToken, callback
-  
+
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences = require './registrationpreferences'
     JInvitation = require './invitation'
@@ -260,13 +262,13 @@ module.exports = class JUser extends jraphical.Module
           status: $in : ['active','sent']
         }, (err, invite)->
           # callback null, yes, invite
-          if err or !invite? 
+          if err or !invite?
             callback createKodingError 'Invalid invitation ID!'
-          else 
+          else
             callback null, yes, invite
       else
         callback createKodingError 'Invitation code is required!'
-  
+
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
       callback null
@@ -287,99 +289,199 @@ module.exports = class JUser extends jraphical.Module
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
      agree, inviteCode, kodingenUser, clientId} = userFormData
-    @usernameAvailable username, (err, r)=>
-      isAvailable = yes
 
-      # r =
-      #   forbidden    : yes/no
-      #   kodingenUser : yes/no
-      #   kodingUser   : yes/no
-
-      if err
-        callback err
-      else if r.forbidden
-        callback createKodingError 'That username is forbidden!'
-      else if r.kodingUser
-        callback createKodingError 'That username is taken!'
-      else
-        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
-          if err
-            callback createKodingError err.message
-          else
-            if passwordConfirm isnt password
-              return callback createKodingError 'Passwords must be the same'
-            else if agree isnt 'on'
-              return callback createKodingError 'You have to agree to the TOS'
-            else if not username? or not email?
-              return callback createKodingError 'Username and email are required fields'
-            
-            @verifyKodingenPassword {username, password, kodingenUser}, (err)->
-              if err
-                return callback createKodingError 'Wrong password'
-              else
-                nickname = username
-                JSession.one {clientId: client.sessionToken}, (err, session)->
-                  if err
-                    callback err
-                  else unless session
-                    callback createKodingError 'Could not restore your session!'
-                  else
-                    salt = createSalt()
-                    user = new JUser {
-                      username
-                      email
-                      salt
-                      password: hashPassword(password, salt)
-                    }
-                    user.save (err)->
-                      if err
-                        callback err
-                      else
-                        hash = getHash email
-                        account = new JAccount
-                          profile: {
-                            nickname
-                            firstName
-                            lastName
-                            hash
-                          }
-                        account.save (err)->
-                          if err
-                            callback err
-                          else
-                            user.addOwnAccount account, (err)->
-                              if err
-                                callback err
-                              else
-                                replacementToken = createId()
-                                session.update {
-                                  $set:
-                                    username      : user.username
-                                    lastLoginDate : new Date
-                                    clientId      : replacementToken
-                                  $unset          :
-                                    guestId       : 1
-                                }, (err, docs)->
-                                  if err
-                                    callback err
-                                  else
-                                    user.sendEmailConfirmation()
-                                    JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                      console.log 'An error granting invitations', err if err
-                                    createNewMemberActivity account
-                                    console.log replacementToken
-                                    callback null, account, replacementToken
-
-  
-  @fetchUser = secure ({connection},callback)->
-    connection.remote.fetchClientId (clientId)->
-      JSession.one {clientId},(err,session)->
+    queue = []
+    queue.push =>
+      @usernameAvailable username, (err, r) =>
+        isAvailable = yes
+        # r =
+        #   forbidden    : yes/no
+        #   kodingenUser : yes/no
+        #   kodingUser   : yes/no
         if err
           callback err
+        else if r.forbidden
+          callback createKodingError 'That username is forbidden!'
+        else if r.kodingUser
+          callback createKodingError 'That username is taken!'
+        else do queue.next
+
+    queue.push =>
+      @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
+        if err
+          callback createKodingError err.message
         else
-          {username} = session
-          JUser.one {username}, (err, user)->
-            callback null, user
+          if passwordConfirm isnt password
+            return callback createKodingError 'Passwords must be the same'
+          else if agree isnt 'on'
+            return callback createKodingError 'You have to agree to the TOS'
+          else if not username? or not email?
+            return callback createKodingError 'Username and email are required fields'
+
+        queue.next()
+
+    queue.push =>
+      @verifyKodingenPassword {username, password, kodingenUser}, (err)->
+        if err then return callback createKodingError 'Wrong password'
+        else do queue.next
+
+    queue.push ->
+      JSession.one {clientId: client.sessionToken}, (err, session)->
+        if err
+          callback err
+        else unless session
+          callback createKodingError 'Could not restore your session!'
+        else
+          salt = createSalt()
+          user = new JUser {
+            username
+            email
+            salt
+            password: hashPassword(password, salt)
+          }
+          user.save (err)->
+            if err
+              callback err
+            else
+              hash = getHash email
+              account = new JAccount
+                profile: {
+                  nickname: username
+                  firstName
+                  lastName
+                  hash
+                }
+              account.save (err)->
+                if err
+                  callback err
+                else
+                  user.addOwnAccount account, (err)->
+                    if err
+                      callback err
+                    else
+                      feedData = {title:"followed", description: "Followed Feed"}
+                      account.createFeed feedData, (err, feed) ->
+                        if err
+                          callback err
+                        else
+                          replacementToken = createId()
+                          session.update {
+                            $set:
+                              username      : user.username
+                              lastLoginDate : new Date
+                              clientId      : replacementToken
+                            $unset          :
+                              guestId       : 1
+                          }, (err, docs)->
+                            if err
+                              callback err
+                            else
+                              user.sendEmailConfirmation()
+                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                console.log 'An error granting invitations', err if err
+                              createNewMemberActivity account
+                              JAccount.emit "AccountLoggedIn", account
+                              callback null, account, replacementToken
+    daisy queue
+
+    # @usernameAvailable username, (err, r)=>
+    #   isAvailable = yes
+
+    #   # r =
+    #   #   forbidden    : yes/no
+    #   #   kodingenUser : yes/no
+    #   #   kodingUser   : yes/no
+
+    #   if err
+    #     callback err
+    #   else if r.forbidden
+    #     callback createKodingError 'That username is forbidden!'
+    #   else if r.kodingUser
+    #     callback createKodingError 'That username is taken!'
+    #   else
+    #     @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
+    #       if err
+    #         callback createKodingError err.message
+    #       else
+    #         if passwordConfirm isnt password
+    #           return callback createKodingError 'Passwords must be the same'
+    #         else if agree isnt 'on'
+    #           return callback createKodingError 'You have to agree to the TOS'
+    #         else if not username? or not email?
+    #           return callback createKodingError 'Username and email are required fields'
+            
+    #         @verifyKodingenPassword {username, password, kodingenUser}, (err)->
+    #           if err
+    #             return callback createKodingError 'Wrong password'
+    #           else
+    #             nickname = username
+    #             JSession.one {clientId: client.sessionToken}, (err, session)->
+    #               if err
+    #                 callback err
+    #               else unless session
+    #                 callback createKodingError 'Could not restore your session!'
+    #               else
+    #                 salt = createSalt()
+    #                 user = new JUser {
+    #                   username
+    #                   email
+    #                   salt
+    #                   password: hashPassword(password, salt)
+    #                 }
+    #                 user.save (err)->
+    #                   if err
+    #                     callback err
+    #                   else
+    #                     hash = getHash email
+    #                     account = new JAccount
+    #                       profile: {
+    #                         nickname
+    #                         firstName
+    #                         lastName
+    #                         hash
+    #                       }
+    #                     account.save (err)->
+    #                       if err
+    #                         callback err
+    #                       else
+    #                         user.addOwnAccount account, (err)->
+    #                           if err
+    #                             callback err
+    #                           else
+    #                             JFeed.createFeed account,
+    #                               title: "followed"
+    #                               description: ""
+    #                             , (err, feed) ->
+    #                               if err
+    #                                 callback err
+    #                               else
+    #                                 replacementToken = createId()
+    #                                 session.update {
+    #                                   $set:
+    #                                     username      : user.username
+    #                                     lastLoginDate : new Date
+    #                                     clientId      : replacementToken
+    #                                   $unset          :
+    #                                     guestId       : 1
+    #                                 }, (err, docs)->
+    #                                   if err
+    #                                     callback err
+    #                                   else
+    #                                     user.sendEmailConfirmation()
+    #                                     JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+    #                                       console.log 'An error granting invitations', err if err
+    #                                     createNewMemberActivity account
+    #                                     console.log replacementToken
+    #                                     callback null, account, replacementToken
+
+  @fetchUser = secure (client, callback)->
+    JSession.one {clientId: client.sessionToken}, (err, session)->
+      if err
+        callback err
+      else
+        {username} = session
+        JUser.one {username}, (err, user)->
+          callback null, user
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
@@ -440,6 +542,8 @@ module.exports = class JUser extends jraphical.Module
 
   changeEmail:(account, options, callback)->
 
+    JVerificationToken = require './verificationtoken'
+
     {email, pin} = options
 
     if not pin
@@ -472,6 +576,7 @@ module.exports = class JUser extends jraphical.Module
           callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
+    JEmailConfirmation = require './emailconfirmation'
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err

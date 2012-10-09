@@ -29,7 +29,13 @@ class MainTabView extends KDTabView
 
   showPane:(pane)->
     super pane
-    pane.getMainView().handleEvent type : "click"
+
+    paneMainView = pane.getMainView()
+
+    if paneMainView.data?.constructor.name is 'FSFile'
+      @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
+
+    paneMainView.handleEvent type : "click"
     @handleEvent {type : "MainTabPaneShown", pane}
 
     return pane
@@ -160,9 +166,9 @@ class MainTabView extends KDTabView
       @totalSize    = 0
       @rearrangeVisibleHandlesArray()
       for handle in @visibleHandles
-        @totalSize += handle.$().outerWidth()
+        @totalSize += handle.$().outerWidth(no)
 
-    plusHandleWidth = plusHandle.$().outerWidth()
+    plusHandleWidth = plusHandle.$().outerWidth(no)
     containerSize -= plusHandleWidth
 
     handleSize = if containerSize < @totalSize

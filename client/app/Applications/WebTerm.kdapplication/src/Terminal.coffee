@@ -16,7 +16,7 @@ class WebTerm.Terminal
 
     @inSession = false
     @server = null
-    @showSessionsCallback = null
+    @sessionEndedCallback = null
     @setTitleCallback = null
     
     @pixelWidth = 0
@@ -34,7 +34,7 @@ class WebTerm.Terminal
     @cursor = new WebTerm.Cursor(this)
     
     @measurebox = $(document.createElement("div"))
-    @measurebox.css "position", "fixed"
+    @measurebox.css "position", "absolute"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
     @updateSizeTimer = null
@@ -56,7 +56,7 @@ class WebTerm.Terminal
       
       sessionEnded: () =>
         @inSession = false
-        @showSessions()
+        @sessionEndedCallback()
       
       output: (data) =>
         console.log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
@@ -75,10 +75,6 @@ class WebTerm.Terminal
           atEnd = false
           atEnd = @controlCodeReader.process() until atEnd
           @screenBuffer.flush()
-  
-  showSessions: ->
-    @server.getSessions (sessions) =>
-      @showSessionsCallback sessions
   
   createSession: (name) ->
     @server.createSession name, @sizeX, @sizeY

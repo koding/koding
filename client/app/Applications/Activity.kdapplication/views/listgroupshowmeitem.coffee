@@ -6,3 +6,5 @@ class ListGroupShowMeItem extends CommonInnerNavigationListItem
       new KDNotificationView
         title : "Coming Soon!"
         duration : 1000
+      return no
+

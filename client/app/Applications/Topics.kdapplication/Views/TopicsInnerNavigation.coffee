@@ -2,19 +2,20 @@ class TopicsInnerNavigation extends CommonInnerNavigation
   viewAppended:()->
     showController = @setListController {},@showMenuData
     @addSubView showListWrapper = showController.getView()
-    
+
     showItemToBeSelected = showController.getItemsOrdered()[0]
     showController.selectItem showItemToBeSelected
 
     sortController = @setListController {},@sortMenuData, yes
     @addSubView sortListWrapper = sortController.getView()
 
+    # fixme why timeout
     setTimeout =>
-      @propagateEvent {KDEventType : "CommonInnerNavigationListItemReceivedClick"}, showItemToBeSelected.getData()
+      @emit "NavItemReceivedClick", showItemToBeSelected.getData()
     ,10
 
     @addSubView helpBox = new HelpBox
-  
+
   showMenuData :
     title : "SHOW ME",
     items : [

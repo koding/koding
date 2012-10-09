@@ -3,6 +3,7 @@ jraphical = require 'jraphical'
 JAccount = require '../account'
 JComment = require './comment'
 JTag = require '../tag'
+CActivity = require '../activity'
 CRepliesActivity = require '../activity/repliesactivity'
 
 KodingError = require '../../error'
@@ -40,7 +41,7 @@ module.exports = class JPost extends jraphical.Message
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
-        'on','reply','restComments','commentsByRange'
+        'on','addGlobalListener', 'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
@@ -141,6 +142,7 @@ module.exports = class JPost extends jraphical.Message
               snapshotIds: status.getId()
           , ->
             callback null, teaser
+            CActivity.emit "ActivityIsCreated", activity
             queue.next()
         ->
           status.addParticipant delegate, 'author'
@@ -209,7 +211,6 @@ module.exports = class JPost extends jraphical.Message
         callback null, rel.getAt 'sourceId'
 
   fetchActivity:(callback)->
-    CActivity = require '../../activity'
     @fetchActivityId (err, id)->
       if err
         callback err
@@ -217,7 +218,6 @@ module.exports = class JPost extends jraphical.Message
         CActivity.one _id: id, callback
 
   flushSnapshot:(removedSnapshotIds, callback)->
-    CActivity = require '../../activity'
     removedSnapshotIds = [removedSnapshotIds] unless Array.isArray removedSnapshotIds
     teaser = null
     activityId = null

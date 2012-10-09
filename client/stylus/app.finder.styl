@@ -45,7 +45,7 @@ dimmedNeighbor()
 .nfinder
   .no-context-menu
     .kdlistitemview-finderitem
-      .chevron-arrow
+      .chevron
         hidden()
   .dim
     .kdlistitemview-finderitem.selected
@@ -77,7 +77,7 @@ dimmedNeighbor()
   &:first-child
     margin-top 0px
 
-  .chevron-arrow
+  .chevron
     position          absolute
     top               1px
     right             10px
@@ -119,12 +119,12 @@ dimmedNeighbor()
 
 
   &.selected
-    span.chevron-arrow
+    span.chevron
       display       block
       bg            position,-180px -380px
 
   &:hover
-    span.chevron-arrow
+    span.chevron
       display       block
 
   &.expanded
@@ -133,7 +133,7 @@ dimmedNeighbor()
         bg          position,-40px -120px
 
   &.being-inline-edited
-    .chevron-arrow
+    .chevron
       hidden()
 
   &.being-deleted
@@ -382,7 +382,7 @@ dimmedNeighbor()
 //       &:hover
 //         color         #222
 
-//     .chevron-arrow
+//     .chevron
 //       position      absolute
 //       top           1px
 //       right         10px
@@ -424,12 +424,12 @@ dimmedNeighbor()
 
 
 //     &.selected
-//       span.chevron-arrow
+//       span.chevron
 //         display       block
 //         bg            position,-180px -380px
 
 //     &:hover
-//       span.chevron-arrow
+//       span.chevron
 //         display       block
 
 //     &.folder.expanded
@@ -438,7 +438,7 @@ dimmedNeighbor()
 //           bg          position,-40px -120px
 
 //     &.being-inline-edited
-//       .chevron-arrow
+//       .chevron
 //         hidden()
 
 //     &.being-deleted

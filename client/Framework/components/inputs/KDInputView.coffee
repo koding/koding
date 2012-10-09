@@ -1,7 +1,3 @@
-#####
-# Base Class KDInputView
-#####
-
 class KDInputView extends KDView
 
   constructor:(o = {}, data)->
@@ -374,7 +370,7 @@ class KDInputView extends KDView
 
   focus:->
 
-    @getSingleton("windowController").setKeyView @
+    @setKeyView @
     yes
 
   blur:->

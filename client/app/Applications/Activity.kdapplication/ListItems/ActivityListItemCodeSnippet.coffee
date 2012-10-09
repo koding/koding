@@ -19,7 +19,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
     #   itemsToShow   : 3
-    #   subItemClass  : TagFollowBucketItemView
+    #   itemClass  : TagFollowBucketItemView
     # }
 
   render:->
@@ -66,8 +66,6 @@ class CodesnipActivityItemView extends ActivityItemChild
       {{> @commentBox}}
     </div>
     """
-
-
 
 class CodeSnippetView extends KDCustomHTMLView
 

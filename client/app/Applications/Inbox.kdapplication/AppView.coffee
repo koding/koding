@@ -6,17 +6,14 @@ class InboxView extends KDView
     # Common left pane
     @commonInnerNavigation = new InboxInnerNavigation
 
-    @commonInnerNavigation.registerListener
-      KDEventTypes : "CommonInnerNavigationListItemReceivedClick"
-      listener     : @
-      callback     : (pubInst, data)=>
-        return if data.disabledForBeta
-        {type,action} = data
-        @showTab type
-        if action is "change-tab"
-          @showTab data.type
-        else
-          @sort data.type
+    @commonInnerNavigation.on "NavItemReceivedClick", (data)=>
+      return if data.disabledForBeta
+      {type,action} = data
+      @showTab type
+      if action is "change-tab"
+        @showTab data.type
+      else
+        @sort data.type
 
     @inboxTabs = new KDTabView
       cssClass  : "inbox-tabview"
@@ -45,7 +42,7 @@ class InboxView extends KDView
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
       delegate          : @
-      subItemClass      : InboxMessagesListItem
+      itemClass      : InboxMessagesListItem
 
     inboxMessageListController = new InboxMessageListController
       delegate          : @
@@ -109,7 +106,7 @@ class InboxView extends KDView
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
-        subItemClass  : NotificationListItem
+        itemClass     : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
@@ -134,7 +131,7 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     options.cssClass = "clearfix member-suggestion-item"
     super
 
-    {userInput} = @getDelegate()
+    userInput = options.userInput or @getDelegate().userInput
 
     @avatar = new AutoCompleteAvatarView {},data
     @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data

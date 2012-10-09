@@ -53,6 +53,9 @@ __utils =
 
   trimIllegalChars :(word)->
 
+  curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
+
+
   getUrlParams:(tag)->
     tag ?= window.location.search
     hashParams = {};
@@ -147,10 +150,10 @@ __utils =
     text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       "<a href='#{url}' target='_blank'>#{url}</a>"
 
-  putShowMore: (text)->
+  putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
-      minLength : 500
-      maxLength : 600
+      minLength : l
+      maxLength : l + Math.floor(l/10)
       suffix    : ' '
 
     text = if text.length > 500

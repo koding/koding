@@ -1,3 +1,6 @@
+JAccount  = require '../models/account'
+CActivity = require '../models/activity'
+
 module.exports = class Likeable
 
   {ObjectRef,daisy,secure} = require 'bongo'
@@ -17,7 +20,7 @@ module.exports = class Likeable
         callback err, no
 
   like: secure ({connection}, callback)->
-    JAccount = require '../models/account'
+
     {delegate} = connection
     {constructor} = @
     unless delegate instanceof JAccount
@@ -37,10 +40,12 @@ module.exports = class Likeable
                 callback err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': 1), (err)->
+                  console.log err if err
                 @fetchActivityId? (err, id)->
                   CActivity.update {_id: id}, {
                     $set: 'sorts.likesCount': count
-                  }, log
+                  }, ->
                 @fetchOrigin? (err, origin)=>
                   if err then log "Couldn't fetch the origin"
                   else @emit 'LikeIsAdded', {
@@ -52,6 +57,7 @@ module.exports = class Likeable
                     likesCount    : count
                     relationship  : docs[0]
                   }
+                @flushOriginSnapshot constructor
           else
             @removeLikedBy delegate, respondWithCount: yes, (err, count)=>
               if err
@@ -59,3 +65,17 @@ module.exports = class Likeable
                 console.log err
               else
                 @update ($set: 'meta.likes': count), callback
+                delegate.update ($inc: 'counts.likes': -1), (err)->
+                  console.log err if err
+                @flushOriginSnapshot constructor
+
+  flushOriginSnapshot:(constructor)->
+    if constructor.name is 'JComment'
+      Relationship.one
+        targetId: @getId()
+        as: 'reply'
+      , (err, rel)->
+        if not err and rel
+          rel.fetchSource (err, source)->
+            if not err and source
+              source.flushSnapshot?()

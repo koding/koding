@@ -172,7 +172,7 @@ module.exports = new Kite 'sharedHosting'
         if err then cb err
         else
           exec "stat #{versionedPath}", (err, stdout, stderr)->
-            unless err or stderr.length
+            if err or stderr.length
               cb "[ERROR] Version is already published, change version and try again!"
             else
               exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
@@ -212,7 +212,7 @@ module.exports = new Kite 'sharedHosting'
     #   else
     #     cb null
     exec "stat #{kpmAppPath}", (err, stdout, stderr)->
-      unless err or stderr.length
+      if err or stderr.length
         cb "[ERROR] App files not found! Download cancelled."
       else
         exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
@@ -264,7 +264,7 @@ module.exports = new Kite 'sharedHosting'
       else
         exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
           if err or stderr then cb err
-          else cb
+          else cb null
 
   createSystemUser : (options,callback)->
     #

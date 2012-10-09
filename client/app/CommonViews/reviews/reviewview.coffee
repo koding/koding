@@ -4,7 +4,7 @@ class ReviewView extends KDView
 
     super
 
-    @setClass "comment-container"
+    @setClass "review-container"
     @createSubViews data
     @resetDecoration()
     @attachListeners()
@@ -16,22 +16,22 @@ class ReviewView extends KDView
 
     @reviewList = new KDListView
       type          : "comments"
-      subItemClass  : ReviewListItemView
+      itemClass  : ReviewListItemView
       delegate      : @
     , data
 
     @reviewController         = new ReviewListViewController view: @reviewList
+    @addSubView @commentForm  = new NewReviewForm delegate : @reviewList
     @addSubView showMore      = new CommentViewHeader
       delegate        : @reviewList
       itemTypeString  : 'review'
     , data
     @addSubView @reviewController.getView()
-    @addSubView @commentForm  = new NewReviewForm delegate : @reviewList
 
     @reviewList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @reviewList.on "ReviewIsDeleted", -> showMore.ownCommentDeleted()
 
-    data.fetchRelativeReviews limit:10, after:'meta.createdAt', (err, reviews)=>
+    data.fetchRelativeReviews limit:3, after:'meta.createdAt', (err, reviews)=>
       for review in reviews
         @reviewList.addItem review
 

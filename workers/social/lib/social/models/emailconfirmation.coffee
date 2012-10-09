@@ -1,14 +1,14 @@
 jraphical = require 'jraphical'
 
 module.exports = class JEmailConfirmation extends jraphical.Module
-  
+
   crypto      = require 'crypto'
   createSalt  = require 'hat'
-  
+
   Emailer = require '../emailer'
-  
+
   @share()
-  
+
   @set
     sharedMethods:
       static    : ['confirmByToken']
@@ -25,8 +25,9 @@ module.exports = class JEmailConfirmation extends jraphical.Module
           'invalid status code'
           ['unconfirmed','confirmed']
         ]
-  
+
   @confirmByToken = (token, callback)->
+    JUser = require './user'
     @one {token}, (err, confirmation)->
       if err or !confirmation?
         callback new KodingError err.message or 'Unrecogized token.'
@@ -40,7 +41,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
                 callback err
               else
                 user.confirmEmail callback
-  
+
   @create =(user, callback)->
     email = user.getAt('email')
     salt = createSalt()
@@ -61,30 +62,30 @@ module.exports = class JEmailConfirmation extends jraphical.Module
             callback err
           else
             callback null, confirmation
-  
+
   getSubject:-> '[Koding] Please confirm your email address.'
-  
+
   getTextBody:->
     {host, protocol} = require('../config.email')
     url = "#{protocol}//#{host}/verify/#{encodeURIComponent @getAt('token')}"
-    
+
     #
     # chris: you can do this at some point, i did setup kd.io/ domain.
     #
     # bitly.shorten url,(err,res)->
     #   unless err
     #     url = res.data.url
-    
+
     """
     Hi #{@getAt('username')},
-    
+
     Please confirm your email address in order to fully-activate your new Koding account.
-    
+
     #{url}
     """
-  
+
   confirm:(callback)-> @update {$set: status: 'confirmed'}, callback
-  
+
   send:(callback)->
     Emailer.send
       To        : @getAt('email')

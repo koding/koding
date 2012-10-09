@@ -1,4 +1,4 @@
-class ContentDisplayDiscussion extends KDView
+class ContentDisplayDiscussion extends ActivityContentDisplay
 
   constructor:(options = {}, data)->
 
@@ -8,8 +8,6 @@ class ContentDisplayDiscussion extends KDView
       selector  : "span.type-icon"
 
     super options, data
-
-    @setClass 'activity-item discussion'
 
     origin =
       constructorName  : data.originType
@@ -84,7 +82,7 @@ class ContentDisplayDiscussion extends KDView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      subItemClass  : TagLinkView
+      itemClass  : TagLinkView
     , data.tags
 
     @deleteDiscussionLink = new KDCustomHTMLView
@@ -194,37 +192,41 @@ class ContentDisplayDiscussion extends KDView
 
   pistachio:->
     """
-    <div class='discussion-contents'>
-    <div class="discussion-content">
-      <span>
-        {{> @avatar}}
-        <span class="author">AUTHOR</span>
-      </span>
-      <div class='discussion-main-opinion'>
-        <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
-        <footer class='discussion-footer clearfix'>
-          <div class='type-and-time'>
-            <span class='type-icon'></span> by {{> @author}} •
-            <time>{{$.timeago #(meta.createdAt)}}</time>
-            {{> @tags}}
-            {{> @actionLinks}}
+    {{> @header}}
+    <h2 class="sub-header">{{> @back}}</h2>
+    <div class='kdview content-display-main-section activity-item discussion'>
+      <div class='discussion-contents'>
+        <div class="discussion-content">
+          <span>
+            {{> @avatar}}
+            <span class="author">AUTHOR</span>
+          </span>
+          <div class='discussion-main-opinion'>
+            <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
+            <footer class='discussion-footer clearfix'>
+              <div class='type-and-time'>
+                <span class='type-icon'></span> by {{> @author}} •
+                <time>{{$.timeago #(meta.createdAt)}}</time>
+                {{> @tags}}
+                {{> @actionLinks}}
+              </div>
+            </footer>
+            {{> @editDiscussionLink}}
+            {{> @deleteDiscussionLink}}
+            <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
           </div>
-        </footer>
-        {{> @editDiscussionLink}}
-        {{> @deleteDiscussionLink}}
-        <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
+        </div>
       </div>
-    </div>
-    </div>
-    <div class="opinion-content">
-      {{> @opinionBoxHeader}}
-      {{> @opinionBox}}
-      <div class="content-display-main-section opinion-form-footer">
-        {{> @opinionForm}}
+      <div class="opinion-content">
+        {{> @opinionBoxHeader}}
+        {{> @opinionBox}}
+        <div class="content-display-main-section opinion-form-footer">
+          {{> @opinionForm}}
+        </div>
       </div>
-    </div>
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
+      <div class="discussion-nav">
+        {{> @jumpToTopLink}}
+        {{> @jumpToReplyLink}}
+      </div>
     </div>
     """

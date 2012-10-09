@@ -23,7 +23,7 @@ class Inbox12345 extends AppController
     callback()
 
   fetchMessages:(options, callback)->
-    #KD.whoami().fetchMail? options, callback
+    KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->

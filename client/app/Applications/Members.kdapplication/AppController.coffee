@@ -5,10 +5,6 @@ class Members12345 extends AppController
     ,options
     super options,data
 
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      if @_searchValue and itemClass is MembersListItemView and filterName is 'everything'
-        @setCurrentViewHeader count
-
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -21,7 +17,7 @@ class Members12345 extends AppController
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : MembersListItemView
+      itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       help                  :
@@ -63,11 +59,14 @@ class Members12345 extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
+      controller.on "FeederListViewItemCountChanged", (count, filter)=>
+        if @_searchValue and filter is 'everything'
+          @setCurrentViewHeader count
 
   createFeedForContentDisplay:(view, account, followersOrFollowing)->
 
     appManager.tell 'Feeder', 'createContentFeedController', {
-      subItemClass          : MembersListItemView
+      itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
       # singleDataSource      : (selector, options, callback)=>
@@ -106,6 +105,50 @@ class Members12345 extends AppController
     newView = (new MembersContentDisplayView cssClass : "content-display #{filter}")
     newView.createCommons(account, filter)
     @createFeedForContentDisplay newView, account, filter
+
+  createLikedFeedForContentDisplay:(view, account)->
+
+    appManager.tell 'Feeder', 'createContentFeedController', {
+      itemClass             : ActivityListItemView
+      listCssClass          : "activity-related"
+      limitPerPage          : 8
+      help                  :
+        subtitle            : "Learn Personal feed"
+        tooltip             :
+          title             : "<p class=\"bigtwipsy\">This is the liked feed of a single Koding user.</p>"
+          placement         : "above"
+      filter                :
+        everything          :
+          title             : "Everything"
+          dataSource        : (selector, options, callback)=>
+            account.fetchLikedContents options, callback
+        statusupdates       :
+          title             : 'Status Updates'
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JStatusUpdate']}
+            account.fetchLikedContents options, selector, callback
+        codesnippets        :
+          title             : 'Code Snippets'
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JCodeSnip']}
+            account.fetchLikedContents options, selector, callback
+      sort                :
+        'timestamp|new'   :
+          title           : 'Latest activity'
+          direction       : -1
+        'timestamp|old'   :
+          title           : 'Most activity'
+          direction       : 1
+    }, (controller)=>
+
+      view.addSubView controller.getView()
+      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+
+  createLikedContentDisplay:(account)->
+    newView = (new MembersLikedContentDisplayView cssClass : "content-display likes")
+    newView.createCommons account
+    @createLikedFeedForContentDisplay newView, account
 
   loadView:(mainView, firstRun = yes)->
     if firstRun
@@ -154,23 +197,22 @@ class Members12345 extends AppController
     @getView().$(".activityhead span.optional_title").html title
 
   fetchFeedForHomePage:(callback)->
-    options =
-      limit     : 6
-      skip      : 0
-      sort      :
-        "meta.modifiedAt": -1
+    options  =
+      limit  : 6
+      skip   : 0
+      sort   : "meta.modifiedAt" : -1
     selector = {}
     KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
   fetchSomeMembers:(options = {}, callback)->
-    
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or= "meta.modifiedAt" : -1
-    selector           = options.selector or {}
+
+    options.limit or= 6
+    options.skip  or= 0
+    options.sort  or= "meta.modifiedAt" : -1
+    selector        = options.selector or {}
 
     delete options.selector if options.selector
-    
+
     KD.remote.api.JAccount.byRelevance selector, options, callback
 
 

@@ -15,7 +15,7 @@ class ActivityItemChild extends KDView
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
-      subItemClass  : TagLinkView
+      itemClass  : TagLinkView
     , data.tags
 
 
@@ -46,14 +46,14 @@ class ActivityItemChild extends KDView
     super
 
     data = @getData()
-    data.on 'TagsChanged', (tagRefs)=>
+    data.addGlobalListener 'TagsChanged', (tagRefs)=>
       KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
         # debugger
         @tags.render()
 
-    data.on 'PostIsDeleted', =>
+    data.addGlobalListener 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
         @parent.destroy()
       else
@@ -72,27 +72,31 @@ class ActivityItemChild extends KDView
 
   settingsMenu:(data)->
 
-    account = KD.whoami()
-
-    menu = [
-      type      : "contextmenu"
-      items     : []
-    ]
+    account        = KD.whoami()
+    mainController = @getSingleton('mainController')
 
     if data.originId is KD.whoami().getId()
-      menu[0].items = [
-        { title : 'Edit',   id : 1,  parentId : null, callback : => @getSingleton('mainController').emit 'ActivityItemEditLinkClicked', data }
-        { title : 'Delete', id : 2,  parentId : null, callback : => @confirmDeletePost data  }
-      ]
+      menu =
+        'Edit'     :
+          callback : =>
+            mainController.emit 'ActivityItemEditLinkClicked', data
+        'Delete'   :
+          callback : =>
+            @confirmDeletePost data
 
       return menu
 
     if KD.checkFlag 'super-admin'
-      menu[0].items = [
-        { title : 'MARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').markUserAsTroll data  }
-        { title : 'UNMARK USER AS TROLL', id : 1,  parentId : null, callback : => @getSingleton('mainController').unmarkUserAsTroll data  }
-        { title : 'Delete Post', id : 3,  parentId : null, callback : => @confirmDeletePost data  }
-      ]
+      menu =
+        'MARK USER AS TROLL' :
+          callback : =>
+            mainController.markUserAsTroll data
+        'UNMARK USER AS TROLL' :
+          callback : =>
+            mainController.unmarkUserAsTroll data
+        'Delete Post' :
+          callback : =>
+            @confirmDeletePost data
 
       return menu
 
