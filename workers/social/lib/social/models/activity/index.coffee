@@ -19,10 +19,7 @@ module.exports = class CActivity extends jraphical.Capsule
     #   'sorts.likesCount'    : 'sparse'
     #   'sorts.followerCount' : 'sparse'
     sharedMethods     :
-      static          : [
-        'one','some','all','on','someData','teasers',
-        'captureSortCounts', 'addGlobalListener'
-      ]
+      static          : ['one','some','all','on','someData','teasers','captureSortCounts']
       instance        : ['fetchTeaser']
     schema            :
       # teaserSnapshot  : Object

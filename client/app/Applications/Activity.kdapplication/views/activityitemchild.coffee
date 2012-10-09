@@ -46,14 +46,14 @@ class ActivityItemChild extends KDView
     super
 
     data = @getData()
-    data.addGlobalListener 'TagsChanged', (tagRefs)=>
+    data.on 'TagsChanged', (tagRefs)=>
       KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
         # debugger
         @tags.render()
 
-    data.addGlobalListener 'PostIsDeleted', =>
+    data.on 'PostIsDeleted', =>
       if KD.whoami().getId() is data.getAt('originId')
         @parent.destroy()
       else
