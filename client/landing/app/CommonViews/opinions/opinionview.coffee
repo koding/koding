@@ -37,12 +37,7 @@ class OpinionView extends KDView
     @opinionList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-    # @listenTo
-    #   KDEventTypes : "DecorateActiveOpinionView"
-    #   listenedToInstance : @opinionList
-    #   callback : @decorateActiveCommentState
     @opinionList.on "DecorateActiveOpinionView", =>
-      log "stuff"
       @decorateActiveCommentState
 
     @opinionList.on "OpinionLinkReceivedClick", =>

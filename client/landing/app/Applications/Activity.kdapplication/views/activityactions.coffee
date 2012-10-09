@@ -99,7 +99,7 @@ class ActivityLikeCount extends ActivityCountLink
     if activity.meta.likes isnt @oldCount
       @emit "countChanged", activity.meta.likes
     @oldCount = activity.meta.likes
-    if activity.meta.likes == 0 then @hide() else @show()
+    if activity.meta.likes is 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
 

@@ -10,11 +10,16 @@ class StatusActivityItemView extends ActivityItemChild
 
     super options,data
 
+    @embedBox = new EmbedBox
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    firstUrl = (@$("span.data > a:first-child").attr "href") or no
+    if firstUrl then @embedBox.embedUrl firstUrl, {}
 
   click:(event)->
 
@@ -32,6 +37,7 @@ class StatusActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
       <p>{{@applyTextExpansions #(body)}}</p>
+      {{> @embedBox}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
