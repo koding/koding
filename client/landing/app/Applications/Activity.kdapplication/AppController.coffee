@@ -8,6 +8,7 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
+      'CLinkActivity'
       'CCodeSnipActivity'
       'CDiscussionActivity'
       'CFollowerBucketActivity'
@@ -15,7 +16,6 @@ class Activity12345 extends AppController
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES
       'CCodeShareActivity'
-      'CLinkActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -191,12 +191,12 @@ class Activity12345 extends AppController
           'CStatusActivity'
           'CCodeSnipActivity'
           'CDiscussionActivity'
+          'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES
           'CCodeShareActivity'
-          'CLinkActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -261,6 +261,7 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
+        'CLinkActivity'
         'CCodeSnipActivity'
         'CDiscussionActivity'
         'CFollowerBucketActivity'
@@ -268,7 +269,6 @@ class Activity12345 extends AppController
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES
         'CCodeShareActivity'
-        'CLinkActivity'
         'CInstallerBucketActivity'
       ]
 

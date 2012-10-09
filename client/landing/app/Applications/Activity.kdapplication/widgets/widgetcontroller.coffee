@@ -225,10 +225,13 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
 
+      log "Link data is", data
+
       KD.remote.api.JLink.create data, (err, link) =>
         callback? err, link
         stopSubmission()
         if err
+          log err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
           @propagateEvent (KDEventType:"OwnActivityHasArrived"), link
