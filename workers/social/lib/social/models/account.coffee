@@ -196,12 +196,12 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
       if err
         callback err
       else
-        queue = activities.map (activity)->
-          -> activity.mark client, 'glanced', -> queue.fin()
+        queue = activities.map (activity)->->
+          activity.mark client, 'glanced', -> queue.fin()
         dash queue, callback
 
   fetchNonces: secure (client, callback)->
@@ -431,18 +431,6 @@ module.exports = class JAccount extends jraphical.Module
     {profile} = @data
     profile.firstName+' '+profile.lastName
 
-  markAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, console.log
-        item.emit 'ContentMarkedAsLowQuality', null
-
-  unmarkAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, console.log
-        item.emit 'ContentUnmarkedAsLowQuality', null
-
   fetchStorage: secure (client, options, callback)->
     account = @
     unless @equals client.connection.delegate
@@ -470,6 +458,17 @@ module.exports = class JAccount extends jraphical.Module
       else
         callback err, storage
 
+  markAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        item.update {$set: isLowQuality: yes}, console.log
+        item.emit 'ContentMarkedAsLowQuality', null
+
+  unmarkAllContentAsLowQuality:->
+    @fetchContents (err, contents)->
+      contents.forEach (item)->
+        item.update {$set: isLowQuality: no}, console.log
+        item.emit 'ContentUnmarkedAsLowQuality', null
 
   @taintedAccounts = {}
   @taint =(id)->
