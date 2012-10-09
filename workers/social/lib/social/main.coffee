@@ -21,7 +21,7 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 
 EXCHANGE_PREFIX = "followable-"
 
-{distributeActivityToFollowers} = require "./feeder"
+{distributeActivityToFollowers, assureExchangeMesh} = require "./feeder"
 distributeActivityToFollowers
   mq: mq
   mongo: mongo

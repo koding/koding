@@ -1,11 +1,12 @@
+mongoskin = require 'mongoskin'
+Broker = require 'broker'
+
 module.exports = 
   distributeActivityToFollowers: (options = {}) ->
-    mongoskin = require 'mongoskin'
-    Broker = require 'broker'
     {ObjectId} = require 'bongo'
 
     {mq, mongo, exchangePrefix} = options
-    
+
     mq ?= 
       host: "localhost"
       login: "guest"
@@ -54,6 +55,41 @@ module.exports =
 
 
   assureExchangeMesh: (options) ->
+    {mq, mongo, exchangePrefix} = options
+
+    mq ?= 
+      host: "localhost"
+      login: "guest"
+      password: "guest"
+      vhost: "/"
+
+    broker = new Broker mq
+
+    getExchangeName = (id) ->
+      "#{exchangePrefix}#{id}"
+
+    dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
+    db = mongoskin.db dbUrl
+    accountsCol = db.collection 'jAccounts'
+    relationshipsCol = db.collection 'relationships'
+
+    accountsCol.findEach {}, {_id: yes}, (err, {_id}) ->
+      userXData = {name:getExchangeName _id}
+      # console.log "-------------"
+      # console.log "Account #{_id} is following "
+
+      selector =
+        targetId  : _id
+        sourceName: {$in: ['JAccount', 'JTag']}
+        as        : 'follower'
+      relationshipsCol.findEach selector, {sourceId: yes}, (err, rel) ->
+        if rel?
+          console.log sourceId
+          followeeXName = getExchangeName rel.sourceId
+          followeeXData = {name: followeeXName}
+          routing = "#{followeeXName}.activity"
+          console.log "---"
+          broker.bindExchange userXData, followeeXData, routing
 
   ###
   function ensureuserFeeds (Array feeds) -> void()

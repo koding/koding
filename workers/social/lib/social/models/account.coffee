@@ -260,7 +260,7 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
