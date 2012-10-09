@@ -112,7 +112,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
-    str = @utils.expandUsernames @utils.applyMarkdown str
+    str = @utils.expandUsernames str
 
     if str.length > 500
       visiblePart = str.substr 0, 500
