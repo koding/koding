@@ -24,6 +24,7 @@ class Activity12345 extends AppController
     # devrim is currently working on refactoring them - 3/15/12 sah
 
     # i kind of cleared that mess, still needs work - 26 April 2012 sinan
+    # remove this shit, do it with kitecontroller :) - 8 October 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -112,11 +113,8 @@ class Activity12345 extends AppController
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
-    activityInnerNavigation.registerListener
-      KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
-      listener      : @
-      callback      : (pubInst, data)=>
-        @filter data.type, loadIfMoreItemsIsNecessary
+    activityInnerNavigation.on "NavItemReceivedClick", (data)=>
+      @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
