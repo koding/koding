@@ -86,12 +86,12 @@ class KDWindowController extends KDController
       @redirectMouseMoveEvent e if @dragView
     , yes
 
-    # unless window.location.hostname is 'localhost'
-    #   window.onbeforeunload = (event) =>
-    #     event or= window.event
-    #     msg = "Please make sure that you saved all your work."
-    #     event.returnValue = msg if event # For IE and Firefox prior to version 4
-    #     return msg
+    unless window.location.hostname is 'localhost'
+      window.onbeforeunload = (event) =>
+        event or= window.event
+        msg = "Please make sure that you saved all your work."
+        event.returnValue = msg if event # For IE and Firefox prior to version 4
+        return msg
 
   setDragInAction:(action = no)->
 
