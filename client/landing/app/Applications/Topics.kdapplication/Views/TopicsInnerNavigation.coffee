@@ -9,8 +9,9 @@ class TopicsInnerNavigation extends CommonInnerNavigation
     sortController = @setListController {},@sortMenuData, yes
     @addSubView sortListWrapper = sortController.getView()
 
+    # fixme why timeout
     setTimeout =>
-      @propagateEvent {KDEventType : "CommonInnerNavigationListItemReceivedClick"}, showItemToBeSelected.getData()
+      @emit "NavItemReceivedClick", showItemToBeSelected.getData()
     ,10
 
     @addSubView helpBox = new HelpBox
