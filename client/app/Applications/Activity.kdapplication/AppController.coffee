@@ -97,7 +97,7 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.on "FollowedActivityArrived", ([activity]) =>
+    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
       if activity.constructor.name in @currentFilter
         @activityListController.followedActivityArrived activity
 
