@@ -42,7 +42,8 @@ var Server string = "gl.koding.com:12201"
 var conn net.Conn
 
 func init() {
-	flag.BoolVar(&Verbose, "v", false, "Logging on console")
+	flag.IntVar(&MaxLevel, "l", 6, "Log level")
+	flag.BoolVar(&Verbose, "v", false, "Logging to console instead of Graylog")
 	Hostname, _ = os.Hostname()
 }
 
@@ -108,6 +109,7 @@ func NewGelfMessage(level int, file string, line int, message ...interface{}) *G
 func Send(gelf interface{}) {
 	if Verbose {
 		fmt.Println(gelf)
+		return
 	}
 
 	data, err := json.Marshal(gelf)

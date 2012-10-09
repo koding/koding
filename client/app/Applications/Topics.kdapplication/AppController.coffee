@@ -10,9 +10,6 @@ class Topics12345 extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
-
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -68,6 +65,8 @@ class Topics12345 extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
+      controller.on "FeederListViewItemCountChanged", (count)=>
+        if @_searchValue then @setCurrentViewHeader count
 
   loadView:(mainView, firstRun = yes)->
 
