@@ -4,12 +4,13 @@ Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
-
-  JEmailConfirmation = require './emailconfirmation'
+  {daisy} = require 'sinkrow'
+  
+  JAccount  = require './account'
+  JSession  = require './session'
+  JGuest    = require './guest'
   JInvitation = require './invitation'
-  JAccount    = require './account'
-  JSession    = require './session'
-  JGuest      = require './guest'
+  #JFeed     = require './feed'
 
   createId = require 'hat'
 
@@ -99,7 +100,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'owner'
       emailConfirmation :
-        targetType      : JEmailConfirmation
+        targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -235,6 +236,7 @@ module.exports = class JUser extends jraphical.Module
                     callback err
                   else
                     connection.delegate = account
+                    JAccount.emit "AccountLoggedIn", account
                     callback null, account, replacementToken
 
   @logout = secure (client, callback)->
