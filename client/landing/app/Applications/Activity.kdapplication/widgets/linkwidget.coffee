@@ -51,7 +51,6 @@ class ActivityLinkWidget extends KDFormView
 
           @embedBox.embedUrl @link.getValue(), {}, (linkData)=>
 
-            log "now here i am,doing stuff"
             @labelTitle.show()
             @labelDescription.show()
             @title.show()
@@ -62,33 +61,6 @@ class ActivityLinkWidget extends KDFormView
             @removeCustomData 'link_embed'
             @addCustomData 'link_embed', linkData
 
-          # requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
-
-          #   @previousLink = @link.getValue()
-
-          #   @$("div.embed").remove()
-          #   @linkPreview.updatePartial '<a href="#" class="link-preview hidden">Link</a>'
-
-          #   @$("a.link-preview").attr("href":@link.getValue()).html(@link.getValue())
-          #   @$("div.link-embed").embedly({
-          #     key      : "16ccd8f288f54b51b34edf686f97bdc9"
-          #     maxWidth : 560-20
-          #     width    : 560-20
-          #     wmode    : "transparent"
-          #     success  : (data)=>
-          #       log "data",data
-          #       @$("div.link-embed").html data.code
-          #       @labelTitle.show()
-          #       @labelDescription.show()
-          #       @title.show()
-          #       @description.show()
-
-          #       #unless @title.getValue() then
-          #       @title.setValue data.title
-          #       @description.setValue data.description
-          #       @removeCustomData 'link_embed'
-          #       @addCustomData 'link_embed', data
-          #   })
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
