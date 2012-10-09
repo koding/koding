@@ -113,10 +113,7 @@ class Activity12345 extends AppController
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
-    log activityInnerNavigation
-
     activityInnerNavigation.on "NavItemReceivedClick", (data)=>
-      log "nooooo"
       @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
