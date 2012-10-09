@@ -97,7 +97,7 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+    account.on "FollowedActivityArrived", ([activity]) =>
       if activity.constructor.name in @currentFilter
         @activityListController.followedActivityArrived activity
 
@@ -381,7 +381,7 @@ class ActivityListController extends KDListViewController
 
     super
 
-    @fetchFollowings()
+    #@fetchFollowings()
 
   fetchFollowings:->
     # To filter followings activites we need to fetch followings data
@@ -397,10 +397,6 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   isInFollowing:(activity, callback)->
-    # if activity.originId in @_following or activity.anchor?.id in @_following
-    #   return true
-    # else
-
     account = KD.whoami()
     {originId, anchor} = activity
     account.isFollowing originId, 'JAccount', (result) ->
@@ -434,25 +430,6 @@ class ActivityListController extends KDListViewController
         when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
-
-    # unless @isMine activity
-    #   if @_state is 'public'
-    #     view = @addHiddenItem activity, 0
-    #     @activityHeader.newActivityArrived()
-    #   else if @_state is 'private'
-    #     @isInFollowing activity, (result) =>
-    #       if result
-    #         view = @addHiddenItem activity, 0
-    #         @activityHeader.newActivityArrived()
-
-      # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
-      #   view = @addHiddenItem activity, 0
-      #   @activityHeader.newActivityArrived()
-    # else
-    #   switch activity.constructor
-    #     when KD.remote.api.CFolloweeBucket
-    #       @addItem activity, 0
-    #   @ownActivityArrived activity
 
   addHiddenItem:(activity, index, animation = null)->
     instance = @getListView().addHiddenItem activity, index, animation
