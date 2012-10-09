@@ -26,9 +26,10 @@ __bookPages = [
     content   : "“This sounds amazing!” They each began to sing,<br/>“Let’s package it together and call it Koding!”"
   ,
     title     : "Foreword"
-    content   : """<p>Koding is a developer community and cloud development environment that gives you a full stack of collaboration & development tools in your browser.</p>
-                   <p>New to Koding? This tutorial will have you developing, publishing and sharing in no time.</p>
-                   <p>So sit back, relax, and enjoy this “How To”. Oh, and welcome home.</p>"""
+    content   : """<p>Koding is your new computer in your browser where you make software.</p>
+                   <p>New to Koding? If you are an experienced developer you will find awesome tools to set up your development environment.</p>
+                   <p>Are you new to programming? Writing your first "Hello World" application literally is 5 minutes away from you. It's going to be fun! :)</p>  
+                   <p>Welcome home! Hope you will enjoy the ride.</p>"""
   ,
     title     : "Activity"
     content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
