@@ -11,4 +11,4 @@ KD.remote = new Bongo
       vhost         : broker.vhost
       autoReconnect : yes
     }
-    new Broker broker.apiKey, brokerOptions
+    broker = new Broker broker.apiKey, brokerOptions

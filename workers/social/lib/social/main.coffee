@@ -80,5 +80,4 @@ koding.connect console.log
 #   # Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
 #   # # koding.models.JGuest._resetAllGuests()
 # , 2e3
-
 console.log 'Koding Social Worker has started.'
