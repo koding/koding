@@ -35,12 +35,15 @@ Broker = require 'broker'
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email} = KONFIG
 
+broker.on 'connected', console.log.bind console, 'connected'
+broker.on 'disconnected', console.log.bind console, 'disconnected'
+
 koding = new Bongo
   root        : __dirname
   mongo       : mongo
   models      : './models'
   queueName   : 'koding-social'
-  mq          : new Broker mq
+  mq          : broker
   fetchClient :(sessionToken, callback)->
     koding.models.JUser.authenticateClient sessionToken, (err, account)->
       if err
@@ -54,30 +57,5 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
-# setInterval ->
-#   {Relationship} = require 'jraphical'
-#   {ObjectId} = require 'bongo'
-#   {extend} = require 'underscore'
-#   test = {
-#     targetId: ObjectId('4eea4fd93e25516404000004'),
-#     targetName: 'JAccount',
-#     sourceId: ObjectId('5007591678b8468137000002'),
-#     sourceName: 'JAccount',
-#     as: 'follower'
-#   }
-#   rel = new Relationship(test) #.save console.log
-  
-#   softPrune = rel.prune()
-#   hardPrune = rel.prune(yes)
 
-#   require('traverse')([softPrune, hardPrune]).forEach (node)->
-#     console.log node.constructor if /Id$/.test @path
-#     console.log ''+node if /Id$/.test @path
-#     return
-#   console.log 'HARD', hardPrune
-
-#   # Relationship.getCollection().insert(softPrune, (safe:yes), console.log.bind(console, 'prune()'))
-#   # Relationship.getCollection().insert(hardPrune, (safe:yes), console.log.bind(console, 'prune(yes)'))
-#   # # koding.models.JGuest._resetAllGuests()
-# , 2e3
 console.log 'Koding Social Worker has started.'
