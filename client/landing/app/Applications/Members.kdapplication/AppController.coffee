@@ -72,6 +72,7 @@ class Members12345 extends AppController
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       limitPerPage          : 10
+      noItemFoundText       : "There is no member."
       # singleDataSource      : (selector, options, callback)=>
         # filterFunc selector, options, callback
       help                  :
