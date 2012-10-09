@@ -318,7 +318,7 @@ class Sidebar extends JView
       { title : "Activity" }
       { title : "Topics" }
       { title : "Members" }
-      { title : "Groups",  path : "GroupsFake" }
+      # { title : "Groups",  path : "GroupsFake" }
       { title : "Develop", loggedIn : yes,  path : "StartTab" }
       { title : "Apps" }
     ]
@@ -357,7 +357,7 @@ class Sidebar extends JView
       { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
       { title : "About", callback : -> @showAboutDisplay() }
       { title : "Chat",  loggedIn : yes, callback : ->
-          @getSingleton('bottomPanel').emit "ToggleBottomPanel"
+          @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
           unless location.hostname is "localhost"
             new KDNotificationView title : "Coming soon..."
       }

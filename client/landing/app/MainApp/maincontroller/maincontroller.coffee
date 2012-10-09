@@ -6,7 +6,8 @@ class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait = 5000 # duration in miliseconds to show a connection failed modal
+    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+    options.startPage = "Activity"      # start page path
 
     super options, data
 
@@ -89,8 +90,7 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Activity", yes
-      # appManager.openApplication "Demos", yes
+      appManager.openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
