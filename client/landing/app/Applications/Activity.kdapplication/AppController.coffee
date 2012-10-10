@@ -8,6 +8,7 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
+      # 'CLinkActivity'
       'CCodeSnipActivity'
       'CDiscussionActivity'
       'CFollowerBucketActivity'
@@ -192,6 +193,7 @@ class Activity12345 extends AppController
           'CStatusActivity'
           'CCodeSnipActivity'
           'CDiscussionActivity'
+          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
@@ -263,6 +265,7 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
+        # 'CLinkActivity'
         'CCodeSnipActivity'
         'CDiscussionActivity'
         'CFollowerBucketActivity'
@@ -285,8 +288,9 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES
+      # THIS WILL DISABLE CODE SHARES/LINKS
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -298,6 +302,15 @@ class Activity12345 extends AppController
       title : "Status Update"
       type  : "status"
     ,activity
+
+  createLinkContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Link"
+      type        : "link"
+      contentView : new ContentDisplayStatusUpdate {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
 
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
@@ -311,7 +324,6 @@ class Activity12345 extends AppController
   #     title       : "Code Share"
   #     type        : "codeshare"
   #   , activity
-
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion
