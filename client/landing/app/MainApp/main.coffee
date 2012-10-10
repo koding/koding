@@ -1,82 +1,101 @@
 #Broker.channel_auth_endpoint = KD.config.apiUri+'/1.0/channel/auth';
 #Broker.channel_auth_endpoint = 'http://localhost:8008/auth'
 
-do ->
-  mainController             = new MainController
-  firstLoad                  = yes
-  connectionLostModal        = null
-  connectionLostNotification = null
+# THIS OVERRIDE NEEDS TO WAIT
+# NOT YET TOTALLY INTEROPERABLE
+# WITH Encoder.htmlDecode
 
-  destroyNotification = ->
-    connectionLostNotification?.destroy()
-    connectionLostNotification = null
+# Encoder.htmlEncode = do->
 
-  # destroyConnectionSetNotification = ->
-  #   connectionSetNotification?.destroy()
-  #   connectionSetNotification = null
+#    htmlMap =
+#      '&' : 'amp'
+#      '<' : 'lt'
+#      '"' : 'quot'
+#      '<' : 'lt'
+#      '>' : 'gt'
+#      "'" : '#39'
+#      '`' : '#96'
+#      '!' : '#33'
+#      '@' : '#36'
+#      '%' : '#37'
+#      '(' : '#40'
+#      ')' : '#41'
+#      '=' : '#61'
+#      '+' : '#43'
+#      '{' : '#123'
+#      '}' : '#125'
+#      '[' : '#91'
+#      ']' : '#93'
 
-  destroyModal = (reconnected = no)->
-    connectionLostModal?.destroy()
-    destroyNotification()
-    if reconnected isnt no
-      new KDNotificationView
-        title         : "Reconnected"
-        type          : "tray"
-        content       : "Server connection has been reset, you can continue working."
-        duration      : 3000
-    else
-      connectionLostNotification = new KDNotificationView
-        title         : "Trying to reconnect..."
-        type          : "tray"
-        closeManually : no
-        content       : "Server connection has been lost, changes will not be saved until server reconnects, please back up locally."
-        duration      : 0
-      connectionLostModal = null
+#    (str)-> str.replace /(&(?!\w\w+;)|'|<|>|"|'|`|\!|\@|\$|\%|\(|\)|\=|\+|\{|\}|\[|\])/g, (match)-> "&#{htmlMap[match]};"
 
-  showModal = ->
-    return if connectionLostModal
-    destroyNotification()
-    connectionLostModal = new KDBlockingModalView
-      title   : "Server connection lost"
-      content : """
-        <div class='modalformline'>
-          Your internet connection may be down, or our server is.<br/><br/>
-          If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
-          <span class='small-loader fade in'></span> Trying to reconnect...
-        </div>
-        """
-      height  : "auto"
-      overlay : yes
-      buttons :
-        "Close and Refresh later" :
-          style     : "modal-clean-red"
-          callback  : -> destroyModal()
-
-    connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal()
-
-  ###
-  # CONNECTIVITY EVENTS
-  ###
-
-  KD.remote.on 'loggedInStateChanged', (account)->
-    KD.socketConnected()
-    mainController.accountChanged account
-    AccountMixin.init(KD.remote.api)
+mainController = new MainController
 
 
-  KD.remote.on 'connected', ->
-    if firstLoad
-      log 'kd remote connected'
-      firstLoad = no
-    else
-      log 'kd remote re-connected'
-      destroyModal yes
+KD.remote.on 'loggedInStateChanged', (account)->
+  KD.socketConnected()
+  mainController.accountChanged account
+  AccountMixin.init(KD.remote.api)
 
-  KD.remote.on 'disconnected', ->
-    # to avoid modal to appear on page refresh
-    __utils.wait 500, showModal
+# Pistachio.MODE = if KD.env is 'dev' then 'development' else 'production'
 
-  KD.remote.connect()
+#$.cookie 'clientId', localStorage.clientId
+
+# Cacheable = new Cacheable
+
+# setTimeout ->
+#   appManager.openApplication("Chat")
+# ,5000
+
+firstLoad = yes
+connectionLostModalId = null
+connectionLostNotification = null
+
+KD.remote.on 'connected', -> console.log('kd connected')
+
+KD.remote.on 'disconnected', ->
+  #
+  # CONNECTIVITY NOTIFICATIONS PART START
+  #
+  setTimeout -> # to avoid modal to appear on page refresh
+
+    if connectionLostNotification?
+      connectionLostNotification.destroy()
+      connectionLostNotification = null
+
+    # THE MODAL APPEARS WHEN CONNECTION IS LOST
+    unless connectionLostModalId?
+      connectionLostModalId = KDModalController.createAndShowNewModal
+        type    : 'blocking'
+        title   : "Server connection lost"
+        content : """
+          <div class='modalformline'>
+            Your internet connection may be down, or our server is.<br/><br/>
+            If you have unsaved work please close this dialog and <br/><strong>back up your unsaved work locally</strong> until the connection is re-established.<br/><br/>
+            <span class='small-loader fade in'></span> Trying to reconnect...
+          </div>
+          """
+        height  : "auto"
+        overlay : yes
+        buttons :
+          "Close and Refresh later" :
+            style     : "modal-clean-red"
+            callback  : ()->
+              @propagateEvent KDEventType:'KDModalShouldClose'
+              connectionLostModalId = null
+              if connectionLostNotification?
+                connectionLostNotification.destroy()
+                connectionLostNotification = null
+
+              updateModalActive = no
+
+              # THE NOTIFICATION APPEARS WHEN MODAL WAS CLOSED BEFORE CONNECTION RE-ESTABLISHES
+              connectionLostNotification = new KDNotificationView
+                title    : "Server Connection Has Been Lost"
+                content  : "Trying to reconnect..., changes will not be saved until server reconnects, please back up locally."
+                duration : 0
+
+KD.remote.connect -> console.log 'koding is now connected to the backend'
 
 
   #initConnectionEvents conn
