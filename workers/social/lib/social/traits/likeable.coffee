@@ -9,15 +9,18 @@ module.exports = class Likeable
   checkIfLikedBefore: secure ({connection}, callback)->
     {delegate} = connection
     {constructor} = @
-    Relationship.one
-      sourceId: @getId()
-      targetId: delegate.getId()
-      as: 'like'
-    , (err, likedBy)=>
-      if likedBy
-        callback null, yes
-      else
-        callback err, no
+    if not delegate
+      callback null, no
+    else
+      Relationship.one
+        sourceId: @getId()
+        targetId: delegate.getId()
+        as: 'like'
+      , (err, likedBy)=>
+        if likedBy
+          callback null, yes
+        else
+          callback err, no
 
   like: secure ({connection}, callback)->
 
@@ -74,6 +77,15 @@ module.exports = class Likeable
       Relationship.one
         targetId: @getId()
         as: 'reply'
+      , (err, rel)->
+        if not err and rel
+          rel.fetchSource (err, source)->
+            if not err and source
+              source.flushSnapshot?()
+    if constructor.name is 'JOpinion'
+      Relationship.one
+        targetId: @getId()
+        as: 'opinion'
       , (err, rel)->
         if not err and rel
           rel.fetchSource (err, source)->

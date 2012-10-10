@@ -26,6 +26,7 @@ class ContentDisplayControllerTopic extends KDViewController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
+      noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."
       limitPerPage        : 5
       filter              :
         content           :
