@@ -40,7 +40,7 @@ module.exports = deepFreeze
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
         vhost   : '/'
-      apiUri    : 'https://api.koding.com'
+      apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'http://dev-app.koding.com'
       env       : 'stage'
   mq            :
@@ -64,7 +64,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'test'
-      password  : 'test'
+      login     : 'stage'
+      password  : '#[85_[*zh7%4;4l6T]F!'
       vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'
