@@ -51,10 +51,15 @@ var Profile string
 var Current Config
 
 func init() {
-	flag.StringVar(&Profile, "c", "default", "Configuration profile")
+	flag.StringVar(&Profile, "c", "", "Configuration profile")
 }
 
 func LoadConfig() {
+  if Profile == "" {
+    fmt.Println("Please specify a configuration profile (-c).")
+    flag.PrintDefaults()
+    os.Exit(1)
+  }
 	var ok bool
 	Current, ok = configs[Profile]
 	if !ok {

@@ -53,7 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount','addGlobalListener'
       ]
     schema                  :
       skillTags             : [String]
@@ -258,7 +258,7 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
