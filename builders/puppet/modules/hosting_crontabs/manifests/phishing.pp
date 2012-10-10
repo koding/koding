@@ -12,7 +12,7 @@ class hosting_crontabs::phishing {
         user    => root,
         hour    => "*/1",
         minute  => 30,
-        require => File['phish.py'],
+        require => File['/opt/cronscripts/phish.py'],
     }
 
 
