@@ -1,6 +1,6 @@
 CActivity = require '../../activity'
 
-module.exports = class CDiscussionActivity extends CActivity
+module.exports = class CLinkActivity extends CActivity
 
   @share()
 
@@ -10,5 +10,5 @@ module.exports = class CDiscussionActivity extends CActivity
     schema          : CActivity.schema
     relationships   :
       subject       :
-        targetType  : "JDiscussion"
+        targetType  : 'JLink'
         as          : 'content'

@@ -8,6 +8,7 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
+      # 'CLinkActivity'
       'CCodeSnipActivity'
       'CDiscussionActivity'
       'CFollowerBucketActivity'
@@ -97,6 +98,10 @@ class Activity12345 extends AppController
     mainView.addSubView activitySplitView
 
     @createFollowedAndPublicTabs()
+
+    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+      if activity.constructor.name in @currentFilter
+        @activityListController.followedActivityArrived activity
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
@@ -188,6 +193,7 @@ class Activity12345 extends AppController
           'CStatusActivity'
           'CCodeSnipActivity'
           'CDiscussionActivity'
+          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
@@ -209,21 +215,23 @@ class Activity12345 extends AppController
     range or= {}
     {skip, limit} = range
 
+    controller = @activityListController
+
     selector =
       type        :
         $in       : @currentFilter
 
     options  =
       limit       : limit or= 20
-      skip        : skip  or= @activityListController.getItemCount()
+      skip        : skip  or= controller.getItemCount()
       sort        :
         createdAt : -1
 
     if not options.skip < options.limit
       @fetchTeasers selector, options, (activities)=>
         if activities
-          for activity in activities
-            @activityListController.addItem activity
+          for activity in activities when activity?
+            controller.addItem activity
           callback? activities
         else
           callback?()
@@ -257,6 +265,7 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
+        # 'CLinkActivity'
         'CCodeSnipActivity'
         'CDiscussionActivity'
         'CFollowerBucketActivity'
@@ -279,8 +288,9 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES
+      # THIS WILL DISABLE CODE SHARES/LINKS
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -292,6 +302,15 @@ class Activity12345 extends AppController
       title : "Status Update"
       type  : "status"
     ,activity
+
+  createLinkContentDisplay:(activity)->
+    controller = new ContentDisplayControllerActivity
+      title       : "Link"
+      type        : "link"
+      contentView : new ContentDisplayStatusUpdate {},activity
+    , activity
+    contentDisplay = controller.getView()
+    @showContentDisplay contentDisplay
 
   createCodeSnippetContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayCodeSnippet
@@ -305,7 +324,6 @@ class Activity12345 extends AppController
   #     title       : "Code Share"
   #     type        : "codeshare"
   #   , activity
-
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion

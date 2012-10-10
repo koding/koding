@@ -33,13 +33,18 @@ class KDNotificationView extends KDView
 
   #OWN METHODS
   notificationSetDefaults:(options)->
-    options.duration      = options.duration ? 1500
-    options.closeManually = yes if options.duration > 2999 or options.duration is 0
-    options
+    options.duration      ?= 1500
+    if options.duration > 2999 or options.duration is 0
+      options.closeManually ?= yes
+    return options
 
   notificationSetTitle:(title)->
+    unless title instanceof KDView
+      @$().find(".kdnotification-title").html title
+    else
+      @notificationTitle.destroy() if @notificationTitle and @notificationTitle instanceof KDView
+      @addSubView title, ".kdnotification-title"
     @notificationTitle = title
-    @getDomElement().find(".kdnotification-title").html title
 
   notificationSetType:(type = "main")->
     @notificationType = type

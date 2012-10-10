@@ -15,6 +15,12 @@ class CodesnipActivityItemView extends ActivityItemChild
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
 
+    @codeShareBoxView = new CodeShareBox
+      allowEditing:no
+      allowClosing:no
+      hideTabs:yes
+    ,data
+
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
@@ -54,7 +60,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       {h3{#(title)}}
       <p class='context'>{{@utils.applyTextExpansions #(body), yes}}</p>
-      {{> @codeSnippetView}}
+      {{> @codeShareBoxView}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
