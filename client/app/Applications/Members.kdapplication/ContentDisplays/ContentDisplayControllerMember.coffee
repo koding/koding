@@ -113,7 +113,8 @@ class ContentDisplayControllerMember extends KDViewController
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type = $in: [
-              'CStatusActivity', 'CCodeSnipActivity'
+              'CStatusActivity', 'CCodeSnipActivity', 'CLinkActivity'
+              'CDiscussionActivity', 'CCodeShareActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
@@ -132,6 +133,28 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type     = 'CCodeSnipActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
+        links           :
+          title             : "Links"
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type     = 'CLinkActivity'
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+        discussions           :
+          title             : "Discussions"
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type     = 'CDiscussionActivity'
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+        codeshares           :
+          title             : "Codeshares"
+          dataSource        : (selector, options, callback)=>
+            selector.originId = account.getId()
+            selector.type     = 'CCodeShareActivity'
+            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+              callback null, data
+
       sort                  :
         'sorts.likesCount'  :
           title             : "Most popular"

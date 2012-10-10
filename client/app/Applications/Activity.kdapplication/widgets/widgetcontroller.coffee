@@ -79,7 +79,7 @@ class ActivityUpdateWidgetController extends KDViewController
             return notifySubmissionStopped()
           else
             @linkWidgetSubmit formData, stopSubmission
-            updateWidget.switchToSmallView()
+            # updateWidget.switchToSmallView()
             mainView.resetWidgets()
 
     mainView.addWidgetPane
@@ -126,7 +126,7 @@ class ActivityUpdateWidgetController extends KDViewController
           codeShareWidget.switchToEditView activity
         when "JLink"
           mainView.showPane "link"
-          codeShareWidget.switchToEditView activity
+          linkWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"
