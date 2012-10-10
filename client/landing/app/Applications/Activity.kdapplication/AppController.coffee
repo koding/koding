@@ -8,14 +8,14 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
-      # 'CLinkActivity'
+      'CLinkActivity'
       'CCodeSnipActivity'
       'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES
-      # 'CCodeShareActivity'
+      'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -189,12 +189,12 @@ class Activity12345 extends AppController
           'CStatusActivity'
           'CCodeSnipActivity'
           'CDiscussionActivity'
-          # 'CLinkActivity'
+          'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES
-          # 'CCodeShareActivity'
+          'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -259,14 +259,14 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
-        # 'CLinkActivity'
+        'CLinkActivity'
         'CCodeSnipActivity'
         'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES
-        # 'CCodeShareActivity'
+        'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -283,8 +283,8 @@ class Activity12345 extends AppController
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       when "JDiscussion"   then @createDiscussionContentDisplay activity
       # THIS WILL DISABLE CODE SHARES/LINKS
-      # when "JCodeShare"    then @createCodeShareContentDisplay activity
-      # when "JLink"         then @createLinkContentDisplay activity
+      when "JCodeShare"    then @createCodeShareContentDisplay activity
+      when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -313,11 +313,11 @@ class Activity12345 extends AppController
     ,activity
 
   # THIS WILL DISABLE CODE SHARES
-  # createCodeShareContentDisplay:(activity)->
-  #   @showContentDisplay new ContentDisplayCodeShare
-  #     title       : "Code Share"
-  #     type        : "codeshare"
-  #   , activity
+  createCodeShareContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayCodeShare
+      title       : "Code Share"
+      type        : "codeshare"
+    , activity
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion

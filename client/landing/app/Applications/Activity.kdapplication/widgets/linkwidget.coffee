@@ -1,6 +1,6 @@
 class ActivityLinkWidget extends KDFormView
 
-  constructor:->
+  constructor:(options={},data={})->
 
     super
 
@@ -33,7 +33,7 @@ class ActivityLinkWidget extends KDFormView
     @labelLink = new KDLabelView
       title : "Link:"
 
-    @embedBox = new EmbedBox
+    @embedBox = new EmbedBox options,data
 
     @previousLink = ''
     @link = new KDInputView
@@ -107,12 +107,19 @@ class ActivityLinkWidget extends KDFormView
 
 
   submit:=>
+
+    @addCustomData "link_url", @link.getValue()
+    @addCustomData "link_embed", @embedBox.getEmbedData()
+
     @once "FormValidationPassed", => @reset()
     super
 
   reset:=>
+
     @submitBtn.setTitle "Share your Link"
+
     @removeCustomData "activity"
+
     @title.setValue ''
     @description.setValue ''
     @link.setValue ''
@@ -122,15 +129,23 @@ class ActivityLinkWidget extends KDFormView
     @tagController.reset()
 
   switchToEditView:(activity)->
+
     @submitBtn.setTitle "Edit link"
     @addCustomData "activity", activity
     {title, body, tags, link_url, link_embed} = activity
+
+    @labelTitle.show()
+    @labelDescription.show()
+    @title.show()
+    @description.show()
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
 
     @title.setValue Encoder.htmlDecode title
     @description.setValue Encoder.htmlDecode body
+
+    @link.setValue Encoder.htmlDecode link_url
 
     @embedBox.embedUrl link_url
 

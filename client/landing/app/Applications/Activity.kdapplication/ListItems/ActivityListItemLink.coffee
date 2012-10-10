@@ -10,7 +10,7 @@ class LinkActivityItemView extends ActivityItemChild
 
     super options,data
 
-    @embedBox = new EmbedBox
+    @embedBox = new EmbedBox options, data
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CLinkActivity
@@ -18,7 +18,7 @@ class LinkActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    @embedBox.embedUrl @getData().link_url
+    if @getData().link_url? then @embedBox.embedUrl @getData().link_url
 
   click:(event)->
 
