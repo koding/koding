@@ -39,15 +39,15 @@ module.exports = deepFreeze
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
-        vhost   : 'stage'
+        vhost   : '/'
       apiUri    : 'https://api.koding.com'
       appsUri   : 'http://dev-app.koding.com'
-      env       : 'dev'
+      env       : 'stage'
   mq            :
     host        : 'localhost'
-    login       : 'stage'
-    password    : '#[85_[*zh7%4;4l6T]F!'
-    vhost       : 'stage'
+    login       : 'test'
+    password    : 'test'
+    vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
@@ -64,7 +64,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'stage'
-      password  : '#[85_[*zh7%4;4l6T]F!'
+      login     : 'test'
+      password  : 'test'
       vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'
