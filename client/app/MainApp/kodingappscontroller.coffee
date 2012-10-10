@@ -302,7 +302,7 @@ class KodingAppsController extends KDController
           callback?()
           return null
 
-        log "app to run:", name
+        log "App to run:", name
         callback?()
 
   addScript:(app, scriptInput, callback)->
@@ -331,7 +331,7 @@ class KodingAppsController extends KDController
       }
     , (err, response)=>
       if err then warn err
-      log response, "App saved!"
+      # log response, "App saved!"
       callback?()
 
   publishApp:(path, callback)->
@@ -493,12 +493,12 @@ class KodingAppsController extends KDController
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
         callback? err
       else
-        log manifests
+        # log manifests
         if app.title in Object.keys(manifests)
           new KDNotificationView type : "mini", title : "App is already installed!"
           callback? msg : "App is already installed!"
         else
-          log "installing the app: #{app.title}"
+          # log "installing the app: #{app.title}"
           if not app.approved and not KD.checkFlag 'super-admin'
             err = "This app is not approved, installation cancelled."
             log err
@@ -516,14 +516,14 @@ class KodingAppsController extends KDController
                     appPath     : getAppPath app.manifest
                     appName     : app.manifest.name
                     version     : version
-                log "asking kite to install", options
+                # log "asking kite to install", options
                 @kiteController.run options, (err, res)=>
-                  log "kite response", err, res
+                  log "Kite response: ", err, res
                   if err then warn err
                   else
                     app.install (err)=>
                       log err if err
-                      log callback
+                      # log callback
                       # This doesnt work :#
                       appManager.openApplication "StartTab"
                       @refreshApps()
@@ -586,7 +586,7 @@ class KodingAppsController extends KDController
     manifestStr = defaultManifest type, name
     manifest    = JSON.parse manifestStr
     appPath     = getAppPath manifest
-    log manifestStr
+    # log manifestStr
 
     FSItem.create appPath, "folder", (err, fsFolder)=>
       if err then warn err
