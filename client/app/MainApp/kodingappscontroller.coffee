@@ -64,17 +64,15 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
-    @appStorage = new AppStorage 'KodingApps', '1.0'
-
-    @appStorage.fetchStorage (storage)=>
-      if not @appStorage.getValue 'shortcuts'
-        @putDefaultShortcutsToAppStorage()
 
   # #
   # FETCHERS
   # #
 
   fetchApps:(callback)->
+
+    if KD.isLoggedIn() and not @appStorage?
+      @appStorage = new AppStorage 'KodingApps', '1.0'
 
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
@@ -141,12 +139,23 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    @appStorage.fetchValue 'apps', (apps)=>
-      if apps and Object.keys(apps).length > 0
-        @constructor.manifests = apps
-        callback null, apps
+    @appStorage.fetchStorage (storage)=>
+
+      apps = @appStorage.getValue 'apps'
+      shortcuts = @appStorage.getValue 'shortcuts'
+
+      justFetchApps = =>
+        if apps and Object.keys(apps).length > 0
+          @constructor.manifests = apps
+          callback null, apps
+        else
+          callback new Error "There are no apps in the app storage."
+
+      if not shortcuts
+        @putDefaultShortcutsToAppStorage =>
+          justFetchApps()
       else
-        callback new Error "There are no apps in the app storage."
+        justFetchApps()
 
   fetchCompiledApp:(manifest, callback)->
 
@@ -177,7 +186,7 @@ class KodingAppsController extends KDController
       @appStorage.setValue 'shortcuts', shortcuts, (err)=>
         callback err
 
-  putDefaultShortcutsToAppStorage:->
+  putDefaultShortcutsToAppStorage:(callback)->
 
     shortcuts       =
       Ace           :
@@ -212,7 +221,8 @@ class KodingAppsController extends KDController
         description : 'Image Editor'
         author      : 'Autodesk'
 
-    @appStorage.setValue 'shortcuts', shortcuts
+    @appStorage.reset()
+    @appStorage.setValue 'shortcuts', shortcuts, callback
 
   putAppsToAppStorage:(apps)->
 
