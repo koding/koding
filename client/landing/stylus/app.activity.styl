@@ -1077,18 +1077,25 @@ div.show-more-discussion
   a.discussion-view-more
     noTextDeco()
 
-div.kdview.activity-item.link.link-embed-box
+div.kdview.activity-item.link-embed-box
   borderBox()
   position relative
   rounded 4px
-  padding 5px 10px
+  padding 0px 0px
+
+  width auto
+  // this is gecko
+  width max-content
+  // this is webkit-only
+  width intrinsic
+
 
   > div.embed-box-settings
     position absolute
-    right 10px
-    top 20px
+    right 0px
+    top 15px
     margin 0px
-    float right
+    // float right
     display inline-block
 
   > div.link-embed
@@ -1100,7 +1107,7 @@ div.kdview.activity-item.link.link-embed-box
       rounded 4px
       border 1px solid black
       border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
-      padding 10px
+      padding 15px
 
 form.status-widget
   div.formline

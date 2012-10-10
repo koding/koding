@@ -18,7 +18,6 @@ class EmbedBox extends KDView
     super options,data
 
     @setClass "link-embed-box"
-
     @hide()
 
     @embedData = {}
@@ -30,7 +29,7 @@ class EmbedBox extends KDView
 
     if data.originId is KD.whoami().getId()
       menu =
-        'Remove Image(s)'     :
+        'Remove Image(s) from Preview'     :
           callback : =>
             # mainController.emit 'ActivityItemEditLinkClicked', data
         'Remove Preview'   :
@@ -38,21 +37,6 @@ class EmbedBox extends KDView
             # @confirmDeletePost data
 
       return menu
-
-    if KD.checkFlag 'super-admin'
-      menu =
-        'MARK USER AS TROLL' :
-          callback : =>
-            mainController.markUserAsTroll data
-        'UNMARK USER AS TROLL' :
-          callback : =>
-            mainController.unmarkUserAsTroll data
-        'Delete Post' :
-          callback : =>
-            @confirmDeletePost data
-
-      return menu
-
 
   viewAppended:->
     super()
@@ -73,11 +57,12 @@ class EmbedBox extends KDView
       embedlyOptions = {
         key      : "e8d8b766e2864a129f9e53460d520115"
         maxWidth : 560
-        width    : 560
+        # width    : 560
+        maxHeight: 300
         wmode    : "transparent"
       }
 
-      $.extend yes, embedlyOptions, options
+      $.extend {}, embedlyOptions, options
 
       $.embedly url, embedlyOptions, (oembed, dict)=>
         @embedData = oembed
