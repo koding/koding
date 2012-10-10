@@ -52,8 +52,8 @@ module.exports = deepFreeze
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   guests:
      # define this to limit the number of guset accounts
