@@ -157,7 +157,7 @@ class Topics12345 extends AppController
     options.skip     or= 0
     options.sort     or=
       "counts.followers": -1
-    selector = options.selector or {}
+    selector = options.selector or ''
     delete options.selector if options.selector
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
