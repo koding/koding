@@ -38,42 +38,51 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       callback  : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
+          @opinionForm.submitOpinionBtn.hideLoader()
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
           else
             @opinionBox.opinionList.emit "OwnOpinionHasArrived", opinion
-            @opinionForm.submitOpinionBtn.hideLoader()
-
-            # this needs to inform the activity item of the new opinion
-
-            # log "updating teaser"
-            # @getData().updateTeaser (err, teaser) =>
-            #   log "err,teaser", err, teaser
-            #   @setData teaser
-
     , data
 
-    @jumpToReplyLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Scroll to Reply Box"
-      attributes  :
-        href      : "#"
-      click:->
-        $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
+    @newAnswers = 0
 
-    @jumpToTopLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Scroll to Top"
-      attributes  :
-        href      : "#"
-      click:->
-        $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
+    # Links to easily navigate to the bottom/top of the page
+    # These are useful since the opinions can be quite long, even when shortened
+    # visually, and the ease of access to the form at the bottom is
+    # paramount
 
-    @staticLinkBox = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Static Link"
-      attributes  :
-        href      : "/discussion/"+@utils.slugify data.title
+    # @jumpToReplyLink = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Scroll to Reply Box"
+    #   attributes  :
+    #     href      : "#"
+    #   click:->
+    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
+
+    # @jumpToTopLink = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Scroll to Top"
+    #   attributes  :
+    #     href      : "#"
+    #   click:->
+    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
+
+    ###
+    <div class="discussion-nav">
+      {{> @jumpToTopLink}}
+      {{> @jumpToReplyLink}}
+    </div>
+    ###
+
+    # The static link box will be useful when we have implemented actual
+    # routing to the single ContentTypes
+
+    # @staticLinkBox = new KDCustomHTMLView
+    #   tagName     : "a"
+    #   partial     : "Static Link"
+    #   attributes  :
+    #     href      : "/discussion/"+@utils.slugify data.title
 
     @actionLinks = new DiscussionActivityActionsView
       delegate    : @opinionBox.opinionList
@@ -142,6 +151,67 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
 
+    activity.on 'ReplyIsAdded',(reply)=>
+
+      if data.bongo_.constructorName is "JDiscussion"
+
+        # Why this workaround, you ask?
+        #
+        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
+        #  without JSONifying it locks up the UI for up to 10 seconds.
+
+        # Create new JOpinion and convert JSON into Object
+
+        # newOpinion = new bongo.api.JOpinion
+        # opinionData = JSON.parse(reply.opinionData)
+
+        # Copy JSON data to the newly created JOpinion
+
+        # for variable of opinionData
+        #   newOpinion[variable] = opinionData[variable]
+
+        # Updating the local data object, then adding the item to the box
+        # and increasing the count box
+
+
+        # unless newOpinion.originId is KD.whoami().getId()
+        unless reply.replier.id is KD.whoami().getId()
+
+          # Manually add the opinion to the data...
+
+          # if data.opinions?
+          #   unless data.opinions.indexOf newOpinion is -1
+          #     data.opinions.push newOpinion
+          # else
+          #   data.opinions = [newOpinion]
+
+          # The following line would add the new Opinion to the View
+          # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
+
+          # newAnswers populated the headerCountString if it is not OwnOpinion
+          @newAnswers++
+
+          @opinionBox.opinionList.emit "NewOpinionHasArrived"
+
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+
+    # When the activity gets deleted correctly, it will emit this event,
+    # which leaves only the count of the custom element to be updated
+
+    activity.on "OpinionWasRemoved",(args)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+    # in any case, the JDiscussion emits this event as a failsafe. if the deleted
+    # item can still be found in the list, it needs to be removed
+
+    activity.on "ReplyIsRemoved", (replyId)=>
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+
+      for item,i in @opinionBox.opinionList.items
+        if item.getData()._id is replyId
+          item.hide()
+          item.destroy()
+
   opinionHeaderCountString:(count)=>
     if count is 0
       countString = "No Answers yet"
@@ -149,6 +219,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       countString = "One Answer"
     else
       countString = count+ " Answers"
+
     '<span class="opinion-count">'+countString+'</span>'
 
   confirmDeleteDiscussion:(data)->
@@ -223,10 +294,6 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         <div class="content-display-main-section opinion-form-footer">
           {{> @opinionForm}}
         </div>
-      </div>
-      <div class="discussion-nav">
-        {{> @jumpToTopLink}}
-        {{> @jumpToReplyLink}}
       </div>
     </div>
     """

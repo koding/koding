@@ -24,6 +24,7 @@ class Apps12345 extends AppController
     options =
       itemClass          : AppsListItemView
       limitPerPage          : 10
+      noItemFoundText       : "There is no app."
       filter                :
         allApps             :
           title             : "All Apps"

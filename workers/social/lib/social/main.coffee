@@ -13,22 +13,6 @@ if require("os").platform() is 'linux'
     if err?
       console.log "[WARN] Can't write pid to /var/run/node/kfmjs.pid. monit can't watch this process."
 
-# dbUrl = switch argv.d or 'mongohq-dev'
-#   when "local"
-#     "mongodb://localhost:27017/koding?auto_reconnect"
-#   when "sinan"
-#     "mongodb://localhost:27017/kodingen?auto_reconnect"
-#   when "vpn"
-#     "mongodb://kodingen_user:Cvy3_exwb6JI@10.70.15.2:27017/kodingen?auto_reconnect"
-#   when "beta"
-#     "mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect"
-#   when "beta-local"
-#     "mongodb://beta_koding_user:lkalkslakslaksla1230000@web0.beta.system.aws.koding.com:27017/beta_koding?auto_reconnect"
-#   when "wan"
-#     "mongodb://kodingen_user:Cvy3_exwb6JI@184.173.138.98:27017/kodingen?auto_reconnect"
-#   when "mongohq-dev"
-#     "mongodb://dev:633939V3R6967W93A@alex.mongohq.com:10065/koding_copy?auto_reconnect"
-
 Bongo = require 'bongo'
 Broker = require 'broker'
 
@@ -36,9 +20,6 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email} = KONFIG
 
 broker = new Broker mq
-
-broker.on 'connected', console.log.bind console, 'connected'
-broker.on 'disconnected', console.log.bind console, 'disconnected'
 
 koding = new Bongo
   root        : __dirname

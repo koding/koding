@@ -53,7 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount','addGlobalListener'
       ]
     schema                  :
       skillTags             : [String]
@@ -149,7 +149,7 @@ module.exports = class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink"]
 
       feed         :
         as          : "owner"
@@ -196,7 +196,7 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
       if err
         callback err
       else
@@ -236,7 +236,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -258,7 +258,7 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -325,11 +325,6 @@ module.exports = class JAccount extends jraphical.Module
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
-
-  addTags: secure (client, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)->
-      if err then callback err
-      else callback null
 
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->

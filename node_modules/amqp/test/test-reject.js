@@ -32,6 +32,8 @@ connection.addListener('ready', function () {
 
       setTimeout(function () {
         // wait one second to receive the message, then quit
+        // make sure to delete our queue on our way out.
+        q.destroy();
         connection.end();
       }, 1000);
     })
