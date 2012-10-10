@@ -258,6 +258,9 @@ class LoginView extends KDScrollView
           @animateToForm "login"
           @registerForm.reset()
           @registerForm.button.hideLoader()
+          setTimeout =>
+            @getSingleton('mainController').emit "ShowInstructionsBook"
+          , 1000
         , 1000
 
   doLogin:(credentials)->
