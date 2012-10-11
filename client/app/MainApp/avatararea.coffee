@@ -163,24 +163,18 @@ class AvatarPopup extends KDView
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
 
-  # show:->
-  #   super()
-
-  #   if (visitor = KD.getSingleton('mainController').getVisitor())
-  #     {profile} = visitor.currentDelegate
-  #     if @statusField.getOptions().placeholder is ""
-  #       @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
-
   viewAppended:->
     super()
+
+    {profile} = KD.whoami()
 
     @avatarPopupContent.addSubView @statusField = new KDHitEnterInputView
       type          : "textarea"
       validate      :
         rules       :
           required  : yes
+      placeholder   : "What's new, #{Encoder.htmlDecode profile.firstName}?"
       callback      : (status)=> @updateStatus status
-
 
   updateStatus:(status)->
 
