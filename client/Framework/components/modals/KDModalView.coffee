@@ -50,6 +50,7 @@ class KDModalView extends KDView
     @listenWindowResize()
 
   setDomElement:(cssClass)->
+
     @domElement = $ "
     <div class='kdmodal initial #{cssClass}'>
       <div class='kdmodal-shadow'>
