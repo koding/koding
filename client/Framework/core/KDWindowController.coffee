@@ -89,12 +89,13 @@ class KDWindowController extends KDController
     # unless window.location.hostname is 'localhost'
     window.onbeforeunload = (event) =>
       # fixme: fix this with appmanager
-      for pane in @getSingleton('mainView').mainTabView.panes
-        if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
-          event or= window.event
-          msg = "Please make sure that you saved all your work."
-          event.returnValue = msg if event # For IE and Firefox prior to version 4
-          return msg
+      if @getSingleton('mainView')?.mainTabView?.panes
+        for pane in @getSingleton('mainView').mainTabView.panes
+          if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
+            event or= window.event
+            msg = "Please make sure that you saved all your work."
+            event.returnValue = msg if event # For IE and Firefox prior to version 4
+            return msg
 
   setDragInAction:(action = no)->
 
