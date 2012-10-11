@@ -21,11 +21,12 @@ class NotificationController extends KDObject
 
     nickname = account.getAt('profile.nickname')
     if nickname
-      channelName = 'private-'+nickname+'-private'
-      KD.remote.fetchChannel channelName, (channel)=>
-        channel.on 'notification', (notification)=>
-          @emit "NotificationHasArrived", notification
-          @prepareNotification notification if notification.contents
+      # channelName = 'private-'+nickname+'-private'
+      # KD.remote.fetchChannel channelName, (channel)=>
+      #  channel.on 'notificationArrived', (notification)=>
+      account.addGlobalListener 'notificationArrived', (notification) =>
+        @emit "NotificationHasArrived", notification
+        @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
 
