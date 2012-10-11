@@ -8,6 +8,14 @@
 class BookView extends JView
 
   @lastIndex = 0
+  cached = []
+  cachePage = (index)->
+    return if not __bookPages[index] or cached[index]
+    page = new BookPage {}, __bookPages[index]
+    KDView.appendToDOMBody page
+    __utils.wait ->
+      cached[index] = yes
+      page.destroy()
 
   constructor: (options = {},data) ->
 
@@ -54,6 +62,7 @@ class BookView extends JView
     @once "OverlayRemoved", @destroy.bind @
 
     @setKeyView()
+    cachePage(0)
 
   pistachio:->
 
@@ -74,6 +83,9 @@ class BookView extends JView
     switch event.which
       when 37 then do @fillPrevPage
       when 39 then do @fillNextPage
+      when 27
+        @unsetClass "in"
+        @utils.wait 600, => @destroy()
 
   getPage:(index = 0)->
 
@@ -99,6 +111,7 @@ class BookView extends JView
 
   fillPage:(index)->
 
+    cachePage index+1
     index or= BookView.lastIndex
     page = @getPage index
 
