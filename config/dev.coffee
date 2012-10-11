@@ -33,7 +33,6 @@ module.exports = deepFreeze
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
-    closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
