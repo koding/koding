@@ -16,7 +16,8 @@ class NotificationController extends KDObject
     super
 
     @getSingleton('mainController').on "AccountChanged", (account)=>
-      @setListeners account
+      if account.bongo_.constructorName is 'JAccount'
+        @setListeners account
 
   setListeners:(account)->
 
