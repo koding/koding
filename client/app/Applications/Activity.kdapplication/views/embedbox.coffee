@@ -44,7 +44,7 @@ class EmbedBox extends KDView
     @template.update()
 
   clearEmbed:=>
-    @$("div.embed").remove()
+    @$("div.embed").html ""
     @hide()
 
   getEmbedData:=>
@@ -68,18 +68,51 @@ class EmbedBox extends KDView
         @embedData = oembed
         callback oembed
 
-  populateEmbed:(data)=>
-    @$("div.link-embed").html data?.code
+  populateEmbed:(data={},url="#")=>
+
+    type = data.type or "link"
+
+    switch type
+      when "html" then html = data?.code
+      when "audio" then html = data?.code
+      when "video" then html = data?.code
+      when "text" then html = data?.code
+      when "xml" then html = data?.code
+      when "json" then html = data?.code
+      when "ppt" then html = data?.code
+      when "rss","atom" then html = data?.code
+      when "photo","image" then html = data?.code
+      when "link"
+        # log data
+        html = """
+          <div class="embed custom-link">
+            <div class="preview_image">
+              <a class="preview_link" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
+            </div>
+            <div class="preview_text">
+              <h3><a href="#{data.url or url}">#{data.title or "untitled"}</a></h3>
+              <p class="provider_info"><span>#{data.type}</span> by <a href="#{data.provider_url or "#"}"><span>#{data.provider_name or "the internet"}</span></a></p>
+              <p class="description">#{data.description or ""}</p>
+            </div>
+          </div>
+        """
+      when "error" then html = "There was an error"
+      else
+        log "EmbedBox encountered an unhandled content type '#{type}'' - please implement a population method."
+
+    # log "EmbedBox used type",type, html
+
+    @$("div.link-embed").html html
 
   embedUrl:(url,options={},callback=noop)=>
     @clearEmbed()
     @fetchEmbed url, options, (data)=>
-      @populateEmbed data
+      @populateEmbed data, url
       @show()
       callback data
 
   pistachio:->
     """
       {{> @settingsButton}}
-      <div class="link-embed"></div>
+      <div class="link-embed clearfix"></div>
     """

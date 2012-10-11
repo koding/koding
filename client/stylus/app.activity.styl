@@ -1077,6 +1077,13 @@ div.show-more-discussion
   a.discussion-view-more
     noTextDeco()
 
+// Sinan, I know you don't like this, but the template styles are
+// overriding the following styles with their specifity. Until that can
+// be remedied while leaving the css structure of the snapshot view/widgets
+// intact, this needs to happen:
+
+div.kdview.status-widget.link-embed-box
+div.kdview.link-widget.link-embed-box
 div.kdview.activity-item.link-embed-box
   borderBox()
   position relative
@@ -1084,10 +1091,13 @@ div.kdview.activity-item.link-embed-box
   padding 0px 0px
 
   width auto
+  height auto
   // this is gecko
   width max-content
+  height max-content
   // this is webkit-only
   width intrinsic
+  height intrinsic
 
 
   > div.embed-box-settings
@@ -1097,17 +1107,85 @@ div.kdview.activity-item.link-embed-box
     margin 0px
     // float right
     display inline-block
+    height inherit
 
   > div.link-embed
     borderBox()
+    height inherit
 
     > div.embed
+      height inherit
       borderBox()
       margin-top 15px
       rounded 4px
       border 1px solid black
       border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
       padding 15px
+
+      &.custom-link
+        font-size 13px
+        font-weight 400
+
+        > div.preview_image
+          display inline-block
+          float left
+          margin-right 15px
+          max-height 100px
+          min-height 10px
+          max-width 100px
+          min-width 50px
+
+          > a.preview_link
+            max-height inherit
+            min-height inherit
+            min-width inherit
+            max-width inherit
+            noTextDeco()
+
+            > img.thumb
+              max-height inherit
+              min-height inherit
+              min-width inherit
+              max-width inherit
+
+        div.preview_text
+          width auto
+          min-width 400px
+
+          > h3
+            font-size inherit
+
+            > a
+              font-weight 400
+              noTextDeco()
+              font-size inherit
+
+          > p.provider_info
+            font-size inherit
+            font-weight 400
+
+            > a
+              font-size inherit
+              font-weight inherit
+
+          > p.description
+            font-size inherit
+
+
+      // img.thumb
+      //   max-height 100px!important
+      //   max-width 100px!important
+      //   min-height 25px
+      //   // min-width 25px
+      //   float left
+
+      // a
+      //   display block
+      // a.provider
+      //   display block
+
+
+
 
 form.status-widget
   div.formline

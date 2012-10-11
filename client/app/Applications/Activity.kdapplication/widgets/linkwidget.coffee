@@ -125,6 +125,7 @@ class ActivityLinkWidget extends KDFormView
     @link.setValue ''
 
     @embedBox.clearEmbed()
+    @previousLink = 'this was the previous link'
 
     @tagController.reset()
 
