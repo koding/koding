@@ -136,7 +136,7 @@ if ((typeof define !== "undefined" && define !== null ? define.amd : void 0) != 
   this['EventEmitter'] = EventEmitter;
 }
 
-var Broker = function (app_key, options) {
+function Broker(app_key, options) {
   this.options = options || {};
   this.sockURL = this.options.sockURL || 'http://'+window.location.hostname+':8008/subscribe';
   this.channel_auth_endpoint = this.options.authEndPoint || 'http://'+window.location.hostname+':8008/auth';
@@ -147,22 +147,30 @@ var Broker = function (app_key, options) {
   this.connect();
 
   var
-    reconnectAttempts = 0,
-    initalDelayMs = 700,
-    multiplyFactor = 1.4,
-    maxBackoffMs = 1000 * 60 * 15
+    self = this,
+    backoff = options.backoff || {}
+    totalReconnectAttempts = 0,
+    initalDelayMs = backoff.initialDelayMs != null ? backoff.initialDelayMs : 700,
+    multiplyFactor = backoff.multiplyFactor != null ? backoff.multiplyFactor : 1.4,
+    maxDelayMs = backoff.maxDelayMs != null ? backoff.maxDelayMs : 1000 * 60 * 15,
+    maxReconnectAttempts = backoff.maxReconnectAttempts != null ? backoff.maxReconnectAttempts : 10
   ;
 
-  this.clearBackoffTimeout = function () {
-    reconnectAttempts = 0;
+  self.clearBackoffTimeout = function () {
+    totalReconnectAttempts = 0;
   };
   
-  this.setBackoffTimeout = function (fn) {
-    setTimeout(fn, Math.min(
-      initalDelayMs * Math.pow(multiplyFactor, reconnectAttempts),
-      maxBackoffMs
-    ));
-    reconnectAttempts++;
+  self.setBackoffTimeout = function (fn) {
+    if (totalReconnectAttempts < maxReconnectAttempts) {
+      setTimeout(fn, Math.min(
+        initalDelayMs * Math.pow(multiplyFactor, totalReconnectAttempts),
+        maxDelayMs
+      ));
+      totalReconnectAttempts++;
+    }
+    else {
+      self.emit('connectionFailed');
+    }
   };
 }
 

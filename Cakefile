@@ -120,6 +120,7 @@ buildClient =(configFile, callback=->)->
 
   configFile = expandConfigFile configFile
   config = require configFile
+  console.log config
   builder = new Builder config.client,clientFileMiddleware,""
 
 
@@ -325,6 +326,7 @@ configureVhost =(config, callback)->
     else throw e
 
 task 'run', (options)->
+  invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   queue = []
@@ -397,10 +399,18 @@ task 'install', 'install all modules in CakeNodeModules.coffee, get ready for bu
   l = (d) -> log.info d.replace /\n+$/, ''
   {our_modules, npm_modules} = require "./CakeNodeModules"
   reqs = npm_modules
-  exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
-  a = exec exe,->
-  a.stdout.on 'data', l
-  a.stderr.on 'data', l
+  for name,ver of reqs
+    processes.run
+      name    : "#{name}@#{ver}"
+      cmd     : "npm i #{name}@#{ver}"
+      restart : no
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+  # exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
+  # a = exec exe,->
+  # a.stdout.on 'data', l
+  # a.stderr.on 'data', l
 
 task 'uninstall', 'uninstall all modules listed in CakeNodeModules.coffee',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
@@ -420,6 +430,12 @@ task 'checkModules', 'check node_modules dir',(options)->
   data = fs.readdirSync "./node_modules"
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)
   if untracked_mods.length > 0
+    for umod,i in untracked_mods
+      console.log umod,i
+      try
+        untracked_mods[i] = umod+"@"+(JSON.parse(fs.readFileSync "./node_modules/#{umod}/package.json")).version
+      catch e
+        console.log umod
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
     console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
     process.exit()
