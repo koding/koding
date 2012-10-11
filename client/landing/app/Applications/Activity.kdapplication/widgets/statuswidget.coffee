@@ -17,6 +17,7 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 2000
 
     @previousWhich = 0
+    @previousURL = ""
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -34,8 +35,9 @@ class ActivityStatusUpdateWidget extends KDFormView
       keydown:=>
         if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
           setTimeout =>
-            firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*)?/g)
-            @embedBox.embedUrl firstUrl?[0]
+            firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+            unless @previousURL is firstUrl?[0] then @embedBox.embedUrl firstUrl?[0]
+            @previousURL = firstUrl?[0]
           ,500
         @previousWhich = $(event.which)[0]
 
