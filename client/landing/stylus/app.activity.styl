@@ -487,14 +487,13 @@ button.kdbutton.dark
     color                 #aaa
 
   .kdautocompletewrapper
-    size                  100%,32px
+    width                 100%
     color                 #b2b2b2
     font-size             13px
     display               inline-block!important
-    input.kdinput.text
-      border-color        rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
-      size                100%,100%
-      borderBox()
+    // input.kdinput.text
+    //   size                100%,100%
+    //   borderBox()
 
   .form-headline
     left                    169px
@@ -914,228 +913,201 @@ button.activity-status-context
     .codeshare .icon
       bg                    position,-160px -420px
 
-.kdview.activity-item.discussion
-  padding                             0px
+// // Activity Item for Discussions
 
-  .activity-discussion-container
-    padding                           22px 0 0px 20px
-    .comment-body
-      margin-top                      10px
-      margin-bottom                   10px
-      .data p
-        font-weight                   400
-        font-size                     12px
+.activity-discussion-container
+  position:relative
 
-  .activity-opinion-list
-    border                            none!important
-    .kdview.kdlistitemview.kdlistitemview-opinion.kdlistitemview-activity-opinion
-      border-top                      1px solid #f2f2f2
-      border-bottom                   none
-      margin-left                     72px
-      &:last-child
-        border-bottom                 1px solid #f2f2f2
-        padding-bottom                10px
-      padding                         0px 0px 0px 0px
-      max-height                      200px
-      max-width                       750px
-      .activity-opinion.item-content-comment span.avatar
-        margin-right                  20px
-
-.activity-opinion
   &:hover
-    cursor                            pointer
-  .comment-contents
-    margin-left                       25px
-    margin-right                      25px
+    div.view-full-discussion
+      background-color #ff9200
+      border-color darken(#ff9200,25%)
+      a
+        color white
 
+  .comment-body
+    max-height 250px
+    overflow hidden
 
-.activity-opinion .comment-contents p.comment-body span p
-  font-size                           12px
-  font-weight                         400
+    // this is supposed to visually cut off the box nicely
+    // &:before
+    //   content: " ";
+    //   width: 100%;
+    //   height: 100px;
+    //   position: absolute;
+    //   z-index: 100;
+    //   top: 178px;
+    //   left: 0;
+    //   background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0.85) 100%);
 
-.activity-opinion-list
-  margin-top                          15px
-  a.activity-opinion-more
-    margin-top                        10px
-.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion
-  border none
-.comment-container .kdlistview-comments .kdview.kdlistitemview-activity-opinion:last-child
-  border-bottom                       none
+  div.view-full-discussion
+    // vendor text-shadow, 1px 1px 1px rgba(0, 0, 0, 0.5)
+    cursor pointer
+    vendor transition, all 0.2s ease-in-out
 
-
-
-.activity-opinion-item-footer
-  margin-top                          6px
-  margin-bottom                       10px
-  color                               #a5a5a5
-
-.activity-opinion.item-content-comment .comment-contents .comment-body .data p
-  margin-bottom                       1px
-
-.activity-opinion-container .show-more-discussion
-  background-color                    none
-  margin-top                          -10px
-
-a.discussion-view-more
-  background-color                    #FD7E09
-  padding                             3px 5px
-  line-height                         16px
-  margin-left                         85px
-
-  color                               #fff
-  font-weight                         400
-  &:hover
-    color                             #fff
-
-.discussion-spacer
-  height                              20px
-  display                             block
-  width                               100%
-
-.opinion-first-box
-  height 30px
-  margin-top 10px
-  .first-reply-link
-    text-decoration                     none
-    line-height                         16px
-    color #fff
-    background-color #FD7E09
-    padding 1px 4px
-    font-weight 400
-    margin-left 85px
-    &:hover
-      color white
-
-
-div.libs-container
-  border 1px solid black
-  rounded(4px)
-  background-color white
-  z-index -1
-  opacity 0
-  position absolute
-  top 5px
-  height auto
-  width 300px
-  right 5px
-  // left 0px
-  vendor transition, opacity 0.1s ease-in
-  .libs-box
-    padding 5px
-    width auto
-    font-size 10px
-    .kdselectbox
-      display block
-      margin-bottom 5px
-    .kdinput
-      margin-bottom 5px
-      height 16px
-      font-size 10px
-      line-height 12px
-    .kd-radio-holder
-      display inline-block
-    label.legend-for-text
-      display block
-    label.legend-for-checkbox
-      line-height 120%
-      display inline-block
-    label.legend-for-radios
-      margin-bottom 1px
-      display block
-    input.libs-css-checkbox,
-    input.libs-js-checkbox
-      vertical-align top
-    // label
-    //   display block
-
-label.settings-label
-  rounded(4px)
-  padding 4px 8px
-  line-height 120%
-  font-size 12px
-  border 1px solid black
-  position absolute
-  right 0px
-  top 5px
-  z-index 99
-  color white
-  background-color #444
-  font-weight 300
-
-.formline > div.result-container
-    max-width 100%
-    margin-left 5px
-    height 300px
-
-.code-snip-holder.share
-  height 300px
-
-.formline-codeshare
-  margin 5px 0px 5px 168px
-  max-width 560px
-  height 340px
-  vendor transition, max-width .1s linear
-  vendor transition, margin .1s linear
-  vendor transition, height .1s linear
-  .result-container,
-  .result-frame-container,
-  .result-frame
-    height 100%
-
-.code-snip-container
-  scrollbars()
-  width 100%
-  max-width 560px
-  text-align left
-  padding 0px 0px 0px 0px
-  display inline-block
-  position relative
-  vendor transition, max-width .1s linear
-  vendor transition, margin .1s linear
-  vendor transition, height .1s linear
-
-
-.codeshare.content-display-main-section .activity-item-right-col .code-share-source figure.code-container
-  height auto
-  borderBox()
-
-.code-share-container
-  height 340px
-  > .kdview.kdtabhandlecontainer
-    border-bottom none
-    background-color white
-    padding 0 10px
     borderBox()
-    > .kdtabhandle
-      height 30px
-      vendor border-top-left-radius 4px
-      vendor border-top-right-radius 4px
-  > div.kdview.clearfix.kdtabpaneview
-    vendor box-shadow none
-    height  300px
-    padding-top 0px
-    iframe.result-frame
-      min-height 297px
-      max-height 100%
-
-.codeshare-buttons
-  margin-left 170px
-  padding 0 0 0 0 !important
-
-figure.code-container strong.snippet-extras
-  top 30px
-  background-color darken(#0896BD, 25%)
-  width 5%
-  overflow hidden
-  height 10px
-  span
-    display block
-    opacity 0
-  // vendor transition, all .1s ease-in
-  &:hover
-    width 25%
     height auto
-  &:hover span
-    opacity 1
+    width 100%
+    background-color #f7f7f7
+    border 1px solid #e3e3e3
+    // z-index -1
+    margin-top 0px
+    padding-top 5px
+    padding-bottom 5px
+    padding-left 10px
+    rounded 0px 0px 3px 3px
+    span
+      font-size 12px
+      font-weight 500
+      color #FF9200
+      height auto
+    a
+      vendor transition, color 0.2s linear
+      noTextDeco()
+    // &:hover
+    //   background-color #FF9200
+    //   // span
+    //   //   color #f7f7f7
+
+
+
+  .comment-title
+    margin-bottom:10px
+    p
+      color #e80
+      font-weight 500
+  span.activity-text
+    margin 0px 2px
+    color #FF9200
+    font-size 11px
+    font-weight bold
+
+div.activity-opinion.item-content-comment
+  cursor pointer
+
+  > span.avatar
+    height 20px !important
+    width 20px !important
+
+  p.comment-body
     margin-top 5px
-    display block
+
+  footer.activity-opinion-item-footer
+    margin-top 2px
+    a
+      noTextDeco()
+
+
+div.show-more-opinions
+  border none
+  padding-left 20px
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  size                  auto, 0
+  padding               0 10px
+  line-height           27px
+  vendor                transition, height .15s linear
+  borderBox()
+  &.in
+    height              27px
+
+  &.has-new-items
+    a.new-count
+      display           inline
+  a
+    line-height         14px
+    color               #299FC6
+    font-weight         400
+    noTextDeco()
+    &.new-count
+      font-weight       600
+
+  span.small-loader
+    position            absolute
+    right               15px
+    top                 11px
+
+  .new-items
+    left                  500px
+    opacity               0
+    padding-left          2px
+    padding-right         2px
+    font-weight           600
+    color                 white
+    position              relative
+    bg                    color, #FF9200
+    border                1px solid #FF9200
+    rounded(3px 3px 3px 3px)
+    vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
+
+    &.in
+      opacity             1
+      left                6px
+
+  .new-items:after, .new-items:before
+    right                 100%
+    border                solid transparent
+    content               " "
+    height                0
+    width                 0
+    position              absolute
+    pointer-events        none
+
+  .new-items:after
+    border-right-color    #FF9200
+    border-width          4px
+    top                   50%
+    margin-top            -4px
+
+  .new-items:before
+    border-right-color    #FF9200
+    border-width          5px
+    top                   50%
+    margin-top            -5px
+
+  a.all-count
+    noTextDeco()
+
+div.show-more-discussion
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  padding-left 10px
+  a.discussion-view-more
+    noTextDeco()
+
+// form.link-widget.update-options, form.status-widget
+
+//   div.formline
+div.link-embed-box
+      borderBox()
+      rounded 4px
+      div.link-embed
+        borderBox()
+        div.embed
+          borderBox()
+          margin-top 15px
+          rounded 4px
+          border 1px solid black
+          border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+          padding 10px
+
+form.status-widget
+  div.formline
+    div.link-embed-box
+      margin-left 153px
+
+// div.activity-item.link, div.activity-item.status
+//   div.activity-item-right-col
+//     div.link-embed
+//       borderBox()
+//       width auto
+//       div.embed
+//         borderBox()
+//         margin-top 15px
+//         rounded 4px
+//         border 1px solid black
+//         border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+//         padding 10px
+

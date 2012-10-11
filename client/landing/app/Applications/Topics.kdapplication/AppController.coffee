@@ -10,9 +10,6 @@ class Topics12345 extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
-      if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
-
   bringToFront:()->
     @propagateEvent (KDEventType : 'ApplicationWantsToBeShown', globalEvent : yes),
       options :
@@ -27,6 +24,7 @@ class Topics12345 extends AppController
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
+      noItemFoundText       : "There is no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
@@ -44,10 +42,10 @@ class Topics12345 extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               KD.remote.api.JTag.byRelevance @_searchValue, options, callback
             else
-              # log selector, options, "AAA"
               KD.remote.api.JTag.someWithRelationship selector, options, callback
         following           :
           title             : "Following"
+          noItemFoundText   : "There is no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
               for item in items
@@ -69,6 +67,8 @@ class Topics12345 extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView @_lastSubview = controller.getView()
+      controller.on "FeederListViewItemCountChanged", (count)=>
+        if @_searchValue then @setCurrentViewHeader count
 
   loadView:(mainView, firstRun = yes)->
 
