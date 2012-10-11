@@ -18,9 +18,23 @@ class EmbedBox extends KDView
     super options,data
 
     @setClass "link-embed-box"
-    @hide()
+
+    @embedLoader = new KDLoaderView
+      cssClass      : "hidden"
+      size          :
+        width       : 30
+      loaderOptions :
+        color       : "#444"
+        shape       : "spiral"
+        diameter    : 30
+        density     : 30
+        range       : 0.4
+        speed       : 1
+        FPS         : 24
 
     @embedData = {}
+
+    unless data is {} then @hide()
 
   settingsMenu:(data)->
 
@@ -45,6 +59,10 @@ class EmbedBox extends KDView
 
   clearEmbed:=>
     @$("div.embed").html ""
+    @embedData = {}
+
+  clearEmbedAndHide:=>
+    @clearEmbed()
     @hide()
 
   getEmbedData:=>
@@ -52,20 +70,15 @@ class EmbedBox extends KDView
 
   fetchEmbed:(url,options,callback=noop)=>
 
-    log "fetching"
     requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
-
-      embedlyOptions = {
+      embedlyOptions = $.extend {}, {
         key      : "e8d8b766e2864a129f9e53460d520115"
         maxWidth : 560
-        # width    : 560
         maxHeight: 300
         wmode    : "transparent"
         error    : (node, dict)=>
           callback? dict
-      }
-
-      $.extend {}, embedlyOptions, options
+      }, options
 
       $.embedly url, embedlyOptions, (oembed, dict)=>
         @embedData = oembed
@@ -73,6 +86,7 @@ class EmbedBox extends KDView
 
   populateEmbed:(data={},url="#")=>
 
+    # replace this when using preview instead of oembed
     prettyLink = (link)->
       link.replace("http://","").replace("https://","").replace("www.","")
 
@@ -116,16 +130,20 @@ class EmbedBox extends KDView
 
     @$("div.link-embed").html html
 
+
   embedUrl:(url,options={},callback=noop)=>
+    # @embedLoader.show()
     @fetchEmbed url, options, (data)=>
-      log data
       unless data.type is "error" then @clearEmbed()
       @populateEmbed data, url
+      # @embedLoader.hide()
       @show()
       callback data
 
   pistachio:->
     """
       {{> @settingsButton}}
-      <div class="link-embed clearfix"></div>
+      {{> @embedLoader}}
+      <div class="link-embed clearfix">
+      </div>
     """

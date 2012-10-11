@@ -36,7 +36,9 @@ class ActivityStatusUpdateWidget extends KDFormView
         if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
           setTimeout =>
             firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
-            unless @previousURL is firstUrl?[0] then @embedBox.embedUrl firstUrl?[0]
+            unless @previousURL is firstUrl?[0] then @embedBox.embedUrl firstUrl?[0], {
+              maxWidth: 525
+            }
             @previousURL = firstUrl?[0]
           ,500
         @previousWhich = $(event.which)[0]
@@ -128,6 +130,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
+    @embedBox.clearEmbedAndHide()
     super
 
   viewAppended:->

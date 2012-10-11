@@ -18,14 +18,14 @@ class LinkActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    if @getData().link_url? then @embedBox.embedUrl @getData().link_url
+    if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
 
-  click:(event)->
+  # click:(event)->
 
-    super
+  #   super
 
-    if $(event.target).is("[data-paths~=body]")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+  #   if $(event.target).is("[data-paths~=body]")
+  #     appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")-> @utils.applyTextExpansions str, yes
 

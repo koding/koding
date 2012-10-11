@@ -1081,25 +1081,34 @@ div.show-more-discussion
 div.kdview.link-embed-box
   borderBox()
   position relative
-  rounded 4px
-  padding 0px 0px
 
   width auto
   height auto
+
   // this is gecko
   width max-content
   height max-content
+
   // this is webkit-only
   width intrinsic
   height intrinsic
 
+  rounded 4px
+  border 1px solid black
+  border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+
+  background-color #F7F7F7
+
+  padding 0px 0px
+  margin-top 15px
+  &.link-wigdet
+    margin-top 0px
 
   > div.embed-box-settings
     position absolute
     right 0px
-    top 15px
+    top 0px
     margin 0px
-    // float right
     display inline-block
     height inherit
 
@@ -1110,10 +1119,7 @@ div.kdview.link-embed-box
     > div.embed
       borderBox()
       height inherit
-      margin-top 15px
       rounded 4px
-      border 1px solid black
-      border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
       padding 15px
 
       &.custom-link
@@ -1135,7 +1141,7 @@ div.kdview.link-embed-box
           position relative
 
           > a.preview_link
-            max-height 100px
+            max-height 90px
             min-height 20px
             min-width inherit
             max-width inherit
@@ -1160,7 +1166,7 @@ div.kdview.link-embed-box
           width auto
           min-width 400px
           min-height 50px
-          font-size 13px
+          font-size 12px
           font-weight 400
 
           > a.preview_text_link
@@ -1205,7 +1211,19 @@ div.kdview.link-embed-box
       //   display block
 
 
+div.link
+  div.activity-item-right-col
+    h3
+      cursor inherit
+    > p
+      > span
+        cursor inherit
 
+
+form.link-widget
+  div.formline
+    textarea.kdinput.text
+      min-height 70px
 
 form.status-widget
   div.formline
