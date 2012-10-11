@@ -1,4 +1,5 @@
 JPost = require './post'
+JComment = require './comment'
 
 module.exports = class JPrivateMessage extends JPost
 
