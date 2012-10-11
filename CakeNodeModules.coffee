@@ -33,9 +33,9 @@ module.exports =
     nodemailer      : '0.3.21'
     nodeunit        : '0.5.3'
     optimist        : '0.3.1'
-    
+
     request			: '2.9.202'
-    stylus			: '0.21.2'
+    stylus			: '0.29.0'
     underscore	    : '1.2.3'
     url				: '0.4.9'
     validator	    : '0.2.0'
