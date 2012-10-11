@@ -1,0 +1,8 @@
+name 'puppetlabs-cloud_provisioner'
+version '1.0.5'
+source 'git://github.com/puppetlabs/puppetlabs-cloud_provisioner.git'
+author 'puppetlabs'
+license 'Apache Version 2.0'
+summary 'Puppet Cloud Provisioner'
+description 'Faces application to launch and manage Amazon EC2 instances'
+project_page 'https://github.com/puppetlabs/puppetlabs-cloud_provisioner'
