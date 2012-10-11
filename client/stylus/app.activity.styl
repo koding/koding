@@ -1077,14 +1077,8 @@ div.show-more-discussion
   a.discussion-view-more
     noTextDeco()
 
-// Sinan, I know you don't like this, but the template styles are
-// overriding the following styles with their specifity. Until that can
-// be remedied while leaving the css structure of the snapshot view/widgets
-// intact, this needs to happen:
 
-div.kdview.status-widget.link-embed-box
-div.kdview.link-widget.link-embed-box
-div.kdview.activity-item.link-embed-box
+div.kdview.link-embed-box
   borderBox()
   position relative
   rounded 4px
@@ -1114,8 +1108,8 @@ div.kdview.activity-item.link-embed-box
     height inherit
 
     > div.embed
-      height inherit
       borderBox()
+      height inherit
       margin-top 15px
       rounded 4px
       border 1px solid black
@@ -1125,51 +1119,77 @@ div.kdview.activity-item.link-embed-box
       &.custom-link
         font-size 13px
         font-weight 400
+        overflow hidden
 
         > div.preview_image
+          borderBox()
           display inline-block
           float left
           margin-right 15px
-          max-height 100px
-          min-height 10px
+          max-height 115px
+          min-height 50px
+          height 100%
           max-width 100px
           min-width 50px
+          overflow visible
+          position relative
 
           > a.preview_link
-            max-height inherit
-            min-height inherit
+            max-height 100px
+            min-height 20px
             min-width inherit
             max-width inherit
+            line-height 100%
+            margin 0
+            padding 0
             noTextDeco()
 
             > img.thumb
+              borderBox()
               max-height inherit
               min-height inherit
               min-width inherit
               max-width inherit
+              margin 0
+              padding 0
 
         div.preview_text
+          borderBox()
+          display block
+          overflow hidden
           width auto
           min-width 400px
+          min-height 50px
+          font-size 13px
+          font-weight 400
 
-          > h3
+          > a.preview_text_link
+            noTextDeco()
+            color #5F5F5F
             font-size inherit
+            font-weight inherit
+            > div.preview_title
+              font-size inherit
+              font-weight 600
+              noTextDeco()
+              color #FF9200
+              &:hover
+                color #27A3C9
 
-            > a
-              font-weight 400
+            > div.provider_info
+              color
               noTextDeco()
               font-size inherit
-
-          > p.provider_info
-            font-size inherit
-            font-weight 400
-
-            > a
-              font-size inherit
               font-weight inherit
+              margin-bottom 10px
+              strong
+                font-weight 600
 
-          > p.description
-            font-size inherit
+            > div.description
+              noTextDeco()
+              display block
+              font-weight inherit
+              font-size inherit
 
 
       // img.thumb

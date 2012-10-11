@@ -52,6 +52,7 @@ class EmbedBox extends KDView
 
   fetchEmbed:(url,options,callback=noop)=>
 
+    log "fetching"
     requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
 
       embedlyOptions = {
@@ -60,6 +61,8 @@ class EmbedBox extends KDView
         # width    : 560
         maxHeight: 300
         wmode    : "transparent"
+        error    : (node, dict)=>
+          callback? dict
       }
 
       $.extend {}, embedlyOptions, options
@@ -69,6 +72,9 @@ class EmbedBox extends KDView
         callback oembed
 
   populateEmbed:(data={},url="#")=>
+
+    prettyLink = (link)->
+      link.replace("http://","").replace("https://","").replace("www.","")
 
     type = data.type or "link"
 
@@ -82,31 +88,38 @@ class EmbedBox extends KDView
       when "ppt" then html = data?.code
       when "rss","atom" then html = data?.code
       when "photo","image" then html = data?.code
+      when "rich" then html = data?.code
+
+
+      # fallback for things that may or may not have any kind of preview
       when "link"
         # log data
         html = """
           <div class="embed custom-link">
-            <div class="preview_image">
+            <div class="preview_image #{unless data.thumbnail_url? then "hidden" else ""}">
               <a class="preview_link" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
             </div>
             <div class="preview_text">
-              <h3><a href="#{data.url or url}">#{data.title or "untitled"}</a></h3>
-              <p class="provider_info"><span>#{data.type}</span> by <a href="#{data.provider_url or "#"}"><span>#{data.provider_name or "the internet"}</span></a></p>
-              <p class="description">#{data.description or ""}</p>
+             <a class="preview_text_link" href="#{data.url or url}">
+              <div class="preview_title">#{data.title or "untitled"}</div>
+              <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+prettyLink(data.provider_url)+"</strong>" else ""}</div>
+              <div class="description">#{data.description or ""}</div>
+             </a>
             </div>
           </div>
         """
-      when "error" then html = "There was an error"
+      when "error" then return "There was an error"
       else
-        log "EmbedBox encountered an unhandled content type '#{type}'' - please implement a population method."
+        log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
 
     # log "EmbedBox used type",type, html
 
     @$("div.link-embed").html html
 
   embedUrl:(url,options={},callback=noop)=>
-    @clearEmbed()
     @fetchEmbed url, options, (data)=>
+      log data
+      unless data.type is "error" then @clearEmbed()
       @populateEmbed data, url
       @show()
       callback data
