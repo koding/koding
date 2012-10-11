@@ -16,7 +16,7 @@ module.exports = class JOpinion extends JPost
 
   {log} = console
 
-  KodingError = require '../../error'
+  KodingError = require '../../../error'
 
   @share()
 
