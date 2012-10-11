@@ -97,10 +97,10 @@ class EmbedBox extends KDView
         html = """
           <div class="embed custom-link">
             <div class="preview_image #{unless data.thumbnail_url? then "hidden" else ""}">
-              <a class="preview_link" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
+              <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
             </div>
             <div class="preview_text">
-             <a class="preview_text_link" href="#{data.url or url}">
+             <a class="preview_text_link" target="_blank" href="#{data.url or url}">
               <div class="preview_title">#{data.title or "untitled"}</div>
               <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+prettyLink(data.provider_url)+"</strong>" else ""}</div>
               <div class="description">#{data.description or ""}</div>
