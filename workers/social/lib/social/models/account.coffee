@@ -14,7 +14,6 @@ module.exports = class JAccount extends jraphical.Module
 
   JAppStorage = require './appstorage'
   JTag = require './tag'
-  JPrivateMessage = require './messages/privatemessage'
 
   @getFlagRole = 'content'
 
@@ -106,7 +105,8 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           :
+    relationships           : ->
+      JPrivateMessage = require './messages/privatemessage'
 
       mount         :
         as          : 'owner'
