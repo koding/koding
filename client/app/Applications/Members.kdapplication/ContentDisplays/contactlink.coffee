@@ -23,8 +23,8 @@ class MemberMailLink extends KDCustomHTMLView
       cssClass                : "compose-message-modal"
       height                  : "auto"
       width                   : 500
-      position                :
-        top                     : 300
+      # position                :
+      #   top                     : 300
       overlay                 : yes
       tabs                    :
         navigable             : yes
