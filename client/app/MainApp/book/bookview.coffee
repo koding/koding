@@ -110,7 +110,7 @@ class BookView extends JView
   fillPage:(index)->
 
     cachePage index+1
-    index or= BookView.lastIndex
+    index ?= BookView.lastIndex
     BookView.lastIndex = index
     page = @getPage index
 
