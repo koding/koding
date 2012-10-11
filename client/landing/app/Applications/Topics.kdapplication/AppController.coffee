@@ -44,6 +44,7 @@ class Topics12345 extends AppController
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
               KD.remote.api.JTag.byRelevance @_searchValue, options, callback
             else
+              # log selector, options, "AAA"
               KD.remote.api.JTag.someWithRelationship selector, options, callback
         following           :
           title             : "Following"
@@ -152,12 +153,12 @@ class Topics12345 extends AppController
 
   fetchSomeTopics:(options = {}, callback)->
 
-    options.limit    or= 6
-    options.skip     or= 0
-    options.sort     or=
-      "counts.followers": -1
-    selector = options.selector or {}
+    options.limit or= 6
+    options.skip  or= 0
+    options.sort  or= "counts.followers": -1
+    selector        = options.selector
     delete options.selector if options.selector
+    
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
     else

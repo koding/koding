@@ -88,18 +88,17 @@ class BookView extends JView
   fillPrevPage:->
 
     return if @currentIndex - 1 < 0
-    BookView.lastIndex = @currentIndex - 1
     @fillPage @currentIndex - 1
 
   fillNextPage:->
 
     return if __bookPages.length is @currentIndex + 1
-    BookView.lastIndex = @currentIndex + 1
     @fillPage @currentIndex + 1
 
   fillPage:(index)->
 
     index or= BookView.lastIndex
+    BookView.lastIndex = index
     page = @getPage index
 
     if @$().hasClass "in"
