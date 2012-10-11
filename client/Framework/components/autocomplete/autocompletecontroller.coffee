@@ -27,6 +27,7 @@ class KDAutoCompleteController extends KDViewController
       callback:(event)=>
         @updateDropdownContents()
 
+    @lastPrefix          = null
     @selectedItemData    = []
     @hiddenInputs        = {}
     @selectedItemCounter = 0
@@ -42,7 +43,8 @@ class KDAutoCompleteController extends KDViewController
     @setDefaultValue()
 
     mainView.registerListener KDEventTypes : 'keyup', callback : __utils.throttle(@keyUpOnInputView,300), listener : @
-    mainView.registerListener KDEventTypes : 'keydown', listener : @, callback : @keyDownOnInputView
+    mainView.on 'keydown', (event)=>
+      @keyDownOnInputView event
 
   setDefaultValue:(defaultItems)->
     {defaultValue, itemDataPath} = @getOptions()
@@ -50,21 +52,36 @@ class KDAutoCompleteController extends KDViewController
     for item in defaultItems
       @addItemToSubmitQueue @getView(), item
 
-  keyDownOnInputView:(autoCompleteView,event)=>
+  keyDownOnInputView:(event)=>
 
+    autoCompleteView = @getView()
     switch event.which
       when 13, 9 #enter, tab
-        unless autoCompleteView.getValue() is ""
+        if autoCompleteView.getValue() isnt "" and event.shiftKey isnt yes
           @submitAutoComplete autoCompleteView.getValue()
+          event.stopPropagation()
+          event.preventDefault()
+          return no
         else
           return yes
       when 27 #escape
         @hideDropdown()
+      # when 38, 40 #up, down
+      #   @dropdown.keyDownPerformed @dropdown.getListView(), event
       when 38 #uparrow
-        @dropdown.getListView().goUp()
+        if @dropdown.getView().$().is(":visible")
+          @dropdown.getListView().goUp()
+          event.stopPropagation()
+          event.preventDefault()
+          return no
+        else
       when 40 #downarrow
-        @dropdown.getListView().goDown()
-        @getView().$input().blur()
+        if @dropdown.getView().$().is(":visible")
+          @dropdown.getListView().goDown()
+          event.stopPropagation()
+          event.preventDefault()
+          return no
+        # @getView().$input().blur()
     no
 
   getPrefix:()->
@@ -97,7 +114,7 @@ class KDAutoCompleteController extends KDViewController
     windowController = @getSingleton('windowController')
 
     @dropdown = new KDListViewController
-      view          : dropdownListView
+      view : dropdownListView
 
     dropdownWrapper = @dropdown.getView()
 
@@ -339,7 +356,10 @@ class KDAutoCompleteController extends KDViewController
     if inputView.getValue() is ""
       @hideDropdown()
 
-    if inputView.getValue() isnt "" # and @dropdownPrefix isnt inputView.getValue()
+    if inputView.getValue() isnt "" and
+       @dropdownPrefix isnt inputView.getValue() and
+       @dropdown.getView().$().not(":visible")
+
       @dropdownPrefix = inputView.getValue()
       @fetch (data)=>
         @refreshDropDown data

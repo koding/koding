@@ -494,8 +494,11 @@ class KDView extends KDObject
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
-    # log result, event.type, "???"
-    if result
+
+    # unless result
+    #   log @, result, event.type, "???"
+
+    unless result is no
       @emit event.type, event
       # deprecate below 09/2012 sinan
       @propagateEvent (KDEventType:event.type.capitalize()),event
@@ -550,7 +553,7 @@ class KDView extends KDObject
 
     event.preventDefault()
     event.stopPropagation()
-    no
+    # no
 
   submit:(event)-> no #propagations leads to window refresh
 

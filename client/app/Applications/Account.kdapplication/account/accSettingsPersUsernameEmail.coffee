@@ -20,15 +20,19 @@ class AccountEditUsername extends KDView
               title    : err.message
               duration : 2000
           else
+            if err and err.name is 'PINExistsError'
+              new KDNotificationView
+                title    : err.message
+                duration : 2000
             new VerifyPINModal 'Update E-Mail', (pin)=>
               KD.remote.api.JUser.changeEmail
                 email : formData.email
                 pin   : pin
-              , (err)->
+              , (err)=>
                 new KDNotificationView
                   title    : if err then err.message else "E-mail changed!"
                   duration : 2000
-                # FIXME update the view in some way
+                @emit "EmailChangedSuccessfully", formData.email
 
           emailSwappable.swapViews()
 
@@ -42,6 +46,7 @@ class AccountEditUsername extends KDView
       defaultValue : user.email
       placeholder  : "you@yourdomain.com..."
       name         : "email"
+
     emailInputs.addSubView inputActions = new KDView cssClass : "actions-wrapper"
     inputActions.addSubView emailSave = new KDButtonView
       title        : "Save"
@@ -58,6 +63,10 @@ class AccountEditUsername extends KDView
       tagName      : "span"
       partial      : user.email
       cssClass     : "static-text status-#{user.status}"
+
+    emailForm.on "EmailChangedSuccessfully", (email)->
+      emailSpan.updatePartial email
+
     nonEmailInputs.addSubView emailEdit = new KDCustomHTMLView
       tagName      : "a"
       partial      : "Edit"

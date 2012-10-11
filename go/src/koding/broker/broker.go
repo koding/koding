@@ -45,6 +45,7 @@ func main() {
 			consumerFinished := make(chan bool)
 			defer close(consumerFinished)
 			func() {
+				defer log.RecoverAndLog()
 				consumeChannel := utils.CreateAmqpChannel(consumeConn)
 				defer consumeChannel.Close()
 
@@ -53,14 +54,14 @@ func main() {
 					panic(err)
 				}
 
+				stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
+				if err != nil {
+					panic(err)
+				}
+
 				go func() {
 					defer log.RecoverAndLog()
 					defer func() { consumerFinished <- true }()
-
-					stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
-					if err != nil {
-						panic(err)
-					}
 
 					for message := range stream {
 						body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
@@ -77,27 +78,28 @@ func main() {
 					log.Debug(message)
 
 					event := message["event"]
+					exchange := message["channel"]
+
 					switch event {
 					case "client-subscribe":
-						channel := message["channel"]
-						if channel != "updateInstances" {
-							err = consumeChannel.QueueBind("", "*", channel, false, nil)
+						if exchange != "updateInstances" {
+							err = consumeChannel.QueueBind("", "#", exchange, false, nil)
 							if err != nil {
 								panic(err)
 							}
 						}
-						exchanges = append(exchanges, channel)
+						exchanges = append(exchanges, exchange)
 
-						body, _ = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": channel, "payload": ""})
+						body, _ = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": exchange, "payload": ""})
 						sendChan <- string(body)
 
 					case "client-unsubscribe":
-						err = consumeChannel.QueueUnbind("", "*", message["channel"], nil)
+						err = consumeChannel.QueueUnbind("", "#", exchange, nil)
 						if err != nil {
 							panic(err)
 						}
-						for i, exchange := range exchanges {
-							if exchange == message["channel"] {
+						for i, e := range exchanges {
+							if e == exchange {
 								exchanges[i] = exchanges[len(exchanges)-1]
 								exchanges = exchanges[:len(exchanges)-1]
 								break
@@ -111,11 +113,13 @@ func main() {
 					case "client-presence":
 
 					default:
-						if strings.HasPrefix(event, "client-") {
-							err := publishChannel.Publish(message["channel"], event, false, false, amqp.Publishing{Body: []byte(message["payload"])})
+						if strings.HasPrefix(event, "client-") && strings.HasPrefix(exchange, "secret-") {
+							err := publishChannel.Publish(exchange, event, false, false, amqp.Publishing{Body: []byte(message["payload"])})
 							if err != nil {
 								panic(err)
 							}
+						} else {
+							log.Warn(fmt.Sprintf("Invalid message: %v", message))
 						}
 
 					}
@@ -163,7 +167,7 @@ func main() {
 
 		err = server.Serve(listener)
 		if err != nil {
-			panic(err)
+			log.Warn("Server error: " + err.Error())
 		}
 	})
 }

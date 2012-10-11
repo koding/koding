@@ -67,8 +67,9 @@ module.exports = class JTag extends jraphical.Module
         as          : 'follower'
       content       :
         targetType  : [
-          "JCodeSnip", "JApp", "JStatusUpdate"
-          "JAccount", "JOpinion", "JDiscussion"
+          "JCodeSnip", "JApp", "JStatusUpdate", "JLink"
+          "JAccount", "JOpinion", "JDiscussion", "JCodeShare"
+
         ]
         as          : 'post'
       # content       :

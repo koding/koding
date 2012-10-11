@@ -11,4 +11,4 @@ module.exports = class CDiscussionActivity extends CActivity
     relationships   :
       subject       :
         targetType  : "JDiscussion"
-        as          : 'discussion'
+        as          : 'content'

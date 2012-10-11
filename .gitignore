@@ -76,9 +76,14 @@ ebin
 /node_modules/csv
 /node_modules/process
 node_modules/cron/
+/node_modules/libxml-to-js
+/node_modules/colors
+/node_modules/commander
 
 # Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
 
+*.dump
+*.orig
 sftp-config.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json

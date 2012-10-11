@@ -30,17 +30,16 @@ class KDAutoComplete extends KDInputView
     # @hideDropdown()
     # log pubInst,event.target,"blur"
     # @destroyDropdown()
+    yes
 
   focus:(pubInst,event)->
     @setClass "focus"
     (@getSingleton "windowController").setKeyView @
+    yes
 
   keyDown:(event)->
     (@getSingleton "windowController").setKeyView @
-    switch event.which
-      when 13, 27, 38, 40 #enter, escape, up, down
-        no
-      else yes
+    yes
 
   getLeftOffset:()->
     @$input().prev().width()
