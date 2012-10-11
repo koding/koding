@@ -312,16 +312,29 @@ class Sidebar extends JView
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
 
   navItems =
-    id    : "navigation"
-    title : "navigation"
-    items : [
-      { title : "Activity" }
-      { title : "Topics" }
-      { title : "Members" }
-      # { title : "Groups",  path : "GroupsFake" }
-      { title : "Develop", loggedIn : yes,  path : "StartTab" }
-      { title : "Apps" }
-    ]
+    # temp until groups are implemented
+    do ->
+      if location.hostname is "koding.com"
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity" }
+          { title : "Topics" }
+          { title : "Members" }
+          { title : "Develop", loggedIn : yes,  path : "StartTab" }
+          { title : "Apps" }
+        ]
+      else
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity" }
+          { title : "Topics" }
+          { title : "Members" }
+          { title : "Groups",  path : "GroupsFake" }
+          { title : "Develop", loggedIn : yes,  path : "StartTab" }
+          { title : "Apps" }
+        ]
 
   accNavItems =
     id    : "acc-navigation"
