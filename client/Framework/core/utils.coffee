@@ -297,7 +297,7 @@ __utils =
   generatePassword: do ->
 
     letter = /[a-zA-Z]$/;
-    vowel = /[aeiouAEIOU]$/;
+    vowel = /[aeiouAEIOU]$      /;
     consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/;
 
     (length = 10, memorable = yes, pattern = /\w/, prefix = '')->
@@ -306,15 +306,15 @@ __utils =
 
       if memorable
         pattern = if consonant.test(prefix) then vowel else consonant
+      
+      n   = (Math.floor(Math.random() * 100) % 94) + 33
+      chr = String.fromCharCode(n)
+      chr = chr.toLowerCase() if memorable
 
-      n    = (Math.floor(Math.random() * 100) % 94) + 33
-      char = String.fromCharCode(n)
-      char = char.toLowerCase() if memorable
-
-      unless pattern.test char
+      unless pattern.test chr
         return __utils.generatePassword length, memorable, pattern, prefix
 
-      return __utils.generatePassword length, memorable, pattern, "" + prefix + char
+      return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
 
   ###
