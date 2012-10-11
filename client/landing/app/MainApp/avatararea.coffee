@@ -187,7 +187,7 @@ class AvatarPopupShareStatus extends AvatarPopup
           title    : 'Message posted!'
           duration : 2000
         @statusField.setValue ""
-        @statusField.setPlaceHolder reply.body
+        # @statusField.setPlaceHolder reply.body
         @hide()
 
       else
