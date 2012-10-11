@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+var version string
 var numClients int = 0
 var ChangeNumClients chan int = make(chan int)
 var ShuttingDown bool = false
@@ -31,7 +32,7 @@ func Startup(facility string, needRoot bool) {
 	}
 	config.LoadConfig()
 	log.Facility = fmt.Sprintf("%s %d", facility, os.Getpid())
-	log.Info(fmt.Sprintf("Process '%v' started.", facility))
+	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", facility, version))
 
 	go func() {
 		for {
