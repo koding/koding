@@ -4,6 +4,8 @@ class ActivityLinkWidget extends KDFormView
 
     super
 
+    {profile} = KD.whoami()
+
     @labelTitle = new KDLabelView
       title         : "Title:"
       cssClass      : "first-label"
@@ -24,11 +26,22 @@ class ActivityLinkWidget extends KDFormView
 
     @description = new KDInputView
       label         : @labelDescription
-      name          : "body"
-      placeholder   : "What is your link about? Leave empty to display your links embedded description"
+      # name          : "body"
+      # placeholder   : "What is your link about? Leave empty to display your links embedded description"
+      # validate      :
+      #   rules       :
+      #     maxLength : 3000
+      type          : "textarea"
+      placeholder   : "Please enter a description, #{Encoder.htmlDecode profile.firstName}."
+      name          : 'body'
+      style         : 'input-with-extras'
+      autogrow      : yes
       validate      :
         rules       :
+          required  : yes
           maxLength : 3000
+        messages    :
+          required  : "Please enter a description..."
 
     @labelLink = new KDLabelView
       title : "Link:"
@@ -49,12 +62,16 @@ class ActivityLinkWidget extends KDFormView
         unless @link.getValue() is @previousLink
           @previousLink = @link.getValue()
 
-          @embedBox.embedUrl @link.getValue(), {}, (linkData)=>
+          @embedBox.embedUrl @link.getValue(), {
+            maxWidth:525
+            }, (linkData)=>
 
-            @labelTitle.show()
-            @labelDescription.show()
-            @title.show()
-            @description.show()
+            @$("div.formline.link-title").show()
+            @$("div.formline.link-description").show()
+            # @labelTitle.show()
+            # @labelDescription.show()
+            # @title.show()
+            # @description.show()
 
             @title.setValue linkData.title
             @description.setValue linkData.description
@@ -124,7 +141,7 @@ class ActivityLinkWidget extends KDFormView
     @description.setValue ''
     @link.setValue ''
 
-    @embedBox.clearEmbed()
+    @embedBox.clearEmbedAndHide()
     @previousLink = 'this was the previous link'
 
     @tagController.reset()
@@ -135,10 +152,13 @@ class ActivityLinkWidget extends KDFormView
     @addCustomData "activity", activity
     {title, body, tags, link_url, link_embed} = activity
 
-    @labelTitle.show()
-    @labelDescription.show()
-    @title.show()
-    @description.show()
+    @$("div.formline.link-title").show()
+    @$("div.formline.link-description").show()
+
+    # @labelTitle.show()
+    # @labelDescription.show()
+    # @title.show()
+    # @description.show()
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -159,10 +179,13 @@ class ActivityLinkWidget extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-    @labelTitle.hide()
-    @labelDescription.hide()
-    @description.hide()
-    @title.hide()
+    @$("div.formline.link-title").hide()
+    @$("div.formline.link-description").hide()
+
+    # @labelTitle.hide()
+    # @labelDescription.hide()
+    # @description.hide()
+    # @title.hide()
 
   pistachio:->
     """
