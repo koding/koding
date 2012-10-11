@@ -120,6 +120,7 @@ buildClient =(configFile, callback=->)->
 
   configFile = expandConfigFile configFile
   config = require configFile
+  console.log config
   builder = new Builder config.client,clientFileMiddleware,""
 
 
