@@ -1,20 +1,24 @@
 %%%-------------------------------------------------------------------
 %%% File : broker.erl
-%%% Author : Son Tran <sntran@koding.com>
-%%% Description : Message broker interface to manage RabbitMQ exchanges
-%%% and SockJS connections. It organizes connections into exchanges.
+%%% Author : Son Tran-Nguyen <son@koding.com>
+%%% Description : A named gen_server to handle subscribe request from
+%%% client. It keeps track of a supervisor to create subscriptions.
+%%% It is under the supervision of another supervisor.
 %%%
-%%% Created : 2 Mar 2007 by Son Tran <sntran@koding.com>
+%%% Created : 27 August 2012 by Son Tran <sntran@koding.com>
 %%%-------------------------------------------------------------------
 -module(broker).
 -behaviour(gen_server).
 %% API
--export([start/3, subscribe/2, broadcast/3]).
+-export([start_link/0, subscribe/3, presence/4, unsubscribe/1,
+      bind/2, unbind/2, trigger/4, trigger/5, rpc/3]).
 %% gen_server callbacks
--export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--record(state, {channel, subscriber, conn}).
+-export([init/1, terminate/2, code_change/3,
+    handle_call/3, handle_cast/2, handle_info/2]).
 -define (SERVER, ?MODULE).
+
 -include_lib("amqp_client/include/amqp_client.hrl").
+-compile([{parse_transform, lager_transform}]).
 
 %%====================================================================
 %% API
@@ -23,21 +27,43 @@
 %% Function: start_link() -> {ok,Pid} | ignore | {error,Error}
 %% Description: Starts the server
 %%--------------------------------------------------------------------
-start(Connection, Conn, Subscriber) ->
-    {ok, Pid} = gen_server:start(?MODULE, 
-                            [Connection, Conn, Subscriber], []),
-    Pid.
+start_link() -> 
+  gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
 
-subscribe(Broker, Exchange) ->
-    %gen_server:call(?SERVER, {subscribe, Exchange}).
-    gen_server:call(Broker, {subscribe, Exchange}, infinity).
+%%--------------------------------------------------------------------
+%% Function: subscribe(Exchange) -> Reply
+%% Description: Init a subscription for the requesting client.
+%%--------------------------------------------------------------------
+subscribe(Conn, Exchange, VHost) ->
+  gen_server:call(?SERVER, {subscribe, Conn, Exchange, VHost}).
 
-broadcast(Broker, Exchange, Data) ->
-    gen_server:call(Broker, {broadcast, Exchange, Data}).
+unsubscribe(Subscription) when is_pid(Subscription) ->
+  gen_server:call(?SERVER, {unsubscribe, Subscription}).
 
-rpc(Broker, RoutingKey, Payload) ->
-    gen_server:call(Broker, {rpc, RoutingKey, Payload}).
+presence(Conn, Where, Presenter, VHost) ->
+  gen_server:call(?SERVER, {presence, Conn, Where, Presenter, VHost}).
 
+%%====================================================================
+%% Wrappers for subscription gen_server
+%%====================================================================
+bind(Subscription, Event) ->
+  subscription:bind(Subscription, Event).
+
+unbind(Subscription, Event) ->
+  subscription:unbind(Subscription, Event).
+
+trigger(Subscription, Event, Payload, Meta) ->
+  trigger(Subscription, Event, Payload, Meta, false).
+
+trigger(Subscription, Event, Payload, Meta, NoRestriction) ->
+  subscription:trigger(Subscription, 
+            Event, 
+            Payload, 
+            Meta, 
+            NoRestriction).
+
+rpc(Subscription, RoutingKey, Payload) ->
+  gen_server:call(Subscription, {rpc, RoutingKey, Payload}).
 
 %%====================================================================
 %% gen_server callbacks
@@ -47,12 +73,76 @@ rpc(Broker, RoutingKey, Payload) ->
 %% {ok, State, Timeout} |
 %% ignore |
 %% {stop, Reason}
-%% Description: Initiates the server, arguments are passed by third arg
-%% in gen_server:start_link call
+%% Description: Initiates the server
 %%--------------------------------------------------------------------
-init([Connection, Conn, Subscriber]) ->
-    {ok, Channel} = amqp_connection:open_channel(Connection),
-    {ok, #state{channel=Channel, conn=Conn, subscriber=Subscriber}}.
+init([]) ->
+  % To know when the supervisor shuts down. In that case, this
+  % terminate function will be called to give the gen_server a chance
+  % to clean up.
+  process_flag(trap_exit, true),
+  MqVHost = get_env(mq_vhost, <<"/">>),
+  % Doesn't matter getting new connection or not, just return the pool
+  {_ConOrError, Connections} = amqp_connection(MqVHost, dict:new()),
+  {ok, Connections}.
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_call({subscribe, Conn, Exchange}, From, State) 
+%%                          -> {reply, Subscription, State} 
+%% Description: Handling subscription request. Subscription supervisor
+%% will create one under its supervision tree.
+%%--------------------------------------------------------------------
+handle_call({subscribe, Conn, Exchange, VHost}, From, Connections) ->
+  Result = case amqp_connection(VHost, Connections) of
+    {error, NewConnections} when NewConnections =:= Connections ->
+      {error, precondition_failed};
+    {Connection, NewConnections} ->
+      subscription_sup:start_subscription(Connection,
+                        From, 
+                        Conn, 
+                        Exchange)
+  end,
+  {reply, Result, NewConnections};
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_call({unsubscribe, Subscription}, From, State) -> 
+%%                          {noreply, State} 
+%% Description: Handling unsubscription request. This will tell the
+%% subscription supervisor to stop the child subscription, but not call
+%% its `terminate/2` to do all clean up necessesary.
+%%-------------------------------------------------------------------- 
+handle_call({unsubscribe, Subscription}, _From, Connections) ->
+  ok = subscription_sup:stop_subscription(Subscription),
+  {reply, ok, Connections};
+
+%%--------------------------------------------------------------------
+%% Function: %% handle_call({presence, Conn, Exchange}, From, State) -> 
+%%                          {noreply, State} 
+%% Description: Handling presence. It will subscribe to an x-presence
+%% exchange, create a binding with an empty key, and another binding
+%% with the presenter key to announce the presenter's presence. 
+%%--------------------------------------------------------------------
+handle_call({presence,Conn,Where,Presenter,VHost},From,Connections) ->
+  PresencePrefix = get_env(presence_prefix, <<"KDPresence-">>),
+  Exchange = <<PresencePrefix/bitstring, Where/bitstring>>,
+
+  Result = case amqp_connection(VHost, Connections) of
+    {error, NewConnections} when NewConnections =:= Connections ->
+      {error, precondition_failed};
+    {Connection, NewConnections} ->
+      subscription_sup:start_subscription(Connection,
+                        From, 
+                        Conn, 
+                        Exchange)
+  end,
+
+  case Result of
+    {ok, SID} ->
+      subscription:bind(SID, <<>>),
+      subscription:bind(SID, Presenter),
+      {reply, Result, NewConnections};
+    {error, _Err} ->
+      {reply, Result, NewConnections}
+  end;
 
 %%--------------------------------------------------------------------
 %% Function: %% handle_call(Request, From, State) -> {reply, Reply, State} |
@@ -63,40 +153,10 @@ init([Connection, Conn, Subscriber]) ->
 %% {stop, Reason, State}
 %% Description: Handling call messages
 %%--------------------------------------------------------------------
-handle_call({subscribe, Exchange}, From, State = #state{channel = Channel}) ->
-    amqp_channel:call(Channel,  #'exchange.declare'{exchange = Exchange,
-                                                   type = <<"topic">>}),
-    #'queue.declare_ok'{queue = Queue} =
-        amqp_channel:call(Channel, #'queue.declare'{exclusive = true}),
-
-    amqp_channel:call(Channel, #'queue.bind'{exchange = Exchange,
-                                    routing_key = <<"#">>,
-                                     queue = Queue}),
-
-    amqp_channel:subscribe(Channel, #'basic.consume'{queue = Queue,
-                                                     no_ack = true}, self()),
-
-    {noreply, State};
-
-handle_call({broadcast, Exchange, Data}, _From, 
-            State = #state{channel = Channel, subscriber = Subscriber}) ->
-    io:format("broadcasting~n"),
-    Props = #'P_basic'{correlation_id = Subscriber},
-    amqp_channel:cast(Channel,
-                      #'basic.publish'{exchange = Exchange, routing_key = <<"#">>},
-                      #amqp_msg{props = Props, payload = list_to_binary(Data)}),
-    {noreply, State};
-
-handle_call({rpc, RoutingKey, Payload}, _From, State) ->
-    RpcClient = amqp_rpc_client:start(self(), RoutingKey),
-    io:format("RpcClient ~p~n", [RpcClient]),
-    amqp_rpc_client:call(RpcClient, list_to_binary(Payload)),
-    {noreply, State};
-
 handle_call(_Request, _From, State) ->
-    Reply = ok,
-    {reply, Reply, State}.
-    
+  Reply = ok,
+  {reply, Reply, State}.
+  
 %%--------------------------------------------------------------------
 %% Function: handle_cast(Msg, State) -> {noreply, State} |
 %% {noreply, State, Timeout} |
@@ -104,31 +164,17 @@ handle_call(_Request, _From, State) ->
 %% Description: Handling cast messages
 %%--------------------------------------------------------------------
 handle_cast(_Msg, State) ->
-    {noreply, State}.
-    
+  {noreply, State}.
+  
 %%--------------------------------------------------------------------
 %% Function: handle_info(Info, State) -> {noreply, State} |
 %% {noreply, State, Timeout} |
 %% {stop, Reason, State}
 %% Description: Handling all non call/cast messages
 %%--------------------------------------------------------------------
-handle_info(#'basic.consume_ok'{}, State) -> 
-    io:format("Start subscribing~n"),
-    {noreply, State};
-
-handle_info({#'basic.deliver'{routing_key = Key},
-            #amqp_msg{props = #'P_basic'{correlation_id = Subscriber},
-                        payload = Payload}},
-            State = #state{subscriber = Subscriber}) ->
-    io:format("Receiving own message~n"),
-    {noreply, State};
-
-handle_info({#'basic.deliver'{}, #amqp_msg{payload = Payload}},
-            State = #state{conn = Conn}) ->
-    io:format("Receiving other's message~n"),
-    Conn:send(Payload),
-    {noreply, State}.
-    
+handle_info(_Info, State) ->
+  {noreply, State}.
+  
 %%--------------------------------------------------------------------
 %% Function: terminate(Reason, State) -> void()
 %% Description: This function is called by a gen_server when it is about to
@@ -136,17 +182,52 @@ handle_info({#'basic.deliver'{}, #amqp_msg{payload = Payload}},
 %% cleaning up. When it returns, the gen_server terminates with Reason.
 %% The return value is ignored.
 %%--------------------------------------------------------------------
-terminate(_Reason, #state{channel = Channel}) ->
-    amqp_channel:close(Channel),
-    ok.
+terminate(_Reason, Connections) ->
+  Closer = fun (VHost) -> 
+    Connection = dict:fetch(VHost, Connections),
+    amqp_connection:close(Connection)
+  end,
+  [Closer(VHost) || VHost <- dict:fetch_keys(Connections)],
+  lager:info("Broker server dies, closing connections"),
+  ok.
+
+%%--------------------------------------------------------------------
+%% Function: amqp_connection(VHost, Connections) -> 
+%%                                {Connection, NewConnections} |
+%%                                {error, Connections}
+%% Description: Establishes a connection pool based on VHost.
+%%--------------------------------------------------------------------
+amqp_connection(VHost, Connections) ->
+  case dict:find(VHost, Connections) of
+    {ok, Connection} -> {Connection, Connections};
+    error ->
+      MqHost = get_env(mq_host, "localhost"),
+      MqUser = get_env(mq_user, <<"guest">>),
+      MqPass = get_env(mq_pass, <<"guest">>),
+      case amqp_connection:start(#amqp_params_network{
+        host = MqHost, username = MqUser, password = MqPass,
+        virtual_host = VHost}) of
+        {ok, Connection} ->
+          {Connection, dict:store(VHost, Connection, Connections)};
+        {error, Error} ->
+          lager:error("Failed to establish connection to vhost ~p with reason ~p",
+                                                  [VHost, Error]),
+          {error, Connections}
+      end
+  end.
 
 %%--------------------------------------------------------------------
 %% Func: code_change(OldVsn, State, Extra) -> {ok, NewState}
 %% Description: Convert process state when code is changed
 %%--------------------------------------------------------------------
 code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+  {ok, State}.
 
 %%--------------------------------------------------------------------
 %%% Internal functions
 %%--------------------------------------------------------------------
+get_env(Param, DefaultValue) ->
+  case application:get_env(broker, Param) of
+    {ok, Val} -> Val;
+    undefined -> DefaultValue
+  end.

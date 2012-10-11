@@ -7,21 +7,21 @@ class AccountPaymentMethodsListController extends KDListViewController
     ,data
     # data = $.extend
     #   items : [
-    #     { 
+    #     {
     #       title : "My personal card",   type : "visa", cardNumber : "432* **** **** *029"
     #       cardOwner : "Ryan Goodman", cardAddress : "Somewhere in LA", cardCity : "Los Angeles"
     #       cardZip : "11111", cardState : "CA", cardExpiry : "03/2013"
     #     }
     #     ,
-    #     { 
+    #     {
     #       title : "Corporate Amex",     type : "amex", cardNumber : "370*********834"
     #       cardOwner : "Ryan Goodman", cardAddress : "780A Valencia St", cardCity : "San Francisco"
     #       cardZip : "94110", cardState : "CA", cardExpiry : "11/2015"
     #     }
     #   ]
     # ,data
-    super options,data   
-    
+    super options,data
+
     loadView:->
       super
       # @getView().parent.addSubView addButton = new KDButtonView
@@ -32,16 +32,16 @@ class AccountPaymentMethodsListController extends KDListViewController
       #   iconClass : "plus"
       #   callback  : =>
       #     @getListView().showModal()
-       
+
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountPaymentMethodsListItem
+      itemClass : AccountPaymentMethodsListItem
     ,options
-    super options,data    
-  
+    super options,data
+
   showModal:->
     form = new AccountCreditCardForm
       callback : @formSubmit
@@ -74,16 +74,16 @@ class AccountPaymentMethodsList extends KDListView
 class AccountCreditCardInfo extends KDView
   viewAppended:->
     @setPartial @partial @data
-  
+
   partial:(data)->
-    """ 
+    """
       <div class="credit-card-info">
         <p class="lightText"><strong>#{data.type}</strong></p>
         <p class="lightText"><strong>#{data.cardNumber}</strong> - <strong>#{data.cardExpiry}</strong></p>
         <p class="darkText">
           #{data.cardAddress}<br>
           #{data.cardCity}, #{data.cardState} #{data.cardZip}
-        </p> 
+        </p>
       </div>
     """
 
@@ -92,7 +92,7 @@ class AccountCreditCardForm extends KDFormView
     super
 
     @addSubView formline1                = new KDCustomHTMLView
-      tagName : "div" 
+      tagName : "div"
       cssClass : "modalformline"
     formline1.addSubView cardNumber      = new AccountCreditCardInput
 
@@ -103,7 +103,7 @@ class AccountCreditCardForm extends KDFormView
     formline2.addSubView cardOwner       = new KDInputView name : "card-owner", placeholder : "Card Owner..."
 
     @addSubView formline3          = new KDCustomHTMLView
-      tagName : "div" 
+      tagName : "div"
       cssClass : "modalformline"
 
     formline3.addSubView expiryLabel     = new KDLabelView title : "Expiry Date"
@@ -124,7 +124,7 @@ class AccountCreditCardForm extends KDFormView
       selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+10))
 
     @addSubView formline4          = new KDCustomHTMLView
-      tagName : "div" 
+      tagName : "div"
       cssClass : "modalformline"
 
     formline4.addSubView cvc       = new KDInputView name : "card-cvc", cssClass : "small", placeholder:"cvc"
@@ -142,11 +142,11 @@ class AccountCreditCardForm extends KDFormView
       tagName      : "a"
       partial      : "Privacy Policy"
       cssClass     : "propagatePrivacyPolicy"
-    
+
   putEditButtons:->
     @addSubView buttons = new KDView
       cssClass : "formline"
-    
+
     @addSubView actionsWrapper = new KDCustomHTMLView
       tagName : "div"
       cssClass : "actions-wrapper"
@@ -154,16 +154,16 @@ class AccountCreditCardForm extends KDFormView
     actionsWrapper.addSubView cancelLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Cancel"
-    
+
     buttons.addSubView okButton = new KDButtonView title: 'Change payment method', style: 'cupid-green'
-  
+
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : cancelLink
       callback:()=>
         @handleEvent type : "FormCancelled"
-    
-  
+
+
 class AccountCreditCardInput extends KDView
   InputView = class CCInput extends KDInputView
     # setValidationResult:(didPass,message)->
@@ -182,12 +182,12 @@ class AccountCreditCardInput extends KDView
     @addSubView @input = new CCInput
       name            : "card-number"
       placeholder     : "xxxx xxxx xxxx xxxx"
-      validate        : 
+      validate        :
         event         : "blur"
         rules         : "creditCard"
-    
+
     @addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
-    
+
     @input.on "CreditCardTypeIdentified", (type)=>
       cardType = event.creditCardType.toLowerCase()
       $icon = icon.$()
@@ -200,11 +200,11 @@ class AccountCreditCardInput extends KDView
         # new KDNotificationView
         #   title     : "That's a '#{event.creditCardType} Card"
         #   duration  : 500
-    
-    
-    
-    
-    
+
+
+
+
+
 class AccountPaymentMethodsListItem extends KDListItemView
   constructor:(options,data)->
     options = tagName : "li"
@@ -212,30 +212,30 @@ class AccountPaymentMethodsListItem extends KDListItemView
 
   # viewAppended:()->
   #   super
-  #     
-  #   form = new AccountCreditCardForm 
+  #
+  #   form = new AccountCreditCardForm
   #     delegate : @
   #     cssClass : "posstatic"
   #   ,@data
-  #   
-  #   info = new AccountCreditCardInfo 
+  #
+  #   info = new AccountCreditCardInfo
   #     delegate : @
   #     cssClass : "posstatic"
   #   ,@data
-  # 
+  #
   #   info.addSubView editLink = new KDCustomHTMLView
   #     tagName      : "a"
   #     partial      : "Edit"
   #     cssClass     : "action-link"
-  # 
+  #
   #   @swappable = swappable = new AccountsSwappable
   #     views : [form,info]
   #     cssClass : "posstatic"
-  # 
+  #
   #   @addSubView swappable,".swappable-wrapper"
   #   form.putEditButtons()
-  # 
-  # 
+  #
+  #
   #   @listenTo KDEventTypes : "click",         listenedToInstance : editLink,   callback : @swapSwappable
   #   @listenTo KDEventTypes : "FormCancelled", listenedToInstance : form,       callback : @swapSwappable
 
@@ -245,17 +245,17 @@ class AccountPaymentMethodsListItem extends KDListItemView
   click:(event)->
     if $(event.target).is "a.delete-icon"
       @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
-  
+
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>
-    """    
+    """
     # """
     #   <div class='labelish'>
     #     <span class='payment-method-title'>#{data.title}</span>
     #   </div>
     #   <div class='swappableish swappable-wrapper posstatic'>
     #   </div>
-    # """    
-    
-    
+    # """
+
+

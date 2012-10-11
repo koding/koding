@@ -1,1 +1,0 @@
-{JsPath} = bongo

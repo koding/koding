@@ -9,7 +9,7 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      subItemClass  : options.subItemClass
+      itemClass     : options.itemClass
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
@@ -45,13 +45,10 @@ class FeedController extends KDViewController
       callback      : (pubInst, item)=>
         @changeActiveSort item.type
 
-    @resultsController.getView().registerListener
-      KDEventTypes  : 'PaneDidShow'
-      listener      : @
-      callback      : (pubInst, event)=>
-        filterName  = @selection.name
-        sortName    = @selection.activeSort or @defaultSort.name
-        @facetsController.highlight filterName, sortName
+    @resultsController.getView().on 'PaneDidShow', (pane)=>
+      filterName  = @selection.name
+      sortName    = @selection.activeSort or @defaultSort.name
+      @facetsController.highlight filterName, sortName
 
     @resultsController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
@@ -105,28 +102,50 @@ class FeedController extends KDViewController
     filter  = @selection
     sort    = @sorts[@selection.activeSort] or @defaultSort
 
-    options.sort[sort.name] = sort.direction
+    options.sort[sort.name.split('|')[0]] = sort.direction
     options.limit = @getOptions().limitPerPage
     options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
     options
 
+  emitLoadStarted:(filter)=>
+    listController = @resultsController.listControllers[filter.name]
+    listController.showLazyLoader no
+    @showNoItemFound listController, filter
+    return listController
+
   emitLoadCompleted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
-    listController.propagateEvent KDEventType : 'LazyLoadComplete'
+    listController.hideLazyLoader()
     return listController
+
+  emitCountChanged:(count, filter)->
+    @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
+
+  showNoItemFound:(controller, filter)->
+    {noItemFoundText} = filter
+    if @noItemFound? then @noItemFound.destroy()
+    controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+    @noItemFound.hide()
 
   loadFeed:(filter = @selection)->
 
-    options  = @getFeedOptions()
-    selector = @getFeedSelector()
+    options    = @getFeedOptions()
+    selector   = @getFeedSelector()
+    itemClass  = @getOptions().itemClass
 
+    @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
     else
       filter.dataSource selector, options, (err, items)=>
         listController = @emitLoadCompleted filter
         unless err
+          if items.length is 0 and listController.getItemCount() is 0
+            @noItemFound.show()
           listController.instantiateListItems items
+          @emitCountChanged listController.itemsOrdered.length, filter.name
           if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
             @loadFeed filter
         else

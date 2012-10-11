@@ -19,32 +19,62 @@ class KiteController {
     }
   }
   
-  private function initialize_config ($config_json) {
+  public function add_cluster ($kite_name, $cluster=NULL) {
+    if (!isset($cluster)) {
+      $cluster = $this->get_cluster($kite_name);
+    }
+    if (!isset($this->clusters[$kite_name])) {
+      $this->clusters[$kite_name] = array();
+    }
+    $cluster = new KiteCluster($kite_name, $cluster);
+    array_push(
+      $this->clusters[$kite_name],
+      $cluster
+    );
+    return count($this->clusters[$kite_name]);
+  }
+  
+  public function get_cluster ($kite_name) {
+    if (!isset($this->clusters[$kite_name])) {
+      $this->clusters[$kite_name] = array();
+      $db = get_mongo_db();
+      $custom_cluster = $db->jKiteClusters->findOne(array(
+        'kiteName' => $kite_name,
+      ));
+      if (isset($custom_cluster)) {
+        $custom_cluster = (object) $custom_cluster;
+        $this->add_cluster($kite_name, $custom_cluster);
+        $clusters =& $this->get_cluster($kite_name);
+        trace('kluster', $clusters);
+        return $clusters;
+      }
+    }
+    return $this->clusters[$kite_name];
+  }
+  
+  public function initialize_config ($config_json) {
     $config = json_decode($config_json);
     $db = get_mongo_db();
     foreach ($config->kites as $kite_name => $kite) {
-      $this->clusters[$kite_name] = array();
       foreach ($kite->clusters as $cluster) {
-        array_push(
-          $this->clusters[$kite_name],
-          new KiteCluster($kite_name, $cluster)
-        );
+        $this->add_cluster($kite_name, $cluster);
       }
     }
   }
   
   public function add_kite ($kite_name, $uri, $service_key=NULL) {
-    trace('service key', $service_key);
     $parsed_uri = parse_url($uri);
     $result = array('addedTo' => array());
-    $clusters = $this->clusters[$kite_name];
-    if (!isset($clusters)) {
-      error_log("No cluster found for kites named $kite_name");
-      return FALSE;
-    }
+    $clusters =& $this->get_cluster($kite_name);
     foreach ($clusters as $index=>$cluster) {
-      if ($cluster->trustPolicy->test('byHostname', $parsed_uri['host'])
-       && $cluster->add_kite($uri)) {
+      if (
+      ((  isset($service_key)
+      &&  $cluster->trustPolicy->test('untrustedKite', $service_key))
+      # this is a temporary measure to allow "trusted" kites to connect to the service
+      ||  $cluster->trustPolicy->test('byHostname', $parsed_uri['host']
+      ))
+      && $cluster->add_kite($uri)
+      ) {
         $pinger = $this->get_kite('pinger', 'kc');
         if (!isset($pinger)) {
           error_log('Pinger kite could not be reached!');
@@ -60,7 +90,7 @@ class KiteController {
         else {
           foreach ($this->clusters as $cluster) {
             foreach ($cluster as $node) {
-              if ($node->name == 'pinger') {
+              if ($node->kite_name == 'pinger') {
                 continue;
               }
               $kites = $node->get_kites();
@@ -104,14 +134,13 @@ class KiteController {
   }
 
   private function get_next_kite_uri ($kite_name) {
-    $clusters = $this->clusters[$kite_name];
+    $clusters = $this->get_cluster($kite_name);
+    trace('kite name', $kite_name, 'cluster', $cluster);
     $cluster = $clusters[0];
     if (!isset($cluster)) {
-      trace('Cluster is not found: ', $kite_name);
+      error_log("Cluster is not found: $kite_name");
     }
     $kite = $clusters[0]->get_next_kite_uri();
-    error_log("hello kite why are you failing?".json_encode($clusters));
-    // $kite = $clusters[0]->kites[0];
     if (!isset($kite)) {
       error_log('found no kites');
       return FALSE;
@@ -148,5 +177,4 @@ class KiteController {
   public function get_kite ($kite_name, $username) {
     return new Kite($kite_name, $this->get_kite_uri($kite_name, $username));
   }
-  
 }

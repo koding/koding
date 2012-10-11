@@ -1,11 +1,14 @@
-BONGO_MQ = do->
-  options = {
-    encrypted: yes
-  }
-  switch KD.env
-    when 'beta'
-      new Pusher 'a19c8bf6d2cad6c7a006', options
-    else
-      new Pusher 'a6f121a130a44c7f5325', options
+KD.remote = new Bongo
 
-# _addFlashFallback BONGO_MQ, connectionTimeout: 10000
+  getSessionToken:-> $.cookie('clientId')
+
+  mq: do->
+    {broker} = KD.config
+    brokerOptions = {
+      encrypted     : yes
+      sockURL       : broker.sockJS
+      authEndPoint  : broker.auth
+      vhost         : broker.vhost
+      autoReconnect : yes
+    }
+    broker = new Broker broker.apiKey, brokerOptions

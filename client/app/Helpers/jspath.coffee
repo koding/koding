@@ -1,1 +1,1 @@
-{JsPath} = bongo
+{JsPath} = Bongo

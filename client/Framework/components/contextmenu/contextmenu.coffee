@@ -1,19 +1,32 @@
 class JContextMenu extends KDView
 
-  constructor:(options,data)->
+  constructor:(options = {},data)->
 
-    super options,data
+    options.cssClass = @utils.curryCssClass "jcontextmenu", options.cssClass
 
-    @setClass "jcontextmenu"
+    super options, data
+
+    o = @getOptions()
+
     @getSingleton("windowController").addLayer @
 
     @on 'ReceivedClickElsewhere', => @destroy()
 
     if data
-      @treeController = new JContextMenuTreeViewController delegate : @, data
+      @treeController = new JContextMenuTreeViewController
+        type              : o.type
+        view              : o.view
+        delegate          : @
+        treeItemClass     : o.treeItemClass
+        listViewClass     : o.listViewClass
+        itemChildClass    : o.itemChildClass
+        itemChildOptions  : o.itemChildOptions
+        addListsCollapsed : o.addListsCollapsed
+        putDepthInfo      : o.putDepthInfo
+      , data
       @addSubView @treeController.getView()
       @treeController.getView().on 'ReceivedClickElsewhere', => @destroy()
-    
+
     KDView.appendToDOMBody @
 
   childAppended:->
@@ -23,10 +36,10 @@ class JContextMenu extends KDView
 
   positionContextMenu:()->
 
-    event       = @getOptions().event
+    event       = @getOptions().event or {}
     mainHeight  = @getSingleton('mainView').getHeight()
-    
-    top         = event.pageY
+
+    top         = @getOptions().y or event.pageY or 0
     menuHeight  = @getHeight()
     if top + menuHeight > mainHeight
       top = mainHeight - menuHeight - 15
@@ -34,4 +47,4 @@ class JContextMenu extends KDView
     @getDomElement().css
       width     : "172px"
       top       : top
-      left      : event.pageX
+      left      : @getOptions().x or event.pageX or 0

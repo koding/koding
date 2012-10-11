@@ -14,12 +14,8 @@ ProgressBar       = require './node_modules/progress'
 
 module.exports = class Builder
 
-  constructor:(options,targetPaths,fileList="deprecated",run)->
-    @options = options
-    @targetPaths = targetPaths
-    @watcher = new Watcher targetPaths.includesFile 
-    @processMonitor = new ProcessMonitor run:run.command
-
+  constructor:(@options,@middleware,fileList="deprecated")->
+    @watcher = new Watcher @options.includesFile 
 
     @attachListeners()
     
@@ -37,7 +33,7 @@ module.exports = class Builder
   #   return final_code    
 
   resetWatcher:()->
-    @watcher = new Watcher @targetPaths.includesFile
+    @watcher = new Watcher @options.includesFile
   
   # buildApplications:(installedAppsPath, builtJsPath)->
   #   buildPath = fs.realpathSync builtJsPath
@@ -66,27 +62,27 @@ module.exports = class Builder
     cclient = kdjs = @wrapWithJSClosure cclient    
     libraries  = clibraries
         
-    @targetPaths.clientFileMiddleware @options,{libraries,kdjs},(err,finalCode)=>
-      fs.writeFile @targetPaths.client,finalCode,(err) => 
+    @middleware @options, {libraries, kdjs}, (err,finalCode)=>
+      fs.writeFile @options.js, finalCode, (err) => 
         log.info "Client code is re-compiled and saved."
         callback? null
 
 
-  buildServer:(options,callback)->
-    cserver  = @watcher.getSubSectionConcatenated "Server","Stuff"
-    cserver += @watcher.getSubSectionConcatenated "Server","Models"
-    cserver += @watcher.getSubSectionConcatenated "Server","OtherStuff"
-    cserver  = @wrapWithJSClosure cserver
-    fs.writeFile @targetPaths.server,cserver,(err) -> 
-      log.info "Server code is re-compiled."
-      callback? null
+  # buildServer:(options,callback)->
+  #   cserver  = @watcher.getSubSectionConcatenated "Server","Stuff"
+  #   cserver += @watcher.getSubSectionConcatenated "Server","Models"
+  #   cserver += @watcher.getSubSectionConcatenated "Server","OtherStuff"
+  #   cserver  = @wrapWithJSClosure cserver
+  #   fs.writeFile @targetPaths.server,cserver,(err) -> 
+  #     log.info "Server code is re-compiled."
+  #     callback? null
     
-    if @options.dontStart
-      fs.writeFile @targetPaths.serverProd,cserver,(err)=>
-        unless err
-          log.info "Server code is copied to #{@targetPaths.serverProd}"
-        else
-          log.error "couldn't copy kd-server.js to #{@targetPaths.serverProd}, monit will not work." 
+  #   if @options.dontStart
+  #     fs.writeFile @targetPaths.serverProd,cserver,(err)=>
+  #       unless err
+  #         log.info "Server code is copied to #{@targetPaths.serverProd}"
+  #       else
+  #         log.error "couldn't copy kd-server.js to #{@targetPaths.serverProd}, monit will not work." 
           
   buildCss:(options,callback)->
     cstylus = @watcher.getSubSectionConcatenated "Client","StylusFiles"
@@ -96,7 +92,7 @@ module.exports = class Builder
     #   ccss     = @watcher.getSubSectionConcatenated "Client",CssFiles
     #   ccss    += "\n /* next file in line */ \n"+css 
     #   ccss     = sqwish.minify ccss if options.uglify
-    fs.writeFile @targetPaths.css,ccss,(err) ->
+    fs.writeFile @options.css, ccss, (err) ->
       unless err
         log.info "Css files are recompiled and saved."
         callback? null
@@ -108,16 +104,16 @@ module.exports = class Builder
   wrapWithJSClosure : (js)-> "(function(){#{js}}).call(this);"
 
   buildIndex : (options,callback)->
-    fs.readFile @targetPaths.indexMaster, 'utf-8',(err,data)=>
+    fs.readFile @options.indexMaster, 'utf-8',(err,data)=>
 
       index = data
-      index = index.replace "js/kd.js","js/kd.#{@targetPaths.version}.js?"+Date.now()
-      index = index.replace "css/kd.css","css/kd.#{@targetPaths.version}.css?"+Date.now()
-      if @targetPaths.useStaticFilesServer(@options) is no
-        st = @targetPaths.staticFilesBaseUrl
+      index = index.replace "js/kd.js","js/kd.#{@options.version}.js?"+Date.now()
+      index = index.replace "css/kd.css","css/kd.#{@options.version}.css?"+Date.now()
+      if @options.useStaticFileServer is no
+        st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
         index = index.replace ///#{st}///g,""
         log.warn "Static files will be served from NodeJS process. (because -d vpn is used - ONLY DEVS should do this.)"
-      fs.writeFile @targetPaths.index,index,(err) -> 
+      fs.writeFile @options.index,index,(err) -> 
         throw err if err
         unless err 
           log.info "Index.html is ready."

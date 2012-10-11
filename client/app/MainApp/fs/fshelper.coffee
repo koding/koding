@@ -1,10 +1,10 @@
 class FSHelper
-  
-  systemFilesRegExp = 
+
+  systemFilesRegExp =
     ///
-    \s\.cagefs
+    \s\.cagefs|\s\.tmp
     ///
-  
+
   parseFile = (parentPath, outputLine) ->
 
     [permissions, size, user, group, mode, date, time, timezone, rest...] = outputLine.replace(/\t+/gi, ' ').replace(/\s+/ig, ' ').split ' '
@@ -21,7 +21,7 @@ class FSHelper
     path      = if type is 'folder' then path.substr(0, path.length - 1) else path
     name      = getFileName path
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
-  
+
   getDateInstance = (date, time, timezone) ->
 
     unixTime  = Date.parse "#{date}T#{time}"
@@ -49,30 +49,31 @@ class FSHelper
         [itemCount] = lines.splice(0,3)
         parentPath = parentPaths[0]
       for line in lines when line
-        unless systemFilesRegExp.test line
-          data.push FSHelper.createFile parseFile parentPath, line
+        unless line[0] is 'l' # broken symlinks has l type
+          unless systemFilesRegExp.test line
+            data.push FSHelper.createFile parseFile parentPath, line
     data
-    
+
   @registry = {}
-  
+
   @register = (file)->
-    
+
     @setFileListeners file
     @registry[file.path] = file
-  
+
   @deregister = (file)->
-    
+
     delete @registry[file.path]
-  
+
   @updateInstance = (fileData)->
-    
+
     for prop, value of fileData
       @registry[fileData.path][prop] = value
-  
+
   @setFileListeners = (file)->
-    
+
     file.on "fs.rename.finished", =>
-      
+
 
   @getFileNameFromPath = getFileName = (path)->
 
@@ -89,11 +90,11 @@ class FSHelper
     parentPath = __utils.getParentPath path
     name       = @getFileNameFromPath path
     return @createFile { path, parentPath, name, type }
-  
+
   @createFile = (data)->
 
     unless data and data.type and data.path
-      return warn "pass a path and type to create a file instance" 
+      return warn "pass a path and type to create a file instance"
 
     if @registry[data.path]
       instance = @registry[data.path]
@@ -104,7 +105,7 @@ class FSHelper
         when "mount"  then FSMount
         when "symLink" then FSFolder
         else FSFile
-    
+
       instance = new constructor data
       @register instance
 
@@ -112,14 +113,12 @@ class FSHelper
 
   @isValidFileName = (name) ->
 
-    /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name)
-    
+    return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
+
   @escapeFilePath = (name) ->
 
-    name  = name.replace /\'/g, '\\\''
-    name  = name.replace /\"/g, '\\"'
-    ' "' + name + '" '
-  
+    return " \"#{name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"')}\" "
+
   @fileTypes =
 
     '-' : 'file'
@@ -130,7 +129,7 @@ class FSHelper
     c   : 'characterDevice'
     b   : 'blockDevice'
     D   : 'door'
-  
+
   @parseStat = (fileData, response)->
 
     permissions = response.match(/Access: \([0-9]*\/(..........)/)[1]

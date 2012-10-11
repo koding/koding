@@ -15,7 +15,7 @@
     "preupdate": "make -C src ",
     "update" : "coffee -b -c -o js/ src/"
   },
-  "dependencies": {"coffee-script":"1.2.0"},
+  "dependencies": {"coffee-script":"1.3.3"},
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {

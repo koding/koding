@@ -89,25 +89,49 @@
 .kdmodal.fx
   visibility            hidden
   opacity               0
+
+  // fade
+  
   vendor                transition,opacity 0.15s linear
+
+  // scale
+  
   // -webkit-transform     scale(3) translate(0, 0)
   // -moz-transform        scale(.1) translate(0, 0)
   // -o-transform          scale(.7) translate(0, 0)
   // -ms-transform         scale(.7) translate(0, 0)
-  // transform             scale(.7) translate(0, 0)
+  // transform             scale(3) translate(0, 0)
 
-  // vendor                transform-origin,center center
+  // vendor                transform-origin, center center
 
   // -webkit-transition    -webkit-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -moz-transition       -moz-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -o-transition         -o-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // -ms-transition        -ms-transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
   // transition            transform ease-out .15s, opacity ease-out .15s, visibility 0s linear .15s
+  
+  // salto
+  // vendor                        transform-style, preserve-3d
+  // vendor                        transition-duration, 1s
+  // -webkit-transition-property   -webkit-transform
+  // -moz-transition-property      -moz-transform
+  // -o-transition-property        -o-transform
+  // -khtml-transition-property    -khtml-transform
+  // transition-property           transform
+
   &.active
     visibility          visible
     opacity             1
-    // vendor              transform,scale(1)
-    // vendor              transition-delay,0s
+
+    // scale
+
+    // vendor              transform, scale(1)
+    // vendor              transition-delay, 0s
+
+    // salto
+
+    // vendor              transform-origin, right center
+    // vendor              transform, rotateZ( -360deg ) rotateY( 0deg )
 
 
 .kdmodal

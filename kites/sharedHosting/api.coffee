@@ -9,26 +9,33 @@ fs        = require 'fs'
 hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
-Kite      = require 'kite'
+Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 
 createTmpDir = require './createtmpdir'
 
 console.log "new sharedhosting api."
 
+escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
 
+makedirp = (path, user, cb)->
+  exec "mkdir -p #{path} && chown #{user}: #{path}", cb
+
+createAppsDir = (user, cb)->
+  path = escapePath "/Users/#{user}/Applications"
+  makedirp path, user, cb
 
 module.exports = new Kite 'sharedHosting'
-  
-  
+
+
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
- 
+
   interval:({interval}, callback)->
     setInterval (-> callback null, interval), interval
 
   executeCommand: require './executecommand'
-  
+
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
     original      = filePath+""
@@ -44,7 +51,7 @@ module.exports = new Kite 'sharedHosting'
         else
           callback? null,filePath
     start 0
-        
+
   uploadFile:(options,callback)->
     #
     # options =
@@ -63,11 +70,11 @@ module.exports = new Kite 'sharedHosting'
         else
           @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
             unless err
-              callback? null,path        
+              callback? null,path
             else
               callback? "[ERROR] can't upload file : #{err}"
-        
-  
+
+
   checkUid:(options,callback)->
     #
     # This methid will check user's uid
@@ -92,7 +99,7 @@ module.exports = new Kite 'sharedHosting'
               log.error "CANT CREATE THIS USER"
               callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
 
-          
+
       else if stdout < config.minAllowedUid
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.error e = "[ERROR]  min UID for commands is #{config.minAllowedUid}, your #{stdout}"
@@ -100,8 +107,8 @@ module.exports = new Kite 'sharedHosting'
       else
         stdout = stdout.replace(/(\r\n|\n|\r)/gm," ")
         log.debug "[OK] func:checkUid: user's #{username} UID #{stdout} allowed"
-        callback? null  
-  
+        callback? null
+
   secureUser : (options,callback)->
     # put user to the secure env http://www.cloudlinux.com/docs/cagefs/
 
@@ -117,7 +124,7 @@ module.exports = new Kite 'sharedHosting'
       else
         log.info "[OK] user #{username} was secured"
         callback? null,"[OK] user #{username} was secured"
-  
+
   buildHome : (options,callback)->
     #
     # this methid will make home directory for user, set correct perms and copy all default files in it
@@ -129,7 +136,7 @@ module.exports = new Kite 'sharedHosting'
 
     {username,uid} = options
     home = nodePath.join(config.usersPath,username)
-    fs.mkdir home,0755,(error)=>
+    fs.mkdir home, 0o0755,(error)=>
       if error?
         log.error "[ERROR] can't make homedir for user #{username} in the #{config.usersPath}: #{error}"
       else
@@ -149,97 +156,136 @@ module.exports = new Kite 'sharedHosting'
 
   publishApp:(options, callback)->
 
-    {username, version, appName, userAppPath} = options
+    {username, profile, version, appName, userAppPath} = options
 
-    latestPath    = "/opt/Apps/#{username}/#{appName}/latest"
-    versionedPath = "/opt/Apps/#{username}/#{appName}/#{version}"
+    appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
+    latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
+    versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
+    userAppPath   = escapePath userAppPath
 
     cb = (err)->
-      if err then console.error err
-      else callback? null
+      console.error err if err
+      callback? err, null
 
-    mkdirp versionedPath, (err)->
-      if err then cb err
+    createAppsDir username, (err)->
+      makedirp appRootPath, username, (err)->
+        if err then cb err
+        else
+          exec "stat #{versionedPath}", (err, stdout, stderr)->
+            if err or stderr.length
+              cb "[ERROR] Version is already published, change version and try again!"
+            else
+              exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
+                if err or stderr then cb err
+                else
+                  manifestPath = "#{versionedPath}/.manifest"
+                  exec "cat #{manifestPath}", (err, stdout, stderr)->
+                    if err or stderr then cb err
+                    else
+                      exec "rm -f #{manifestPath}", ->
+                        manifest = JSON.parse stdout
+                        manifest.author = "#{profile.firstName} #{profile.lastName}"
+                        manifest.authorNick = username
+                        delete manifest.devMode if manifest.devMode
+                        unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
+                        fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
+
+  downloadApp: (options, callback)->
+
+    {username, owner, appName, version, appPath} = options
+
+    cb = (err)->
+      console.error err if err
+      callback? err, null
+
+    version   or= 'latest'
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    userAppPath = escapePath appPath
+    backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
+
+    console.log kpmAppPath
+    console.log userAppPath
+    console.log backupPath
+
+    # mkdirp backupPath, (err)->
+    #   if err then cb err
+    #   else
+    #     cb null
+    exec "stat #{kpmAppPath}", (err, stdout, stderr)->
+      if err or stderr.length
+        cb "[ERROR] App files not found! Download cancelled."
       else
-        fs.readFile "#{userAppPath}/index.js", (err, appScript)->
-          if err then cb err
+        exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
           else
-            fs.readFile "#{userAppPath}/.manifest", (err, manifest)->
-              if err then cb err
-              else
-                fs.writeFile "#{versionedPath}/index.js", appScript, 'utf-8', (err)->
-                  if err then cb err
-                  else
-                    fs.writeFile "#{versionedPath}/.manifest", manifest, 'utf-8', (err)->
-                      if err then cb err
-                      else
-                        fs.stat latestPath, (err, statObj)->
-                          if err
-                            exec "ln -s #{versionedPath} #{latestPath}", cb
-                          else
-                            if statObj.isSymbolicLink() or statObj.isFile()
-                              exec "rm #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                            else if statObj.isDirectory() and appName.length?
-                              exec "rm -rf #{latestPath} && ln -s #{versionedPath} #{latestPath}", cb
-                            else
-                              cb new KodingError "Something went wrong"
+            cb null
 
   installApp: (options, callback)->
 
-    {username, owner, appName} = options
-
-    kpmAppPath  = "/opt/Apps/#{owner}/#{appName}/latest"
-    userAppPath = "/Users/#{username}/Applications/#{appName}.kdapp"
+    {username, owner, appPath, appName, version} = options
+    version ?= 'latest'
 
     cb = (err)->
-      if err then console.error err
-      else callback? null
+      console.error err if err
+      callback? err, null
 
-    mkdirp userAppPath, (err)->
-      if err then cb err
+    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    appPath    = escapePath appPath
+
+    createAppsDir username, (err)->
+      makedirp appPath, username, (err)->
+        if err then cb err
+        else
+          exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
+            if err or stderr.length
+              cb err or "[ERROR] #{stderr}"
+            else
+              exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
+                if err or stderr.length
+                  cb err or "[ERROR] #{stderr}"
+                else
+                  cb null
+
+  approveApp: (options, callback)->
+
+    {username, authorNick, version, appName} = options
+
+    appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
+    latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
+    versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
+
+    cb = (err)->
+      console.error err if err
+      callback? err, null
+
+    exec "test -d #{versionedPath}", (err, stdout, stderr)->
+      if err or stderr.length
+        cb "[ERROR] Version is not exists!", version
       else
-        exec "cp #{kpmAppPath}/index.js #{userAppPath}/index.js", (err, stdout, stderr)->
-          if err or stderr.length
-            cb err or new KodingError "stderr: #{stderr}"
-          else
-            exec "chown -R #{username}:#{username} #{userAppPath}", (err, stdout, stderr)->
-              if err or stderr.length
-                cb err or new KodingError "stderr : #{stderr}"
-              else
-                cb null
-
-        #fs.chown userAppPath, username, username, (err)->
-        #  if err then cb err
-        #  else
-        #    targetStream = fs.createWriteStream("#{userAppPath}/index.js")
-        #    targetStream.on "error", cb
-        #    targetStream.on "end", -> cb null
-        #    sourceStream = fs.createReadStream("#{kpmAppPath}/index.js")
-        #    sourceStream.on "error", cb
-        #    sourceStream.pipe targetStream
-
-
+        exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+          if err or stderr then cb err
+          else cb null
 
   createSystemUser : (options,callback)->
     #
     # This method will create operation system user with default group in LDAP
     # Note: you should not define default group for user. dafault group name has the same name with username
     #
-    
+
     #
     # options =
     #   username : String #username of the unix user
     #   fullName : String #fullName - real name for unux user
     #   password : String #password of the unix
-    
+
     #
     # return =
     #   backend : String # backend FQDN where user has created
-    
+
     {username,fullName,password} = options
-    
+
     # define user and group ldap schema
-    
+
     user =
       objectClass: ['top','person','organizationalPerson','inetorgperson','posixAccount']
       cn : username
@@ -250,11 +296,11 @@ module.exports = new Kite 'sharedHosting'
       gecos: fullName
       homeDirectory : '/Users/'+username
       userPassword: password
-    
+
     group =
       objectClass: ['top','posixgroup','groupofuniquenames']
       cn: username
-    
+
     # first of all we have to connect and bind to ldap
     ldapClient = ldap.createClient url:config.ldap.ldapUrl, maxConnections:1
     ldapClient.bind config.ldap.rootUser,config.ldap.rootPass,(err)=>
@@ -264,7 +310,7 @@ module.exports = new Kite 'sharedHosting'
       else
         # search for  free UID
         ldapClient.search config.ldap.freeUID,attributes:'uidNumber',(err,res)=>
-          callback err if err? 
+          callback err if err?
           res.on 'searchEntry', (entry)=>
             # increment current UID in the ldap database, we will use incremented for next new user
             id = entry.object.uidNumber
@@ -279,7 +325,7 @@ module.exports = new Kite 'sharedHosting'
             #  operation     :'add'
             #  modification  :
             #    memberUid     : username
-    
+
             ldapClient.add "uid=#{username},#{config.ldap.userDN}",user, (err)=>
               if err
                 log.error error = "[ERROR] can't create ldap record for user #{username} in #{config.ldap.userDN} : #{err.message}"
@@ -296,7 +342,7 @@ module.exports = new Kite 'sharedHosting'
                       log.error err if err?
                     callback error
                   else
-                    log.info "[OK] Group #{username} added to #{config.ldap.groupDN}" 
+                    log.info "[OK] Group #{username} added to #{config.ldap.groupDN}"
                     ldapClient.modify config.ldap.freeUID,change,(err)=>
                       if err?
                         log.error error = "[ERROR] can't increment uidNumber for special record #{config.ldap.freeUID}: #{err.message}"
@@ -321,14 +367,14 @@ module.exports = new Kite 'sharedHosting'
                             callback null,"[OK] user and group #{username} has been added to LDAP"
 
   createVhost : (options,callback)->
-    
+
     {username,uid,domainName} = options
-    
+
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
     log.debug "executing CreateVhost:",cmd
-    
+
     exec cmd,(err,stdout,stderr)->
       unless err
         callback null, "vhost created with default files:",domainName

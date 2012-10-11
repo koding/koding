@@ -2,7 +2,7 @@ class FeederResultsController extends KDViewController
   constructor:(options = {}, data)->
     options.view                or= new FeederTabView hideHandleCloseIcons : yes
     options.paneClass           or= FeederTabPaneView
-    options.subItemClass        or= KDListItemView
+    options.itemClass        or= KDListItemView
     options.listControllerClass or= KDListViewController
 
     super options,data
@@ -28,15 +28,17 @@ class FeederResultsController extends KDViewController
     callback? @listControllers[filter.name]
 
   createTab:(name, filter, callback)->
-    {paneClass,subItemClass,listControllerClass,listCssClass} = @getOptions()
+    {paneClass,itemClass,listControllerClass,listCssClass} = @getOptions()
     tabView = @getView()
 
     @listControllers[name] = listController = new listControllerClass
-      lazyLoadThreshold : .75
-      viewOptions       :
-        cssClass        : listCssClass
-        subItemClass    : subItemClass
-        type            : name
+      lazyLoadThreshold   : .75
+      startWithLazyLoader : yes
+      noItemFoundText     : filter.noItemFoundText or null
+      viewOptions         :
+        cssClass          : listCssClass
+        itemClass      : itemClass
+        type              : name
 
     listController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'

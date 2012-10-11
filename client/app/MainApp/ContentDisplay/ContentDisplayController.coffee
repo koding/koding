@@ -1,33 +1,15 @@
 class ContentDisplayController extends KDController
+
   constructor:(options)->
-    super options
+    super
     @displays = {}
     @attachListeners()
 
   attachListeners:->
-    @registerListener
-      KDEventTypes  : "ContentDisplayWantsToBeShown"
-      listener      : @
-      callback      : (pubInst,view)=>
-        @showContentDisplay view
-
-    @registerListener
-      KDEventTypes  : "ContentDisplayWantsToBeHidden"
-      listener      : @
-      callback      : (pubInst,view)=>
-        @hideContentDisplay view
-
-    appManager.registerListener
-      KDEventTypes  : "ApplicationShowedAView"
-      listener      : @
-      callback      : =>
-        @hideAllContentDisplays()
-
-    @registerListener
-      KDEventTypes  : "ContentDisplaysShouldBeHidden"
-      listener      : @
-      callback      : =>
-        @hideAllContentDisplays()
+    @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
+    @on "ContentDisplayWantsToBeHidden", (view)=> @hideContentDisplay view
+    @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
+    appManager.on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
   showContentDisplay:(view)->
     contentPanel = @getSingleton "contentPanel"

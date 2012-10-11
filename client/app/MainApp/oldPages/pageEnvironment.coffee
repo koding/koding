@@ -42,7 +42,7 @@ class EnvironmentController extends KDViewController
   
 
   loadView:(mainView)->
-    {profile} = @getSingleton('mainController').getVisitor().currentDelegate    
+    {profile} = KD.whoami()    
     header = mainView.header = new EnvironmentHeader type : "big", title : profile.nickname
     menu = mainView.menu = new EnvironmentViewMenu null,@viewMenuItems
 
@@ -62,7 +62,7 @@ class EnvironmentController extends KDViewController
     menu.setHeight "auto"
     environmentView.setHeight "auto"
 
-    mainView.headerSplit = new KDSplitView
+    mainView.headerSplit = new SplitView
       cssClass  : "environment-header-split"
       views     : [header,@environmentSplit]
       sizes     : [77,null]

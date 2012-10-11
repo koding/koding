@@ -10,9 +10,9 @@ class MessagesListView extends KDListView
 class MessagesListController extends KDListViewController
 
   constructor:(options, data)->
-    options.subItemClass or= InboxMessagesListItem
-    options.listView     or= new MessagesListView
-
+    options.itemClass        or= InboxMessagesListItem
+    options.listView            or= new MessagesListView
+    options.startWithLazyLoader   = yes
     super options, data
 
     @getListView().registerListener
@@ -37,6 +37,7 @@ class MessagesListController extends KDListViewController
         unreadCount++ unless message.flags_?.read
 
       @emit "MessageCountDidChange", unreadCount
+      @hideLazyLoader()
       callback? err,messages
 
   fetchNotificationTeasers:(callback)->
@@ -58,6 +59,7 @@ class MessagesListController extends KDListViewController
         unglanced = items.filter (item)-> item.getFlagValue('glanced') isnt yes
         @emit 'NotificationCountDidChange', unglanced.length
         callback? items
+      @hideLazyLoader()
 
 class NotificationListItem extends KDListItemView
 
@@ -66,6 +68,7 @@ class NotificationListItem extends KDListItemView
     JCodeSnip       : "your status update."
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
+    JComment        : "your comment."
 
   bucketNameMap = ->
     CReplieeBucketActivity  : "comment"
@@ -97,6 +100,10 @@ class NotificationListItem extends KDListItemView
     #   id              : participant.targetOriginId
 
     {group} = @snapshot
+
+    # Cleanup my activities on my content
+    myid = KD.whoami()._id
+    group = (member for member in group when member.id isnt myid)
 
     @participants = new options.linkGroupClass {group}
     @avatar       = new options.avatarClass
@@ -143,20 +150,24 @@ class NotificationListItem extends KDListItemView
 
   click:->
 
+    showPost = (err, post)->
+      if post
+        appManager.tell "Activity", "createContentDisplay", post
+      else
+        new KDNotificationView
+          title : "This post has been deleted!"
+          duration : 1000
+
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
+    else if @snapshot.anchor.constructorName is "JComment"
+      KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
-      bongo.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, (err, post)->
-        if post
-          appManager.tell "Activity", "createContentDisplay", post
-        else
-          new KDNotificationView
-            title : "This post has been deleted!"
-            duration : 1000
+      KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
 
     # {sourceName,sourceId} = @getData()[0]
     # contentDisplayController = @getSingleton('contentDisplayController')
     # list = @getDelegate()
     # list.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    # bongo.cacheable sourceName, sourceId, (err, source)=>
+    # KD.remote.cacheable sourceName, sourceId, (err, source)=>
     #   appManager.tell "Activity", "createContentDisplay", source

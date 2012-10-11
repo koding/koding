@@ -1,0 +1,42 @@
+fs        = require 'fs'
+os        = require 'os'
+nodePath  = require 'path'
+{spawn}   = require 'child_process'
+KodingLogger = require 'koding-logger'
+processes   = new (require "processes")
+
+
+option '-c', '--configPath [CONFIG]', 'Which config file to use'
+option '-s', '--silent', 'Set this flag to suppress stdout'
+
+task 'run', ({configPath, silent})->
+  configPath ?= '../config/dev'
+  {webPort, logger} = require configPath
+  logger = new KodingLogger 'webserver', os.hostname(), logger.mq
+  logger.tailTo process.stdout unless silent
+  webPort = [webPort] unless Array.isArray webPort
+  webPort.forEach (port)->
+    runServer configPath, logger, port
+
+runServer =(configPath, logger, port)->
+  # child = spawn 'node', ['./index.js'
+  #   '-c', configPath
+  #   '-p', port
+  # ]
+
+  processes.run
+    name    : 'server'
+    cmd     : "node ./index.js -c #{configPath} -p #{port}"
+    restart : yes
+    restartInterval : 1000
+    # stdout  : process.stdout
+    # stderr  : process.stderr
+    verbose : yes 
+
+  console.log "im the child of server: #{processes.get("server").pid}"
+  logger.logAll processes.get("server"), "webserver#{port}"
+  # setTimeout (-> process.exit()),5000
+
+
+
+shouldRestart =(port)-> yes

@@ -1,6 +1,4 @@
-class PageInbox extends KDView
-
-  KD.registerPage "Inbox", PageInbox
+class InboxView extends KDView
 
   createCommons:->
     @addSubView header = new HeaderViewSection type : "big", title : "Inbox"
@@ -8,31 +6,28 @@ class PageInbox extends KDView
     # Common left pane
     @commonInnerNavigation = new InboxInnerNavigation
 
-    @commonInnerNavigation.registerListener
-      KDEventTypes : "CommonInnerNavigationListItemReceivedClick"
-      listener     : @
-      callback     : (pubInst, data)=>
-        return if data.disabledForBeta
-        {type,action} = data
-        @showTab type
-        if action is "change-tab"
-          @showTab data.type
-        else
-          @sort data.type
+    @commonInnerNavigation.on "NavItemReceivedClick", (data)=>
+      return if data.disabledForBeta
+      {type,action} = data
+      @showTab type
+      if action is "change-tab"
+        @showTab data.type
+      else
+        @sort data.type
 
     @inboxTabs = new KDTabView
       cssClass  : "inbox-tabview"
     @inboxTabs.hideHandleContainer()
 
-    inboxSplitView = @inboxSplitView = new ContentPageSplitBelowHeader
-      views     : [@commonInnerNavigation,@inboxTabs]
-      sizes     : [138,null]
+    @inboxSplitView = new ContentPageSplitBelowHeader
+      views     : [@commonInnerNavigation, @inboxTabs]
+      sizes     : [138, null]
       cssClass  : "inbox-main-split"
       resizable : no
 
-    @addSubView inboxSplitView
+    @addSubView @inboxSplitView
 
-    inboxSplitView._windowDidResize()
+    @inboxSplitView._windowDidResize()
 
   createTabs:->
     @_tab_messages      = @createMessagesTab()
@@ -47,7 +42,7 @@ class PageInbox extends KDView
 
     @inboxMessagesList = inboxMessagesList = new InboxMessagesList
       delegate          : @
-      subItemClass      : InboxMessagesListItem
+      itemClass      : InboxMessagesListItem
 
     inboxMessageListController = new InboxMessageListController
       delegate          : @
@@ -69,52 +64,39 @@ class PageInbox extends KDView
 
     @newMessageBar.disableMessageActionButtons()
 
-    messagesSplit = new SplitViewWithOlderSiblings
+    @messagesSplit = new SplitViewWithOlderSiblings
       sizes     : ["100%",null]
       views     : [inboxMessagesList, @inboxMessagesContainer]
       cssClass  : "messages-split"
       resizable : yes
       minimums  : [150, null]
 
-    tab.addSubView messagesSplit
-    messagesSplit._windowDidResize()
+    tab.addSubView @messagesSplit
+    @messagesSplit._windowDidResize()
 
-    messagesSplit.didResizeBefore = no
-    messagesSplit.listenTo
-      KDEventTypes       : "PanelDidResize"
-      listenedToInstance : @inboxSplitView
-      callback           : ->
-        messagesSplit._windowDidResize()
-        unless messagesSplit.didResizeBefore
-          messagesSplit.resizePanel "100%",0
+    @messagesSplit.didResizeBefore = no
 
-    messagesSplit.listenTo
-      KDEventTypes : "MessageSelectedFromOutside"
-      listenedToInstance : @
-      callback :(pubInst, {item, event})=>
+    @on "MessageSelectedFromOutside", (item)=>
+      @newMessageBar.enableMessageActionButtons()
 
-        messagesSplit.resizePanel "33%",0 unless messagesSplit.didResizeBefore
-        messagesSplit.didResizeBefore = yes
-        @newMessageBar.enableMessageActionButtons()
+      messageIsSelectable = =>
+        {items} = inboxMessagesList
+        return no if items.length is 0
+        {_id} = item.getData()
+        wasMessageInList = no
+        items.forEach (message) =>
+          if message.getData()?.getId() is _id
+            message.click()
+            wasMessageInList = yes
+        wasMessageInList
 
-        messageIsSelectable = =>
-          {items} = inboxMessagesList
-          return no if items.length is 0
-          {_id} = item.getData()
-          wasMessageInList = no
-          items.forEach (message) =>
-            if message.getData()?.getId() is _id
-              message.click()
-              wasMessageInList = yes
-          wasMessageInList
-
-        if item
-          if not messageIsSelectable()
-            inboxMessageListController.loadMessages =>
-              if not messageIsSelectable()
-                @propagateEvent KDEventType : "MessageIsSelected", {item, event}
-        else
-          inboxMessageListController.loadMessages()
+      if item
+        if not messageIsSelectable()
+          inboxMessageListController.loadMessages =>
+            if not messageIsSelectable()
+              @emit "MessageIsSelected", {item, event}
+      else
+        inboxMessageListController.loadMessages()
 
     return tab
 
@@ -124,7 +106,7 @@ class PageInbox extends KDView
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
         cssClass      : "inbox-list notifications"
-        subItemClass  : NotificationListItem
+        itemClass     : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()
     inboxNotificationsController.fetchNotificationTeasers (items)=>
@@ -149,7 +131,7 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     options.cssClass = "clearfix member-suggestion-item"
     super
 
-    {userInput} = @getDelegate()
+    userInput = options.userInput or @getDelegate().userInput
 
     @avatar = new AutoCompleteAvatarView {},data
     @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data

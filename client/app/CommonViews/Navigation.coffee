@@ -1,9 +1,9 @@
 class NavigationController extends KDListViewController
-  
+
   reset:->
     @removeAllItems()
     @instantiateListItems @getData().items
-  
+
   selectItemByName:(name)->
     item = no
     for navItem in @itemsOrdered
@@ -23,17 +23,17 @@ class NavigationController extends KDListViewController
 
 
 class NavigationList extends KDListView
-  
-  itemClass:(options,data)->
+
+  customizeItemOptions:(options, data)->
+
     if data.title is "Invite Friends"
-      new NavigationInviteLink options, data
-    else
-      super
+      options.childClass = NavigationInviteLink
+      return options
 
 class NavigationLink extends KDListItemView
 
   constructor:(options,data)->
-    
+
     super options,data
 
     @name = data.title
@@ -53,21 +53,26 @@ class NavigationLink extends KDListItemView
     "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
 class AdminNavigationLink extends NavigationLink
-  
+
   mouseDown:(event)->
 
     cb = @getData().callback
     cb.call @ if cb
 
-class NavigationInviteLink extends NavigationLink
-  
-  constructor:->
+class NavigationInviteLink extends KDCustomHTMLView
 
-    super
+  constructor:(options = {}, data)->
+
+    options.tagName  = "a"
+    options.cssClass = "title"
+
+    super options, data
 
     @hide()
     @count = new KDCustomHTMLView
-      pistachio: "{{#(quota)-#(usage)}}"
+      tagName   : "span"
+      cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
+      pistachio : "{{#(quota)-#(usage)}}"
 
     @utils.wait 10000, =>
       KD.whoami().fetchLimit? 'invite', (err, limit)=>
@@ -76,10 +81,10 @@ class NavigationInviteLink extends NavigationLink
           @count.setData limit
           limit.on 'update', => @count.render()
           @count.render()
-  
+
   sendInvite:(formData, modal)->
 
-    bongo.api.JInvitation.create
+    KD.remote.api.JInvitation.create
       emails        : [formData.recipient]
       customMessage :
         # subject     : formData.subject
@@ -93,16 +98,15 @@ class NavigationInviteLink extends NavigationLink
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()
-  
+
   viewAppended:->
 
     @setTemplate @pistachio()
     @template.update()
-  
+
   pistachio:->
-    "<a class='title' href='#'><span class='main-nav-icon #{__utils.slugify @getData().title}'>{{> @count}}</span>#{@getData().title}</a>"
-  
-  
+    "{{> @count}}#{@getData().title}"
+
   # take this somewhere else
   # was a beta quick solution
   mouseDown:(event)->
@@ -120,7 +124,7 @@ class NavigationInviteLink extends NavigationLink
         height                  : "auto"
         cssClass                : "invitation-modal"
         tabs                    :
-          callback              : (formData)=> 
+          callback              : (formData)=>
             @sendInvite formData, modal
           forms                 :
             "Invite Friends"    :
@@ -131,7 +135,7 @@ class NavigationInviteLink extends NavigationLink
                   name          : "recipient"
                   placeholder   : "Enter your friend's email address..."
                   validate      :
-                    rules       : 
+                    rules       :
                       required  : yes
                       email     : yes
                     messages    :
@@ -165,28 +169,30 @@ class NavigationInviteLink extends NavigationLink
                   callback      : ()->
                     modal.destroy()
 
-    @listenTo 
+    @listenTo
       KDEventTypes       : "KDModalViewDestroyed"
       listenedToInstance : modal
       callback           : =>
         @modal = null
-    
+
     inviteForm = modal.modalTabs.forms["Invite Friends"]
     inviteForm.on "FormValidationFailed", => inviteForm.buttons["Send"].hideLoader()
 
     modalHint = new KDView
       cssClass  : "modal-hint"
-      partial   : "<p>Your friend will receive an Email from Koding that 
-                   includes a unique invite link so they can register for 
+      partial   : "<p>Your friend will receive an Email from Koding that
+                   includes a unique invite link so they can register for
                    the Koding Public Beta.</p>
                    <p><cite>* We take privacy seriously, we will not share any personal information.</cite></p>"
 
     modal.modalTabs.addSubView modalHint, null, yes
-    
+
     inviteHint = new KDView
       cssClass  : "invite-hint fl"
       pistachio : "{{#(quota)-#(usage)}} Invites remaining"
     , @count.getData()
 
     modal.modalTabs.panes[0].form.buttonField.addSubView inviteHint, null, yes
-      
+
+    return no
+
