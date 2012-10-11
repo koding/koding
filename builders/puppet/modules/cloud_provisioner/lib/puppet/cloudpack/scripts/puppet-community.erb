@@ -1,0 +1,144 @@
+#!/bin/bash
+# This script is intended to be used with the install action
+# of puppet-cloudpack
+
+set -u
+set -e
+
+function fedora_repo() {
+  cat >/etc/yum.repos.d/puppet.repo <<'EOFYUMREPO'
+[puppetlabs]
+name = Puppetlabs
+baseurl = http://yum.puppetlabs.com/fedora/f$releasever/products/$basearch/
+gpgcheck = 1
+enabled = 1
+gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+EOFYUMREPO
+}
+
+function el_repo() {
+  cat >/etc/yum.repos.d/puppet.repo <<'EOFYUMREPO'
+[puppetlabs]
+name = Puppetlabs
+baseurl = http://yum.puppetlabs.com/el/$releasever/products/$basearch/
+gpgcheck = 1
+enabled = 1
+gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+[puppetlabs-deps]
+name = Puppetlabs Dependencies
+baseurl = http://yum.puppetlabs.com/el/$releasever/dependencies/$basearch/
+gpgcheck = 1
+enabled = 1
+gpgkey = http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+EOFYUMREPO
+}
+
+function rpm_install() {
+  # Setup the yum Puppet repository
+  rpm -q fedora-release && fedora_repo || el_repo
+
+  # Install Puppet from yum.puppetlabs.com
+  yum install -y puppet<% if options[:puppet_version] %>-<%= options[:puppet_version] %><% end %>
+}
+
+function apt_install() {
+  # Download and install the puppetlabs apt public
+  apt-key adv --recv-key --keyserver pool.sks-keyservers.net 4BD6EC30
+
+  # We need to grab the distro and release in order to populate
+  # the apt repo details. We are assuming that the lsb_release command
+  # will be available as even puppet evens has it (lsb_base) package as
+  # dependancy.
+
+  # Since puppet requires lsb-release I believe this is ok to use for
+  # the purpose of distro and release discovery.
+  apt-get update
+  apt-get -y install lsb-release
+  distro=$(lsb_release -i | cut -f 2 | tr "[:upper:]" "[:lower:]")
+  release=$(lsb_release -c | cut -f 2)
+
+  # Setup the apt Puppet repository
+  cat > /etc/apt/sources.list.d/puppetlabs.list <<EOFAPTREPO
+deb http://apt.puppetlabs.com/ ${release} main
+EOFAPTREPO
+  apt-get update
+  # Install Puppet from Debian repositories
+  apt-get -y install puppet
+}
+
+function install_puppet() {
+  case ${breed} in
+    "redhat")
+      rpm_install ;;
+    "debian")
+      apt_install ;;
+  esac
+}
+
+function configure_puppet() {
+  cat >/etc/puppet/puppet.conf <<'EOFPUPPETCONF'
+[main]
+  logdir = /var/log/puppet
+  rundir = /var/run/puppet
+  vardir = /var/lib/puppet
+  ssldir = $vardir/ssl
+  pluginsync = true
+  report = true
+  server = <%= options[:server] %>
+  environment = <%= options[:environment] %>
+  <% if options[:puppetagent_certname] %>
+  certname = <%= options[:puppetagent_certname] %>
+  <% end %>
+EOFPUPPETCONF
+
+  if [ -f /etc/default/puppet ]; then
+    cat > /etc/default/puppet <<EOFPUPPETDEFAULT
+# Defaults for puppet - sourced by /etc/init.d/puppet
+
+# Start puppet on boot?
+START=yes
+
+# Startup options
+DAEMON_OPTS=""
+EOFPUPPETDEFAULT
+  fi
+}
+
+function start_puppet() {
+  /etc/init.d/puppet start
+}
+
+#This fuction is not called if no custom facts are given
+#
+#The Puppet Labs' stdlib module is required for this to work
+#It can be installed using: 
+# 'puppet-module install puppetlabs/stdlib'
+function facts_dot_d() {
+  mkdir -p /etc/facter/facts.d
+  <% if options[:facts] %>
+  echo "Installing custom facts"
+  <% options[:facts].each do |fact,value| %>
+  echo <%= fact %>=<%= value %> > /etc/facter/facts.d/<%= fact %>.txt
+  <% end %>
+  <% end %>
+}
+
+function provision_puppet() {
+  if [ -f /etc/redhat-release ]; then
+    export breed='redhat'
+  elif [ -f /etc/debian_version ]; then
+    export breed='debian'
+  else
+    echo "This OS is not supported by Puppet Cloud Provisioner"
+    exit 1
+  fi
+
+  install_puppet
+  configure_puppet
+  <%= 'facts_dot_d' if options[:facts] %>
+  start_puppet
+  echo "Puppet installation finished!"
+  exit 0
+}
+
+provision_puppet

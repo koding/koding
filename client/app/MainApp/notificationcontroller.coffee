@@ -9,6 +9,7 @@ class NotificationController extends KDObject
     JLinkActivity       : "<a href='#'>link</a>"
     JPrivateMessage     : "<a href='#'>private message</a>"
     JOpinionActivity    : "<a href='#'>opinion</a>"
+    JComment            : "<a href='#'>comment</a>"
 
   constructor:->
 
@@ -21,11 +22,12 @@ class NotificationController extends KDObject
 
     nickname = account.getAt('profile.nickname')
     if nickname
-      channelName = 'private-'+nickname+'-private'
-      KD.remote.fetchChannel channelName, (channel)=>
-        channel.on 'notification', (notification)=>
-          @emit "NotificationHasArrived", notification
-          @prepareNotification notification if notification.contents
+      # channelName = 'private-'+nickname+'-private'
+      # KD.remote.fetchChannel channelName, (channel)=>
+      #  channel.on 'notificationArrived', (notification)=>
+      account.addGlobalListener 'notificationArrived', (notification) =>
+        @emit "NotificationHasArrived", notification
+        @prepareNotification notification if notification.contents
 
   prepareNotification: (notification)->
 
@@ -79,6 +81,10 @@ class NotificationController extends KDObject
         view = @
         if subject.constructorName is "JPrivateMessage"
           appManager.openApplication "Inbox"
+        else if subject.constructorName is "JComment"
+          KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
+            appManager.tell "Activity", "createContentDisplay", post
+            view.destroy()
         else
           # ask chris if KD.remote.cacheable is good for this
           KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
