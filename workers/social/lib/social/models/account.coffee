@@ -14,6 +14,7 @@ module.exports = class JAccount extends jraphical.Module
 
   JAppStorage = require './appstorage'
   JTag = require './tag'
+  JPrivateMessage = require './messages/privatemessage'
 
   @getFlagRole = 'content'
 
@@ -133,7 +134,7 @@ module.exports = class JAccount extends jraphical.Module
 
       privateMessage:
         as          : ['recipient','sender']
-        targetType  : 'JPrivateMessage'
+        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'
