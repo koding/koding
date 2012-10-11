@@ -37,13 +37,13 @@ mkdirp.sync "./.build/.cache"
 fs.writeFileSync "./.revision","0.0.1"
 
 # get current version
-
-if process.argv[2] is 'buildForProduction'
-  rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
-  rev[2]++
-  version = rev.join(".")
-else
-  version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
+version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
+# if process.argv[2] is 'buildForProduction'
+#   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
+#   rev[2]++
+#   version = rev.join(".")
+# else
+#   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
 clientFileMiddleware  = (options, code, callback)->
   # console.log 'args', options
@@ -201,6 +201,22 @@ configureBroker = (options,callback=->)->
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
+
+task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
+  
+  config = require './config/prod.coffee'
+
+  prompt.start()
+  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
+
+    if result.p is "yes"
+      log.debug 'version',version
+      fs.writeFileSync "./.revision",version
+      invoke 'build'
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
+    else
+      process.exit()
+
 task 'configureBroker',(options)->
   configureBroker options
 
@@ -334,28 +350,6 @@ task 'buildAll',"build chris's modules", ->
           b next+1
   b 0
 
-
-
-task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
-
-  options.port      = 3000
-  options.host      = "localhost"
-  options.database  = "beta"
-  options.port      = "3000"
-  options.dontStart = yes
-  options.uglify    = yes
-  options.useStatic = yes
-
-  prompt.start()
-  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
-
-    if result.p is "yes"
-      log.debug 'version',version
-      fs.writeFileSync "./.revision",version
-      invoke 'build'
-      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
-    else
-      process.exit()
 
 task 'resetGuests', (options)->
   configFile = normalizeConfigPath options.configFile
