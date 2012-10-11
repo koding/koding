@@ -38,7 +38,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      suppressLogs: yes
+      suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
