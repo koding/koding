@@ -99,7 +99,7 @@ init([Connection, Client, Conn, Exchange]) ->
     _ -> {true, true}
   end,
 
-  try subscribe(SendFun, Channel, Exchange, Type, Durable, AutoDelete) of
+  try subscribe(SendFun,Channel,Exchange,Type,Durable,AutoDelete) of
     ok -> {ok, State}
   catch
     error:precondition_failed ->
