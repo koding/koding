@@ -180,25 +180,29 @@ func Debug(message ...interface{}) {
 	Log(DEBUG, "", 0, message...)
 }
 
+func LogError(err interface{}) {
+	message := []interface{}{err}
+	for i := 3; ; i++ {
+		pc, file, line, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		fn := runtime.FuncForPC(pc)
+		var name string
+		if fn != nil {
+			name = fn.Name()
+		} else {
+			name = "<unknown>"
+		}
+		message = append(message, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+	}
+	_, file, line, _ := runtime.Caller(2)
+	Log(ERR, file, line, message...)
+}
+
 func RecoverAndLog() {
 	err := recover()
 	if err != nil {
-		message := []interface{}{err}
-		for i := 2; ; i++ {
-			pc, file, line, ok := runtime.Caller(i)
-			if !ok {
-				break
-			}
-			fn := runtime.FuncForPC(pc)
-			var name string
-			if fn != nil {
-				name = fn.Name()
-			} else {
-				name = "<unknown>"
-			}
-			message = append(message, fmt.Sprintf("at %s (%s:%d)", name, file, line))
-		}
-		_, file, line, _ := runtime.Caller(2)
-		Log(ERR, file, line, message...)
+		LogError(err)
 	}
 }
