@@ -69,6 +69,8 @@ class NotificationListItem extends KDListItemView
     JAccount        : "started following you."
     JPrivateMessage : "your private message."
     JComment        : "your comment."
+    JDiscussion     : "your discussion."
+    JOpinion        : "your opinion."
 
   bucketNameMap = ->
     CReplieeBucketActivity  : "comment"
