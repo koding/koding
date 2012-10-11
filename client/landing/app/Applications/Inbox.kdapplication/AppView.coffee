@@ -85,7 +85,7 @@ class InboxView extends KDView
         {_id} = item.getData()
         wasMessageInList = no
         items.forEach (message) =>
-          if message.getData()?.getId() is _id
+          if message.getData()?.getId?() is _id
             message.click()
             wasMessageInList = yes
         wasMessageInList
