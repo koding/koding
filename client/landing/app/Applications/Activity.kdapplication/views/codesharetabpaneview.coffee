@@ -356,10 +356,11 @@ class CodeShareView extends KDCustomHTMLView
     @openAllButton.$().twipsy twOptions("Open All")
 
   pistachio:->
+    # <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """
