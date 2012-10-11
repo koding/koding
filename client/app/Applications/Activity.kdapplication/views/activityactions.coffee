@@ -107,5 +107,6 @@ class ActivityCommentCount extends ActivityCountLink
 
   setCount:(activity)->
     if activity.repliesCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.repliesCount
 
   pistachio:-> "{{ #(repliesCount)}}"
