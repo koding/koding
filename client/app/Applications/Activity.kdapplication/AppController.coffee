@@ -359,10 +359,12 @@ class ActivityListController extends KDListViewController
       cssClass : 'activityhead clearfix'
 
     @activityHeader.on "UnhideHiddenNewItems", =>
-      top = @getListView().$('.hidden-item').eq(0).position().top
-      @scrollView.scrollTo {top, duration : 200}, =>
-        unhideNewHiddenItems hiddenItems
-
+      firstHiddenItem = @getListView().$('.hidden-item').eq(0)
+      if firstHiddenItem.length > 0
+        top   = firstHiddenItem.position().top
+        top or= 0
+        @scrollView.scrollTo {top, duration : 200}, =>
+          unhideNewHiddenItems hiddenItems
     super
 
     @fetchFollowings()
