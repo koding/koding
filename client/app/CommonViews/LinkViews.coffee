@@ -1,10 +1,10 @@
 # This file is divided to many files, the classes left below should probably replaced too.
 
 #FIXME: check if we ever used this, and if we still use this - Sinan 08/2012
-class KDAccount extends bongo.EventEmitter
+class KDAccount extends Bongo.EventEmitter
   @fromId = (_id)->
     account = new KDAccount
-    bongo.cacheable 'JAccount', _id, (err, accountData)->
+    KD.remote.cacheable 'JAccount', _id, (err, accountData)->
       for own prop, val of accountData
         account[prop] = val
       setTimeout ->
@@ -35,9 +35,9 @@ class FollowedModalView extends KDModalView
 
     participants = data
 
-    if participants[0] instanceof bongo.api.JAccount
+    if participants[0] instanceof KD.remote.api.JAccount
       @type = "account"
-    else if participants[0] instanceof bongo.api.JTag
+    else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
 
     options.title    or= titleMap()[@type]
@@ -73,7 +73,7 @@ class FollowedModalView extends KDModalView
   putList: (participants) ->
     controller = new KDListViewController
       view              : new KDListView
-        subItemClass    : listItemMap()[@type]
+        itemClass    : listItemMap()[@type]
         cssClass        : "modal-topic-list"
     , items             : participants
 
@@ -90,11 +90,11 @@ class FollowedModalView extends KDModalView
     {group} = @getOptions()
 
     if group
-      bongo.cacheable group, (err, participants)=>
+      KD.remote.cacheable group, (err, participants)=>
         if err then warn err
         else @putList participants
         ###
-          bongo.api.JTag.markFollowing participants, (err, result)=>
+          KD.remote.api.JTag.markFollowing participants, (err, result)=>
             if err then warn err
             else @putList result
         ###

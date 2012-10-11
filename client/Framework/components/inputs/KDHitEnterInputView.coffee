@@ -7,17 +7,19 @@ todo:
 
 
 class KDHitEnterInputView extends KDInputView
-  constructor:(options,data)->
-    options = $.extend
-      type           : "textarea"
-      button         : null
-      showButton     : no
-      label          : null
-      placeholder    : ""
-      callback       : null
-      togglerPartials: ["quick update disabled","quick update enabled"]
-    ,options
+  
+  constructor:(options = {}, data)->
+
+    options.type            or= "textarea"
+    options.button          or= null
+    options.showButton       ?= no
+    options.label           or= null
+    options.placeholder     or= ""
+    options.callback        or= null
+    options.togglerPartials or= ["quick update disabled","quick update enabled"]
+
     super options,data
+
     @setClass "hitenterview"
 
     @button = @getOptions().button ? null
@@ -54,6 +56,8 @@ class KDHitEnterInputView extends KDInputView
       KDEventTypes : "click"
       listenedToInstance : @inputEnterToggler
       callback : @toggleEnterKey
+
+  # click:-> no
 
   hideButton:-> @button.hide()
 

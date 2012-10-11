@@ -8,9 +8,15 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
+      # 'CLinkActivity'
       'CCodeSnipActivity'
+      'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
+      # 'COpinionActivity'
+      # THIS WILL DISABLE CODE SHARES
+      # 'CCodeShareActivity'
+      'CInstallerBucketActivity'
     ]
 
   saveCodeSnippet:(title, content)->
@@ -19,6 +25,7 @@ class Activity12345 extends AppController
     # devrim is currently working on refactoring them - 3/15/12 sah
 
     # i kind of cleared that mess, still needs work - 26 April 2012 sinan
+    # remove this shit, do it with kitecontroller :) - 8 October 2012 sinan
     if KD.isLoggedIn()
       @getSingleton('fs').saveToDefaultCodeSnippetFolder '"' + title + '"', content, (error, safeName)->
         if error
@@ -56,7 +63,7 @@ class Activity12345 extends AppController
         title     : if KD.isLoggedIn() then "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else "Welcome to the Koding Public Beta!"
         subtitle  : ""
 
-    unless account instanceof bongo.api.JGuest
+    unless account instanceof KD.remote.api.JGuest
         # subtitle : "Last login #{$.timeago new Date account.meta.modifiedAt}
         # ... where have you been?!" # not relevant for now
 
@@ -92,6 +99,10 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
+    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+      if activity.constructor.name in @currentFilter
+        @activityListController.followedActivityArrived activity
+
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
       # activitySplitView._windowDidResize()
@@ -107,11 +118,8 @@ class Activity12345 extends AppController
       for activity in activities when activity.constructor.name in @currentFilter
         @activityListController.newActivityArrived activity
 
-    activityInnerNavigation.registerListener
-      KDEventTypes  : "CommonInnerNavigationListItemReceivedClick"
-      listener      : @
-      callback      : (pubInst, data)=>
-        @filter data.type
+    activityInnerNavigation.on "NavItemReceivedClick", (data)=>
+      @filter data.type, loadIfMoreItemsIsNecessary
 
   ownActivityArrived:(activity)->
     @activityListController.ownActivityArrived activity
@@ -128,7 +136,7 @@ class Activity12345 extends AppController
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
-      subItemClass      : ActivityListItemView
+      itemClass      : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
@@ -148,7 +156,7 @@ class Activity12345 extends AppController
       @activityListController.isLoading = yes
       @loadSomeTeasers =>
         @activityListController.isLoading = no
-        @activityListController.propagateEvent KDEventType : 'LazyLoadComplete'
+        @activityListController.hideLazyLoader()
 
   fetchTeasers:(selector,options,callback)->
     appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
@@ -156,20 +164,21 @@ class Activity12345 extends AppController
         log '>> error fetching app storage', err
       else
         options.collection = 'activities'
-        flags = KD.whoami().data.globalFlags
+        flags = KD.whoami().globalFlags
         exempt = flags?.indexOf 'exempt'
         exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
         $.ajax KD.apiUri+'/1.0'
           data      :
-            t       : 1 if exempt
+            t       : if exempt then 1 else undefined
             data    : JSON.stringify(_.extend options, selector)
-            env     : KD.env
+            env     : KD.config.env
           dataType  : 'jsonp'
           success   : (data)->
-            bongo.reviveFromJSONP data, (err, instances)->
+            KD.remote.reviveFromSnapshots data, (err, instances)->
+              # console.log instances
               callback instances
     #
-    # bongo.api.CActivity.teasers selector, options, (err, activities) =>
+    # KD.remote.api.CActivity.teasers selector, options, (err, activities) =>
     #   if not err and activities?
     #     callback? activities
     #   else
@@ -183,8 +192,14 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
+          'CDiscussionActivity'
+          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
+          # 'COpinionActivity'
+          # THIS WILL DISABLE CODE SHARES
+          # 'CCodeShareActivity'
+          'CInstallerBucketActivity'
         ]
 
     options =
@@ -200,39 +215,49 @@ class Activity12345 extends AppController
     range or= {}
     {skip, limit} = range
 
+    controller = @activityListController
+
     selector =
       type        :
         $in       : @currentFilter
 
     options  =
       limit       : limit or= 20
-      skip        : skip  or= @activityListController.getItemCount()
+      skip        : skip  or= controller.getItemCount()
       sort        :
         createdAt : -1
 
-    @fetchTeasers selector, options, (activities)=>
-      if activities
-        for activity in activities
-          @activityListController.addItem activity
-        callback? activities
-      else
-        callback?()
+    if not options.skip < options.limit
+      @fetchTeasers selector, options, (activities)=>
+        if activities
+          for activity in activities when activity?
+            controller.addItem activity
+          callback? activities
+        else
+          callback?()
 
   loadSomeTeasersIn:(sourceIds, options, callback)->
-    bongo.api.Relationship.within sourceIds, options, (err, rels)->
-      bongo.cacheable rels.map((rel)->
+    KD.remote.api.Relationship.within sourceIds, options, (err, rels)->
+      KD.remote.cacheable rels.map((rel)->
         constructorName : rel.targetName
         id              : rel.targetId
       ), callback
 
   filter: (show, callback) ->
+
     controller = @activityListController
+    controller.noActivityItem.hide()
 
     if show is 'private'
+      _counter = 0
       controller._state = 'private'
       controller.itemsOrdered.forEach (item)=>
-        item.hide() if not controller.isInFollowing(item.data)
-      return
+        if not controller.isInFollowing(item.data)
+          item.hide()
+          _counter++
+      if _counter is controller.itemsOrdered.length
+        controller.noActivityItem.show()
+      return no
 
     else if show is 'public'
       controller._state = 'public'
@@ -240,44 +265,71 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
+        # 'CLinkActivity'
         'CCodeSnipActivity'
+        'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
+        # 'COpinionActivity'
+        # THIS WILL DISABLE CODE SHARES
+        # 'CCodeShareActivity'
+        'CInstallerBucketActivity'
       ]
 
     controller.removeAllItems()
+    controller.showLazyLoader no
     @loadSomeTeasers ->
       controller.isLoading = no
+      controller.hideLazyLoader()
       callback?()
 
   createContentDisplay:(activity)->
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
+      when "JDiscussion"   then @createDiscussionContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES/LINKS
+      # when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
+
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    contentDisplayController.propagateEvent
-      KDEventType : "ContentDisplayWantsToBeShown"
-    ,contentDisplay
+    contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   createStatusUpdateContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayStatusUpdate
+      title : "Status Update"
+      type  : "status"
+    ,activity
+
+  createLinkContentDisplay:(activity)->
     controller = new ContentDisplayControllerActivity
-      title       : "Status Update"
-      type        : "status"
+      title       : "Link"
+      type        : "link"
       contentView : new ContentDisplayStatusUpdate {},activity
     , activity
     contentDisplay = controller.getView()
     @showContentDisplay contentDisplay
 
   createCodeSnippetContentDisplay:(activity)->
-    controller = new ContentDisplayControllerActivity
-      title       : "Code Snippet"
-      type        : "codesnip"
-      contentView : new ContentDisplayCodeSnippet {},activity
-    , activity
-    contentDisplay = controller.getView()
-    @showContentDisplay contentDisplay
+    @showContentDisplay new ContentDisplayCodeSnippet
+      title : "Code Snippet"
+      type  : "codesnip"
+    ,activity
+
+  # THIS WILL DISABLE CODE SHARES
+  # createCodeShareContentDisplay:(activity)->
+  #   @showContentDisplay new ContentDisplayCodeShare
+  #     title       : "Code Share"
+  #     type        : "codeshare"
+  #   , activity
+
+  createDiscussionContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayDiscussion
+      title : "Discussion"
+      type  : "discussion"
+    ,activity
 
 class ActivityListController extends KDListViewController
 
@@ -288,13 +340,20 @@ class ActivityListController extends KDListViewController
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
     viewOptions.comments      or= yes
-    viewOptions.subItemClass  or= options.subItemClass
+    viewOptions.itemClass  or= options.itemClass
     options.view              or= new KDListView viewOptions, data
+    options.startWithLazyLoader = yes
     super
 
     @_state = 'public'
+    @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : "There is no activity from your followings."
+    @noActivityItem.hide()
 
   loadView:(mainView)->
+    @noActivityItem.hide()
+
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'activityhead clearfix'
@@ -337,7 +396,7 @@ class ActivityListController extends KDListViewController
         @activityHeader.newActivityArrived()
     else
       switch activity.constructor
-        when bongo.api.CFolloweeBucket
+        when KD.remote.api.CFolloweeBucket
           @addItem activity, 0
       @ownActivityArrived activity
 
@@ -347,6 +406,7 @@ class ActivityListController extends KDListViewController
     return instance
 
   addItem:(activity, index, animation = null) ->
+    @noActivityItem.hide()
     # log "ADD:", activity
     if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
       @getListView().addItem activity, index, animation

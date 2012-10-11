@@ -30,7 +30,7 @@ class Sidebar extends JView
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -44,7 +44,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account"
-        subItemClass : NavigationLink
+        itemClass : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -58,7 +58,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account admin"
-        subItemClass : AdminNavigationLink
+        itemClass : AdminNavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -67,7 +67,18 @@ class Sidebar extends JView
 
     @adminNav = @adminNavController.getView()
 
-    @resetAdminNavController()
+    @footerMenuController = new NavigationController
+      view           : new NavigationList
+        type         : "footer-menu"
+        itemClass : FooterMenuItem
+        bind         : "mouseenter mouseleave"
+        mouseenter   : => @animateLeftNavIn()
+        mouseleave   : => @animateLeftNavOut()
+      wrapper        : no
+      scrollView     : no
+    , footerMenuItems
+
+    @footerMenu = @footerMenuController.getView()
 
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
@@ -78,10 +89,11 @@ class Sidebar extends JView
       cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
-      fsListeners : yes
-      initialPath : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
-      initDelay   : 5000
-      useStorage  : yes
+      fsListeners       : yes
+      initialPath       : "/Users/#{profile.nickname}/Sites/#{profile.nickname}.koding.com/website" # obsolete, make it work this way
+      initDelay         : 5000
+      useStorage        : yes
+      addOrphansToRoot  : no
 
     @finder = @finderController.getView()
 
@@ -93,6 +105,7 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
+    KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
 
   resetAdminNavController:->
@@ -134,7 +147,7 @@ class Sidebar extends JView
       cp._left  = parseInt cp.$().css("left"), 10
       cp._left  = parseInt cp.$().css("left"), 10
       @_fpWidth = parseInt $fp.css("width"), 10
-      cp._width = parseInt @wc.winWidth - 52 - @_fpWidth
+      cp._width = parseInt @wc.winWidth - 52 - @_fpWidth, 10
       cp.unsetClass "transition"
 
     @finderResizeHandle.on "DragFinished", (e, dragState)=>
@@ -172,6 +185,7 @@ class Sidebar extends JView
 
     @navController.reset()
     @accNavController.reset()
+    @footerMenuController.reset()
     @resetAdminNavController()
 
     @avatarAreaIconMenu.accountChanged account
@@ -194,6 +208,7 @@ class Sidebar extends JView
       <hr>
       {{> @accNav}}
       {{> @adminNav}}
+      {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
       {{> @finderResizeHandle}}
@@ -300,103 +315,50 @@ class Sidebar extends JView
     id    : "navigation"
     title : "navigation"
     items : [
-        title : "Activity"
-      ,
-        title : "Topics"
-      ,
-        title : "Members"
-      ,
-        title : "Develop",        loggedIn : yes,  path : "StartTab"
-      ,
-        title : "Apps"
+      { title : "Activity" }
+      { title : "Topics" }
+      { title : "Members" }
+      { title : "Groups",  path : "GroupsFake" }
+      { title : "Develop", loggedIn : yes,  path : "StartTab" }
+      { title : "Apps" }
     ]
 
   accNavItems =
     id    : "acc-navigation"
     title : "acc-navigation"
     items : [
-        title : "Invite Friends", loggedIn : yes
-      ,
-        title : "Account",        loggedIn : yes
-      ,
-        title : "Logout",         loggedIn : yes,  action : "logout",
-      ,
-        title : "Login",          loggedOut : yes, action : "login"
+      { title : "Invite Friends", loggedIn  : yes }
+      { title : "Account",        loggedIn  : yes }
+      { title : "Logout",         loggedIn  : yes, action : "logout" }
+      { title : "Login",          loggedOut : yes, action : "login" }
     ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-        title : "Launch Terminal",    icon : "terminal",    path : "Shell"
-      ,
-        title : "Add Resources",      icon : "resources"
-      ,
-        title : "Settings",           icon : "cog"
-      ,
-        title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts"
+      { title : "Launch Terminal",    icon : "terminal",    path : "WebTerm" }
+      { title : "Add Resources",      icon : "resources" }
+      { title : "Settings",           icon : "cog" }
+      { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }
     ]
 
   adminNavItems =
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-        title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal
-      ,
-        title : "Admin"        , loggedIn : yes, callback : -> new AdminModal
+      { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
+      { title : "Admin",         loggedIn : yes, callback : -> new AdminModal }
     ]
 
-class AdminModal extends KDModalView
-
-  constructor : (options = {}, data) ->
-
-    options.title = "Admin stuff"
-    super options, data
-
-
-
-
-class KiteSelectorModal extends KDModalView
-
-  constructor: (options = {}, data) ->
-
-    options.title = "Select kites"
-
-    super options, data
-
-    @putTable()
-
-
-  putTable:->
-
-    KD.whoami().fetchAllKites (err, kites)=>
-      if err
-        new KDNotificationView
-          title : err.message
-        @destroy()
-      else
-        i = 1
-        for own name, kite of kites
-          sanitizeHosts = (hosts)->
-            selectOptions = []
-            hosts.forEach (host)->
-              selectOptions.push
-                value : host
-                title : host
-            return selectOptions
-
-          selectOptions = sanitizeHosts kite.hosts
-
-          @addSubView field = new KDView
-            cssClass : "modalformline"
-
-          field.addSubView new KDLabelView
-            title    : name
-
-          field.addSubView new KDSelectBox
-            selectOptions : selectOptions
-            cssClass      : "fr"
-            defaultValue  : "cl#{i}"
-            callback      : do ->
-              kiteName = name
-              (value)-> log value, kiteName, "selected kite"
-          i++
+  footerMenuItems =
+    id    : "footer-menu"
+    title : "footer-menu"
+    items : [
+      { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
+      { title : "About", callback : -> @showAboutDisplay() }
+      { title : "Chat",  loggedIn : yes, callback : ->
+          @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
+          unless location.hostname is "localhost"
+            new KDNotificationView title : "Coming soon..."
+      }
+    ]

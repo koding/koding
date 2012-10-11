@@ -8,7 +8,7 @@ class AccountSubscriptionsListController extends KDListViewController
         # { title : "Heroku Compatible RoR",      createdAt : "04/05/2011", nextBillAt : "12/05/2011", price : "3",    currency : "$",  billingCycle : "monthly" }
       ]
     ,data
-    super options,data    
+    super options,data
 
   loadView:->
     super
@@ -25,14 +25,13 @@ class AccountSubscriptionsList extends KDListView
   constructor:(options,data)->
     options = $.extend
       tagName      : "ul"
-      subItemClass : AccountSubscriptionsListItem
+      itemClass : AccountSubscriptionsListItem
     ,options
-    super options,data    
+    super options,data
 
   showModal:->
     modal = new KDModalView
       title     : "Your cool new package"
-      content   : ""
       overlay   : yes
       cssClass  : "new-kdmodal"
       width     : 500
@@ -65,11 +64,11 @@ class AccountSubscriptionsListItem extends KDListItemView
   click:(event)->
     if $(event.target).is "a.delete-icon"
       @getDelegate().handleEvent type : "UnlinkAccount", accountType : @getData().type
-  
+
   partial:(data)->
     """
       <span class='darkText'>#{data.title}</span>
-    """    
+    """
     # cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
     # """
     #   <div class='labelish'>

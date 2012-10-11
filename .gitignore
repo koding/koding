@@ -1,3 +1,4 @@
+.rabbitvhost
 .revision
 /.revision
 .DS_Store
@@ -15,9 +16,18 @@ v8.log
 node_modules/.bin
 *.swp
 *.swo
+sftp-config.json
 /broker/deps
 ebin
 /website/dev/*.json
+/go/bin
+/go/pkg
+/go/src/code.google.com
+/go/src/github.com
+/kites/webterm
+/kites/os
+.project
+/kites/terminal/.tmp
 
 # ignored node modules stuff (they need to be cake installed)
 /node_modules/.bin
@@ -64,11 +74,20 @@ ebin
 /node_modules/cron
 /node_modules/.DS_Store
 /node_modules/csv
+/node_modules/process
 node_modules/cron/
+/node_modules/libxml-to-js
+/node_modules/colors
+/node_modules/commander
 
 # Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
 
+*.dump
+*.orig
 sftp-config.json
 /website/dev/sourceClient.json
 /website/dev/sourceServer.json
 /npm-debug.log
+/erl_crash.dump
+/broker/log
+/broker/apps/broker/src/broker.app.src

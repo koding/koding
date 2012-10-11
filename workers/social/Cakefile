@@ -1,0 +1,31 @@
+{fork} = require 'child_process'
+KodingLogger = require 'koding-logger'
+os = require 'os'
+processes = new (require 'processes')
+option '-c', '--configPath [CONFIG]', 'Which config file to use.'
+option '-n', '--numberOfWorkers [WORKERS]', 'The number of workers to run.'
+option '-s', '--silent', 'Set this flag to suppress stdout'
+option '-D', '--debug', 'Start the node project with the debugger'
+
+task 'run', ({numberOfWorkers, configPath, silent})->
+  configPath ?= '../../config/dev'
+  {logger, configNumberOfWorkers} = require configPath
+  numberOfWorkers ?= configNumberOfWorkers ? 1
+  logger = new KodingLogger 'social', os.hostname(), logger.mq
+  logger.tailTo process.stdout unless silent
+  i = 0
+  logger.logAll process, 'supervisor'
+  while i < numberOfWorkers
+    # child = fork './index', ['-c', configPath], silent: yes
+    processes.fork
+      name  : "socialWorker-#{i}"
+      modulePath : "./index"
+      args  : ['-c', configPath]
+      opts  : silent : yes
+      restart : yes
+      restartInterval : 1000
+      verbose : yes
+
+    logger.logAll processes.get("socialWorker-#{i}"), "worker#{i}"
+    i++
+  return

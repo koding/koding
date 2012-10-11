@@ -1,0 +1,56 @@
+2012-09-25 11:40:15 =SUPERVISOR REPORT====
+     Supervisor: {local,broker_sup}
+     Context:    start_error
+     Reason:     {'EXIT',{{badmatch,{error,econnrefused}},[{broker,start_link,0,[{file,"src/broker.erl"},{line,35}]},{supervisor,do_start_child,2,[{file,"supervisor.erl"},{line,303}]},{supervisor,start_children,3,[{file,"supervisor.erl"},{line,287}]},{supervisor,init_children,2,[{file,"supervisor.erl"},{line,253}]},{gen_server,init_it,6,[{file,"gen_server.erl"},{line,304}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}}
+     Offender:   [{pid,undefined},{name,broker},{mfargs,{broker,start_link,[]}},{restart_type,transient},{shutdown,5000},{child_type,worker}]
+
+2012-09-25 11:40:15 =SUPERVISOR REPORT====
+     Supervisor: {local,app_sup}
+     Context:    start_error
+     Reason:     shutdown
+     Offender:   [{pid,undefined},{name,broker_sup},{mfargs,{broker_sup,start_link,[]}},{restart_type,transient},{shutdown,5000},{child_type,supervisor}]
+
+2012-09-25 16:17:26 =ERROR REPORT====
+** gen_event handler lager_console_backend crashed.
+** Was installed in lager_event
+** Last event was: {log,6,{["2012",45,["0",57],45,"25"],["16",58,"17",58,"26",46,"870"]},[["[","info","] "],["<0.7.0>",32],[65,112,112,108,105,99,97,116,105,111,110,32,"lager",32,115,116,97,114,116,101,100,32,111,110,32,110,111,100,101,32,"nonode@nohost"]]}
+** When handler state == {state,6,false}
+** Reason == {badarg,[{io,put_chars,[user,unicode,[["16",58,"17",58,"26",46,"870"]," ",["[","info","] "],[65,112,112,108,105,99,97,116,105,111,110,32,"lager",32,115,116,97,114,116,101,100,32,111,110,32,110,111,100,101,32,"nonode@nohost"],"\r\n"]],[]},{lager_console_backend,handle_event,2,[{file,"src/lager_console_backend.erl"},{line,87}]},{gen_event,server_update,4,[{file,"gen_event.erl"},{line,504}]},{gen_event,server_notify,4,[{file,"gen_event.erl"},{line,486}]},{gen_event,server_notify,4,[{file,"gen_event.erl"},{line,488}]},{gen_event,handle_msg,5,[{file,"gen_event.erl"},{line,251}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}
+2012-09-25 17:15:32 =SUPERVISOR REPORT====
+     Supervisor: {local,subscription_sup}
+     Context:    shutdown_error
+     Reason:     killed
+     Offender:   [{pid,<0.682.0>},{name,subscription},{mfargs,{subscription,start_link,[]}},{restart_type,transient},{shutdown,1000},{child_type,worker}]
+
+2012-09-25 18:30:39 =CRASH REPORT====
+  crasher:
+    initial call: subscription:init/1
+    pid: <0.218.0>
+    registered_name: []
+    exception exit: {precondition_failed,[{gen_server,init_it,6,[{file,"gen_server.erl"},{line,320}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}
+    ancestors: [subscription_sup,broker_sup,app_sup,<0.72.0>]
+    messages: []
+    links: [<0.193.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 24
+    reductions: 513
+  neighbours:
+2012-09-25 18:30:48 =CRASH REPORT====
+  crasher:
+    initial call: subscription:init/1
+    pid: <0.263.0>
+    registered_name: []
+    exception exit: {precondition_failed,[{gen_server,init_it,6,[{file,"gen_server.erl"},{line,320}]},{proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,227}]}]}
+    ancestors: [subscription_sup,broker_sup,app_sup,<0.72.0>]
+    messages: []
+    links: [<0.193.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 987
+    stack_size: 24
+    reductions: 513
+  neighbours:

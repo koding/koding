@@ -52,7 +52,7 @@ app.activity.styl
     font-size           12px
 
 .activity-content
-
+  scrollbars()
   .kdtabview
     overflow            visible !important
 
@@ -97,6 +97,7 @@ app.activity.styl
       text-decoration   none
       font-size         88%
 
+  .new-updates
     span
       rounded           3px
       background-color  #FF9200
@@ -159,19 +160,29 @@ app.activity.styl
 
     >.new-member
       .icon
-        bg(position,-320px -180px)
+        bg                position,-320px -180px
     >.follow
       .icon
-        bg(position,-320px -160px)
+        bg                position,-320px -160px
     >.profile-update
       .icon
-        bg(position,-340px -160px)
+        bg                position,-340px -160px
     >.tagged
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
     >.topic
       .icon
-        bg(position,-340px -140px)
+        bg                position,-340px -140px
+    >.application
+      a.app
+        font-family       mono
+        bg                color, #eee
+        padding           2px 5px 1px 5px
+        shadow            inset 0 0 2px rgba(0, 0, 0, 0.1)
+        rounded           2px
+
+      .icon
+        bg                position,-320px -200px
 
   .activity-item
     max-width           840px
@@ -213,6 +224,10 @@ app.activity.styl
       .type-icon
         bg(position,-706px -376px)
 
+    &.codeshare
+      .type-icon
+        bg(position,-706px -376px)
+
     &.discussion
       .type-icon
         bg(position,-475px -376px)
@@ -244,18 +259,18 @@ app.activity.styl
         &:hover
           gradient      #eee, #ddd
           rounded       2px
-      .chevron-arrow
+      .chevron
         display         none
-      .chevron-arrow-separator
+      .chevron-separator
         display         none
 
-.kdview.kdcontextmenu.kdbuttonmenu.activity-settings-context
+.kdview.jcontextmenu.kdbuttonmenu.activity-settings-context
   border-color          rgba(0,0,0,.2)
-  .chevron-arrow-ghost-wrapper
+  .chevron-ghost-wrapper
     border-color        rgba(0,0,0,.2)
     rounded             2px 2px 0 0
     width               19px
-    span.chevron-arrow-ghost
+    span.chevron-ghost
       margin            0 auto
       bg                position, -80px -261px
   .kdcontextmenutreeview
@@ -287,28 +302,10 @@ app.activity.styl
     font-weight           300
     line-height           125%
     a
-      font-size           12px
+      font-size           14px
       line-height         125%
       font-weight         300
       noTextDeco()
-    span.more
-      font-size           0
-      vendor              transition, font-size .2s linear
-      a.more-link
-      a.less-link
-        margin-left       5px
-        vendor            transition, font-size .2s linear
-      a.more-link
-        font-size         14px
-      a
-        font-size         0
-      &.show
-        font-size         14px
-        a.more-link
-          font-size       0
-          margin-left     0
-        a
-          font-size       14px
 
   p.context
     margin                0 0 18px 0
@@ -332,12 +329,23 @@ app.activity.styl
           text-transform  capitalize
       time, .tag-group
         font-size           11px
+    .type-and-time-right
+      fr()
+      font-size           12px
+      a
+        noTextDeco()
+        strong
+          color           #7F7F7F
+          text-transform  capitalize
+      time, .tag-group
+        font-size           11px
 
     .activity-actions
       color               #ccc
       size                auto,auto
       fr()
 
+      span.like-view
       a.action-link
         margin            0 2px
         color             #FF9200
@@ -470,20 +478,22 @@ button.kdbutton.dark
     borderBox()
     &:hover
       border-color        rgb(199,199,199)
+    &.discussion-body
+      min-height 72px
+      height 72px
 
   input:-moz-placeholder,
   input::-webkit-input-placeholder
     color                 #aaa
 
   .kdautocompletewrapper
-    size                  100%,32px
+    width                 100%
     color                 #b2b2b2
     font-size             13px
     display               inline-block!important
-    input.kdinput.text
-      border-color        rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
-      size                100%,100%
-      borderBox()
+    // input.kdinput.text
+    //   size                100%,100%
+    //   borderBox()
 
   .form-headline
     left                    169px
@@ -700,6 +710,8 @@ form.status-widget
       bg            position,-80px -80px
     &.codesnip
       bg            position,-80px -100px
+    &.codeshare
+      bg            position,-80px -100px
 
   > button.icon-only
     padding       4px 4px 5px 5px
@@ -743,6 +755,8 @@ button.activity-status-context
       bg(position,-140px -400px)
     &.codesnip
       bg(position,-140px -420px)
+    &.codeshare
+      bg(position,-140px -420px)
 
 .activity-update-widget-wrapper
   height                auto
@@ -758,6 +772,23 @@ button.activity-status-context
     //   bg                color, #ffd56e
     .first-label
       visible()
+
+// .activity-update-widget-wrapper-folded
+//   height                auto
+//   position              absolute
+//   overflow              visible
+//   z-index               100
+//   hidden()
+//   .first-label
+//     hidden()
+//   &.edit-mode
+//     visible()
+//     .kdbuttonwithmenu-wrapper.activity-status-context
+//       hidden()
+//     // .update-widget-tabs .kdtabpaneview
+//     //   bg                color, #ffd56e
+//     .first-label
+//       visible()
 
 .widget-holder
   overflow              visible
@@ -776,12 +807,12 @@ button.activity-status-context
   //     shadow            inset 0 3px 1px 3px rgba(250,250,250,.5)
   //     gradient          rgb(255,255,255),rgb(242,242,242)
 
-  .chevron-arrow-separator
+  .chevron-separator
     display           none
-  .chevron-arrow
+  .chevron
     top               50%
-    margin-top        -9px
-    margin-right      5px
+    margin-top        -11px
+    margin-right      3px
     opacity           .6
   .title
     font-size         11px
@@ -804,73 +835,279 @@ button.activity-status-context
   z-index                   4
   size                      auto!important,35px
 
-.activity-status-context
-  .chevron-arrow-ghost-wrapper
+.kdbuttonmenu.activity-status-context
+  border                    1px solid #bbb
+  bg                        color,rgba(255,255,255,.95)
+  min-width                 150px
+  // border                    1px solid rgb(187,187,187)
+
+  .kdlistview-buttonmenu
+    rounded                 3px 0 3px 3px
+    border                  none
+
+  .chevron-ghost-wrapper
     width                   30px
     rounded                 0 3px 0 0
-    .chevron-arrow-ghost
+    .chevron-ghost
       margin                6px 0 0 6px
 
   .icon
     margin-right            7px
+    size                    20px,20px
     sprite()
-    size(20px,20px)
     blockMid()
-  .context-menu-item
+
+  .kdlistitemview
     margin                  0 !important
     padding                 0 10px !important
-  .context-menu-item a
-    blockMid()
-
-  .update
-    .icon
-      bg(position,-140px -320px)
-    &:hover
-      .icon
-        bg(position,-160px -320px)
-  .discussion
-    .icon
-      bg(position,-140px -340px)
-    &:hover
-      .icon
-        bg(position,-160px -340px)
-  .question
-    .icon
-      bg(position,-140px -360px)
-    &:hover
-      .icon
-        bg(position,-160px -360px)
-  .tutorial
-    .icon
-      bg(position,-140px -380px)
-    &:hover
-      .icon
-        bg(position,-160px -380px)
-  .link
-    .icon
-      bg(position,-140px -400px)
-    &:hover
-      .icon
-        bg(position,-160px -400px)
-  .codesnip
-    .icon
-      bg(position,-140px -420px)
-    &:hover
-      .icon
-        bg(position,-160px -420px)
-
-  // .hoverhook /* hover hook for context menu */
-  //   cursor            pointer !important
-  //   margin            0
-  //   padding           0
-  //   &:hover
-  //     cursor            pointer !important
-
-.kdcontextmenu
-  .kdcontextmenutreeview
-    .kdview.kdtreeitemview-default.disabledForBeta
-    .kdview.kdtreeitemview-default.disabled
-      opacity .5
+    border-top              1px solid transparent
+    border-bottom           1px solid transparent
+    size                    auto,auto
+    borderBox()
+    > a
+      font-size             12px
+      line-height           26px
+      color                 #444
+      noTextDeco()
+    &.selected
+      border-width          1px 0
+      bg                    color, finderSelectedColor1
+      > a
+        text-shadow         0 -1px 0 rgba(0,0,0,0.22)
+        color               white
+        text-shadow         none
       &:hover
-        border-top  1px solid #666
-        gradient(#777,#aaa)
+        bg                  color, finderSelectedColor1
+
+  .kdlistitemview.disabled
+    opacity                 .5
+
+  .update .icon
+    bg                      position,-140px -320px
+  .discussion .icon
+    bg                      position,-140px -340px
+  .question .icon
+    bg                      position,-140px -360px
+  .tutorial .icon
+    bg                      position,-140px -380px
+  .link .icon
+    bg                      position,-140px -400px
+  .codesnip .icon
+    bg                      position,-140px -420px
+  .codeshare .icon
+    bg                      position,-140px -420px
+
+  .selected
+    .update .icon
+      bg                    position,-160px -320px
+    .discussion .icon
+      bg                    position,-160px -340px
+    .question .icon
+      bg                    position,-160px -360px
+    .tutorial .icon
+      bg                    position,-160px -380px
+    .link .icon
+      bg                    position,-160px -400px
+    .codesnip .icon
+      bg                    position,-160px -420px
+    .codeshare .icon
+      bg                    position,-160px -420px
+
+// // Activity Item for Discussions
+
+.activity-discussion-container
+  position:relative
+
+  &:hover
+    div.view-full-discussion
+      background-color #ff9200
+      border-color darken(#ff9200,25%)
+      a
+        color white
+
+  .comment-body
+    max-height 250px
+    overflow hidden
+
+    // this is supposed to visually cut off the box nicely
+    // &:before
+    //   content: " ";
+    //   width: 100%;
+    //   height: 100px;
+    //   position: absolute;
+    //   z-index: 100;
+    //   top: 178px;
+    //   left: 0;
+    //   background: -webkit-linear-gradient(top, rgba(255,255,255,0) 0%,rgba(255,255,255,0.85) 100%);
+
+  div.view-full-discussion
+    // vendor text-shadow, 1px 1px 1px rgba(0, 0, 0, 0.5)
+    cursor pointer
+    vendor transition, all 0.2s ease-in-out
+
+    borderBox()
+    height auto
+    width 100%
+    background-color #f7f7f7
+    border 1px solid #e3e3e3
+    // z-index -1
+    margin-top 0px
+    padding-top 5px
+    padding-bottom 5px
+    padding-left 10px
+    rounded 0px 0px 3px 3px
+    span
+      font-size 12px
+      font-weight 500
+      color #FF9200
+      height auto
+    a
+      vendor transition, color 0.2s linear
+      noTextDeco()
+    // &:hover
+    //   background-color #FF9200
+    //   // span
+    //   //   color #f7f7f7
+
+
+
+  .comment-title
+    margin-bottom:10px
+    p
+      color #e80
+      font-weight 500
+  span.activity-text
+    margin 0px 2px
+    color #FF9200
+    font-size 11px
+    font-weight bold
+
+div.activity-opinion.item-content-comment
+  cursor pointer
+
+  > span.avatar
+    height 20px !important
+    width 20px !important
+
+  p.comment-body
+    margin-top 5px
+
+  footer.activity-opinion-item-footer
+    margin-top 2px
+    a
+      noTextDeco()
+
+
+div.show-more-opinions
+  border none
+  padding-left 20px
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  size                  auto, 0
+  padding               0 10px
+  line-height           27px
+  vendor                transition, height .15s linear
+  borderBox()
+  &.in
+    height              27px
+
+  &.has-new-items
+    a.new-count
+      display           inline
+  a
+    line-height         14px
+    color               #299FC6
+    font-weight         400
+    noTextDeco()
+    &.new-count
+      font-weight       600
+
+  span.small-loader
+    position            absolute
+    right               15px
+    top                 11px
+
+  .new-items
+    left                  500px
+    opacity               0
+    padding-left          2px
+    padding-right         2px
+    font-weight           600
+    color                 white
+    position              relative
+    bg                    color, #FF9200
+    border                1px solid #FF9200
+    rounded(3px 3px 3px 3px)
+    vendor                transition, left .3s ease-in-out \, opacity .3s ease-in-out
+
+    &.in
+      opacity             1
+      left                6px
+
+  .new-items:after, .new-items:before
+    right                 100%
+    border                solid transparent
+    content               " "
+    height                0
+    width                 0
+    position              absolute
+    pointer-events        none
+
+  .new-items:after
+    border-right-color    #FF9200
+    border-width          4px
+    top                   50%
+    margin-top            -4px
+
+  .new-items:before
+    border-right-color    #FF9200
+    border-width          5px
+    top                   50%
+    margin-top            -5px
+
+  a.all-count
+    noTextDeco()
+
+div.show-more-discussion
+  padding-top 5px
+  padding-bottom 5px
+  background-color #f7f7f7
+  padding-left 10px
+  a.discussion-view-more
+    noTextDeco()
+
+// form.link-widget.update-options, form.status-widget
+
+//   div.formline
+div.link-embed-box
+      borderBox()
+      rounded 4px
+      div.link-embed
+        borderBox()
+        div.embed
+          borderBox()
+          margin-top 15px
+          rounded 4px
+          border 1px solid black
+          border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+          padding 10px
+
+form.status-widget
+  div.formline
+    div.link-embed-box
+      margin-left 153px
+
+// div.activity-item.link, div.activity-item.status
+//   div.activity-item-right-col
+//     div.link-embed
+//       borderBox()
+//       width auto
+//       div.embed
+//         borderBox()
+//         margin-top 15px
+//         rounded 4px
+//         border 1px solid black
+//         border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+//         padding 10px
+

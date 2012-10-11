@@ -14,23 +14,13 @@ class SourceCodeAnalyzer
       @treeIsDrawn()
 
   treeIsDrawn:->
-    fs.writeFileSync "./website/dev/sourceData.json",JSON.stringify tree
-    b = @findChildren "-Client"
-    fs.writeFileSync "./website/dev/sourceFlare.json",JSON.stringify b
+    fs.writeFileSync "./website/dev/sourceData.json",JSON.stringify tree,null,2
+    b = findChildren "-Client"
+    fs.writeFileSync "/Users/d/Projects/d3/examples/data/kdflare.json",JSON.stringify b,null,2
 
-  findChildren: (rootNode) ->
-    tk = []
-    i = 0
-    for item in tree when item[1] is rootNode
-      i++
-      console.log item[0],rootNode
-      tk.push 
-        name      : item[0]
-        children  : @findChildren item[0]
-    if i > 0 
-      return [{name : rootNode, children: tk }]
-    else 
-      return [] 
+  findChildren = (rootNode) ->
+    return ({name : item[0], children  : findChildren(item[0])} for item in tree when item[1] is rootNode)
+  
 
   check=(line)->
     if line.substr(0,6) is "class "

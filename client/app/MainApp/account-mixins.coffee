@@ -1,10 +1,9 @@
 AccountMixin = do ->
-  
   init:(api)->
     {JAccount, JGuest} = api
-    
+
     JGuest::fetchNonce = ->
-    
+
     nonces = []
 
     fetchNonces = (callback)->
@@ -15,14 +14,14 @@ AccountMixin = do ->
         else
           nonces = nonces.concat moreNonces
         callback nonces
-    
+
     fetchNonce = (callback)->
       nonce = nonces.shift()
       if nonce? then callback nonce
       else fetchNonces -> fetchNonce callback
-    
+
     JAccount::fetchNonce = fetchNonce
-    
+
     JAccount::fetchKiteChannelName = (kiteId, callback)->
       @_kiteChannels or= {}
       kiteChannelId = @_kiteChannels[kiteId]
@@ -33,108 +32,87 @@ AccountMixin = do ->
         else
           @_kiteChannels[kiteId] = kiteChannelId
           callback null, kiteChannelId
-    
+
     JAccount::tellKite = do->
-      {Scrubber, Store} = bongo.dnodeProtocol
+      {Scrubber, Store} = Bongo.dnodeProtocol
 
       localStore = new Store
       remoteStore = new Store
-      
-      transports = {}
-      
-      changeTransport = (channelId, {transport})->
-        log 'CHANGING TRANSPORT: ', transport
-        transports[channelId] = transport
-      
-      resetTransport = (channelId)->
-        delete transports[channelId]
-      
-      getCommandFailover =(secretChannelId, options, callback)->
-        count = 0
-        kallback = __utils.getCancellableCallback callback
-        kanceller = __utils.getCancellableCallback =>
-          kallback.cancel()
-          resetTransport(secretChannelId)
-          if count++ < 10
-            @tellKite options, callback
-          else
-            callback new Error "Couldn't connect to backend"
-        setTimeout kanceller, 5000
-        ->
-          kanceller.cancel()
-          kallback arguments...
-      
-      sendScrubbedCommand =(channelId, url, options)->
-        transport = transports[channelId]
-        data =
-          data    : JSON.stringify(options)
-          env     : KD.env
-        switch transport
-          when 'mq'
-            fetchChannel channelId, (channel)->
-              channel.trigger 'client-message', data
-          else
-            fetchNonce (nonce)->
-              data.n = nonce
-              $.ajax {
-                data
-                url       : url
-                dataType  : 'json'
-                type      : 'POST'
-                xhrFields :
-                  withCredentials: yes
-              }
-      
-      getKiteUri =(kiteName)-> KD.apiUri+"/1.0/kite/#{kiteName}"
-      
-      sendCommand =(channelId, kiteName, args, callbackId)->
+
+      listenerId = 0
+
+      channels = {}
+
+      scrub = (method, args, callback) ->
         scrubber = new Scrubber localStore
         scrubber.scrub args, =>
           scrubbed = scrubber.toDnodeProtocol()
-          scrubbed.method or= callbackId
-          sendScrubbedCommand channelId, getKiteUri(kiteName), scrubbed
-      
-      request = (secretChannelId, callbackId, args)->
-        kiteName = secretChannelId.split('-')[1]
-        sendCommand secretChannelId, kiteName, [{
-          toDo      : '_handleCallback'
-          withArgs  : args
-          secretChannelId
-        }], callbackId
-      
-      fetchChannel =do ->
-        messageHandler =(secretChannelId, args) ->
-          callback = localStore.get(args.method)
-          scrubber = new Scrubber localStore
-          unscrubbed = scrubber.unscrub args, (callbackId)->
-            unless remoteStore.has callbackId
-              remoteStore.add callbackId, ->
-                request secretChannelId, callbackId, [].slice.call arguments
-            remoteStore.get callbackId
-          callback.apply @, unscrubbed
+          scrubbed.method or= method
+          callback scrubbed
 
-        (secretChannelId, callback)->
-          channel = bongo.mq.channel secretChannelId
-          if channel?
+      request =(kiteName, method, args, onMethod='on')-> 
+        scrub method, args, (scrubbed) ->
+          declaredBefore = channels[getChannelName(kiteName)]
+          fetchChannel kiteName, (channel)->
+            unless declaredBefore?
+              channel[onMethod](
+                "reply-client-message",
+                messageHandler.bind null, kiteName
+              )
+            channel.emit "client-message", JSON.stringify(scrubbed)
+
+      response = (kiteName, method, args) ->
+        scrub method, args, (scrubbed) ->
+          fetchChannel kiteName, (channel)=>
+            channel.emit "client-message", JSON.stringify(scrubbed)
+
+      messageHandler =(kiteName, args) ->
+        callback = localStore.get(args.method)
+        scrubber = new Scrubber localStore
+        unscrubbed = scrubber.unscrub args, (callbackId)->
+          unless remoteStore.has callbackId
+            remoteStore.add callbackId, ->
+              response kiteName, callbackId, [].slice.call(arguments)
+          remoteStore.get callbackId
+        callback.apply @, unscrubbed
+
+      getChannelName =(kiteName)-> "private-kite-#{kiteName}"
+
+      # A helper to delay a call until some condition is met
+      # Types:
+      #  condition = func() -> boolean
+      #  delay = integer (optional), default is 100ms.
+      #  callback = func()
+      waitUntil = (condition, delay, callback) ->
+        unless callback
+          callback = delay
+          delay = 100
+        g = ->
+          if condition()
+            callback()
+            clearInterval h
+        h = setInterval g, delay
+
+      fetchChannel =(kiteName, callback)-> 
+        channelName = getChannelName(kiteName)
+        unless channels[channelName]
+          # Use a cheap hack to ensure the next immediate call to
+          # this will not fetch channel again
+          channels[channelName] = true
+          KD.remote.fetchChannel channelName, (channel) ->
+            channels[channelName] = channel
             callback channel
-          else
-            channel = bongo.mq.subscribe secretChannelId
-            channel.bind 'pusher:subscription_succeeded', ->
-              # join an extra channel here so that we can listen for the vacated webhook.
-              connChannel = bongo.mq.subscribe secretChannelId+'-conn'
-              connChannel.bind 'pusher:subscription_succeeded', ->
-                # log 'SUBSCRIPTION SUCCEEDED', secretChannelId
-                myMessageHandler = messageHandler.bind null, secretChannelId
-                channel.bind 'message', myMessageHandler
-                channel.bind 'error', myMessageHandler
-                channel.bind 'changeTransport', changeTransport.bind null, secretChannelId
-                callback channel
-      
-      (options, callback)->
-        account = @
-        @fetchKiteChannelName options.kiteName, (err, secretChannelId)->
-          fetchChannel secretChannelId, (channel)->
-            options.secretChannelId = secretChannelId
-            options.withArgs or= {}
-            args = [options, getCommandFailover.call account, secretChannelId, options, callback]
-            sendCommand secretChannelId, options.kiteName, args
+        else
+          # Because we set channels[channelName] to true when there
+          # are consecutive calls to this, we want it to be a Channel
+          # instead, so we wait until the first call is finish.
+          condition = -> channels[channelName] instanceof Channel
+          waitUntil condition, ->
+            callback channels[channelName]
+
+      (options, callback=->)->
+        scrubber = new Scrubber localStore
+        args = [options, callback]
+        {method} = options
+        delete options.autoCull
+        request options.kiteName, method, args
