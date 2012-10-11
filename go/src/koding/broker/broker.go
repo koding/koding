@@ -82,11 +82,9 @@ func main() {
 
 					switch event {
 					case "client-subscribe":
-						if exchange != "updateInstances" {
-							err = consumeChannel.QueueBind("", "#", exchange, false, nil)
-							if err != nil {
-								panic(err)
-							}
+						err = consumeChannel.QueueBind("", "#", exchange, false, nil)
+						if err != nil {
+							panic(err)
 						}
 						exchanges = append(exchanges, exchange)
 

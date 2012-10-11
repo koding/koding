@@ -683,7 +683,7 @@ readme_directory = /usr/share/doc/postfix-2.6.6/README_FILES
 
 smtpd_milters = inet:localhost:8891
 non_smtpd_milters = inet:localhost:8891
-
+content_filter = scan:[127.0.0.1]:10025
 
 
 smtpd_error_sleep_time = 1s
