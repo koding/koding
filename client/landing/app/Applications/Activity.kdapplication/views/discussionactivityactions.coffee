@@ -12,12 +12,21 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     @opinionCount?.destroy()
 
+    @opinionCountLink  = new ActivityActionLink
+      partial     : "· Answers"
+
+    if activity.repliesCount is 0 then @opinionCountLink.hide()
+
     @opinionCount = new ActivityCommentCount
       tooltip     :
         title     : "Take me there!"
       click       : (pubInst, event)=>
         @emit "DiscussionActivityLinkClicked"
     , activity
+
+    @opinionCount.on "countChanged", (count) =>
+      if count > 0 then @opinionCountLink.show()
+      else @opinionCountLink.hide()
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
@@ -42,7 +51,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionLink}} · {{> @opinionCount}} <span class="activity-text">#{if @getData().repliesCount is 0 then "No " else ""}answers</span> ·
+    {{> @opinionLink}} {{> @opinionCountLink}} {{> @opinionCount}} ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
@@ -56,6 +65,9 @@ class OpinionActivityActionsView extends ActivityActionsView
     super
 
     activity = @getData()
+
+    @commentLink  = new ActivityActionLink
+      partial : "Comment"
 
     @commentCount?.destroy()
 
@@ -86,7 +98,7 @@ class OpinionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @commentCount}} <span class="activity-text">#{if @getData().repliesCount is 0 then "No " else ""}comments</span> ·
+    {{> @commentLink}}{{> @commentCount}} ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
