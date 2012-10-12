@@ -31,7 +31,7 @@ module.exports = deepFreeze
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
-    index       : "./website_nonstatic/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
