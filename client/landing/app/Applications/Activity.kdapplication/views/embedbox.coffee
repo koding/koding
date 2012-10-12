@@ -55,7 +55,7 @@ class EmbedBox extends KDView
       menu =
         'Remove Image from Preview' :
           callback : =>
-            @embedHiddenItems.push "image"
+            @addEmbedHiddenItem "image"
             @refreshEmbed()
             @getDelegate()?.emit "embedHideItem", @embedHiddenItems
             no
@@ -76,6 +76,16 @@ class EmbedBox extends KDView
   refreshEmbed:=>
     @populateEmbed @getEmbedData(), @embedURL
 
+  resetEmbedAndHide:=>
+    @resetEmbed()
+    @hide()
+
+  resetEmbed:=>
+    @clearEmbed()
+    @setEmbedData {}
+    @setEmbedURL ''
+    @setEmbedHiddenItems []
+
   clearEmbed:=>
     @$("div.embed").html ""
 
@@ -86,20 +96,30 @@ class EmbedBox extends KDView
   getEmbedData:=>
     @embedData
 
-  setEmbedData:(data)=>
-    @embedData = data
-
   getEmbedURL:=>
     @embedURL
+
+  getEmbedHiddenItems:=>
+    @embedHiddenItems
+
+  setEmbedData:(data)=>
+    @embedData = data
 
   setEmbedURL:(url)=>
     @embedURL = url
 
-  fetchEmbed:(url,options,callback=noop)=>
+  setEmbedHiddenItems:(ehi)=>
+    @embedHiddenItems = ehi
+
+  addEmbedHiddenItem:(item)=>
+    if not (item in @embedHiddenItems) then @embedHiddenItems.push item
+
+  fetchEmbed:(url="#",options={},callback=noop)=>
 
     requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
       embedlyOptions = $.extend {}, {
         key      : "e8d8b766e2864a129f9e53460d520115"
+        endpoint : "preview"
         maxWidth : 560
         maxHeight: 300
         wmode    : "transparent"
@@ -110,54 +130,67 @@ class EmbedBox extends KDView
       $.embedly url, embedlyOptions, (oembed, dict)=>
         @setEmbedData oembed
         @setEmbedURL url
-        callback oembed
+        callback oembed,embedlyOptions
 
-  populateEmbed:(data={},url="#")=>
+  populateEmbed:(data={},url="#",options={})=>
 
-    if "embed" in @embedHiddenItems
+    if "embed" in @getEmbedHiddenItems()
       @hide()
       return no
 
-    # replace this when using preview instead of oembed
-    prettyLink = (link)->
-      link.replace("http://","").replace("https://","").replace("www.","")
+    if data?.safe
 
-    type = data.type or "link"
+      # replace this when using preview instead of oembed
+      prettyLink = (link)->
+        link.replace("http://","").replace("https://","").replace("www.","")
 
-    switch type
-      when "html" then html = data?.code
-      when "audio" then html = data?.code
-      when "video" then html = data?.code
-      when "text" then html = data?.code
-      when "xml" then html = data?.code
-      when "json" then html = data?.code
-      when "ppt" then html = data?.code
-      when "rss","atom" then html = data?.code
-      when "photo","image" then html = data?.code
-      when "rich" then html = data?.code
+      type = data?.object?.type or "link"
 
+      switch type
+        when "html" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "audio" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "video" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "text" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "xml" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "json" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "ppt" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "rss","atom" then html = data?.object?.html or "This link has no Preview available. Oops."
 
-      # fallback for things that may or may not have any kind of preview
-      when "link"
-        html = """
-          <div class="embed custom-link">
-            <div class="preview_image #{if ("image" in @embedHiddenItems) or not data.thumbnail_url? then "hidden" else ""}">
-              <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
-            </div>
-            <div class="preview_text">
-             <a class="preview_text_link" target="_blank" href="#{data.url or url}">
-              <div class="preview_title">#{data.title or "untitled"}</div>
-              <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+prettyLink(data.provider_url)+"</strong>" else ""}</div>
-              <div class="description">#{data.description or ""}</div>
-             </a>
-            </div>
-          </div>
-        """
-      when "error" then return "There was an error"
-      else
-        log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
+        # this is usually just a single image
+        when "photo","image"
+          html = """<img src="#{data?.images?[0]?.url}" style="max-width:#{options.maxWidth+"px" or "560px"};max-height:#{options.maxHeight+"px" or "300px"}" title="#{data?.title or ""}" /> """
+          if ("image" in @getEmbedHiddenItems())
+            @hide()
 
-    @$("div.link-embed").html html
+        # rich is a html object for things like twitter posts
+        when "rich"
+          html = data?.object?.html
+          html = $(html).addClass "custom-twitter"
+
+        # fallback for things that may or may not have any kind of preview
+        when "link"
+          html = """
+              <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
+                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
+              </div>
+              <div class="preview_text">
+               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
+                <div class="preview_title">#{data.title or "untitled"}</div>
+                <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+data.provider_display+"</strong>" else ""}</div>
+                <div class="description">#{data.description or ""}</div>
+               </a>
+              </div>
+          """
+        when "error" then return "There was an error"
+        else
+          log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
+
+      @$("div.embed").html html
+      @$("div.embed").addClass "custom-"+type
+
+    else
+      log "There was unsafe content.",data?.safe_type,data?.safe_message
+      @hide()
 
   embedExistingData:(data={},options={},callback=noop)=>
     unless data.type is "error" then @clearEmbed()
@@ -166,9 +199,9 @@ class EmbedBox extends KDView
     callback data
 
   embedUrl:(url,options={},callback=noop)=>
-    @fetchEmbed url, options, (data)=>
+    @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error" then @clearEmbed()
-      @populateEmbed data, url
+      @populateEmbed data, url, embedlyOptions
       @show()
       callback data
 
@@ -177,5 +210,6 @@ class EmbedBox extends KDView
       {{> @settingsButton}}
       {{> @embedLoader}}
       <div class="link-embed clearfix">
+        <div class="embed"></div>
       </div>
     """
