@@ -126,7 +126,7 @@ class ActivityLinkWidget extends KDFormView
   submit:=>
     @addCustomData "link_url", @link.getValue()
     @addCustomData "link_embed", @embedBox.getEmbedData()
-    @addCustomData "link_embed_hidden_items", _.uniq @embedBox.embedHiddenItems
+    @addCustomData "link_embed_hidden_items", @embedBox.embedHiddenItems
 
     @once "FormValidationPassed", => @reset()
     super
@@ -141,7 +141,8 @@ class ActivityLinkWidget extends KDFormView
     @description.setValue ''
     @link.setValue ''
 
-    @embedBox.clearEmbedAndHide()
+    @embedBox.resetEmbedAndHide()
+
     @previousLink = 'this was the previous link'
 
     @tagController.reset()
@@ -150,15 +151,10 @@ class ActivityLinkWidget extends KDFormView
 
     @submitBtn.setTitle "Edit link"
     @addCustomData "activity", activity
-    {title, body, tags, link_url, link_embed} = activity
+    {title, body, tags, link_url, link_embed, link_embed_hidden_items} = activity
 
     @$("div.formline.link-title").show()
     @$("div.formline.link-description").show()
-
-    # @labelTitle.show()
-    # @labelDescription.show()
-    # @title.show()
-    # @description.show()
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -168,7 +164,11 @@ class ActivityLinkWidget extends KDFormView
 
     @link.setValue Encoder.htmlDecode link_url
 
-    @embedBox.embedUrl link_url
+    # refresh the embed data when editing
+    @embedBox.embedUrl link_url, {
+      maxWidth:525
+    }
+    @embedBox.setEmbedHiddenItems link_embed_hidden_items
 
 
   widgetShown:->
@@ -181,11 +181,6 @@ class ActivityLinkWidget extends KDFormView
 
     @$("div.formline.link-title").hide()
     @$("div.formline.link-description").hide()
-
-    # @labelTitle.hide()
-    # @labelDescription.hide()
-    # @description.hide()
-    # @title.hide()
 
   pistachio:->
     """
