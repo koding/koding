@@ -150,18 +150,17 @@ class CodeSnippetView extends KDCustomHTMLView
 
   applySyntaxColoring:( syntax = @getData().syntax)->
 
-    result = hljs.highlightAuto @codeView.getData().content
-    markup = hljs.fixMarkup result.value, '  '
-    @codeView.updatePartial markup
+    # result = hljs.highlightAuto @codeView.getData().content
+    # markup = hljs.fixMarkup result.value, '  '
+    # @codeView.updatePartial markup
 
-    # snipView  = @
+    snipView  = @
     # hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
-    # try
-    #   hljs.highlightBlock snipView.codeView.$()[0], '  '
-    #   snipView.syntaxMode.updatePartial snipView.codeView.attr 'class'
-    # catch err
-    #   console.warn "Error applying highlightjs syntax #{syntax}:", err
+    try
+      hljs.highlightBlock snipView.codeView.$()[0], '  '
+    catch err
+      console.warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 
