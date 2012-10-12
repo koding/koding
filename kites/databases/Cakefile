@@ -1,7 +1,7 @@
-option '-c', '--config', 'select a config file (default is prod)'
+option '-c', '--config [CONFIG]', 'select a config file (default is prod)'
 
 
-processes = require 'processes'
+processes = new(require 'processes')
 
 
 task "install", 'install packages',(options)->
@@ -18,7 +18,7 @@ task 'run','run databases',(options)->
   options.config ?= "config-dev"
 
   processes.run
-  	name	: "databases kite"
+    name    : "databases kite"
     cmd     : "coffee index.coffee -c #{options.config} --databases"
     restart : yes
     stdout  : process.stdout

@@ -1,7 +1,7 @@
 KODING_CAKE = '../node_modules/koding-cake/bin/cake'
 D = __dirname
-
-fs.writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
+processes = new(require 'processes')
+require('fs').writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
 
 task 'cl3','runs dev kites',(options)->
 
@@ -19,9 +19,6 @@ task 'cl3','runs dev kites',(options)->
 
 
 task 'cl0', 'runs prod kites',(options)->
-  # processes.run
-  #   cmd : 'cd ./pinger && cake run'
-  #   restart: no
 
   processes.run
     name    : "sharedHosting cake"
@@ -34,7 +31,7 @@ task 'cl0', 'runs prod kites',(options)->
 
   processes.run
     name    : 'webterm kite'
-    cmd     : "bash #{__dirname}/webterm -c stage"
+    cmd     : "#{__dirname}/webterm -c stage"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
