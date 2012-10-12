@@ -78,8 +78,12 @@ func main() {
 				defer func() { consumerFinished <- true }()
 
 				for message := range stream {
-					body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
-					sendChan <- string(body)
+					go func() {
+						defer log.RecoverAndLog()
+
+						body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
+						sendChan <- string(body)
+					}()
 				}
 			}()
 
