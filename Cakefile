@@ -230,8 +230,12 @@ pipeStd =(children...)->
     child.stderr.pipe process.stderr
 
 run =(options)->
+
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
+  fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
+
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
   debug = if options.debug then ' -D' else ''
