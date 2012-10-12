@@ -667,7 +667,7 @@ Includes =
         canvasLoader      : "./client/libs/canvas-loader.js"
 
         marked            : "./client/libs/marked.js"
-        google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
+        # google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
         lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
@@ -685,7 +685,7 @@ Includes =
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
-        highlightjs       : "./client/libs/highlight.pack.js"
+        # highlightjs       : "./client/libs/highlight.pack.js"
         # jquery            : "./client/libs/jquery-1.7.1.js"
         # jquery            : "./client/libs/jquery-1.7.1.min.js"
         # jqueryUi          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
