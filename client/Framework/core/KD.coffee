@@ -163,3 +163,5 @@ if KD.config?.suppressLogs
 KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
 KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
 KD.error = error = if console?.error then console.error.bind(console) else noop
+
+prettyPrint = noop
