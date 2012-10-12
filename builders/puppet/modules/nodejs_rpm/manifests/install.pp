@@ -4,11 +4,12 @@
 class nodejs_rpm::install {
     
 
-    $coffee_version = '1.2.0'
+    $coffee_version = '1.3.3'
     
     package { "nodejs":
         ensure => installed,
-        alias  => 'nodejs'
+        alias  => 'nodejs',
+        require => Class["yumrepos::koding"],
     }
     
     #file {"/usr/bin/node":
