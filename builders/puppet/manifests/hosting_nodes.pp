@@ -72,30 +72,30 @@ node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
     #bind_dir { "/Users": mpoint => "/Users", device => "/mnt/storage0/Users"}
     #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
 
-    monit::nodeapp { "terminal":
-        appname   => "terminal",
-        isenabled => 'enabled',
-        nodeuser  => false,
-        require_deploy => false,
-    }
-    monit::nodeapp { "SharedHosting":
-        appname   => "SharedHosting",
-        isenabled => 'enabled', 
-        nodeuser  => false,
-        require_deploy => false,
-    }
-    monit::nodeapp { "Databases":
-          appname   => "Databases",
-          isenabled => 'enabled',
-          nodeuser  => true,
-          require_deploy => false,
-    }
-     monit::nodeapp { "pinger":
-          appname   => "pinger",
-          isenabled => 'enabled',
-          nodeuser  => true,
-          require_deploy => false,
-    }
+   # monit::nodeapp { "terminal":
+   #     appname   => "terminal",
+   #     isenabled => 'enabled',
+   #     nodeuser  => false,
+   #     require_deploy => false,
+   # }
+   # monit::nodeapp { "SharedHosting":
+   #     appname   => "SharedHosting",
+   #     isenabled => 'enabled', 
+   #     nodeuser  => false,
+   #     require_deploy => false,
+   # }
+   # monit::nodeapp { "Databases":
+   #       appname   => "Databases",
+   #       isenabled => 'enabled',
+   #       nodeuser  => true,
+   #       require_deploy => false,
+   # }
+   #  monit::nodeapp { "pinger":
+   #       appname   => "pinger",
+   #       isenabled => 'enabled',
+   #       nodeuser  => true,
+   #       require_deploy => false,
+   # }
     monit::nodeapp { "kiteCake":
           appname   => "kiteCake",
           isenabled => 'enabled',
