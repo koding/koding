@@ -39,10 +39,6 @@ module.exports = class JGuest extends jraphical.Module
         avatar      : String
         status      : String
 
-  setTimeout =>
-    @_resetAllGuests()
-  , 5000
-
   @_resetAllGuests =(count=1e4)->
     @drop ->
       queue = [0...count].map (guestId)->->
