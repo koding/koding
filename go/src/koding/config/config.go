@@ -25,6 +25,12 @@ var configs = map[string]Config{
 		UseLVE:     true,
 	},
 
+	"prod": {
+		AmqpUri:    "amqp://test:test@web0.beta.system.aws.koding.com",
+		HomePrefix: "/Users/",
+		UseLVE:     true,
+	},
+
 	"local": {
 		AmqpUri:    "amqp://guest:guest@localhost",
 		HomePrefix: "/home/",
