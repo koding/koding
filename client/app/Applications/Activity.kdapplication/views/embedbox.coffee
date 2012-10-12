@@ -127,6 +127,9 @@ class EmbedBox extends KDView
           callback? dict
       }, options
 
+      # if there is no protocol, supply one! embedly doesn't support //
+      unless /^(ht|f)tp(s?)\:\/\//.test url then url = "http://"+url
+
       $.embedly url, embedlyOptions, (oembed, dict)=>
         @setEmbedData oembed
         @setEmbedURL url
@@ -138,7 +141,7 @@ class EmbedBox extends KDView
       @hide()
       return no
 
-    if data?.safe
+    if data?.safe? and data?.safe is yes
 
       # replace this when using preview instead of oembed
       prettyLink = (link)->
@@ -188,9 +191,11 @@ class EmbedBox extends KDView
       @$("div.embed").html html
       @$("div.embed").addClass "custom-"+type
 
-    else
-      log "There was unsafe content.",data?.safe_type,data?.safe_message
+    else if data?.safe is no
+      log "There was unsafe content.",data,data?.safe_type,data?.safe_message
       @hide()
+    else
+      log "Error!"
 
   embedExistingData:(data={},options={},callback=noop)=>
     unless data.type is "error" then @clearEmbed()

@@ -32,16 +32,13 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
+      blur:=>
+        @requestEmbed()
       keydown:=>
         if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
-          setTimeout =>
-            firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
-            unless @previousURL is firstUrl?[0] then @embedBox.embedUrl firstUrl?[0], {
-              maxWidth: 525
-            }
-            @previousURL = firstUrl?[0]
-          ,500
+          @requestEmbed()
         @previousWhich = $(event.which)[0]
+
 
 
     @cancelBtn = new KDButtonView
@@ -87,6 +84,15 @@ class ActivityStatusUpdateWidget extends KDFormView
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
     @tagAutoComplete = @tagController.getView()
+
+  requestEmbed:=>
+    setTimeout =>
+      firstUrl = @largeInput.getValue().match(/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+      unless @previousURL is firstUrl?[0] then @embedBox.embedUrl firstUrl?[0], {
+        maxWidth: 525
+      }
+      @previousURL = firstUrl?[0]
+    ,500
 
   switchToSmallView:->
 
