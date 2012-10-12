@@ -105,7 +105,8 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           :
+    relationships           : ->
+      JPrivateMessage = require './messages/privatemessage'
 
       mount         :
         as          : 'owner'
@@ -133,7 +134,7 @@ module.exports = class JAccount extends jraphical.Module
 
       privateMessage:
         as          : ['recipient','sender']
-        targetType  : 'JPrivateMessage'
+        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'
