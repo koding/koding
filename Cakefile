@@ -242,7 +242,7 @@ run =(options)->
 
   debug = if options.debug then ' -D' else ''
 
-  if options.runGoBroker
+  if config.runGoBroker
     processes.run
       name  : 'goBroker'
       cmd   : "./go/bin/broker -c #{argv.c}"
