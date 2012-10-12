@@ -17,6 +17,7 @@ module.exports = deepFreeze
   webPort       : [3020..3030]
   mongo         : mongo
   runBroker     : no
+  runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   basicAuth     :
