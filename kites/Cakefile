@@ -1,6 +1,8 @@
 KODING_CAKE = '../node_modules/koding-cake/bin/cake'
 D = __dirname
 
+fs.writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
+
 task 'cl3','runs dev kites',(options)->
 
   # processes.run
