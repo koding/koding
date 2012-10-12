@@ -15,7 +15,7 @@ module.exports = class JGuest extends jraphical.Module
 
   @set
     sharedMethods   :
-      static        : ['obtain', 'resetAllGuests']
+      static        : ['obtain', '_resetAllGuests']
       instance      : ['on', 'getDefaultEnvironment', 'fetchStorage']
     indexes         :
       guestId       : ['unique', 'descending']
