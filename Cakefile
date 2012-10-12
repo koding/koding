@@ -201,6 +201,8 @@ configureBroker = (options,callback=->)->
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
+task 'buildforproduction','set correct flags, and get ready to run in production servers.',(options)->
+  invoke 'buildForProduction'
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
   
@@ -212,7 +214,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     if result.p is "yes"
       log.debug 'version',version
       fs.writeFileSync "./.revision",version
-      invoke 'build'
+      invoke 'run',options
       console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
     else
       process.exit()
