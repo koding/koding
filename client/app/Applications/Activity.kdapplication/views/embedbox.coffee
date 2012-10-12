@@ -161,7 +161,7 @@ class EmbedBox extends KDView
 
         # this is usually just a single image
         when "photo","image"
-          html = """<img src="#{data?.images?[0]?.url}" style="max-width:#{options.maxWidth+"px" or "560px"};max-height:#{options.maxHeight+"px" or "300px"}" title="#{data?.title or ""}" /> """
+          html = """<a href="#{data?.url or "#"}" target="_blank"><img src="#{data?.images?[0]?.url}" style="max-width:#{options.maxWidth+"px" or "560px"};max-height:#{options.maxHeight+"px" or "300px"}" title="#{data?.title or ""}" /></a>"""
           if ("image" in @getEmbedHiddenItems())
             @hide()
 
@@ -178,7 +178,7 @@ class EmbedBox extends KDView
               </div>
               <div class="preview_text">
                <a class="preview_text_link" target="_blank" href="#{data.url or url}">
-                <div class="preview_title">#{data.title or "untitled"}</div>
+                <div class="preview_title">#{data.title or data.url}</div>
                 <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+data.provider_display+"</strong>" else ""}</div>
                 <div class="description">#{data.description or ""}</div>
                </a>
