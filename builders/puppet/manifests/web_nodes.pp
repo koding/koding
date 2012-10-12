@@ -82,5 +82,12 @@ node /^web\d+\.beta\.system\.aws\.koding\.com$/ inherits webnode {
        #include nfs_client
        #include cachefilesd
       #bind_dir { "/opt/kfmjs": mpoint => "/opt/kfmjs", device => "/mnt/storage0/kfmjs"}
+      monit::nodeapp { "webCake":
+          appname   => "webCake",
+          isenabled => 'enabled',
+          nodeuser  => true,
+          require_deploy => false,
+    }
+
 }    
 

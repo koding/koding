@@ -96,7 +96,13 @@ node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
           nodeuser  => true,
           require_deploy => false,
     }
- 
+    monit::nodeapp { "kiteCake":
+          appname   => "kiteCake",
+          isenabled => 'enabled',
+          nodeuser  => false,
+          require_deploy => false,
+    }
+
 }
 
 

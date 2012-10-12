@@ -1,0 +1,11 @@
+check process webCake
+	with pidfile /var/run/node/webCake.pid
+	start program = "/bin/su -l node -c '/etc/monit.d/scripts/webCake.sh start'"
+		with timeout 30 seconds
+	stop program = "/bin/su -l node -c '/etc/monit.d/scripts/webCake.sh stop'"
+		with timeout 30 seconds
+
+	if changed pid then alert
+	if totalcpu > 15% for 2 cycles then alert
+	if totalmem > 50 MB for 2 cycles then alert
+	if 3 restarts within 5 cycles then timeout
