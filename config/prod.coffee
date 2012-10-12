@@ -23,6 +23,7 @@ module.exports = deepFreeze
   social        :
     numberOfWorkers: 10
   client        :
+    suppressLogs: no
     version     : version
     minify      : no
     js          : "./website/js/kd.#{version}.js"
