@@ -1,8 +1,11 @@
+KODING_CAKE = '../node_modules/koding-cake/bin/cake'
+D = __dirname
+
 task 'cl3','runs dev kites',(options)->
 
-  processes.run
-    cmd : 'cd ./pinger && cake run'
-    restart: no
+  # processes.run
+  #   cmd : 'cd ./pinger && cake run'
+  #   restart: no
 
   processes.run
     cmd : 'cd ./sharedHosting && cake run'
@@ -11,3 +14,34 @@ task 'cl3','runs dev kites',(options)->
   processes.run
     cmd : 'cd ./terminaljs && cake run'
     restart: no
+
+
+task 'cl0', 'runs prod kites',(options)->
+  # processes.run
+  #   cmd : 'cd ./pinger && cake run'
+  #   restart: no
+
+  processes.run
+    name    : "sharedHosting cake"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+
+  processes.run
+    name    : 'webterm kite'
+    cmd     : "bash #{__dirname}/webterm -c prod"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+  processes.run
+    name    : "databases cake"
+    cmd     : "#{KODING_CAKE} ./databases -c config-prod run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
