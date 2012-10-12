@@ -242,6 +242,16 @@ run =(options)->
 
   debug = if options.debug then ' -D' else ''
 
+  if options.runGoBroker
+    processes.run
+      name  : 'goBroker'
+      cmd   : "./go/bin/broker -c #{argv.c}"
+      restart: yes
+      restartInterval: 100
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+
   processes.run
     name    : 'socialCake'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
