@@ -6,9 +6,13 @@ deepFreeze = require 'koding-deep-freeze'
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # STAGING
-mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
+mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+#mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
+  basicAuth     :
+    username    : 'koding'
+    password    : '314159'
   monit         :
     webCake     : '/var/run/node/webCake.pid'
     kiteCake    : '/var/run/node/kiteCake.pid'
@@ -65,7 +69,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'test'
-      password  : 'test'
-      vhost     : '/'
+      login     : 'stage'
+      password  : '#[85_[*zh7%4;4l6T]F!'
+      vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'
