@@ -25,7 +25,7 @@ task 'cl0', 'runs prod kites',(options)->
 
   processes.run
     name    : "sharedHosting cake"
-    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-stage run"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
@@ -34,7 +34,7 @@ task 'cl0', 'runs prod kites',(options)->
 
   processes.run
     name    : 'webterm kite'
-    cmd     : "bash #{__dirname}/webterm -c prod"
+    cmd     : "bash #{__dirname}/webterm -c stage"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
@@ -42,7 +42,7 @@ task 'cl0', 'runs prod kites',(options)->
 
   processes.run
     name    : "databases cake"
-    cmd     : "#{KODING_CAKE} ./databases -c config-prod run"
+    cmd     : "#{KODING_CAKE} ./databases -c config-stage run"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
