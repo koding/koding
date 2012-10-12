@@ -15,7 +15,7 @@ module.exports = class JGuest extends jraphical.Module
 
   @set
     sharedMethods   :
-      static        : ['obtain', '_resetAllGuests']
+      static        : ['obtain', 'resetAllGuests']
       instance      : ['on', 'getDefaultEnvironment', 'fetchStorage']
     indexes         :
       guestId       : ['unique', 'descending']
@@ -38,6 +38,10 @@ module.exports = class JGuest extends jraphical.Module
         description : String
         avatar      : String
         status      : String
+
+  setTimeout =>
+    @_resetAllGuests()
+  , 5000
 
   @_resetAllGuests =(count=1e4)->
     @drop ->
