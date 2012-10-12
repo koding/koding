@@ -1105,12 +1105,64 @@ div.kdview.link-embed-box
     margin-top 0px
 
   > div.embed-box-settings
+    vendor            transition, opacity .1s ease-out
+    size              21px, 18px
+    opacity           .2
+    position          absolute
+    top               0
+    right             20px
+    z-index           10
     position absolute
     right 0px
     top 0px
     margin 0px
     display inline-block
     height inherit
+
+    .kdview.jcontextmenu.kdbuttonmenu
+      border-color          rgba(0,0,0,.2)
+      .chevron-ghost-wrapper
+        border-color        rgba(0,0,0,.2)
+        rounded             2px 2px 0 0
+        width               19px
+        span.chevron-ghost
+          margin            0 auto
+          bg                position, -80px -261px
+      .kdcontextmenutreeview
+        margin              3px 0
+        .kdview.kdtreeitemview.default
+          padding           2px
+          font-size         11px
+
+    button.kdbutton.with-icon
+      padding         1px 2px
+      padding-right   3px!important
+
+      &:hover
+        gradient      #eee, #ddd
+        rounded       2px
+
+      span.icon
+        display block
+        float left
+        position relative
+        background-repeat no-repeat
+        background-color transparent
+        background-image url("../images/_kd.sprites.png")
+        margin 0
+        padding 0
+        height 16px
+        width 16px
+        background-position -81px -281px
+        bg            position, -81px -281px
+        size          16px, 16px
+        padding       0
+        margin        0
+
+    .chevron
+      display         none
+    .chevron-separator
+      display         none
 
   > div.link-embed
     borderBox()
@@ -1215,6 +1267,10 @@ div.link
   div.activity-item-right-col
     h3
       cursor inherit
+      a
+        font-size 13px
+        font-weight 500
+        noTextDeco()
     > p
       > span
         cursor inherit

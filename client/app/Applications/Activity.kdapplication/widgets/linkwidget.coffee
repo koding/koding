@@ -26,11 +26,6 @@ class ActivityLinkWidget extends KDFormView
 
     @description = new KDInputView
       label         : @labelDescription
-      # name          : "body"
-      # placeholder   : "What is your link about? Leave empty to display your links embedded description"
-      # validate      :
-      #   rules       :
-      #     maxLength : 3000
       type          : "textarea"
       placeholder   : "Please enter a description, #{Encoder.htmlDecode profile.firstName}."
       name          : 'body'
@@ -44,9 +39,14 @@ class ActivityLinkWidget extends KDFormView
           required  : "Please enter a description..."
 
     @labelLink = new KDLabelView
-      title : "Link:"
+      title : "URL:"
 
-    @embedBox = new EmbedBox options,data
+    embedOptions = $.extend {}, options, {
+      delegate:@
+      click:->
+        no
+    }
+    @embedBox = new EmbedBox embedOptions,data
 
     @previousLink = ''
     @link = new KDInputView
@@ -88,13 +88,13 @@ class ActivityLinkWidget extends KDFormView
 
     @submitBtn = new KDButtonView
       style : "clean-gray"
-      title : "Share your Code Snippet"
+      title : "Share your Link"
       type  : 'submit'
 
     @heartBox = new HelpBox
-      subtitle    : "About Code Sharing"
+      subtitle    : "About Links"
       tooltip     :
-        title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
+        title     : "Link to things."
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -124,9 +124,9 @@ class ActivityLinkWidget extends KDFormView
 
 
   submit:=>
-
     @addCustomData "link_url", @link.getValue()
     @addCustomData "link_embed", @embedBox.getEmbedData()
+    @addCustomData "link_embed_hidden_items", _.uniq @embedBox.embedHiddenItems
 
     @once "FormValidationPassed", => @reset()
     super

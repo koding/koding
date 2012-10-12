@@ -3,7 +3,14 @@ class EmbedBox extends KDView
 
     account = KD.whoami()
 
-    if data.originId? and (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
+    @embedData = {}
+    @embedURL = ''
+
+    @embedHiddenItems = data.link_embed_hidden_items or []
+
+    super options,data
+
+    if (@getDelegate() instanceof ActivityLinkWidget) or data.originId? and (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu embed-box-settings'
         title       : ''
@@ -11,11 +18,12 @@ class EmbedBox extends KDView
         delegate    : @
         iconClass   : "arrow"
         menu        : @settingsMenu data
-        callback    : (event)=> @settingsButton.contextMenu event
+        callback    : (event)=>
+          event.preventDefault()
+          @settingsButton.contextMenu event
     else
       @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    super options,data
 
     @setClass "link-embed-box"
 
@@ -32,8 +40,6 @@ class EmbedBox extends KDView
         speed       : 1
         FPS         : 24
 
-    @embedData = {}
-
     unless data is {} then @hide()
 
   settingsMenu:(data)->
@@ -41,14 +47,24 @@ class EmbedBox extends KDView
     account        = KD.whoami()
     mainController = @getSingleton('mainController')
 
-    if data.originId is KD.whoami().getId()
+
+    # only during creation of when the user is the link owner should
+    # this menu exist
+
+    if data.originId is KD.whoami().getId() or (@getDelegate() instanceof ActivityLinkWidget)
       menu =
-        'Remove Image(s) from Preview'     :
+        'Remove Image from Preview' :
           callback : =>
-            # mainController.emit 'ActivityItemEditLinkClicked', data
+            @embedHiddenItems.push "image"
+            @refreshEmbed()
+            @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+            no
         'Remove Preview'   :
           callback : =>
-            # @confirmDeletePost data
+            @embedHiddenItems.push "embed"
+            @refreshEmbed()
+            @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+            no
 
       return menu
 
@@ -57,9 +73,11 @@ class EmbedBox extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+  refreshEmbed:=>
+    @populateEmbed @getEmbedData(), @embedURL
+
   clearEmbed:=>
     @$("div.embed").html ""
-    @embedData = {}
 
   clearEmbedAndHide:=>
     @clearEmbed()
@@ -67,6 +85,15 @@ class EmbedBox extends KDView
 
   getEmbedData:=>
     @embedData
+
+  setEmbedData:(data)=>
+    @embedData = data
+
+  getEmbedURL:=>
+    @embedURL
+
+  setEmbedURL:(url)=>
+    @embedURL = url
 
   fetchEmbed:(url,options,callback=noop)=>
 
@@ -81,10 +108,15 @@ class EmbedBox extends KDView
       }, options
 
       $.embedly url, embedlyOptions, (oembed, dict)=>
-        @embedData = oembed
+        @setEmbedData oembed
+        @setEmbedURL url
         callback oembed
 
   populateEmbed:(data={},url="#")=>
+
+    if "embed" in @embedHiddenItems
+      @hide()
+      return no
 
     # replace this when using preview instead of oembed
     prettyLink = (link)->
@@ -107,10 +139,9 @@ class EmbedBox extends KDView
 
       # fallback for things that may or may not have any kind of preview
       when "link"
-        # log data
         html = """
           <div class="embed custom-link">
-            <div class="preview_image #{unless data.thumbnail_url? then "hidden" else ""}">
+            <div class="preview_image #{if ("image" in @embedHiddenItems) or not data.thumbnail_url? then "hidden" else ""}">
               <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data.thumbnail_url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
             </div>
             <div class="preview_text">
@@ -126,17 +157,18 @@ class EmbedBox extends KDView
       else
         log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
 
-    # log "EmbedBox used type",type, html
-
     @$("div.link-embed").html html
 
+  embedExistingData:(data={},options={},callback=noop)=>
+    unless data.type is "error" then @clearEmbed()
+    @populateEmbed data
+    @show()
+    callback data
 
   embedUrl:(url,options={},callback=noop)=>
-    # @embedLoader.show()
     @fetchEmbed url, options, (data)=>
       unless data.type is "error" then @clearEmbed()
       @populateEmbed data, url
-      # @embedLoader.hide()
       @show()
       callback data
 
