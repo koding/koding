@@ -10,7 +10,7 @@ CAKE="/usr/bin/cake"
 CMD="${CAKE} ${OPTIONS}"
 cd ${APP_DIR}
 if [ "$1" == "start" ]; then
-    if  ! ${CMD} 2>&1 ; then
+    if  ! ${CMD} >> ${LOG_FILE} 2>&1  ; then
         echo "Can't start ${CMD}" >> ${LOG_FILE}
         exit 1
     fi
