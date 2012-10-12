@@ -24,6 +24,7 @@ func main() {
 			defer log.RecoverAndLog()
 
 			socketId := fmt.Sprintf("%x", rand.Int63())
+			clientQueue := "broker-client-" + socketId
 			exchanges := make([]string, 0)
 
 			utils.ChangeNumClients <- 1
@@ -33,43 +34,70 @@ func main() {
 				log.Debug("Client disconnected: " + socketId)
 			}()
 
-			publishChannel := utils.CreateAmqpChannel(publishConn)
-			defer publishChannel.Close()
+			controlChannel := utils.CreateAmqpChannel(publishConn)
+			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
 
 			body, _ := json.Marshal(map[string]string{"socket_id": socketId})
-			err := publishChannel.Publish("private-broker", "connected", false, false, amqp.Publishing{Body: body})
+			err := controlChannel.Publish("private-broker", "connected", false, false, amqp.Publishing{Body: body})
 			if err != nil {
 				panic(err)
 			}
 
+			defer func() {
+				body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId, "exchanges": exchanges})
+				err = controlChannel.Publish("private-broker", "disconnected", false, false, amqp.Publishing{Body: body})
+				if err != nil {
+					panic(err)
+				}
+				body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId})
+				for _, exchange := range exchanges {
+					err = controlChannel.Publish(exchange, "disconnected", false, false, amqp.Publishing{Body: body})
+					if err != nil {
+						panic(err)
+					}
+				}
+			}()
+
+			consumeChannel := utils.CreateAmqpChannel(consumeConn)
+			defer consumeChannel.Close()
 			consumerFinished := make(chan bool)
 			defer close(consumerFinished)
-			func() {
+
+			_, err = consumeChannel.QueueDeclare(clientQueue, false, true, false, false, nil)
+			if err != nil {
+				panic(err)
+			}
+
+			stream, err := consumeChannel.Consume(clientQueue, "", true, false, false, false, nil)
+			if err != nil {
+				panic(err)
+			}
+
+			go func() {
 				defer log.RecoverAndLog()
-				consumeChannel := utils.CreateAmqpChannel(consumeConn)
-				defer consumeChannel.Close()
+				defer func() { consumerFinished <- true }()
 
-				_, err = consumeChannel.QueueDeclare("", false, true, false, false, nil)
-				if err != nil {
-					panic(err)
-				}
+				for message := range stream {
+					go func() {
+						defer log.RecoverAndLog()
 
-				stream, err := consumeChannel.Consume("", "", true, false, false, false, nil)
-				if err != nil {
-					panic(err)
-				}
-
-				go func() {
-					defer log.RecoverAndLog()
-					defer func() { consumerFinished <- true }()
-
-					for message := range stream {
 						body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
 						sendChan <- string(body)
-					}
-				}()
+					}()
+				}
+			}()
 
-				for data := range receiveChan {
+			for data := range receiveChan {
+				func() {
+					defer func() {
+						err := recover()
+						if err != nil {
+							log.LogError(err)
+							controlChannel.Close()
+							controlChannel = utils.CreateAmqpChannel(publishConn)
+						}
+					}()
+
 					var message map[string]string
 					err := json.Unmarshal([]byte(data.(string)), &message)
 					if err != nil {
@@ -82,7 +110,7 @@ func main() {
 
 					switch event {
 					case "client-subscribe":
-						err = consumeChannel.QueueBind("", "#", exchange, false, nil)
+						err = controlChannel.QueueBind(clientQueue, "#", exchange, false, nil)
 						if err != nil {
 							panic(err)
 						}
@@ -92,7 +120,7 @@ func main() {
 						sendChan <- string(body)
 
 					case "client-unsubscribe":
-						err = consumeChannel.QueueUnbind("", "#", exchange, nil)
+						err = controlChannel.QueueUnbind(clientQueue, "#", exchange, nil)
 						if err != nil {
 							panic(err)
 						}
@@ -112,32 +140,22 @@ func main() {
 
 					default:
 						if strings.HasPrefix(event, "client-") && strings.HasPrefix(exchange, "secret-") {
-							err := publishChannel.Publish(exchange, event, false, false, amqp.Publishing{Body: []byte(message["payload"])})
+							err := controlChannel.Publish(exchange, event, false, false, amqp.Publishing{Body: []byte(message["payload"])})
 							if err != nil {
 								panic(err)
 							}
+						} else if message["vhost"] != "" {
+							// ignored
 						} else {
 							log.Warn(fmt.Sprintf("Invalid message: %v", message))
 						}
 
 					}
-				}
-			}()
+				}()
+			}
 
+			consumeChannel.Close()
 			<-consumerFinished
-
-			body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId, "exchanges": exchanges})
-			err = publishChannel.Publish("private-broker", "disconnected", false, false, amqp.Publishing{Body: body})
-			if err != nil {
-				panic(err)
-			}
-			body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId})
-			for _, exchange := range exchanges {
-				err = publishChannel.Publish(exchange, "disconnected", false, false, amqp.Publishing{Body: body})
-				if err != nil {
-					panic(err)
-				}
-			}
 		})
 		defer service.Close()
 
