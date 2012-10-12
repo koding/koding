@@ -10,7 +10,8 @@ class LinkActivityItemView extends ActivityItemChild
 
     super options,data
 
-    @embedBox = new EmbedBox options, data
+    embedOptions = $.extend {}, options, {delegate:@}
+    @embedBox = new EmbedBox embedOptions,data
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CLinkActivity
@@ -35,7 +36,7 @@ class LinkActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
-      <h3>{{@applyTextExpansions #(title)}}</h3>
+      <h3><a href="#{@getData().link_url or "#"}" target="_blank">{{@applyTextExpansions #(title)}}</a></h3>
       <p>{{@applyTextExpansions #(body)}}</p>
       {{> @embedBox}}
       <footer class='clearfix'>
