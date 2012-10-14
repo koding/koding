@@ -27,7 +27,7 @@ module.exports = deepFreeze
     watch       : yes
   client        :
     version     : version
-    minify      : yes
+    minify      : no
     watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"

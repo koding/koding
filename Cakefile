@@ -157,7 +157,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage"
+    when "dev","prod","local","stage","local-go"
       long = "./config/#{short}.coffee"
     else
       short

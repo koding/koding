@@ -31,6 +31,11 @@ var configs = map[string]Config{
 		UseLVE:     true,
 	},
 
+	"local-go": {
+		AmqpUri:    "amqp://guest:guest@localhost",
+		HomePrefix: "/home/",
+	},
+
 	"local": {
 		AmqpUri:    "amqp://guest:guest@localhost",
 		HomePrefix: "/home/",
