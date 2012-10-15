@@ -11,7 +11,6 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/notifiable'
   @trait __dirname, '../traits/flaggable'
-  @trait __dirname, '../traits/hasFeed'
 
   JAppStorage = require './appstorage'
   JTag = require './tag'
@@ -54,8 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount', 'getFeedByTitle',
-        'fetchFeeds', 'createFeed', 'addGlobalListener', 'isFollowing'
+        'fetchAllKites','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]
@@ -107,7 +105,8 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           :
+    relationships           : ->
+      JPrivateMessage = require './messages/privatemessage'
 
       mount         :
         as          : 'owner'
@@ -135,7 +134,7 @@ module.exports = class JAccount extends jraphical.Module
 
       privateMessage:
         as          : ['recipient','sender']
-        targetType  : 'JPrivateMessage'
+        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'
@@ -151,7 +150,7 @@ module.exports = class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink"]
 
       feed         :
         as          : "owner"
@@ -198,7 +197,7 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)-> 
+    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
       if err
         callback err
       else
@@ -238,7 +237,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -327,11 +326,6 @@ module.exports = class JAccount extends jraphical.Module
     require('bongo').fetchChannel @getPrivateChannelName(), callback
 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
-
-  addTags: secure (client, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)->
-      if err then callback err
-      else callback null
 
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->

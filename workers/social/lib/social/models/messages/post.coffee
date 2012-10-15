@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 
 JAccount = require '../account'
 JComment = require './comment'
+
 JTag = require '../tag'
 CActivity = require '../activity'
 CRepliesActivity = require '../activity/repliesactivity'
@@ -41,7 +42,7 @@ module.exports = class JPost extends jraphical.Message
     sharedMethods     :
       static          : ['create','on','one']
       instance        : [
-        'on','addGlobalListener', 'reply','restComments','commentsByRange'
+        'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
@@ -278,7 +279,7 @@ module.exports = class JPost extends jraphical.Message
           else
             delegate.addContent comment, (err)->
               if err
-                log 'error adding content to delegate', err
+                log 'error adding content to delegate with err', err
             @addComment comment,
               flags:
                 isLowQuality    : exempt

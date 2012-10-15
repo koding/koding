@@ -9,11 +9,15 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
+  monit         :
+    webCake     : '/var/run/node/webCake.pid'
+    kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
   runBroker     : no
+  runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   basicAuth     :
@@ -27,7 +31,7 @@ module.exports = deepFreeze
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
-    index       : "./website_nonstatic/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
@@ -37,23 +41,23 @@ module.exports = deepFreeze
       mainUri   : 'https://dev.koding.com'
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
-        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+        sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
-        vhost   : 'stage'
-      apiUri    : 'https://api.koding.com'
-      appsUri   : 'http://dev-app.koding.com'
-      env       : 'dev'
+        vhost   : '/'
+      apiUri    : 'https://dev-api.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
+      env       : 'stage'
   mq            :
     host        : 'localhost'
-    login       : 'stage'
-    password    : '#[85_[*zh7%4;4l6T]F!'
-    vhost       : 'stage'
+    login       : 'test'
+    password    : 'test'
+    vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   guests:
      # define this to limit the number of guset accounts

@@ -1,11 +1,17 @@
-{Module}    = require 'jraphical'
+{Module,} = require 'jraphical'
+
+class PINExistsError extends Error
+  constructor:(message)->
+    return new PINExistsError(message) unless @ instanceof PINExistsError
+    Error.call @
+    @message = message
+    @name = 'PINExistsError'
 
 module.exports = class JVerificationToken extends Module
 
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
 
-  KodingError = require '../error'
   Emailer     = require '../emailer'
 
   @share()
@@ -37,12 +43,13 @@ module.exports = class JVerificationToken extends Module
     firstName or= username
 
     if not email
+      KodingError = require '../error'
       callback new KodingError "E-mail is not provided!"
     else
       @one {username, action}, (err, verify)=>
         if verify
           if Math.round((Date.now()-verify.createdAt)/60000) < 20
-            callback if err then err else new PINExistsError "PIN exists and not expired, try again after 20 min."
+            callback if err then err else new PINExistsError "PIN exists and not expired, try again after 20 min for new PIN."
             return no
 
         # Remove all waiting pins for given action and email

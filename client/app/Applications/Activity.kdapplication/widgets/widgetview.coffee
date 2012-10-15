@@ -76,6 +76,7 @@ class ActivityUpdateWidget extends KDView
     icon              : yes
     iconClass         : "update"
     delegate          : @
+
     menu              :
       "Status Update" :
         type          : "update"
@@ -87,10 +88,10 @@ class ActivityUpdateWidget extends KDView
       "Code Snip"     :
         type          : "codesnip"
         callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
-      "Code Share"    :
-        type          : "codeshare"
-        disabled      : yes
-        callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
+      # "Code Share"    :
+      #   type          : "codeshare"
+      #   disabled      : yes
+      #   callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
       "Discussion"    :
         type          : "discussion"
         disabled      : yes

@@ -16,6 +16,8 @@ class ActivityStatusUpdateWidget extends KDFormView
         rules       :
           maxLength : 2000
 
+    # @previousWhich = 0
+
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
@@ -29,6 +31,14 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
+      # keydown:=>
+      #   if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
+      #     setTimeout =>
+      #       firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*)?/g)
+      #       @embedBox.embedUrl firstUrl?[0]
+      #     ,500
+      #   @previousWhich = $(event.which)[0]
+
 
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -41,6 +51,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       style       : "clean-gray"
       title       : "Submit"
       type        : "submit"
+
+    # @embedBox = new EmbedBox
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -126,9 +138,12 @@ class ActivityStatusUpdateWidget extends KDFormView
       @switchToSmallView()
 
   pistachio:->
+    # {{> @embedBox}}
     """
     <div class="small-input">{{> @smallInput}}</div>
     <div class="large-input">{{> @largeInput}}</div>
+    <div class="formline">
+    </div>
     <div class="formline">
       {{> @labelAddTags}}
       <div>

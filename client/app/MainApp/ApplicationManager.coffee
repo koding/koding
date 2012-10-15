@@ -45,7 +45,7 @@ class ApplicationManager extends KDObject
 
   getFrontApp:-> @frontApp
 
-  expandApplicationPath:(path)->
+  expandApplicationPath = (path)->
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
@@ -55,7 +55,7 @@ class ApplicationManager extends KDObject
         [path, callback] = arguments
         doBringToFront = yes
 
-    path = @expandApplicationPath path
+    path = expandApplicationPath path
     appManager = @
 
     beforeCallback = (appInstance)->
@@ -180,7 +180,7 @@ class ApplicationManager extends KDObject
     @openedInstances[path] = instance
 
   getAppInstance: (path) ->
-    @openedInstances[path]
+    @openedInstances[expandApplicationPath path]
 
   removeAppInstance:(path)->
     appInstance = @getAppInstance path
@@ -213,6 +213,7 @@ class ApplicationManager extends KDObject
       delete @appInitializationQueue[path]
 
   getAppViews:(path)->
+
     index = @appInstanceArray.indexOf @getAppInstance path
     @appViewsArray[index]
 

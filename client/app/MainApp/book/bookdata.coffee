@@ -2,7 +2,7 @@ __bookPages = [
 
     title     : "Table of Contents"
     anchor    : no
-    embed     : "BookTableOfContents"
+    embed     : BookTableOfContents
   ,
     title     : "A Story"
     content   : "Once upon a time, there were developers just like you<br/>Despite the sea between them, development had ensued"
@@ -26,16 +26,16 @@ __bookPages = [
     content   : "“This sounds amazing!” They each began to sing,<br/>“Let’s package it together and call it Koding!”"
   ,
     title     : "Foreword"
-    content   : """<p>Koding is a developer community and cloud development environment that gives you a full stack of collaboration & development tools in your browser.</p>
-                   <p>New to Koding? This tutorial will have you developing, publishing and sharing in no time.</p>
-                   <p>So sit back, relax, and enjoy this “How To”. Oh, and welcome home.</p>"""
+    content   : """<p>Koding is your new development computer in your browser.</p>
+                   <p>As an experienced developer you will find awesome tools to set up shop here.</p>
+                   <p>If you are new to programming, writing your first "Hello World" application literally is 5 minutes away from you.</p><p> Welcome home - This is going to be fun!</p>"""
   ,
     title     : "Activity"
     content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
-    embed     : "BookUpdateWidget"
+    embed     : BookUpdateWidget
   ,
     title     : "Topics"
-    embed     : "BookTopics"
+    embed     : BookTopics
     content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences. In addition to public tags, there are also private tags for within groups.</p>
                    <p>Select from a few of our most popular topics to the right. At anytime, you can return to the Topics board to Follow more, or stop following those you’ve selected.</p>
                    <p>Can’t find what you’re looking for? Start a new topic!</p>"""
@@ -43,11 +43,11 @@ __bookPages = [
     title     : "Members"
     content   : """<p>Welcome to the club!</p>
                    <p>Here you’ll find all of Koding’s members. Follow people you’re working with, you’re learning from, or maybe some that you just find interesting...</p>
-                   <p>here’s your chance to connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
+                   <p>Here’s your chance to connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
   ,
     title     : "Develop"
-    content   : """<p>This is what Koding is all about. Here, you can view, edit, and preview files. Here’s a quck tour of the tool.</p>
-                   <p>Jump to Getting Started to find out how to start developing!</p>"""
+    content   : """<p>This is what Koding is all about. Here, you can view, edit, and preview files. Here’s a quick tour of the tool.</p>
+                   <p>For example, double click on a file, it will show its contents, edit it, save it and see it!</p>"""
   ,
     cssClass  : "develop more-1"
     content   : """<p>Looking for a somewhere to start? We’ve provided some example pages inside your “website” folder. Just navigate your file tree to:</p>
@@ -62,11 +62,11 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : "Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features. Go ahead and check it out!"
-    embed     : "BookDevelopButton"
+    embed     : BookDevelopButton
   ,
     title     : "Terminal"
     content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
-                   <p>__CHANGE THIS COPY__</p>"""
+                   <p>It's a Centos VM that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Other than being root, everything is possible. This VM is not a simulation, it is a real computer, and it's yours.</p>"""
   ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>

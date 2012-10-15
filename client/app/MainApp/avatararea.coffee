@@ -69,8 +69,8 @@ class AvatarAreaIconMenu extends KDView
 
   attachListeners:->
 
-    @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
-      @notificationsIcon.updateCount @notificationsIcon.count + 1
+    # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
+    #   @notificationsIcon.updateCount @notificationsIcon.count + 1
 
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
@@ -163,24 +163,18 @@ class AvatarPopup extends KDView
 # avatar popup box Status Update Form
 class AvatarPopupShareStatus extends AvatarPopup
 
-  # show:->
-  #   super()
-
-  #   if (visitor = KD.getSingleton('mainController').getVisitor())
-  #     {profile} = visitor.currentDelegate
-  #     if @statusField.getOptions().placeholder is ""
-  #       @statusField.setPlaceHolder "What's new, #{Encoder.htmlDecode profile.firstName}?"
-
   viewAppended:->
     super()
+
+    {profile} = KD.whoami()
 
     @avatarPopupContent.addSubView @statusField = new KDHitEnterInputView
       type          : "textarea"
       validate      :
         rules       :
           required  : yes
+      placeholder   : "What's new, #{Encoder.htmlDecode profile.firstName}?"
       callback      : (status)=> @updateStatus status
-
 
   updateStatus:(status)->
 
@@ -193,7 +187,7 @@ class AvatarPopupShareStatus extends AvatarPopup
           title    : 'Message posted!'
           duration : 2000
         @statusField.setValue ""
-        @statusField.setPlaceHolder reply.body
+        # @statusField.setPlaceHolder reply.body
         @hide()
 
       else
