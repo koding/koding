@@ -10,26 +10,25 @@ mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?au
 #mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
-  basicAuth     :
-    username    : 'koding'
-    password    : '314159'
+#  basicAuth     :
+#    username    : 'koding'
+#    password    : '314159'
   monit         :
     webCake     : '/var/run/node/webCake.pid'
     kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
-  webPort       : [3020..3030]
+  webPort       : [3020..3021]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   social        :
-    numberOfWorkers: 10
+    numberOfWorkers: 4
   client        :
-    suppressLogs: no
     version     : version
-    minify      : no
+    minify      : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
@@ -39,6 +38,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://api.koding.com'
     runtimeOptions:
+      suppressLogs: yes
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
