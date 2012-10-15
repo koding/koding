@@ -1223,6 +1223,48 @@ div.kdview.link-embed-box
         font-weight 400
         overflow hidden
 
+        > div.preview_link_pager
+          position absolute
+          left 5px
+          bottom 5px
+
+          > a.preview_link_switch
+            borderBox()
+            color #ff9200
+            border 1px solid #FF9200
+            background-color white
+            margin 0px
+            padding 2px 5px
+            cursor pointer
+            font-size 10px
+            line-height 12px
+            &:hover
+              color white
+              background-color #ff9200
+            &.previous
+              rounded 4px 0 0 4px
+              margin-right 2px
+            &.next
+              rounded 0 4px 4px 0
+            &.disabled
+              color #E8E8E8
+              cursor inherit
+              border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+              &:hover
+                color #E8E8E8
+                background-color white
+
+          > div.thumb_count
+            display inline
+            color #5F5F5F
+            font-size 10px
+            span.thumb_nr
+              color #5F5F5F
+            span.thumb_all
+              color #5F5F5F
+            // span.thumb_text
+            //   display none
+
         > div.preview_image
           borderBox()
           display inline-block
@@ -1235,6 +1277,7 @@ div.kdview.link-embed-box
           min-width 50px
           overflow visible
           position relative
+
 
           > a.preview_link
             max-height 90px
