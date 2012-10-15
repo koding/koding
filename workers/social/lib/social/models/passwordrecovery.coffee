@@ -12,7 +12,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   JGuest      = require './guest'
 
   @share()
-  
+
   @set
     sharedMethods :
       static      : [
@@ -42,18 +42,18 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
   @getPasswordRecoverySubject = -> '[Koding] Instructions to reset your password'
-  
+
   @getEmailDateFormat = -> 'fullDate'
-  
+
   @getPasswordRecoveryMessage = ({requestedAt, url})->
     """
     At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'}, you requested to reset your password.
-    
+
     This one-time token will allow you to reset your password.  This token will self-destruct 30 minutes after it is issued.
-    
+
     #{url}
     """
-  
+
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     if JUser.validateAt 'email', usernameOrEmail
       @recoverPasswordByEmail client, usernameOrEmail, callback
@@ -79,7 +79,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         unless num then callback null # pretend like everything went fine.
         else @create client, email, callback
 
-  
+
   @create = secure ({connection:{delegate}}, email, callback)->
     token = createId()
     JUser.one {email}, (err, user)=>
@@ -121,11 +121,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           else
             callback new KodingError 'The token has expired.'
       else callback null, yes
-  
+
   @invalidate =(query, callback)->
     query.status = 'active'
     @update query, {$set: status: 'invalidated'}, callback
-  
+
   @resetPassword = secure (client, token, newPassword, callback)->
     {delegate} = client.connection
     unless delegate instanceof JGuest
@@ -156,6 +156,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
                   else
                     JPasswordRecovery.invalidate {username}, (err)->
                       callback err, unless err then username
-                
+
   expire:(callback)-> @update {$set: status: 'expired'}, callback
   redeem:(callback)-> @update {$set: status: 'redeemed'}, callback
