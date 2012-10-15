@@ -133,13 +133,14 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type     = 'CCodeSnipActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
-        discussions         :
-          title             : "Discussions"
-          dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type     = 'CDiscussionActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-              callback null, data
+        # Discussions Disabled
+        # discussions         :
+        #   title             : "Discussions"
+        #   dataSource        : (selector, options, callback)=>
+        #     selector.originId = account.getId()
+        #     selector.type     = 'CDiscussionActivity'
+        #     appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+        #       callback null, data
 
       sort                  :
         'sorts.likesCount'  :
