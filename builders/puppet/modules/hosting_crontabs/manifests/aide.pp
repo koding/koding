@@ -4,7 +4,7 @@ class hosting_crontabs::aide {
         command => '/usr/sbin/aide --check',
         user    => root,
         hour    => ['*/4'],
-        minute  => 30,
+        minute  => 55,
         require => Class["aide::db_init"],
     }
 
