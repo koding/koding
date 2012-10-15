@@ -18,7 +18,7 @@ func main() {
 	utils.Startup("broker", false)
 	utils.RunStatusLogger()
 
-	utils.AmqpAutoReconnect(func(consumeConn, publishConn *amqp.Connection) {
+	utils.AmqpAutoReconnect("broker", func(consumeConn, publishConn *amqp.Connection) {
 
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
