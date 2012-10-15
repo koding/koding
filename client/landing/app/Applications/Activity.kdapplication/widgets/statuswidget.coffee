@@ -144,6 +144,9 @@ class ActivityStatusUpdateWidget extends KDFormView
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     @embedBox.clearEmbedAndHide()
+    @previousWhich = 0
+    @previousURL = ""
+
     super
 
   viewAppended:->

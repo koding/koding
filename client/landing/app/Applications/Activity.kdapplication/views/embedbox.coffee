@@ -88,6 +88,7 @@ class EmbedBox extends KDView
     @setEmbedData {}
     @setEmbedURL ''
     @setEmbedHiddenItems []
+    @setEmbedImageIndex 0
 
   clearEmbed:=>
     @$("div.embed").html ""
@@ -102,6 +103,9 @@ class EmbedBox extends KDView
   getEmbedURL:=>
     @embedURL
 
+  getEmbedImageIndex:=>
+    @embedImageIndex
+
   getEmbedHiddenItems:=>
     @embedHiddenItems
 
@@ -113,6 +117,9 @@ class EmbedBox extends KDView
 
   setEmbedHiddenItems:(ehi)=>
     @embedHiddenItems = ehi
+
+  setEmbedImageIndex:(i)=>
+    @embedImageIndex = i
 
   addEmbedHiddenItem:(item)=>
     if not (item in @embedHiddenItems) then @embedHiddenItems.push item
@@ -181,10 +188,6 @@ class EmbedBox extends KDView
               <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
                 <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
               </div>
-              <div class="preview_link_pager #{unless data?.images? and data?.images?.length > 1 then "hidden" else ""}">
-                <a class="preview_link_switch previous">&lt;</a><a class="preview_link_switch next">&gt;</a>
-                <div class="thumb_count"><span class="thumb_nr">#{@embedImageIndex+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
-              </div>
               <div class="preview_text">
                <a class="preview_text_link" target="_blank" href="#{data.url or url}">
                 <div class="preview_title">#{data.title or data.url}</div>
@@ -195,8 +198,11 @@ class EmbedBox extends KDView
                 <div class="description">#{data.description or ""}</div>
                </a>
               </div>
+              <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
+                <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
+                <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
+              </div>
           """
-
 
         # embedly supports many error types. we could display those to the user
         when "error"
@@ -226,11 +232,13 @@ class EmbedBox extends KDView
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
+    @embedLoader.show()
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
         @clearEmbed()
         @populateEmbed data, url, embedlyOptions
         @show()
+        @embedLoader.hide()
         callback data
       else
         callback no
@@ -238,21 +246,21 @@ class EmbedBox extends KDView
   click:(event)=>
     if  $(event.target).hasClass "preview_link_switch"
 
-      if ($(event.target).hasClass "next") and (@getEmbedData().images?.length-1 > @embedImageIndex )
-        @embedImageIndex += 1
+      if ($(event.target).hasClass "next") and (@getEmbedData().images?.length-1 > @getEmbedImageIndex() )
+        @setEmbedImageIndex @getEmbedImageIndex() + 1
         @$("a.preview_link_switch.previous").removeClass "disabled"
 
-      if ($(event.target).hasClass "previous") and (@embedImageIndex > 0)
-        @embedImageIndex -= 1
+      if ($(event.target).hasClass "previous") and (@getEmbedImageIndex() > 0)
+        @setEmbedImageIndex @getEmbedImageIndex() - 1
         @$("a.preview_link_switch.next").removeClass "disabled"
 
-      @$("div.preview_image img.thumb").attr src : @getEmbedData()?.images?[@embedImageIndex]?.url
-      @$("span.thumb_nr").html @embedImageIndex+1
+      @$("div.preview_image img.thumb").attr src : @getEmbedData()?.images?[@getEmbedImageIndex()]?.url
+      @$("span.thumb_nr").html @getEmbedImageIndex()+1
 
-      if @embedImageIndex is 0
+      if @getEmbedImageIndex() is 0
         @$("a.preview_link_switch.previous").addClass "disabled"
 
-      else if @embedImageIndex is (@getEmbedData().images?.length-1)
+      else if @getEmbedImageIndex() is (@getEmbedData().images?.length-1)
         @$("a.preview_link_switch.next").addClass "disabled"
 
 

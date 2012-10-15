@@ -1223,10 +1223,46 @@ div.kdview.link-embed-box
         font-weight 400
         overflow hidden
 
+
+        > div.preview_image
+          borderBox()
+          display inline-block
+          float left
+          margin-right 15px
+          max-height 300px
+          min-height 20px
+          height 100%
+          max-width 100px
+          min-width 50px
+          overflow visible
+          position relative
+
+
+          > a.preview_link
+            max-height 90px
+            min-height 20px
+            min-width inherit
+            max-width inherit
+            line-height 100%
+            margin 0
+            padding 0
+            noTextDeco()
+
+            > img.thumb
+              borderBox()
+              max-height inherit
+              min-height inherit
+              min-width inherit
+              max-width inherit
+              margin 0
+              padding 0
+
         > div.preview_link_pager
-          position absolute
-          left 5px
-          bottom 5px
+          // position absolute
+          // left 14px
+          // bottom 12px
+          padding-top 5px
+          clear both
 
           > a.preview_link_switch
             borderBox()
@@ -1265,39 +1301,6 @@ div.kdview.link-embed-box
             // span.thumb_text
             //   display none
 
-        > div.preview_image
-          borderBox()
-          display inline-block
-          float left
-          margin-right 15px
-          max-height 90px
-          min-height 20px
-          height 100%
-          max-width 100px
-          min-width 50px
-          overflow visible
-          position relative
-
-
-          > a.preview_link
-            max-height 90px
-            min-height 20px
-            min-width inherit
-            max-width inherit
-            line-height 100%
-            margin 0
-            padding 0
-            noTextDeco()
-
-            > img.thumb
-              borderBox()
-              max-height inherit
-              min-height inherit
-              min-width inherit
-              max-width inherit
-              margin 0
-              padding 0
-
         div.preview_text
           borderBox()
           display block
@@ -1307,12 +1310,13 @@ div.kdview.link-embed-box
           min-height 50px
           font-size 12px
           font-weight 400
-          max-height 90px
+          // max-height 90px
           min-height 50px
+          color #797979
 
           > a.preview_text_link
             noTextDeco()
-            color #5F5F5F
+            color inherit
             font-size inherit
             font-weight 400
 
@@ -1331,7 +1335,7 @@ div.kdview.link-embed-box
               font-weight 400
               font-size inherit
               overflow hidden
-              color #797979
+              color inherit
 
           > div.author_info
             display inline-block
