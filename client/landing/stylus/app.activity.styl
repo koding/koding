@@ -114,7 +114,7 @@ app.activity.styl
 .activity-related
   borderBox()
   a
-    color                 #E80
+    color                 #FF9200
     font-weight           600
     font-size             11px
     cursor                pointer
@@ -1174,17 +1174,25 @@ div.kdview.link-embed-box
       rounded 4px
       padding 15px
 
+      // this will overload the default twitter embed by embedly
       > div.embedly_twitter.custom-twitter
+        background none!important
         font-size 13px!important
-        padding 10px!important
+        padding 0px!important
         > div.embedly_tweet_content
           font-size 13px!important
+          background none!important
+          padding 0px!important
           > div.components-middle
             font-size 13px!important
             > p
               font-size 13px!important
+              color #5F5F5F!important
+              background none!important
+              padding 0px!important
               > a
                 font-size 13px!important
+                color #FF9200!important
               > span.metadata
                 font-size 13px!important
                 > span.author
@@ -1194,13 +1202,23 @@ div.kdview.link-embed-box
                   > strong
                     > a
                       font-size 13px!important
+                      color #FF9200!important
 
               > span.embedly_timestamp
                 font-size 13px!important
+                > a
+                  font-size 13px!important
+                  font-weight 300px!important
+                  color #FF9200!important
+
               > span.tweet-actions
                 font-size 13px!important
+                >a  >span >b
+                  font-size 13px!important
+                  font-weight 300!important
+                  color #FF9200!important
 
-      &.custom-link
+      &.custom-link, &.custom-rich
         font-size 13px
         font-weight 400
         overflow hidden
@@ -1210,8 +1228,8 @@ div.kdview.link-embed-box
           display inline-block
           float left
           margin-right 15px
-          max-height 115px
-          min-height 50px
+          max-height 90px
+          min-height 20px
           height 100%
           max-width 100px
           min-width 50px
@@ -1246,34 +1264,67 @@ div.kdview.link-embed-box
           min-height 50px
           font-size 12px
           font-weight 400
+          max-height 90px
+          min-height 50px
 
           > a.preview_text_link
             noTextDeco()
             color #5F5F5F
             font-size inherit
-            font-weight inherit
+            font-weight 400
+
             > div.preview_title
               font-size inherit
-              font-weight 600
+              font-weight 400
+              margin-bottom 3px
               noTextDeco()
               color #FF9200
               &:hover
                 color #27A3C9
 
-            > div.provider_info
-              color
-              noTextDeco()
-              font-size inherit
-              font-weight inherit
-              margin-bottom 10px
-              strong
-                font-weight 600
-
             > div.description
               noTextDeco()
               display block
-              font-weight inherit
+              font-weight 400
               font-size inherit
+              overflow hidden
+              color #797979
+
+          > div.author_info
+            display inline-block
+            font-weight inherit
+            font-size inherit
+            color inherit
+            a
+              font-weight 400
+              font-size inherit
+              noTextDeco()
+              color #FF9200
+              // color #5F5F5F
+              // color black
+
+              &:hover
+                color #27A3C9
+
+          > div.provider_info
+            noTextDeco()
+            font-size inherit
+            font-weight inherit
+            margin-bottom 17px
+            color inherit
+            strong
+              font-weight inherit
+              // color black
+            a
+              font-weight 400
+              font-size inherit
+              noTextDeco()
+              color #FF9200
+              // color #5F5F5F
+              // color black
+
+              &:hover
+                color #27A3C9
 
 
       // img.thumb

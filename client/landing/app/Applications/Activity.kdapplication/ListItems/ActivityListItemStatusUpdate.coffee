@@ -10,13 +10,22 @@ class StatusActivityItemView extends ActivityItemChild
 
     super options,data
 
-    @embedBox = new EmbedBox options,data
+    embedOptions = $.extend {}, options, {
+      hasDropdown : no
+      delegate : @
+    }
+
+    @embedBox = new EmbedBox embedOptions, data
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    # This will involve heavy load on the embedly servers - every client
+    # will need to make a request. We should probably extend the status update
+    # to have a data field for embeds
 
     firstUrl = (@$("span.data > a:first-child").attr "href") or no
     if firstUrl then @embedBox.embedUrl firstUrl, {}

@@ -10,7 +10,11 @@ class LinkActivityItemView extends ActivityItemChild
 
     super options,data
 
-    embedOptions = $.extend {}, options, {delegate:@}
+    embedOptions = $.extend {}, options, {
+      delegate:@
+      hasDropdown: no
+    }
+
     @embedBox = new EmbedBox embedOptions,data
 
   viewAppended:()->
@@ -19,7 +23,9 @@ class LinkActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
+    if @getData().link_embed? then @embedBox.embedExistingData @getData().link_embed, {}, ->
+    else if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
+    else log "There is no link information to embed."
 
   # click:(event)->
 
