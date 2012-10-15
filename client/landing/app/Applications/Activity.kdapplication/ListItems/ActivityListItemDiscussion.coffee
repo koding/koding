@@ -23,7 +23,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     # structure, then it must be created as a new  JOpinion and then populated
     # by the data on the reply.opinionData field (JSON of the actual object)
 
-    data.on 'ReplyIsAdded', (reply)=>
+    data.addGlobalListener 'ReplyIsAdded', (reply)=>
 
       if data.bongo_.constructorName is "JDiscussion"
 
@@ -68,7 +68,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     # event not being caught for opinions that are loaded to the client data
     # structure after the snapshot is loaded
 
-    data.on "ReplyIsRemoved",(replyId)=>
+    data.addGlobalListener "ReplyIsRemoved",(replyId)=>
 
       # this will remove the item from the list if the data doesn't
       # contain it anymore, but the list does. the next snapshot refresh
@@ -87,8 +87,8 @@ class DiscussionActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # @$("pre").addClass "prettyprint"
+    # prettyPrint()
 
     # Here, the maxheight-reliant "View full discussion"-bar is toggled.
     # The shortened text is not sufficient since it can contain 500 line breaks
