@@ -20,7 +20,7 @@ class RecoverInlineForm extends LoginViewInlineForm
       loader      :
         color     : "#ffffff"
         diameter  : 21
-    
+
   pistachio:->
 
     """

@@ -23,6 +23,7 @@ class ResetInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
             match     : @password.input
+            minLength : 8
           messages    :
             required  : "Please confirm your password."
             match     : "Password confirmation doesn't match!"
