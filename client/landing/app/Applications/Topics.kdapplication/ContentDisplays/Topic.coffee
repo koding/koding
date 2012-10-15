@@ -46,6 +46,13 @@ class ContentDisplayControllerTopic extends KDViewController
             selector = {targetName: 'JCodeSnip'}
             topic.fetchContentTeasers options, selector, (err, teasers)->
               callback err, teasers
+        discussions       :
+          title           : 'Discussions'
+          dataSource      : (selector, options, callback)->
+            selector = {targetName: 'JDiscussion'}
+            topic.fetchContentTeasers options, selector, (err, teasers)->
+              callback err, teasers
+
       sort                :
         'timestamp|new'   :
           title           : 'Latest activity'

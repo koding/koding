@@ -329,16 +329,10 @@ class CodeShareView extends KDCustomHTMLView
     snipView  = @
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
-    if hjsSyntax
-      requirejs (['js/highlightjs/highlight.js']), ->
-        requirejs (["highlightjs/languages/#{hjsSyntax}"]), ->
-          try
-            hljs.compileModes()
-            hljs.highlightBlock snipView.codeView.$()[0],'  '
-          catch err
-            console.warn "Error applying highlightjs syntax #{syntax}:", err
-    else
-      log "Syntax #{syntax} not found in Syntax Map"
+    try
+      hljs.highlightBlock snipView.codeView.$()[0],'  '
+    catch err
+      console.warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 
