@@ -162,7 +162,7 @@ module.exports = class JDiscussion extends JPost
                                       opinion       : ObjectRef(comment).data
                                       repliesCount  : count
                                       relationship  : docs[0]
-                                      opinionData   : JSON.stringify comment
+                                      # opinionData   : JSON.stringify comment
                                     }
                                   @follow client, emitActivity: no, (err)->
                                   @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?

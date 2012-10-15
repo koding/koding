@@ -151,7 +151,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
 
-    activity.on 'ReplyIsAdded',(reply)=>
+    activity.addGlobalListener 'ReplyIsAdded',(reply)=>
 
       if data.bongo_.constructorName is "JDiscussion"
 
@@ -198,13 +198,13 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
-    activity.on "OpinionWasRemoved",(args)=>
+    activity.addGlobalListener "OpinionWasRemoved",(args)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
-    activity.on "ReplyIsRemoved", (replyId)=>
+    activity.addGlobalListener "ReplyIsRemoved", (replyId)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
       for item,i in @opinionBox.opinionList.items
@@ -259,7 +259,10 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @template.update()
 
     @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # prettyPrint()
+
+    @$("p.discussion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   pistachio:->
     """
@@ -284,7 +287,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
+            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
           </div>
         </div>
       </div>

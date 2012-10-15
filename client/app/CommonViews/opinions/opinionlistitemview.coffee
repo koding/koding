@@ -168,7 +168,10 @@ class OpinionListItemView extends KDListItemView
       @larger.show()
 
     @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # prettyPrint()
+
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
