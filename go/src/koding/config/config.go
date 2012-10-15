@@ -66,11 +66,11 @@ func init() {
 }
 
 func LoadConfig() {
-  if Profile == "" {
-    fmt.Println("Please specify a configuration profile (-c).")
-    flag.PrintDefaults()
-    os.Exit(1)
-  }
+	if Profile == "" {
+		fmt.Println("Please specify a configuration profile (-c).")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 	var ok bool
 	Current, ok = configs[Profile]
 	if !ok {
