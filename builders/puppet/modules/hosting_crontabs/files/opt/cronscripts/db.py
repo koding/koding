@@ -113,12 +113,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.revoke:    
-        while True:
-            quota.revokeWriteAccess()
-            time.sleep(10)
-            print "**********"
+        quota.revokeWriteAccess()
     if args.grant:
-        while True:
-            quota.grantWriteAccess()
-            time.sleep(2)
-            print "**********"
+        quota.grantWriteAccess()

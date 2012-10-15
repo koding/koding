@@ -21,6 +21,7 @@ node hosting inherits base {
     include nodejs_rpm
     include cloudlinux
     include aide
+    include rsyslog
 
     
     if $nodeuser {
