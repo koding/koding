@@ -2,11 +2,15 @@ jraphical = require 'jraphical'
 
 module.exports = class JPasswordRecovery extends jraphical.Module
   {secure} = require 'bongo'
-  
-  createId = require 'hat'
-  
-  Emailer = require '../emailer'
-  
+
+  dateFormat  = require 'dateformat'
+  createId    = require 'hat'
+
+  KodingError = require '../error'
+  Emailer     = require '../emailer'
+  JUser       = require './user'
+  JGuest      = require './guest'
+
   @share()
   
   @set
