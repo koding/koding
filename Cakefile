@@ -13,6 +13,8 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+commander     = require './builders/node_modules/commander'
+
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes       = new (require "processes") main:true
 closureCompile  = require 'koding-closure-compiler'
@@ -23,7 +25,7 @@ http          = require 'http'
 url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
-commander     = require 'commander'
+
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =

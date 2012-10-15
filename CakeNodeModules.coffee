@@ -14,8 +14,6 @@ module.exports =
     dropbox         : '0.3.3'
     everyauth       : '0.2.23'
     express         : '2.5.9'
-    commander       : '1.0.4'
-    colors          : '0.6.0-1'
     gzippo          : '0.1.4'
     hashish         : '0.0.4'
     hat             : '0.0.3'
