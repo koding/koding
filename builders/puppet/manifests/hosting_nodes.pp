@@ -20,6 +20,7 @@ node hosting inherits base {
     include postfix 
     include nodejs_rpm
     include cloudlinux
+    include aide
 
     
     if $nodeuser {
