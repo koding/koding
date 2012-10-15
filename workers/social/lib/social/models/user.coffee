@@ -56,6 +56,7 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    broadcastable   : no
     indexes         :
       username      : 'unique'
       email         : 'unique'
@@ -199,7 +200,6 @@ module.exports = class JUser extends jraphical.Module
 
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
-    console.log 'CREDS', credentials
     constructor = @
     JUser.one {username, status: $ne: 'blocked'}, (err, user)->
       if err

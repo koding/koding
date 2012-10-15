@@ -1,6 +1,5 @@
-#include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <errno.h>
 #include <lve/lve-ctl.h>
 
@@ -8,6 +7,8 @@ int main (int argc, char *argv[]) {
 	if(argc <= 1) {
 		return 64;
 	}
+	
+	char* dir = getcwd(NULL, 0); // save current dir, it is lost when entering LVE
 	
 	struct liblve *lve = init_lve(malloc, free);
 	if(lve == NULL) {
@@ -28,6 +29,7 @@ int main (int argc, char *argv[]) {
 		return 71;
 	}
 	
-	chdir(getenv("PWD")); // overwrite PWD with itself, because LVE seems to make the file pointer invalid
+	chdir(dir);
+	free(dir);
 	return execvp(argv[1], &argv[1]);
 }

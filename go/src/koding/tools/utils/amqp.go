@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func AmqpAutoReconnect(handler func(consumeConn, publishConn *amqp.Connection)) {
+func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *amqp.Connection)) {
 	for !ShuttingDown {
 		func() {
 			defer time.Sleep(time.Second)
@@ -15,9 +15,9 @@ func AmqpAutoReconnect(handler func(consumeConn, publishConn *amqp.Connection)) 
 
 			log.Info("Connecting to AMQP server...")
 
-			consumeConn := CreateAmqpConnection(config.Current.AmqpUri)
+			consumeConn := CreateAmqpConnection(component)
 			defer consumeConn.Close()
-			publishConn := CreateAmqpConnection(config.Current.AmqpUri)
+			publishConn := CreateAmqpConnection(component)
 			defer publishConn.Close()
 
 			log.Info("Successfully connected to AMQP server.")
@@ -31,8 +31,12 @@ func AmqpAutoReconnect(handler func(consumeConn, publishConn *amqp.Connection)) 
 	}
 }
 
-func CreateAmqpConnection(uri string) *amqp.Connection {
-	conn, err := amqp.Dial(uri)
+func CreateAmqpConnection(component string) *amqp.Connection {
+	user := config.Current.AmqpUser
+	if user == config.COMPONENT_SPECIFIC {
+		user = component
+	}
+	conn, err := amqp.Dial("amqp://" + user + ":" + config.Current.AmqpPassword + "@" + config.Current.AmqpHost)
 	if err != nil {
 		panic(err)
 	}

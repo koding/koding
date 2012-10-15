@@ -256,14 +256,14 @@ Broker.prototype.subscribe = function (channelName) {
   channel.isPrivate = /^(private-[\w-.]*)/.test(channelName);
 
   if (!channel.isPrivate) {
-    channel.state.emit('authorized');
+    channel.emitter.emit('authorized');
     return channel;
   }
 
   this.authorize(channelName, function (privName) {
     channel.privateName = privName;
     channel.name = channelName;
-    channel.state.emit('authorized');
+    channel.emitter.emit('authorized');
   })
   return channel;
 };
@@ -297,9 +297,10 @@ Broker.prototype.unsubscribe = function (channel) {
 
 var Channel = function(ws, name) {     
   this.name = name;
-  this.state = new EventEmitter;
+  this.emitter = new EventEmitter;
   this.ws = ws;
   this.events = {};
+  this.wildcards = {};
   var self = this;
 
   var onopen = function() {
@@ -313,12 +314,15 @@ var Channel = function(ws, name) {
         if (data.channel !== channel) return;
         var evt = {};
         evt.type = channel+'.'+data.event;
+        evt.event = data.event;
         var payload;
         try {
           payload = JSON.parse(data.payload);
-        } catch (ex) {
+        }
+        catch (ex) {
           payload = data.payload;
-        } finally {
+        }
+        finally {
           data.payload = payload
         }
         evt.data = data.payload;
@@ -328,7 +332,7 @@ var Channel = function(ws, name) {
             ws.removeEventListener('message', msgListener);
           }, 0);
         } else {
-          ws.dispatchEvent(evt);
+          self.dispatchEvent(data.event, evt);
         }
       };
 
@@ -341,7 +345,7 @@ var Channel = function(ws, name) {
     }
   };
 
-  self.state.on('authorized', onopen);
+  self.emitter.on('authorized', onopen);
 };
 
 Channel.prototype.once = function(eventType, listener, ctx) {
@@ -355,23 +359,62 @@ Channel.prototype.once = function(eventType, listener, ctx) {
   return this;
 };
 
-Channel.prototype.on = Channel.prototype.bind = function(eventType, listener, ctx) {
+var getRE = (function () {
+  var reCache = {};
+  return function (eventType) {
+    if(reCache[eventType]) {
+      return reCache[eventType];
+    }
+    else {
+      reCache[eventType] = RegExp('^'+eventType.replace(/(#|\*|\.)/g, function (match, wildcard) {
+        switch(wildcard) {
+        case '#' : return '([\\w|\\.]*)';
+        case '*' : return '(\\w*)';
+        case '.' : return '\\.';
+        }
+      })+'$');
+      return reCache[eventType];
+    }
+  }
+}());
+
+Channel.prototype.dispatchEvent = function (event, evt) {
+  var self = this;
+  self.emitter.emit(event, evt);
+  Object.keys(self.wildcards).forEach(function (wildcard) {
+    var matchesWildcard, wildcardEvt;
+    matchesWildcard = getRE(wildcard).test(event);
+    if (matchesWildcard) {
+      self.emitter.emit(wildcard, evt);
+    }
+  });
+}
+
+Channel.prototype.addWildcardListener = function (routingKey, listener) {
+  this.wildcards[routingKey] || (this.wildcards[routingKey] = []);
+  this.wildcards[routingKey].push(listener);
+}
+
+Channel.prototype.on = Channel.prototype.bind = function (eventType, listener, ctx) {
   var brokerListener, boundBind, self, channel;
   self = this;
   brokerListener = function (eventObj) {
-    listener.call(ctx || self, eventObj.data);
+    listener.call(ctx || self, eventObj.data, eventObj.event);
   };
   brokerListener.orig = listener;
   performTask(self, function (channelName) {
     sendWsMessage(self.ws, "client-bind-event", channelName, eventType);
-    self.ws.addEventListener(channelName+'.'+eventType, brokerListener);
+    if (/#|\*/.test(eventType)) {
+      self.addWildcardListener(eventType);
+    }
+    self.emitter.on(eventType, brokerListener);
     self.events[eventType] || (self.events[eventType] = []);
     self.events[eventType].push(brokerListener);
   });
   return this;
 };
 
-Channel.prototype.off = Channel.prototype.unbind = function(eventType, listener) {
+Channel.prototype.off = Channel.prototype.unbind = function (eventType, listener) {
   var brokerListener, channel, i, self;
   self = this;
   channel = this.privateName || this.name;
@@ -421,7 +464,7 @@ var performTask = function(channel, readyCallback) {
       var channelName = channel.privateName || channel.name;
       readyCallback(channelName);
     } else {
-      channel.state.on('authorized', 
+      channel.emitter.on('authorized', 
       performTask.bind(this, channel, readyCallback));
     }
   } else {

@@ -56,6 +56,7 @@ module.exports = class JGuest extends jraphical.Module
   @recycle =(guest, callback=->) ->
     guestId = if guest instanceof @ then guest.getId() else guest
     @update {guestId}, $set:{status: 'needs cleanup'}, callback
+    @emit 'NeedsCleanup'
 
   recycle:-> @constructor.recycle this # YAGNI?
 

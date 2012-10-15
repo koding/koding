@@ -21,13 +21,13 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   social        :
     numberOfWorkers: 1
     watch       : yes
   client        :
     version     : version
-    minify      : yes
+    minify      : no
     watch       : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
@@ -51,7 +51,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'auth'
     vhost       : rabbitVhost
     vhosts      : [
       rule      : '^secret-kite -'
