@@ -2,11 +2,11 @@ module.exports =
   name              : "databases"
   pidPath           : "/var/run/node/Databases.pid"
   logFile           : "/var/log/node/Databases.log"
-  port              : 4568
-  pusher            :
-    appId           : 18240
-    key             : 'a19c8bf6d2cad6c7a006'
-    secret          : '51f7913fbb446767a9fb'
+  amqp              :
+    host            : 'web0.beta.system.aws.koding.com'
+    username        : 'test'
+    password        : 'test'
+    vhost           : '/'
   apiUri            : 'https://api.koding.com/1.0'
   mysql   :
     usersPath : '/Users/'

@@ -34,7 +34,7 @@ module.exports = class JDiscussion extends JPost
         'on','reply','restComments','commentsByRange'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments'
-        'updateTeaser','addGlobalListener'
+        'updateTeaser'
       ]
     schema        : JPost.schema
     relationships     :

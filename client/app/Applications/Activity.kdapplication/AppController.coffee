@@ -10,7 +10,7 @@ class Activity12345 extends AppController
       'CStatusActivity'
       # 'CLinkActivity'
       'CCodeSnipActivity'
-      'CDiscussionActivity'
+      # 'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
@@ -99,7 +99,7 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+    account.addGlobalListener "FollowedActivityArrived", (activity) =>
       if activity.constructor.name in @currentFilter
         @activityListController.followedActivityArrived activity
 
@@ -192,7 +192,7 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
-          'CDiscussionActivity'
+          # 'CDiscussionActivity'
           # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
@@ -267,7 +267,7 @@ class Activity12345 extends AppController
         'CStatusActivity'
         # 'CLinkActivity'
         'CCodeSnipActivity'
-        'CDiscussionActivity'
+        # 'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
@@ -287,8 +287,8 @@ class Activity12345 extends AppController
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
-      when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES/LINKS
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+      # when "JDiscussion"   then @createDiscussionContentDisplay activity
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
       # when "JLink"         then @createLinkContentDisplay activity
 
@@ -359,10 +359,12 @@ class ActivityListController extends KDListViewController
       cssClass : 'activityhead clearfix'
 
     @activityHeader.on "UnhideHiddenNewItems", =>
-      top = @getListView().$('.hidden-item').eq(0).position().top
-      @scrollView.scrollTo {top, duration : 200}, =>
-        unhideNewHiddenItems hiddenItems
-
+      firstHiddenItem = @getListView().$('.hidden-item').eq(0)
+      if firstHiddenItem.length > 0
+        top   = firstHiddenItem.position().top
+        top or= 0
+        @scrollView.scrollTo {top, duration : 200}, =>
+          unhideNewHiddenItems hiddenItems
     super
 
     @fetchFollowings()

@@ -17,6 +17,7 @@ module.exports = deepFreeze
   version       : version
   webPort       : 3000
   mongo         : mongo
+  buildClient   : yes
   social        :
     numberOfWorkers: 1
     watch       : yes

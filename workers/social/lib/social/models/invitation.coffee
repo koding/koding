@@ -15,7 +15,6 @@ module.exports = class JInvitation extends jraphical.Module
 
   JAccount = require './account'
   JLimit = require './limit'
-  JUser = require './user'
   JLimit = require './limit'
 
   @share()
@@ -263,6 +262,7 @@ module.exports = class JInvitation extends jraphical.Module
                     inviter   : delegate.getFullName()
                     url       : "#{protocol}//#{host}/invitation/#{encodeURIComponent code}"
 
+                  JUser = require './user'
                   JUser.fetchUser client,(err,user)=>
                     inviterEmail = user.email
 

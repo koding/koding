@@ -329,16 +329,10 @@ class CodeShareView extends KDCustomHTMLView
     snipView  = @
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
-    if hjsSyntax
-      requirejs (['js/highlightjs/highlight.js']), ->
-        requirejs (["highlightjs/languages/#{hjsSyntax}"]), ->
-          try
-            hljs.compileModes()
-            hljs.highlightBlock snipView.codeView.$()[0],'  '
-          catch err
-            console.warn "Error applying highlightjs syntax #{syntax}:", err
-    else
-      log "Syntax #{syntax} not found in Syntax Map"
+    try
+      hljs.highlightBlock snipView.codeView.$()[0],'  '
+    catch err
+      console.warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 
@@ -356,10 +350,11 @@ class CodeShareView extends KDCustomHTMLView
     @openAllButton.$().twipsy twOptions("Open All")
 
   pistachio:->
+    # <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @runButton}}{{> @saveButton}}{{> @openButton}}{{> @openAllButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """

@@ -553,7 +553,7 @@ class KDView extends KDObject
 
     event.preventDefault()
     event.stopPropagation()
-    no
+    # no
 
   submit:(event)-> no #propagations leads to window refresh
 

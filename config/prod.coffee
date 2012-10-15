@@ -5,17 +5,25 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# PROD
-mongo = 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+# STAGING
+mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
+  monit         :
+    webCake     : '/var/run/node/webCake.pid'
+    kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
+  runBroker     : no
+  runGoBroker   : yes
+  configureBroker: no
+  buildClient   : no
   social        :
     numberOfWorkers: 10
   client        :
+    suppressLogs: no
     version     : version
     minify      : no
     js          : "./website/js/kd.#{version}.js"
@@ -28,34 +36,37 @@ module.exports = deepFreeze
     staticFilesBaseUrl: 'https://api.koding.com'
     runtimeOptions:
       version   : version
-      mainUri   : 'https://dev.koding.com'
+      mainUri   : 'https://koding.com'
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
-#        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://dev.koding.com/auth'
+        auth    : 'https://koding.com/auth'
+        vhost   : '/'
       apiUri    : 'https://api.koding.com'
+      appsUri   : 'https://app.koding.com'
       env       : 'beta'
   mq            :
     host        : 'localhost'
-    login       : 'guest'
-    password    : 'x1srTA7!%Vb}$n|S'
+    login       : 'test'
+    password    : 'test'
     vhost       : '/'
-    pidFile     : '/tmp/koding.broker.pid'
+    pidFile     : '/var/run/broker.pid'
+  kites:
+    disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
-  guestCleanup  :
+  guests:
      # define this to limit the number of guset accounts
      # to be cleaned up per collection cycle.
-    poolSize    : 1e4
     batchSize   : undefined
-    cron        : '*/10 * * * * *'
+    cleanupCron : '*/10 * * * * *'
+    poolSize    : 1e4
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'logger'
-      password  : 'logger'
-      vhost     : 'logs'
+      login     : 'test'
+      password  : 'test'
+      vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'

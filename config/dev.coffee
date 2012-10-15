@@ -21,7 +21,7 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   social        :
     numberOfWorkers: 1
     watch       : yes
@@ -33,12 +33,11 @@ module.exports = deepFreeze
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
-    closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      suppressLogs: yes
+      suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
@@ -48,7 +47,7 @@ module.exports = deepFreeze
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'

@@ -112,6 +112,9 @@ class MainController extends KDController
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
             duration  : 2000
+          # fixme: get rid of reload, clean up ui on account change
+          # tightly related to application manager refactoring
+          @utils.wait 2000, -> location.reload yes
       else
         @goToPage pageInfo
 
