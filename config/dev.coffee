@@ -21,7 +21,7 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   social        :
     numberOfWorkers: 1
     watch       : yes
@@ -51,7 +51,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
-    password    : 's486auEkPzvUjYfeFTMQ'
+    password    : 'auth'
     vhost       : rabbitVhost
     vhosts      : [
       rule      : '^secret-kite -'
