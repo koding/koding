@@ -3,14 +3,17 @@ class EmbedBox extends KDView
 
     account = KD.whoami()
 
+    @options = options
+
     @embedData = {}
     @embedURL = ''
 
     @embedHiddenItems = data.link_embed_hidden_items or []
 
+
     super options,data
 
-    if (@getDelegate() instanceof ActivityLinkWidget) or data.originId? and (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
+    if @options.hasDropdown or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu embed-box-settings'
         title       : ''
@@ -42,16 +45,15 @@ class EmbedBox extends KDView
 
     unless data is {} then @hide()
 
-  settingsMenu:(data)->
+  settingsMenu:(data)=>
 
     account        = KD.whoami()
     mainController = @getSingleton('mainController')
 
-
     # only during creation of when the user is the link owner should
     # this menu exist
 
-    if data.originId is KD.whoami().getId() or (@getDelegate() instanceof ActivityLinkWidget)
+    if @options.hasDropdown
       menu =
         'Remove Image from Preview' :
           callback : =>
@@ -137,16 +139,16 @@ class EmbedBox extends KDView
 
   populateEmbed:(data={},url="#",options={})=>
 
+    # if the whole embed should be hidden, no content needs to be prepared
     if "embed" in @getEmbedHiddenItems()
       @hide()
       return no
 
+    # embedly uses the https://developers.google.com/safe-browsing/ API
+    # to stop phishing/malware sites from being embedded
     if data?.safe? and data?.safe is yes
 
-      # replace this when using preview instead of oembed
-      prettyLink = (link)->
-        link.replace("http://","").replace("https://","").replace("www.","")
-
+      # types should be covered, but if the embed call fails partly, default to link
       type = data?.object?.type or "link"
 
       switch type
@@ -166,49 +168,66 @@ class EmbedBox extends KDView
             @hide()
 
         # rich is a html object for things like twitter posts
-        when "rich"
-          html = data?.object?.html
-          html = $(html).addClass "custom-twitter"
+        # when "rich"
+        #   html = data?.object?.html
+        #   html = $(html).addClass "custom-twitter"
 
         # fallback for things that may or may not have any kind of preview
-        when "link"
+        # or are links explicitly
+        # also captures "rich content" and makes regular links from that data
+        when "link","rich"
           html = """
               <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
-                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{data.title or "untitled"}"/></a>
+                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
               </div>
               <div class="preview_text">
                <a class="preview_text_link" target="_blank" href="#{data.url or url}">
                 <div class="preview_title">#{data.title or data.url}</div>
-                <div class="provider_info">Provided by <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <strong>"+data.provider_display+"</strong>" else ""}</div>
+               </a>
+                <div class="author_info #{if data.author_name then "" else "hidden"}">written by <a href="#{data.author_url or "#"}" target="_blank">#{data.author_name}</a></div>
+                <div class="provider_info">for <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <a href=\"" +data.provider_url+"\" target=\"_blank\">"+data.provider_display+"</a>" else ""}</div>
+               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
                 <div class="description">#{data.description or ""}</div>
                </a>
               </div>
           """
-        when "error" then return "There was an error"
+
+        # embedly supports many error types. we could display those to the user
+        when "error"
+          log "Embedding error ",data?.error_type,data?.error_message
+          return "There was an error"
         else
           log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
 
       @$("div.embed").html html
       @$("div.embed").addClass "custom-"+type
 
+    # In the case of unsafe data (most likely phishing), this should be used
+    # to log the user, the url and other data to our admins.
     else if data?.safe is no
       log "There was unsafe content.",data,data?.safe_type,data?.safe_message
       @hide()
     else
-      log "Error!"
+      log "Error!",data?.error_type,data?.error_message
 
   embedExistingData:(data={},options={},callback=noop)=>
-    unless data.type is "error" then @clearEmbed()
-    @populateEmbed data
-    @show()
-    callback data
+    unless data.type is "error"
+      @clearEmbed()
+      @populateEmbed data, data.url, options
+      @show()
+      callback data
+    else
+      callback no
 
   embedUrl:(url,options={},callback=noop)=>
     @fetchEmbed url, options, (data,embedlyOptions)=>
-      unless data.type is "error" then @clearEmbed()
-      @populateEmbed data, url, embedlyOptions
-      @show()
-      callback data
+      unless data.type is "error"
+        @clearEmbed()
+        @populateEmbed data, url, embedlyOptions
+        @show()
+        callback data
+      else
+        callback no
 
   pistachio:->
     """

@@ -43,9 +43,11 @@ class ActivityLinkWidget extends KDFormView
 
     embedOptions = $.extend {}, options, {
       delegate:@
+      hasDropdown : yes
       click:->
         no
     }
+
     @embedBox = new EmbedBox embedOptions,data
 
     @previousLink = ''

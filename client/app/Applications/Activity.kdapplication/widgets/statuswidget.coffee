@@ -53,7 +53,14 @@ class ActivityStatusUpdateWidget extends KDFormView
       title       : "Submit"
       type        : "submit"
 
-    @embedBox = new EmbedBox
+    embedOptions = $.extend {}, options, {
+      delegate:@
+      hasDropdown : yes
+      click:->
+        no
+    }
+
+    @embedBox = new EmbedBox embedOptions, data
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
