@@ -120,6 +120,10 @@ class cloudlinux::cagefs_configs {
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/tools.cfg",
            require => [Class['hosting_packages::tools'],Exec['cagefs_init']]
     }
+    file { "/etc/cagefs/conf.d/erlang.cfg":
+           source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/erlang.cfg",
+           require => [Class['hosting_packages::erlang'],Exec['cagefs_init']]
+    }
 
     file { "/etc/cagefs/conf.d/procps.cfg":
            source => "puppet:///modules/cloudlinux/etc/cagefs/conf.d/procps.cfg",

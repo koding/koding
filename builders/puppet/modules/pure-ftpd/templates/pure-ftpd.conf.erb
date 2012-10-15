@@ -186,7 +186,7 @@ PassivePortRange          30000 50000
 # addresses.
 
 # ForcePassiveIP                192.168.0.1
-ForcePassiveIP               23.21.139.85
+ForcePassiveIP              <%= ec2_public_ipv4 %>
 
 
 
@@ -366,7 +366,7 @@ CreateHomeDir               no
 # spawn a script to handle the upload.
 # Don't enable this option if you don't actually use pure-uploadscript.
 
-#CallUploadScript yes
+CallUploadScript yes
 
 
 

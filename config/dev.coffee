@@ -33,7 +33,6 @@ module.exports = deepFreeze
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
-    closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
@@ -48,7 +47,7 @@ module.exports = deepFreeze
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'

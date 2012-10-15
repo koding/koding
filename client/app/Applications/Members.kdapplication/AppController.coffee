@@ -137,6 +137,11 @@ class Members12345 extends AppController
           dataSource        : (selector, options, callback)->
             selector = {sourceName: $in: ['JCodeSnip']}
             account.fetchLikedContents options, selector, callback
+        discussions         :
+          title             : 'Discussions'
+          dataSource        : (selector, options, callback)->
+            selector = {sourceName: $in: ['JDiscussion']}
+            account.fetchLikedContents options, selector, callback
       sort                :
         'timestamp|new'   :
           title           : 'Latest activity'

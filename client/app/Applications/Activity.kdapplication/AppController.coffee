@@ -8,13 +8,13 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
-      'CLinkActivity'
       'CCodeSnipActivity'
-      'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+      'CDiscussionActivity'
+      'CLinkActivity'
       'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
@@ -99,7 +99,7 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.addGlobalListener "FollowedActivityArrived", ([activity]) =>
+    account.addGlobalListener "FollowedActivityArrived", (activity) =>
       if activity.constructor.name in @currentFilter
         @activityListController.followedActivityArrived activity
 
@@ -192,12 +192,12 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
-          'CDiscussionActivity'
-          'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES
+          # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+          'CDiscussionActivity'
+          'CLinkActivity'
           'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
@@ -265,13 +265,13 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
-        'CLinkActivity'
         'CCodeSnipActivity'
-        'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES
+        # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+        'CLinkActivity'
+        'CDiscussionActivity'
         'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
@@ -287,10 +287,10 @@ class Activity12345 extends AppController
     switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      # THIS WILL DISABLE CODE SHARES/LINKS
       when "JCodeShare"    then @createCodeShareContentDisplay activity
-      when "JLink"         then @createLinkContentDisplay activity
+      # when "JLink"         then @createLinkContentDisplay activity
 
 
   showContentDisplay:(contentDisplay)->
@@ -319,11 +319,11 @@ class Activity12345 extends AppController
     ,activity
 
   # THIS WILL DISABLE CODE SHARES
-  createCodeShareContentDisplay:(activity)->
-    @showContentDisplay new ContentDisplayCodeShare
-      title       : "Code Share"
-      type        : "codeshare"
-    , activity
+  # createCodeShareContentDisplay:(activity)->
+  #   @showContentDisplay new ContentDisplayCodeShare
+  #     title       : "Code Share"
+  #     type        : "codeshare"
+  #   , activity
 
   createDiscussionContentDisplay:(activity)->
     @showContentDisplay new ContentDisplayDiscussion
@@ -359,10 +359,12 @@ class ActivityListController extends KDListViewController
       cssClass : 'activityhead clearfix'
 
     @activityHeader.on "UnhideHiddenNewItems", =>
-      top = @getListView().$('.hidden-item').eq(0).position().top
-      @scrollView.scrollTo {top, duration : 200}, =>
-        unhideNewHiddenItems hiddenItems
-
+      firstHiddenItem = @getListView().$('.hidden-item').eq(0)
+      if firstHiddenItem.length > 0
+        top   = firstHiddenItem.position().top
+        top or= 0
+        @scrollView.scrollTo {top, duration : 200}, =>
+          unhideNewHiddenItems hiddenItems
     super
 
     @fetchFollowings()

@@ -335,7 +335,9 @@ module.exports = class JUser extends jraphical.Module
                     }
                     user.save (err)->
                       if err
-                        callback err
+                        if err.code is 11000
+                          callback createKodingError "Sorry, \"#{email}\" is already in use!"
+                        else callback err
                       else
                         hash = getHash email
                         account = new JAccount

@@ -113,9 +113,9 @@ class ContentDisplayControllerMember extends KDViewController
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type = $in: [
-              'CStatusActivity', 'CCodeSnipActivity', 'CLinkActivity'
-              'CDiscussionActivity', 'CCodeShareActivity'
+              'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
+              'CDiscussionActivity'
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
@@ -133,25 +133,11 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type     = 'CCodeSnipActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
-        links           :
-          title             : "Links"
-          dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type     = 'CLinkActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-              callback null, data
-        discussions           :
+        discussions         :
           title             : "Discussions"
           dataSource        : (selector, options, callback)=>
             selector.originId = account.getId()
             selector.type     = 'CDiscussionActivity'
-            appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-              callback null, data
-        codeshares           :
-          title             : "Codeshares"
-          dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type     = 'CCodeShareActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
 
@@ -174,6 +160,6 @@ class ContentDisplayControllerMember extends KDViewController
       #     KDEventTypes       : "mouseenter"
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
-      log controller
+      # log controller
       @getView().addSubView controller.getView()
 

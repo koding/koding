@@ -4,6 +4,7 @@ node ftp inherits base {
    include sudo
    include pure-ftpd
    include ssh
+   include clamav
 
     yumrepos { 'koding':
             repo => 'koding',
@@ -14,6 +15,14 @@ node ftp inherits base {
        nodeuser  => false,
        require_deploy => false,
    }
+
+   monit::nodeapp { "pure-uploadscript":
+       appname   => "pure-uploadscript",
+       isenabled => 'enabled',
+       nodeuser  => false,
+       require_deploy => false,
+   }
+
 
    resolve { "resolver":
         nameserver1 => '172.16.0.23',
