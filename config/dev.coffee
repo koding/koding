@@ -51,7 +51,7 @@ module.exports = deepFreeze
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
-    password    : 'auth'
+    password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
     vhosts      : [
       rule      : '^secret-kite -'
