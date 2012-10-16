@@ -151,7 +151,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
 
-    activity.addGlobalListener 'ReplyIsAdded',(reply)=>
+    activity.on 'ReplyIsAdded',(reply)=>
 
       if data.bongo_.constructorName is "JDiscussion"
 
@@ -198,13 +198,13 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
-    activity.addGlobalListener "OpinionWasRemoved",(args)=>
+    activity.on "OpinionWasRemoved",(args)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
-    activity.addGlobalListener "ReplyIsRemoved", (replyId)=>
+    activity.on "ReplyIsRemoved", (replyId)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
       for item,i in @opinionBox.opinionList.items
@@ -247,11 +247,14 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
+  hightlightCode:=>
+    @$("pre").addClass "prettyprint"
+    @$("p.discussion-body span.data pre").each (i,element)=>
+      hljs.highlightBlock element
+
   render:->
     super()
-
-    # @$("pre").addClass "prettyprint"
-    # prettyPrint()
+    @hightlightCode()
 
   viewAppended:()->
     super()
@@ -259,14 +262,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    # disable username expansion in pre's
-
-
-    @$("pre").addClass "prettyprint"
-    # prettyPrint()
-
-    @$("p.discussion-body span.data pre").each (i,element)=>
-      hljs.highlightBlock element
+    @hightlightCode()
 
   pistachio:->
     """
