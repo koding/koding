@@ -1,10 +1,14 @@
 #!/usr/bin/python
 
+import db_conf
+
+import syslog
 import time 
 import argparse
-import db_conf
+import sys
 import MySQLdb as mysql
 from pprint import pprint
+
 
 # search for overquota db (getOverQutaDbs) -> check if revoked (findNotRevokedDbs) -> revokeWriteAccess 
 
@@ -22,6 +26,7 @@ from pprint import pprint
 
 class DbQuota(object):
     def __init__(self):
+        syslog.openlog(sys.argv[0], syslog.LOG_PID, syslog.LOG_LOCAL6)
         db = mysql.connect(db_conf.db_host, db_conf.db_user, db_conf.db_pass)
         self.c = db.cursor()
 
@@ -30,7 +35,9 @@ class DbQuota(object):
                  FROM information_schema.TABLES GROUP BY table_schema"""
         self.c.execute(sql)
         overQuotaDbs = [ {'db_name':db[0],'db_size':int(db[1])} 
-                            for db in self.c.fetchall() if db[1] > db_conf.db_size_limit ]
+                            for db in self.c.fetchall() if db[1] > db_conf.db_size_limit
+                                                        and db[0] not in db_conf.db_whitelist]
+        
         return overQuotaDbs
 
     def findRevokedDbs(self):
@@ -50,12 +57,15 @@ class DbQuota(object):
             for db in dbs:
                 if db['db_size'] < db_conf.db_size_limit:
                     print(sql % (db['db_name'],db['db_user']))
+                    syslog.syslog(syslog.LOG_INFO, sql % (db['db_name'],db['db_user']))
                     self.c.execute(sql % (db['db_name'],db['db_user']))
                     self.killUsersSession(db['db_user'])
                 else:
                     print("db %s still huge: %s MB" % (db['db_name'],db['db_size']))
+                    syslog.syslog(syslog.LOG_INFO, "db %s still huge: %s MB" % (db['db_name'],db['db_size']))
         else:
-            print("No dbs for GRANT")
+            syslog.syslog(syslog.LOG_INFO, "there is no dbs for GRANT")
+            print("there is no dbs for GRANT")
 
 
     def findNotRevokedDbs(self):
@@ -88,6 +98,7 @@ class DbQuota(object):
         for procID in self.c.fetchall():
             num = self.c.execute(kill % int(procID[0]))
             print("killed %d for user %s" % (procID[0],user))
+            syslog.syslog(syslog.LOG_INFO, "killed %d for user %s" % (procID[0],user))
         return True
 
     def revokeWriteAccess(self):
@@ -98,12 +109,14 @@ class DbQuota(object):
             for db in dbs:
                 self.c.execute(find_user % (db))
                 user, = self.c.fetchone()
-                print("revoking db %s for user %s" % (db,user))
-                print(revoke_access % (db, user))
+                print("revoking access on db %s for user %s" % (db,user))
+                syslog.syslog(syslog.LOG_INFO, "revoking access on db %s for user %s" % (db,user))
                 self.c.execute(revoke_access % (db, user))
                 self.killUsersSession(user)
         else:
-            print("all huge dbs revoked")
+            print("all write permissions on huge DBs already revoked")
+            syslog.syslog(syslog.LOG_INFO, "all write permissions on huge DBs already revoked")
+
 
 if __name__ == "__main__":
     quota = DbQuota()
