@@ -93,9 +93,9 @@ class RegisterInlineForm extends LoginViewInlineForm
             rangeLength  : "Username should be minimum 4 maximum 25 chars!"
           events         :
             required     : "blur"
-            rangeLength  : "keyup"
-            regExp       : "keyup"
-            usernameCheck: "keyup"
+            rangeLength  : "keypress"
+            regExp       : "keypress"
+            usernameCheck: "keypress"
             finalCheck   : "blur"
         iconOptions      :
           tooltip        :
@@ -136,6 +136,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
             match     : @password.input
+            minLength : 8
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
