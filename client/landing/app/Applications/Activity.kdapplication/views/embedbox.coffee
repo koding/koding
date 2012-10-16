@@ -56,12 +56,6 @@ class EmbedBox extends KDView
 
     if @options.hasDropdown
       menu =
-        'Remove Image from Preview' :
-          callback : =>
-            @addEmbedHiddenItem "image"
-            @refreshEmbed()
-            @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-            no
         'Remove Preview'   :
           callback : =>
             @embedHiddenItems.push "embed"
@@ -184,6 +178,20 @@ class EmbedBox extends KDView
         # or are links explicitly
         # also captures "rich content" and makes regular links from that data
         when "link","rich"
+          @settingsButton?.options?.menu = $.extend {}, @settingsButton?.options?.menu,  {
+            'Remove Image from Preview' :
+              callback : =>
+                @addEmbedHiddenItem "image"
+                @refreshEmbed()
+                @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+                no
+            'Remove Description from Preview'   :
+              callback : =>
+                @embedHiddenItems.push "description"
+                @refreshEmbed()
+                @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+                no
+              }
           html = """
               <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
                 <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
@@ -195,7 +203,7 @@ class EmbedBox extends KDView
                 <div class="author_info #{if data.author_name then "" else "hidden"}">written by <a href="#{data.author_url or "#"}" target="_blank">#{data.author_name}</a></div>
                 <div class="provider_info">for <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <a href=\"" +data.provider_url+"\" target=\"_blank\">"+data.provider_display+"</a>" else ""}</div>
                <a class="preview_text_link" target="_blank" href="#{data.url or url}">
-                <div class="description">#{data.description or ""}</div>
+                <div class="description #{if data.description and not("description" in @getEmbedHiddenItems()) then "" else "hidden"}">#{data.description or ""}</div>
                </a>
               </div>
               <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
