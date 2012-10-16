@@ -2,6 +2,7 @@ option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
+option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
@@ -13,6 +14,8 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+commander     = require './builders/node_modules/commander'
+
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes       = new (require "processes") main:true
 closureCompile  = require 'koding-closure-compiler'
@@ -23,7 +26,7 @@ http          = require 'http'
 url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
-commander     = require 'commander'
+
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -157,7 +160,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage"
+    when "dev","prod","local","stage","local-go"
       long = "./config/#{short}.coffee"
     else
       short
@@ -328,6 +331,9 @@ task 'run', (options)->
   invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
+  config.buildClient = yes if options.buildClient
+
   queue = []
   if config.vhostConfigurator?
     queue.push -> configureVhost config, -> queue.next()

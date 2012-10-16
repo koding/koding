@@ -8,32 +8,49 @@ import (
 
 var configs = map[string]Config{
 	"default": {
-		AmqpUri:    "amqp://guest:x1srTA7!%25Vb%7D$n%7CS@web0.beta.system.aws.koding.com",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "guest",
+		AmqpPassword: "x1srTA7!%25Vb%7D$n%7CS",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"dev": {
-		AmqpUri:    "amqp://guest:s486auEkPzvUjYfeFTMQ@zb.koding.com/kite",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "zb.koding.com/kite",
+		AmqpUser:     "guest",
+		AmqpPassword: "s486auEkPzvUjYfeFTMQ",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"stage": {
-		AmqpUri:    "amqp://test:test@web0.beta.system.aws.koding.com",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "test",
+		AmqpPassword: "test",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
 	},
 
 	"prod": {
-		AmqpUri:    "amqp://test:test@web0.beta.system.aws.koding.com",
-		HomePrefix: "/Users/",
-		UseLVE:     true,
+		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpUser:     "test",
+		AmqpPassword: "test",
+		HomePrefix:   "/Users/",
+		UseLVE:       true,
+	},
+
+	"local-go": {
+		AmqpHost:     "localhost",
+		AmqpUser:     "guest",
+		AmqpPassword: "guest",
+		HomePrefix:   "/home/",
 	},
 
 	"local": {
-		AmqpUri:    "amqp://guest:guest@localhost",
-		HomePrefix: "/home/",
+		AmqpHost:     "localhost",
+		AmqpUser:     "guest",
+		AmqpPassword: "guest",
+		HomePrefix:   "/home/",
 	},
 
 	"websockets": {
@@ -44,14 +61,18 @@ var configs = map[string]Config{
 }
 
 type Config struct {
-	AmqpUri    string
-	HomePrefix string
-	UseLVE     bool
+	AmqpHost     string
+	AmqpUser     string
+	AmqpPassword string
+	HomePrefix   string
+	UseLVE       bool
 
 	// for webterm's websockets mode
 	UseWebsockets bool
 	User          string
 }
+
+const COMPONENT_SPECIFIC = "component-specific"
 
 var Profile string
 var Current Config
@@ -61,11 +82,11 @@ func init() {
 }
 
 func LoadConfig() {
-  if Profile == "" {
-    fmt.Println("Please specify a configuration profile (-c).")
-    flag.PrintDefaults()
-    os.Exit(1)
-  }
+	if Profile == "" {
+		fmt.Println("Please specify a configuration profile (-c).")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 	var ok bool
 	Current, ok = configs[Profile]
 	if !ok {

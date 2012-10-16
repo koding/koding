@@ -5,17 +5,31 @@ require('fs').writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
 
 task 'cl3','runs dev kites',(options)->
 
-  # processes.run
-  #   cmd : 'cd ./pinger && cake run'
-  #   restart: no
+  processes.run
+    name    : "sharedHosting cake"
+    cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 
   processes.run
-    cmd : 'cd ./sharedHosting && cake run'
-    restart: no
+    name    : 'webterm kite'
+    cmd     : "#{__dirname}/webterm -c dev"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
   processes.run
-    cmd : 'cd ./terminaljs && cake run'
-    restart: no
+    name    : "databases cake"
+    cmd     : "#{KODING_CAKE} ./databases -c config-dev run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 
 
 task 'cl0', 'runs prod kites',(options)->

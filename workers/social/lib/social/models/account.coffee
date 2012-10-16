@@ -46,14 +46,14 @@ module.exports = class JAccount extends jraphical.Module
         'byRelevance'
       ]
       instance    : [
-        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
+        'modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','addGlobalListener'
+        'fetchAllKites','flagAccount','unflagAccount'
       ]
     schema                  :
       skillTags             : [String]

@@ -114,7 +114,9 @@ class LoginView extends KDScrollView
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doReset formData
+      callback : (formData)=>
+        formData.clientId = $.cookie('clientId')
+        @doReset formData
 
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
@@ -217,12 +219,12 @@ class LoginView extends KDScrollView
     {{> @backToHomeLink}}
     """
 
-  doReset:({recoveryToken, password})->
+  doReset:({recoveryToken, password, clientId})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
       @animateToForm 'login'
-      @doLogin {username, password}
+      @doLogin {username, password, clientId}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>

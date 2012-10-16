@@ -40,9 +40,9 @@ module.exports = class JPost extends jraphical.Message
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','on','one']
+      static          : ['create','one']
       instance        : [
-        'on','addGlobalListener', 'reply','restComments','commentsByRange'
+        'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]

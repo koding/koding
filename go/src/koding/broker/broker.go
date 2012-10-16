@@ -18,7 +18,7 @@ func main() {
 	utils.Startup("broker", false)
 	utils.RunStatusLogger()
 
-	utils.AmqpAutoReconnect(func(consumeConn, publishConn *amqp.Connection) {
+	utils.AmqpAutoReconnect("broker", func(consumeConn, publishConn *amqp.Connection) {
 
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
@@ -37,19 +37,28 @@ func main() {
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
 
-			body, _ := json.Marshal(map[string]string{"socket_id": socketId})
-			err := controlChannel.Publish("private-broker", "connected", false, false, amqp.Publishing{Body: body})
+			body, err := json.Marshal(map[string]string{"socket_id": socketId})
+			if err != nil {
+				panic(err)
+			}
+			err = controlChannel.Publish("private-broker", "connected", false, false, amqp.Publishing{Body: body})
 			if err != nil {
 				panic(err)
 			}
 
 			defer func() {
-				body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId, "exchanges": exchanges})
+				body, err = json.Marshal(map[string]interface{}{"socket_id": socketId, "exchanges": exchanges})
+				if err != nil {
+					panic(err)
+				}
 				err = controlChannel.Publish("private-broker", "disconnected", false, false, amqp.Publishing{Body: body})
 				if err != nil {
 					panic(err)
 				}
-				body, _ = json.Marshal(map[string]interface{}{"socket_id": socketId})
+				body, err = json.Marshal(map[string]interface{}{"socket_id": socketId})
+				if err != nil {
+					panic(err)
+				}
 				for _, exchange := range exchanges {
 					err = controlChannel.Publish(exchange, "disconnected", false, false, amqp.Publishing{Body: body})
 					if err != nil {
@@ -78,11 +87,19 @@ func main() {
 				defer func() { consumerFinished <- true }()
 
 				for message := range stream {
-					go func() {
+					func() {
 						defer log.RecoverAndLog()
 
-						body, _ = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
-						sendChan <- string(body)
+						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
+						if err != nil {
+							panic(err)
+						}
+						select {
+						case sendChan <- string(body):
+							// successful
+						default:
+							log.Warn("Dropped message for client " + socketId)
+						}
 					}()
 				}
 			}()
@@ -116,7 +133,10 @@ func main() {
 						}
 						exchanges = append(exchanges, exchange)
 
-						body, _ = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": exchange, "payload": ""})
+						body, err = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": exchange, "payload": ""})
+						if err != nil {
+							panic(err)
+						}
 						sendChan <- string(body)
 
 					case "client-unsubscribe":

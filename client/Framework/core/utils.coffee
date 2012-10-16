@@ -297,7 +297,7 @@ __utils =
   generatePassword: do ->
 
     letter = /[a-zA-Z]$/;
-    vowel = /[aeiouAEIOU]$      /;
+    vowel = /[aeiouAEIOU]$/;
     consonant = /[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZ]$/;
 
     (length = 10, memorable = yes, pattern = /\w/, prefix = '')->
