@@ -37,7 +37,7 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-fs.writeFileSync "./.revision","0.0.1"
+# fs.writeFileSync "./.revision","0.0.1"
 
 # get current version
 version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")

@@ -29,7 +29,7 @@ module.exports = class JDiscussion extends JPost
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','on','one']
+      static          : ['create','one']
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
