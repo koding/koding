@@ -99,7 +99,7 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.addGlobalListener "FollowedActivityArrived", (activity) =>
+    account.on "FollowedActivityArrived", (activity) =>
       if activity.constructor.name in @currentFilter
         @activityListController.followedActivityArrived activity
 

@@ -2,7 +2,7 @@ __bookPages = [
 
     title     : "Table of Contents"
     anchor    : no
-    embed     : "BookTableOfContents"
+    embed     : BookTableOfContents
   ,
     title     : "A Story"
     content   : "Once upon a time, there were developers just like you<br/>Despite the sea between them, development had ensued"
@@ -32,10 +32,10 @@ __bookPages = [
   ,
     title     : "Activity"
     content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
-    embed     : "BookUpdateWidget"
+    embed     : BookUpdateWidget
   ,
     title     : "Topics"
-    embed     : "BookTopics"
+    embed     : BookTopics
     content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences. In addition to public tags, there are also private tags for within groups.</p>
                    <p>Select from a few of our most popular topics to the right. At anytime, you can return to the Topics board to Follow more, or stop following those you’ve selected.</p>
                    <p>Can’t find what you’re looking for? Start a new topic!</p>"""
@@ -62,7 +62,7 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : "Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features. Go ahead and check it out!"
-    embed     : "BookDevelopButton"
+    embed     : BookDevelopButton
   ,
     title     : "Terminal"
     content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
