@@ -27,7 +27,11 @@ class StatusActivityItemView extends ActivityItemChild
     # will need to make a request. We should probably extend the status update
     # to have a data field for embeds
 
-    firstUrl = (@$("span.data > a:first-child").attr "href") or no
+    urls = @$("span.data > a")
+    for url in urls
+      if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+        firstUrl = $(url).attr "href"
+
     if firstUrl then @embedBox.embedUrl firstUrl, {}
 
   click:(event)->
