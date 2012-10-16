@@ -2,7 +2,6 @@
 node ftp inherits base {
 
    include sudo
-   include pure-ftpd
    include ssh
    include clamav
 
@@ -38,13 +37,15 @@ node ftp inherits base {
     
 }
 
-node /^ftp\d+\.prod\.service\.aws\.koding\.com$/  inherits ftp {
-}    
-node /^ftp\d+\.beta\.service\.aws\.koding\.com$/  inherits ftp {
-}   
+   
 node "ftp1.beta.service.aws.koding.com"  inherits ftp {
-#    include gluster_client
-    include nfs_client
 
- #   bind_dir { "/Users": mpoint => "/Users", device => "/mnt/storage0/Users"}
+    include nfs_client
+    include pure-ftpd
+}   
+   
+node "ftp2.beta.service.aws.koding.com"  inherits ftp {
+
+    include nfs_client
+    include pure-ftpd_tls
 }   
