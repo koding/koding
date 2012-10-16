@@ -13,7 +13,7 @@ module.exports = class JPrivateMessage extends JPost
     sharedMethods     :
       static          : ['create','on']
       instance        : [
-        'on','reply','restComments','commentsByRange','like',
+        'reply','restComments','commentsByRange','like',
         'fetchLikedByes','disown','collectParticipants','mark',
         'unmark','fetchRelativeComments'
       ]
