@@ -5,7 +5,6 @@ class ContentDisplayControllerMember extends KDViewController
       view : mainView = new KDView
         cssClass : 'member content-display'
     ,options
-
     super options, data
 
   loadView:(mainView)->
