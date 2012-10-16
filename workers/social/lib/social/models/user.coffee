@@ -5,7 +5,7 @@ Flaggable = require '../traits/flaggable'
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
   {daisy} = require 'sinkrow'
-  
+
   JAccount  = require './account'
   JSession  = require './session'
   JGuest    = require './guest'
@@ -56,6 +56,7 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    broadcastable   : no
     indexes         :
       username      : 'unique'
       email         : 'unique'
@@ -199,7 +200,6 @@ module.exports = class JUser extends jraphical.Module
 
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
-    console.log 'CREDS', credentials
     constructor = @
     JUser.one {username, status: $ne: 'blocked'}, (err, user)->
       if err
@@ -394,9 +394,9 @@ module.exports = class JUser extends jraphical.Module
     @emailAvailable email, (err, res)=>
 
       if err
-        callback new KodingError "Something went wrong please try again!"
+        callback createKodingError "Something went wrong please try again!"
       else if res is no
-        callback new KodingError "Email is already in use!"
+        callback createKodingError "Email is already in use!"
       else
         @fetchUser client, (err,user)->
           account = client.connection.delegate

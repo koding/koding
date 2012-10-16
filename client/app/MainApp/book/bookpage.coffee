@@ -21,7 +21,7 @@ class BookPage extends JView
       pistachio : data.content
     , data
 
-    konstructor = if data.embed and "function" is typeof (k = eval(data.embed)) then k else KDCustomHTMLView
+    konstructor = if data.embed and "function" is typeof (k = data.embed) then k else KDCustomHTMLView
 
     @embedded = new konstructor
       delegate : @getDelegate()

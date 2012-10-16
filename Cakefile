@@ -2,6 +2,7 @@ option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
+option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
@@ -13,6 +14,8 @@ log         = log4js.getLogger("[Cakefile]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+commander     = require './builders/node_modules/commander'
+
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes       = new (require "processes") main:true
 closureCompile  = require 'koding-closure-compiler'
@@ -23,7 +26,7 @@ http          = require 'http'
 url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
-commander     = require 'commander'
+
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # log =
@@ -34,7 +37,7 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-fs.writeFileSync "./.revision","0.0.1"
+# fs.writeFileSync "./.revision","0.0.1"
 
 # get current version
 version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
@@ -157,7 +160,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage"
+    when "dev","prod","local","stage","local-go"
       long = "./config/#{short}.coffee"
     else
       short
@@ -201,6 +204,8 @@ configureBroker = (options,callback=->)->
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src",brokerConfig
   callback null
 
+task 'buildforproduction','set correct flags, and get ready to run in production servers.',(options)->
+  invoke 'buildForProduction'
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
   
@@ -212,7 +217,7 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     if result.p is "yes"
       log.debug 'version',version
       fs.writeFileSync "./.revision",version
-      invoke 'build'
+      invoke 'run',options
       console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
     else
       process.exit()
@@ -230,11 +235,25 @@ pipeStd =(children...)->
     child.stderr.pipe process.stderr
 
 run =(options)->
+
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
+  fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
+
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
   debug = if options.debug then ' -D' else ''
+
+  if config.runGoBroker
+    processes.run
+      name  : 'goBroker'
+      cmd   : "./go/bin/broker -c #{options.configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
 
   processes.run
     name    : 'socialCake'
@@ -312,6 +331,9 @@ task 'run', (options)->
   invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
+  config.buildClient = yes if options.buildClient
+
   queue = []
   if config.vhostConfigurator?
     queue.push -> configureVhost config, -> queue.next()

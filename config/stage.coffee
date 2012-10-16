@@ -9,11 +9,15 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
+  monit         :
+    webCake     : '/var/run/node/webCake.pid'
+    kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
   webPort       : [3020..3030]
   mongo         : mongo
   runBroker     : no
+  runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   basicAuth     :
@@ -27,7 +31,7 @@ module.exports = deepFreeze
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
-    index       : "./website_nonstatic/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no

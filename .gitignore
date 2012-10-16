@@ -91,3 +91,5 @@ sftp-config.json
 /erl_crash.dump
 /broker/log
 /broker/apps/broker/src/broker.app.src
+
+*.orig

@@ -53,6 +53,7 @@ module.exports = class JSession extends Model
         }
         session.save (err)->
           if err
+            console.log 'is this?'
             callback err
           else
             callback null, session, guest

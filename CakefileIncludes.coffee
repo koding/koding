@@ -575,13 +575,13 @@ Includes =
         sidebarKiteSelector         : "./client/app/MainApp/sidebar/modals/kiteselector.coffee"
 
         # BOOK
-        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
-        bookView                    : "./client/app/MainApp/book/bookview.coffee"
-        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
         bookTOC                     : "./client/app/MainApp/book/embedded/tableofcontents.coffee"
         bookUpdateWidget            : "./client/app/MainApp/book/embedded/updatewidget.coffee"
         bookTopics                  : "./client/app/MainApp/book/embedded/topics.coffee"
         bookDevelopButton           : "./client/app/MainApp/book/embedded/developbutton.coffee"
+        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
+        bookView                    : "./client/app/MainApp/book/bookview.coffee"
+        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
 
         #maintabs
 

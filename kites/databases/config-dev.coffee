@@ -3,10 +3,11 @@ module.exports =
   pidPath           : "/var/run/node/Databases.pid"
   logFile           : "/var/log/node/Databases.log"
   port              : 4568
-  pusher            :
-    appId           : 22120
-    key             : 'a6f121a130a44c7f5325'
-    secret          : '9a2f248630abaf977547'
+  amqp              :
+    host            : 'zb.koding.com'
+    username        : 'guest'
+    password        : 's486auEkPzvUjYfeFTMQ'
+    vhost           : 'kite'
   apiUri            : 'https://dev-api.koding.com/1.0'
   mysql             :
     usersPath       : '/Users/'

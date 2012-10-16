@@ -6,7 +6,8 @@ class ReviewView extends KDView
 
     @setClass "review-container"
     @createSubViews data
-    @resetDecoration()
+    # @resetDecoration()
+    @decorateCommentedState()
     @attachListeners()
 
   render:->
