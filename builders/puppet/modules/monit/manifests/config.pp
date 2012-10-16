@@ -4,10 +4,7 @@ class monit::config {
     file { "scripts_dir":
         ensure => directory,
         path => "/etc/monit.d/scripts",
-        require => $nodeuser ? {
-              true => [User["node"],Class["monit::install"]],
-              false=> Class["monit::install"],
-        }
+        require => Class["monit::install"],
     }
     
     file { "/etc/monit.conf":
