@@ -3,12 +3,9 @@ Broker = require 'broker'
 
 QUEUE = "koding-feeder"
 
-distributeActivityToFollowers()
-
 ### AVAILABLE TASKS ###
 distributeActivityToFollowers = (options = {}) ->
   {ObjectId} = require 'bongo'
-
   {mq, mongo, exchangePrefix} = options
 
   mq ?= 
@@ -16,9 +13,7 @@ distributeActivityToFollowers = (options = {}) ->
     login: "guest"
     password: "guest"
     vhost: "/"
-
   broker = new Broker mq
-
   exchangePrefix = exchangePrefix ? "followable-"
 
   dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
@@ -27,30 +22,36 @@ distributeActivityToFollowers = (options = {}) ->
   relationshipsCol = db.collection 'relationships'
   accountsCol = db.collection 'jAccounts'
 
-  broker.createQueue QUEUE, {exclusive:false}, (queue) ->
+  broker.createQueue QUEUE, {exclusive:false, autoDelete:false}, (queue) ->
     # Using prefetchCount to tell RabbitMQ not to dispatch a new message
     # to a worker until it has processed and acknowledged the previous one.
     # Instead, it will dispatch it to the next worker that is not still busy.
     queue.subscribe {ack:true, prefetchCount:1}, (message, headers, deliveryInfo) =>
       {exchange, routingKey, _consumerTag} = deliveryInfo
-      activityId = ObjectId message
-      regEx = new RegExp "^#{exchangePrefix}"
-      ownerString = exchange.replace regEx, ""
-      owner = ObjectId ownerString
+      message = message.data+"" if message.data?
+
+      #console.log "Feed worker receives message #{message} on exchange #{exchange}"
+      try
+        activityId = ObjectId message
+        regEx = new RegExp "^#{exchangePrefix}"
+        ownerString = exchange.replace regEx, ""
+        owner = ObjectId ownerString
+      catch e
+        queue.shift() # ack the completion
+        return
 
       selector = sourceId: owner, as: "follower"
       # Get the followers
       cursor = relationshipsCol.find selector, {targetId: true}
       cursor.each (err, rel) ->
         if err or not rel
-          #console.log "Failed to find follower", err
+          #console.log "Failed to find follower", err, rel
         else
           selector = {owner: rel.targetId, title: "followed"}
           # Get the follower's feed
           feedsCol.findOne selector, _id:true, (err, feed) ->
-
             if err or not feed
-              #console.log err
+              #console.log "Failed to find feed"
             else
               criteria =
                 targetName  : "CActivity"
@@ -59,7 +60,12 @@ distributeActivityToFollowers = (options = {}) ->
                 sourceId    : feed._id
                 as          : "container"
 
-              relationshipsCol.update criteria, criteria, {upsert:true}
+              updateOpts = {upsert:true, safe:true}
+              relationshipsCol.update criteria, criteria, updateOpts, (err, count) ->
+                if err or count is 0
+                  #console.log "There is an error saving activity to feed"
+                else
+                  queue.shift() # ack the completion
 
 
 assureExchangeMesh = (options) ->
@@ -118,3 +124,4 @@ assureUserFeeds = (feeds) ->
           JFeed.assureFeed account, feedInfo, (err, feed) ->
 
 
+distributeActivityToFollowers()
