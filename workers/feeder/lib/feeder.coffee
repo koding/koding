@@ -7,12 +7,10 @@ CActivity = require "#{SOCIALPATH}/models/activity/index"
 EventEmitter class Feeder
   EventEmitter @::
 
-  EXCHANGE_PREFIX     = "followable-"
-  getExchangeName     = (id) -> "#{EXCHANGE_PREFIX}#{id}"
-  getWorkerQueueName  = -> "koding-feeder"
-
   constructor: (options) ->
-    {@mq, @mongo} = options
+    {@mq, @mongo, @queueName, @exchangePrefix} = options
+    @queueName ?= "koding-feeder"
+    @exchangePrefix ?= "followable-"
     CActivity.on "ActivityIsCreated", (activity) =>
       @handleNewActivity activity
 
@@ -27,32 +25,31 @@ EventEmitter class Feeder
   # one in round-robin fashion.
   ###
   handleNewActivity: (activity) ->
-    {emitActivity, bindToWorkerQueue} = @
     activityTypes = ['CStatusActivity','CCodeSnipActivity','CDiscussionActivity','COpinionActivity']
     return unless activity.type in activityTypes
     accountId = activity.originId
-    accountXName = getExchangeName accountId
+    accountXName = @getExchangeName accountId
     # Setting deliveryMode to 2 makes the message persistent.
     options = 
       deliveryMode: 2
       autoDelete: false
     payload = activity._id.toString()
 
-    bindToWorkerQueue accountXName, ->
-      emitActivity accountXName, payload, options
+    @bindToWorkerQueue accountXName, =>
+      @emitActivity accountXName, payload, options
 
-    activity.fetchTeaser (err, {tags}) ->
+    activity.fetchTeaser (err, {tags}) =>
       return unless tags?
       for tag in tags
-        do ->
-          tagXName = getExchangeName tag
-          bindToWorkerQueue tagXName, ->
-            emitActivity tagXName, payload, options
+        do =>
+          tagXName = @getExchangeName tag._id
+          @bindToWorkerQueue tagXName, =>
+            @emitActivity tagXName, payload, options
 
   handleFollowAction: (account) ->
-    ownExchangeName = getExchangeName account._id
+    ownExchangeName = @getExchangeName account._id
     # Receive when the account follows somebody
-    account.on "FollowCountChanged", (data) ->
+    account.on "FollowCountChanged", (data) =>
       # data are a list of arguments
       {action, followee} = data
       return unless followee?
@@ -60,23 +57,23 @@ EventEmitter class Feeder
       # contructor.name
       # Set up the exchange-to-exchange binding for followings.
       # followee can be JAccount, JTag, or JStatusUpdate.
-      followeeNick = getExchangeName followee._id
+      followeeNick = @getExchangeName followee._id
       routingKey = "#{followeeNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
       mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
 
   # For real-time update of followed activities
   handleFolloweeActivity: (account) ->
-    ownExchangeName = getExchangeName account._id
-    ownExchange = getExchange ownExchangeName
+    ownExchangeName = @getExchangeName account._id
+    ownExchange = @getExchange ownExchangeName
 
     @mq.on(
       ownExchangeName,
       "#.activity", 
       ownExchangeName, 
-      (message, headers, deliveryInfo) ->
+      (message, headers, deliveryInfo) =>
         publisher = deliveryInfo.exchange
-        unless publisher is getOwnExchangeName account
+        unless publisher is ownExchangeName
           activityId = ObjectId message
           CActivity.one {_id: activityId}, (err, activity) ->
             #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
@@ -85,12 +82,13 @@ EventEmitter class Feeder
 
   # HELPERS #
   bindToWorkerQueue: (exchangeName, callback) ->
+    console.log "binding queue #{@queueName} to exchange #{exchangeName}"
     workerQueueOptions =
       exchangeAutoDelete: false
       queueExclusive: false
     # This effectively declares own exchange.
     @mq.bindQueue(
-      getWorkerQueueName(), 
+      @queueName, 
       exchangeName, 
       "#.activity", 
       workerQueueOptions,
@@ -100,7 +98,8 @@ EventEmitter class Feeder
   emitActivity: (exchangeName, payload, options) ->
     @mq.emit exchangeName, "#{exchangeName}.activity", payload, options
 
-  getExchange = (name) -> @mq.connection.exchanges[name]
+  getExchange: (name) -> @mq.connection.exchanges[name]
+  getExchangeName: (id) -> "#{@exchangePrefix}#{id}"
 
 module.exports = Feeder
 
