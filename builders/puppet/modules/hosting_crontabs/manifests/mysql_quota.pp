@@ -16,13 +16,13 @@ class hosting_crontabs::mysql_quota {
     }
 
     cron { db_grant: 
-        command => "/opt/cronscripts/db.py --grant"
+        command => "/opt/cronscripts/db.py --grant",
         user    => root,
         minute  => "*/5",
         require => File['/opt/cronscripts/db.py'],
     }
     cron { db_revoke: 
-        command => "/opt/cronscripts/db.py --revoke"
+        command => "/opt/cronscripts/db.py --revoke",
         user    => root,
         hour    => "*/1",
         minute  => 45,
