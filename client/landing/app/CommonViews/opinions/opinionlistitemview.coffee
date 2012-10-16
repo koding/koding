@@ -222,7 +222,7 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body has-markdown'>
-          {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
+          {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
         </p>
         <div class="opinion-size-links">
           {{>@larger}}

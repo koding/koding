@@ -250,19 +250,23 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
   render:->
     super()
 
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # @$("pre").addClass "prettyprint"
+    # prettyPrint()
 
   viewAppended:()->
     super()
+
     @setTemplate @pistachio()
     @template.update()
+
+    # disable username expansion in pre's
+
 
     @$("pre").addClass "prettyprint"
     # prettyPrint()
 
     @$("p.discussion-body span.data pre").each (i,element)=>
-      element = hljs.highlightBlock element
+      hljs.highlightBlock element
 
   pistachio:->
     """
@@ -287,7 +291,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
+            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
