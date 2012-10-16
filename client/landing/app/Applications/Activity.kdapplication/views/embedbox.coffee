@@ -220,7 +220,7 @@ class EmbedBox extends KDView
       log "There was unsafe content.",data,data?.safe_type,data?.safe_message
       @hide()
     else
-      log "Error!",data?.error_type,data?.error_message
+      log "EmbedBox encountered an Error!",data?.error_type,data?.error_message
 
   embedExistingData:(data={},options={},callback=noop)=>
     unless data.type is "error"
