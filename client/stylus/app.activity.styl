@@ -1218,7 +1218,7 @@ div.kdview.link-embed-box
                   font-weight 300!important
                   color #FF9200!important
 
-      &.custom-link, &.custom-rich
+      &.custom-link, &.custom-rich, &.custom-video
         font-size 13px
         font-weight 400
         overflow hidden
@@ -1237,6 +1237,15 @@ div.kdview.link-embed-box
           overflow visible
           position relative
 
+          > iframe
+            max-height 90px
+            min-height 50px
+            min-width inherit
+            max-width inherit
+            line-height 100%
+            margin 0
+            padding 0
+            noTextDeco()
 
           > a.preview_link
             max-height 90px
@@ -1307,11 +1316,10 @@ div.kdview.link-embed-box
           overflow hidden
           width auto
           min-width 400px
-          min-height 50px
+          min-height 20px
           font-size 12px
           font-weight 400
           // max-height 90px
-          min-height 50px
           color #797979
 
           > a.preview_text_link
@@ -1330,12 +1338,16 @@ div.kdview.link-embed-box
                 color #27A3C9
 
             > div.description
+              margin-top 17px
               noTextDeco()
               display block
               font-weight 400
               font-size inherit
               overflow hidden
               color inherit
+
+          // > div.provider_info:last-of-type
+          //   margin-bottom 0px
 
           > div.author_info
             display inline-block
@@ -1357,7 +1369,7 @@ div.kdview.link-embed-box
             noTextDeco()
             font-size inherit
             font-weight inherit
-            margin-bottom 17px
+            // margin-bottom 17px
             color inherit
             strong
               font-weight inherit
