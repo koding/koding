@@ -75,22 +75,29 @@ daisy tasks = [
     setUp (queue) ->
       expected = [testAccount, "tag1", "tag2"]
       currentIdx = 0
+      messages = {}
       queue.subscribe {ack:true, prefetchCount:1}, (m, h, d) ->
         {exchange, routingKey, consumerTag} = d
         message = m.data+"" if m.data?
         regEx = new RegExp "^#{exchangePrefix}"
         ownerString = exchange.replace regEx, ""
-        expectedOwner = expected[currentIdx]
-        console.log "#"+currentIdx+" - Message should be from the exchange of #{expectedOwner}"
-        assert.equal ownerString, expectedOwner, "should be from the exchange of #{expectedOwner}"
-        console.log "#"+currentIdx+" - Passed."
+        messages[ownerString] = message
         currentIdx++
         queue.shift()
 
         if currentIdx is expected.length
-          console.log "This test case passed!"
           #queue.unsubscribe consumerTag
           queue.close()
+
+          console.log "Checking received messages"
+          for key of messages
+            console.log "Message on exchange #{key}"
+            assert.equal (key in expected), true, "should receive valid key"
+            # console.log "Message should be from the exchange of #{expectedOwner}"
+            console.log "Message should be the #{testActivity}"
+            assert.equal messages[key], testActivity
+
+          console.log "This test case passed!"
           tasks.next()
 
       .addCallback (ok) ->
