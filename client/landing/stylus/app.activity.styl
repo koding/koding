@@ -1104,6 +1104,27 @@ div.kdview.link-embed-box
   &.link-wigdet
     margin-top 0px
 
+  // report button for embeds
+  > button.kdbutton.report-embed
+    position absolute
+    top -1px
+    right -1px
+    size 20px,20px
+    margin 0px
+    padding 0px
+    border none
+    opacity 0.15
+    background transparent
+    vendor transition, opacity 0.3s ease-in-out
+    > span.icon
+      sprite()
+
+      &.report
+        bg position, 0px -120px
+
+    &:hover
+      opacity 1
+
   > div.embed-box-settings
     vendor            transition, opacity .1s ease-out
     size              21px, 18px
@@ -1172,7 +1193,7 @@ div.kdview.link-embed-box
       borderBox()
       height inherit
       rounded 4px
-      padding 15px
+      padding 15px 15px 12px 15px
 
       // this will overload the default twitter embed by embedly
       > div.embedly_twitter.custom-twitter
