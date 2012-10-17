@@ -4,7 +4,7 @@ class VerifyPINModal extends KDModalViewWithForms
   constructor:(buttonTitle = "Submit", callback) ->
 
     options =
-      title                       : "Please provide the PIN that you've just received"
+      title                       : "Please provide the PIN that we've emailed you"
       overlay                     : yes
       width                       : 400
       height                      : "auto"
