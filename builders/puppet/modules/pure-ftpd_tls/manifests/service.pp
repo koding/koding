@@ -7,7 +7,7 @@ class pure-ftpd_tls::service {
         hasstatus  => true,
         hasrestart => true,
         enable     => true,
-        require    => Class["pure-ftpd::config"],
+        require    => Class["pure-ftpd_tls::config"],
     }
 
 }
