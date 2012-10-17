@@ -164,6 +164,7 @@ class NotificationListItem extends KDListItemView
 
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
+      appManager.tell 'Inbox', "goToMessages"
     else if @snapshot.anchor.constructorName in ["JComment", "JReview"]
       KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
