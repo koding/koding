@@ -1,16 +1,23 @@
 SOCIALPATH = "../../social/lib/social"
 CActivity = require "#{SOCIALPATH}/models/activity/index"
 {ObjectId} = require 'bongo'
+mongoskin = require 'mongoskin'
 
 {EventEmitter} = require 'microemitter'
 
 EventEmitter class Feeder
   EventEmitter @::
 
+  getRoutingKey =(inst, event)-> "oid.#{inst._id}.event.#{event}"
+
   constructor: (options) ->
-    {@mq, @mongo, @queueName, @exchangePrefix} = options
+    {@mq, mongo, @queueName, @exchangePrefix} = options
+    @mongo = mongoskin.db mongo
     @queueName ?= "koding-feeder"
     @exchangePrefix ?= "followable-"
+
+    # Create this exchange beforehand so there is no precondition-failed.
+    @mq.createExchange "updateInstances", {autoDelete:no}
 
     @mq.ready =>
       @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
@@ -36,7 +43,7 @@ EventEmitter class Feeder
     # Setting deliveryMode to 2 makes the message persistent.
     
     deliveryMode = 2
-    autoDelete = false
+    autoDelete = no
     payload = activity._id.toString()
 
     @bindToWorkerQueue accountXName, =>
@@ -53,7 +60,8 @@ EventEmitter class Feeder
   handleFollowAction: (account) ->
     ownExchangeName = @getExchangeName account._id
     # Receive when the account follows somebody
-    account.on "FollowCountChanged", (data) =>
+    @on account, "FollowCountChanged", (data) =>
+    #account.on "FollowCountChanged", (data) =>
       # data are a list of arguments
       {action, followee} = data
       return unless followee?
@@ -64,31 +72,30 @@ EventEmitter class Feeder
       followeeNick = @getExchangeName followee._id
       routingKey = "#{followeeNick}.activity"
       method = "#{action.replace 'follow', 'bind'}Exchange"
-      mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
+      @mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
 
   # For real-time update of followed activities
   handleFolloweeActivity: (account) ->
     ownExchangeName = @getExchangeName account._id
-    ownExchange = @getExchange ownExchangeName
-
-    @mq.on(
-      ownExchangeName,
-      "#.activity", 
-      ownExchangeName, 
-      (message, headers, deliveryInfo) =>
-        publisher = deliveryInfo.exchange
-        unless publisher is ownExchangeName
-          activityId = ObjectId message
-          CActivity.one {_id: activityId}, (err, activity) ->
-            #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-            account.emit "FollowedActivityArrived", activity
-    )
+    @mq.createExchange ownExchangeName, {autoDelete: no}, =>
+      @mq.on(
+        ownExchangeName,
+        "#.activity", 
+        ownExchangeName, 
+        (message, headers, deliveryInfo) =>
+          publisher = deliveryInfo.exchange
+          unless publisher is ownExchangeName
+            activityId = ObjectId message
+            CActivity.one {_id: activityId}, (err, activity) =>
+              #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+              @emit account, "FollowedActivityArrived", activity
+      )
 
   # HELPERS #
   bindToWorkerQueue: (exchangeName, callback) ->
     workerQueueOptions =
-      exchangeAutoDelete: false
-      queueExclusive: false
+      exchangeAutoDelete: no
+      queueExclusive: no
     # This effectively declares own exchange.
     @mq.bindQueue(
       @queueName, 
@@ -100,6 +107,15 @@ EventEmitter class Feeder
 
   emitActivity: (exchangeName, payload, options) ->
     @mq.emit exchangeName, "#{exchangeName}.activity", payload, options
+
+  on: (inst, event, listener) ->
+    routing = "oid.#{inst._id}.event.#{event}"
+    @mq.on "updateInstances", routing, listener
+
+  emit: (inst, event, payload) ->
+    routing = "oid.#{inst._id}.event.#{event}"
+    @mq.emit "updateInstances", routing, payload
+
 
   getExchange: (name) -> @mq.connection.exchanges[name]
   getExchangeName: (id) -> "#{@exchangePrefix}#{id}"

@@ -15,8 +15,12 @@ feeder = new Feeder
   mq        : broker
   mongo     : dbUrl
 
+accounts = {}
+
 broker.ready ->
   broker.on 'event-JAccount', "AccountAuthenticated", (account) ->
+    return if accounts[account.profile.nickname]?
+    accounts[account.profile.nickname] = account
 # JAccount.on "AccountAuthenticated", (account) ->
-    #console.log account
+    feeder.handlerFollowAction account
     #feeder.handleAccount account

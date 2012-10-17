@@ -4,7 +4,7 @@ Broker = require 'broker'
 {daisy} = require 'sinkrow'
 assert = require 'assert'
 
-CActivity = require '../../social/lib/social/models/activity/index'
+JAccount = require '../../social/lib/social/models/account'
 Feeder = require '../lib/feeder'
 
 testAccount = "507c91fe765a249d7c000003"
@@ -36,6 +36,7 @@ broker = new Broker
   vhost: "/"
 
 db = mongoskin.db "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
+JAccount.setClient db
 
 feeder = new Feeder
   mq            : broker
@@ -102,5 +103,40 @@ daisy tasks = [
 
       .addCallback (ok) ->
         feeder.handleNewActivity mockActivityWithTags
+
+  ->
+    console.log "Test exchange bindings when follow"
+    getRoutingKey =(inst, event)-> "oid.#{inst._id}.event.#{event}"
+    JAccount.one {_id: ObjectId(followerAccount)}, (err, follower) ->
+      feeder.handleAccount follower
+      
+      # Actual tests
+      routing = getRoutingKey(follower, "FollowedActivityArrived")
+      broker.on "updateInstances", routing, (activity) ->
+      #follower.on "FollowedActivityArrived", (activity) ->
+        console.log "Make sure that the follower receive the activity"
+        assert activity._id, testActivity, "should be same activity id"
+
+        console.log "This test case passed"
+        tasks.next()
+
+      # Setting up
+      followData =
+        action: "follow"
+        followee: {_id: ObjectId testAccount}
+
+      setTimeout ->
+        # Emit the event so that the e2e binding is established.
+        routing = getRoutingKey(follower, "FollowCountChanged")
+        broker.emit "updateInstances", routing, followData, {autoDelete:false}
+        #follower.emit "FollowCountChanged", followData
+      , 1000
+
+      setTimeout ->
+        # Call handleNewActivity to emit to the test account's exchange.
+        # The activity should be forwarded to follower account's exchange,
+        # then the follower account should emit "FollowedActivityArrived".
+        feeder.handleNewActivity mockActivity
+      , 1000
 
 ]
