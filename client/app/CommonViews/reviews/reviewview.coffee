@@ -6,13 +6,10 @@ class ReviewView extends KDView
 
     @setClass "review-container"
     @createSubViews data
-    # @resetDecoration()
     @decorateCommentedState()
     @attachListeners()
 
   render:->
-    # FIXME GG
-    # @resetDecoration()
     @decorateCommentedState()
 
   createSubViews:(data)->
@@ -55,18 +52,6 @@ class ReviewView extends KDView
 
     @reviewList.on "CommentCountClicked", =>
       @reviewList.emit "AllCommentsLinkWasClicked"
-
-    @listenTo
-      KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @reviewList
-      callback : @resetDecoration
-
-  resetDecoration:->
-    post = @getData()
-    if post.repliesCount is 0
-      @decorateNoCommentState()
-    else
-      @decorateCommentedState()
 
   decorateNoCommentState:->
     @unsetClass "active-comment"
