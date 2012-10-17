@@ -11,8 +11,12 @@ EventEmitter class Feeder
     {@mq, @mongo, @queueName, @exchangePrefix} = options
     @queueName ?= "koding-feeder"
     @exchangePrefix ?= "followable-"
-    CActivity.on "ActivityIsCreated", (activity) =>
-      @handleNewActivity activity
+
+    @mq.ready =>
+      @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
+    # CActivity.setClient @mongo
+    # CActivity.on "ActivityIsCreated", (activity) =>
+        @handleNewActivity activity
 
   handleAccount: (account) ->
     @handleFolloweeActivity account
