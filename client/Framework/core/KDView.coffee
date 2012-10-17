@@ -39,6 +39,7 @@ class KDView extends KDObject
     dragenter   : "dragEnter"
     dragleave   : "dragLeave"
     dragover    : "dragOver"
+    paste       : "paste"
 
 
   overrideAndMergeObjects = (objects)->
@@ -468,7 +469,7 @@ class KDView extends KDObject
   bindEvents:($elm)->
     $elm or= @getDomElement()
     # defaultEvents = "mousedown mouseup click dblclick dragstart dragenter dragleave dragover drop resize"
-    defaultEvents = "mousedown mouseup click dblclick"
+    defaultEvents = "mousedown mouseup click dblclick paste"
     instanceEvents = @getOptions().bind
 
     eventsToBeBound = if instanceEvents
@@ -528,6 +529,8 @@ class KDView extends KDObject
   mouseLeave:(event)-> yes
 
   mouseUp:(event)->    yes
+
+  paste:(event)->      yes
 
   mouseDown:(event)->
     (@getSingleton "windowController").setKeyView null
