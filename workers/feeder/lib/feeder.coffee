@@ -30,13 +30,13 @@ EventEmitter class Feeder
     accountId = activity.originId
     accountXName = @getExchangeName accountId
     # Setting deliveryMode to 2 makes the message persistent.
-    options = 
-      deliveryMode: 2
-      autoDelete: false
+    
+    deliveryMode = 2
+    autoDelete = false
     payload = activity._id.toString()
 
     @bindToWorkerQueue accountXName, =>
-      @emitActivity accountXName, payload, options
+      @emitActivity accountXName, payload, {deliveryMode, autoDelete}
 
     activity.fetchTeaser (err, {tags}) =>
       return unless tags?
@@ -44,7 +44,7 @@ EventEmitter class Feeder
         do =>
           tagXName = @getExchangeName tag._id
           @bindToWorkerQueue tagXName, =>
-            @emitActivity tagXName, payload, options
+            @emitActivity tagXName, payload, {deliveryMode, autoDelete}
 
   handleFollowAction: (account) ->
     ownExchangeName = @getExchangeName account._id
@@ -82,7 +82,6 @@ EventEmitter class Feeder
 
   # HELPERS #
   bindToWorkerQueue: (exchangeName, callback) ->
-    console.log "binding queue #{@queueName} to exchange #{exchangeName}"
     workerQueueOptions =
       exchangeAutoDelete: false
       queueExclusive: false
