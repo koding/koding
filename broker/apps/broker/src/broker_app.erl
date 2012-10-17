@@ -83,7 +83,7 @@ start(_StartType, _StartArgs) ->
   case cowboy:start_listener(http, NumberOfAcceptors,
                     cowboy_tcp_transport, [{port, Port}],
                     cowboy_http_protocol, [{dispatch, Routes}]) of
-    {ok, Pid} -> app_sup:start_link();
+    {ok, _Pid} -> app_sup:start_link();
     {_, _} -> {error, "failed to start Erlang broker"}
   end.
 
@@ -157,6 +157,9 @@ handle_client(Conn, {recv, Data},
   NewSubs = handle_event(Conn, Check, Decoded, Subscriptions, VHost),
   {ok, State#client{subscriptions=NewSubs}};
 
+%%--------------------------------------------------------------------
+%% Handle disconnection from the client
+%%--------------------------------------------------------------------
 handle_client(Conn, closed, #client{socket_id=SocketId,vhost=VHost,
                   subscriptions=Subscriptions}) ->
   Event = <<"disconnected">>,
@@ -183,55 +186,60 @@ handle_client(_Conn, Other, State) ->
   io:format("Other data ~p~n", [Other]),
   {ok, State}.
 
-handle_event(Conn, {<<"client-subscribe">>, false}, Data, Subs, VHost) ->
-  [_Event, Exchange, _Payload, _Meta] = Data,
+% handle_event(Conn, {<<"client-presence">>, false}, Data, Subs, VHost) ->
+%   [_Event, Where, Who, _Meta] = Data,
+%   % This only acts as a key so that it can be used to
+%   % remove the subscription later from the dictionary.
+%   Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
+%   case dict:find(Exchange, Subs) of
+%     {ok, Subscription} ->
+%       broker:unsubscribe(Subscription),
+%       dict:erase(Exchange, Subs);
+%     error ->
+%       VHostToUse = get_vhost(Exchange, VHost),
+%       case broker:presence(Conn, Where, Who, VHostToUse) of
+%         {error, _Error} -> Subs;
+%         {ok, Subscription} ->            
+%           dict:store(Exchange, Subscription, Subs)
+%       end
+%   end;
 
+%%--------------------------------------------------------------------
+%% Try to bind an event for the first time
+%%--------------------------------------------------------------------
+handle_event(Conn, {<<"client-bind">>, false}, Data, Subs, VHost) ->
+  [Event, Exchange, _Routing, _Payload, _Meta] = Data,
   VHostToUse = get_vhost(Exchange, VHost),
-
   case broker:subscribe(Conn, Exchange, VHostToUse) of
     {error, _Error} -> Subs;
     {ok, Subscription} ->
-      dict:store(Exchange, Subscription, Subs)
+      NewSubs = dict:store(Exchange, Subscription, Subs),
+      handle_event(Conn, {Event, true}, Data, NewSubs, VHost)
   end;
 
-handle_event(Conn, {<<"client-presence">>, false}, Data, Subs, VHost) ->
-  [_Event, Where, Who, _Meta] = Data,
-  % This only acts as a key so that it can be used to
-  % remove the subscription later from the dictionary.
-  Exchange = <<Who/bitstring,Where/bitstring,"-presence">>,
-  case dict:find(Exchange, Subs) of
-    {ok, Subscription} ->
-      broker:unsubscribe(Subscription),
-      dict:erase(Exchange, Subs);
-    error ->
-      VHostToUse = get_vhost(Exchange, VHost),
-      case broker:presence(Conn, Where, Who, VHostToUse) of
-        {error, _Error} -> Subs;
-        {ok, Subscription} ->            
-          dict:store(Exchange, Subscription, Subs)
-      end
-  end;
-
-handle_event(_Conn, {<<"client-bind-event">>, true}, Data, Subs, _) ->
-  [_Event, Exchange, Payload, _Meta] = Data,
+%%--------------------------------------------------------------------
+%% Bind to an event after already declaring the exchange
+%%--------------------------------------------------------------------
+handle_event(_Conn, {<<"client-bind">>, true}, Data, Subs, _) ->
+  [_Event, Exchange, Routing, _Payload, _Meta] = Data,
   Subscription = dict:fetch(Exchange, Subs),
-  broker:bind(Subscription, Payload),
+  broker:bind(Subscription, Routing),
   Subs;
 
-handle_event(_Conn, {<<"client-unbind-event">>, true}, Data, Subs, _) ->
-  [_Event, Exchange, Payload, _Meta] = Data,
+handle_event(_Conn, {<<"client-unbind">>, true}, Data, Subs, _) ->
+  [_Event, Exchange, Routing, _Payload, _Meta] = Data,
   Subscription = dict:fetch(Exchange, Subs),
-  broker:unbind(Subscription, Payload),
+  broker:unbind(Subscription, Routing),
   Subs;
 
-handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs, _) ->
-  [_Event, Exchange, _Payload, _Meta] = Data,
-  Subscription = dict:fetch(Exchange, Subs),
-  broker:unsubscribe(Subscription),
-  dict:erease(Exchange, Subs);
+% handle_event(_Conn, {<<"client-unsubscribe">>, true}, Data, Subs, _) ->
+%   [_Event, Exchange, _Payload, _Meta] = Data,
+%   Subscription = dict:fetch(Exchange, Subs),
+%   broker:unsubscribe(Subscription),
+%   dict:erease(Exchange, Subs);
 
 handle_event(_Conn, {<<"client-",_EventName/binary>>, true}, Data, Subs, _) ->
-  [Event, Exchange, Payload, Meta] = Data,
+  [Event, Exchange, _Routing, Payload, Meta] = Data,
   RegExp = "^secret-",
   case re:run(Exchange, RegExp) of
     nomatch -> Subs;
@@ -276,7 +284,7 @@ get_vhost(Exchange, DefaultVHost) ->
 %% VHostConfig for a matching VHost for the Exchange. If not found
 %% until empty list, return the DefaultVHost.
 %%--------------------------------------------------------------------
-get_vhost(Exchange, [], DefaultVhost) ->
+get_vhost(_Exchange, [], DefaultVhost) ->
   DefaultVhost;
 
 get_vhost(Exchange, [{RegExp, VHost} | Rest], DefaultVHost) ->
@@ -285,7 +293,7 @@ get_vhost(Exchange, [{RegExp, VHost} | Rest], DefaultVHost) ->
     nomatch -> get_vhost(Exchange, Rest, DefaultVHost)
   end.
 
-send_system_event(Conn, Event, Payload, none) ->
+send_system_event(_Conn, _Event, _Payload, none) ->
   ok;
 
 send_system_event(Conn, Event, Payload, VHost) ->
@@ -298,11 +306,12 @@ send_system_event(Conn, Event, Payload, VHost) ->
   end.
 
 %%--------------------------------------------------------------------
-%% Function: decode(Data) -> [Event, Exchange, Payload, Meta]
+%% Function: decode(Data) -> [Event, Exchange, Routing, Payload, Meta]
 %% Types:
 %%  Data = binary()
 %%  Event = binary()
 %%  Exchange = binary()
+%%  Routing = binary()
 %%  Payload = binary()
 %%  Meta = binary()
 %% Description:  Decode a binary data from the websocket connection
@@ -310,24 +319,23 @@ send_system_event(Conn, Event, Payload, VHost) ->
 %%--------------------------------------------------------------------
 decode(Data) ->
   [{<<"event">>, Event}, 
-    {<<"channel">>, Exchange} | Rest] = jsx:decode(Data),
+    {<<"exchange">>, Exchange} | Rest] = jsx:decode(Data),
 
-  Payload = bin_key_find(<<"payload">>, Rest, false),
-  Meta = bin_key_find(<<"meta">>, Rest, true),
-  [Event, Exchange, Payload, Meta].
+  Routing = bin_key_find(<<"routingKey">>, Rest, <<"#">>),
+  Payload = bin_key_find(<<"payload">>, Rest, <<>>),
+  Meta = bin_key_find(<<"meta">>, Rest, []),
+  [Event, Exchange, Routing, Payload, Meta].
 
 %%--------------------------------------------------------------------
-%% Function: bin_key_find(BinKey, List, ReturnsEmptyList) -> Val || false
+%% Function: bin_key_find(BinKey, List, Default) -> Val || Default
 %% Description:  A helper to find a binary key in a binary proplist.
-%% The third boolean argument specifies to return an empty list or empty
-%% binary when the BinKey not found.
+%% If BinKey not found, return the Default.
 %%--------------------------------------------------------------------
-bin_key_find(BinKey, List, ReturnEmptyList) ->
+bin_key_find(BinKey, List, Default) ->
   case lists:keyfind(BinKey, 1, List) of
     {_, Val} when is_integer(Val) -> list_to_binary(integer_to_list(Val));
     {_, Val} -> Val;
-    false when ReturnEmptyList -> [];
-    false -> <<>>
+    false -> Default
   end.
 
 get_env(Param, DefaultValue) ->
