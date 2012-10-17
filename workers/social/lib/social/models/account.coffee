@@ -197,7 +197,7 @@ module.exports = class JAccount extends jraphical.Module
   glanceMessages: secure (client, callback)->
 
   glanceActivities: secure (client, activityId, callback)->
-    (callback, activityId) = (activityId, callback) unless callback
+    [callback, activityId] = [activityId, callback] unless callback
     {delegate} = client.connection
     unless @equals delegate
       callback new KodingError 'Access denied.'
