@@ -14,6 +14,8 @@ class EmbedBox extends KDView
 
     super options,data
 
+    # top right corner either has the administrative dropdown for custom embed stuff
+    # or the report-button (to report malicious content)
     if @options.hasDropdown or KD.checkFlag 'super-admin'
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu embed-box-settings'
@@ -26,7 +28,15 @@ class EmbedBox extends KDView
           event.preventDefault()
           @settingsButton.contextMenu event
     else
-      @settingsButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
+      @settingsButton = new KDButtonView
+        cssClass    : "report-embed"
+        icon        : yes
+        iconOnly    : yes
+        iconClass   : "report"
+        title       : "report"
+        callback    :=>
+          log "REPORTED FOR REPORTING"
+          # display modal here
 
 
     @setClass "link-embed-box"
@@ -57,12 +67,12 @@ class EmbedBox extends KDView
     if @options.hasDropdown
       menu = [
         {
-          'Remove Preview'   :
-                  callback : =>
-                    @embedHiddenItems.push "embed"
-                    @refreshEmbed()
-                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-                    no
+          'Remove Preview'  :
+            callback        : =>
+              @embedHiddenItems.push "embed"
+              @refreshEmbed()
+              @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+              no
         }
       ]
 
