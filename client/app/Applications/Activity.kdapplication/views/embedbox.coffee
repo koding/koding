@@ -36,7 +36,7 @@ class EmbedBox extends KDView
       size          :
         width       : 30
       loaderOptions :
-        color       : "#444"
+        color       : "#fff"
         shape       : "spiral"
         diameter    : 30
         density     : 30
@@ -55,13 +55,16 @@ class EmbedBox extends KDView
     # this menu exist
 
     if @options.hasDropdown
-      menu =
-        'Remove Preview'   :
-          callback : =>
-            @embedHiddenItems.push "embed"
-            @refreshEmbed()
-            @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-            no
+      menu = [
+        {
+          'Remove Preview'   :
+                  callback : =>
+                    @embedHiddenItems.push "embed"
+                    @refreshEmbed()
+                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+                    no
+        }
+      ]
 
       return menu
 
@@ -118,6 +121,11 @@ class EmbedBox extends KDView
   addEmbedHiddenItem:(item)=>
     if not (item in @embedHiddenItems) then @embedHiddenItems.push item
 
+  getRichEmbedWhitelist:=>
+    [
+      "SoundCloud"
+    ]
+
   fetchEmbed:(url="#",options={},callback=noop)=>
 
     requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
@@ -125,7 +133,7 @@ class EmbedBox extends KDView
         key      : "e8d8b766e2864a129f9e53460d520115"
         endpoint : "preview"
         maxWidth : 560
-        maxHeight: 300
+        maxHeight: 200
         wmode    : "transparent"
         error    : (node, dict)=>
           callback? dict
@@ -153,10 +161,15 @@ class EmbedBox extends KDView
       # types should be covered, but if the embed call fails partly, default to link
       type = data?.object?.type or "link"
 
+      log "Embedding object type",type, " with data type",data.type
+
       switch type
         when "html" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "audio" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "video" then html = data?.object?.html or "This link has no Preview available. Oops."
+        when "audio" then html = Encoder.htmlDecode data?.object?.html or "This link has no Preview available. Oops."
+
+        when "video"
+          html = Encoder.htmlDecode data?.object?.html or "This link has no Preview available. Oops."
+
         when "text" then html = data?.object?.html or "This link has no Preview available. Oops."
         when "xml" then html = data?.object?.html or "This link has no Preview available. Oops."
         when "json" then html = data?.object?.html or "This link has no Preview available. Oops."
@@ -170,29 +183,25 @@ class EmbedBox extends KDView
             @hide()
 
         # rich is a html object for things like twitter posts
-        # when "rich"
-        #   html = data?.object?.html
-        #   html = $(html).addClass "custom-twitter"
 
-        # fallback for things that may or may not have any kind of preview
+        # link is fallback for things that may or may not have any kind of preview
         # or are links explicitly
         # also captures "rich content" and makes regular links from that data
         when "link","rich"
-          @settingsButton?.options?.menu = $.extend {}, @settingsButton?.options?.menu,  {
-            'Remove Image from Preview' :
-              callback : =>
-                @addEmbedHiddenItem "image"
-                @refreshEmbed()
-                @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-                no
-            'Remove Description from Preview'   :
-              callback : =>
-                @embedHiddenItems.push "description"
-                @refreshEmbed()
-                @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-                no
-              }
-          html = """
+
+          # log data
+
+          # Unless the provider is whitelisted by us, we will not allow the custom HTML
+          # that embedly provides to be displayed, rather use our own small box
+          # that shows a  thumbnail, some info about the author and a desc.
+
+          if (data?.provider_name in @getRichEmbedWhitelist())
+            html = Encoder.htmlDecode data?.object?.html
+
+          # the original type needs to be HTML, else it would be a link to a specific
+          # file on the web. they can always link to it, it just will not be embedded
+          else if data?.type in ["html", "xml", "text"]
+            html = """
               <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
                 <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
               </div>
@@ -210,7 +219,30 @@ class EmbedBox extends KDView
                 <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
                 <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
               </div>
-          """
+            """
+            # uses the settingsMenu as an array, adding these links after the
+            # default "remove"
+            if data?.images?[0]? then @settingsButton?.options?.menu?.push
+
+                'Remove Image from Preview' :
+                  callback : =>
+                    @addEmbedHiddenItem "image"
+                    @refreshEmbed()
+                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+                    no
+
+            if data?.description? then @settingsButton?.options?.menu?.push
+
+                'Remove Description from Preview'   :
+                  callback : =>
+                    @embedHiddenItems.push "description"
+                    @refreshEmbed()
+                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+                    no
+
+          # this can be audio or video files
+          else
+            html = "Embedding #{data.type or "unknown"} content like this is not supported."
 
         # embedly supports many error types. we could display those to the user
         when "error"
