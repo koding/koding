@@ -241,8 +241,6 @@ class AvatarPopupNotifications extends AvatarPopup
       @listController.removeAllItems()
       @listController.instantiateListItems notifications
 
-    KD.whoami().glanceActivities ->
-
 class AvatarPopupMessages extends AvatarPopup
 
   viewAppended:->
@@ -291,7 +289,6 @@ class AvatarPopupMessages extends AvatarPopup
   show:->
     super
     @listController.fetchMessages()
-    KD.whoami().glanceMessages ->
 
 class PopupList extends KDListView
 
@@ -313,6 +310,14 @@ class PopupNotificationListItem extends NotificationListItem
 
     super options, data
 
+    @initializeReadState()
+
+  initializeReadState:->
+    if @getData().getFlagValue('glanced')
+      @unsetClass 'unread'
+    else
+      @setClass 'unread'
+
   pistachio:->
     """
       <span class='icon'></span>
@@ -329,8 +334,11 @@ class PopupNotificationListItem extends NotificationListItem
 
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
-    super
 
+    {_id} = @getData()
+    KD.whoami().glanceActivities _id, (err)=>
+      if err then log "Error: ", err
+    super
 
 class PopupMessageListItem extends KDListItemView
   constructor:(options,data)->
