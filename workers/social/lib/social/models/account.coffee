@@ -46,7 +46,7 @@ module.exports = class JAccount extends jraphical.Module
         'byRelevance'
       ]
       instance    : [
-        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
+        'modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
