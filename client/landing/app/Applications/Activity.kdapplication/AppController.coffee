@@ -14,8 +14,8 @@ class Activity12345 extends AppController
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
       'CDiscussionActivity'
-      'CLinkActivity'
-      'CCodeShareActivity'
+      # 'CLinkActivity'
+      # 'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
 
@@ -197,8 +197,8 @@ class Activity12345 extends AppController
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
           'CDiscussionActivity'
-          'CLinkActivity'
-          'CCodeShareActivity'
+          # 'CLinkActivity'
+          # 'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
 
@@ -270,9 +270,9 @@ class Activity12345 extends AppController
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-        'CLinkActivity'
         'CDiscussionActivity'
-        'CCodeShareActivity'
+        # 'CLinkActivity'
+        # 'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
 
@@ -289,7 +289,7 @@ class Activity12345 extends AppController
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
       when "JDiscussion"   then @createDiscussionContentDisplay activity
-      when "JCodeShare"    then @createCodeShareContentDisplay activity
+      # when "JCodeShare"    then @createCodeShareContentDisplay activity
       # when "JLink"         then @createLinkContentDisplay activity
 
 
