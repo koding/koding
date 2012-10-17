@@ -16,7 +16,6 @@ class ActivityStatusUpdateWidget extends KDFormView
         rules       :
           maxLength : 2000
 
-    @previousWhich = 0
     @previousURL = ""
 
     @largeInput = new KDInputView
@@ -32,13 +31,13 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
+      paste:=>
+        @requestEmbed()
       blur:=>
         @requestEmbed()
-      keydown:=>
-        if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
+      keyup:=>
+        if ($(event.which)[0] is 32) # when space key is hit, URL is usually complete
           @requestEmbed()
-        @previousWhich = $(event.which)[0]
-
 
 
     @cancelBtn = new KDButtonView
@@ -143,8 +142,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
-    @embedBox.clearEmbedAndHide()
-    @previousWhich = 0
+    @embedBox.resetEmbedAndHide()
     @previousURL = ""
 
     super
