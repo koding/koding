@@ -1,6 +1,6 @@
 class StatusActivityItemView extends ActivityItemChild
 
-  constructor:(options = {}, data)->
+  constructor:(options = {}, data={})->
 
     options.cssClass or= "activity-item status"
     options.tooltip  or=
@@ -15,24 +15,27 @@ class StatusActivityItemView extends ActivityItemChild
       delegate : @
     }
 
-    @embedBox = new EmbedBox embedOptions, data
+    @embedBox = new EmbedBox embedOptions, data?.link
 
-  viewAppended:()->
+  viewAppended:()=>
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
 
+    # If there is embed data in the model, use that!
+    if @getData()?.link
+      @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+
     # This will involve heavy load on the embedly servers - every client
-    # will need to make a request. We should probably extend the status update
-    # to have a data field for embeds
+    # will need to make a request.
+    else
+      urls = @$("span.data > a")
+      for url in urls
+        if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+          firstUrl = $(url).attr "href"
 
-    urls = @$("span.data > a")
-    for url in urls
-      if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
-        firstUrl = $(url).attr "href"
-
-    if firstUrl then @embedBox.embedUrl firstUrl, {}
+      if firstUrl then @embedBox.embedUrl firstUrl, {}
 
   click:(event)->
 
