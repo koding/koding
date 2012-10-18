@@ -17,17 +17,19 @@ class StatusActivityItemView extends ActivityItemChild
 
     @embedBox = new EmbedBox embedOptions, data?.link
 
-  viewAppended:()=>
+  viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()
     @template.update()
 
     # If there is embed data in the model, use that!
-    if @getData()?.link
+    if @getData()?.link and link?.link_url is not ""
       if not ("embed" in @getData().link.link_embed_hidden_items)
         @embedBox.show()
-        @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+        @embedBox.embedExistingData @getData()?.link?.link_embed, {
+          maxWidth: 720
+        }
       else
         # no need to show stuff if it should not be shown. not even in the code
         @embedBox.hide()
@@ -42,7 +44,8 @@ class StatusActivityItemView extends ActivityItemChild
           firstUrl = $(url).attr "href"
 
       if firstUrl then @embedBox.embedUrl firstUrl, {}
-      else @embed
+      else
+        @embedBox.hide()
 
   render:=>
     super
