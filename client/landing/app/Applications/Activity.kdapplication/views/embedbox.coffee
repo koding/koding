@@ -77,6 +77,10 @@ class EmbedBox extends KDView
         speed       : 1
         FPS         : 24
 
+    @embedLink = new EmbedBoxLinkView
+      cssClass : "embed-link"
+    , data
+
     unless data is {} then @hide()
 
   settingsMenu:(data={})=>
@@ -389,5 +393,6 @@ class EmbedBox extends KDView
       {{> @embedLoader}}
       <div class="link-embed clearfix">
         <div class="embed"></div>
+        {{> @embedLink}}
       </div>
     """
