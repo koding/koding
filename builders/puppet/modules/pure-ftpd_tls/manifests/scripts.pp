@@ -3,7 +3,7 @@
 class pure-ftpd_tls::scripts {
 
     file { "clamav_check":
-        path    => '/etc/pure-ftpd_tls/clamav_check.sh',
+        path    => '/etc/pure-ftpd/clamav_check.sh',
         ensure  => file,
         source  => "puppet:///modules/pure-ftpd_tls/etc/pure-ftpd/clamav_check.sh",
         owner   => 'root',
