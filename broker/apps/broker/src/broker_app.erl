@@ -152,7 +152,7 @@ handle_client(Conn, {recv, Data},
           State=#client{subscriptions=Subscriptions,
           vhost=VHost}) ->
 
-  [Event, Exchange, _Payload, _Meta] = Decoded = decode(Data),
+  [Event, Exchange, _Routing, _Payload, _Meta] = Decoded = decode(Data),
   Check = {Event, dict:is_key(Exchange, Subscriptions)},
   NewSubs = handle_event(Conn, Check, Decoded, Subscriptions, VHost),
   {ok, State#client{subscriptions=NewSubs}};
