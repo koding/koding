@@ -93,9 +93,9 @@ class RegisterInlineForm extends LoginViewInlineForm
             rangeLength  : "Username should be minimum 4 maximum 25 chars!"
           events         :
             required     : "blur"
-            rangeLength  : "keypress"
-            regExp       : "keypress"
-            usernameCheck: "keypress"
+            rangeLength  : "keyup"
+            regExp       : "keyup"
+            usernameCheck: "keyup"
             finalCheck   : "blur"
         iconOptions      :
           tooltip        :
