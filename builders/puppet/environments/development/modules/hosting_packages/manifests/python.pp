@@ -25,7 +25,7 @@ class hosting_packages::python {
     exec {"django":
     	command=> "/usr/bin/pip install django",
 	    unless => '/usr/bin/test -d /usr/lib/python2.6/site-packages/django',
-        require => [Package["python"],Exec['pip']],
+        require => [Package["python"],Exec['pip'],Package[$python_modules]],
         notify => Class["cloudlinux::cagefs_update"],
     }
 
