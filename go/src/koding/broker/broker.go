@@ -139,10 +139,8 @@ func main() {
 
 						body, err = json.Marshal(map[string]string{"event": "broker:bind_succeeded", "exchange": exchange, "routingKey": routingKey})
 						if err != nil {
-							log.Debug("there was an error")
 							panic(err)
 						}
-						log.Debug(body + " ")
 						sendChan <- string(body)
 
 					case "client-unbind":
