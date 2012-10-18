@@ -11,13 +11,10 @@ EventEmitter class Feeder
   getRoutingKey =(inst, event)-> "oid.#{inst._id}.event.#{event}"
 
   constructor: (options) ->
-    {@mq, mongo, @queueName, @exchangePrefix} = options
-    @mongo = mongoskin.db mongo
+    {@mq, @mongo, @queueName, @exchangePrefix} = options
+    #@mongo = mongoskin.db mongo
     @queueName ?= "koding-feeder"
     @exchangePrefix ?= "followable-"
-
-    # Create this exchange beforehand so there is no precondition-failed.
-    @mq.createExchange "updateInstances", {autoDelete:no}
 
     @mq.ready =>
       @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
@@ -86,9 +83,9 @@ EventEmitter class Feeder
           publisher = deliveryInfo.exchange
           unless publisher is ownExchangeName
             activityId = ObjectId message
-            CActivity.one {_id: activityId}, (err, activity) =>
+            # CActivity.one {_id: activityId}, (err, activity) =>
               #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-              @emit account, "FollowedActivityArrived", activity
+            @emit account, "FollowedActivityArrived", activityId
       )
 
   # HELPERS #
@@ -108,14 +105,17 @@ EventEmitter class Feeder
   emitActivity: (exchangeName, payload, options) ->
     @mq.emit exchangeName, "#{exchangeName}.activity", payload, options
 
-  on: (inst, event, listener) ->
+  on: (inst, event, callback) ->
     routing = "oid.#{inst._id}.event.#{event}"
-    @mq.on "updateInstances", routing, listener
+    opts = {exchangeAutoDelete: no}
+    @mq.bindQueue "", "updateInstances", routing, opts, (queue) =>
+      @mq.on "updateInstances", routing, (payload) =>
+        message = @mq.cleanPayload payload
+        callback message
 
   emit: (inst, event, payload) ->
     routing = "oid.#{inst._id}.event.#{event}"
-    @mq.emit "updateInstances", routing, payload
-
+    @mq.emit "updateInstances", routing, payload, {autoDelete:no}
 
   getExchange: (name) -> @mq.connection.exchanges[name]
   getExchangeName: (id) -> "#{@exchangePrefix}#{id}"

@@ -109,16 +109,19 @@ daisy tasks = [
     getRoutingKey =(inst, event)-> "oid.#{inst._id}.event.#{event}"
     JAccount.one {_id: ObjectId(followerAccount)}, (err, follower) ->
       feeder.handleAccount follower
-      
+
       # Actual tests
       routing = getRoutingKey(follower, "FollowedActivityArrived")
-      broker.on "updateInstances", routing, (activity) ->
-      #follower.on "FollowedActivityArrived", (activity) ->
-        console.log "Make sure that the follower receive the activity"
-        assert activity._id, testActivity, "should be same activity id"
+      opts = {exchangeAutoDelete: false}
+      broker.bindQueue "", "updateInstances", routing, opts, (queue) ->
+        queue.subscribe (payload) ->
+          activity = broker.cleanPayload payload
+        #follower.on "FollowedActivityArrived", (activity) ->
+          console.log "Make sure that the follower receive the activity"
+          assert activity, testActivity, "should be same activity id"
 
-        console.log "This test case passed"
-        tasks.next()
+          console.log "This test case passed"
+          tasks.next()
 
       # Setting up
       followData =
