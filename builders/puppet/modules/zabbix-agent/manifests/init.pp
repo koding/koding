@@ -11,8 +11,9 @@ class zabbix-agent {
 
     package {
         "zabbix-agent":
-            ensure => installed,
-            require => Class["yumrepos::zabbixzone"]
+            ensure => latest,
+            require => Class["yumrepos::zabbixzone"],
+            notify => Service["zabbix-agent"]
     }
 
     user { "zabbix":
