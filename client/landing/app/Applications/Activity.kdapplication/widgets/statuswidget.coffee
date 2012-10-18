@@ -125,7 +125,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @getSingleton("windowController").addLayer tabView
 
   switchToEditView:(activity)->
-    {tags, body} = activity
+    {tags, body, link} = activity
     @tagController.reset()
     @tagController.setDefaultValue tags
     @submitBtn.setTitle "Edit status update"
@@ -133,8 +133,22 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput.setValue Encoder.htmlDecode body
     @switchToLargeView()
     @utils.selectText @largeInput.$()[0]
+    if link?
 
-  submit:->
+      @embedBox.setEmbedData link.link_embed
+      @embedBox.setEmbedURL link.link_url
+      @embedBox.setEmbedImageIndex link.link_embed_image_index
+      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
+
+      @embedBox.embedExistingData link.link_embed, {}
+
+  submit:=>
+
+    @addCustomData "link_url", @embedBox.getEmbedURL() or ""
+    @addCustomData "link_embed", @embedBox.getEmbedData() or {}
+    @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
+    @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
+
     @once 'FormValidationPassed', => @reset()
     super
 

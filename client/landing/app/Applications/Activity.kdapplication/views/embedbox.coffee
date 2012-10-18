@@ -1,3 +1,16 @@
+###
+
+  Expected data structure:
+
+    link :
+      link_url                : String
+      link_embed              : Object (oembed structure)
+      link_embed_hidden_items : Array  (of Strings)
+      link_embed_image_index  : Number
+
+###
+
+
 class EmbedBox extends KDView
   constructor:(options={}, data={})->
 
@@ -5,12 +18,10 @@ class EmbedBox extends KDView
 
     @options = options
 
-    @embedData = {}
-    @embedURL = ''
-
-    @embedImageIndex = data.link_image_index or 0
-    @embedHiddenItems = data.link_embed_hidden_items or []
-
+    @setEmbedData data.link_embed or {}
+    @setEmbedURL data.link_url or ''
+    @setEmbedImageIndex data.link_embed_image_index or 0
+    @setEmbedHiddenItems data.link_embed_hidden_items or []
 
     super options,data
 
@@ -224,8 +235,8 @@ class EmbedBox extends KDView
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ["html", "xml", "text"]
             html = """
-              <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[0]? then "hidden" else ""}">
-                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[0]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
+              <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[@getEmbedImageIndex()]? then "hidden" else ""}">
+                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[@getEmbedImageIndex()]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
               </div>
               <div class="preview_text">
                <a class="preview_text_link" target="_blank" href="#{data.url or url}">
