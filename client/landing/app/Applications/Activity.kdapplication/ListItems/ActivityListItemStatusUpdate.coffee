@@ -38,7 +38,7 @@ class StatusActivityItemView extends ActivityItemChild
     else
       urls = @$("span.data > a")
       for url in urls
-        if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+        if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
           firstUrl = $(url).attr "href"
 
       if firstUrl then @embedBox.embedUrl firstUrl, {}

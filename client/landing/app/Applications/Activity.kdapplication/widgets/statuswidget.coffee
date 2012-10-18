@@ -93,7 +93,8 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   requestEmbed:=>
     setTimeout =>
-      firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+      firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      # log "'#{firstUrl}' caught for #{@largeInput.getValue()}"
       unless @previousURL is firstUrl?[0] then unless firstUrl is null then @embedBox.embedUrl firstUrl?[0], {
         maxWidth: 525
       }
