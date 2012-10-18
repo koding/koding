@@ -62,7 +62,8 @@ node hosting inherits base {
    
 }
 
-node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
+#node /^cl\d+\.beta\.service\.aws\.koding\.com$/ inherits hosting {
+node "clhome.beta.service.aws.koding.com" inherits hosting {
 
     include deploy_from_s3 # deployment disabled , just install tools
     #include gluster_client
