@@ -78,7 +78,7 @@ class EmbedBox extends KDView
         FPS         : 24
 
     @embedLink = new EmbedBoxLinkView
-      cssClass : "embed-link"
+      cssClass : "embed embed-view"
     , data
 
     unless data is {} then @hide()
@@ -123,7 +123,7 @@ class EmbedBox extends KDView
     @settingsButton?.options?.menu = @settingsMenu @getData()
 
   clearEmbed:=>
-    @$("div.embed").html ""
+    # @$("div.embed").html ""
 
   clearEmbedAndHide:=>
     @clearEmbed()
@@ -334,7 +334,12 @@ class EmbedBox extends KDView
         else
           log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
 
-      @$("div.embed").html html
+      unless data?.type in ["html", "xml", "text"]
+        @$("div.embed:not(.embed-view)").html html
+        @embedLink.hide()
+      else
+        @$("div.embed:not(.embed-view)").hide()
+        @embedLink.show()
       @$("div.embed").addClass "custom-"+type
 
     # In the case of unsafe data (most likely phishing), this should be used

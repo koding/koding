@@ -78,7 +78,7 @@ class EmbedBoxLinkViewText extends KDView
     , data
     @embedDescription = new EmbedBoxLinkViewDescription
       tagName : "a"
-      cssClass : "description"
+      cssClass : "preview_text_link"
       attributes :
         href : data.link_url
         target: "_blank"
