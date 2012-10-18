@@ -10,8 +10,6 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     @count = 0
 
   updateCount:(newCount = 0)->
-    # if newCount > 0
-    #   log "UPDATING COUNT:: ", newCount
     @$('.count cite').text newCount
     @count = newCount
 
@@ -69,11 +67,14 @@ class AvatarAreaIconMenu extends KDView
 
   attachListeners:->
 
-    # @getSingleton('notificationController').on "NotificationHasArrived", (notification)=>
-    #   @notificationsIcon.updateCount @notificationsIcon.count + 1
-
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
-      @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+      # No need the following
+      # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
+      if event is 'ActivityIsAdded'
+        @avatarNotificationsPopup.listController.fetchNotificationTeasers (notifications)=>
+          @avatarNotificationsPopup.noNotification.hide()
+          @avatarNotificationsPopup.listController.removeAllItems()
+          @avatarNotificationsPopup.listController.instantiateListItems notifications
 
     @avatarNotificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @avatarNotificationsPopup.loaderTimeout
@@ -91,9 +92,6 @@ class AvatarAreaIconMenu extends KDView
         @avatarMessagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
-    @avatarNotificationsPopup.on 'ReceivedClickElsewhere', =>
-      @notificationsIcon.updateCount 0
-
   accountChanged:(account)->
     if KD.isLoggedIn()
       @unsetClass "invisible"
@@ -102,7 +100,7 @@ class AvatarAreaIconMenu extends KDView
       messagesPopup.listController.removeAllItems()
       notificationsPopup.listController.removeAllItems()
 
-      #do not remove the timeout it should give dom sometime before putting an extra load
+      # do not remove the timeout it should give dom sometime before putting an extra load
       notificationsPopup.loaderTimeout = @utils.wait 5000, =>
         notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
           notificationsPopup.listController.instantiateListItems teasers
@@ -237,9 +235,14 @@ class AvatarPopupNotifications extends AvatarPopup
 
   show:->
     super
-    @listController.fetchNotificationTeasers (notifications)=>
-      @listController.removeAllItems()
-      @listController.instantiateListItems notifications
+
+  hide:->
+    KD.whoami().glanceActivities =>
+      for item in @listController.itemsOrdered
+        item.unsetClass 'unread'
+      @noNotification.show()
+      @listController.emit 'NotificationCountDidChange', 0
+    super
 
 class AvatarPopupMessages extends AvatarPopup
 
@@ -335,9 +338,12 @@ class PopupNotificationListItem extends NotificationListItem
     popupList = @getDelegate()
     popupList.propagateEvent KDEventType : 'AvatarPopupShouldBeHidden'
 
-    {_id} = @getData()
-    KD.whoami().glanceActivities _id, (err)=>
-      if err then log "Error: ", err
+    # If we need to use implement click to mark as read for notifications
+    # Just un-comment following 3 line. A friend from past.
+    # {_id} = @getData()
+    # KD.whoami().glanceActivities _id, (err)=>
+    #   if err then log "Error: ", err
+
     super
 
 class PopupMessageListItem extends KDListItemView
