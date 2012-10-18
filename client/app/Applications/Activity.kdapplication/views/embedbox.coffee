@@ -79,13 +79,10 @@ class EmbedBox extends KDView
 
     unless data is {} then @hide()
 
-  settingsMenu:(data)=>
-
-    account        = KD.whoami()
-    mainController = @getSingleton('mainController')
+  settingsMenu:(data={})=>
 
     # only during creation of when the user is the link owner should
-    # this menu exist
+    # this menu exist (also editing)
 
     if @options.hasDropdown
       menu = [
@@ -119,6 +116,7 @@ class EmbedBox extends KDView
     @setEmbedURL ''
     @setEmbedHiddenItems []
     @setEmbedImageIndex 0
+    @settingsButton?.options?.menu = @settingsMenu @getData()
 
   clearEmbed:=>
     @$("div.embed").html ""
@@ -153,6 +151,9 @@ class EmbedBox extends KDView
 
   addEmbedHiddenItem:(item)=>
     if not (item in @embedHiddenItems) then @embedHiddenItems.push item
+
+  removeEmbedHiddenItem:(item)=>
+    if (item in @getEmbedHiddenItems()) then delete @embedHiddenItems[@embedHiddenItems.indexOf item]
 
   getRichEmbedWhitelist:=>
     [
@@ -194,7 +195,7 @@ class EmbedBox extends KDView
       # types should be covered, but if the embed call fails partly, default to link
       type = data?.object?.type or "link"
 
-      log "Embedding object type",type, " with data type",data.type
+      # log "Embedding object type",type, " with data type",data.type
 
       switch type
         when "html" then html = data?.object?.html or "This link has no Preview available. Oops."
@@ -253,24 +254,69 @@ class EmbedBox extends KDView
                 <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
               </div>
             """
+
+            # if @settingsButton?.options?.menu? then @settingsButton?.options?.menu = _.uniq @settingsButton?.options?.menu
+
             # uses the settingsMenu as an array, adding these links after the
             # default "remove"
-            if data?.images?[0]? then @settingsButton?.options?.menu?.push
+            if data?.images?[0]?
+
+              if not ("image" in @getEmbedHiddenItems()) then @settingsButton?.options?.menu?.push
 
                 'Remove Image from Preview' :
                   callback : =>
                     @addEmbedHiddenItem "image"
                     @refreshEmbed()
                     @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+
+                    for item in @settingsButton?.options?.menu
+                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Remove Image from Preview']?
+
+                    @settingsButton.render()
                     no
 
-            if data?.description? then @settingsButton?.options?.menu?.push
+              else @settingsButton?.options?.menu?.push
 
-                'Remove Description from Preview'   :
+                'Add Image to Preview' :
                   callback : =>
-                    @embedHiddenItems.push "description"
+                    @removeEmbedHiddenItem "image"
                     @refreshEmbed()
                     @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+
+                    for item in @settingsButton?.options?.menu
+                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Add Image to Preview']?
+
+                    @settingsButton.render()
+                    no
+
+            if data?.description?
+
+              if not ("description" in @getEmbedHiddenItems()) then @settingsButton?.options?.menu?.push
+
+                'Remove Description from Preview' :
+                  callback : =>
+                    @addEmbedHiddenItem "description"
+                    @refreshEmbed()
+                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+
+                    for item in @settingsButton?.options?.menu
+                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Remove Description from Preview']?
+
+                    @settingsButton.render()
+                    no
+
+              else @settingsButton?.options?.menu?.push
+
+                'Add Description to Preview' :
+                  callback : =>
+                    @removeEmbedHiddenItem "description"
+                    @refreshEmbed()
+                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
+
+                    for item in @settingsButton?.options?.menu
+                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Add Description to Preview']?
+
+                    @settingsButton.render()
                     no
 
           # this can be audio or video files
@@ -305,13 +351,12 @@ class EmbedBox extends KDView
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
-    @embedLoader.show()
+    # log "calling EmbedUrl with", url
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
         @clearEmbed()
         @populateEmbed data, url, embedlyOptions
         @show()
-        @embedLoader.hide()
         callback data
       else
         callback no

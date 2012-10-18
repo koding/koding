@@ -44,6 +44,13 @@ class StatusActivityItemView extends ActivityItemChild
       if firstUrl then @embedBox.embedUrl firstUrl, {}
       else @embed
 
+  render:=>
+    super
+    data = @getData().link or {}
+    @embedBox.setEmbedHiddenItems data.link_embed_hidden_items
+    @embedBox.setEmbedImageIndex data.link_embed_image_index
+    @embedBox?.embedExistingData data.link_embed, {}
+
   click:(event)->
 
     super
