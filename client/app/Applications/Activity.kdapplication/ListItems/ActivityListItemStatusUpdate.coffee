@@ -25,7 +25,13 @@ class StatusActivityItemView extends ActivityItemChild
 
     # If there is embed data in the model, use that!
     if @getData()?.link
-      @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+      if not ("embed" in @getData().link.link_embed_hidden_items)
+        @embedBox.show()
+        @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+      else
+        # no need to show stuff if it should not be shown. not even in the code
+        @embedBox.hide()
+        @embedBox.destroy()
 
     # This will involve heavy load on the embedly servers - every client
     # will need to make a request.
@@ -36,6 +42,7 @@ class StatusActivityItemView extends ActivityItemChild
           firstUrl = $(url).attr "href"
 
       if firstUrl then @embedBox.embedUrl firstUrl, {}
+      else @embed
 
   click:(event)->
 
