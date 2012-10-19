@@ -25,9 +25,9 @@ class EmbedBox extends KDView
 
     super options,data
 
-    # top right corner either has the administrative dropdown for custom embed stuff
+    # top right corner either has the remove-embed button
     # or the report-button (to report malicious content)
-    if @options.hasDropdown or KD.checkFlag 'super-admin'
+    if @options.hasConfig
       @settingsButton = new KDButtonViewWithMenu
         cssClass    : 'transparent activity-settings-context activity-settings-menu embed-box-settings'
         title       : ''
@@ -77,9 +77,24 @@ class EmbedBox extends KDView
         speed       : 1
         FPS         : 24
 
+    @embedType = data.link_embed?.object?.type or data.link_embed?.type or "link"
+    # log "Initital type is ",@embedType
+
     @embedLink = new EmbedBoxLinkView
-      cssClass : "embed embed-view"
+      cssClass : "embed embed-link-view hidden"
+      delegate : @
     , data
+
+    @embedObject = new EmbedBoxObjectView
+      cssClass : "embed embed-object-view hidden"
+      delegate : @
+    , data
+
+    @embedImage = new EmbedBoxImageView
+      cssClass : "embed embed-image-view hidden"
+      delegate : @
+    , data
+
 
     unless data is {} then @hide()
 
@@ -128,6 +143,12 @@ class EmbedBox extends KDView
   clearEmbedAndHide:=>
     @clearEmbed()
     @hide()
+
+  getEmbedDataForSubmit:=>
+    data              = @getEmbedData()
+    data.title        = @embedLink?.embedText?.embedTitle?.titleInput?.getValue()
+    data.description  = @embedLink?.embedText?.embedDescription?.descriptionInput?.getValue()
+    data
 
   getEmbedData:=>
     @embedData
@@ -187,6 +208,22 @@ class EmbedBox extends KDView
 
   populateEmbed:(data={},url="#",options={})=>
 
+    displayEmbedType=(embedType)=>
+      switch embedType
+        when "link"
+          @embedLink.show()
+          @embedObject.hide()
+          @embedImage.hide()
+        when "image"
+          @embedLink.hide()
+          @embedObject.hide()
+          @embedImage.show()
+        when "object"
+          @embedLink.hide()
+          @embedObject.show()
+          @embedImage.hide()
+
+
     # if the whole embed should be hidden, no content needs to be prepared
     if "embed" in @getEmbedHiddenItems()
       @hide()
@@ -202,21 +239,28 @@ class EmbedBox extends KDView
       # log "Embedding object type",type, " with data type",data.type
 
       switch type
-        when "html" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "audio" then html = Encoder.htmlDecode data?.object?.html or "This link has no Preview available. Oops."
 
-        when "video"
-          html = Encoder.htmlDecode data?.object?.html or "This link has no Preview available. Oops."
+        when "audio", "xml", "video", "json", "ppt", "rss", "atom"
+          displayEmbedType "object"
 
-        when "text" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "xml" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "json" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "ppt" then html = data?.object?.html or "This link has no Preview available. Oops."
-        when "rss","atom" then html = data?.object?.html or "This link has no Preview available. Oops."
+          @embedObject.populate
+            link_embed : data
+            link_url : url
+            link_options : options
+            link_embed_image_index : @getEmbedImageIndex()
+            link_embed_hidden_items : @getEmbedHiddenItems()
 
         # this is usually just a single image
         when "photo","image"
-          html = """<a href="#{data?.url or "#"}" target="_blank"><img src="#{data?.images?[0]?.url}" style="max-width:#{options.maxWidth+"px" or "560px"};max-height:#{options.maxHeight+"px" or "300px"}" title="#{data?.title or ""}" /></a>"""
+          displayEmbedType "image"
+
+          @embedImage.populate
+            link_embed : data
+            link_url : url
+            link_options : options
+            link_embed_image_index : @getEmbedImageIndex()
+            link_embed_hidden_items : @getEmbedHiddenItems()
+
           if ("image" in @getEmbedHiddenItems())
             @hide()
 
@@ -225,103 +269,46 @@ class EmbedBox extends KDView
         # link is fallback for things that may or may not have any kind of preview
         # or are links explicitly
         # also captures "rich content" and makes regular links from that data
-        when "link","rich"
-
-          # log data
+        when "link", "rich", "html", "text"
 
           # Unless the provider is whitelisted by us, we will not allow the custom HTML
           # that embedly provides to be displayed, rather use our own small box
           # that shows a  thumbnail, some info about the author and a desc.
 
           if (data?.provider_name in @getRichEmbedWhitelist())
-            html = Encoder.htmlDecode data?.object?.html
+            displayEmbedType "object"
+
+            @embedObject.populate
+              link_embed : data
+              link_url : url
+              link_options : _.extend {}, options, @options
+              link_embed_image_index : @getEmbedImageIndex()
+              link_embed_hidden_items : @getEmbedHiddenItems()
 
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ["html", "xml", "text"]
-            html = """
-              <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[@getEmbedImageIndex()]? then "hidden" else ""}">
-                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[@getEmbedImageIndex()]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
-              </div>
-              <div class="preview_text">
-               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
-                <div class="preview_title">#{data.title or data.url}</div>
-               </a>
-                <div class="author_info #{if data.author_name then "" else "hidden"}">written by <a href="#{data.author_url or "#"}" target="_blank">#{data.author_name}</a></div>
-                <div class="provider_info">for <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <a href=\"" +data.provider_url+"\" target=\"_blank\">"+data.provider_display+"</a>" else ""}</div>
-               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
-                <div class="description #{if data.description and not("description" in @getEmbedHiddenItems()) then "" else "hidden"}">#{data.description or ""}</div>
-               </a>
-              </div>
-              <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
-                <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
-                <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
-              </div>
-            """
 
-            # if @settingsButton?.options?.menu? then @settingsButton?.options?.menu = _.uniq @settingsButton?.options?.menu
+            displayEmbedType "link"
 
-            # uses the settingsMenu as an array, adding these links after the
-            # default "remove"
-            if data?.images?[0]?
+            @embedLink.populate
+              link_embed : data
+              link_url : url
+              link_options : _.extend {}, options, @options
+              link_embed_image_index : @getEmbedImageIndex()
+              link_embed_hidden_items : @getEmbedHiddenItems()
 
-              if not ("image" in @getEmbedHiddenItems()) then @settingsButton?.options?.menu?.push
+            #   <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
+            #     <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
+            #     <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
+            #   </div>
 
-                'Remove Image from Preview' :
-                  callback : =>
-                    @addEmbedHiddenItem "image"
-                    @refreshEmbed()
-                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
 
-                    for item in @settingsButton?.options?.menu
-                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Remove Image from Preview']?
 
-                    @settingsButton.render()
-                    no
+            #         @removeEmbedHiddenItem "description"
+            #         @refreshEmbed()
+            #         @getDelegate()?.emit "embedHideItem", @embedHiddenItems
 
-              else @settingsButton?.options?.menu?.push
-
-                'Add Image to Preview' :
-                  callback : =>
-                    @removeEmbedHiddenItem "image"
-                    @refreshEmbed()
-                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-
-                    for item in @settingsButton?.options?.menu
-                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Add Image to Preview']?
-
-                    @settingsButton.render()
-                    no
-
-            if data?.description?
-
-              if not ("description" in @getEmbedHiddenItems()) then @settingsButton?.options?.menu?.push
-
-                'Remove Description from Preview' :
-                  callback : =>
-                    @addEmbedHiddenItem "description"
-                    @refreshEmbed()
-                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-
-                    for item in @settingsButton?.options?.menu
-                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Remove Description from Preview']?
-
-                    @settingsButton.render()
-                    no
-
-              else @settingsButton?.options?.menu?.push
-
-                'Add Description to Preview' :
-                  callback : =>
-                    @removeEmbedHiddenItem "description"
-                    @refreshEmbed()
-                    @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-
-                    for item in @settingsButton?.options?.menu
-                      delete @settingsButton?.options?.menu?[@settingsButton?.options?.menu?.indexOf item] if item?['Add Description to Preview']?
-
-                    @settingsButton.render()
-                    no
 
           # this can be audio or video files
           else
@@ -334,12 +321,6 @@ class EmbedBox extends KDView
         else
           log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
 
-      unless data?.type in ["html", "xml", "text"]
-        @$("div.embed:not(.embed-view)").html html
-        @embedLink.hide()
-      else
-        @$("div.embed:not(.embed-view)").hide()
-        @embedLink.show()
       @$("div.embed").addClass "custom-"+type
 
     # In the case of unsafe data (most likely phishing), this should be used
@@ -370,25 +351,6 @@ class EmbedBox extends KDView
       else
         callback no
 
-  click:(event)=>
-    if  $(event.target).hasClass "preview_link_switch"
-
-      if ($(event.target).hasClass "next") and (@getEmbedData().images?.length-1 > @getEmbedImageIndex() )
-        @setEmbedImageIndex @getEmbedImageIndex() + 1
-        @$("a.preview_link_switch.previous").removeClass "disabled"
-
-      if ($(event.target).hasClass "previous") and (@getEmbedImageIndex() > 0)
-        @setEmbedImageIndex @getEmbedImageIndex() - 1
-        @$("a.preview_link_switch.next").removeClass "disabled"
-
-      @$("div.preview_image img.thumb").attr src : @getEmbedData()?.images?[@getEmbedImageIndex()]?.url
-      @$("span.thumb_nr").html @getEmbedImageIndex()+1
-
-      if @getEmbedImageIndex() is 0
-        @$("a.preview_link_switch.previous").addClass "disabled"
-
-      else if @getEmbedImageIndex() is (@getEmbedData().images?.length-1)
-        @$("a.preview_link_switch.next").addClass "disabled"
 
 
 
@@ -397,7 +359,8 @@ class EmbedBox extends KDView
       {{> @settingsButton}}
       {{> @embedLoader}}
       <div class="link-embed clearfix">
-        <div class="embed"></div>
         {{> @embedLink}}
+        {{> @embedImage}}
+        {{> @embedObject}}
       </div>
     """
