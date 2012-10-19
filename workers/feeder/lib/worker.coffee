@@ -23,12 +23,13 @@ distributeActivityToFollowers = () ->
   relationshipsCol = db.collection 'relationships'
   accountsCol = db.collection 'jAccounts'
 
-  broker.createQueue queueName, {exclusive:false, autoDelete:false}, (queue) ->
+  queueOpts = {durable: true, exclusive:false, autoDelete:false}
+  broker.createQueue queueName, queueOpts, (queue) ->
     # Using prefetchCount to tell RabbitMQ not to dispatch a new message
     # to a worker until it has processed and acknowledged the previous one.
     # Instead, it will dispatch it to the next worker that is not still busy.
     queue.subscribe {ack:true, prefetchCount:1}, (message, headers, deliveryInfo) =>
-      {exchange, routingKey, _consumerTag} = deliveryInfo
+      {exchange, routingKey, _consumerTag} = deliveryInfo\
       message = message.data+"" if message.data?
 
       #console.log "Feed worker receives message #{message} on exchange #{exchange}"
@@ -44,9 +45,12 @@ distributeActivityToFollowers = () ->
       selector = sourceId: owner, as: "follower"
       # Get the followers
       cursor = relationshipsCol.find selector, {targetId: true}
+
       cursor.each (err, rel) ->
-        if err or not rel
-          #console.log "Failed to find follower", err, rel
+        if err 
+          queue.shift()
+        else if not rel? # end of query
+          queue.shift()
         else
           selector = {owner: rel.targetId, title: "followed"}
           # Get the follower's feed
@@ -66,7 +70,7 @@ distributeActivityToFollowers = () ->
                 if err or count is 0
                   #console.log "There is an error saving activity to feed"
                 else
-                  queue.shift() # ack the completion
+                  #console.log "Worker finished writing to feed"
 
 
 assureExchangeMesh = (options) ->

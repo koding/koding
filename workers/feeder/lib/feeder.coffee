@@ -39,8 +39,10 @@ EventEmitter class Feeder
     return unless activity.type in activityTypes
     accountId = activity.originId
     accountXName = @getExchangeName accountId
+
+    #console.log "Feeder receives activity from #{accountId}"
+
     # Setting deliveryMode to 2 makes the message persistent.
-    
     deliveryMode = 2
     autoDelete = no
     payload = activity._id.toString()
@@ -48,13 +50,16 @@ EventEmitter class Feeder
     @bindToWorkerQueue accountXName, =>
       @emitActivity accountXName, payload, {deliveryMode, autoDelete}
 
-    activity.fetchTeaser (err, {tags}) =>
+    try
+      {tags} = JSON.parse activity.snapshot
+      #activity.fetchTeaser (err, {tags}) =>
       return unless tags?
       for tag in tags
         do =>
           tagXName = @getExchangeName tag._id
           @bindToWorkerQueue tagXName, =>
             @emitActivity tagXName, payload, {deliveryMode, autoDelete}
+    catch e
 
   handleFollowAction: (account) ->
     ownExchangeName = @getExchangeName account._id
@@ -95,6 +100,7 @@ EventEmitter class Feeder
     workerQueueOptions =
       exchangeAutoDelete: no
       queueExclusive: no
+      queueAutoDelete: no
     # This effectively declares own exchange.
     @mq.bindQueue(
       @queueName, 
