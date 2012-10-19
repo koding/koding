@@ -11,10 +11,10 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   configPath ?= '../../config/dev'
   {logger, configNumberOfWorkers} = require configPath
   numberOfWorkers ?= configNumberOfWorkers ? 1
-  logger = new KodingLogger 'social', os.hostname(), logger.mq
-  logger.tailTo process.stdout unless silent
+  #logger = new KodingLogger 'feeder', os.hostname(), logger.mq
+  #logger.tailTo process.stdout unless silent
   i = 0
-  logger.logAll process, 'supervisor'
+  #logger.logAll process, 'supervisor'
 
   processes.fork
     name: "feeder"
@@ -36,6 +36,6 @@ task 'run', ({numberOfWorkers, configPath, silent})->
       restartInterval : 1000
       verbose : yes
 
-    logger.logAll processes.get("feederWorker-#{i}"), "worker#{i}"
+    #logger.logAll processes.get("feedWorker-#{i}"), "worker#{i}"
     i++
   return

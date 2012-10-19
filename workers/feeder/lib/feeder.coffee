@@ -1,7 +1,6 @@
 SOCIALPATH = "../../social/lib/social"
 CActivity = require "#{SOCIALPATH}/models/activity/index"
 {ObjectId} = require 'bongo'
-mongoskin = require 'mongoskin'
 
 {EventEmitter} = require 'microemitter'
 
@@ -11,10 +10,10 @@ EventEmitter class Feeder
   getRoutingKey =(inst, event)-> "oid.#{inst._id}.event.#{event}"
 
   constructor: (options) ->
-    {@mq, @mongo, @queueName, @exchangePrefix} = options
-    #@mongo = mongoskin.db mongo
+    {@mq, @queueName, @exchangePrefix} = options
     @queueName ?= "koding-feeder"
     @exchangePrefix ?= "followable-"
+    @clients = {}
 
     @mq.ready =>
       @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
@@ -23,8 +22,11 @@ EventEmitter class Feeder
         @handleNewActivity activity
 
   handleAccount: (account) ->
-    @handleFolloweeActivity account
-    @handleFollowAction account
+    client = account?.profile?.nickname
+    unless client?
+      @clients[client] = account
+      @handleFolloweeActivity account
+      @handleFollowAction account
 
   ###
   # Whenever an activity is created, it will just emit to the user's

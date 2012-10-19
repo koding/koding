@@ -1,12 +1,12 @@
 mongoskin = require 'mongoskin'
 Broker = require 'broker'
 
-QUEUE = "koding-feeder"
+Object.defineProperty global, 'KONFIG', value: require './config'
+{mq, mongo, queueName, exchangePrefix} = KONFIG
 
 ### AVAILABLE TASKS ###
-distributeActivityToFollowers = (options = {}) ->
+distributeActivityToFollowers = () ->
   {ObjectId} = require 'bongo'
-  {mq, mongo, exchangePrefix} = options
 
   mq ?= 
     host: "localhost"
@@ -14,7 +14,8 @@ distributeActivityToFollowers = (options = {}) ->
     password: "guest"
     vhost: "/"
   broker = new Broker mq
-  exchangePrefix = exchangePrefix ? "followable-"
+  queueName ?= "koding-feeder"
+  exchangePrefix ?= "followable-"
 
   dbUrl = mongo ? "mongodb://dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect"
   db = mongoskin.db dbUrl
@@ -22,7 +23,7 @@ distributeActivityToFollowers = (options = {}) ->
   relationshipsCol = db.collection 'relationships'
   accountsCol = db.collection 'jAccounts'
 
-  broker.createQueue QUEUE, {exclusive:false, autoDelete:false}, (queue) ->
+  broker.createQueue queueName, {exclusive:false, autoDelete:false}, (queue) ->
     # Using prefetchCount to tell RabbitMQ not to dispatch a new message
     # to a worker until it has processed and acknowledged the previous one.
     # Instead, it will dispatch it to the next worker that is not still busy.
