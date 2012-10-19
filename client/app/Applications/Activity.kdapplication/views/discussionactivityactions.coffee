@@ -5,15 +5,12 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     activity = @getData()
 
-    @opinionLink = new ActivityActionLink
-      partial   : "Join this discussion"
-      click     : (pubInst, event)=>
-        @emit "DiscussionActivityLinkClicked"
-
     @opinionCount?.destroy()
 
     @opinionCountLink  = new ActivityActionLink
-      partial     : "· Answers"
+      partial     : "Answers"
+      click     : (pubInst, event)=>
+        @emit "DiscussionActivityLinkClicked"
 
     if activity.repliesCount is 0 then @opinionCountLink.hide()
 
@@ -51,7 +48,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionLink}} {{> @opinionCountLink}} {{> @opinionCount}} ·
+    {{> @opinionCountLink}} {{> @opinionCount}} ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
