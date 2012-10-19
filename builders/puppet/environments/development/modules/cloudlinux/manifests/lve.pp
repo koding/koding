@@ -11,7 +11,8 @@ class cloudlinux::lve {
         owner => 'root',
         group => 'root',
         mode => '0644',
-        source => "puppet:///modules/cloudlinux/etc/container/ve.cfg",
+        #source => "puppet:///modules/cloudlinux/etc/container/ve.cfg",
+        content => template("cloudlinux/ve.cfg.erb"),
         notify => Exec['lve_reload']
     }
     
