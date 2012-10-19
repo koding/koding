@@ -21,9 +21,9 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   social        :
-    numberOfWorkers: 1
+    numberOfWorkers: 5
     watch       : yes
   client        :
     version     : version
