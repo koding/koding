@@ -102,13 +102,13 @@ AccountMixin = do ->
           KD.remote.fetchChannel channelName, (channel) ->
             channels[channelName] = channel
             callback channel
-        else
-          # Because we set channels[channelName] to true when there
-          # are consecutive calls to this, we want it to be a Channel
-          # instead, so we wait until the first call is finish.
-          condition = -> channels[channelName] instanceof Channel
-          waitUntil condition, ->
-            callback channels[channelName]
+        # else
+        #   # Because we set channels[channelName] to true when there
+        #   # are consecutive calls to this, we want it to be a Channel
+        #   # instead, so we wait until the first call is finish.
+        #   condition = -> channels[channelName] instanceof Channel
+        #   waitUntil condition, ->
+        #     callback channels[channelName]
 
       (options, callback=->)->
         scrubber = new Scrubber localStore
