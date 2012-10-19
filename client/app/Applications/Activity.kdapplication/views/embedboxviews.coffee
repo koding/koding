@@ -231,6 +231,7 @@ class EmbedBoxLinkViewTitle extends KDView
     @hide() if (data?.link_embed_hidden_items?["title"]?) or not data.link_embed?.title? or data.link_embed?.title.trim() is ""
 
     if options.hasConfig is yes
+      @setClass "has-config"
       @titleInput = new KDInputView
         cssClass     : "preview_title_input hidden"
         name         : "preview_title_input"
@@ -269,12 +270,12 @@ class EmbedBoxLinkViewDescription extends KDView
     @hide() if (data?.link_embed_hidden_items?["description"]?) or not data.link_embed?.description? or data.link_embed?.description.trim() is ""
 
     if options.hasConfig is yes
+      @setClass "has-config"
       @descriptionInput = new KDInputView
         type         : "textarea"
         cssClass     : "description_input hidden"
         name         : "description_input"
         defaultValue : data.link_embed?.description or ""
-        autogrow     : yes
 
     else
       @descriptionInput = new KDCustomHTMLView
@@ -291,6 +292,8 @@ class EmbedBoxLinkViewDescription extends KDView
       event.preventDefault()
       event.stopPropagation()
       @descriptionInput.show()
+      @descriptionInput.focus()
+
       @$("div.description").hide()
       no
     else
