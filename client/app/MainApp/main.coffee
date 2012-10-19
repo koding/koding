@@ -6,6 +6,7 @@ do ->
   firstLoad                  = yes
   connectionLostModal        = null
   connectionLostNotification = null
+  manuallyClosed             = no
 
   destroyNotification = ->
     connectionLostNotification?.destroy()
@@ -34,7 +35,7 @@ do ->
       connectionLostModal = null
 
   showModal = ->
-    return if connectionLostModal
+    return if connectionLostModal or manuallyClosed
     destroyNotification()
     connectionLostModal = new KDBlockingModalView
       title   : "Server connection lost"
@@ -48,9 +49,11 @@ do ->
       height  : "auto"
       overlay : yes
       buttons :
-        "Close and Refresh later" :
+        "Close and work offline" :
           style     : "modal-clean-red"
-          callback  : -> destroyModal()
+          callback  : ->
+            manuallyClosed = yes
+            destroyModal()
 
     connectionLostModal.once "KDObjectWillBeDestroyed", -> destroyModal()
 
@@ -65,6 +68,7 @@ do ->
 
 
   KD.remote.on 'connected', ->
+    manuallyClosed = no
     if firstLoad
       log 'kd remote connected'
       firstLoad = no

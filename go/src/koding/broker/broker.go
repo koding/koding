@@ -90,7 +90,7 @@ func main() {
 					func() {
 						defer log.RecoverAndLog()
 
-						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
+						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "exchange": message.Exchange, "payload": string(message.Body)})
 						if err != nil {
 							panic(err)
 						}
@@ -123,24 +123,28 @@ func main() {
 					log.Debug(message)
 
 					event := message["event"]
-					exchange := message["channel"]
+					exchange := message["exchange"]
+					routingKey := message["routingKey"]
+					if routingKey == "" {
+						routingKey = "#"
+					}
 
 					switch event {
-					case "client-subscribe":
-						err = controlChannel.QueueBind(clientQueue, "#", exchange, false, nil)
+					case "client-bind":
+						err = controlChannel.QueueBind(clientQueue, routingKey, exchange, false, nil)
 						if err != nil {
 							panic(err)
 						}
 						exchanges = append(exchanges, exchange)
 
-						body, err = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": exchange, "payload": ""})
+						body, err = json.Marshal(map[string]string{"event": "broker:bind_succeeded", "exchange": exchange, "routingKey": routingKey})
 						if err != nil {
 							panic(err)
 						}
 						sendChan <- string(body)
 
-					case "client-unsubscribe":
-						err = controlChannel.QueueUnbind(clientQueue, "#", exchange, nil)
+					case "client-unbind":
+						err = controlChannel.QueueUnbind(clientQueue, routingKey, exchange, nil)
 						if err != nil {
 							panic(err)
 						}
@@ -151,10 +155,6 @@ func main() {
 								break
 							}
 						}
-
-					case "client-bind-event":
-
-					case "client-unbind-event":
 
 					case "client-presence":
 

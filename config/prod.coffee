@@ -5,9 +5,8 @@ deepFreeze = require 'koding-deep-freeze'
 
 version = "0.9.1c" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# STAGING
+# PROD
 mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
-#mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
 #  basicAuth     :
@@ -51,8 +50,8 @@ module.exports = deepFreeze
       env       : 'beta'
   mq            :
     host        : 'localhost'
-    login       : 'test'
-    password    : 'test'
+    login       : 'PROD-k5it50s4676pO9O'
+    password    : 'Dtxym6fRJXx4GJz'
     vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
@@ -70,7 +69,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'stage'
-      password  : '#[85_[*zh7%4;4l6T]F!'
-      vhost     : 'stage-logs'
+      login     : 'PROD-k5it50s4676pO9O'
+      password  : 'Dtxym6fRJXx4GJz'
+      vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'

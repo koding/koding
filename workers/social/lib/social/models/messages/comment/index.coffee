@@ -70,11 +70,3 @@ module.exports = class JComment extends jraphical.Reply
         , -> queue.fin()
     ]
     dash queue, callback
-
-  @fetchRelated = (targetId, callback)->
-    Relationship.one
-      as         : 'reply'
-      targetId   : targetId
-    , (err, rel)->
-      if not err and rel then rel.fetchSource callback
-      else callback err, null

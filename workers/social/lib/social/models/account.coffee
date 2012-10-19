@@ -196,14 +196,21 @@ module.exports = class JAccount extends jraphical.Module
 
   glanceMessages: secure (client, callback)->
 
-  glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
-      if err
-        callback err
-      else
-        queue = activities.map (activity)->->
-          activity.mark client, 'glanced', -> queue.fin()
-        dash queue, callback
+  glanceActivities: secure (client, activityId, callback)->
+    [callback, activityId] = [activityId, callback] unless callback
+    {delegate} = client.connection
+    unless @equals delegate
+      callback new KodingError 'Access denied.'
+    else
+      selector = {'data.flags.glanced' : $ne : yes}
+      selector.targetId = activityId if activityId
+      @fetchActivities selector, (err, activities)->
+        if err
+          callback err
+        else
+          queue = activities.map (activity)->->
+            activity.mark client, 'glanced', -> queue.fin()
+          dash queue, callback
 
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
