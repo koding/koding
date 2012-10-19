@@ -6,13 +6,14 @@
  MemTotal : <%= memorytotal %>
  Swap     : <%= swapsize %>
  Timzome  : <%= timezone %>
- Local IP : <%= ec2_local_ipv4 %>
+ Local IP : <% if not @ec2_local_ipv4 %>  <%= ipaddress_eth0 %> <% else %>  <%= ec2_local_ipv4 %> <% end %>
  SELinux  : <%= selinux %>
  ------------------------------------------------
- EC2 Pub IP   : <%= ec2_public_ipv4 %>
- EC2 id	      : <%= ec2_instance_id %>
- EC2 type     : <%= ec2_instance_type %>
- EC2 location : <%= ec2_placement_availability_zone %>
+ EC2 Pub IP   : <% if not @ec2_public_ipv4 %> undefinded <% else %> <%= ec2_public_ipv4 %> <% end %>
+ EC2 id       : <% if not @ec2_instance_id %> undefinded <% else %> <%= ec2_instance_id %> <% end %>
+ EC2 type     : <% if not @ec2_instance_type %> undefinded <% else %> <%= ec2_instance_type %> <% end %>
+ EC2 location : <% if not @ec2_placement_availability_zone %> undefinded <% else %> <%= ec2_placement_availability_zone %> <% end %>
+
 
 *************************************************
 
