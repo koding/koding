@@ -11,12 +11,13 @@ class cloudlinux::lve {
         owner => 'root',
         group => 'root',
         mode => '0644',
-        source => "puppet:///modules/cloudlinux/etc/container/ve.cfg",
+        #source => "puppet:///modules/cloudlinux/etc/container/ve.cfg",
+        content => template("cloudlinux/ve.cfg.erb"),
         notify => Exec['lve_reload']
     }
     
     exec { "lve_reload":
-        command => "/etc/init.d/lvectl reload",
+        command => "/etc/init.d/lvectl reload && /usr/sbin/lvectl apply all",
         refreshonly => true,
     }
 }

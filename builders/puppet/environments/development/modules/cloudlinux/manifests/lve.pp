@@ -17,7 +17,7 @@ class cloudlinux::lve {
     }
     
     exec { "lve_reload":
-        command => "/etc/init.d/lvectl reload",
+        command => "/etc/init.d/lvectl reload && /usr/sbin/lvectl apply all",
         refreshonly => true,
     }
 }
