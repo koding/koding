@@ -196,6 +196,13 @@ module.exports = class JDiscussion extends JPost
     @beginGraphlet()
       .edges
         query         :
+          sourceName  : 'JDiscussion'
+          targetName  : 'JTag'
+          as          : 'tag'
+        limit         : 5
+      .and()
+      .edges
+        query         :
           targetName  : 'JOpinion'
           as          : 'opinion'
           'data.deletedAt':
@@ -218,13 +225,6 @@ module.exports = class JDiscussion extends JPost
         # limit         : 3
         sort          :
           timestamp   : 1
-      # .nodes()
-      .and()
-      .edges
-        query         :
-          targetName  : 'JTag'
-          as          : 'tag'
-        limit         : 5
       .nodes()
     .endGraphlet()
     .fetchRoot callback
