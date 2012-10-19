@@ -61,7 +61,17 @@ class StatusActivityItemView extends ActivityItemChild
     if $(event.target).is("[data-paths~=body]")
       appManager.tell "Activity", "createContentDisplay", @getData()
 
-  applyTextExpansions:(str = "")-> @utils.applyTextExpansions str, yes
+  applyTextExpansions:(str = "")->
+    link = @getData().link?.link_url
+    if link
+      isJustLink = str.trim() is link
+      endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
+      startsWithLink = str.trim().indexOf(link) is 0
+
+      if not isJustLink and (endsWithLink or startsWithLink)
+        str = str.replace link, ""
+
+    @utils.applyTextExpansions str, yes
 
   pistachio:->
     """
