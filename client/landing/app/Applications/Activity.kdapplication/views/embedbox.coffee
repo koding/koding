@@ -18,26 +18,26 @@ class EmbedBox extends KDView
 
     @options = options
 
-    @setEmbedData data.link_embed or {}
-    @setEmbedURL data.link_url or ''
-    @setEmbedImageIndex data.link_embed_image_index or 0
-    @setEmbedHiddenItems data.link_embed_hidden_items or []
+    @setEmbedData data.link_embed or data.link?.link_embed or {}
+    @setEmbedURL data.link_url or data.link?.link_url or ''
+    @setEmbedImageIndex data.link_embed_image_index or data.link?.link_embed_image_index or 0
+    @setEmbedHiddenItems data.link_embed_hidden_items or data.link?.link_embed_hidden_items or []
 
     super options,data
 
     # top right corner either has the remove-embed button
     # or the report-button (to report malicious content)
     if @options.hasConfig
-      @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent activity-settings-context activity-settings-menu embed-box-settings'
-        title       : ''
+      @settingsButton = new KDButtonView
+        cssClass    : "hide-embed"
         icon        : yes
-        delegate    : @
-        iconClass   : "arrow"
-        menu        : @settingsMenu data
-        callback    : (event)=>
-          event.preventDefault()
-          @settingsButton.contextMenu event
+        iconOnly    : yes
+        iconClass   : "hide"
+        title       : "hide"
+        callback    :=>
+          @addEmbedHiddenItem "embed"
+          @refreshEmbed()
+
     else
       @settingsButton = new KDButtonView
         cssClass    : "report-embed"
@@ -98,25 +98,6 @@ class EmbedBox extends KDView
 
     unless data is {} then @hide()
 
-  settingsMenu:(data={})=>
-
-    # only during creation of when the user is the link owner should
-    # this menu exist (also editing)
-
-    if @options.hasDropdown
-      menu = [
-        {
-          'Remove Preview'  :
-            callback        : =>
-              @embedHiddenItems.push "embed"
-              @refreshEmbed()
-              @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-              no
-        }
-      ]
-
-      return menu
-
   viewAppended:->
     super()
     @setTemplate @pistachio()
@@ -135,7 +116,6 @@ class EmbedBox extends KDView
     @setEmbedURL ''
     @setEmbedHiddenItems []
     @setEmbedImageIndex 0
-    @settingsButton?.options?.menu = @settingsMenu @getData()
 
   clearEmbed:=>
     # @$("div.embed").html ""
@@ -207,6 +187,9 @@ class EmbedBox extends KDView
         callback oembed,embedlyOptions
 
   populateEmbed:(data={},url="#",options={})=>
+
+    @setEmbedData data
+    @setEmbedURL url
 
     displayEmbedType=(embedType)=>
       switch embedType
@@ -298,18 +281,6 @@ class EmbedBox extends KDView
               link_embed_image_index : @getEmbedImageIndex()
               link_embed_hidden_items : @getEmbedHiddenItems()
 
-            #   <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
-            #     <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
-            #     <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
-            #   </div>
-
-
-
-            #         @removeEmbedHiddenItem "description"
-            #         @refreshEmbed()
-            #         @getDelegate()?.emit "embedHideItem", @embedHiddenItems
-
-
           # this can be audio or video files
           else
             html = "Embedding #{data.type or "unknown"} content like this is not supported."
@@ -341,18 +312,14 @@ class EmbedBox extends KDView
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
-    # log "calling EmbedUrl with", url
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
-        @clearEmbed()
+        @resetEmbed()
         @populateEmbed data, url, embedlyOptions
         @show()
         callback data
       else
         callback no
-
-
-
 
   pistachio:->
     """

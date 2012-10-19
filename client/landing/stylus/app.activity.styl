@@ -1105,7 +1105,7 @@ div.kdview.link-embed-box
     margin-top 0px
 
   // report button for embeds
-  > button.kdbutton.report-embed
+  > button.kdbutton.report-embed, button.kdbutton.hide-embed
     position absolute
     top -1px
     right -1px
@@ -1116,10 +1116,13 @@ div.kdview.link-embed-box
     opacity 0.15
     background transparent
     vendor transition, opacity 0.3s ease-in-out
+    z-index 3
 
     > span.icon
       sprite()
 
+      &.hide
+        bg position, -80px -240px
       &.report
         bg position, 0px -120px
 
@@ -1350,6 +1353,13 @@ div.kdview.link-embed-box
             color inherit
             font-size inherit
             font-weight 400
+            &.has-config:hover
+              cursor text
+
+            > input, textarea
+              overflow hidden
+              height auto
+
 
             > div.preview_title
               font-size inherit
@@ -1360,6 +1370,7 @@ div.kdview.link-embed-box
               &:hover
                 color #27A3C9
 
+
             > div.description
               margin-top 17px
               noTextDeco()
@@ -1368,6 +1379,7 @@ div.kdview.link-embed-box
               font-size inherit
               overflow hidden
               color inherit
+
 
           // > div.provider_info:last-of-type
           //   margin-bottom 0px
