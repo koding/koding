@@ -47,8 +47,8 @@ module.exports = deepFreeze
       env       : 'beta'
   mq            :
     host        : 'localhost'
-    login       : 'test'
-    password    : 'test'
+    login       : 'PROD-k5it50s4676pO9O'
+    password    : 'Dtxym6fRJXx4GJz'
     vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
@@ -66,7 +66,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'test'
-      password  : 'test'
+      login     : 'PROD-k5it50s4676pO9O'
+      password  : 'Dtxym6fRJXx4GJz'
       vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'
