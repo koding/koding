@@ -93,9 +93,9 @@ app.get '/auth', (req, res)->
           kiteBroker.createQueue '', (dcQueue)->
             dcQueue.bind exchangeName, 'disconnected'
             dcQueue.subscribe ->
-              dcQueue.destroy -> dcQueue.close()
+              dcQueue.destroy()
               setTimeout ->
-                kiteCmQueue.destroy -> kiteCmQueue.close()
+                kiteCmQueue.destroy()# -> kiteCmQueue.close()
               , kites?.disconnectTimeout ? 5000
           return res.send privName
 
