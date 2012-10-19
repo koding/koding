@@ -53,8 +53,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       type        : "submit"
 
     embedOptions = $.extend {}, options, {
-      delegate:@
-      hasDropdown : yes
+      delegate  : @
+      hasConfig : yes
       click:->
         no
     }
@@ -144,9 +144,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       @embedBox.embedExistingData link.link_embed, {}
 
   submit:=>
-
     @addCustomData "link_url", @embedBox.getEmbedURL() or ""
-    @addCustomData "link_embed", @embedBox.getEmbedData() or {}
+    @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
     @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
     @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
 
