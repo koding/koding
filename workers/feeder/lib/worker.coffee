@@ -29,7 +29,7 @@ distributeActivityToFollowers = () ->
     # to a worker until it has processed and acknowledged the previous one.
     # Instead, it will dispatch it to the next worker that is not still busy.
     queue.subscribe {ack:true, prefetchCount:1}, (message, headers, deliveryInfo) =>
-      {exchange, routingKey, _consumerTag} = deliveryInfo\
+      {exchange, routingKey, _consumerTag} = deliveryInfo
       message = message.data+"" if message.data?
 
       #console.log "Feed worker receives message #{message} on exchange #{exchange}"

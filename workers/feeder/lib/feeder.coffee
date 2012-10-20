@@ -23,7 +23,7 @@ EventEmitter class Feeder
 
   handleAccount: (account) ->
     client = account?.profile?.nickname
-    unless client?
+    unless @clients[client]?
       @clients[client] = account
       @handleFolloweeActivity account
       @handleFollowAction account
