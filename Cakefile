@@ -272,6 +272,16 @@ run =(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+
+  processes.run
+    name    : 'feederCake'
+    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} -n #{config.feeder.numberOfWorkers}#{debug} run"
+    restart : yes
+    restartInterval : 1000
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
   # pipeStd(
   #   processes.get "server"
   #   processes.get "social"
