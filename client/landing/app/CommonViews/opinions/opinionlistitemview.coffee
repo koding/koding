@@ -54,13 +54,9 @@ class OpinionListItemView extends KDListItemView
       cssClass    : 'edit-link hidden'
 
     @commentBox = new CommentView null, data
-    # @commentBox = new OpinionCommentView null, data
 
-    @commentBox.on "DiscussionTeaserShouldRefresh",=>
-      @parent.emit "DiscussionTeaserShouldRefresh"
-
-    @on "DiscussionTeaserShouldRefresh",=>
-      @getDelegate().emit "DiscussionTeaserShouldRefresh"
+    @commentBox.on "RefreshTeaser",=>
+      @parent.emit "RefreshTeaser"
 
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
