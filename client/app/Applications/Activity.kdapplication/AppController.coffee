@@ -99,9 +99,11 @@ class Activity12345 extends AppController
 
     @createFollowedAndPublicTabs()
 
-    account.on "FollowedActivityArrived", (activity) =>
-      if activity.constructor.name in @currentFilter
-        @activityListController.followedActivityArrived activity
+    account.on "FollowedActivityArrived", (activityId) =>
+      KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
+        if activity.constructor.name in @currentFilter
+          activity.snapshot?.replace /&quot;/g, '"'
+          @activityListController.followedActivityArrived activity
 
     # INITIAL HEIGHT SET FOR SPLIT
     @utils.wait 1000, =>
