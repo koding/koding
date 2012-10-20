@@ -8,9 +8,9 @@ import (
 
 var configs = map[string]Config{
 	"default": {
-		AmqpHost:     "web0.beta.system.aws.koding.com",
+		AmqpHost:     "localhost",
 		AmqpUser:     "guest",
-		AmqpPassword: "x1srTA7!%25Vb%7D$n%7CS",
+		AmqpPassword: "guest",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
 	},
@@ -25,16 +25,16 @@ var configs = map[string]Config{
 
 	"stage": {
 		AmqpHost:     "web0.beta.system.aws.koding.com",
-		AmqpUser:     "test",
-		AmqpPassword: "test",
+		AmqpUser:     "STAGE-sg46lU8J17UkVUq",
+		AmqpPassword: "TV678S1WT221t1q",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
 	},
 
 	"prod": {
 		AmqpHost:     "web0.beta.system.aws.koding.com",
-		AmqpUser:     "test",
-		AmqpPassword: "test",
+		AmqpUser:     "PROD-k5it50s4676pO9O",
+		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
 	},

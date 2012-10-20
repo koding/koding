@@ -55,6 +55,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     """
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
+    JUser = require './user'
     if JUser.validateAt 'email', usernameOrEmail
       @recoverPasswordByEmail client, usernameOrEmail, callback
     else if JUser.validateAt 'username', usernameOrEmail
@@ -62,6 +63,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     else callback new KodingError 'Invalid input.'
 
   @recoverPasswordByUsername = secure (client, username, callback)->
+    JUser = require './user'
+    JGuest = require './guest'
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in.'
@@ -71,6 +74,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         else @create client, user.getAt('email'), callback
 
   @recoverPasswordByEmail = secure (client, email, callback)->
+    JUser = require './user'
+    JGuest = require './guest'
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in.'
@@ -81,6 +86,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
 
   @create = secure ({connection:{delegate}}, email, callback)->
+    JUser = require './user'
     token = createId()
     JUser.one {email}, (err, user)=>
       if err
@@ -127,6 +133,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     @update query, {$set: status: 'invalidated'}, callback
 
   @resetPassword = secure (client, token, newPassword, callback)->
+    JUser = require './user'
     {delegate} = client.connection
     unless delegate instanceof JGuest
       callback new KodingError 'You are already logged in!'

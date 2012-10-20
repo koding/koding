@@ -49,8 +49,8 @@ module.exports = deepFreeze
       env       : 'stage'
   mq            :
     host        : 'localhost'
-    login       : 'test'
-    password    : 'test'
+    login       : 'STAGE-sg46lU8J17UkVUq'
+    password    : 'TV678S1WT221t1q'
     vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
@@ -68,7 +68,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'stage'
-      password  : '#[85_[*zh7%4;4l6T]F!'
+      login     : 'STAGE-sg46lU8J17UkVUq'
+      password  : 'TV678S1WT221t1q'
       vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'
