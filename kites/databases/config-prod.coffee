@@ -4,8 +4,8 @@ module.exports =
   logFile           : "/var/log/node/Databases.log"
   amqp              :
     host            : 'web0.beta.system.aws.koding.com'
-    username        : 'test'
-    password        : 'test'
+    username        : 'PROD-k5it50s4676pO9O'
+    password        : 'Dtxym6fRJXx4GJz'
     vhost           : '/'
   apiUri            : 'https://api.koding.com/1.0'
   mysql   :

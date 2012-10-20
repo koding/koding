@@ -10,6 +10,7 @@ class NotificationController extends KDObject
     JPrivateMessage     : "<a href='#'>private message</a>"
     JOpinionActivity    : "<a href='#'>opinion</a>"
     JComment            : "<a href='#'>comment</a>"
+    JReview             : "<a href='#'>review</a>"
 
   constructor:->
 
