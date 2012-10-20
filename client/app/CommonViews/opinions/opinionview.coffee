@@ -27,7 +27,7 @@ class OpinionView extends KDView
     @opinionList.on "OwnOpinionHasArrived", ->
     @opinionList.on "OpinionIsDeleted", (data)->
 
-    @opinionList.on "DiscussionTeaserShouldRefresh", =>
+    @opinionList.on "RefreshTeaser", =>
       @opinionController.fetchTeaser ->
 
     if data.opinions
