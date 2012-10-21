@@ -71,6 +71,23 @@ class DiscussionFormView extends KDFormView
         modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
         modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
+    @markdownPreview = new KDCustomHTMLView
+      tagName     : 'a'
+      name        : "markdownPreview"
+      value       : "markdown preview"
+      attributes  :
+        title     : "preview the markdown result"
+        href      : '#'
+        value     : "preview markdown result"
+      cssClass    : 'markdown-link'
+      partial     : "preview markdown<span></span>"
+      click       :=>
+        if @$(".markdown_preview").hasClass "hidden"
+          @$(".markdown_preview").removeClass "hidden"
+        @$(".markdown_preview").html @utils.applyMarkdown @discussionBody.getValue()
+        @$(".markdown_preview pre").addClass("prettyprint").each (i,element)=>
+          hljs.highlightBlock element
+
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
       name        : "markdownLink"
@@ -154,9 +171,11 @@ class DiscussionFormView extends KDFormView
         <div class="discussion-form">
           {{> @discussionTitle}}
           {{> @discussionBody}}
+          <div class="markdown_preview hidden"></div>
         </div>
         <div class="discussion-buttons">
           <div class="discussion-submit">
+            {{> @markdownPreview}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}
