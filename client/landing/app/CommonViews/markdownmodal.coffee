@@ -1,6 +1,10 @@
 class KDMarkdownModalText
 
   markdownText:->
+    # if we ever need any highlighting
+    text = @markdownTextHTML()
+
+  markdownTextHTML:->
     """
 
 <div class='modalformline'>This form supports markdown. Here is how to use it:</div>
