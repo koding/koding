@@ -67,7 +67,7 @@ mkdirp.sync "./.build/.cache"
 
 
 # get current version
-version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
+# version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 # if process.argv[2] is 'buildForProduction'
 #   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
 #   rev[2]++
