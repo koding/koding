@@ -13,13 +13,20 @@ class DiscussionFormView extends KDFormView
       loader          :
         diameter      : 12
 
+    @showMarkdownPreview = yes
+
     @discussionBody = new KDInputView
       cssClass        : "discussion-body"
       name            : "body"
       title           : "your Discussion Topic"
       type            : "textarea"
-      # autogrow        : yes
       placeholder     : "What do you want to contribute to the discussion?"
+
+      focus :=>
+        @generateMarkdownPreview()
+
+      keyup :=>
+        @generateMarkdownPreview()
 
     @discussionTitle = new KDInputView
       cssClass        : "discussion-title"
@@ -65,28 +72,31 @@ class DiscussionFormView extends KDFormView
               style   : "modal-clean-gray"
               callback:=>
                 @discussionBody.setValue $("#fullscreen-data").val()
+                @generateMarkdownPreview()
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
         modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
         modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
-    @markdownPreview = new KDCustomHTMLView
-      tagName     : 'a'
-      name        : "markdownPreview"
-      value       : "markdown preview"
-      attributes  :
-        title     : "preview the markdown result"
-        href      : '#'
-        value     : "preview markdown result"
-      cssClass    : 'markdown-link'
-      partial     : "preview markdown<span></span>"
-      click       :=>
+    @markdownPreview = new KDLabelView
+      title           : "Preview Markdown"
+      cssClass        : "markdown-preview-label"
+
+    @markdownPreviewCheckbox = new KDInputView
+      type : "checkbox"
+      label : @markdownPreview
+      name : "markdownPreviewCheckbox"
+      cssClass : "markdownPreviewCheckbox"
+      attributes:
+        checked : yes
+      click :=>
         if @$(".markdown_preview").hasClass "hidden"
+          @showMarkdownPreview = yes
           @$(".markdown_preview").removeClass "hidden"
-        @$(".markdown_preview").html @utils.applyMarkdown @discussionBody.getValue()
-        @$(".markdown_preview pre").addClass("prettyprint").each (i,element)=>
-          hljs.highlightBlock element
+        else
+          @showMarkdownPreview = no
+          @$(".markdown_preview").addClass "hidden"
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -97,7 +107,7 @@ class DiscussionFormView extends KDFormView
         href      : '#'
         value     : "markdown syntax is enabled"
       cssClass    : 'markdown-link'
-      partial     : "markdown is enabled<span></span>"
+      partial     : "What is Markdown?<span></span>"
       click       : (pubInst, event)=>
         if $(event.target).is 'span'
           link.hide()
@@ -156,10 +166,18 @@ class DiscussionFormView extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
+  generateMarkdownPreview:()->
+    if @showMarkdownPreview
+      @$("div.markdown_preview").html @utils.applyMarkdown @discussionBody.getValue()
+      @$(".markdown_preview pre").addClass("prettyprint").each (i,element)=>
+        hljs.highlightBlock element
+
   viewAppended:()->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()
+
+    @generateMarkdownPreview()
 
   submit:=>
     @once "FormValidationPassed", => @reset()
@@ -171,11 +189,12 @@ class DiscussionFormView extends KDFormView
         <div class="discussion-form">
           {{> @discussionTitle}}
           {{> @discussionBody}}
-          <div class="markdown_preview hidden"></div>
+          <div class="markdown_preview"></div>
         </div>
         <div class="discussion-buttons">
           <div class="discussion-submit">
             {{> @markdownPreview}}
+            {{> @markdownPreviewCheckbox}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}

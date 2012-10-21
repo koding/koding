@@ -578,11 +578,16 @@ div.kdview.activity-item.discussion.content-display-main-section
                   margin 5px 0px
                   borderBox()
                   border 1px dashed #D7D7D7
-                  padding 5px
+                  padding 10px 10px 10px 10px
+
+                  > *:last-child
+                    margin-bottom 0
 
                 input.discussion-title
                   width                           100%
                   margin-bottom                   10px
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
 
                 textarea.discussion-body
                   max-height                      800px
@@ -593,6 +598,8 @@ div.kdview.activity-item.discussion.content-display-main-section
                   width                           100%
                   box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
                   borderBox()
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
 
               div.discussion-buttons
                 height                            35px
@@ -607,6 +614,16 @@ div.kdview.activity-item.discussion.content-display-main-section
                 .discussion-submit
                   float                           right
                   display                         block
+
+                  label.markdown-preview-label
+                    font-size 11px
+                    color  #FF9200
+                    font-weight 600
+                    margin-right 0px
+
+                  input.checkbox.markdownPreviewCheckbox
+                    vertical-align middle
+                    margin-right 10px
 
                   button
                     margin-top                    12px
@@ -766,7 +783,10 @@ div.kdview.activity-item.discussion.content-display-main-section
                       margin 5px 0px
                       borderBox()
                       border 1px dashed #D7D7D7
-                      padding 5px
+                      padding 10px 10px 10px 10px
+
+                      > *:last-child
+                        margin-bottom 0
 
                     textarea.opinion-body
                       max-height                  800px
@@ -777,6 +797,8 @@ div.kdview.activity-item.discussion.content-display-main-section
                       width                       100%
                       box-shadow                  inset 0 1px 2px rgba(0,0,0,0.10)
                       borderBox()
+                      font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                      font-size 12px
 
                   div.opinion-buttons
                     height                        35px
@@ -791,6 +813,16 @@ div.kdview.activity-item.discussion.content-display-main-section
                     .opinion-submit
                       float                       right
                       display                     block
+
+                      label.markdown-preview-label
+                        font-size 11px
+                        color  #FF9200
+                        font-weight 600
+                        margin-right 0px
+
+                      input.checkbox.markdownPreviewCheckbox
+                        vertical-align middle
+                        margin-right 10px
 
                       button
                         margin-top                12px
