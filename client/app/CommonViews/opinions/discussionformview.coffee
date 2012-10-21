@@ -39,10 +39,14 @@ class DiscussionFormView extends KDFormView
       style           : "clean-gray"
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
+      icon            : yes
+      iconClass       : "fullscreen"
+      iconOnly        : yes
       callback: =>
         modal = new KDModalView
           title       : "What do you want to discuss?"
           cssClass    : "modal-fullscreen"
+
           height      : $(window).height()-110
           width       : $(window).width()-110
           position:

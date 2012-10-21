@@ -502,13 +502,17 @@ div.kdview.activity-item.discussion.content-display-main-section
           padding-bottom                          15px
 
           .type-and-time
-            font-weight                           300
+            font-weight                           400
             font-size                             11px
             color                                 #a5a5a5
+
+            .link-group
+              font-size                           11px
 
           a
             noTextDeco()
             color                                 #FF9200
+            font-size                             11px
 
           a.count
             font-style                            normal
@@ -524,7 +528,7 @@ div.kdview.activity-item.discussion.content-display-main-section
           span.activity-text
             margin                                0px 2px
             color                                 #FF9200
-            font-size                             11px
+            font-size                             12px
             font-weight                           bold
 
         a.delete-link
@@ -601,6 +605,13 @@ div.kdview.activity-item.discussion.content-display-main-section
                   button
                     margin-top                    12px
 
+                    &.fullscreen-button
+                      padding 0px 2px
+                      height 24px
+                      span
+                        &.fullscreen
+                          bg              position,-20px -360px
+
                   a.markdown-link
                     margin-top                    19px
                     display                       inline-block
@@ -608,6 +619,7 @@ div.kdview.activity-item.discussion.content-display-main-section
                     line-height                   100%
                     text-decoration               none
                     font-size                     11px
+                    font-weight                   600
 
 
   // Opinion List - 100%
@@ -667,9 +679,12 @@ div.kdview.activity-item.discussion.content-display-main-section
               margin-top                          15px
 
               .type-and-time
-                font-weight                       300
-                font-size                         11px
+                font-weight                       400
+                font-size                         12px
                 color                             #a5a5a5
+
+                .link-group
+                  font-size                       12px
 
               a
                 noTextDeco()
@@ -767,6 +782,13 @@ div.kdview.activity-item.discussion.content-display-main-section
 
                       button
                         margin-top                12px
+
+                        &.fullscreen-button
+                          padding 0px 2px
+                          height 24px
+                          span
+                            &.fullscreen
+                              bg              position,-20px -360px
 
                       a.markdown-link
                         margin-top                19px
@@ -951,6 +973,13 @@ div.kdview.activity-item.discussion.content-display-main-section
             button
               margin-top                          12px
 
+              &.fullscreen-button
+                padding 0px 2px
+                height 24px
+                span
+                  &.fullscreen
+                    bg              position,-20px -360px
+
             a.markdown-link
               margin-top                          19px
               display                             inline-block
@@ -1123,3 +1152,19 @@ li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8
   pre .atv, code .atv
     color #060
 
+div.markdown-cheatsheet
+
+  > h3
+    font-size 14px
+    font-weight 400
+    color #ff9200
+    margin-bottom 5px
+
+  > pre
+    padding 0
+    margin 5px 5px 20px 10px
+
+    > code
+      rounded 4px
+      padding 20px 25px
+      background-color #333

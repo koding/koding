@@ -30,6 +30,9 @@ class OpinionFormView extends KDFormView
 
     @fullScreenBtn = new KDButtonView
       style           : "clean-gray"
+      icon            : yes
+      iconClass       : "fullscreen"
+      iconOnly        : yes
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
       callback: =>
