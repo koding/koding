@@ -6,11 +6,20 @@ option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
 
+{spawn, exec} = require 'child_process'
+# mix koding node modules into node_modules
+exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
+  # can't run the program if this fails,
+  if a or b or c
+    console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
+    process.exit(0)
+
+
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
-log         = log4js.getLogger("[Cakefile]")
+log         = log4js.getLogger("[Main]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
@@ -20,7 +29,6 @@ sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
 processes       = new (require "processes") main:true
 closureCompile  = require 'koding-closure-compiler'
 {daisy}         = require 'sinkrow'
-{spawn, exec} = require 'child_process'
 fs            = require "fs"
 http          = require 'http'
 url           = require 'url'
@@ -29,6 +37,24 @@ Watcher       = require "koding-watcher"
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
+
+# announcement section, don't delete it. comment out old announcements, make important announcements from here.
+console.log "###############################################################"
+console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    1- node_modules_koding is now where we store our node    #"
+console.log "#      modules. ./node_modules dir is completely ignored.     #"
+console.log "#      ./node_modules_koding is symlinked/mixed into          #"
+console.log "#      node_modules so you can use it as usual. Just don't    #"
+console.log "#      make a new one in ./node_modules, it will be ignored.  #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    2- `cake install` is now equivalent to `npm install`     #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    3- do NOT `npm install [module]` add to package.json     #"
+console.log "#      and do another `npm install` or you will mess deploy.  #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#                       questions and complaints 1-877-DEVRIM #"
+console.log "###############################################################"
 # log =
 #   info  : console.log
 #   debug : console.log
@@ -37,7 +63,8 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-# fs.writeFileSync "./.revision","0.0.1"
+
+
 
 # get current version
 version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
@@ -60,7 +87,7 @@ clientFileMiddleware  = (options, code, callback)->
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
-      
+
   if minify
     closureCompile (libraries+kdjs),(err,data)->
       unless err
@@ -208,7 +235,7 @@ task 'buildforproduction','set correct flags, and get ready to run in production
   invoke 'buildForProduction'
 
 task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
-  
+
   config = require './config/prod.coffee'
 
   prompt.start()
@@ -263,7 +290,7 @@ run =(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-    
+
   processes.run
     name    : 'serverCake'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile}#{debug} run"
@@ -328,7 +355,7 @@ configureVhost =(config, callback)->
     else throw e
 
 task 'run', (options)->
-  invoke 'checkModules'
+  # invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 
@@ -356,7 +383,7 @@ task 'buildAll',"build chris's modules", ->
   buildables = ["processes","pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
   # log.info "building..."
   b = (next) ->
-    cmd = "cd ./node_modules/#{buildables[next]} && cake build"
+    cmd = "cd ./node_modules_koding/#{buildables[next]} && cake build"
     log.info "building... cmd: #{cmd}"
     processes.run
       cmd     : cmd
@@ -379,17 +406,17 @@ task 'resetGuests', (options)->
   resetGuests configFile
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
-  l = (d) -> log.info d.replace /\n+$/, ''
-  {our_modules, npm_modules} = require "./CakeNodeModules"
-  reqs = npm_modules
-  for name,ver of reqs
-    processes.run
-      name    : "#{name}@#{ver}"
-      cmd     : "npm i #{name}@#{ver}"
-      restart : no
-      stdout  : process.stdout
-      stderr  : process.stderr
-      verbose : yes
+  # l = (d) -> log.info d.replace /\n+$/, ''
+  # {our_modules, npm_modules} = require "./CakeNodeModules"
+  # reqs = npm_modules
+  # for name,ver of reqs
+  processes.run
+    name    : "npm install"
+    cmd     : "npm install"
+    restart : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
   # exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
   # a = exec exe,->
   # a.stdout.on 'data', l
