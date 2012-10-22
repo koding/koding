@@ -34,6 +34,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     @opinionForm = new OpinionFormView
+      previewVisible : no
       cssClass  : "opinion-container"
       callback  : (data)=>
         @getData().reply data, (err, opinion) =>
