@@ -1499,11 +1499,14 @@ form.status-widget
 
 div.kdinputwithpreview.input_preview
   borderBox()
-  margin              0 0 0 0
+  margin              0 0 15px 0
   padding             5px 0 0 0
   min-height          30px
   position            relative
   overflow            auto
+
+  &.content-hidden
+    margin-bottom     15px
 
   div.preview_switch
     borderBox()
@@ -1518,7 +1521,7 @@ div.kdinputwithpreview.input_preview
     border-bottom     1px dashed #d7d7d7
     &.content-hidden
       rounded         4px
-      border none
+      border          none
 
     label
       color           #ff9200
