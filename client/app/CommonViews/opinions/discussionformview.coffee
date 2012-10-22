@@ -2,6 +2,8 @@ class DiscussionFormView extends KDFormView
 
   constructor :(options, data)->
 
+    options.previewVisible ?= yes
+
     super
 
     {profile} = KD.whoami()
@@ -13,7 +15,7 @@ class DiscussionFormView extends KDFormView
       loader          :
         diameter      : 12
 
-    @showMarkdownPreview = yes
+    @showMarkdownPreview = options.previewVisible
 
     @discussionBody = new KDInputView
       cssClass        : "discussion-body"
@@ -91,7 +93,8 @@ class DiscussionFormView extends KDFormView
       attributes:
         checked : yes
       click :=>
-        if @$(".markdown_preview").hasClass "hidden"
+        checkBoxState = @$("input").prop "checked"
+        if checkBoxState
           @showMarkdownPreview = yes
           @$(".markdown_preview").removeClass "hidden"
         else
@@ -178,6 +181,8 @@ class DiscussionFormView extends KDFormView
     @template.update()
 
     @generateMarkdownPreview()
+    unless @showMarkdownPreview
+     @$("div.markdown_preview").addClass "hidden"
 
   submit:=>
     @once "FormValidationPassed", => @reset()
@@ -189,7 +194,7 @@ class DiscussionFormView extends KDFormView
         <div class="discussion-form">
           {{> @discussionTitle}}
           {{> @discussionBody}}
-          <div class="markdown_preview"></div>
+          <div class="markdown_preview">&nbsp;</div>
         </div>
         <div class="discussion-buttons">
           <div class="discussion-submit">

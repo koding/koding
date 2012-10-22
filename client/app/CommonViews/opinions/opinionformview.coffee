@@ -2,6 +2,10 @@ class OpinionFormView extends KDFormView
 
   constructor :(options, data)->
 
+    # whether or not to show the preview area when the form is
+    # initially shown
+    options.previewVisible ?= yes
+
     super
 
     {profile} = KD.whoami()
@@ -13,7 +17,7 @@ class OpinionFormView extends KDFormView
       loader          :
         diameter      : 12
 
-    @showMarkdownPreview = yes
+    @showMarkdownPreview = options.previewVisible
 
     @opinionBody = new KDInputView
       cssClass        : "opinion-body"
@@ -81,9 +85,10 @@ class OpinionFormView extends KDFormView
       name : "markdownPreviewCheckbox"
       cssClass : "markdownPreviewCheckbox"
       attributes:
-        checked : yes
+        checked : @showMarkdownPreview
       click :=>
-        if @$(".markdown_preview").hasClass "hidden"
+        checkBoxState = @$("input").prop "checked"
+        if checkBoxState
           @showMarkdownPreview = yes
           @$(".markdown_preview").removeClass "hidden"
         else
@@ -152,6 +157,8 @@ class OpinionFormView extends KDFormView
     @template.update()
 
     @generateMarkdownPreview()
+    unless @showMarkdownPreview
+     @$("div.markdown_preview").addClass "hidden"
 
 
   submit:=>
@@ -163,7 +170,7 @@ class OpinionFormView extends KDFormView
       <div class="opinion-box" id="opinion-form-box">
         <div class="opinion-form">
           {{> @opinionBody}}
-          <div class="markdown_preview"></div>
+          <div class="markdown_preview">&nbsp;</div>
         </div>
         <div class="opinion-buttons">
           <div class="opinion-heart-box">
