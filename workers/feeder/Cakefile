@@ -8,7 +8,7 @@ option '-s', '--silent', 'Set this flag to suppress stdout'
 option '-D', '--debug', 'Start the node project with the debugger'
 
 task 'run', ({numberOfWorkers, configPath, silent})->
-  configPath ?= '../../config/dev'
+  configPath ?= '../../../config/dev'
   {logger, configNumberOfWorkers} = require configPath
   numberOfWorkers ?= configNumberOfWorkers ? 1
   #logger = new KodingLogger 'feeder', os.hostname(), logger.mq
@@ -17,36 +17,38 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   #logger.logAll process, 'supervisor'
 
   processes.fork
-    name: "feeder"
-    modulePath: "./index"
-    args  : ['-c', configPath]
-    opts  : silent : yes
-    restart : yes
+    name            : "feeder"
+    modulePath      : "./index"
+    args            : ['-c', configPath]
+    opts            : silent : yes
+    restart         : yes
     restartInterval : 1000
-    verbose : yes
+    verbose         : yes
 
   while i < numberOfWorkers
     # child = fork './index', ['-c', configPath], silent: yes
     processes.fork
-      name  : "feedWorker-#{i}"
-      modulePath : "./worker"
-      args  : ['-c', configPath]
-      opts  : silent : yes
-      restart : yes
+      name            : "feedWorker-#{i}"
+      modulePath      : "./worker"
+      args            : ['-c', configPath]
+      opts            : silent : yes
+      restart         : yes
       restartInterval : 1000
-      verbose : yes
+      verbose         : yes
 
     #logger.logAll processes.get("feedWorker-#{i}"), "worker#{i}"
     i++
   return
 
 task 'e2e', ({configPath, silent}) ->
-  configPath ?= '../../config/dev'
+  configPath ?= '../../../config/dev'
   processes.fork
-    name: "e2e-migrator"
+    name      : "e2e-migrator"
     modulePath: "./e2e_migrator"
-    args: ['-c', configPath]
-    opts: silent : yes
-    restart: no
-    verbose: yes
+    args      : ['-c', configPath]
+    opts      : silent : yes
+    restart   : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose   : yes
   return
