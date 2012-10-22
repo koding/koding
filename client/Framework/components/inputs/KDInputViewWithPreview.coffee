@@ -56,7 +56,7 @@ class KDInputViewWithPreview extends KDInputView
       @$("input.preview_checkbox").prop("checked",yes)
 
     @$("label").on "click",=>
-      @$("input.preview_checkbox").click()
+      @$("input.preview_checkbox").get(0).click()
 
   generatePreview:=>
     if @showPreview
