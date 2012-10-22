@@ -59,6 +59,9 @@ class KDInputViewWithPreview extends KDInputView
     @$("label").on "click",=>
       @$("input.preview_checkbox").get(0).click()
 
+    @$("div.preview_content").addClass("has-"+@options.preview.language)
+
+
   generatePreview:=>
     if @showPreview
       if @options.preview.language is "markdown"
