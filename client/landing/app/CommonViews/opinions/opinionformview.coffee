@@ -4,7 +4,7 @@ class OpinionFormView extends KDFormView
 
     # whether or not to show the preview area when the form is
     # initially shown
-    options.previewVisible ?= yes
+    @preview = options.preview or {}
 
     super
 
@@ -19,18 +19,13 @@ class OpinionFormView extends KDFormView
 
     @showMarkdownPreview = options.previewVisible
 
-    @opinionBody = new KDInputView
+    @opinionBody = new KDInputViewWithPreview
+      preview         : @preview
       cssClass        : "opinion-body"
       name            : "body"
       title           : "your Opinion"
       type            : "textarea"
       placeholder     : "What do you want to contribute to the discussion?"
-
-      focus :=>
-        @generateMarkdownPreview()
-
-      keyup :=>
-        @generateMarkdownPreview()
 
     @labelAddTags = new KDLabelView
       title           : "Add Tags:"
@@ -68,32 +63,12 @@ class OpinionFormView extends KDFormView
               style   : "modal-clean-gray"
               callback:=>
                 @opinionBody.setValue $("#fullscreen-data").val()
-                @generateMarkdownPreview()
+                @opinionBody.generatePreview()
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
         modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
         modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
-
-    @markdownPreview = new KDLabelView
-      title           : "Preview Markdown"
-      cssClass        : "markdown-preview-label"
-
-    @markdownPreviewCheckbox = new KDInputView
-      type : "checkbox"
-      label : @markdownPreview
-      name : "markdownPreviewCheckbox"
-      cssClass : "markdownPreviewCheckbox"
-      attributes:
-        checked : @showMarkdownPreview
-      click :=>
-        checkBoxState = @$("input").prop "checked"
-        if checkBoxState
-          @showMarkdownPreview = yes
-          @$(".markdown_preview").removeClass "hidden"
-        else
-          @showMarkdownPreview = no
-          @$(".markdown_preview").addClass "hidden"
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -145,21 +120,10 @@ class OpinionFormView extends KDFormView
     if data instanceof KD.remote.api.JOpinion
       @opinionBody.setValue Encoder.htmlDecode data.body
 
-  generateMarkdownPreview:()->
-    if @showMarkdownPreview
-      @$("div.markdown_preview").html @utils.applyMarkdown @opinionBody.getValue()
-      @$(".markdown_preview pre").addClass("prettyprint").each (i,element)=>
-        hljs.highlightBlock element
-
   viewAppended:()->
     @setClass "update-options opinion"
     @setTemplate @pistachio()
     @template.update()
-
-    @generateMarkdownPreview()
-    unless @showMarkdownPreview
-     @$("div.markdown_preview").addClass "hidden"
-
 
   submit:=>
     @once "FormValidationPassed", => @reset()
@@ -170,15 +134,12 @@ class OpinionFormView extends KDFormView
       <div class="opinion-box" id="opinion-form-box">
         <div class="opinion-form">
           {{> @opinionBody}}
-          <div class="markdown_preview">&nbsp;</div>
         </div>
         <div class="opinion-buttons">
           <div class="opinion-heart-box">
             {{> @heartBox}}
           </div>
           <div class="opinion-submit">
-            {{> @markdownPreview}}
-            {{> @markdownPreviewCheckbox}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitOpinionBtn}}

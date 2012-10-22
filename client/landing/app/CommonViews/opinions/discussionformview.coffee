@@ -2,9 +2,9 @@ class DiscussionFormView extends KDFormView
 
   constructor :(options, data)->
 
-    options.previewVisible ?= yes
-
     super
+
+    @preview = options.preview or {}
 
     {profile} = KD.whoami()
 
@@ -15,20 +15,13 @@ class DiscussionFormView extends KDFormView
       loader          :
         diameter      : 12
 
-    @showMarkdownPreview = options.previewVisible
-
-    @discussionBody = new KDInputView
+    @discussionBody = new KDInputViewWithPreview
+      preview         : @preview
       cssClass        : "discussion-body"
       name            : "body"
       title           : "your Discussion Topic"
       type            : "textarea"
       placeholder     : "What do you want to contribute to the discussion?"
-
-      focus :=>
-        @generateMarkdownPreview()
-
-      keyup :=>
-        @generateMarkdownPreview()
 
     @discussionTitle = new KDInputView
       cssClass        : "discussion-title"
@@ -74,32 +67,12 @@ class DiscussionFormView extends KDFormView
               style   : "modal-clean-gray"
               callback:=>
                 @discussionBody.setValue $("#fullscreen-data").val()
-                @generateMarkdownPreview()
+                @discussionBody.generatePreview()
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
         modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
         modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
-
-    @markdownPreview = new KDLabelView
-      title           : "Preview Markdown"
-      cssClass        : "markdown-preview-label"
-
-    @markdownPreviewCheckbox = new KDInputView
-      type : "checkbox"
-      label : @markdownPreview
-      name : "markdownPreviewCheckbox"
-      cssClass : "markdownPreviewCheckbox"
-      attributes:
-        checked : yes
-      click :=>
-        checkBoxState = @$("input").prop "checked"
-        if checkBoxState
-          @showMarkdownPreview = yes
-          @$(".markdown_preview").removeClass "hidden"
-        else
-          @showMarkdownPreview = no
-          @$(".markdown_preview").addClass "hidden"
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -169,20 +142,10 @@ class DiscussionFormView extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-  generateMarkdownPreview:()->
-    if @showMarkdownPreview
-      @$("div.markdown_preview").html @utils.applyMarkdown @discussionBody.getValue()
-      @$(".markdown_preview pre").addClass("prettyprint").each (i,element)=>
-        hljs.highlightBlock element
-
   viewAppended:()->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()
-
-    @generateMarkdownPreview()
-    unless @showMarkdownPreview
-     @$("div.markdown_preview").addClass "hidden"
 
   submit:=>
     @once "FormValidationPassed", => @reset()
@@ -194,12 +157,9 @@ class DiscussionFormView extends KDFormView
         <div class="discussion-form">
           {{> @discussionTitle}}
           {{> @discussionBody}}
-          <div class="markdown_preview">&nbsp;</div>
         </div>
         <div class="discussion-buttons">
           <div class="discussion-submit">
-            {{> @markdownPreview}}
-            {{> @markdownPreviewCheckbox}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}
