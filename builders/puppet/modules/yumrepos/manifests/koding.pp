@@ -5,5 +5,7 @@ class yumrepos::koding {
         descr => "Koding repo",
         enabled => "1",
         gpgcheck => "0",
+        priority => 1,
+        require => Package["yum-plugin-priorities"],
     }
 }

@@ -2,6 +2,7 @@
 #
 #
 define  yumrepos ($repo) {
+
     case $repo {
          'epel': {
             include yumrepos::epel
@@ -21,9 +22,6 @@ define  yumrepos ($repo) {
          'erlang': {
             include yumrepos::erlang
          }
-
-
-
 
     }
 }

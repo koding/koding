@@ -55,6 +55,7 @@ node base {
                 "perl-Digest-HMAC.noarch",
                 "python-boto.noarch",
                 "python-argparse.noarch",
+                "yum-plugin-priorities",
                 ]:
             ensure => present,
             require => Class["yumrepos::epel"],
