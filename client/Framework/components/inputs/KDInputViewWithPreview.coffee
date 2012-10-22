@@ -43,8 +43,10 @@ class KDInputViewWithPreview extends KDInputView
       if checkState
         @generatePreview()
         @$("div.preview_content").removeClass "hidden"
+        @$("div.preview_switch").removeClass "content-hidden"
       else
         @$("div.preview_content").addClass "hidden"
+        @$("div.preview_switch").addClass "content-hidden"
 
     unless @showPreview
       @$("div.preview_content").addClass "hidden"
