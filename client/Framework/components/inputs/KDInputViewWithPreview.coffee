@@ -8,11 +8,13 @@ class KDInputViewWithPreview extends KDInputView
     options.preview.showInitially ?= yes
 
     options.keyup ?= (event)=>
-      if @options.preview.autoUpdate and @showPreview then @generatePreview()
+      if @options.preview.autoUpdate
+        @generatePreview()
       yes
 
     options.focus ?= (event)=>
-      if @options.preview.autoUpdate and @showPreview then @generatePreview()
+      if @options.preview.autoUpdate
+        @generatePreview()
       yes
 
     super options,data
@@ -41,16 +43,20 @@ class KDInputViewWithPreview extends KDInputView
       checkState = @$("input.preview_checkbox").prop("checked") or no
 
       if checkState
+        @showPreview = yes
         @generatePreview()
         @$("div.preview_content").removeClass "hidden"
         @$("div.preview_switch").removeClass "content-hidden"
+        @$().removeClass "content-hidden"
       else
         @$("div.preview_content").addClass "hidden"
         @$("div.preview_switch").addClass "content-hidden"
+        @$().addClass "content-hidden"
 
     unless @showPreview
       @$("div.preview_content").addClass "hidden"
       @$("div.preview_switch").addClass "content-hidden"
+      @$().addClass "content-hidden"
       @$("input.preview_checkbox").prop("checked",no)
     else
       @generatePreview()
