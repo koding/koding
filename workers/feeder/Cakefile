@@ -39,3 +39,14 @@ task 'run', ({numberOfWorkers, configPath, silent})->
     #logger.logAll processes.get("feedWorker-#{i}"), "worker#{i}"
     i++
   return
+
+task 'e2e', ({configPath, silent}) ->
+  configPath ?= '../../config/dev'
+  processes.fork
+    name: "e2e-migrator"
+    modulePath: "./e2e_migrator"
+    args: ['-c', configPath]
+    opts: silent : yes
+    restart: no
+    verbose: yes
+  return
