@@ -19,7 +19,6 @@ func main() {
 	utils.RunStatusLogger()
 
 	utils.AmqpAutoReconnect("broker", func(consumeConn, publishConn *amqp.Connection) {
-
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
 
@@ -36,6 +35,11 @@ func main() {
 
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
+
+			err := controlChannel.ExchangeDeclare("private-broker", "topic", true, false, false, false, nil)
+			if err != nil {
+				panic(err)
+			}
 
 			body, err := json.Marshal(map[string]string{"socket_id": socketId})
 			if err != nil {
@@ -90,7 +94,7 @@ func main() {
 					func() {
 						defer log.RecoverAndLog()
 
-						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "channel": message.Exchange, "payload": string(message.Body)})
+						body, err = json.Marshal(map[string]string{"event": message.RoutingKey, "exchange": message.Exchange, "payload": string(message.Body)})
 						if err != nil {
 							panic(err)
 						}
@@ -123,24 +127,28 @@ func main() {
 					log.Debug(message)
 
 					event := message["event"]
-					exchange := message["channel"]
+					exchange := message["exchange"]
+					routingKey := message["routingKey"]
+					if routingKey == "" {
+						routingKey = "#"
+					}
 
 					switch event {
-					case "client-subscribe":
-						err = controlChannel.QueueBind(clientQueue, "#", exchange, false, nil)
+					case "client-bind":
+						err = controlChannel.QueueBind(clientQueue, routingKey, exchange, false, nil)
 						if err != nil {
 							panic(err)
 						}
 						exchanges = append(exchanges, exchange)
 
-						body, err = json.Marshal(map[string]string{"event": "broker:subscription_succeeded", "channel": exchange, "payload": ""})
+						body, err = json.Marshal(map[string]string{"event": "broker:bind_succeeded", "exchange": exchange, "routingKey": routingKey})
 						if err != nil {
 							panic(err)
 						}
 						sendChan <- string(body)
 
-					case "client-unsubscribe":
-						err = controlChannel.QueueUnbind(clientQueue, "#", exchange, nil)
+					case "client-unbind":
+						err = controlChannel.QueueUnbind(clientQueue, routingKey, exchange, nil)
 						if err != nil {
 							panic(err)
 						}
@@ -151,10 +159,6 @@ func main() {
 								break
 							}
 						}
-
-					case "client-bind-event":
-
-					case "client-unbind-event":
 
 					case "client-presence":
 

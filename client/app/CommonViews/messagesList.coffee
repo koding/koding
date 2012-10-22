@@ -10,7 +10,7 @@ class MessagesListView extends KDListView
 class MessagesListController extends KDListViewController
 
   constructor:(options, data)->
-    options.itemClass        or= InboxMessagesListItem
+    options.itemClass           or= InboxMessagesListItem
     options.listView            or= new MessagesListView
     options.startWithLazyLoader   = yes
     super options, data
