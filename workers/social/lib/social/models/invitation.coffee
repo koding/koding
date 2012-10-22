@@ -82,6 +82,7 @@ module.exports = class JInvitation extends jraphical.Module
           callback null
 
   @sendBetaInviteFromClient = secure (client, options,callback)->
+    JInvitationRequest = require "./invitationrequest"
     account = client.connection.delegate
     # unless 'super-admin' in account.globalFlags
     unless account?.profile?.nickname is 'devrim'
