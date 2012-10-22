@@ -21,8 +21,6 @@ class KDInputViewWithPreview extends KDInputView
 
     @showPreview = options.preview.showInitially or no
 
-    log @getId()
-
   setDomElement:(CssClass="")->
     super CssClass
 
