@@ -10,6 +10,11 @@ node hosting inherits base {
         repo => 'erlang',
     }
 
+    group { "secure":
+      ensure => present,
+      gid => 66,
+   }
+
 
     include hosting_configs
     include hosting_crontabs
