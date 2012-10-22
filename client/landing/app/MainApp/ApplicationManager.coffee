@@ -122,7 +122,6 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Inbox.kdapplication"       : Inbox12345
       "./client/app/Applications/Demos.kdapplication"       : Demos12345
       "./client/app/Applications/Ace.kdapplication"         : Ace12345
-      "./client/app/Applications/Shell.kdapplication"       : Shell12345
       "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
