@@ -19,7 +19,6 @@ func main() {
 	utils.RunStatusLogger()
 
 	utils.AmqpAutoReconnect("broker", func(consumeConn, publishConn *amqp.Connection) {
-
 		service := sockjs.NewService("http://localhost/sockjs.js", true, false, 10*time.Minute, 0, func(receiveChan <-chan interface{}, sendChan chan<- interface{}) {
 			defer log.RecoverAndLog()
 
@@ -36,6 +35,11 @@ func main() {
 
 			controlChannel := utils.CreateAmqpChannel(publishConn)
 			defer func() { controlChannel.Close() }() // controlChannel is replaced on error
+
+			err := controlChannel.ExchangeDeclare("private-broker", "topic", true, false, false, false, nil)
+			if err != nil {
+				panic(err)
+			}
 
 			body, err := json.Marshal(map[string]string{"socket_id": socketId})
 			if err != nil {
