@@ -53,7 +53,7 @@ class hosting_configs {
         ensure => directory,
         owner => "root",
         group => "secure",
-        mode => 0710,
+        mode => 0755,
         require => Group["secure"],
   }
     
