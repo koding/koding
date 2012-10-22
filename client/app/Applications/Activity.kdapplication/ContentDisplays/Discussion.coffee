@@ -34,9 +34,12 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     @opinionForm = new OpinionFormView
-      previewVisible : no
-      cssClass  : "opinion-container"
-      callback  : (data)=>
+      preview         :
+        language      : "markdown"
+        autoUpdate    : yes
+        showInitially : no
+      cssClass        : "opinion-container"
+      callback        : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
           @opinionForm.submitOpinionBtn.hideLoader()

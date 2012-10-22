@@ -480,6 +480,7 @@ button.kdbutton.dark
       border-color        rgb(199,199,199)
     &.discussion-body
       min-height 72px
+      max-height 300px
       height 72px
 
   input:-moz-placeholder,
@@ -1070,12 +1071,50 @@ div.show-more-opinions
     noTextDeco()
 
 div.show-more-discussion
-  padding-top 5px
-  padding-bottom 5px
-  background-color #f7f7f7
-  padding-left 10px
+  padding-top                     5px
+  padding-bottom                  5px
+  background-color                #f7f7f7
+  padding-left                    10px
   a.discussion-view-more
     noTextDeco()
+
+div.discussion-widget-content
+  width                           100%
+  float                           right
+  display                         block
+  text-align                      right
+
+  label.markdown-preview-label
+    font-size                     11px
+    color                         #FF9200
+    font-weight                   600
+    margin-right                  0px
+    display                       inline-block
+    float                         none
+
+  input.checkbox.markdownPreviewCheckbox
+    vertical-align                middle
+    margin-right                  10px
+
+  button
+    margin-top                    12px
+
+    &.fullscreen-button
+      padding 0px 2px
+      height 24px
+      span
+        &.fullscreen
+          bg              position,-20px -360px
+
+  a.markdown-link
+    margin-top                    11px
+    display                       inline-block
+    margin-right                  9px
+    line-height                   100%
+    text-decoration               none
+    font-size                     11px
+    font-weight                   600
+    color                         #ff9200
 
 
 div.kdview.link-embed-box
@@ -1456,3 +1495,54 @@ form.status-widget
   div.formline
     div.link-embed-box
       margin-left 153px
+
+
+div.kdinputwithpreview.input_preview
+  borderBox()
+  margin              0 0 0 0
+  padding             5px 0 0 0
+  min-height          28px
+  position            relative
+  overflow            auto
+
+  div.preview_switch
+    borderBox()
+    position          absolute
+    right             0px
+    top               5px
+    float             none
+    // bg                color, #F4F4F4
+    rounded           4px
+    padding           1px 3px
+
+    label
+      color           #ff9200
+      width           auto
+      min-width       auto
+      display         inline-block
+      float           none
+      font-size       12px
+      line-height     16px
+      padding         2px 2px
+      margin-right    0px
+      font-weight     600
+
+    input.preview_checkbox
+      padding         2px 2px
+      margin          2px
+      min-width       auto
+      width           auto
+      float           none
+      display         inline-block
+      vertical-align  middle
+
+  div.preview_content
+    borderBox()
+    border            1px dashed #d7d7d7
+    padding           10px
+    rounded           4px
+    max-height        300px
+    overflow          auto
+
+    > *:last-child
+      margin-bottom   0

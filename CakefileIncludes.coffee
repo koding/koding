@@ -204,6 +204,7 @@ Includes =
         KDInputValidator      : "./client/Framework/components/inputs/KDInputValidator.coffee"
         KDLabelView           : "./client/Framework/components/inputs/KDLabelView.coffee"
         KDInputView           : "./client/Framework/components/inputs/KDInputView.coffee"
+        KDInputViewWithPreview: "./client/Framework/components/inputs/KDInputViewWithPreview.coffee"
         KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
