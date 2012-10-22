@@ -53,6 +53,7 @@ module.exports = class Followable
       callback err, followables
 
   follow: secure (client, options, callback)->
+    JAccount = require '../models/account'
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
@@ -87,6 +88,11 @@ module.exports = class Followable
               follower        : follower
               action          : action
 
+            JAccount.emit 'FollowingRelationshipChanged'
+              follower: follower.getId()
+              followee: @getId()
+              action  : action
+
             follower.updateFollowingCount @, action
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
@@ -103,6 +109,7 @@ module.exports = class Followable
                 else callback null, count
 
   unfollow: secure (client,callback)->
+    JAccount = require '../models/account'
     follower = client.connection.delegate
     @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
@@ -117,6 +124,12 @@ module.exports = class Followable
           followingCount  : @getAt('counts.following')
           follower        : follower
           action          : action
+
+        JAccount.emit 'FollowingRelationshipChanged'
+          follower: follower.getId()
+          followee: @getId()
+          action  : action
+
         follower.updateFollowingCount @, action
 
   fetchFollowing: (query, page, callback)->

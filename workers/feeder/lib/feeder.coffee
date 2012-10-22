@@ -17,16 +17,18 @@ EventEmitter class Feeder
 
     @mq.ready =>
       @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
-    # CActivity.setClient @mongo
-    # CActivity.on "ActivityIsCreated", (activity) =>
         @handleNewActivity activity
+
+      @mq.on 'event-JAccount', "FollowingRelationshipChanged", (data) =>
+        {action, follower, followee} = data
+        @handleFollowAction action, follower, followee
 
   handleAccount: (account) ->
     client = account?.profile?.nickname
     unless @clients[client]?
       @clients[client] = account
       @handleFolloweeActivity account
-      @handleFollowAction account
+      #@handleFollowAction account
 
   ###
   # Whenever an activity is created, it will just emit to the user's
@@ -61,22 +63,17 @@ EventEmitter class Feeder
             @emitActivity tagXName, payload, {deliveryMode, autoDelete}
     catch e
 
-  handleFollowAction: (account) ->
-    ownExchangeName = @getExchangeName account._id
+  handleFollowAction: (action, follower, followee) ->
     # Receive when the account follows somebody
-    @on account, "FollowCountChanged", (data) =>
-    #account.on "FollowCountChanged", (data) =>
-      # data are a list of arguments
-      {action, followee} = data
-      return unless followee?
-      return unless action is "follow" or action is "unfollow"
-      # contructor.name
-      # Set up the exchange-to-exchange binding for followings.
-      # followee can be JAccount, JTag, or JStatusUpdate.
-      followeeNick = @getExchangeName followee._id
-      routingKey = "#{followeeNick}.activity"
-      method = "#{action.replace 'follow', 'bind'}Exchange"
-      @mq[method] {name:ownExchangeName}, {name:followeeNick}, routingKey
+    return unless action is "follow" or action is "unfollow"
+    # Set up the exchange-to-exchange binding for followings.
+    # followee can be JAccount, JTag, or JStatusUpdate.
+    followeeX = @getExchangeName followee
+    followerX = @getExchangeName follower
+    routingKey = "#{followeeX}.activity"
+    method = "#{action.replace 'follow', 'bind'}Exchange"
+
+    @mq[method] {name:followerX}, {name:followeeX}, routingKey
 
   # For real-time update of followed activities
   handleFolloweeActivity: (account) ->
