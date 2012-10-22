@@ -50,6 +50,7 @@ class KDInputViewWithPreview extends KDInputView
 
     unless @showPreview
       @$("div.preview_content").addClass "hidden"
+      @$("div.preview_switch").addClass "content-hidden"
       @$("input.preview_checkbox").prop("checked",no)
     else
       @generatePreview()
