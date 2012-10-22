@@ -1501,19 +1501,25 @@ div.kdinputwithpreview.input_preview
   borderBox()
   margin              0 0 0 0
   padding             5px 0 0 0
-  min-height          28px
+  min-height          30px
   position            relative
   overflow            auto
 
   div.preview_switch
     borderBox()
     position          absolute
-    right             0px
-    top               5px
+    right             1px
+    top               6px
     float             none
-    // bg                color, #F4F4F4
-    rounded           4px
+    bg                color, #F4F4F4
+    rounded           0px 4px 0px 4px
     padding           1px 3px
+    border-color      #d7d7d7
+    border-left       1px dashed #d7d7d7
+    border-bottom     1px dashed #d7d7d7
+    &.content-hidden
+      rounded         4px
+      border none
 
     label
       color           #ff9200
@@ -1542,7 +1548,9 @@ div.kdinputwithpreview.input_preview
     padding           10px
     rounded           4px
     max-height        300px
+    min-height        24px
     overflow          auto
+    vendor            transition, all 1s linear
 
     > *:last-child
       margin-bottom   0
