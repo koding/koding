@@ -28,7 +28,8 @@ class StatusActivityItemView extends ActivityItemChild
       if not ("embed" in @getData()?.link?.link_embed_hidden_items)
         @embedBox.show()
         @embedBox.embedExistingData @getData().link.link_embed, {
-          maxWidth: 720
+          maxWidth: 700
+          maxHeight: 300
         }
       else
         # no need to show stuff if it should not be shown. not even in the code
