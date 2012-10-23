@@ -27,6 +27,7 @@ node hosting inherits base {
     include cloudlinux
     include aide
     include rsyslog
+    include traffcalc
 
     
     if $nodeuser {
