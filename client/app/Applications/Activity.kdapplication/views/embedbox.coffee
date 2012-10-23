@@ -80,21 +80,24 @@ class EmbedBox extends KDView
     @embedType = data.link_embed?.object?.type or data.link_embed?.type or "link"
     # log "Initital type is ",@embedType
 
-    @embedLink = new EmbedBoxLinkView
+    embedLinkOptions = _.extend {}, options, {
       cssClass : "embed embed-link-view hidden"
       delegate : @
-    , data
+    }
 
-    @embedObject = new EmbedBoxObjectView
+    embedObjectOptions = _.extend {}, options, {
       cssClass : "embed embed-object-view hidden"
       delegate : @
-    , data
+    }
 
-    @embedImage = new EmbedBoxImageView
+    embedImageOptions = _.extend {}, options, {
       cssClass : "embed embed-image-view hidden"
       delegate : @
-    , data
+    }
 
+    @embedLink = new EmbedBoxLinkView embedLinkOptions, data
+    @embedImage = new EmbedBoxImageView embedImageOptions, data
+    @embedObject = new EmbedBoxObjectView embedObjectOptions, data
 
     unless data is {} then @hide()
 
