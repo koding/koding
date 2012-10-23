@@ -4,8 +4,13 @@
 #include <lve/lve-ctl.h>
 
 int main (int argc, char *argv[]) {
-	if(argc <= 1) {
+	if(argc < 2) {
 		return 64;
+	}
+
+	if(argc == 2 && strcmp(argv[1], "-v") == 0) {
+		printf("lve_exec version 1.1\n");
+		return 0;
 	}
 	
 	char* dir = getcwd(NULL, 0); // save current dir, it is lost when entering LVE
