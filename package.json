@@ -11,10 +11,10 @@
   },
   "main": "server/index.js",
   "scripts" : {
-    "preinstall": "echo preinstall... ",
-    "install" : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
-    "preupdate": "echo pre-update... ",
-    "update" : "echo update..."
+    "preinstall"  : "rm -rf ./node_modules",
+    "install"     : "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",
+    "preupdate"   : "echo pre-update... ",
+    "update"      : "echo update..."
   },
   "dependencies": {
     "bitly"           : "1.2.4",
