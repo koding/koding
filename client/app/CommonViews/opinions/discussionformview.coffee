@@ -15,6 +15,14 @@ class DiscussionFormView extends KDFormView
       loader          :
         diameter      : 12
 
+    @cancelDiscussionBtn = new KDButtonView
+      title : "Cancel"
+      cssClass:"modal-cancel discussion-cancel"
+      type : "button"
+      style: "modal-cancel"
+      callback :=>
+        @parent?.editDiscussionLink.$().click()
+
     @discussionBody = new KDInputViewWithPreview
       preview         : @preview
       cssClass        : "discussion-body"
@@ -45,17 +53,27 @@ class DiscussionFormView extends KDFormView
       iconClass       : "fullscreen"
       iconOnly        : yes
       callback: =>
+        @textContainer = new KDView
+          cssClass:"modal-fullscreen-text"
+
+        @text = new KDInputViewWithPreview
+          type : "textarea"
+          cssClass : "fullscreen-data kdinput text"
+          defaultValue : @discussionBody.getValue()
+
+        @textContainer.addSubView @text
+
+
         modal = new KDModalView
           title       : "What do you want to discuss?"
           cssClass    : "modal-fullscreen"
-
           height      : $(window).height()-110
           width       : $(window).width()-110
+          view        : @textContainer
           position:
             top       : 55
             left      : 55
           overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@discussionBody.getValue()+"</textarea></div>"
           buttons     :
             Cancel    :
               title   : "Discard changes"
@@ -66,13 +84,59 @@ class DiscussionFormView extends KDFormView
               title   : "Apply changes"
               style   : "modal-clean-gray"
               callback:=>
-                @discussionBody.setValue $("#fullscreen-data").val()
+                @discussionBody.setValue @text.getValue()
                 @discussionBody.generatePreview()
                 modal.destroy()
 
+
+
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
+        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
+        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
+        contentWidth = modal.$(".kdmodal-content").width()-40
+        halfWidth  = contentWidth / 2
+
+        @text.on "PreviewHidden", =>
+          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
+          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+
+        @text.on "PreviewShown", =>
+          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+          modal.$(".input_preview").width halfWidth-5
+
+        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+        modal.$(".input_preview").width halfWidth-5
+
+        # modal = new KDModalView
+        #   title       : "What do you want to discuss?"
+        #   cssClass    : "modal-fullscreen"
+
+        #   height      : $(window).height()-110
+        #   width       : $(window).width()-110
+        #   position:
+        #     top       : 55
+        #     left      : 55
+        #   overlay     : yes
+        #   content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@discussionBody.getValue()+"</textarea></div>"
+        #   buttons     :
+        #     Cancel    :
+        #       title   : "Discard changes"
+        #       style   : "modal-clean-gray"
+        #       callback:=>
+        #         modal.destroy()
+        #     Apply     :
+        #       title   : "Apply changes"
+        #       style   : "modal-clean-gray"
+        #       callback:=>
+        #         @discussionBody.setValue $("#fullscreen-data").val()
+        #         @discussionBody.generatePreview()
+        #         modal.destroy()
+
+        # modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
+        # modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
+        # modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -163,6 +227,7 @@ class DiscussionFormView extends KDFormView
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}
+            {{> @cancelDiscussionBtn}}
           </div>
         </div>
       </div>
