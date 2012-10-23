@@ -42,17 +42,22 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView contentDisplayController._updateController.updateWidget
 
-    memberProfile = @addProfileView member
-    memberStream  = @addActivityView member
+    # This checks if the user following the viewing profile or not. This
+    # has to query so it introduces a delay when showing the member profile.
+    # Unless we have a way to that better, I leave this for now - ST
+    KD.whoami().isFollowing? member.getId(), "JAccount", (following) =>
+      member.followee = following
+      memberProfile = @addProfileView member
+      memberStream  = @addActivityView member
 
-    # unless KD.isMine member
-    #   @listenTo
-    #     KDEventTypes       : "mouseenter"
-    #     listenedToInstance : memberProfile
-    #     callback           : => @mouseEnterOnHeader()
+      # unless KD.isMine member
+      #   @listenTo
+      #     KDEventTypes       : "mouseenter"
+      #     listenedToInstance : memberProfile
+      #     callback           : => @mouseEnterOnHeader()
 
-    memberProfile.on 'FollowButtonClicked', @followAccount
-    memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
+      memberProfile.on 'FollowButtonClicked', @followAccount
+      memberProfile.on 'UnfollowButtonClicked', @unfollowAccount
 
   addProfileView:(member)->
 

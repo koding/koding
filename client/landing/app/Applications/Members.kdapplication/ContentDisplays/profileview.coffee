@@ -54,16 +54,6 @@ class ProfileView extends JView
       ]
     , memberData
 
-    unless memberData.followee
-      KD.whoami().isFollowing? memberData.getId(), "JAccount", (following) =>
-        memberData.followee = following
-        if memberData.followee
-          #@followButton.setClass 'following-btn following-topic'
-          @followButton.setState "Unfollow"
-        else
-          @followButton.setState "Follow"
-          #@followButton.unsetClass 'following-btn following-topic'
-
     @skillTags = @putSkillTags()
 
     @followers = new KDView
