@@ -198,7 +198,7 @@ configureBroker = (options,callback=->)->
   config = require configFile
   console.log 'KONFIG', config.mq.pidFile
   vhosts = "{vhosts,["+
-    (options.vhosts or []).
+    (config.mq.vhosts or []).
     map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
     join(',')+"]}"
 
