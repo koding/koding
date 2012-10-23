@@ -37,10 +37,12 @@ class KDInputViewWithPreview extends KDInputView
           @$("div.preview_content").removeClass "hidden"
           @$("div.preview_switch").removeClass "content-hidden"
           @$().removeClass "content-hidden"
+          @emit "PreviewShown"
         else
           @$("div.preview_content").addClass "hidden"
           @$("div.preview_switch").addClass "content-hidden"
           @$().addClass "content-hidden"
+          @emit "PreviewHidden"
 
     @previewOnOffContainer = new KDView
       cssClass : "preview_switch"
