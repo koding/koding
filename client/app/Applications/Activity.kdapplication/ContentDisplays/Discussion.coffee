@@ -268,6 +268,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @hightlightCode()
 
+    @$(".discussion-body .data").addClass "has-markdown"
+
   pistachio:->
     """
     {{> @header}}
@@ -291,7 +293,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
