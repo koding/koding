@@ -240,12 +240,18 @@ class EmbedBoxLinkViewTitle extends KDView
     else
       @titleInput = new KDCustomHTMLView
         cssClass : "hidden"
-        value : data.link_embed?.title or ""
+        partial : data.link_embed?.title or ""
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
+
+  getValue:->
+    if @options.hasConfig
+      @titleInput.getValue()
+    else
+      @titleInput.getPartial()
 
   click:(event)->
     if @options.hasConfig is yes
@@ -280,7 +286,13 @@ class EmbedBoxLinkViewDescription extends KDView
     else
       @descriptionInput = new KDCustomHTMLView
         cssClass : "hidden"
-        value : data.link_embed?.description or ""
+        partial : data.link_embed?.description or ""
+
+  getValue:->
+    if @options.hasConfig
+      @descriptionInput.getValue()
+    else
+      @descriptionInput.getPartial()
 
   viewAppended:->
     super()

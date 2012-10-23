@@ -24,10 +24,10 @@ class StatusActivityItemView extends ActivityItemChild
     @template.update()
 
     # If there is embed data in the model, use that!
-    if @getData().link? and not (@getData().link.link_url is "")
-      if not ("embed" in @getData().link.link_embed_hidden_items)
+    if @getData().link?.link_url? and not (@getData().link.link_url is "")
+      if not ("embed" in @getData()?.link?.link_embed_hidden_items)
         @embedBox.show()
-        @embedBox.embedExistingData @getData()?.link?.link_embed, {
+        @embedBox.embedExistingData @getData().link.link_embed, {
           maxWidth: 720
         }
       else

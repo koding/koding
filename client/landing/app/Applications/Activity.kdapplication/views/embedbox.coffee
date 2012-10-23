@@ -126,8 +126,8 @@ class EmbedBox extends KDView
 
   getEmbedDataForSubmit:=>
     data              = @getEmbedData()
-    data.title        = @embedLink?.embedText?.embedTitle?.titleInput?.getValue()
-    data.description  = @embedLink?.embedText?.embedDescription?.descriptionInput?.getValue()
+    data.title        = @embedLink?.embedText?.embedTitle?.titleInput?.getValue() or ""
+    data.description  = @embedLink?.embedText?.embedDescription?.descriptionInput?.getValue() or ""
     data
 
   getEmbedData:=>
