@@ -12,6 +12,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     embedOptions = $.extend {}, options, {
       hasDropdown : no
       delegate : @
+      maxWidth : 700
     }
 
     @embedBox = new EmbedBox embedOptions, data?.link

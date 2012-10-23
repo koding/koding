@@ -142,7 +142,7 @@ class EmbedBoxImageView extends KDView
   pistachio:->
     """
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="#{@getData().link_embed?.images?[0]?.url}" style="max-width:#{@options.maxWidth+"px" or "560px"};max-height:#{@options.maxHeight+"px" or "200px"}" title="#{@getData().link_embed?.title or ""}" />
+    <img src="#{@getData().link_embed?.images?[0]?.url}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
     </a>
     """
 
