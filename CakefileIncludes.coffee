@@ -283,18 +283,6 @@ Includes =
         # chatter
         Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
 
-        # anyterm shell
-        Shell12345            :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
-        Shell                 :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
-        TerminalError         :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
-        TerminalClient        :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
-
-        # DiffScript            :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
-
-        # termlib shell
-        # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
-        # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
-
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
@@ -737,7 +725,6 @@ Includes =
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
-        terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"
