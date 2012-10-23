@@ -1499,14 +1499,14 @@ form.status-widget
 
 div.kdinputwithpreview.input_preview
   borderBox()
-  margin              0 0 15px 0
+  margin              0 0 0px 0
   padding             5px 0 0 0
-  min-height          30px
+  min-height          40px
   position            relative
   overflow            auto
 
   &.content-hidden
-    margin-bottom     15px
+    margin-bottom     0px
 
   div.preview_switch
     borderBox()
@@ -1517,13 +1517,20 @@ div.kdinputwithpreview.input_preview
     bg                color, #F4F4F4
     rounded           0px 4px 0px 4px
     padding           1px 3px
-    border-left       1px dashed #d7d7d7
-    border-bottom     1px dashed #d7d7d7
+    border-left       1px solid
+    border-bottom     1px solid
+    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+    height            23px
+    width             auto
     &.content-hidden
       rounded         4px
-      border          none
+      border          1px solid
+      top             5px
+      right           0px
+      height 24px
+      border-color    #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
 
-    label
+    label.preview_switch_label
       color           #ff9200
       width           auto
       min-width       auto
@@ -1532,21 +1539,90 @@ div.kdinputwithpreview.input_preview
       font-size       11px
       line-height     16px
       padding         2px 2px
-      margin-right    0px
+      margin-right    5px
       font-weight     600
 
-    input.preview_checkbox
-      padding         2px 2px
-      margin          2px
-      min-width       auto
-      width           auto
-      float           none
-      display         inline-block
-      vertical-align  middle
+    // input.preview_checkbox
+    //   padding         2px 2px
+    //   margin          2px
+    //   min-width       auto
+    //   width           auto
+    //   float           none
+    //   display         inline-block
+    //   vertical-align  middle
+
+    div.kdinput.on-off
+      margin-top            2px
+      float                 right
+      font-family           sans
+      width                 auto
+      rounded               2px
+      a
+        display             inline-block
+        border              1px solid #cfcfcf
+        font-size           9px
+        font-weight         bold
+        color               #b6b6b6
+        line-height         8px
+        text-align          center
+        padding             7px 0px 6px 0px
+        text-decoration     none
+        text-shadow         0 1px 0 #ffffff
+        text-transform      uppercase
+        size                28px,auto
+        gradient1           #e6e5e5,85.3%,white,23.9%
+        shadow              0 1px 0 rgba(255, 255, 255, 0.69)
+        &:hover
+          gradient1         white,100%,#e6e5e5,15.3%
+          color             #918f8c
+          text-shadow       0 1px 0 #ffffff
+          shadow            inset 0 1px 1px -1px rgba(0,0,0,0.32)
+          border-top-color  #b9b9b9
+        &.active
+          border-color      #e2963f
+          color             #ffffff
+          text-shadow       0 -1px 0 #b97e42
+          shadow            0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12)
+          gradient1         #f49f3f,82.7%,#e18931,30%
+          &.off
+            color               rgb(140,140,140)
+            gradient1           white, 85.9%, #e6e5e5, 23.3%
+            border              1px solid #cfcfcf
+            text-shadow         0 0 0 #ccc
+            shadow              0 1px 0 rgba(255,255,255,0.69), inset 0 3px 6px -5px rgba(0,0,0,0.69)
+            // gradient1       rgb(199,81,29),100%,rgb(168,70,25),44%
+        &.off
+          // border-left       1px solid rgba(51, 51, 51, 0.15)
+          letter-spacing    0px
+          rounded           0 2px 2px 0
+        &.on
+          border-right      1px solid rgba(51, 51, 51, 0.15)
+          rounded           2px 0 0 2px
+      &.big
+        width               76px
+        a
+          font-size         11px
+          padding           9px 0px
+          width             36px
+
+      &.tiny
+        a
+          padding           3px 0px 2px 0px
+
+      &.dark
+        a
+          shadow            none
+          &:hover
+            shadow          none
+          &.active
+            shadow          none
+            &.off
+              shadow        none
 
   div.preview_content
     borderBox()
-    border            1px dashed #d7d7d7
+    border            1px solid
+    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
     padding           10px
     rounded           4px
     max-height        300px

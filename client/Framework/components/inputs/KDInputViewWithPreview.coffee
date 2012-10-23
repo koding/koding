@@ -23,47 +23,57 @@ class KDInputViewWithPreview extends KDInputView
 
     @showPreview = options.preview.showInitially or no
 
+    @previewOnOffLabel = new KDLabelView
+      cssClass : "preview_switch_label"
+      title: "Preview"
+    @previewOnOffSwitch = new KDOnOffSwitch
+      label         : @previewOnOffLabel
+      size          : "tiny"
+      defaultValue  : if @showPreview then on else off
+      callback      : (state)=>
+        if state
+          @showPreview = yes
+          @generatePreview()
+          @$("div.preview_content").removeClass "hidden"
+          @$("div.preview_switch").removeClass "content-hidden"
+          @$().removeClass "content-hidden"
+        else
+          @$("div.preview_content").addClass "hidden"
+          @$("div.preview_switch").addClass "content-hidden"
+          @$().addClass "content-hidden"
+
+    @previewOnOffContainer = new KDView
+      cssClass : "preview_switch"
+
+    @previewOnOffContainer.addSubView @previewOnOffLabel
+    @previewOnOffContainer.addSubView @previewOnOffSwitch
+
+    @addSubView @previewOnOffContainer
+
   setDomElement:(CssClass="")->
     super CssClass
 
     # basically, here we can add aynthing like modals, overlays and the liek
 
-    @$().after """<div class='input_preview preview-#{@options.preview.language}'>
-        <div class="preview_switch">
-          <label for="previewCheckbox#{@getId()}">Preview</label>
-          <input name="previewCheckbox#{@getId()}" type="checkbox" class="preview_checkbox" />
-        </div>
+    @$().after """
+      <div class='input_preview preview-#{@options.preview.language}'>
         <div class="preview_content"></div>
       </div>"""
 
   viewAppended:->
     super
 
-    @$("input.preview_checkbox").on "click",(event)=>
-      checkState = @$("input.preview_checkbox").prop("checked") or no
-
-      if checkState
-        @showPreview = yes
-        @generatePreview()
-        @$("div.preview_content").removeClass "hidden"
-        @$("div.preview_switch").removeClass "content-hidden"
-        @$().removeClass "content-hidden"
-      else
-        @$("div.preview_content").addClass "hidden"
-        @$("div.preview_switch").addClass "content-hidden"
-        @$().addClass "content-hidden"
-
     unless @showPreview
       @$("div.preview_content").addClass "hidden"
       @$("div.preview_switch").addClass "content-hidden"
       @$().addClass "content-hidden"
-      @$("input.preview_checkbox").prop("checked",no)
+      @previewOnOffSwitch.setValue off
     else
       @generatePreview()
-      @$("input.preview_checkbox").prop("checked",yes)
+      @previewOnOffSwitch.setValue on
 
     @$("label").on "click",=>
-      @$("input.preview_checkbox").get(0).click()
+      @$("input.checkbox").get(0).click()
 
     @$("div.preview_content").addClass("has-"+@options.preview.language)
 
