@@ -12,10 +12,15 @@ module.exports = deepFreeze
 #  basicAuth     :
 #    username    : 'koding'
 #    password    : '314159'
+  uri           : 
+    address     : "https://koding.com"
   monit         :
     webCake     : '/var/run/node/webCake.pid'
     kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
   webPort       : [3020..3021]
   mongo         : mongo
