@@ -23,7 +23,7 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : no
+  buildClient   : yes
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
