@@ -3,7 +3,7 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
@@ -15,16 +15,25 @@ rabbitVhost =\
   catch e then "/"
 
 module.exports = deepFreeze
+  uri           : 
+    address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
   webPort       : 3000
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : no
+  buildClient   : yes
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
   social        :
-    numberOfWorkers: 5
+    numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 2
   client        :
     version     : version
     minify      : no
@@ -54,7 +63,7 @@ module.exports = deepFreeze
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
     vhosts      : [
-      rule      : '^secret-kite -'
+      rule      : '^secret-kite-'
       vhost     : 'kite'
     ]
     pidFile     : '/var/run/broker.pid'

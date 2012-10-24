@@ -29,58 +29,8 @@ ebin
 .project
 /kites/terminal/.tmp
 
-# ignored node modules stuff (they need to be cake installed)
-/node_modules/.bin
-/node_modules/http-proxy
-/node_modules/bitly
-/node_modules/braintree
-/node_modules/browserify
-/node_modules/coffee-script
-/node_modules/cron
-/node_modules/dateformat
-/node_modules/dropbox
-/node_modules/eventemitter2
-/node_modules/everyauth
-/node_modules/express
-/node_modules/gzippo
-/node_modules/hashish
-/node_modules/hat
-/node_modules/http-proxy
-/node_modules/inspect
-/node_modules/jsonify
-/node_modules/ldapjs
-/node_modules/jsonify
-/node_modules/log
-/node_modules/log4js
-/node_modules/mongodb
-/node_modules/mongoskin
-/node_modules/mysql
-/node_modules/node-oauth
-/node_modules/node-pusher
-/node_modules/nodemailer
-/node_modules/nodeunit
-/node_modules/optimist
-/node_modules/postmark
-/node_modules/profiler
-/node_modules/request
-/node_modules/stylus
-/node_modules/underscore
-/node_modules/url
-/node_modules/validator
-/node_modules/terminaljs-lite
-/node_modules/terminaljs-lite_
-/node_modules/jsonify
-/node_modules/browserify
-/node_modules/cron
-/node_modules/.DS_Store
-/node_modules/csv
-/node_modules/process
-node_modules/cron/
-/node_modules/libxml-to-js
-/node_modules/colors
-/node_modules/commander
+/node_modules/*
 
-# Ignored modules end. do not add stuff inside ignored modules. above or below is ok.
 
 *.dump
 *.orig
