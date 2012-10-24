@@ -127,8 +127,10 @@ EventEmitter class Feeder
       exchangeName, 
       "#.activity", 
       workerQueueOptions,
-      (queue, exchangeName) ->
+      (queue, exchangeName) =>
         queue.close()
+        # Close the connection that declared the exchange to bind the queue
+        @mq.connection.exchanges[exchangeName]?.close()
         callback()
     )
 
