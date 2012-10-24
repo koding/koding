@@ -22,13 +22,16 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
-  webPort       : [3020..3021]
+  webserver     :
+    login       : 'prod-webserver'
+    port        : [3020..3021]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   social        :
+    login       : 'prod-social'
     numberOfWorkers: 4
   feeder        :
     queueName   : "koding-feeder"

@@ -19,7 +19,8 @@ module.exports = deepFreeze
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
   runBroker     : no
   configureBroker: no
