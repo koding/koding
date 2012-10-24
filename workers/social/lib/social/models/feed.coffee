@@ -36,6 +36,7 @@ module.exports = class JFeed extends jraphical.Module
 
   @createFeed = (account, options, callback) ->
     {title, description} = options
+    description ?= ""
     feed = new JFeed {
       title
       description
@@ -47,6 +48,7 @@ module.exports = class JFeed extends jraphical.Module
     JAccount = require './account'
     return unless account instanceof JAccount
     {title, description} = data
+    description ?= ""
     selectorOrInitializer =
       title: title
       description: description

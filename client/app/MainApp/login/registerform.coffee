@@ -136,6 +136,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
             match     : @password.input
+            minLength : 8
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"

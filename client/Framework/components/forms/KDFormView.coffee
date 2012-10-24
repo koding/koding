@@ -11,7 +11,7 @@ class KDFormView extends KDView
         inputs = inputs.concat KDFormView.findChildInputs subView
 
     return inputs
-  
+
   ###
   INSTANCE LEVEL
   ###
@@ -24,13 +24,13 @@ class KDFormView extends KDView
     @valid = null
     @setCallback options.callback
     @customData = {}
-  
+
   childAppended:(child)->
     child.associateForm? @
     if child instanceof KDInputView
       @propagateEvent KDEventType: 'inputWasAdded', child
     super
-  
+
   bindEvents:()->
     @getDomElement().bind "submit",(event)=>
       @handleEvent event
@@ -39,13 +39,13 @@ class KDFormView extends KDView
   setDomElement:()->
     cssClass = @getOptions().cssClass ? ""
     @domElement = $ "<form class='kdformview #{cssClass}'></form>"
-  
+
   getCustomData:(path)->
     if path
       JsPath.getAt @customData, path
     else
       @customData
-    
+
   addCustomData:(path, value)->
     if 'string' is typeof path
       JsPath.setAt @customData, path, value
@@ -55,39 +55,39 @@ class KDFormView extends KDView
 
   removeCustomData:(path)->
     path = path.split '.' if 'string' is typeof path
-    [pathUntil..., last] = path 
+    [pathUntil..., last] = path
     isArrayElement = not isNaN +last
     if isArrayElement
       JsPath.spliceAt @customData, pathUntil, last
     else
       JsPath.deleteAt @customData, path
-  
+
   serializeFormData:(data={})->
     for inputData in @getDomElement().serializeArray()
       data[inputData.name] = inputData.value
     data
-  
+
   getData: ->
     formData = $.extend {},@getCustomData()
 
     @serializeFormData formData
-        
+
     formData
 
   focusFirstElement:-> KDFormView.findChildInputs(@)[0].$().trigger "focus"
-    
+
   setCallback:(callback)-> @formCallback = callback
 
   getCallback:()-> @formCallback
-  
+
   reset:=> @$()[0].reset()
-  
+
   submit:(event)=>
 
     if event
       event.stopPropagation()
       event.preventDefault()
-    
+
     form                = @
     inputs              = KDFormView.findChildInputs @
     validationCount     = 0
@@ -122,7 +122,7 @@ class KDFormView extends KDView
             # check if all inputs were valid
             if validInputs.length is toBeValidatedInputs.length
               # put valid inputs to formdata
-              formData[input.getName()] = input.getValue() for input in validInputs                
+              formData[input.getName()] = input.getValue() for input in validInputs
             else
               valid = no
             # tell validation was finished
@@ -130,5 +130,5 @@ class KDFormView extends KDView
       inputToBeValidated.validate null, event
 
     # if no validation is required mimic as all were validated
-    form.emit "FormValidationFinished" if toBeValidatedInputs.length is 0      
+    form.emit "FormValidationFinished" if toBeValidatedInputs.length is 0
 

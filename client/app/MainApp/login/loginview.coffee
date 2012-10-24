@@ -267,9 +267,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    console.log 'before api call'
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
-      console.log 'after api call', arguments
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView

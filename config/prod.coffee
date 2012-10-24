@@ -3,29 +3,36 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.2" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
-# STAGING
-mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
+# PROD
+mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
 
 module.exports = deepFreeze
+#  basicAuth     :
+#    username    : 'koding'
+#    password    : '314159'
+  uri           : 
+    address     : "https://koding.com"
   monit         :
     webCake     : '/var/run/node/webCake.pid'
     kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
-  webPort       : [3020..3030]
+  webPort       : [3020..3021]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   social        :
-    numberOfWorkers: 10
+    numberOfWorkers: 4
   client        :
-    suppressLogs: no
     version     : version
-    minify      : no
+    minify      : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
@@ -35,6 +42,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://api.koding.com'
     runtimeOptions:
+      suppressLogs: yes
       version   : version
       mainUri   : 'https://koding.com'
       broker    :
@@ -47,8 +55,8 @@ module.exports = deepFreeze
       env       : 'beta'
   mq            :
     host        : 'localhost'
-    login       : 'test'
-    password    : 'test'
+    login       : 'PROD-k5it50s4676pO9O'
+    password    : 'Dtxym6fRJXx4GJz'
     vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
@@ -66,7 +74,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'test'
-      password  : 'test'
+      login     : 'PROD-k5it50s4676pO9O'
+      password  : 'Dtxym6fRJXx4GJz'
       vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'
