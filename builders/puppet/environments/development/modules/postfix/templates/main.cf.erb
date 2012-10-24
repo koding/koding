@@ -1,0 +1,8 @@
+myhostname = <%= fqdn %>
+mydomain = <%= domain %>
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, localhost.$mydomain, localhost
+mynetworks = 127.0.0.0/8
+inet_interfaces = localhost
+relayhost = [relay1.beta.system.aws.koding.com]

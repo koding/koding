@@ -1,0 +1,10 @@
+q_install=y
+q_puppet_cloud_install=n
+q_puppet_enterpriseconsole_install=n
+q_puppet_symlinks_install=y
+q_puppetagent_certname=agent.localdomain
+q_puppetagent_install=y
+q_puppetagent_server=puppet
+q_fail_on_unsuccessful_master_lookup=y
+q_puppetmaster_install=n
+q_vendor_packages_install=y
