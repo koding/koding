@@ -638,6 +638,7 @@ Includes =
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
+        keypress          : "./client/libs/keypress.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
@@ -657,7 +658,7 @@ Includes =
 
         marked            : "./client/libs/marked.js"
         # google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
-        lessCompiler      : "./client/libs/less.min.js"
+        # lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"

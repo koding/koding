@@ -15,7 +15,24 @@ class BottomChatPanel extends BottomPanel
       cssClass : "chat-sidebar"
 
     @split.on "SplitPanelCreated", (panel)=>
-      panel.addSubView new BottomChatRoom
+      panel.addSubView panel.room = new BottomChatRoom
+      
+      panel.room.tokenInput.on "chat.ui.inputReceivedClick", =>
+        @split.setFocusedPanel panel
+
+      panel.room.tokenInput.on "chat.ui.changeFocus", (keyCode)=>
+        #keypress is unavoidable at this point
+        switch keyCode
+          when 37 then do @split.focusPrevPanel
+          when 39 then do @split.focusNextPanel
+          else
+            @split.focusByIndex i if 0 <= (i = e.which - 49) < 10
+      
+      panel.room.tokenInput.on "chat.ui.splitPanel", =>
+        @split.splitPanel()
+
+    @split.on "PanelIsFocused", (panel)=>
+      panel.room.tokenInput.input.$().trigger "focus"
 
   viewAppended:JView::viewAppended
 
