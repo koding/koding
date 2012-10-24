@@ -25,12 +25,13 @@ module.exports = class JStatusUpdate extends JPost
 
 
   @create = secure (client, data, callback)->
-    statusUpdate=
+    statusUpdate  =
       meta        : data.meta
       title       : data.title
       body        : data.body
 
-      link                      :
+    if data.link_url and data.link_embed
+      statusUpdate.link         =
         link_url                : data.link_url
         link_embed              : data.link_embed
         link_embed_hidden_items : data.link_embed_hidden_items
@@ -44,7 +45,8 @@ module.exports = class JStatusUpdate extends JPost
       title       : data.title
       body        : data.body
 
-      link                      :
+    if data.link_url and data.link_embed
+      statusUpdate.link         =
         link_url                : data.link_url
         link_embed              : data.link_embed
         link_embed_hidden_items : data.link_embed_hidden_items
