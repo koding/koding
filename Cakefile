@@ -116,7 +116,6 @@ buildClient =(options, configFile, callback=->)->
   #         callback null
 
   configFile = expandConfigFile configFile
-  console.log arguments
   config = require configFile
   console.log config
   builder = new Builder config.client,clientFileMiddleware,""
@@ -198,7 +197,7 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   vhosts = "{vhosts,["+
-    (config.vhosts or []).
+    (config.mq.vhosts or []).
     map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
     join(',')+"]}"
 

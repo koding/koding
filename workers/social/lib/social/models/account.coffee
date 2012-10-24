@@ -53,7 +53,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
       ]
     schema                  :
       skillTags             : [String]
@@ -265,6 +265,33 @@ module.exports = class JAccount extends jraphical.Module
                 fin()
         , -> callback null, teasers
         collectTeasers node for node in contents
+
+  # Update broken counts for user
+  updateCounts:->
+
+    # Like count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
+    , (err, count)=>
+      @update ($set: 'counts.likes': count), ->
+
+    # Member Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      @update ($set: 'counts.following': count), ->
+
+    # Tag Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JTag'
+    , (err, count)=>
+      @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 

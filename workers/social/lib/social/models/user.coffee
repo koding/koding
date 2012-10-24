@@ -237,6 +237,12 @@ module.exports = class JUser extends jraphical.Module
                   else
                     connection.delegate = account
                     JAccount.emit "AccountLoggedIn", account
+
+                    # This should be called after login and this
+                    # is not correct place to do it, FIXME GG
+                    # p.s. we could do that in workers
+                    account.updateCounts()
+
                     callback null, account, replacementToken
 
   @logout = secure (client, callback)->
