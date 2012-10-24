@@ -92,13 +92,21 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   requestEmbed:=>
+    # log "requestEmbed called"
     setTimeout =>
+      # log "setTimeout called"
       firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      # log "'#{firstUrl}' caught for #{@largeInput.getValue()}"
-      unless @previousURL is firstUrl?[0] then unless firstUrl is null then @embedBox.embedUrl firstUrl?[0], {
-        maxWidth: 525
-      }
-      @previousURL = firstUrl?[0]
+      # log "firstUrl('#{firstUrl}') caught for inputValue('#{@largeInput.getValue()}')"
+      if firstUrl?
+        # log "firstUrl('#{firstUrl}'') found"
+        unless @previousURL is firstUrl?[0]
+          # log "previousUrl('#{@previousURL}') is not what we caught"
+          unless firstUrl is null
+            # log "firstUrl('#{firstUrl}'), embedding"
+            @embedBox.embedUrl firstUrl?[0], {
+              maxWidth: 525
+            }
+          @previousURL = firstUrl?[0]
     ,500
 
   switchToSmallView:->
@@ -132,16 +140,22 @@ class ActivityStatusUpdateWidget extends KDFormView
     @submitBtn.setTitle "Edit status update"
     @addCustomData "activity", activity
     @largeInput.setValue Encoder.htmlDecode body
-    @switchToLargeView()
     @utils.selectText @largeInput.$()[0]
     if link?
+      @previousURL = link.link_url
 
       @embedBox.setEmbedData link.link_embed
       @embedBox.setEmbedURL link.link_url
       @embedBox.setEmbedImageIndex link.link_embed_image_index
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
 
-      @embedBox.embedExistingData link.link_embed, {}
+      # when in edit mode, show the embed and remove any "embed" from hidden
+      @embedBox.embedExistingData link.link_embed, {forceShow:yes}, =>
+        @embedBox.show()
+    else
+      @embedBox.hide()
+
+    @switchToLargeView()
 
   submit:=>
     @addCustomData "link_url", @embedBox.getEmbedURL() or ""
@@ -156,6 +170,10 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
+    @removeCustomData "link_url"
+    @removeCustomData "link_embed"
+    @removeCustomData "link_embed_hidden_items"
+    @removeCustomData "link_embed_image_index"
     @embedBox.resetEmbedAndHide()
     @previousURL = ""
 

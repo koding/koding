@@ -34,9 +34,10 @@ class StatusActivityItemView extends ActivityItemChild
           maxHeight: 300
         }
       else
-        # no need to show stuff if it should not be shown. not even in the code
+        # no need to show stuff if it should not be shown.
         @embedBox.hide()
-        @embedBox.destroy()
+        # # not even in the code
+        # @embedBox.destroy()
 
     # This will involve heavy load on the embedly servers - every client
     # will need to make a request.
@@ -52,14 +53,20 @@ class StatusActivityItemView extends ActivityItemChild
 
   render:=>
     super
+
     {link} = @getData()
 
     if link?
+      # log link,@embedBox?
       if @embedBox.constructor.name is "KDView"
         @embedBox = new EmbedBox @embedOptions, link
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
       @embedBox.setEmbedImageIndex link.link_embed_image_index
-      @embedBox.embedExistingData link.link_embed, {}
+      @embedBox.embedExistingData link.link_embed, {} ,=>
+        if "embed" in link.link_embed_hidden_items
+          @embedBox.hide()
+        else
+          @embedBox.show()
     else
       @embedBox = new KDView
 

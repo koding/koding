@@ -121,6 +121,7 @@ class EmbedBox extends KDView
     @setEmbedImageIndex 0
 
   clearEmbed:=>
+    # here them embed can be prepared for population
     # @$("div.embed").html ""
 
   clearEmbedAndHide:=>
@@ -190,7 +191,6 @@ class EmbedBox extends KDView
         callback oembed,embedlyOptions
 
   populateEmbed:(data={},url="#",options={})=>
-
     @setEmbedData data
     @setEmbedURL url
 
@@ -209,18 +209,27 @@ class EmbedBox extends KDView
           @embedObject.show()
           @embedImage.hide()
 
-
     # if the whole embed should be hidden, no content needs to be prepared
-    if "embed" in @getEmbedHiddenItems()
-      @hide()
-      return no
+    if ("embed" in @getEmbedHiddenItems())
+      unless (options.forceShow is yes)
+        @hide()
+        return no
+    else
+      @show()
+
+    # when the editview calls this, the user can re-disable the embed.
+    # if this is not removed from the data, he will not be able to switch
+    # on embedding again
+
+    if options.forceShow
+      @removeEmbedHiddenItem "embed"
 
     # embedly uses the https://developers.google.com/safe-browsing/ API
     # to stop phishing/malware sites from being embedded
     if data?.safe? and data?.safe is yes
 
       # types should be covered, but if the embed call fails partly, default to link
-      type = data?.object?.type or "link"
+      type = data.object?.type or "link"
 
       # log "Embedding object type",type, " with data type",data.type
 
@@ -308,9 +317,15 @@ class EmbedBox extends KDView
 
   embedExistingData:(data={},options={},callback=noop)=>
     unless data.type is "error"
+
       @clearEmbed()
       @populateEmbed data, data.url, options
-      @show()
+
+      # althou the hide/show should be handled from outside the embed,
+      # this is a fallback
+
+      unless "embed" in @getEmbedHiddenItems then @show() else @hide()
+
       callback data
     else
       callback no
@@ -320,6 +335,8 @@ class EmbedBox extends KDView
       unless data.type is "error"
         @resetEmbed()
         @populateEmbed data, url, embedlyOptions
+
+        # we can expect the embedUrl call not to happen on a hidden embed
         @show()
         callback data
       else
