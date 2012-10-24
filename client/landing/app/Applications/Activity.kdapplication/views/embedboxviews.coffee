@@ -1,3 +1,53 @@
+class EmbedBoxLinksViewItem extends KDListItemView
+
+  constructor:(options,data)->
+    super options,data
+    @string = data
+
+    @setClass "embed-link-item"
+
+    @linkButton = new KDButtonView
+      title: @string
+      style: "clean-gray"
+      callback :=>
+        @getDelegate().getDelegate().getDelegate().embedUrl @string
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    {{> @linkButton}}
+    """
+class EmbedBoxLinksView extends KDView
+  constructor:(options,data)->
+    super options,data
+
+    @linkList = new KDListView
+      cssClass : "embed-link-list"
+      delegate :@
+      itemClass : EmbedBoxLinksViewItem
+    ,{}
+
+  setLinks:(links=[])->
+    @linkList.empty()
+    for link in links
+      @linkList.addItem link
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+    @show()
+    @setLinks ["www.arvidkahl.de","www.google.de"]
+
+  pistachio:->
+    """
+    {{> @linkList}}
+    """
+
 class EmbedBoxLinkView extends KDView
   constructor:(options={},data)->
     super options,data
