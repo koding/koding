@@ -3,6 +3,7 @@ log = -> logger.info arguments...
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'
+{extend} = require 'underscore'
 
 process.on 'uncaughtException', (err)->
   exec './beep'
@@ -17,9 +18,14 @@ Bongo = require 'bongo'
 Broker = require 'broker'
 
 Object.defineProperty global, 'KONFIG', value: require './config'
-{mq, mongo, email} = KONFIG
+{mq, mongo, email, social} = KONFIG
 
-broker = new Broker mq
+mqOptions = extend {}, mq
+mqOptions.login = social.login if social?.login?
+
+console.log 'SOCIAL KONFIG', social, mqOptions
+
+broker = new Broker mqOptions
 
 koding = new Bongo
   root        : __dirname

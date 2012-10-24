@@ -15,7 +15,8 @@ projectRoot = nodePath.join __dirname, '..'
 module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
   buildClient   : yes
   runGoBroker   : yes

@@ -82,6 +82,8 @@ module.exports = class JInvitation extends jraphical.Module
           callback null
 
   @sendBetaInviteFromClient = secure (client, options,callback)->
+    console.log "im called"
+    JInvitationRequest = require "./invitationrequest"
     account = client.connection.delegate
     # unless 'super-admin' in account.globalFlags
     unless account?.profile?.nickname is 'devrim'
@@ -110,15 +112,16 @@ module.exports = class JInvitation extends jraphical.Module
         JInvitation.sendBetaInvite options,callback
   betaTestersHTML   = fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
   @sendBetaInvite = (options,callback) ->
+    Bitly = require 'bitly'
+    bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
     protocol = 'http://'
-    {host, port} = server
     email   = options.email ? "devrim+#{Date.now()}@koding.com"
-
+    
     JInvitation.one {inviteeEmail: email}, (err, invite)=>
       if err
         console.log err
       else if invite?
-        url = "#{protocol}#{host}/invitation/#{invite.code}"
+        url = "#{KONFIG.uri.address}/invitation/#{invite.code}"
         personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
         emailerObj =

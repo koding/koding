@@ -55,11 +55,20 @@ module.exports = class Builder
     
     clibraries  = @watcher.getSubSectionConcatenated "Client","Libraries"
 
-    cclient  = @watcher.getSubSectionConcatenated "Client","Framework"
+    cclient = ''
+    cclient += if options.pistachios then 'PISTACHIO_MODE = "production";' else ''
+    
+    cclient += @watcher.getSubSectionConcatenated "Client","Framework"
     cclient += @watcher.getSubSectionConcatenated "Client","Application"
     cclient += @watcher.getSubSectionConcatenated "Client","Applications"
     cclient += @watcher.getSubSectionConcatenated "Client","ApplicationPageViews"
-    cclient = kdjs = @wrapWithJSClosure cclient    
+    cclient = kdjs = @wrapWithJSClosure cclient
+
+
+    if options.pistachios
+      compilePistachios = require 'pistachio-compiler'
+      kdjs = cclient = compilePistachios(cclient)
+
     libraries  = clibraries
         
     @middleware @options, {libraries, kdjs}, (err,finalCode)=>

@@ -4,7 +4,7 @@ module.exports =
   logFile           : "/var/log/node/Databases.log"
   amqp              :
     host            : 'web0.beta.system.aws.koding.com'
-    username        : 'PROD-k5it50s4676pO9O'
+    username        : 'prod-databases-kite'
     password        : 'Dtxym6fRJXx4GJz'
     vhost           : '/'
   apiUri            : 'https://api.koding.com/1.0'
