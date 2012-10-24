@@ -657,7 +657,7 @@ Includes =
 
         marked            : "./client/libs/marked.js"
         # google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
-        lessCompiler      : "./client/libs/less.min.js"
+        # lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"

@@ -23,7 +23,7 @@ module.exports = deepFreeze
   configureBroker: no
   buildClient   : no
   social        :
-    numberOfWorkers: 5
+    numberOfWorkers: 1
     watch       : yes
   client        :
     version     : version
@@ -54,7 +54,7 @@ module.exports = deepFreeze
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
     vhosts      : [
-      rule      : '^secret-kite -'
+      rule      : '^secret-kite-'
       vhost     : 'kite'
     ]
     pidFile     : '/var/run/broker.pid'
