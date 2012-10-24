@@ -99,6 +99,12 @@ class EmbedBox extends KDView
     @embedImage = new EmbedBoxImageView embedImageOptions, data
     @embedObject = new EmbedBoxObjectView embedObjectOptions, data
 
+    @embedLinks = new EmbedBoxLinksView
+      cssClass : "embed-links-container"
+      delegate : @
+
+    @embedLinks.hide()
+
     unless data is {} then @hide()
 
   viewAppended:->
@@ -347,6 +353,7 @@ class EmbedBox extends KDView
       {{> @settingsButton}}
       {{> @embedLoader}}
       <div class="link-embed clearfix">
+        {{> @embedLinks}}
         {{> @embedLink}}
         {{> @embedImage}}
         {{> @embedObject}}
