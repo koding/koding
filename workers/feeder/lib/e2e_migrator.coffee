@@ -25,31 +25,53 @@ db = mongoskin.db dbUrl
 accountsCol = db.collection 'jAccounts'
 relationshipsCol = db.collection 'relationships'
 
-accountsCol.findEach {}, {_id: yes}, (err, accountRel) ->
-  if err or typeof accountRel is undefined
-    console.log "Error querying accounts. Check your DB configs and try again!"
-    process.exit() # exit the worker
-  else if accountRel is null
-    console.log "No more account. Finished!"
-    process.exit() # exit the worker
+accountsCol.count (err, accountCount) ->
+  if err
+    console.log "Error counting accounts"
+    process.exit()
   else
-    {_id} = accountRel
-    userXData = {name: getExchangeName _id}
-    console.log "Migrating account", _id
+    accountPending = accountCount
+    accountSetup = ->
+      accountPending--
+      if accountPending is 0
+        console.log "Migration completed!"
+        process.exit()
 
-    selector =
-      targetId  : _id
-      sourceName: {$in: ['JAccount', 'JTag']}
-      as        : 'follower'
-
-    # Find all the sources that this account is following
-    relationshipsCol.findEach selector, {sourceId: yes}, (err, rel) ->
-      if err or typeof rel is undefined
-        return # go to next account
-      else if rel is null # no more followees for this account
-        return # go to next account
+    console.log "Migrating #{accountCount} accounts..."
+    accountsCol.findEach {}, {_id: yes}, (err, account) ->
+      if err or not account?
+        console.log "Error checking account", err if err
+        return
+        #process.exit()
       else
-        followeeXName = getExchangeName rel.sourceId
-        followeeXData = {name: followeeXName}
-        routing = "#{followeeXName}.activity"
-        broker.bindExchange userXData, followeeXData, routing
+        {_id} = account
+        userXData = {name: getExchangeName _id}
+
+        selector =
+          targetId  : _id
+          sourceName: {$in: ['JAccount', 'JTag']}
+          as        : 'follower'
+
+        relationshipsCol.count selector, (err, relCount) ->
+          bindingPending = relCount
+
+          if bindingPending is 0
+            return accountSetup()
+
+          boundFinished = ->
+            bindingPending--
+            if bindingPending is 0
+              #console.log "finish for account #{_id}"
+              accountSetup()
+
+          relationshipsCol.findEach selector, {sourceId: yes}, (err, rel) ->
+            if err or not rel?
+              console.log "Error finding relationship", err if err
+              return
+              #process.exit()
+            else
+              followeeXName = getExchangeName rel.sourceId
+              followeeXData = {name: followeeXName}
+              routing = "#{followeeXName}.activity"
+              broker.bindExchange userXData, followeeXData, routing
+              boundFinished()
