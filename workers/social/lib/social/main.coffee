@@ -22,6 +22,8 @@ Object.defineProperty global, 'KONFIG', value: require './config'
 mqOptions = Object.create mq
 mqOptions.login = social.login if social?.login?
 
+console.log 'SOCIAL KONFIG', social
+
 broker = new Broker mqOptions
 
 koding = new Bongo

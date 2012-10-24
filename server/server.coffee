@@ -33,6 +33,8 @@ process.on 'uncaughtException',(err)->
 mqOptions = Object.create mq
 mqOptions.login = webserver.login if webserver?.login?
 
+console.log 'WEBSERVER CONFIG', webserver
+
 koding = new Bongo {
   mongo
   root: __dirname
