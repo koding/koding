@@ -304,6 +304,7 @@ class EmbedBox extends KDView
       @hide()
     else
       log "EmbedBox encountered an Error!",data?.error_type,data?.error_message
+      @hide()
 
   embedExistingData:(data={},options={},callback=noop)=>
     unless data.type is "error"
