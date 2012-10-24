@@ -16,6 +16,9 @@ EventEmitter class Feeder
     @clients = {}
 
     @mq.ready =>
+      @mq.on 'event-JAccount', "AccountAuthenticated", (account) =>
+        @handleFolloweeActivity account
+
       @mq.on 'event-CActivity', "ActivityIsCreated", (activity) =>
         @handleNewActivity activity
 
@@ -23,12 +26,12 @@ EventEmitter class Feeder
         {action, follower, followee} = data
         @handleFollowAction action, follower, followee
 
-  handleAccount: (account) ->
-    client = account?.profile?.nickname
-    unless @clients[client]?
-      @clients[client] = account
-      @handleFolloweeActivity account
-      #@handleFollowAction account
+  # handleAccount: (account) ->
+  #   client = account?.profile?.nickname
+  #   unless @clients[client]?
+  #     @clients[client] = account
+  #     @handleFolloweeActivity account
+  #     #@handleFollowAction account
 
   ###
   # Whenever an activity is created, it will just emit to the user's
@@ -54,7 +57,6 @@ EventEmitter class Feeder
 
     try
       {tags} = JSON.parse activity.snapshot
-      #activity.fetchTeaser (err, {tags}) =>
       return unless tags?
       for tag in tags
         do =>
@@ -78,6 +80,11 @@ EventEmitter class Feeder
   # For real-time update of followed activities
   handleFolloweeActivity: (account) ->
     ownExchangeName = @getExchangeName account._id
+    # Need to close the channel first
+    @mq.connection.queues[ownExchangeName]?.close()
+    # Then destroy the queue
+    @mq.connection.queues[ownExchangeName]?.destroy()
+
     @mq.createExchange ownExchangeName, {autoDelete: no}, =>
       @mq.on(
         ownExchangeName,
@@ -91,6 +98,22 @@ EventEmitter class Feeder
               #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
             @emit account, "FollowedActivityArrived", activityId
       )
+
+  # handleFolloweeActivity: (account) ->
+  #   ownExchangeName = @getExchangeName account._id
+  #   @mq.createExchange ownExchangeName, {autoDelete: no}, =>
+  #     @mq.on(
+  #       ownExchangeName,
+  #       "#.activity", 
+  #       ownExchangeName, 
+  #       (message, headers, deliveryInfo) =>
+  #         publisher = deliveryInfo.exchange
+  #         unless publisher is ownExchangeName
+  #           activityId = ObjectId message
+  #           # CActivity.one {_id: activityId}, (err, activity) =>
+  #             #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+  #           @emit account, "FollowedActivityArrived", activityId
+  #     )
 
   # HELPERS #
   bindToWorkerQueue: (exchangeName, callback) ->
@@ -113,15 +136,16 @@ EventEmitter class Feeder
     @mq.emit exchangeName, "#{exchangeName}.activity", payload, options
 
   on: (inst, event, callback) ->
-    routing = "oid.#{inst._id}.event.#{event}"
+    routing = getRoutingKey inst event
     opts = {exchangeAutoDelete: no}
     @mq.bindQueue "", "updateInstances", routing, opts, (queue) =>
-      @mq.on "updateInstances", routing, (payload) =>
+      #@mq.on "updateInstances", routing, (payload) =>
+      queue.subscribe (payload) =>
         message = @mq.cleanPayload payload
         callback message
 
   emit: (inst, event, payload) ->
-    routing = "oid.#{inst._id}.event.#{event}"
+    routing = getRoutingKey inst, event
     @mq.emit "updateInstances", routing, payload, {autoDelete:no}
 
   getExchange: (name) -> @mq.connection.exchanges[name]

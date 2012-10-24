@@ -13,8 +13,3 @@ feeder = new Feeder
   mq            : broker
   queueName     : queueName
   exchangePrefix: exchangePrefix
-
-broker.ready ->
-  broker.on 'event-JAccount', "AccountAuthenticated", (account) ->
-# JAccount.on "AccountAuthenticated", (account) ->
-    feeder.handleAccount account

@@ -153,7 +153,7 @@ module.exports = class JUser extends jraphical.Module
                     if err
                       callback err
                     else
-                      JAccount.emit "AccountAuthenticated", account
+                      #JAccount.emit "AccountAuthenticated", account
                       callback null, account
         else @logout clientId, callback
 
