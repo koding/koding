@@ -130,40 +130,40 @@ Temp styles
     size                    100%, 100%
     borderBox()
 
-    .layer
-      size                  100%, 100px
-      padding               5px
-      font-size             12px
-      line-height           16px
-      color                 #444
-      display               block
-      borderBox()
+  .layer
+    size                  100%, 100px
+    padding               5px
+    font-size             12px
+    line-height           16px
+    // color                 #444
+    display               block
+    borderBox()
 
-      &.presentation
-        bg                  color, transparent
-        color               transparent
-        white-space         pre-wrap
-        z-index             1
-        overflow            hidden
-        &.hide-tokens
-          b
-            hidden()
+    &.presentation
+      bg                  color, transparent
+      color               transparent
+      white-space         pre-wrap
+      z-index             1
+      overflow            hidden
+      &.hide-tokens
         b
-          font-weight       normal
-          vendor            transition, background-color .15s linear
-          bg                color, transparent
-          &.highlight-tag
-            bg              color, gold
-          &.highlight-user
-            bg              color, lightblue
+          hidden()
+      b
+        font-weight       normal
+        vendor            transition, background-color .15s linear
+        bg                color, transparent
+        // &.highlight-tag
+        //   bg              color, gold
+        // &.highlight-user
+        //   bg              color, lightblue
 
-      &.input
-        position            absolute
-        top                 0
-        left                0
-        background-color    transparent
-        border              none
-        z-index             2
+    &.input
+      position            absolute
+      top                 0
+      left                0
+      background-color    transparent
+      border              none
+      z-index             2
 
 
 

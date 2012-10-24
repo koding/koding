@@ -32,8 +32,5 @@ class FooterMenuItem extends KDListItemView
     if not @aboutIsOpen
       @aboutIsOpen             = yes
       contentDisplayController = @getSingleton "contentDisplayController"
-      controller               = new ContentDisplayControllerAbout null, null
-      contentDisplay           = controller.getView()
-
-      contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-      contentDisplayController.on   "ContentDisplayWantsToBeHidden", => @aboutIsOpen = no
+      contentDisplayController.emit "ContentDisplayWantsToBeShown", view = new AboutView
+      view.on "KDObjectWillBeDestroyed", => @aboutIsOpen = no
