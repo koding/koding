@@ -10,12 +10,14 @@ class StatusActivityItemView extends ActivityItemChild
 
     super options,data
 
-    embedOptions = $.extend {}, options, {
+    @embedOptions = $.extend {}, options,
       hasDropdown : no
       delegate : @
-    }
 
-    @embedBox = new EmbedBox embedOptions, data?.link
+    if data.link?
+      @embedBox = new EmbedBox @embedOptions, data?.link
+    else
+      @embedBox = new KDView
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -50,10 +52,16 @@ class StatusActivityItemView extends ActivityItemChild
 
   render:=>
     super
-    data = @getData().link or {}
-    @embedBox.setEmbedHiddenItems data.link_embed_hidden_items
-    @embedBox.setEmbedImageIndex data.link_embed_image_index
-    @embedBox?.embedExistingData data.link_embed, {}
+    {link} = @getData()
+
+    if link?
+      if @embedBox.constructor.name is "KDView"
+        @embedBox = new EmbedBox @embedOptions, link
+      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
+      @embedBox.setEmbedImageIndex link.link_embed_image_index
+      @embedBox.embedExistingData link.link_embed, {}
+    else
+      @embedBox = new KDView
 
   click:(event)->
 
