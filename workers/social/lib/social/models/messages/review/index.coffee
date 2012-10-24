@@ -1,6 +1,6 @@
-{Message} = require 'jraphical'
+{Reply} = require 'jraphical'
 
-module.exports = class JReview extends Message
+module.exports = class JReview extends Reply
 
   {ObjectId, ObjectRef, secure, dash} = require 'bongo'
   {Relationship}  = require 'jraphical'
@@ -8,13 +8,19 @@ module.exports = class JReview extends Message
   {log} = console
 
   @trait __dirname, '../../../traits/likeable'
+  @trait __dirname, '../../../traits/notifying'
 
   @share()
+
+  constructor:->
+    super
+    @notifyOriginWhen 'LikeIsAdded'
 
   @getDefaultRole =-> 'review'
 
   @set
     sharedMethods  :
+      static       : ['fetchRelated']
       instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
     schema         :
       isLowQuality : Boolean

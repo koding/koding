@@ -282,18 +282,6 @@ Includes =
         # chatter
         Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
 
-        # anyterm shell
-        Shell12345            :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
-        Shell                 :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
-        TerminalError         :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
-        TerminalClient        :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
-
-        # DiffScript            :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
-
-        # termlib shell
-        # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
-        # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
-
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
@@ -494,7 +482,8 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
-        broker                      : "./broker/apps/broker/priv/www/js/broker.js"
+        #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
+        broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
@@ -649,6 +638,7 @@ Includes =
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
+        keypress          : "./client/libs/keypress.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
@@ -668,7 +658,7 @@ Includes =
 
         marked            : "./client/libs/marked.js"
         # google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
-        lessCompiler      : "./client/libs/less.min.js"
+        # lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
@@ -734,7 +724,6 @@ Includes =
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
-        terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
         codeshare           : "./client/stylus/app.codeshare.styl"

@@ -3,7 +3,7 @@ module.exports =
     "bongo","bongo-client","jraphical","jsonh","jspath","kite","koding-dnode","koding-dnode-protocol"
     "microemitter","mongoop","pistachio","pistachio-compiler","scrubber","sinkrow","processes","inflector","traverse"
     "kite-amqp","amqp","broker","koding-eventemitter2",'koding-cake','koding-deep-freeze','koding-log-tailer'
-    'koding-logger','koding-watcher','koding-closure-compiler'
+    'koding-logger','koding-watcher','koding-closure-compiler','broker-client'
   ]
 
   npm_modules :

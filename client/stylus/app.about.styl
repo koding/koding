@@ -25,30 +25,6 @@ app.about.styl
     border                none
     box-shadow            none
 
-.about.content-display
-  overflow-x              hidden
-  overflow-y              scroll
-
-  &.kdtabhandlecontainer
-    display               none
-
-  footer.kdview
-    size                    auto,40px
-    padding                 20px
-    gradient                #222,#36332F
-    border-top              5px solid #ff9200
-
-// @keyframes burn
-//    0%
-//      text-shadow           0 -4px 10px #FF7802
-//    33%
-//      text-shadow           0 -4px 15px #FEF600
-//    66%
-//      text-shadow           0 -4px 15px #FA0001
-//    100%
-//      text-shadow           0 -4px 10px #FF7802
-
-
 .kdview.about-pane
   border-bottom           5px solid #ff920
   height                  auto
@@ -95,7 +71,6 @@ app.about.styl
       size                  auto,auto
 
       span
-        // vendor                animation, burn 2s linear infinite
         color                 #FC5C32
         text-shadow           0 -4px 10px #FED487, 0 0
         -webkit-text-stroke   1px rgba(255,216,2,0.5)

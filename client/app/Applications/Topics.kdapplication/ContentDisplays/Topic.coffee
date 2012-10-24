@@ -104,6 +104,15 @@ class TopicView extends KDView
     , data
 
     super
+    unless data.followee
+      KD.whoami().isFollowing? data.getId(), "JTag", (following) =>
+        data.followee = following
+        if data.followee
+          @followButton.setClass 'following-btn following-topic'
+          @followButton.setState "Following"
+        else
+          @followButton.setState "Follow"
+          @followButton.unsetClass 'following-btn following-topic'
 
   viewAppended:->
     @setTemplate @pistachio()
