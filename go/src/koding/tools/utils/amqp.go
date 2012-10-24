@@ -4,6 +4,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/config"
 	"koding/tools/log"
+	"strings"
 	"time"
 )
 
@@ -33,9 +34,7 @@ func AmqpAutoReconnect(component string, handler func(consumeConn, publishConn *
 
 func CreateAmqpConnection(component string) *amqp.Connection {
 	user := config.Current.AmqpUser
-	if user == config.COMPONENT_SPECIFIC {
-		user = component
-	}
+	user = strings.Replace(user, "<component>", component, 1)
 	conn, err := amqp.Dial("amqp://" + user + ":" + config.Current.AmqpPassword + "@" + config.Current.AmqpHost)
 	if err != nil {
 		panic(err)
