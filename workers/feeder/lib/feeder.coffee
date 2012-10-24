@@ -130,7 +130,7 @@ EventEmitter class Feeder
       (queue, exchangeName) =>
         queue.close()
         # Close the connection that declared the exchange to bind the queue
-        @mq.connection.exchanges[exchangeName]?.close()
+        @mq.getExchange(exchangeName)?.close()
         callback()
     )
 
@@ -150,7 +150,6 @@ EventEmitter class Feeder
     routing = getRoutingKey inst, event
     @mq.emit "updateInstances", routing, payload, {autoDelete:no}
 
-  getExchange: (name) -> @mq.connection.exchanges[name]
   getExchangeName: (id) -> "#{@exchangePrefix}#{id}"
 
 module.exports = Feeder
