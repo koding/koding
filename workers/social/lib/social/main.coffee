@@ -17,9 +17,12 @@ Bongo = require 'bongo'
 Broker = require 'broker'
 
 Object.defineProperty global, 'KONFIG', value: require './config'
-{mq, mongo, email} = KONFIG
+{mq, mongo, email, social} = KONFIG
 
-broker = new Broker mq
+mqOptions = Object.create mq
+mqOptions.login = social.login if social?.login?
+
+broker = new Broker mqOptions
 
 koding = new Bongo
   root        : __dirname

@@ -14,7 +14,8 @@ module.exports = deepFreeze
     kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
-  webPort       : [3020..3030]
+  webserver     :
+    port        : [3020..3030]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
