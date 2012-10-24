@@ -106,7 +106,6 @@ class EmbedBoxLinkViewImageSwitch extends KDView
       # @$("div.preview_image img.thumb").attr src : @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
       @$("span.thumb_nr").html @getEmbedImageIndex()+1
 
-
       if @getEmbedImageIndex() is 0
         @$("a.preview_link_switch.previous").addClass "disabled"
 
@@ -282,6 +281,7 @@ class EmbedBoxLinkViewDescription extends KDView
         cssClass     : "description_input hidden"
         name         : "description_input"
         defaultValue : data.link_embed?.description or ""
+        autogrow     : yes
 
     else
       @descriptionInput = new KDCustomHTMLView
@@ -299,13 +299,13 @@ class EmbedBoxLinkViewDescription extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+
   click:(event)->
     if @options.hasConfig is yes
       event.preventDefault()
       event.stopPropagation()
       @descriptionInput.show()
       @descriptionInput.focus()
-
       @$("div.description").hide()
       no
     else
