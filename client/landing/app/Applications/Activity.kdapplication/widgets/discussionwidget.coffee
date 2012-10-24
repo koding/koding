@@ -60,16 +60,26 @@ class ActivityDiscussionWidget extends KDFormView
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
       callback: =>
+        @textContainer = new KDView
+          cssClass:"modal-fullscreen-text"
+
+        @text = new KDInputViewWithPreview
+          type : "textarea"
+          cssClass : "fullscreen-data kdinput text"
+          defaultValue : @inputContent.getValue()
+
+        @textContainer.addSubView @text
+
         modal = new KDModalView
           title       : "What do you want to discuss?"
           cssClass    : "modal-fullscreen"
           height      : $(window).height()-110
           width       : $(window).width()-110
+          view        : @textContainer
           position:
             top       : 55
             left      : 55
           overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' placeholder='What do you want to talk about? (You can use markdown here)' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
           buttons     :
             Cancel    :
               title   : "Discard changes"
@@ -80,13 +90,28 @@ class ActivityDiscussionWidget extends KDFormView
               title   : "Apply changes"
               style   : "modal-clean-gray"
               callback:=>
-                @inputContent.setValue $("#fullscreen-data").val()
+                @inputContent.setValue @text.getValue()
                 @inputContent.generatePreview()
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
+        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
+        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
+        contentWidth = modal.$(".kdmodal-content").width()-40
+        halfWidth  = contentWidth / 2
+
+        @text.on "PreviewHidden", =>
+          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
+          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+
+        @text.on "PreviewShown", =>
+          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+          modal.$(".input_preview").width halfWidth-5
+
+        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+        modal.$(".input_preview").width halfWidth-5
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
