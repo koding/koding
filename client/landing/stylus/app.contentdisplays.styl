@@ -409,9 +409,30 @@ app.contentdisplays.styl
   code
     font-size                                     12px
 
-  ul
-  ol
+  ul,ol
     margin-bottom                                 15px
+    padding-left 10px
+
+  > ol
+    list-style upper-roman inside
+
+    ol
+      list-style decimal inside
+
+    ul
+      list-style disc inside
+
+  > ul
+    list-style disc inside
+
+    ul
+      list-style disc inside
+
+    ol
+      list-style decimal inside
+
+  li
+    padding-left 5px
 
   a
     font-size                                     14px
