@@ -1300,6 +1300,7 @@ div.kdview.link-embed-box
           min-width 50px
           overflow visible
           position relative
+          // width auto
 
           > iframe
             max-height 90px
@@ -1377,31 +1378,42 @@ div.kdview.link-embed-box
 
         div.preview_text
           borderBox()
-          display block
-          overflow hidden
-          width auto
-          min-width 337px  // half the width - paddings
-          min-height 20px
-          font-size 12px
-          font-weight 400
+          display        block
+          overflow       hidden
+          width          auto
+          min-height     20px
+          font-size      12px
+          font-weight    400
+          color          #797979
           // max-height 90px
-          color #797979
+          // min-width      300px  // half the width - paddings
+          // max-width 413px
 
           > a.preview_text_link
             noTextDeco()
-            color inherit
-            font-size inherit
-            font-weight 400
+            color        inherit
+            font-size    inherit
+            font-weight  400
             &.has-config:hover
-              cursor text
+              cursor     text
 
             > input, textarea
-              overflow hidden
-              height auto
+              overflow   hidden
+              height     auto
+              padding    1px 3px
 
+              min-width  350px
+              max-width  560px
+
+            > input
+              margin-bottom 3px
+
+            > textarea
+              margin-top 3px
+              min-height 100px
 
             > div.preview_title
-              font-size inherit
+              font-size  inherit
               font-weight 400
               margin-bottom 3px
               noTextDeco()
@@ -1472,6 +1484,9 @@ div.kdview.link-embed-box
       // a.provider
       //   display block
 
+div.kdview.status-widget.link-embed-box
+  div.link-embed
+    width : 560px
 
 div.link
   div.activity-item-right-col
