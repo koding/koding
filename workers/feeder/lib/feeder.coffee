@@ -98,13 +98,15 @@ EventEmitter class Feeder
       exchangeAutoDelete: no
       queueExclusive: no
       queueAutoDelete: no
-    # This effectively declares own exchange.
+      
     @mq.bindQueue(
       @queueName, 
       exchangeName, 
       "#.activity", 
       workerQueueOptions,
-      callback
+      (queue, exchangeName) ->
+        queue.close()
+        callback()
     )
 
   emitActivity: (exchangeName, payload, options) ->

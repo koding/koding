@@ -35,6 +35,7 @@ accountsCol.count (err, accountCount) ->
       accountPending--
       if accountPending is 0
         console.log "Migration completed!"
+        broker.connection.end()
         process.exit()
 
     console.log "Migrating #{accountCount} accounts..."
