@@ -30,7 +30,7 @@ process.on 'uncaughtException',(err)->
   console.error err
   console.trace()
 
-mqOptions = Object.create mq
+mqOptions = extend {}, mq
 mqOptions.login = webserver.login if webserver?.login?
 
 console.log 'WEBSERVER CONFIG', webserver, mqOptions
