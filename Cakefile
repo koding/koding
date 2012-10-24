@@ -5,6 +5,7 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-X', '--setFollowExchanges', "If set, sets up the exchange2exchange mesh for existing follow relationships."
 
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
@@ -298,6 +299,16 @@ run =(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+
+  processes.run
+    name    : 'feederCake'
+    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} -n #{config.feeder.numberOfWorkers}#{debug} run"
+    restart : yes
+    restartInterval : 1000
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
   # pipeStd(
   #   processes.get "server"
   #   processes.get "social"
@@ -353,6 +364,17 @@ configureVhost =(config, callback)->
         assureVhost uri, name, vhostFile, callback
     else throw e
 
+setFollowExchanges = (configFile, callback=->) ->
+  configFile = normalizeConfigPath expandConfigFile configFile
+  processes.run
+    name    : 'feederCakeForE2E'
+    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} e2e"
+    restart : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    onExit  : callback
+
 task 'run', (options)->
   # invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
@@ -369,6 +391,9 @@ task 'run', (options)->
       configModulePath = require.resolve configFile
       delete require.cache[configModulePath]
       queue.next()
+
+  if options.setFollowExchanges
+    queue.push -> setFollowExchanges options.configFile, -> queue.next()
 
   if options.buildClient ? config.buildClient
     queue.push -> buildClient options, options.configFile, -> queue.next()

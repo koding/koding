@@ -30,6 +30,10 @@ module.exports = deepFreeze
   social        :
     numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 2
   client        :
     version     : version
     minify      : no
