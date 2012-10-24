@@ -7,7 +7,7 @@ module.exports =
   logFile           : "/var/log/node/SharedHosting.log"
   amqp              :
     host            : 'web0.beta.system.aws.koding.com'
-    username        : 'prod-sharedhosting'
+    username        : 'prod-sharedhosting-kite'
     password        : 'Dtxym6fRJXx4GJz'
     vhost           : '/'
   apiUri            : 'https://api.koding.com/1.0'

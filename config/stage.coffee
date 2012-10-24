@@ -15,7 +15,7 @@ module.exports = deepFreeze
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
   webserver     :
-    port        : [3020..3030]
+    port        : [3029..3030]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
