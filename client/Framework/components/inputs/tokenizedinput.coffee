@@ -42,7 +42,7 @@ class KDTokenizedInput extends JView
     @decorateLayer()
     # @layer.unsetClass "hide-tokens"
     {input} = @
-    log _oldMatches
+    # log _oldMatches
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())

@@ -638,6 +638,7 @@ Includes =
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
+        keypress          : "./client/libs/keypress.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
