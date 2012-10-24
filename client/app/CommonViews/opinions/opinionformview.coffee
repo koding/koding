@@ -50,7 +50,6 @@ class OpinionFormView extends KDFormView
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
       callback: =>
-
         @textContainer = new KDView
           cssClass:"modal-fullscreen-text"
 
@@ -60,7 +59,6 @@ class OpinionFormView extends KDFormView
           defaultValue : @opinionBody.getValue()
 
         @textContainer.addSubView @text
-
 
         modal = new KDModalView
           title       : "What do you want to discuss?"
@@ -86,8 +84,6 @@ class OpinionFormView extends KDFormView
                 @opinionBody.generatePreview()
                 modal.destroy()
 
-
-
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
         modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
         modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
@@ -106,8 +102,6 @@ class OpinionFormView extends KDFormView
 
         modal.$(".fullscreen-data").width contentWidth-halfWidth-5
         modal.$(".input_preview").width halfWidth-5
-
-
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
