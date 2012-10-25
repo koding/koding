@@ -736,7 +736,9 @@ Includes =
         app768              : "./client/stylus/app.768.styl"
         app480              : "./client/stylus/app.480.styl"
 
-        WebTermDefaultTheme : "./client/app/Applications/WebTerm.kdapplication/themes/default.styl"
+        WebTermTheme1 :     "./client/app/Applications/WebTerm.kdapplication/themes/green-on-black.styl"
+        WebTermTheme2 :     "./client/app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl"
+        WebTermTheme3 :     "./client/app/Applications/WebTerm.kdapplication/themes/black-on-white.styl"
 
       CssFiles  :
         reset               : "./client/css/style.css"
