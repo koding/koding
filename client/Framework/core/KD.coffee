@@ -26,6 +26,12 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 # KD Global
 KD = @KD or {}
 
+noop  = ->
+
+KD.log   = log   = noop
+KD.warn  = warn  = noop
+KD.error = error = noop
+
 @KD = $.extend (KD), do ->
 
   # private member for tracking z-indexes
@@ -151,17 +157,15 @@ KD = @KD or {}
       dataType : 'jsonp'
       success : (data)->
         inflated = JSONH.unpack data
-        console.log 'success', inflated
-        console.log Date.now()-start
+        KD.log 'success', inflated
+        KD.log Date.now()-start
 
-noop  = ->
+  enableLogs:->
+    KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+    KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+    KD.error = error = if console?.error then console.error.bind(console) else noop
+    return "Logs are enabled now."
 
-if KD.config?.suppressLogs
-  # assign all these to noop:
-  console.log = console.error = console.warn = console.trace = noop
-
-KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-KD.error = error = if console?.error then console.error.bind(console) else noop
+KD.enableLogs() if not KD.config?.suppressLogs
 
 prettyPrint = noop
