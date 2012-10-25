@@ -194,7 +194,7 @@ class AvatarPopupShareStatus extends AvatarPopup
 
 # avatar popup box Notifications
 class AvatarPopupNotifications extends AvatarPopup
-  activitesArrived:-> console.log arguments
+  activitesArrived:-> log arguments
 
   viewAppended:->
     super()

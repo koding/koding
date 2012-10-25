@@ -19,8 +19,8 @@ class KDChannel extends KDEventEmitter
     name ?= __utils.getRandomNumber()
     @name = "private-#{@type}-#{name}"
     mq.fetchChannel @name,(channel,isNew)=>
-      console.log arguments
-      console.log @username+" joined this channel: #{@name}"
+      log arguments
+      log @username+" joined this channel: #{@name}"
 
       @room = channel
       @emit "ready"
@@ -72,7 +72,7 @@ class KDChannel extends KDEventEmitter
 
 
   send : (options,callback) ->
-    # console.log "finally sending:",options
+    # log "finally sending:",options
     options.date = Date.now()
     options.sender = @username
     options.event ?= "msg"
@@ -100,17 +100,17 @@ class SharedDoc extends KDChannel
 
   attachListeners:->
     super
-    #console.log "attachlisteners cagirdik"
+    #log "attachlisteners cagirdik"
     @on "ready",(isNew)=>
       #@isMaster = yes if isNew
 
     @on "patch",({patch,sender,date})=>
       # if sender isnt @username
-      # console.log "sharedDoc on.patch geldi",arguments
+      # log "sharedDoc on.patch geldi",arguments
       @registerAndEmitScreen patch,sender,date
 
     @on "join",({sender,date})=>
-      console.log "#{sender} geldi hosgeldi",arguments
+      log "#{sender} geldi hosgeldi",arguments
       # make this  efficient later.
       # if @isMaster
       @send event:"ping",screen:@lastScreen #,isMaster:@isMaster
@@ -150,7 +150,7 @@ class SharedDoc extends KDChannel
     @joinRoom options,(err,res)->
 
   send : (options,callback)->
-    # console.log 'zz',arguments
+    # log 'zz',arguments
     {newScreen,event} = options
     if newScreen
       patch = @dmp.patch_make @lastScreen, newScreen
@@ -246,11 +246,11 @@ class Chat12345 extends AppController
   loadView:(view)->
 
     view.on 'newScreen',({screen})=>
-      # console.log 'newScreen',scr
+      # log 'newScreen',scr
       @sharedDoc.send {newScreen:screen}
 
     view.on 'userWantsToJoin',=>
-      console.log 'user joined'
+      log 'user joined'
       @sharedDoc.join {name:"myDoc"}
 
     view.on 'cursorPositionChanged',(cursorPosition)=>
