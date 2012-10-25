@@ -117,6 +117,7 @@ class EmbedBox extends KDView
 
   resetEmbedAndHide:=>
     @resetEmbed()
+    @embedLinks.clearLinks()
     @hide()
 
   resetEmbed:=>
@@ -181,7 +182,7 @@ class EmbedBox extends KDView
       embedlyOptions = $.extend {}, {
         key      : "e8d8b766e2864a129f9e53460d520115"
         endpoint : "preview"
-        maxWidth : 560
+        maxWidth : 530
         maxHeight: 200
         wmode    : "transparent"
         error    : (node, dict)=>

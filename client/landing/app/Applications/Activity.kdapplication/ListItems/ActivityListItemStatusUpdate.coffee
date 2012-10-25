@@ -57,7 +57,6 @@ class StatusActivityItemView extends ActivityItemChild
     {link} = @getData()
 
     if link?
-      # log link,@embedBox?
       if @embedBox.constructor.name is "KDView"
         @embedBox = new EmbedBox @embedOptions, link
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
@@ -80,11 +79,18 @@ class StatusActivityItemView extends ActivityItemChild
   applyTextExpansions:(str = "")->
     link = @getData().link?.link_url
     if link
-      isJustLink = str.trim() is link
+
+      links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      if links?
+        hasManyLinks = links.length > 1
+      else
+        hasManyLinks = no
+
+      isJustOneLink = str.trim() is link
       endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
       startsWithLink = str.trim().indexOf(link) is 0
 
-      if not isJustLink and (endsWithLink or startsWithLink)
+      if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
         str = str.replace link, ""
 
     @utils.applyTextExpansions str, yes

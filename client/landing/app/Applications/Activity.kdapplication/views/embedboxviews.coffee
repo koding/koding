@@ -2,15 +2,28 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
   constructor:(options,data)->
     super options,data
-    @string = data
+    @linkUrl = data.url
 
     @setClass "embed-link-item"
 
+    # visible link shortening here
+
+    @linkUrlShort = @linkUrl.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+
     @linkButton = new KDButtonView
-      title: @string
-      style: "clean-gray"
+      title: @linkUrlShort
+      style: "transparent"
+
       callback :=>
-        @getDelegate().getDelegate().getDelegate().embedUrl @string
+        @makeActive()
+        @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl
+
+  makeActive:->
+    for item in @getDelegate().items
+      item.unsetClass "active"
+
+    @setClass "active"
+
 
   viewAppended:->
     super()
@@ -19,7 +32,9 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
   pistachio:->
     """
+    <div class="embed-link-wrapper">
     {{> @linkButton}}
+    </div>
     """
 class EmbedBoxLinksView extends KDView
   constructor:(options,data)->
@@ -31,17 +46,48 @@ class EmbedBoxLinksView extends KDView
       itemClass : EmbedBoxLinksViewItem
     ,{}
 
-  setLinks:(links=[])->
+    @hide()
+
+  clearLinks:->
     @linkList.empty()
+
+  setLinks:(links=[])->
+    # smarter link adding (keep links already in there intact)
+
+    newList = yes
     for link in links
-      @linkList.addItem link
+      for item in @linkList.items
+        if link is item.data.url
+          newList = no
+
+
+    if links.length > 1 then @show() else @hide()
+
+    if newList
+      @linkList.empty()
+
+      for link in links
+        if links instanceof Array
+          @linkList.addItem {
+            url : link
+          }
+      @linkList.items[0].makeActive()
+
+    else
+      for link in links
+        linkFound = no
+        for item in @linkList.items
+          if link is item.data.url then linkFound = yes
+        unless linkFound
+          if links instanceof Array
+            @linkList.addItem {
+              url : link
+            }
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
-    @show()
-    @setLinks ["www.arvidkahl.de","www.google.de"]
 
   pistachio:->
     """
