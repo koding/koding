@@ -41,6 +41,10 @@ koding = new Bongo
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
+
+    if delegate instanceof koding.models.JAccount
+      koding.models.JAccount.emit "AccountAuthenticated", delegate
+      
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log
