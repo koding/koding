@@ -65,11 +65,11 @@ class EmbedBox extends KDView
     @setClass "link-embed-box"
 
     @embedLoader = new KDLoaderView
-      cssClass      : "hidden"
+      cssClass      : "embed-loader hidden"
       size          :
         width       : 30
       loaderOptions :
-        color       : "#fff"
+        color       : "#5f5f5f"
         shape       : "spiral"
         diameter    : 30
         density     : 30
@@ -338,6 +338,8 @@ class EmbedBox extends KDView
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
+    @embedLoader.show()
+    @$("div.link-embed").addClass "loading"
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
         @resetEmbed()
@@ -345,16 +347,20 @@ class EmbedBox extends KDView
 
         # we can expect the embedUrl call not to happen on a hidden embed
         @show()
+
         callback data
       else
         callback no
+      @embedLoader.hide()
+      @$("div.link-embed").removeClass "loading"
+
 
   pistachio:->
     """
       {{> @settingsButton}}
       {{> @embedLoader}}
+      {{> @embedLinks}}
       <div class="link-embed clearfix">
-        {{> @embedLinks}}
         {{> @embedLink}}
         {{> @embedImage}}
         {{> @embedObject}}
