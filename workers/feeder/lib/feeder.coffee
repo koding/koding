@@ -26,13 +26,6 @@ EventEmitter class Feeder
         {action, follower, followee} = data
         @handleFollowAction action, follower, followee
 
-  # handleAccount: (account) ->
-  #   client = account?.profile?.nickname
-  #   unless @clients[client]?
-  #     @clients[client] = account
-  #     @handleFolloweeActivity account
-  #     #@handleFollowAction account
-
   ###
   # Whenever an activity is created, it will just emit to the user's
   # exchange as well of the exchanges of any tags in the activity.
@@ -85,35 +78,27 @@ EventEmitter class Feeder
     # Then destroy the queue
     @mq.connection.queues[ownExchangeName]?.destroy()
 
-    @mq.createExchange ownExchangeName, {autoDelete: no}, =>
-      @mq.on(
-        ownExchangeName,
-        "#.activity", 
-        ownExchangeName, 
-        (message, headers, deliveryInfo) =>
-          publisher = deliveryInfo.exchange
-          unless publisher is ownExchangeName
-            activityId = ObjectId message
-            # CActivity.one {_id: activityId}, (err, activity) =>
-              #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-            @emit account, "FollowedActivityArrived", activityId
-      )
-
-  # handleFolloweeActivity: (account) ->
-  #   ownExchangeName = @getExchangeName account._id
-  #   @mq.createExchange ownExchangeName, {autoDelete: no}, =>
-  #     @mq.on(
-  #       ownExchangeName,
-  #       "#.activity", 
-  #       ownExchangeName, 
-  #       (message, headers, deliveryInfo) =>
-  #         publisher = deliveryInfo.exchange
-  #         unless publisher is ownExchangeName
-  #           activityId = ObjectId message
-  #           # CActivity.one {_id: activityId}, (err, activity) =>
-  #             #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
-  #           @emit account, "FollowedActivityArrived", activityId
-  #     )
+    opts = {exchangeAutoDelete: no}
+    @mq.bindQueue ownExchangeName, ownExchangeName, "#.activity", opts, (queue) =>
+      queue.subscribe (message, headers, deliveryInfo) =>
+        publisher = deliveryInfo.exchange
+        unless publisher is ownExchangeName
+          activityId = ObjectId @mq.cleanPayload message
+          @emit account, "FollowedActivityArrived", activityId
+    
+    # @mq.createExchange ownExchangeName, {autoDelete: no}, =>
+    #   @mq.on(
+    #     ownExchangeName,
+    #     "#.activity", 
+    #     ownExchangeName, 
+    #     (message, headers, deliveryInfo) =>
+    #       publisher = deliveryInfo.exchange
+    #       unless publisher is ownExchangeName
+    #         activityId = ObjectId message
+    #         # CActivity.one {_id: activityId}, (err, activity) =>
+    #           #ownExchange.publish "activityOf.#{publisher}", message, {deliveryMode: 2}
+    #         @emit account, "FollowedActivityArrived", activityId
+    #   )
 
   # HELPERS #
   bindToWorkerQueue: (exchangeName, callback) ->
@@ -129,8 +114,6 @@ EventEmitter class Feeder
       workerQueueOptions,
       (queue, exchangeName) =>
         queue.close()
-        # Close the connection that declared the exchange to bind the queue
-        @mq.getExchange(exchangeName)?.close()
         callback()
     )
 
