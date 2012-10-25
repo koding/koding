@@ -160,7 +160,7 @@ class CodeSnippetView extends KDCustomHTMLView
     try
       hljs.highlightBlock snipView.codeView.$()[0], '  '
     catch err
-      console.warn "Error applying highlightjs syntax #{syntax}:", err
+      warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 

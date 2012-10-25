@@ -196,7 +196,7 @@ do ->
 #          KD.remote.mq.unsubscribe channelId
 #          cyclePrivateChannel delegate
 #        ###channel.bind 'message', (msg)->
-#          console.log msg###
+#          log msg###
 #
 #    changeLoginState = (delegate)->
 #      cyclePrivateChannel(delegate)
