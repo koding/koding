@@ -17,6 +17,7 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 2000
 
     @previousURL = []
+    @requestEmbedLock = off
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -31,14 +32,22 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
+
       paste:=>
         @requestEmbed()
-      blur:=>
-        @requestEmbed()
+
+      # # this will cause problems when clicking on a embedLinks url
+      # # right after entering the url -> double request
+
+      # blur:=>
+      #   @requestEmbed()
+
       keyup:=>
+        # this needs to be refactored, this will only capture URLS when the user
+        # adds a space after them
+
         if ($(event.which)[0] is 32) # when space key is hit, URL is usually complete
           @requestEmbed()
-
 
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -52,12 +61,11 @@ class ActivityStatusUpdateWidget extends KDFormView
       title       : "Submit"
       type        : "submit"
 
-    embedOptions = $.extend {}, options, {
+    embedOptions = $.extend {}, options,
       delegate  : @
       hasConfig : yes
       click:->
         no
-    }
 
     @embedBox = new EmbedBox embedOptions, data
 
@@ -92,31 +100,22 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   requestEmbed:=>
-    setTimeout =>
-      firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      if firstUrl?
-        @embedBox.embedLinks.setLinks firstUrl
-        # if firstUrl.length is 1
-        #   unless @previousURL is firstUrl
+    unless @requestEmbedLock is on
+      @requestEmbedLock = on
+      setTimeout =>
+        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        if firstUrl?
+          @embedBox.embedLinks.setLinks firstUrl
 
-        #     unless firstUrl is null
-        #       @embedBox.embedUrl firstUrl?[0], {
-        #         maxWidth: 525
-        #       }
-        #       @previousURL = firstUrl
-
-        # else
-        #   unless @previousURL is firstUrl
-        #     @embedBox.embedUrl firstUrl?[0], {
-        #       maxWidth: 525
-        #     }
-        #     @previousURL = firstUrl
-        unless @previousURL is firstUrl
-          @embedBox.embedUrl firstUrl?[0], {
-            maxWidth: 525
-          }
-          @previousURL = firstUrl
-    ,500
+          unless @previousURL is firstUrl
+            @embedBox.embedUrl firstUrl?[0], {
+              maxWidth: 525
+            }, =>
+              @requestEmbedLock = off
+              @previousURL = firstUrl
+        else
+          @requestEmbedLock = off
+      ,500
 
   switchToSmallView:->
 
@@ -154,6 +153,8 @@ class ActivityStatusUpdateWidget extends KDFormView
 
       bodyUrls = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
       if bodyUrls?
+
+        # put the item with link_url as its url to array[0] for auto-active
         selected = bodyUrls.splice(bodyUrls.indexOf(link.link_url),1)
         bodyUrls.unshift selected[0]
         @embedBox.embedLinks.setLinks bodyUrls
