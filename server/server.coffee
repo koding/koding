@@ -1,7 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
-webPort = argv.p if argv.p?
+{webserver, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
+
+webPort = argv.p ? webserver.port
 
 {extend} = require 'underscore'
 express = require 'express'
@@ -29,6 +30,11 @@ process.on 'uncaughtException',(err)->
   console.error err
   console.trace()
 
+mqOptions = extend {}, mq
+mqOptions.login = webserver.login if webserver?.login?
+
+console.log 'WEBSERVER CONFIG', webserver, mqOptions
+
 koding = new Bongo {
   mongo
   root: __dirname
@@ -36,7 +42,7 @@ koding = new Bongo {
     '../workers/social/lib/social/models/session.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
-  mq: new Broker mq
+  mq: new Broker mqOptions
   queueName: 'koding-social'
 }
 
