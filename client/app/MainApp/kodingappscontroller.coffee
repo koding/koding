@@ -338,7 +338,7 @@ class KodingAppsController extends KDController
 
     if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
       err = "You are not authorized to publish apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -385,7 +385,7 @@ class KodingAppsController extends KDController
 
     if not KD.checkFlag('super-admin')
       err = "You are not authorized to approve apps."
-      console.log err
+      log err
       callback? err
       return no
 

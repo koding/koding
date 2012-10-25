@@ -132,7 +132,7 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      console.log "view:", @, "parent:", @parent
+      log "view:", @, "parent:", @parent
       error 'View already has a parent'
     else
       if defineProperty
