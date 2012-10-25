@@ -17,12 +17,18 @@ module.exports = deepFreeze
   version       : version
   webserver     :
     port        : 3000
+    login       : 'webserver'
   mongo         : mongo
   buildClient   : yes
   runGoBroker   : yes
   social        :
+    login       : 'social'
     numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 1
   client        :
     version     : version
     minify      : no
