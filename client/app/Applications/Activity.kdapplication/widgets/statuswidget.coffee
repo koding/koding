@@ -16,7 +16,7 @@ class ActivityStatusUpdateWidget extends KDFormView
         rules       :
           maxLength : 2000
 
-    @previousURL = ""
+    @previousURL = []
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -92,21 +92,30 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   requestEmbed:=>
-    # log "requestEmbed called"
     setTimeout =>
-      # log "setTimeout called"
       firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      # log "firstUrl('#{firstUrl}') caught for inputValue('#{@largeInput.getValue()}')"
       if firstUrl?
-        # log "firstUrl('#{firstUrl}'') found"
-        unless @previousURL is firstUrl?[0]
-          # log "previousUrl('#{@previousURL}') is not what we caught"
-          unless firstUrl is null
-            # log "firstUrl('#{firstUrl}'), embedding"
-            @embedBox.embedUrl firstUrl?[0], {
-              maxWidth: 525
-            }
-          @previousURL = firstUrl?[0]
+        @embedBox.embedLinks.setLinks firstUrl
+        # if firstUrl.length is 1
+        #   unless @previousURL is firstUrl
+
+        #     unless firstUrl is null
+        #       @embedBox.embedUrl firstUrl?[0], {
+        #         maxWidth: 525
+        #       }
+        #       @previousURL = firstUrl
+
+        # else
+        #   unless @previousURL is firstUrl
+        #     @embedBox.embedUrl firstUrl?[0], {
+        #       maxWidth: 525
+        #     }
+        #     @previousURL = firstUrl
+        unless @previousURL is firstUrl
+          @embedBox.embedUrl firstUrl?[0], {
+            maxWidth: 525
+          }
+          @previousURL = firstUrl
     ,500
 
   switchToSmallView:->
@@ -142,6 +151,13 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput.setValue Encoder.htmlDecode body
     @utils.selectText @largeInput.$()[0]
     if link?
+
+      bodyUrls = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      if bodyUrls?
+        selected = bodyUrls.splice(bodyUrls.indexOf(link.link_url),1)
+        bodyUrls.unshift selected[0]
+        @embedBox.embedLinks.setLinks bodyUrls
+
       @previousURL = link.link_url
 
       @embedBox.setEmbedData link.link_embed
