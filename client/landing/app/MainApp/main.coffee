@@ -82,6 +82,29 @@ do ->
 
   KD.remote.connect()
 
+  # updateModalActive = no
+  # KD.models.api.JAccount.fetchVersion (err, version)->
+  #   return if KD.version is version or updateModalActive
+  #   updateModalActive = yes
+
+  #   modal = new KDBlockingModalView
+  #     title   : "There is a new version available!"
+  #     content : "<div class='modalformline'>Please save your work and refresh!
+  #                 <br><br><span class='small-loader fade in'></span> Please report bugs in the update to the beta feedback site</div>"
+  #     height  : "auto"
+  #     overlay : yes
+  #     buttons :
+  #       "Refresh Now" :
+  #         style     : "modal-clean-red"
+  #         callback  : ()->
+  #           modal.destroy()
+  #           location.reload yes
+  #       "Refresh Later" :
+  #         style     : "modal-cancel"
+  #         callback  : ()->
+  #           modal.destroy()
+  #           updateModalActive = no
+
 
   #initConnectionEvents conn
 #
