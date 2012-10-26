@@ -179,16 +179,18 @@ module.exports = class Followable
       Relationship.one selector, (err, rel) ->
         if rel? and not err?
           callback yes
-        else 
+        else
           callback no
 
-
   updateFollowingCount: (followee, action)->
-    Relationship.count targetId:@_id, as:'follower', (error, count)=>
-      Model::update.call @, $set: 'counts.following': count, (err)->
-        throw err if err
-      @emit 'FollowCountChanged'
-        followerCount   : @getAt('counts.followers')
-        followingCount  : @getAt('counts.following')
-        followee        : followee
-        action          : action
+    if @constructor.name is 'JAccount'
+      @updateCounts()
+    else
+      Relationship.count targetId:@_id, as:'follower', (error, count)=>
+        Model::update.call @, $set: 'counts.following': count, (err)->
+          throw err if err
+        @emit 'FollowCountChanged'
+          followerCount   : @getAt('counts.followers')
+          followingCount  : @getAt('counts.following')
+          followee        : followee
+          action          : action

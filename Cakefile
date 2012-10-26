@@ -5,6 +5,7 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+option '-X', '--setFollowExchanges', "If set, sets up the exchange2exchange mesh for existing follow relationships."
 
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
@@ -91,7 +92,7 @@ normalizeConfigPath =(path)->
   path ?= './config/dev'
   nodePath.join __dirname, path
 
-buildClient =(configFile, callback=->)->
+buildClient =(options, configFile, callback=->)->
   # try
   #   config = require configFile
   # catch e
@@ -112,9 +113,9 @@ buildClient =(configFile, callback=->)->
   builder.watcher.initialize()
 
   builder.watcher.on "initDidComplete",(changes)->
-    builder.buildClient "",()->
-      builder.buildCss "",()->
-        builder.buildIndex "",()->
+    builder.buildClient options,()->
+      builder.buildCss {},()->
+        builder.buildIndex {},()->
           if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
@@ -125,13 +126,13 @@ buildClient =(configFile, callback=->)->
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
     if changes.Client? and not changes.StylusFiles
-      builder.buildClient "",()->
-        builder.buildIndex "",()->
+      builder.buildClient options,()->
+        builder.buildIndex {},()->
           # log.debug "client build is complete"
 
     if changes.Client?.StylusFiles?
-      builder.buildCss "", ->
-        builder.buildIndex "", ->
+      builder.buildCss {}, ->
+        builder.buildIndex {}, ->
     if changes.Cake
       log.debug "Cakefile changed.."
       builder.watcher.reInitialize()
@@ -142,7 +143,7 @@ buildClient =(configFile, callback=->)->
 
 task 'buildClient', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient configFile
+  buildClient options, configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -184,7 +185,6 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  console.log 'KONFIG', config.mq.pidFile
   vhosts = "{vhosts,["+
     (config.mq.vhosts or []).
     map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
@@ -352,6 +352,17 @@ configureVhost =(config, callback)->
         assureVhost uri, name, vhostFile, callback
     else throw e
 
+setFollowExchanges = (configFile, callback=->) ->
+  configFile = normalizeConfigPath expandConfigFile configFile
+  processes.run
+    name    : 'feederCakeForE2E'
+    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} e2e"
+    restart : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    onExit  : callback
+
 task 'run', (options)->
   # invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
@@ -369,8 +380,11 @@ task 'run', (options)->
       delete require.cache[configModulePath]
       queue.next()
 
+  if options.setFollowExchanges
+    queue.push -> setFollowExchanges options.configFile, -> queue.next()
+
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next()
+    queue.push -> buildClient options, options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

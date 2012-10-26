@@ -10,7 +10,7 @@ module.exports = class JUser extends jraphical.Module
   JSession  = require './session'
   JGuest    = require './guest'
   JInvitation = require './invitation'
-  #JFeed     = require './feed'
+  JFeed     = require './feed'
 
   createId = require 'hat'
 
@@ -148,8 +148,13 @@ module.exports = class JUser extends jraphical.Module
                 if err
                   callback createKodingError err
                 else
-                  JAccount.emit "AccountAuthenticated", account
-                  callback null, account
+                  feedData = {title: "followed"}
+                  JFeed.assureFeed account, feedData, (err, feed) ->
+                    if err
+                      callback err
+                    else
+                      #JAccount.emit "AccountAuthenticated", account
+                      callback null, account
         else @logout clientId, callback
 
 
@@ -236,9 +241,20 @@ module.exports = class JUser extends jraphical.Module
                   if err
                     callback err
                   else
-                    connection.delegate = account
-                    JAccount.emit "AccountAuthenticated", account
-                    callback null, account, replacementToken
+                    feedData = {title: "followed"}
+                    JFeed.assureFeed account, feedData, (err, feed) ->
+                      if err
+                        callback err
+                      else
+                        connection.delegate = account
+                        JAccount.emit "AccountAuthenticated", account
+
+                        # This should be called after login and this
+                        # is not correct place to do it, FIXME GG
+                        # p.s. we could do that in workers
+                        account.updateCounts()
+
+                        callback null, account, replacementToken
 
   @logout = secure (client, callback)->
     if 'string' is typeof clientId
@@ -357,7 +373,6 @@ module.exports = class JUser extends jraphical.Module
                                 callback err
                               else
                                 feedData = {title:"followed", description: "Followed Feed"}
-                                JFeed = require './feed'
                                 JFeed.createFeed account, feedData, (err, feed) ->
                                   if err 
                                     callback err 

@@ -90,7 +90,7 @@ module.exports = class JInvitation extends jraphical.Module
       return callback new KodingError "not authorized"
     else
       if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:-1},(err,emails)->
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:1},(err,emails)->
           daisy queue = emails.map (item)->
             ->
               continueLooping = ->
@@ -106,6 +106,7 @@ module.exports = class JInvitation extends jraphical.Module
                       callback 'err',"#{item.email}something went wrong saving the item as sent."
                     else
                       callback null,"#{item.email} is sent and marked as sent."
+                      console.log "#{item.email} is sent and marked as sent."
                     continueLooping()
 
       else

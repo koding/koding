@@ -47,15 +47,13 @@ broker.createQueue queueName, queueOpts, (queue) ->
     cursor = relationshipsCol.find selector, {targetId: true}
 
     cursor.each (err, rel) ->
-      if err or typeof rel is undefined
-        queue.shift()
-      else if rel is null # end of query
-        queue.shift()
+      if err or not rel?
+        queue.shift() # error or end of query
       else
         selector = {owner: rel.targetId, title: "followed"}
         # Get the follower's feed
         feedsCol.findOne selector, _id:true, (err, feed) ->
-          if err or not feed
+          if err or not feed?
             #console.log "Failed to find feed"
           else
             criteria =

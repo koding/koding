@@ -3,6 +3,7 @@ log = -> logger.info arguments...
 {argv} = require 'optimist'
 
 {exec} = require 'child_process'
+{extend} = require 'underscore'
 
 process.on 'uncaughtException', (err)->
   exec './beep'
@@ -17,9 +18,12 @@ Bongo = require 'bongo'
 Broker = require 'broker'
 
 Object.defineProperty global, 'KONFIG', value: require './config'
-{mq, mongo, email} = KONFIG
+{mq, mongo, email, social} = KONFIG
 
-broker = new Broker mq
+mqOptions = extend {}, mq
+mqOptions.login = social.login if social?.login?
+
+broker = new Broker mqOptions
 
 koding = new Bongo
   root        : __dirname
@@ -37,6 +41,10 @@ koding = new Bongo
 koding.on 'auth', (exchange, sessionToken)->
   koding.fetchClient sessionToken, (client)->
     {delegate} = client.connection
+
+    if delegate instanceof koding.models.JAccount
+      koding.models.JAccount.emit "AccountAuthenticated", delegate
+      
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect console.log

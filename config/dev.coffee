@@ -19,7 +19,8 @@ module.exports = deepFreeze
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
   runBroker     : no
   configureBroker: no
@@ -28,7 +29,7 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   social        :
-    numberOfWorkers: 5
+    numberOfWorkers: 1
     watch       : yes
   feeder        :
     queueName   : "koding-feeder"

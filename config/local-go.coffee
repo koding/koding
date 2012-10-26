@@ -15,13 +15,20 @@ projectRoot = nodePath.join __dirname, '..'
 module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
+    login       : 'webserver'
   mongo         : mongo
   buildClient   : yes
   runGoBroker   : yes
   social        :
+    login       : 'social'
     numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 1
   client        :
     version     : version
     minify      : no

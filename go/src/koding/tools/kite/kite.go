@@ -22,7 +22,7 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
-	utils.AmqpAutoReconnect(name, func(consumeConn, publishConn *amqp.Connection) {
+	utils.AmqpAutoReconnect(name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
 		joinChannel := utils.CreateAmqpChannel(consumeConn)
 		joinStream := utils.DeclareBindConsumeAmqpQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 		for {

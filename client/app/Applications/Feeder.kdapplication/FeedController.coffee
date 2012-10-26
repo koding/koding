@@ -93,7 +93,7 @@ class FeedController extends KDViewController
     @loadFeed()
 
   getFeedSelector:->
-    # console.log @filters
+    # log @filters
     {}
 
   getFeedOptions:->
