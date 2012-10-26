@@ -99,13 +99,16 @@ class CommentListItemView extends KDListItemView
                 title    : "Error, please try again later!"
 
   updateTemplate:(force = no)->
+    # TODO: these pistachios are written in JS, pending a solution
+    #  to the problem of statically not being able to find pistachios unless
+    #  they are contained inside a property called "pistachio".
     if @getData().getAt 'deletedAt'
       {type} = @getOptions()
       @setClass "deleted"
       if @deleter
-        @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
+        @setTemplate "<div class='item-content-comment clearfix'><span>{{> this.author}}'s #{type} has been deleted by {{> this.deleter}}.</span></div>"
       else
-       @setTemplate "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+       @setTemplate "<div class='item-content-comment clearfix'><span>{{> this.author}}'s #{type} has been deleted.</span></div>"
     else if force
       @setTemplate @pistachio()
 
