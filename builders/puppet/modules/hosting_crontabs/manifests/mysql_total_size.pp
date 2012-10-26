@@ -8,7 +8,7 @@ class hosting_crontabs::mysql_total_size {
     }
 
     cron { mysql_total_size: 
-        command => "/opt/cronscripts/crmysql_total_size.sh",
+        command => "/opt/cronscripts/mysql_total_size.sh",
         user    => root,
         minute  => ['*/43'],
         require => File['/opt/cronscripts/mysql_total_size.sh'],
