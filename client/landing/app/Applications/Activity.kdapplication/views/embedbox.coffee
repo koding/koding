@@ -18,12 +18,16 @@ class EmbedBox extends KDView
 
     @options = options
 
+    @embedCache = []
+
     @setEmbedData data.link_embed or data.link?.link_embed or {}
     @setEmbedURL data.link_url or data.link?.link_url or ''
     @setEmbedImageIndex data.link_embed_image_index or data.link?.link_embed_image_index or 0
     @setEmbedHiddenItems data.link_embed_hidden_items or data.link?.link_embed_hidden_items or []
 
+
     super options,data
+
 
     # top right corner either has the remove-embed button
     # or the report-button (to report malicious content)
@@ -117,11 +121,18 @@ class EmbedBox extends KDView
 
   resetEmbedAndHide:=>
     @resetEmbed()
+
+    # these resets concern the whole box, not just the embed currently
+    # displayed
     @embedLinks.clearLinks()
+    @setEmbedCache []
+
     @hide()
 
   resetEmbed:=>
     @clearEmbed()
+
+    # these resets only concern the currently displayed embed
     @setEmbedData {}
     @setEmbedURL ''
     @setEmbedHiddenItems []
@@ -142,7 +153,16 @@ class EmbedBox extends KDView
     data
 
   getEmbedData:=>
-    @embedData
+    isCached = no
+    for embed,i in @embedCache
+      if embed.url is @getEmbedURL
+        isCached = yes
+        isChachedIndex = i
+
+    if isCached
+      @embedCache[i]
+    else
+      @embedData
 
   getEmbedURL:=>
     @embedURL
@@ -153,7 +173,15 @@ class EmbedBox extends KDView
   getEmbedHiddenItems:=>
     @embedHiddenItems
 
+  setEmbedCache:(cache)=>
+    @embedCache = cache
+
   setEmbedData:(data)=>
+    isChached = no
+    for embed in @embedCache
+      if data.url is embed.url then isCached = yes
+    unless isCached
+      @embedCache.push data
     @embedData = data
 
   setEmbedURL:(url)=>
@@ -338,6 +366,29 @@ class EmbedBox extends KDView
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
+
+    # Checking if we have the URL in cached data before requesting it from embedly
+
+    for embed,i in @embedCache
+      # for comparison reasons, both urls have to be sanitized a bit. this could
+      # use some more complexity (NEEDS TESTING FOR EDGE CASES)
+
+      # user URL should be checked for domain, since embedly returns
+      # urls without www. even if they are requested with www.
+      url_ = url.replace /www\./, ""
+
+      # remove trailing slash
+      if embed.url? then embedUrl = embed.url.replace /\/$/, ""
+
+      # log embed.url, embedUrl, url, url_, embed.url?.indexOf(url,embed.url?.length-url.length)
+      if embed.url? and (embed.url is url or not (embedUrl.indexOf(url_,embedUrl.length-url_.length) is -1))
+        @setEmbedData @embedCache[i]
+        @setEmbedURL url
+        @embedExistingData @embedCache[i], options, callback
+        return no
+
+    # else we just request the embed
+
     @embedLoader.show()
     @$("div.link-embed").addClass "loading"
     @fetchEmbed url, options, (data,embedlyOptions)=>
