@@ -64,17 +64,6 @@ console.log "###############################################################"
 # create required folders
 mkdirp.sync "./.build/.cache"
 
-
-
-# get current version
-# version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
-# if process.argv[2] is 'buildForProduction'
-#   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
-#   rev[2]++
-#   version = rev.join(".")
-# else
-#   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
-
 clientFileMiddleware  = (options, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
@@ -117,7 +106,6 @@ buildClient =(configFile, callback=->)->
 
   configFile = expandConfigFile configFile
   config = require configFile
-  console.log config
   builder = new Builder config.client,clientFileMiddleware,""
 
 

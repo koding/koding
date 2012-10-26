@@ -95,13 +95,13 @@ module.exports = class JInvitation extends jraphical.Module
             ->
               continueLooping = ->
                 setTimeout (-> queue.next()), 50
-              item.sent = yes
+              
               JInvitation.sendBetaInvite email:item.email,(err,res)->
                 if err
                   callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
                   continueLooping()
                 else
-                  item.save (err)->
+                  item.update $set:sent:yes, (err)->                  
                     if err
                       callback 'err',"#{item.email}something went wrong saving the item as sent."
                     else
