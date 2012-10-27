@@ -252,6 +252,7 @@ Includes =
         MultipleInput         : "./client/Framework/components/autocomplete/multipleinputview.coffee"
         KDAutoCompleteMisc    : "./client/Framework/components/autocomplete/autocompletemisc.coffee"
         KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
+        registry              : "./client/Framework/classregistry.coffee"
 
       Applications :
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
