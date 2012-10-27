@@ -15,7 +15,9 @@ ProgressBar       = require './node_modules/progress'
 module.exports = class Builder
 
   constructor:(@options,@middleware,fileList="deprecated")->
-    @watcher = new Watcher @options.includesFile 
+    exec """grep "^class " client/Framework/* -R | awk '{split($0,a,":"); split(a[2], b, " "); print "KD.classes[\\""b[2]"\\"]="b[2];}' | uniq > ./client/Framework/classregistry.coffee"""
+
+    @watcher = new Watcher @options.includesFile
 
     @attachListeners()
     
@@ -48,10 +50,8 @@ module.exports = class Builder
   #           log.info "Application #{appName} built, with result", arguments
   
   buildClient:(options,callback)->
-    
-      
-    
-    moduleDeclaration = @watcher.createModuleDeclarations "Client", "Framework"
+
+    moduleDeclaration = @watcher.createModuleDeclarations "Client","Framework"
     
     clibraries  = @watcher.getSubSectionConcatenated "Client","Libraries"
 
@@ -64,18 +64,16 @@ module.exports = class Builder
     cclient += @watcher.getSubSectionConcatenated "Client","ApplicationPageViews"
     cclient = kdjs = @wrapWithJSClosure cclient
 
-
     if options.pistachios
       compilePistachios = require 'pistachio-compiler'
       kdjs = cclient = compilePistachios(cclient)
 
     libraries  = clibraries
-        
+
     @middleware @options, {libraries, kdjs}, (err,finalCode)=>
       fs.writeFile @options.js, finalCode, (err) => 
         log.info "Client code is re-compiled and saved."
         callback? null
-
 
   # buildServer:(options,callback)->
   #   cserver  = @watcher.getSubSectionConcatenated "Server","Stuff"
@@ -108,7 +106,6 @@ module.exports = class Builder
       else
         log.error "Couldn't build css.."
         callback? yes
-
 
   wrapWithJSClosure : (js)-> "(function(){#{js}}).call(this);"
 

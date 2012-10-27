@@ -12,17 +12,17 @@ class KDWindowController extends KDController
   superKey        = if navigator.userAgent.indexOf("Mac OS X") is -1 then "ctrl" else "command"
 
   constructor:(options,data)->
-    
+
     @windowResizeListeners = {}
     @keyEventsToBeListened = ['keydown', 'keyup', 'keypress']
     @currentCombos         = {}
     @keyView               = null
     @dragView              = null
     @scrollingEnabled      = yes
-    
+
     @bindEvents()
     @setWindowProperties()
-    
+
     super options, data
 
     KD.registerSingleton "windowController", @, yes
@@ -131,13 +131,13 @@ class KDWindowController extends KDController
 
     return safeCombos
 
-  viewHasKeyCombos:(view)-> 
-    
+  viewHasKeyCombos:(view)->
+
     return unless view
-    
+
     o      = view.getOptions()
     combos = {}
-    
+
     for e in @keyEventsToBeListened
       if "object" is typeof o[e]
         for combo, cb of o[e]
@@ -153,7 +153,7 @@ class KDWindowController extends KDController
       for combo, cb of @currentCombos
         Mousetrap.bind combo, cb
 
-  unregisterKeyCombos:-> 
+  unregisterKeyCombos:->
 
     @currentCombos = {}
     Mousetrap.reset()
