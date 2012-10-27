@@ -287,6 +287,7 @@ class KodingAppsController extends KDController
           try
             # security please!
             do (appView)->
+              appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
               eval appScript
           catch e
             warn "App caused some problems:", e
