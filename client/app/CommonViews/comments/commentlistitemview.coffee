@@ -106,9 +106,10 @@ class CommentListItemView extends KDListItemView
       {type} = @getOptions()
       @setClass "deleted"
       if @deleter
-        @setTemplate "<div class='item-content-comment clearfix'><span>{{> this.author}}'s #{type} has been deleted by {{> this.deleter}}.</span></div>"
+        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted by {{> @deleter}}.</span></div>"
       else
-       @setTemplate "<div class='item-content-comment clearfix'><span>{{> this.author}}'s #{type} has been deleted.</span></div>"
+        pistachio = "<div class='item-content-comment clearfix'><span>{{> @author}}'s #{type} has been deleted.</span></div>"
+      @setTemplate pistachio
     else if force
       @setTemplate @pistachio()
 
