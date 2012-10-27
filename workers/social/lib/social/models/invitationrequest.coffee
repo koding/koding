@@ -28,6 +28,7 @@ module.exports = class JInvitationRequest extends Model
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
+      console.log "->",arguments
       if err
         callback err
       else

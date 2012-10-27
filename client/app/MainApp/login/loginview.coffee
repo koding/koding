@@ -100,7 +100,7 @@ class LoginView extends KDScrollView
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        console.log 'hey-o'
+        log 'hey-o'
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
@@ -243,7 +243,7 @@ class LoginView extends KDScrollView
     {kodingenUser} = formData
     formData.agree = 'on'
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-      console.log arguments
+      log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error

@@ -38,6 +38,8 @@ task 'cl0', 'runs prod kites',(options)->
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
     restart : yes
+    onExit  : ->
+        
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
