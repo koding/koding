@@ -114,6 +114,15 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
+app.get "/status/:data",(req,res)->
+  # req.params.data
+
+  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
+  # exchange.publish 'exit','sharedhosting is dead'
+  # exchange.close()
+  koding.mq.emit 'public-status','exit',req.params.data
+  res.send "alright."
+
 
 app.get '*', (req,res)->
   res.header 'Location', '/#!'+req.url
