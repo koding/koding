@@ -7,8 +7,8 @@ class EmbedBoxLinksViewItem extends KDListItemView
     @setClass "embed-link-item"
 
     # visible link shortening here
-
-    @linkUrlShort = @linkUrl.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+    @linkUrlShort = @linkUrl.replace(/(ht|f)tp(s)?\:\/\//,"")
+                    .replace(/\/.*/,"")
 
     @linkButton = new KDButtonView
       title: @linkUrlShort
@@ -16,6 +16,8 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
       callback :=>
         @makeActive()
+
+        # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
         @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl
 
   makeActive:->
@@ -23,7 +25,6 @@ class EmbedBoxLinksViewItem extends KDListItemView
       item.unsetClass "active"
 
     @setClass "active"
-
 
   viewAppended:->
     super()
@@ -36,12 +37,14 @@ class EmbedBoxLinksViewItem extends KDListItemView
     {{> @linkButton}}
     </div>
     """
+
+
 class EmbedBoxLinksView extends KDView
   constructor:(options,data)->
     super options,data
 
     @linkList = new KDListView
-      cssClass : "embed-link-list"
+      cssClass : "embed-link-list layout-wrapper"
       delegate :@
       itemClass : EmbedBoxLinksViewItem
     ,{}
@@ -60,7 +63,7 @@ class EmbedBoxLinksView extends KDView
         if link is item.data.url
           newList = no
 
-
+    # only show the link list if there is a need to actually select sth
     if links.length > 1 then @show() else @hide()
 
     if newList
@@ -93,6 +96,7 @@ class EmbedBoxLinksView extends KDView
     """
     {{> @linkList}}
     """
+
 
 class EmbedBoxLinkView extends KDView
   constructor:(options={},data)->
@@ -154,30 +158,16 @@ class EmbedBoxLinkView extends KDView
     {{> @embedImageSwitch}}
     """
 
- #              <div class="preview_image #{if ("image" in @getEmbedHiddenItems()) or not data?.images?[@getEmbedImageIndex()]? then "hidden" else ""}">
- #                <a class="preview_link" target="_blank" href="#{data.url or url}"><img class="thumb" src="#{data?.images?[@getEmbedImageIndex()]?.url or "this needs a default url"}" title="#{(data.title + (if data.author_name then " by "+data.author_name else "")) or "untitled"}"/></a>
- #              </div>
- #              <div class="preview_text">
- #               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
- #                <div class="preview_title">#{data.title or data.url}</div>
- #               </a>
- #                <div class="author_info #{if data.author_name then "" else "hidden"}">written by <a href="#{data.author_url or "#"}" target="_blank">#{data.author_name}</a></div>
- #                <div class="provider_info">for <strong>#{data.provider_name or "the internet"}</strong>#{if data.provider_url then " at <a href=\"" +data.provider_url+"\" target=\"_blank\">"+data.provider_display+"</a>" else ""}</div>
- #               <a class="preview_text_link" target="_blank" href="#{data.url or url}">
- #                <div class="description #{if data.description and not("description" in @getEmbedHiddenItems()) then "" else "hidden"}">#{data.description or ""}</div>
- #               </a>
- #              </div>
- #              <div class="preview_link_pager #{unless (@options.hasDropdown) and not("image" in @getEmbedHiddenItems()) and data?.images? and (data?.images?.length > 1) then "hidden" else ""}">
- #                <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is @getEmbedData()?.images?.length then "disabled" else ""}">&gt;</a>
- #                <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{data?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
- #              </div>
-
 
 class EmbedBoxLinkViewImageSwitch extends KDView
   constructor:(options,data)->
     super options,data
 
-    @hide() if (data?.link_embed_hidden_items?["image"]?) or not data.link_options?.hasConfig or not data.link_embed?.images? or data.link_embed?.images?.length < 2
+    @hide() if (data?.link_embed_hidden_items?["image"]?) or\
+               not data.link_options?.hasConfig or\
+               not data.link_embed?.images? or\
+               data.link_embed?.images?.length < 2
+
     @embedImageIndex = data.link_embed_image_index or 0
 
   getEmbedImageIndex:->
@@ -192,26 +182,44 @@ class EmbedBoxLinkViewImageSwitch extends KDView
       event.preventDefault()
       event.stopPropagation()
 
-      if ($(event.target).hasClass "next") and (@getData().link_embed?.images?.length-1 > @getEmbedImageIndex() )
+      # There are 1+ more images beyond the current one
+      if ($(event.target).hasClass "next") and\
+         (@getData().link_embed?.images?.length-1 > @getEmbedImageIndex())
+
         @setEmbedImageIndex @getEmbedImageIndex() + 1
         @$("a.preview_link_switch.previous").removeClass "disabled"
 
-      if ($(event.target).hasClass "previous") and (@getEmbedImageIndex() > 0)
+      # There are 1+ more images before the current one
+      if ($(event.target).hasClass "previous") and\
+         (@getEmbedImageIndex() > 0)
+
         @setEmbedImageIndex @getEmbedImageIndex() - 1
         @$("a.preview_link_switch.next").removeClass "disabled"
 
-
+      # Refresh the image with the new src data
       if @getEmbedImageIndex() < @getData().link_embed?.images.length-1
-        @getDelegate().embedImage.setSrc @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
+        imgSrc = @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
+        if imgSrc
+          @getDelegate().embedImage.setSrc imgSrc
+        else
+          # imgSrc is undefined - this would be the place for a default
+          fallBackImgSrc="http://koding.com/images/service_icons/Koding.png"
+          @getDelegate().embedImage.setSrc fallBackImgSrc
+
+        # Either way, set the embedImageIndex to the appropriate nr
         @getDelegate().getDelegate().setEmbedImageIndex @getEmbedImageIndex()
+
       else
-        # imageindex out of bounds - displaying default image (first in the images array)
-        @getDelegate().embedImage.setSrc @getData().link_embed?.images?[0]?.url
+        # imageindex out of bounds - displaying default image
+        # (first in the images array) the pistachio will also take care
+        # of this
 
+        defaultImgSrc = @getData().link_embed?.images?[0]?.url
+        @getDelegate().embedImage.setSrc defaultImgSrc
 
-      # @$("div.preview_image img.thumb").attr src : @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
       @$("span.thumb_nr").html @getEmbedImageIndex()+1
 
+      # When we're at 0/x or x/x, disable the next/prev buttons
       if @getEmbedImageIndex() is 0
         @$("a.preview_link_switch.previous").addClass "disabled"
 
@@ -228,6 +236,7 @@ class EmbedBoxLinkViewImageSwitch extends KDView
     <a class="preview_link_switch previous #{if @getEmbedImageIndex() is 0 then "disabled" else ""}">&lt;</a><a class="preview_link_switch next #{if @getEmbedImageIndex() is data?.link_embed?.images?.length then "disabled" else ""}">&gt;</a>
     <div class="thumb_count"><span class="thumb_nr">#{@getEmbedImageIndex()+1 or "1"}</span>/<span class="thumb_all">#{@getData()?.link_embed?.images?.length}</span> <span class="thumb_text">Thumbs</span></div>
     """
+
 
 class EmbedBoxImageView extends KDView
   constructor:(options,data)->
@@ -251,6 +260,7 @@ class EmbedBoxImageView extends KDView
     </a>
     """
 
+
 class EmbedBoxObjectView extends KDView
   constructor:(options,data)->
     super options,data
@@ -269,10 +279,12 @@ class EmbedBoxObjectView extends KDView
     #{Encoder.htmlDecode @getData().link_embed?.object?.html}
     """
 
+
 class EmbedBoxLinkViewImage extends KDView
   constructor:(options,data)->
     super options,data
-    @hide() if (data?.link_embed_hidden_items?["image"]?) or  (data.link_embed?.images?.length is 0)
+    @hide() if (data?.link_embed_hidden_items?["image"]?) or\
+               (data.link_embed?.images?.length is 0)
 
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
@@ -282,7 +294,11 @@ class EmbedBoxLinkViewImage extends KDView
   viewAppended:->
     super()
 
-    @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or @getData().link_embed?.images?[0]?.url or "/website/service_icons/Koding.png"
+    @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or\
+                  @getData().link_embed?.images?[0]?.url or\
+                  "http://koding.com/images/service_icons/Koding.png" # hardcode a default
+
+    log "image is", @imageLink
 
     @setTemplate @pistachio()
     @template.update()
@@ -342,7 +358,9 @@ class EmbedBoxLinkViewTitle extends KDView
   constructor:(options={},data)->
     super options,data
     @options = options
-    @hide() if (data?.link_embed_hidden_items?["title"]?) or not data.link_embed?.title? or data.link_embed?.title.trim() is ""
+    @hide() if (data?.link_embed_hidden_items?["title"]?) or\
+               not data.link_embed?.title? or\
+               data.link_embed?.title.trim() is ""
 
     if options.hasConfig is yes
       @setClass "has-config"
@@ -350,6 +368,9 @@ class EmbedBoxLinkViewTitle extends KDView
         cssClass     : "preview_title_input hidden"
         name         : "preview_title_input"
         defaultValue : data.link_embed?.title or ""
+        blur         : =>
+          @titleInput.hide()
+          @$("div.preview_title").html(@getValue()).show()
 
     else
       @titleInput = new KDCustomHTMLView
@@ -372,6 +393,7 @@ class EmbedBoxLinkViewTitle extends KDView
       event.preventDefault()
       event.stopPropagation()
       @titleInput.show()
+      @titleInput.setFocus()
       @$("div.preview_title").hide()
       no
     else
@@ -387,7 +409,9 @@ class EmbedBoxLinkViewDescription extends KDView
   constructor:(options={},data)->
     super options,data
     @options = options
-    @hide() if (data?.link_embed_hidden_items?["description"]?) or not data.link_embed?.description? or data.link_embed?.description.trim() is ""
+    @hide() if (data?.link_embed_hidden_items?["description"]?) or\
+               not data.link_embed?.description? or\
+               data.link_embed?.description.trim() is ""
 
     if options.hasConfig is yes
       @setClass "has-config"
@@ -397,6 +421,9 @@ class EmbedBoxLinkViewDescription extends KDView
         name         : "description_input"
         defaultValue : data.link_embed?.description or ""
         autogrow     : yes
+        blur         : =>
+          @descriptionInput.hide()
+          @$("div.description").html(@getValue()).show()
 
     else
       @descriptionInput = new KDCustomHTMLView
@@ -420,7 +447,7 @@ class EmbedBoxLinkViewDescription extends KDView
       event.preventDefault()
       event.stopPropagation()
       @descriptionInput.show()
-      @descriptionInput.focus()
+      @descriptionInput.setFocus()
       @$("div.description").hide()
       no
     else
@@ -434,7 +461,8 @@ class EmbedBoxLinkViewDescription extends KDView
 class EmbedBoxLinkViewAuthor extends KDView
   constructor:(options,data)->
     super options,data
-    @hide() if (data?.link_embed_hidden_items?["author"]?) or not data.link_embed?.author_name?
+    @hide() if (data?.link_embed_hidden_items?["author"]?) or\
+               not data.link_embed?.author_name?
 
   viewAppended:->
     super()
@@ -448,7 +476,8 @@ class EmbedBoxLinkViewAuthor extends KDView
 class EmbedBoxLinkViewProvider extends KDView
   constructor:(options,data)->
     super options,data
-    @hide() if (data?.link_embed_hidden_items?["provider"]?) or not data.link_embed?.provider_name?
+    @hide() if (data?.link_embed_hidden_items?["provider"]?) or\
+               not data.link_embed?.provider_name?
 
   viewAppended:->
     super()
