@@ -274,12 +274,22 @@ run =(options)->
   if config.runGoBroker
     processes.run
       name  : 'goBroker'
-      cmd   : "./go/bin/broker -c #{options.configFile}"
+      cmd   : "./go/bin/broker -c #{configFile}"
       restart: yes
       restartInterval: 100
       stdout  : process.stdout
       stderr  : process.stderr
       verbose : yes
+
+  if config.guests
+    processes.run
+      name  : 'guestCleanup'
+      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: no
 
   processes.run
     name    : 'socialCake'
