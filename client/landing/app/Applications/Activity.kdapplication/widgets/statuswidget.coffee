@@ -110,7 +110,11 @@ class ActivityStatusUpdateWidget extends KDFormView
           unless @previousURL is firstUrl
             @embedBox.embedUrl firstUrl?[0], {
               maxWidth: 525
-            }, =>
+            }, (embedData)=>
+
+              # add favicon to link list if possible
+              @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
+
               @requestEmbedLock = off
               @previousURL = firstUrl
         else
