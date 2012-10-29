@@ -12,7 +12,7 @@ class nfs_server::exports {
     file { "/etc/exports":
         ensure  => file,
         source  => "puppet:///modules/nfs_server/etc/exports",
-        notifi => Exec['exportfs'],
+        notify => Exec['exportfs'],
     }
 
     exec { "exportfs":
