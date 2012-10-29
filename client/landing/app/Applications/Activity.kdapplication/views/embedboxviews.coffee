@@ -189,6 +189,9 @@ class EmbedBoxLinkViewImageSwitch extends KDView
   click:(event)=>
     if  $(event.target).hasClass "preview_link_switch"
 
+      event.preventDefault()
+      event.stopPropagation()
+
       if ($(event.target).hasClass "next") and (@getData().link_embed?.images?.length-1 > @getEmbedImageIndex() )
         @setEmbedImageIndex @getEmbedImageIndex() + 1
         @$("a.preview_link_switch.previous").removeClass "disabled"
@@ -197,8 +200,15 @@ class EmbedBoxLinkViewImageSwitch extends KDView
         @setEmbedImageIndex @getEmbedImageIndex() - 1
         @$("a.preview_link_switch.next").removeClass "disabled"
 
-      @getDelegate().embedImage.setSrc @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
-      @getDelegate().getDelegate().setEmbedImageIndex @getEmbedImageIndex()
+
+      if @getEmbedImageIndex() < @getData().link_embed?.images.length-1
+        @getDelegate().embedImage.setSrc @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
+        @getDelegate().getDelegate().setEmbedImageIndex @getEmbedImageIndex()
+      else
+        # imageindex out of bounds - displaying default image (first in the images array)
+        @getDelegate().embedImage.setSrc @getData().link_embed?.images?[0]?.url
+
+
       # @$("div.preview_image img.thumb").attr src : @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
       @$("span.thumb_nr").html @getEmbedImageIndex()+1
 
@@ -264,18 +274,27 @@ class EmbedBoxLinkViewImage extends KDView
     super options,data
     @hide() if (data?.link_embed_hidden_items?["image"]?) or  (data.link_embed?.images?.length is 0)
 
+  # this will get called from the image-switch click events to update the preview
+  # images when browsing the available embed links
   setSrc:(url)->
     @$("img.thumb").attr src : url
 
   viewAppended:->
     super()
+
+    @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or @getData().link_embed?.images?[0]?.url or "/website/service_icons/Koding.png"
+
     @setTemplate @pistachio()
     @template.update()
 
+
+
+  # this includes a fallback for when the embedimageindex is out of bounds
+  # it will however still request a nonsensical image src
   pistachio:->
     """
     <a class="preview_link" target="_blank" href="#{@getData().link_url or @getData().link_embed?.url}">
-      <img class="thumb" src="#{@getData().link_embed?.images?[@getData().link_embed_image_index]?.url or "this needs a default url"}" title="#{(@getData().link_embed?.title + (if @getData().link_embed?.author_name then " by "+@getData().link_embed?.author_name else "")) or "untitled"}"/>
+      <img class="thumb" src="#{@imageLink}" title="#{(@getData().link_embed?.title + (if @getData().link_embed?.author_name then " by "+@getData().link_embed?.author_name else "")) or "untitled"}"/>
     </a>
     """
 
