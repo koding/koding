@@ -28,6 +28,7 @@ node hosting inherits base {
     include aide
     include traffcalc
     include rsyslog
+    include nfs_server
 
     
     if $nodeuser {
