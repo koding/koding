@@ -42,7 +42,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
   pistachio:->
     """
     <div class="embed-link-wrapper">
-    <img class="hidden" src="#{@favicon}" alt="#{@getData().title}"/>
+    <img class="embed-favicon hidden" src="#{@favicon}" alt="#{@getData().title}"/>
     {{> @linkButton}}
     </div>
     """
