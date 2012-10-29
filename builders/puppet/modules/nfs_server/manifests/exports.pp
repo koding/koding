@@ -17,6 +17,7 @@ class nfs_server::exports {
 
     exec { "exportfs":
         command => "/usr/sbin/exportfs -avr",
+        refreshonly => true,
     }
 
 
