@@ -171,8 +171,15 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
-      "<a href='#{url}' target='_blank'>#{url}</a>"
+    text.replace /([A-Za-z]+:\/\/)?[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+
+      visibleUrl = url
+
+      if not /[A-Za-z]+:\/\//.test url
+        # url has no protocol
+        url = '//'+url
+
+      "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
