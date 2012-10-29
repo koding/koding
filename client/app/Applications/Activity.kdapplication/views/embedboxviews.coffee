@@ -18,13 +18,21 @@ class EmbedBoxLinksViewItem extends KDListItemView
         @makeActive()
 
         # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
-        @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl
+        @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl, {}, (embedData)=>
+          if embedData.favicon_url? then @setFavicon embedData.favicon_url
+
+    @favicon = data.favicon or ""
 
   makeActive:->
     for item in @getDelegate().items
       item.unsetClass "active"
 
     @setClass "active"
+
+  setFavicon:(fav="")->
+    @favicon = fav
+    @$("img").attr src : @favicon
+    @$("img").removeClass "hidden"
 
   viewAppended:->
     super()
@@ -34,6 +42,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
   pistachio:->
     """
     <div class="embed-link-wrapper">
+    <img class="hidden" src="#{@favicon}" alt="#{@getData().title}"/>
     {{> @linkButton}}
     </div>
     """
@@ -297,8 +306,6 @@ class EmbedBoxLinkViewImage extends KDView
     @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or\
                   @getData().link_embed?.images?[0]?.url or\
                   "http://koding.com/images/service_icons/Koding.png" # hardcode a default
-
-    log "image is", @imageLink
 
     @setTemplate @pistachio()
     @template.update()
