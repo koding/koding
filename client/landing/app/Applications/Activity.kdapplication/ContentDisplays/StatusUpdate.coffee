@@ -1,6 +1,6 @@
-class ContentDisplayStatusUpdate extends KDView
+class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
 
     options.tooltip or=
       title     : "Status Update"
@@ -8,8 +8,6 @@ class ContentDisplayStatusUpdate extends KDView
       selector  : "span.type-icon"
 
     super options,data
-
-    @setClass 'activity-item status'
 
     origin =
       constructorName  : data.originType
@@ -52,21 +50,25 @@ class ContentDisplayStatusUpdate extends KDView
   pistachio:->
 
     """
-    <span>
-      {{> @avatar}}
-      <span class="author">AUTHOR</span>
-    </span>
-    <div class='activity-item-right-col'>
-      <h3 class='hidden'></h3>
-      <p>{{@utils.applyTextExpansions #(body)}}</p>
-      <footer class='clearfix'>
-        <div class='type-and-time'>
-          <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-          {{> @tags}}
-        </div>
-        {{> @actionLinks}}
-      </footer>
-      {{> @commentBox}}
+    {{> @header}}
+    <h2 class="sub-header">{{> @back}}</h2>
+    <div class='kdview content-display-main-section activity-item status'>
+      <span>
+        {{> @avatar}}
+        <span class="author">AUTHOR</span>
+      </span>
+      <div class='activity-item-right-col'>
+        <h3 class='hidden'></h3>
+        <p>{{@utils.applyTextExpansions #(body)}}</p>
+        <footer class='clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> by {{> @author}}
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+        {{> @commentBox}}
+      </div>
     </div>
     """

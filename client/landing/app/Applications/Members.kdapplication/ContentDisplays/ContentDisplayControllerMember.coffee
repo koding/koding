@@ -5,7 +5,6 @@ class ContentDisplayControllerMember extends KDViewController
       view : mainView = new KDView
         cssClass : 'member content-display'
     ,options
-
     super options, data
 
   loadView:(mainView)->
@@ -115,6 +114,7 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type = $in: [
               'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
+              'CDiscussionActivity'
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
@@ -132,6 +132,15 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type     = 'CCodeSnipActivity'
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data
+        # Discussions Disabled
+        # discussions         :
+        #   title             : "Discussions"
+        #   dataSource        : (selector, options, callback)=>
+        #     selector.originId = account.getId()
+        #     selector.type     = 'CDiscussionActivity'
+        #     appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+        #       callback null, data
+
       sort                  :
         'sorts.likesCount'  :
           title             : "Most popular"
@@ -151,6 +160,6 @@ class ContentDisplayControllerMember extends KDViewController
       #     KDEventTypes       : "mouseenter"
       #     listenedToInstance : controller.getView()
       #     callback           : => @mouseEnterOnFeed()
-      log controller
+      # log controller
       @getView().addSubView controller.getView()
 

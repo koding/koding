@@ -7,11 +7,11 @@ class InboxInnerNavigation extends CommonInnerNavigation
     viewController.selectItem viewItemToBeSelected
 
     # setTimeout =>
-    #   @propagateEvent {KDEventType : "CommonInnerNavigationListItemReceivedClick"}, viewItemToBeSelected.getData()
+    #   @emit "NavItemReceivedClick", viewItemToBeSelected.getData()
     # ,10
 
     @addSubView helpBox = new HelpBox
-      subtitle    : "About Your Inbox" 
+      subtitle    : "About Your Inbox"
       tooltip     :
         title     : "<p class=\"bigtwipsy\">The Inbox displays messages from the people on Koding, as well as notifications received when people comment on items you have posted. It's also a place where you can contact people in the community, or respond to messages you receive. </p>"
         placement : "above"
@@ -20,7 +20,7 @@ class InboxInnerNavigation extends CommonInnerNavigation
         html      : yes
         animate   : yes
 
-    
+
   menuData :
     title : "VIEW"
     items : [
@@ -40,4 +40,4 @@ class InboxInnerNavigation extends CommonInnerNavigation
 
     if itemToBeSelected
       @viewController.selectItem itemToBeSelected
-   
+

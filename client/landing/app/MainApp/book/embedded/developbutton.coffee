@@ -1,15 +1,15 @@
 class BookDevelopButton extends KDButtonViewWithMenu
 
+
   constructor:->
 
     options =
       style         : 'editor-advanced-settings-menu'
       icon          : yes
       iconOnly      : yes
-      # iconClass     : "cog"
       type          : "contextmenu"
-      itemClass  : AceSettingsView
+      itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
-      menu          : [AceView::getAdvancedSettingsMenuItems()]
+      menu          : AceView::getAdvancedSettingsMenuItems
 
     super options

@@ -130,6 +130,7 @@ __aceSettings =
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
     yaml        : ["YAML"         , "yaml"]
+    objectivec  : ["Objective C"  , "__dummy__"]
 
   getSyntaxOptions : ->
 
@@ -178,5 +179,6 @@ __aceSettings =
     # text        : null
     # textile     : null
     xml         : "xml"
+    objectivec  : "objectivec"
     # xquery      : null
     # yaml        : null

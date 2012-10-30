@@ -1,5 +1,17 @@
 class AboutView extends JView
 
+  constructor:(options = {}, data)->
+
+    options.cssClass = "about about-pane content-display"
+
+    super options, data
+
+    @back   = new KDCustomHTMLView
+      tagName : "a"
+      partial : "<span>&laquo;</span> Back"
+      click   : =>
+        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+
   viewAppended:->
 
     super
@@ -8,6 +20,7 @@ class AboutView extends JView
   pistachio:->
 
     """
+      <h2 class="sub-header">{{> @back}}</h2>
       <div class="about-page-left">
         <h2>About Koding</h2>
         <p class="about-sub">Koding is a developer community and cloud development environment where developers come together and code – in the browser… with a real development server to run their code.</p>

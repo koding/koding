@@ -15,6 +15,12 @@ class CodesnipActivityItemView extends ActivityItemChild
 
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
 
+    # @codeShareBoxView = new CodeShareBox
+    #   allowEditing:no
+    #   allowClosing:no
+    #   hideTabs:yes
+    # ,data
+
     # log data.meta.tags
     # @tagGroup = new LinkGroup {
     #   group         : data.meta.tags
@@ -47,7 +53,7 @@ class CodesnipActivityItemView extends ActivityItemChild
 
 
   pistachio:->
-
+    # {{> @codeShareBoxView}}
     """
     {{> @settingsButton}}
     <span class="avatar">{{> @avatar}}</span>
@@ -90,12 +96,10 @@ class CodeSnippetView extends KDCustomHTMLView
     hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
 
     @codeView = new KDCustomHTMLView
-      tagName  : "code"
+      cssClass  : ''
+      tagName   : 'code'
       pistachio : '{{#(content)}}'
     , data
-
-    @codeView.setClass hjsSyntax if hjsSyntax
-    @codeView.unsetClass "kdcustomhtml"
 
     @syntaxMode = new KDCustomHTMLView
       tagName  : "strong"
@@ -146,17 +150,17 @@ class CodeSnippetView extends KDCustomHTMLView
 
   applySyntaxColoring:( syntax = @getData().syntax)->
 
-    snipView  = @
-    hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
+    # result = hljs.highlightAuto @codeView.getData().content
+    # markup = hljs.fixMarkup result.value, '  '
+    # @codeView.updatePartial markup
 
-    if hjsSyntax
-      requirejs (['js/highlightjs/highlight.js']), ->
-        requirejs (["highlightjs/languages/#{hjsSyntax}"]), ->
-          try
-            hljs.compileModes()
-            hljs.highlightBlock snipView.codeView.$()[0],'  '
-          catch err
-            console.warn "Error applying highlightjs syntax #{syntax}:", err
+    snipView  = @
+    # hjsSyntax = __aceSettings.aceToHighlightJsSyntaxMap[syntax]
+
+    try
+      hljs.highlightBlock snipView.codeView.$()[0], '  '
+    catch err
+      warn "Error applying highlightjs syntax #{syntax}:", err
 
   viewAppended: ->
 

@@ -55,7 +55,7 @@
 #                           user         : user
 #                           action       : "deleted"
 #                       else
-#                         console.log "erorr", result.err
+#                         log "erorr", result.err
 #               when 'add'
 #                 KDData::invokeServerSide
 #                   appendForeignProvider:
@@ -73,7 +73,7 @@
 #                           user         : user
 #                           action       : "added"
 #                       else
-#                         console.log "erorr", result.err
+#                         log "erorr", result.err
 #               when 'verify'
 #                 KDView::handleEvent
 #                   type         : "ProvidersChangedTrigger"
@@ -82,7 +82,7 @@
 #                   user         : user
 #                   action       : "verified"
 #               when 'merge'
-#                 console.log "mergeTrigger: merge accounts here"
+#                 log "mergeTrigger: merge accounts here"
 #               when 'mountAdd'
 #                 if user.authType is 'dropbox'
 #                   KDView::handleEvent
@@ -90,7 +90,7 @@
 #                     user : user
 #               # when 'mountAdd'
 #               else
-#                 console.log "foreignProviderTrigger: unknown action = #{action}"
+#                 log "foreignProviderTrigger: unknown action = #{action}"
 
 
 # @foreign_auth = new Foreign_auth()

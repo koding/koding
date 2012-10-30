@@ -65,7 +65,7 @@ class ActivityActionLink extends KDCustomHTMLView
       cssClass  : "action-link"
       attributes:
         href    : "#"
-      partial   : "..."
+      partial   : "Like"
     , options
     super options,data
 
@@ -99,7 +99,7 @@ class ActivityLikeCount extends ActivityCountLink
     if activity.meta.likes isnt @oldCount
       @emit "countChanged", activity.meta.likes
     @oldCount = activity.meta.likes
-    if activity.meta.likes == 0 then @hide() else @show()
+    if activity.meta.likes is 0 then @hide() else @show()
 
   pistachio:-> "{{ #(meta.likes)}}"
 
@@ -107,5 +107,6 @@ class ActivityCommentCount extends ActivityCountLink
 
   setCount:(activity)->
     if activity.repliesCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.repliesCount
 
   pistachio:-> "{{ #(repliesCount)}}"

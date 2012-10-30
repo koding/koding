@@ -23,12 +23,10 @@ class ContentDisplayControllerTopic extends KDViewController
 
     topicView = @addTopicView topic
 
-    topicView.on 'FollowButtonClicked', @followAccount
-    topicView.on 'UnfollowButtonClicked', @unfollowAccount
-
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass        : ActivityListItemView
+      itemClass           : ActivityListItemView
       listCssClass        : "activity-related"
+      noItemFoundText     : "There is no activity related with <strong>#{topic.title}</strong>."
       limitPerPage        : 5
       filter              :
         content           :
@@ -48,6 +46,14 @@ class ContentDisplayControllerTopic extends KDViewController
             selector = {targetName: 'JCodeSnip'}
             topic.fetchContentTeasers options, selector, (err, teasers)->
               callback err, teasers
+        # Discussions Disabled
+        # discussions       :
+        #   title           : 'Discussions'
+        #   dataSource      : (selector, options, callback)->
+        #     selector = {targetName: 'JDiscussion'}
+        #     topic.fetchContentTeasers options, selector, (err, teasers)->
+        #       callback err, teasers
+
       sort                :
         'timestamp|new'   :
           title           : 'Latest activity'
@@ -66,65 +72,51 @@ class ContentDisplayControllerTopic extends KDViewController
     , topic
     topicView
 
-  followAccount:(topic, callback)->
-    topic.follow callback
-
-  unfollowAccount:(topic,callback)->
-    topic.unfollow callback
-
 class TopicView extends KDView
+
+  constructor:(options, data)->
+
+    @followButton = new KDToggleButton
+      style           : if data.followee then "kdwhitebtn following-topic" else "kdwhitebtn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : if data.followee then "Following" else "Follow"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        top           : 11
+      states          : [
+        "Follow", (callback)->
+          data.follow (err, response)=>
+            data.followee = yes
+            @hideLoader()
+            unless err
+              @setClass 'following-btn following-topic'
+              callback? null
+        "Following", (callback)->
+          data.unfollow (err, response)=>
+            data.followee = no
+            @hideLoader()
+            unless err
+              @unsetClass 'following-btn following-topic'
+              callback? null
+      ]
+    , data
+
+    super
+    unless data.followee
+      KD.whoami().isFollowing? data.getId(), "JTag", (following) =>
+        data.followee = following
+        if data.followee
+          @followButton.setClass 'following-btn following-topic'
+          @followButton.setState "Following"
+        else
+          @followButton.setState "Follow"
+          @followButton.unsetClass 'following-btn following-topic'
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-
-    topic = @getData()
-
-    if topic.followee
-      @unfollowTheButton()
-    else
-      @followTheButton()
-
-  followTheButton:->
-    {profile, counts} = topic = @getData()
-
-    @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView
-      style : 'kdwhitebtn profilefollowbtn'
-      title : "Follow"
-      callback: =>
-        topic.followee = yes
-        @unfollowTheButton()
-        @emit 'FollowButtonClicked', topic, (err, followerCount)=>
-          if err
-            warn err
-            topic.followee = no
-            @followTheButton()
-          else
-            @setFollowCounts followerCount, counts.following
-    @addSubView @followButton, '.profileleft'
-
-  unfollowTheButton:()->
-    {profile, counts} = topic = @getData()
-
-    @followButton.destroy() if @followButton?
-    @followButton = new KDButtonView
-      style : 'kdwhitebtn profilefollowbtn following-btn'
-      title : "Following"
-      callback: =>
-        topic.followee = no
-        @followTheButton()
-        @emit 'UnfollowButtonClicked', topic, (err, followerCount)=>
-          if err
-            warn err
-            topic.followee = yes
-            @unfollowTheButton()
-          else
-            @setFollowCounts followerCount, counts.following
-    @addSubView @followButton, '.profileleft'
-
-  setFollowCounts:(followerCount, followingCount)->
-    @$('.fers a').html followerCount
-    @$('.fing a').html followingCount
 
   pistachio:->
     """
@@ -132,6 +124,7 @@ class TopicView extends KDView
       <span>
         <a class='profile-avatar' href='#'>{{#(image) or "upload an image"}}</a>
       </span>
+      {{> @followButton}}
     </div>
 
     <section>
@@ -140,10 +133,10 @@ class TopicView extends KDView
 
         <div class="profilestats">
           <div class="posts">
-            {{@utils.formatPlural #(counts.post), 'Post'}}
+            <a href='#'><cite/>{{@utils.formatPlural #(counts.post), 'Post'}}</a>
           </div>
           <div class="fers">
-            <a href='#'>{{@utils.formatPlural #(counts.followers), 'Follower'}}</a>
+            <a href='#'><cite/>{{@utils.formatPlural #(counts.followers), 'Follower'}}</a>
           </div>
         </div>
       </div>

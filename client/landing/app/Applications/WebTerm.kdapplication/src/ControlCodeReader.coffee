@@ -4,36 +4,36 @@ class WebTerm.ControlCodeReader
     @pos = 0
     @controlCodeOffset = null
     @regexp = new RegExp Object.keys(@handler.map).join("|")
-  
+
   skip: (lenght) ->
     @pos += lenght
-  
+
   readChar: ->
     return null if @pos >= @data.length
     c = @data.charAt @pos
     @pos += 1
     c
-  
+
   readRegexp: (regexp) ->
     result = @data.substring(@pos).match(regexp)
     return null if not result?
     @pos += result[0].length
     result
-  
+
   readUntil: (regexp) ->
     endPos = @data.substring(@pos).search regexp
     return null if endPos == -1
     string = @data.substring @pos, @pos + endPos
     @pos += endPos
     string
-  
+
   addData: (newData) ->
     @data += newData
-  
+
   process: ->
     return false if not @nextReader.process()
     return true if @data.length is 0
-    
+
     if @controlCodeOffset?
       @controlCodeIncomplete = false
       @handler this
@@ -54,21 +54,21 @@ class WebTerm.ControlCodeReader
         @data = ""
         @pos = 0
         @nextReader.process()
-  
+
   incompleteControlCode: ->
     @controlCodeIncomplete = true
-  
+
   unsupportedControlCode: ->
-    console.warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
+    warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
 
 
 class WebTerm.TextReader
   constructor: (@terminal) ->
     @data = ""
-  
+
   addData: (newData) ->
     @data += newData
-  
+
   process: ->
     return true if @data.length is 0
     while @terminal.cursor.x + @data.length > @terminal.sizeX # line wrapping
@@ -93,13 +93,13 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       handler reader
     f.map = map
     f
-  
+
   catchCharacter = (handler) ->
     (reader) ->
       c = reader.readChar()
       return reader.incompleteControlCode() if not c?
-      handler c 
-  
+      handler c
+
   catchParameters = (regexp, map) ->
     (reader) ->
       result = reader.readRegexp regexp
@@ -113,27 +113,27 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       params = for p in rawParams
         if p then parseInt p, 10 else null
       params.raw = rawParams
-      
+
       if map instanceof Function
         map params, reader
         return
-      
+
       handler = map[prefix + command]
       return reader.unsupportedControlCode() if not handler?
       handler params, reader
-  
+
   switchParameter = (index, map) ->
     (params, reader) ->
       handler = map[params[index] ? 0]
       return reader.unsupportedControlCode() if not handler?
       handler params
-  
+
   switchRawParameter = (index, map) ->
     (params, reader) ->
       handler = map[params.raw[index]]
       return reader.unsupportedControlCode() if not handler?
       handler params
-  
+
   eachParameter = (map) ->
     f = (params, reader) ->
       while params.length > 0
@@ -145,24 +145,24 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       map[i] = handler for i in [from..to]
       f
     f
-  
+
   ignored = (str) ->
-    -> console.log "Ignored: " + str
-  
+    -> log "Ignored: " + str
+
   originMode = false
-  
+
   getOrigin = ->
     if originMode
       terminal.screenBuffer.scrollingRegion[0]
     else
       0
-  
+
   insertOrDeleteLines = (amount) ->
     previousScrollingRegion = terminal.screenBuffer.scrollingRegion
     terminal.screenBuffer.scrollingRegion = [terminal.cursor.y, terminal.screenBuffer.scrollingRegion[1]]
     terminal.screenBuffer.scroll -amount
     terminal.screenBuffer.scrollingRegion = previousScrollingRegion
-  
+
   initCursorControlHandler = ->
     switchCharacter
       "\x00": -> # ignored
@@ -171,7 +171,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
       "\x0A": -> terminal.lineFeed() # LF
       "\x0B": -> terminal.lineFeed() # VT
       "\x0D": -> terminal.cursor.moveTo 0, terminal.cursor.y # CR
-  
+
   initEscapeSequenceHandler = ->
     switchCharacter
       "\x07": ignored "bell"
@@ -207,6 +207,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "D": (params) -> terminal.cursor.move -(params[0] ? 1), 0
           "G": (params) -> terminal.cursor.moveTo (params[0] ? 1) - 1, terminal.cursor.y
           "H": (params) -> terminal.cursor.moveTo (params[1] ? 1) - 1, getOrigin() + (params[0] ? 1) - 1
+          "I": (params) -> terminal.cursor.moveTo (Math.floor(terminal.cursor.x / 8) + (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
           "J": switchParameter 0
             0: ->
               terminal.writeEmptyText terminal.sizeX - terminal.cursor.x
@@ -225,6 +226,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           "S": (params) -> terminal.screenBuffer.scroll (params[0] ? 1)
           "T": (params) -> terminal.screenBuffer.scroll -(params[0] ? 1)
           "X": (params) -> terminal.writeEmptyText params[0] ? 1
+          "Z": (params) -> terminal.cursor.moveTo (Math.ceil(terminal.cursor.x / 8) - (params[0] ? 1)) * 8, terminal.cursor.y unless params[0] == 0
           "c": switchRawParameter 0
             0:   -> terminal.server.controlSequence "\x1B[>?1;2c"
             ">": -> terminal.server.controlSequence "\x1B[>0;261;0c"
@@ -319,8 +321,8 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           4: (params) ->
             parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
             terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
-  
-  return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(), 
+
+  return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),
     new WebTerm.ControlCodeReader(terminal, initEscapeSequenceHandler(),
       new WebTerm.TextReader(terminal)
     )

@@ -18,9 +18,12 @@ chatTextColor = #f2f2f2
     bottom              0
   .split-wrapper
     margin-left         150px
+    size                auto, 100%
+    overflow-x          auto
+    overflow-y          hidden
     vendor              transition, margin-left .15s ease-in-out
+  
   .chat-sidebar
-    color               chatTextColor
     text-shadow         0 -1px 0 #000
     width               150px
     position            absolute
@@ -28,8 +31,6 @@ chatTextColor = #f2f2f2
     left                0px
     bg                  color, #4A4640
     vendor              transition, left .15s ease-in-out
-    // vendor              transition, top .15s ease-in-out
-    // shadow              0 0 10px black
     &.out
       left             -140px
     h2
@@ -56,6 +57,16 @@ chatTextColor = #f2f2f2
           border-bottom 1px solid transparent
 
   .chat-split
+    .layer
+    &.presentation
+      b
+        &.highlight-tag
+          bg              color, rgba(255,255,0,.15)
+        &.highlight-user
+          bg              color, rgba(255,0,0,.15)
+
+    textarea
+      color             chatTextColor
     .kdsplitview-resizer, .kdsplitview-resizer:hover
       background        none
     .kdsplitview-panel
@@ -70,4 +81,6 @@ chatTextColor = #f2f2f2
       >div
         color           chatTextColor
         border-left     1px solid rgba(0,0,0,.4)
+
+
 

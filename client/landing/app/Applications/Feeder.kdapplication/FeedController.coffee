@@ -9,7 +9,7 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      itemClass  : options.itemClass
+      itemClass     : options.itemClass
       filters       : options.filter
       listCssClass  : options.listCssClass or ""
       delegate      : @
@@ -60,10 +60,11 @@ class FeedController extends KDViewController
     @defineSort name, sort for own name, sort of options.sort
     @getNewFeedItems() if options.dynamicDataType?
 
-  getNewFeedItems:()->
-    {dynamicDataType} = @getOptions()
-    dynamicDataType.on 'feed.new', (items) =>
-      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
+# TODO: commented out by C.T.  Is this used anywhere?  I think not, looks botched: resultsCOntroller
+#  getNewFeedItems:()->
+#    {dynamicDataType} = @getOptions()
+#    dynamicDataType.on 'feed.new', (items) =>
+#      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
 
   defineFilter:(name, filter)->
     filter.name     = name
@@ -93,7 +94,7 @@ class FeedController extends KDViewController
     @loadFeed()
 
   getFeedSelector:->
-    # console.log @filters
+    # log @filters
     {}
 
   getFeedOptions:->
@@ -110,6 +111,7 @@ class FeedController extends KDViewController
   emitLoadStarted:(filter)=>
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
+    @showNoItemFound listController, filter
     return listController
 
   emitLoadCompleted:(filter)=>
@@ -117,12 +119,22 @@ class FeedController extends KDViewController
     listController.hideLazyLoader()
     return listController
 
+  emitCountChanged:(count, filter)->
+    @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
+
+  showNoItemFound:(controller, filter)->
+    {noItemFoundText} = filter
+    if @noItemFound? then @noItemFound.destroy()
+    controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
+      cssClass : "lazy-loader"
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+    @noItemFound.hide()
+
   loadFeed:(filter = @selection)->
 
-    options          = @getFeedOptions()
-    selector         = @getFeedSelector()
-    windowController = @getSingleton('windowController')
-    itemClass     = @getOptions().itemClass
+    options    = @getFeedOptions()
+    selector   = @getFeedSelector()
+    itemClass  = @getOptions().itemClass
 
     @emitLoadStarted filter
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
@@ -131,8 +143,10 @@ class FeedController extends KDViewController
       filter.dataSource selector, options, (err, items)=>
         listController = @emitLoadCompleted filter
         unless err
+          if items.length is 0 and listController.getItemCount() is 0
+            @noItemFound.show()
           listController.instantiateListItems items
-          windowController.emit "FeederListViewItemCountChanged", listController.itemsOrdered.length, itemClass, filter.name
+          @emitCountChanged listController.itemsOrdered.length, filter.name
           if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
             @loadFeed filter
         else

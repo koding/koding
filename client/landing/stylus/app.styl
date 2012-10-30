@@ -138,13 +138,15 @@ body.loggedIn
 
 .what-you-should-know-modal
   .kdmodal-content
-    max-height      600px
-    overflow        auto
+    max-height          600px
+    overflow            auto
   ul
-    list-style      circle
+    list-style          circle
+  ol
+    list-style-position inside
   li
-    margin          5px 0 0 0
-    line-height     1.4em
+    margin              5px 0 0 0
+    line-height         1.7em
 
 #koding-logo
   position            absolute
@@ -324,7 +326,7 @@ span.main-nav-icon
   &.members
     bg(position,0 -60px)
   &.groups
-    bg(position,0 -60px)
+    bg(position,0 -260px)
   &.questions-answers
     bg(position,0 -80px)
   &.app-store
@@ -386,6 +388,8 @@ span.main-nav-icon
       bg(position,-20px -480px)
     &.members
       bg(position,-20px -60px)
+    &.groups
+      bg(position,-20px -260px)
     &.develop
       bg(position,-20px -400px)
     &.apps
@@ -634,6 +638,7 @@ span.main-nav-icon
     font-size           11px
     line-height         15px
     color               #8e8e8e
+    cursor              default
     borderBox()
     span.icon
       position          absolute

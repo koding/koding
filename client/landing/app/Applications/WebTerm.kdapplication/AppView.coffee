@@ -38,25 +38,29 @@ class WebTermView extends KDView
     @sessionBox.addSubView createSessionButton
 
     @terminal = new WebTerm.Terminal @container.$()
-    @terminal.showSessionsCallback = (sessions) =>
+
+    @terminal.sessionEndedCallback = (sessions) =>
+      @emit "WebTerm.terminated"
       return
-      keys = Object.keys sessions
-      keys.sort (a, b) ->
-        if sessions[a] < sessions[b]
-          -1
-        else if sessions[a] > sessions[b]
-          1
-        else
-          0
-      @sessionList.empty()
-      for key in keys
-        @sessionList.addItem
-          id: parseInt(key)
-          name: sessions[key]
-          mainView: this
-      @sessionBox.show()
+
+      @server.getSessions (sessions) =>
+        keys = Object.keys sessions
+        keys.sort (a, b) ->
+          if sessions[a] < sessions[b]
+            -1
+          else if sessions[a] > sessions[b]
+            1
+          else
+            0
+        @sessionList.empty()
+        for key in keys
+          @sessionList.addItem
+            id: parseInt(key)
+            name: sessions[key]
+            mainView: this
+        @sessionBox.show()
     @terminal.setTitleCallback = (title) =>
-      @tabPane.setTitle title
+      #@tabPane.setTitle title
 
     @listenWindowResize()
 

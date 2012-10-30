@@ -64,8 +64,8 @@ class DiscussionFormView extends KDFormView
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
+        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'

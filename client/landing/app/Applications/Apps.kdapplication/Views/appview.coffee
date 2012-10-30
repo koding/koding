@@ -95,7 +95,6 @@ class AppView extends KDView
       else
         @likeButton.setState "Like"
 
-
     if app.versions?.length > 1
       menu = {}
 

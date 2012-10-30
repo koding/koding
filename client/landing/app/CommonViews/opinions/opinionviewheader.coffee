@@ -14,39 +14,48 @@ class OpinionViewHeader extends JView
     @newCount         = 0
     @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
-    unless data.repliesCount? and data.repliesCount > @maxCommentToShow
-      @onListCount = data.repliesCount
-      @hide()
+    # The snapshot view should always have a visible Header
 
-    @hide() if data.repliesCount < @maxCommentToShow
+    if @parent?.constructor is not DiscussionActivityOpinionView
+      unless data.repliesCount? and data.repliesCount > @maxCommentToShow
+        @onListCount = data.repliesCount
+        @hide()
+      @hide() if data.repliesCount < @maxCommentToShow
 
     list = @getDelegate()
 
     list.on "AllOpinionsWereAdded", =>
+      @show()
       @newCount = 0
       @onListCount = @getData().repliesCount
       @updateNewCount()
-      @hide()
-      @loader.destroy()
+      @allItemsLink.unsetClass "in"
+      @newItemsLink.unsetClass "in"
+      @loader.hide()
+      @newAnswers = 0
 
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
-      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}»"
+      partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}"
       click     : =>
         @loader.show()
+        @newItemsLink.unsetClass "in"
         list.emit "AllOpinionsLinkWasClicked", @
     , data
 
     list.on "RelativeOpinionsWereAdded",  =>
-      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-      if (remainingOpinions)<@maxCommentToShow
-        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
+      @updateRemainingText()
+
       if @getDelegate().items.length<@getData().repliesCount
         @loader.hide()
       else
-        @loader.destroy()
-        @allItemsLink.destroy()
+        @loader.hide()
+        @allItemsLink.unsetClass "in"
+
+      @newItemsLink.unsetClass "in"
+      @newAnswers = 0
+      @show()
 
     @loader = new KDLoaderView
       cssClass      : "opinion-loader hidden"
@@ -67,6 +76,20 @@ class OpinionViewHeader extends JView
       click     : =>
         list.emit "AllOpinionsLinkWasClicked", @
 
+    @newAnswers = 0
+
+    list.on "NewOpinionHasArrived",=>
+      @newAnswers++
+      @updateRemainingText()
+      @newItemsLink.updatePartial "#{if @newAnswers is 0 then "No" else @newAnswers} new Answer#{if @newAnswers is 1 then "" else "s"}"
+
+      @setClass "has-new-items"
+      @show()
+      @allItemsLink.show()
+      @allItemsLink.setClass "in"
+      @newItemsLink.show()
+      @newItemsLink.setClass "in"
+
   hide:->
     @unsetClass "in"
     super
@@ -75,16 +98,36 @@ class OpinionViewHeader extends JView
     @setClass "in"
     super
 
-  viewAppended:->
+  viewAppended:=>
     @setTemplate @pistachio()
     @template.update()
 
-    remainingOpinions = @getData().repliesCount-@getDelegate().items.length
-    if (remainingOpinions)<@maxCommentToShow
-        @allItemsLink.updatePartial "View last #{remainingOpinions} #{@getOptions().itemTypeString}"
+    @updateRemainingText()
+
+    # This will hide the bar in the CD when there is nothing there yet. Once
+    # content pops up, the event handling it will show the bar again
+
+    if @parent?.constructor is OpinionView
+      @hide() if @getData().repliesCount is 0
+
+  updateRemainingText:=>
+    if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
+      @allItemsLink.updatePartial "View all Answers"
+    else
+      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      if (remainingOpinions)<@maxCommentToShow
+          if remainingOpinions is 1
+            @allItemsLink.updatePartial "View remaining answer"
+          else if remainingOpinions > 1
+            @allItemsLink.updatePartial "View remaining #{remainingOpinions} #{@getOptions().itemTypeString}"
+          else
+            if @newAnswers is 0
+              @allItemsLink.updatePartial ""
+            else
+              @allItemsLink.updatePartial "View new answers"
 
   pistachio:->
     """
-      {{> @allItemsLink}}
+      {{> @allItemsLink}}{{> @newItemsLink}}
       {{> @loader}}
     """

@@ -49,6 +49,7 @@ class NFileItemView extends KDCustomHTMLView
     super
     @decorateItem()
 
+  mouseDown:-> yes
 
   viewAppended:->
 

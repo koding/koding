@@ -45,7 +45,7 @@ class ApplicationManager extends KDObject
 
   getFrontApp:-> @frontApp
 
-  expandApplicationPath:(path)->
+  expandApplicationPath = (path)->
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
@@ -55,7 +55,7 @@ class ApplicationManager extends KDObject
         [path, callback] = arguments
         doBringToFront = yes
 
-    path = @expandApplicationPath path
+    path = expandApplicationPath path
     appManager = @
 
     beforeCallback = (appInstance)->
@@ -122,7 +122,6 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/Inbox.kdapplication"       : Inbox12345
       "./client/app/Applications/Demos.kdapplication"       : Demos12345
       "./client/app/Applications/Ace.kdapplication"         : Ace12345
-      "./client/app/Applications/Shell.kdapplication"       : Shell12345
       "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
@@ -154,8 +153,12 @@ class ApplicationManager extends KDObject
       #     requirejs [appUrl], (appInstance)->
       #       callback appInstance
       requirejs ["js/KDApplications/#{path}/AppController.js?#{KD.version}"], (appInstance)->
-        appManager.addAppInstance path, appInstance
-        callback appInstance
+        if appInstance
+          appManager.addAppInstance path, appInstance
+          callback appInstance
+        else
+          callback new KDNotificationView
+            title : "Application does not exists!"
 
   initializeAppInstance:(path, appInstance, initFunctionName, callback)->
     appManager = @
@@ -176,7 +179,7 @@ class ApplicationManager extends KDObject
     @openedInstances[path] = instance
 
   getAppInstance: (path) ->
-    @openedInstances[path]
+    @openedInstances[expandApplicationPath path]
 
   removeAppInstance:(path)->
     appInstance = @getAppInstance path
@@ -209,6 +212,7 @@ class ApplicationManager extends KDObject
       delete @appInitializationQueue[path]
 
   getAppViews:(path)->
+
     index = @appInstanceArray.indexOf @getAppInstance path
     @appViewsArray[index]
 
@@ -223,7 +227,7 @@ class ApplicationManager extends KDObject
 
   passStorageToApp:(path, version, appInstance, callback)->
     @fetchStorage path, version, (error, storage)->
-      if error then console.warn 'error'
+      if error then warn 'error'
       else
         appInstance.setStorage? storage
         callback?()

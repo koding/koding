@@ -100,13 +100,13 @@ class OpinionCommentListItemView extends KDListItemView
         <span class='avatar'>{{> @avatar}}</span>
         <div class="comment-header">
           {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
         </div>
         <div class='comment-contents clearfix'>
           {{> @deleteLink}}
           <p class='comment-body'>
             {{@utils.applyTextExpansions #(body)}}
           </p>
+          <time>{{$.timeago #(meta.createdAt)}}</time>
         </div>
       </div>
       """

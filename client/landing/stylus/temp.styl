@@ -10,6 +10,117 @@ Temp styles
 */
 }
 
+.content-page.groups
+
+  .kdlistitemview-group
+    border-bottom           1px solid #f5f5f5
+    padding                 15px
+    min-height              127px
+    clear                   none
+    width                   50%
+    fl()
+    borderBox()
+    &:nth-child(2n)
+      border-left           1px solid #f5f5f5
+    cite
+      position            absolute
+      display             inline-block
+      line-height         18px
+      vertical-align      top
+      font-size           10px
+      width               74px
+      font-style          normal
+      color               white
+      text-align          center
+      // border-top          1px solid rgba(255,255,255,0.3)
+      // border-bottom       1px solid rgba(0,0,0,0.1)
+      z-index             100
+      vendor              transition, background-color .3s linear
+      bg                  color, rgba(255, 146, 0, 0.4)
+      // shadow              0 -2px 1px -1px rgba(0,0,0,0.1)
+      &.lt
+        top                 10px
+        left                -18px
+        vendor              transform, rotate(-45deg)
+      &.rt
+        top                 10px
+        right               -18px
+        vendor              transform, rotate(45deg)
+      &.l
+        width               152px
+        top                 66px
+        left                -67px
+        vendor              transform, rotate(-90deg)
+      &.r
+        width               152px
+        top                 66px
+        right               -67px
+        vendor              transform, rotate(90deg)
+
+    .fl
+      position              relative
+      size                  60px, 60px
+      border                1px solid #f5f5f5
+      margin-right          15px
+      padding               1px
+      button
+        vendor                transition, opacity .3s linear
+        opacity               0
+        margin-top            10px
+        padding               3px 0 4px 0
+        width                 62px
+    .avatar
+      display               block
+      size                  100%, 100%
+      gradient              #ddd, #f2f2f2
+    .right-overflow
+      margin-right          18px
+      section
+        p
+          display           inline-block
+          border-bottom     1px solid #f5f5f5
+          line-height       16px
+          padding-bottom    5px
+          margin-bottom     5px
+          color             #888
+          font-size         12px
+          font-weight       300
+          min-height        59px
+          max-height        59px
+          overflow          hidden
+        div
+          figure
+            display         inline-block
+            font-size       11px
+            line-height     20px
+            span
+              font-weight   bold
+          span.members
+          span.posts
+            size            20px, 20px
+            sprite()
+            fl()
+            &.members
+              bg            position, -180px -480px
+            &.posts
+              bg            position, 0 -630px
+
+    &:hover
+      cite
+        bg                  color, rgba(255, 146, 0, 1)
+      button
+        opacity             1
+  h2
+    font-size               18px
+    padding-bottom          6px
+    a
+      color                 linkColor1
+      font-weight           400
+      noTextDeco()
+
+
+
+
 
 .kdtokenizedinput
   size                      100%, 100%
@@ -19,40 +130,40 @@ Temp styles
     size                    100%, 100%
     borderBox()
 
-    .layer
-      size                  100%, 100px
-      padding               5px
-      font-size             12px
-      line-height           16px
-      color                 #444
-      display               block
-      borderBox()
+  .layer
+    size                  100%, 100px
+    padding               5px
+    font-size             12px
+    line-height           16px
+    // color                 #444
+    display               block
+    borderBox()
 
-      &.presentation
-        bg                  color, transparent
-        color               transparent
-        white-space         pre-wrap
-        z-index             1
-        overflow            hidden
-        &.hide-tokens
-          b
-            hidden()
+    &.presentation
+      bg                  color, transparent
+      color               transparent
+      white-space         pre-wrap
+      z-index             1
+      overflow            hidden
+      &.hide-tokens
         b
-          font-weight       normal
-          vendor            transition, background-color .15s linear
-          bg                color, transparent
-          &.highlight-tag
-            bg              color, gold
-          &.highlight-user
-            bg              color, lightblue
+          hidden()
+      b
+        font-weight       normal
+        vendor            transition, background-color .15s linear
+        bg                color, transparent
+        // &.highlight-tag
+        //   bg              color, gold
+        // &.highlight-user
+        //   bg              color, lightblue
 
-      &.input
-        position            absolute
-        top                 0
-        left                0
-        background-color    transparent
-        border              none
-        z-index             2
+    &.input
+      position            absolute
+      top                 0
+      left                0
+      background-color    transparent
+      border              none
+      z-index             2
 
 
 
