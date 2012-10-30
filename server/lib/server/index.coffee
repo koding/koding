@@ -34,19 +34,6 @@ process.on 'uncaughtException',(err)->
   console.trace()
 
 koding = require './bongo'
-mqOptions = extend {}, mq
-mqOptions.login = webserver.login if webserver?.login?
-
-koding = new Bongo {
-  mongo
-  root: __dirname
-  models: [
-    '../workers/social/lib/social/models/session.coffee'
-    '../workers/social/lib/social/models/guest.coffee'
-  ]
-  mq: new Broker mqOptions
-  queueName: 'koding-social'
-}
 
 kiteBroker =\
   if kites?.vhost?
