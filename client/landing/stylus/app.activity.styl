@@ -1236,6 +1236,18 @@ div.kdview.link-embed-box
     bottom 50%
 
   > div.embed-links-container
+    // div.embed-link-list-head
+    //   float left
+    //   height 34px
+    //   border 1px solid #e8e8e8
+    //   margin 5px 0 0 5px
+    //   border-right none
+    //   max-width 50px
+    //   rounded 4px 0px 0px 4px
+    //   span
+    //     color #999
+    //     font-size 11px
+
     div.embed-link-list
       padding 5px
 
@@ -1246,16 +1258,39 @@ div.kdview.link-embed-box
         background-color #fff
         rounded 4px
 
+
       div.embed-link-item
         width auto
         display inline-block
-        margin-right 3px
+        margin-right 10px
         margin-bottom 3px
-        max-height 21px
+        max-height 24px
         line-height 24px
         vertical-align top
         max-width 200px
         overflow hidden
+
+        div.embed-link-indicator
+          float left
+          display inline-block
+          size 20px 15px
+          margin-right 1px
+          > span.icon
+
+            size 20px 15px
+            sprite()
+            display block
+            float left
+            &.link
+              // bg position, -222px -442px
+              bg position, -141px -400px
+
+
+          > span.link-text
+            font-size 8px
+            line-height 8px
+            display block
+            color #bbb
 
         &.active, &.active:hover
           div.embed-link-wrapper
@@ -1276,6 +1311,7 @@ div.kdview.link-embed-box
           margin-right 0px
 
         div.embed-link-wrapper
+          display inline-block
           padding 0 2px 2px 0
           background-color lighten(#5f5f5f,25%)
           min-height 18px
