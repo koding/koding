@@ -5,7 +5,6 @@ option '-b', '--runBroker', 'should it run the broker locally?'
 option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
-option '-X', '--setFollowExchanges', "If set, sets up the exchange2exchange mesh for existing follow relationships."
 
 {spawn, exec} = require 'child_process'
 # mix koding node modules into node_modules
@@ -103,7 +102,7 @@ normalizeConfigPath =(path)->
   path ?= './config/dev'
   nodePath.join __dirname, path
 
-buildClient =(options, configFile, callback=->)->
+buildClient =(configFile, callback=->)->
   # try
   #   config = require configFile
   # catch e
@@ -125,9 +124,9 @@ buildClient =(options, configFile, callback=->)->
   builder.watcher.initialize()
 
   builder.watcher.on "initDidComplete",(changes)->
-    builder.buildClient options,()->
-      builder.buildCss {},()->
-        builder.buildIndex {},()->
+    builder.buildClient "",()->
+      builder.buildCss "",()->
+        builder.buildIndex "",()->
           if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
@@ -138,13 +137,13 @@ buildClient =(options, configFile, callback=->)->
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
     if changes.Client? and not changes.StylusFiles
-      builder.buildClient options,()->
-        builder.buildIndex {},()->
+      builder.buildClient "",()->
+        builder.buildIndex "",()->
           # log.debug "client build is complete"
 
     if changes.Client?.StylusFiles?
-      builder.buildCss {}, ->
-        builder.buildIndex {}, ->
+      builder.buildCss "", ->
+        builder.buildIndex "", ->
     if changes.Cake
       log.debug "Cakefile changed.."
       builder.watcher.reInitialize()
@@ -155,7 +154,7 @@ buildClient =(options, configFile, callback=->)->
 
 task 'buildClient', (options)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient options, configFile
+  buildClient configFile
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -198,7 +197,7 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   vhosts = "{vhosts,["+
-    (config.mq.vhosts or []).
+    (options.vhosts or []).
     map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
     join(',')+"]}"
 
@@ -282,6 +281,16 @@ run =(options)->
       stderr  : process.stderr
       verbose : yes
 
+  if config.guests
+    processes.run
+      name  : 'guestCleanup'
+      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: no
+
   processes.run
     name    : 'socialCake'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers}#{debug} run"
@@ -299,16 +308,6 @@ run =(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-  processes.run
-    name    : 'feederCake'
-    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} -n #{config.feeder.numberOfWorkers}#{debug} run"
-    restart : yes
-    restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
   # pipeStd(
   #   processes.get "server"
   #   processes.get "social"
@@ -364,17 +363,6 @@ configureVhost =(config, callback)->
         assureVhost uri, name, vhostFile, callback
     else throw e
 
-setFollowExchanges = (configFile, callback=->) ->
-  configFile = normalizeConfigPath expandConfigFile configFile
-  processes.run
-    name    : 'feederCakeForE2E'
-    cmd     : "#{KODING_CAKE} ./workers/feeder -c #{configFile} e2e"
-    restart : no
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-    onExit  : callback
-
 task 'run', (options)->
   # invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
@@ -392,11 +380,8 @@ task 'run', (options)->
       delete require.cache[configModulePath]
       queue.next()
 
-  if options.setFollowExchanges
-    queue.push -> setFollowExchanges options.configFile, -> queue.next()
-
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options, options.configFile, -> queue.next()
+    queue.push -> buildClient options.configFile, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

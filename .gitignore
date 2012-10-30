@@ -33,7 +33,7 @@ ebin
 
 /node_modules/*
 
-
+/.deployments
 *.dump
 *.orig
 sftp-config.json

@@ -483,6 +483,7 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
+        sharedRoutes                : "./routes/index.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
         broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"

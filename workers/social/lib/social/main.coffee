@@ -9,10 +9,6 @@ process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
 
-if require("os").platform() is 'linux'
-  require("fs").writeFile "/var/run/node/koding.pid",process.pid,(err)->
-    if err?
-      console.log "[WARN] Can't write pid to /var/run/node/kfmjs.pid. monit can't watch this process."
 
 Bongo = require 'bongo'
 Broker = require 'broker'
