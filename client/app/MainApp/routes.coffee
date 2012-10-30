@@ -1,6 +1,7 @@
 do ->
   mainController = KD.getSingleton 'mainController'
 
+
   handleRoute =(groupId, route)->
     console.log 'invoking a route by group id...'
 
