@@ -26,19 +26,16 @@ module.exports = deepFreeze
     login       : 'prod-webserver'
     port        : [3020..3021]
   mongo         : mongo
-<<<<<<< HEAD
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccessKeyId      : 'AKIAIBHGXKRDSOQZESGQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
-=======
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
->>>>>>> 6c7d7ecc57b014a862a31a51bff9e8bc5842ff0f
   social        :
     login       : 'prod-social'
     numberOfWorkers: 4
