@@ -1263,49 +1263,47 @@ div.kdview.link-embed-box
         width auto
         display inline-block
         margin-right 10px
-        margin-bottom 3px
-        max-height 24px
-        line-height 24px
-        vertical-align top
+        margin-bottom 0px
+        max-height inherit
+        line-height inherit
+        vertical-align inherit
         max-width 200px
         overflow hidden
 
-        div.embed-link-indicator
-          float left
-          display inline-block
-          size 20px 15px
-          margin-right 1px
-          > span.icon
+        // div.embed-link-indicator
+        //   float left
+        //   display inline-block
+        //   size 20px 15px
+        //   margin-right 1px
+        //   > span.icon
 
-            size 20px 15px
-            sprite()
-            display block
-            float left
-            &.link
-              // bg position, -222px -442px
-              bg position, -141px -400px
+        //     size 20px 15px
+        //     sprite()
+        //     display block
+        //     float left
+        //     &.link
+        //       // bg position, -222px -442px
+        //       bg position, -141px -400px
 
 
-          > span.link-text
-            font-size 8px
-            line-height 8px
-            display block
-            color #bbb
+        //   > span.link-text
+        //     font-size 8px
+        //     line-height 8px
+        //     display block
+        //     color #bbb
 
         &.active, &.active:hover
           div.embed-link-wrapper
-            bg color, #e80
             button
-              border none
-              bg color, #ff9200 //#0a92ba
+              span.button-title
+                // color #ff9200
+                text-decoration underline
 
         &:hover
           div.embed-link-wrapper
-            bg color, darken(#0a92ba,25%)//#e80
             button
-              border none
-              background-image none
-              bg color, #0a92ba //#0a92ba
+              span.button-title
+                color #27A3C9
 
         &:last-child
           margin-right 0px
@@ -1313,7 +1311,7 @@ div.kdview.link-embed-box
         div.embed-link-wrapper
           display inline-block
           padding 0 2px 2px 0
-          background-color lighten(#5f5f5f,25%)
+          background-color white
           min-height 18px
           height 18px
           rounded 4px
@@ -1327,8 +1325,9 @@ div.kdview.link-embed-box
           button
             border none
             vendor box-shadow none
-            bg color, lighten(#5f5f5f, 50%) //#ff9200
-            color white
+            // bg color, lighten(#5f5f5f, 50%) //#ff9200
+            bg color, #fff
+            color #ff9200
             text-shadow none
             background-image none
             rounded 3px
@@ -1338,6 +1337,7 @@ div.kdview.link-embed-box
             display block
             vendor transition, max-width 0.1s ease-in-out
             overflow hidden
+            padding 3px 3px 4px 3px
             // &:hover
             //   max-width:100%
 
