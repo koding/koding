@@ -112,7 +112,12 @@ class OpinionViewHeader extends JView
 
   updateRemainingText:=>
     if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
-      @allItemsLink.updatePartial "View all Answers"
+      if @getData().repliesCount > 1
+        @allItemsLink.updatePartial "View all Answers"
+      else if @getData().repliesCount is 1
+        @allItemsLink.updatePartial "View first Answer"
+      else
+        @allItemsLink.updatePartial "No Answers yet"
     else
       remainingOpinions = @getData().repliesCount-@getDelegate().items.length
       if (remainingOpinions)<@maxCommentToShow
