@@ -39,9 +39,13 @@ class EmbedBoxLinksViewItem extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
+    twOptions = (title) ->
+      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+
+    @$("div.embed-link-wrapper").twipsy twOptions(@getData().link_url or @getData().url)
+
   pistachio:->
     """
-    <div class="embed-link-indicator"><span class="icon link"></span><span class="link-text">LINK</span></div>
     <div class="embed-link-wrapper">
       <img class="embed-favicon hidden" src="#{@favicon}" alt="#{@getData().title}"/>
       {{> @linkButton}}
@@ -104,7 +108,6 @@ class EmbedBoxLinksView extends KDView
 
   pistachio:->
     """
-    <!--<div class="embed-link-list-head"><span>Select Link</span></div>-->
     {{> @linkList}}
     """
 
