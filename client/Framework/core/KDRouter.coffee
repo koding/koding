@@ -6,7 +6,7 @@ class KDRouter
 
   getHashFragment =(url)-> url.substr url.indexOf '#'
 
-  handleNotFound =(route)-> @handleNotFound? route
+  handleNotFound =(route)=> @handleNotFound? route
 
   changeRoute =(frag)->
     node = tree
@@ -28,12 +28,18 @@ class KDRouter
     if listeners?.length
       listener.call null, params for listener in listeners
 
+  window.addEventListener 'popstate', (event)->
+    console.log event
+    console.log location
+
   window.addEventListener 'hashchange', (event)->
     changeRoute getHashFragment(event.newURL)
 
   @init =-> changeRoute location.hash.substr 1 if location.hash.length
 
   @handleNotFound =-> log "The route #{route} was not found!"
+
+  @handleRoute =(route)-> changeRoute route
 
   @addRoutes =(routes)->
     @addRoute route, listener for own route, listener of routes
