@@ -1,0 +1,399 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+@import "nib/gradients"
+@import "nib/vendor"
+
+@css {
+/*
+CODESHARE stylesheet
+app.codeshare.styl
+*/
+}
+
+codeShareMaxHeight = 270px
+
+div.codeshare-box
+
+  // TabView
+  &.codeshare-tabs
+    scrollbars(#333)
+    borderBox()
+    width auto
+    height auto
+    min-width 400px
+    max-width 800px
+    min-height 60px
+    max-height codeShareMaxHeight + 51px
+    margin-bottom 10px
+    overflow visible
+
+    &.codeshare-edit-widget
+      max-width 560px
+      min-width 560px
+      margin-left 169px
+
+    div.codeshare-tabview
+      borderBox()
+      min-width inherit
+      max-width inherit
+      height inherit
+      min-height 50px
+      max-height codeShareMaxHeight + 0px
+      background-color #333
+      rounded 0 4px 4px 4px
+      overflow visible
+      overflow-y hidden
+
+      .button-bar
+        position          absolute
+        bg                color,transparent
+        z-index 100
+        bottom            -30px
+        right             6px
+        overflow          hidden
+        shadow            0 -1px 10px rgba(0,0,0,0.3)
+        vendor            transition, bottom .15s ease-in-out //.3s
+        button
+          margin          0
+          rounded         0
+          border-width    1px 1px 0 1px
+          border-color    #4B4B4B #111 #4B4B4B #4B4B4B
+          fl()
+          &:first-child
+            rounded       3px 0 0 0
+          &:last-child
+            rounded       0 3px 0 0
+            border-color  #4B4B4B #4B4B4B #4B4B4B #4B4B4B
+
+      &:hover .button-bar
+          bottom        0
+
+      &.has-no-tabs
+        // in this mode, there are no tabs at the top at all
+        vendor border-top-left-radius,4px
+        vendor border-top-right-radius,4px
+
+      &.has-expanded-tabs
+        // in this mode, there are tabs at the top, fully covering
+        // the width of the box. if this class is not set, the top right
+        // corner is rounded
+        vendor border-top-right-radius,0
+
+      &.has-button-bar
+        vendor border-bottom-right-radius,0
+        vendor border-bottom-right-radius,0
+
+        div.codeshare-code-wrapper
+          vendor border-bottom-right-radius,0
+          vendor border-bottom-right-radius,0
+
+      div.kdtabpaneview
+        borderBox()
+        overflow visible
+        padding-top 0
+        vendor box-shadow, none
+        shadow none
+        background-color #333
+        rounded 4px
+
+        &.has-editor
+          overflow-y hidden
+          padding 20px
+
+        div.codeshare-code-wrapper
+          text-align center
+          borderBox()
+          position relative
+          height auto
+          min-height inherit
+          max-height inherit
+          min-width inherit
+          max-width inherit
+          width auto
+          background-color #333
+          rounded 4px 4px 4px 4px
+          overflow visible
+          max-height codeShareMaxHeight - 40px
+
+          div.code-wrapper.ace_editor
+            max-height inherit
+            height inherit
+            background-color #333
+            overflow                visible
+
+            div.ace_sb
+              overflow-y            auto
+
+            div.ace_scroller
+              overflow-x            auto
+              bg                    color,rgba(51,51,51,1)
+              max-height inherit
+              height inherit
+              background-color #333
+
+              div.ace_content
+                max-height inherit
+                height inherit
+                background-color #333
+
+            div.ace_gutter
+              color                 #999
+              bg                    color, #444!important
+              border                none
+
+          figure.code-container
+            text-align left
+            borderBox()
+            min-height inherit
+            height inherit
+            max-height inherit
+            margin 0
+            padding 0
+            overflow visible
+            background-color #333
+            rounded 4px
+
+            div.kdview
+              borderBox()
+              max-height inherit
+              height inherit
+              min-height inherit
+
+              pre.subview
+                borderBox()
+                height inherit
+                max-height inherit
+                min-height 40px
+                rounded 4px 4px 4px 4px
+                background-color #333
+
+                code
+                  borderBox()
+                  height inherit
+                  max-height codeShareMaxHeight - 60px
+
+          figure.kdview
+            text-align left
+            borderBox()
+            max-height codeShareMaxHeight - 40px
+            background-color #333
+
+            div.ace_scroller
+              background-color #333
+
+          div.codeshare-config
+            position absolute
+            top 0
+            bottom 0
+            right 0
+            height auto
+            width 200px
+            background-color #2E2E2E
+            border-left 1px solid white
+            z-index -1
+            &.active
+              z-index 100
+
+    div.codeshare-tabhandlecontainer
+      padding             0
+      margin              0
+      border 0
+
+      overflow hidden
+      z-index             0
+      bg                  color,transparent
+      vendor              transition, top .3s linear
+      background-color rgba(0,0,0,0)
+
+      height 25px
+      width 100%
+
+      max-width inherit
+      min-width inherit
+
+      rounded 4px 4px 0 0
+
+
+      .kdtabhandle
+        width 150px
+        borderBox()
+        color             rgba(255, 255, 255, 0.85)  //#333
+        line-height       23px
+        font-size         11px
+        padding           0 5px 0 0px
+        height            25px
+        border            1px solid rgba(176,176,176,.75)
+        border-right      1px solid transparent
+        border-bottom     none
+        overflow          hidden
+        cursor            pointer
+        rounded           0
+        bg                color,rgba(255,255,255,.2)
+        gradient          rgba(51,51,51,.8),rgba(75,75,75,.8)
+        // gradient          rgba(100,100,100,.11),rgba(255,255,255,.2)
+        shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+
+        // highlighting for each content type
+
+        &.syntax-html, &.syntax-xml
+          border-bottom 3px solid green
+
+        &.syntax-css
+          border-bottom 3px solid lime
+
+        &.syntax-javascript
+          border-bottom 3px solid purple
+
+        &.syntax-php
+          border-bottom 3px solid orange
+
+        &.syntax-ruby
+          border-bottom 3px solid red
+
+
+        div.kdselectbox
+          border none
+          background rgba(255,255,255,0.0)
+          outline none
+          vendor box-shadow, none
+          vertical-align baseline
+
+          &.hide-arrows
+            span.arrows
+              opacity 0
+
+          &.focus
+            outline           none
+            shadow            none
+            border            none
+
+          select
+            position          absolute
+            cursor            pointer
+            display           block
+            vendor            appearance,none
+            opacity           0.00001
+            top               0
+            left              0
+            size              100%,100%
+            z-index           100
+
+          span.title
+            color #e2e2e2
+            vendor text-shadow, 0 -1px 0 rgba(0, 0, 0, 0.61)
+            size              auto,20px
+            line-height       21px
+            overflow hidden
+            text-overflow ellipsis
+            // overflow-x hidden
+
+          span.arrows
+            top 1px
+            background-position -80px -200px
+
+        > div
+          margin-right    14px
+
+          b
+            z-index       0
+            font-weight   normal
+            text-overflow ellipsis
+            white-space   nowrap
+            overflow      hidden
+            width         100%
+            margin-right  0
+            display       block
+
+        span.close-tab
+          z-index     10
+          bg          color,transparent
+
+        &:hover
+          bg          color,rgba(255,255,255,.3)
+
+        &:first-child
+          rounded       3px 0 0 0
+          margin-left   0
+
+        &:last-child
+          border-right  1px solid #bbb //rgba(255,255,255,.15)
+          rounded       0 3px 0 0
+          margin-left   0
+
+        &.first.last
+          rounded       3px 3px 0 0
+
+        &.active
+          color rgba(0, 0, 0, 0.85)
+          text-shadow   none
+          bg            color,white
+          gradient      white,white
+          shadow        none
+          // border 1px solid #2e2e2e
+          // bg                color,rgba(255,255,255,.2)
+          // gradient          rgba(100,100,100,.0),rgba(255,255,255,.0)
+          shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+          // border-bottom none
+
+          div.kdselectbox
+            border none
+            background rgba(255,255,255,0.0)
+
+            span.title
+              color #2e2e2e
+              vendor text-shadow none
+            span.arrows
+              background-position -60px -280px
+          // select
+
+          &:first-child
+            border-bottom 1px solid #bbb
+
+          span.close-tab
+            bg          color,transparent
+
+          span.error
+            color         red
+
+        &.plus
+          padding       0 0 0 16px
+          span.icon
+            margin      1px 5px 0 -5px
+            size        20px,20px
+            sprite()
+            bg          position,-60px -260px
+            fl()
+          b
+            margin-right  0
+
+          &:hover
+            bg          color,rgba(255,255,255,.3)
+            color       rgba(255, 255, 255, 0.9)
+
+          &.last
+            width       25px
+            padding     0 5px 0 7px
+
+            b
+              hidden()
+
+          &.last.first
+            width       142px
+
+            b
+              width     auto
+              visible()
+
+        .chevron-arrow-separator
+          display         none
+
+        .chevron-arrow
+          position        absolute
+          left            2px
+          top             2px
+          size            20px,20px
+          bg              position,-120px -480px
+
+        span.error
+          color           lightCoral
+          font-style      normal

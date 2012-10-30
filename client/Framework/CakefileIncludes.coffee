@@ -8,159 +8,163 @@ Includes =
     Client:
       Framework               :
         # core
-        __utils               : "./client/Framework/core/utils.coffee"
-        KD                    : "./client/Framework/core/KD.coffee"
-        KDEventEmitter        : "./client/Framework/core/KDEventEmitter.coffee"
-        KDObject              : "./client/Framework/core/KDObject.coffee"
-        KDView                : "./client/Framework/core/KDView.coffee"
-        JView                 : "./client/Framework/core/JView.coffee"
-        KDCustomHTMLView      : "./client/Framework/core/KDCustomHTMLView.coffee"
-        KDScrollView          : "./client/Framework/core/KDScrollView.coffee"
-        KDRouter              : "./client/Framework/core/KDRouter.coffee"
+        __utils               : "./core/utils.coffee"
+        KD                    : "./core/KD.coffee"
+        KDEventEmitter        : "./core/KDEventEmitter.coffee"
+        KDObject              : "./core/KDObject.coffee"
+        KDView                : "./core/KDView.coffee"
+        JView                 : "./core/JView.coffee"
+        KDCustomHTMLView      : "./core/KDCustomHTMLView.coffee"
+        KDScrollView          : "./core/KDScrollView.coffee"
+        KDRouter              : "./core/KDRouter.coffee"
 
-        KDController          : "./client/Framework/core/KDController.coffee"
-        KDWindowController    : "./client/Framework/core/KDWindowController.coffee"
-        KDViewController      : "./client/Framework/core/KDViewController.coffee"
+        KDController          : "./core/KDController.coffee"
+        KDWindowController    : "./core/KDWindowController.coffee"
+        KDViewController      : "./core/KDViewController.coffee"
 
         # components
 
         # image
-        KDImage               : "./client/Framework/components/image/KDImage.coffee"
+        KDImage               : "./components/image/KDImage.coffee"
 
         # split
-        KDSplitView           : "./client/Framework/components/split/splitview.coffee"
-        KDSplitResizer        : "./client/Framework/components/split/splitresizer.coffee"
-        KDSplitPanel          : "./client/Framework/components/split/splitpanel.coffee"
+        KDSplitView           : "./components/split/splitview.coffee"
+        KDSplitResizer        : "./components/split/splitresizer.coffee"
+        KDSplitPanel          : "./components/split/splitpanel.coffee"
 
         # header
-        KDHeaderView          : "./client/Framework/components/header/KDHeaderView.coffee"
+        KDHeaderView          : "./components/header/KDHeaderView.coffee"
 
         # loader
-        KDLoaderView          : "./client/Framework/components/loader/KDLoaderView.coffee"
+        KDLoaderView          : "./components/loader/KDLoaderView.coffee"
 
         #list
-        KDListViewController  : "./client/Framework/components/list/KDListViewController.coffee"
-        KDListView            : "./client/Framework/components/list/KDListView.coffee"
-        KDListItemView        : "./client/Framework/components/list/KDListItemView.coffee"
+        KDListViewController  : "./components/list/KDListViewController.coffee"
+        KDListView            : "./components/list/KDListView.coffee"
+        KDListItemView        : "./components/list/KDListItemView.coffee"
 
         #tree
-        KDTreeViewController  : "./client/Framework/components/tree/KDTreeViewController.coffee"
-        KDTreeView            : "./client/Framework/components/tree/KDTreeView.coffee"
-        KDTreeItemView        : "./client/Framework/components/tree/KDTreeItemView.coffee"
-        JTreeViewController   : "./client/Framework/components/tree/treeviewcontroller.coffee"
-        JTreeView             : "./client/Framework/components/tree/treeview.coffee"
-        JTreeItemView         : "./client/Framework/components/tree/treeitemview.coffee"
+        KDTreeViewController  : "./components/tree/KDTreeViewController.coffee"
+        KDTreeView            : "./components/tree/KDTreeView.coffee"
+        KDTreeItemView        : "./components/tree/KDTreeItemView.coffee"
+        JTreeViewController   : "./components/tree/treeviewcontroller.coffee"
+        JTreeView             : "./components/tree/treeview.coffee"
+        JTreeItemView         : "./components/tree/treeitemview.coffee"
 
         #tabs
-        KDTabViewController   : "./client/Framework/components/tabs/KDTabViewController.coffee"
-        KDTabView             : "./client/Framework/components/tabs/KDTabView.coffee"
-        KDTabPaneView         : "./client/Framework/components/tabs/KDTabPaneView.coffee"
-        KDTabViewWithForms    : "./client/Framework/components/tabs/KDTabViewWithForms.coffee"
+        KDTabViewController   : "./components/tabs/KDTabViewController.coffee"
+        KDTabView             : "./components/tabs/KDTabView.coffee"
+        KDTabPaneView         : "./components/tabs/KDTabPaneView.coffee"
+        KDTabViewWithForms    : "./components/tabs/KDTabViewWithForms.coffee"
 
         # menus
-        KDContextMenu         : "./client/Framework/components/menus/KDContextMenu.coffee"
+        KDContextMenu         : "./components/menus/KDContextMenu.coffee"
 
         # menus
-        JContextMenu          : "./client/Framework/components/contextmenu/contextmenu.coffee"
-        JContextMenuTreeViewC : "./client/Framework/components/contextmenu/contextmenutreeviewcontroller.coffee"
-        JContextMenuTreeView  : "./client/Framework/components/contextmenu/contextmenutreeview.coffee"
-        JContextMenuItem      : "./client/Framework/components/contextmenu/contextmenuitem.coffee"
+        JContextMenu          : "./components/contextmenu/contextmenu.coffee"
+        JContextMenuTreeViewC : "./components/contextmenu/contextmenutreeviewcontroller.coffee"
+        JContextMenuTreeView  : "./components/contextmenu/contextmenutreeview.coffee"
+        JContextMenuItem      : "./components/contextmenu/contextmenuitem.coffee"
 
         # inputs
-        KDInputValidator      : "./client/Framework/components/inputs/KDInputValidator.coffee"
-        KDLabelView           : "./client/Framework/components/inputs/KDLabelView.coffee"
-        KDInputView           : "./client/Framework/components/inputs/KDInputView.coffee"
-        KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
-        KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
-        KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
-        KDOnOffSwitch         : "./client/Framework/components/inputs/KDOnOffSwitch.coffee"
-        KDSelectBox           : "./client/Framework/components/inputs/KDSelectBox.coffee"
-        KDSliderView          : "./client/Framework/components/inputs/KDSliderView.coffee"
-        KDWmdInput            : "./client/Framework/components/inputs/KDWmdInput.coffee"
-        KDTokenizedMenu       : "./client/Framework/components/inputs/tokenizedmenu.coffee"
-        KDTokenizedInput      : "./client/Framework/components/inputs/tokenizedinput.coffee"
+        KDInputValidator      : "./components/inputs/KDInputValidator.coffee"
+        KDLabelView           : "./components/inputs/KDLabelView.coffee"
+        KDInputView           : "./components/inputs/KDInputView.coffee"
+        KDHitEnterInputView   : "./components/inputs/KDHitEnterInputView.coffee"
+        KDInputRadioGroup     : "./components/inputs/KDInputRadioGroup.coffee"
+        KDInputSwitch         : "./components/inputs/KDInputSwitch.coffee"
+        KDOnOffSwitch         : "./components/inputs/KDOnOffSwitch.coffee"
+        KDSelectBox           : "./components/inputs/KDSelectBox.coffee"
+        KDSliderView          : "./components/inputs/KDSliderView.coffee"
+        KDWmdInput            : "./components/inputs/KDWmdInput.coffee"
+        KDTokenizedMenu       : "./components/inputs/tokenizedmenu.coffee"
+        KDTokenizedInput      : "./components/inputs/tokenizedinput.coffee"
 
         # upload
-        KDFileUploadView    : "./client/Framework/components/upload/KDFileUploadView.coffee"
-        KDImageUploadView   : "./client/Framework/components/upload/KDImageUploadView.coffee"
+        KDFileUploadView      : "./components/upload/KDFileUploadView.coffee"
+        KDImageUploadView     : "./components/upload/KDImageUploadView.coffee"
 
         # buttons
-        KDButtonView          : "./client/Framework/components/buttons/KDButtonView.coffee"
-        KDButtonViewWithMenu  : "./client/Framework/components/buttons/KDButtonViewWithMenu.coffee"
-        KDButtonMenu          : "./client/Framework/components/buttons/KDButtonMenu.coffee"
-        KDButtonGroupView     : "./client/Framework/components/buttons/KDButtonGroupView.coffee"
+        KDButtonView          : "./components/buttons/KDButtonView.coffee"
+        KDButtonViewWithMenu  : "./components/buttons/KDButtonViewWithMenu.coffee"
+        KDButtonMenu          : "./components/buttons/KDButtonMenu.coffee"
+        KDButtonGroupView     : "./components/buttons/KDButtonGroupView.coffee"
 
         # forms
-        KDFormView            : "./client/Framework/components/forms/KDFormView.coffee"
-        KDFormViewWithFields  : "./client/Framework/components/forms/KDFormViewWithFields.coffee"
+        KDFormView            : "./components/forms/KDFormView.coffee"
+        KDFormViewWithFields  : "./components/forms/KDFormViewWithFields.coffee"
 
         # modal
-        KDModalController     : "./client/Framework/components/modals/KDModalController.coffee"
-        KDModalView           : "./client/Framework/components/modals/KDModalView.coffee"
-        KDModalViewLoad       : "./client/Framework/components/modals/KDModalViewLoad.coffee"
-        KDBlockingModalView   : "./client/Framework/components/modals/KDBlockingModalView.coffee"
-        KDModalViewWithForms  : "./client/Framework/components/modals/KDModalViewWithForms.coffee"
+        KDModalController     : "./components/modals/KDModalController.coffee"
+        KDModalView           : "./components/modals/KDModalView.coffee"
+        KDModalViewLoad       : "./components/modals/KDModalViewLoad.coffee"
+        KDBlockingModalView   : "./components/modals/KDBlockingModalView.coffee"
+        KDModalViewWithForms  : "./components/modals/KDModalViewWithForms.coffee"
 
         # notification
-        KDNotificationView    : "./client/Framework/components/notifications/KDNotificationView.coffee"
+        KDNotificationView    : "./components/notifications/KDNotificationView.coffee"
 
         # dialog
-        KDDialogView          : "./client/Framework/components/dialog/KDDialogView.coffee"
+        KDDialogView          : "./components/dialog/KDDialogView.coffee"
 
         #tooltip
-        KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
+        KDToolTipMenu         : "./components/tooltip/KDToolTipMenu.coffee"
 
         # autocomplete
-        KDAutoCompleteC       : "./client/Framework/components/autocomplete/KDAutoCompleteController.coffee"
+        KDAutoCompleteC       : "./components/autocomplete/autocompletecontroller.coffee"
+        KDAutoComplete        : "./components/autocomplete/autocomplete.coffee"
+        KDAutoCompleteList    : "./components/autocomplete/autocompletelist.coffee"
+        KDAutoCompleteListItem: "./components/autocomplete/autocompletelistitem.coffee"
+        KDAutoCompletedItems  : "./components/autocomplete/autocompleteditems.coffee"
+        KDAutoCompleteMisc    : "./components/autocomplete/autocompletemisc.coffee"
 
 
       Dependencies            :
 
-        pistachio             : "./node_modules/pistachio/browser/pistachio.js"
+        pistachio             : "../../pistachio/browser/pistachio.js"
 
         # these are libraries, but adding it here so they are minified properly
         # minifying jquery breaks the code.
-        jqueryHash            : "./client/libs/jquery-hashchange.js"
-        jqueryTimeAgo         : "./client/libs/jquery-timeago.js"
-        dateFormat            : "./client/libs/date.format.js"
-        jqueryCookie          : "./client/libs/jquery.cookie.js"
-        md5                   : "./client/libs/md5-min.js"
-        # jqueryFieldSelect     : "./client/libs/jquery.fieldselection.js"
+        jqueryHash            : "../libs/jquery-hashchange.js"
+        jqueryTimeAgo         : "../libs/jquery-timeago.js"
+        dateFormat            : "../libs/date.format.js"
+        jqueryCookie          : "../libs/jquery.cookie.js"
+        md5                   : "../libs/md5-min.js"
+        # jqueryFieldSelect     : "../libs/jquery.fieldselection.js"
 
-        bootstrapTwipsy       : "./client/libs/bootstrap-twipsy.js"
-        jTipsy                : "./client/libs/jquery.tipsy.js"
-        async                 : "./client/libs/async.js"
-        jMouseWheel           : "./client/libs/jquery.mousewheel.js"
-        jMouseWheelIntent     : "./client/libs/mwheelIntent.js"
-        inflector             : "./client/libs/inflector.js"
-        canvasLoader          : "./client/libs/canvas-loader.js"
+        bootstrapTwipsy       : "../libs/bootstrap-twipsy.js"
+        jTipsy                : "../libs/jquery.tipsy.js"
+        async                 : "../libs/async.js"
+        jMouseWheel           : "../libs/jquery.mousewheel.js"
+        jMouseWheelIntent     : "../libs/mwheelIntent.js"
+        inflector             : "../libs/inflector.js"
+        canvasLoader          : "../libs/canvas-loader.js"
 
-        jspath             : "./client/app/Helpers/jspath.coffee"
+        jspath                : "../app/Helpers/jspath.coffee"
 
       Libraries :
 
-        html_encoder      : "./client/libs/encode.js"
-        docwriteNoop      : "./client/libs/docwritenoop.js"
-        sha1              : "./client/libs/sha1.encapsulated.coffee"
+        html_encoder          : "../libs/encode.js"
+        docwriteNoop          : "../libs/docwritenoop.js"
+        sha1                  : "../libs/sha1.encapsulated.coffee"
 
       StylusFiles  :
 
-        kdfn                : "./client/Framework/themes/default/kdfn.styl"
-        appfn               : "./client/stylus/appfn.styl"
+        kdfn                  : "./themes/default/kdfn.styl"
 
 
-        kd                  : "./client/Framework/themes/default/kd.styl"
-        kdInput             : "./client/Framework/themes/default/kd.input.styl"
-        kdTreeView          : "./client/Framework/themes/default/kd.treeview.styl"
-        kdContextMenu       : "./client/Framework/themes/default/kd.contextmenu.styl"
-        kdDialog            : "./client/Framework/themes/default/kd.dialog.styl"
-        kdButtons           : "./client/Framework/themes/default/kd.buttons.styl"
-        kdScrollView        : "./client/Framework/themes/default/kd.scrollview.styl"
-        kdModalView         : "./client/Framework/themes/default/kd.modal.styl"
-        kdFormView          : "./client/Framework/themes/default/kd.form.styl"
+        kd                    : "./themes/default/kd.styl"
+        kdInput               : "./themes/default/kd.input.styl"
+        kdTreeView            : "./themes/default/kd.treeview.styl"
+        kdContextMenu         : "./themes/default/kd.contextmenu.styl"
+        kdDialog              : "./themes/default/kd.dialog.styl"
+        kdButtons             : "./themes/default/kd.buttons.styl"
+        kdScrollView          : "./themes/default/kd.scrollview.styl"
+        kdModalView           : "./themes/default/kd.modal.styl"
+        kdFormView            : "./themes/default/kd.form.styl"
 
       CssFiles  :
-        reset               : "./client/css/style.css"
-        tipsy               : "./client/css/tipsy.css"
+        reset                 : "../css/style.css"
+        tipsy                 : "../css/tipsy.css"
 
 module.exports = Includes

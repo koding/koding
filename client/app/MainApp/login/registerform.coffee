@@ -14,7 +14,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         # defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
-        defaultValue  : "Xerces"
         validate      :
           event       : "blur"
           rules       :
@@ -26,7 +25,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
-        defaultValue  : 'KK'
         # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
@@ -40,7 +38,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : "email"
         placeholder   : "Your email address"
-        defaultValue  : "chris"+Math.round(Math.random()*100)+"@jraphical.com"
         validate      :
           event       : "blur"
           rules       :
@@ -83,7 +80,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
-        defaultValue     : "chris"+Math.round(Math.random()*100)
         validate         :
           rules          :
             required     : yes
@@ -117,7 +113,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
-        defaultValue  : "123123123"
         validate      :
           event       : "blur"
           rules       :
@@ -133,7 +128,6 @@ class RegisterInlineForm extends LoginViewInlineForm
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
       inputOptions    :
-        defaultValue  : "123123123"
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
@@ -142,6 +136,7 @@ class RegisterInlineForm extends LoginViewInlineForm
           rules       :
             required  : yes
             match     : @password.input
+            minLength : 8
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
@@ -177,7 +172,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase     : "lowercase"
         placeholder   : "your code..."
         # defaultValue  : "111"
-        defaultValue  : "twitterfriends"
         validate      :
           event       : "blur"
           rules       :

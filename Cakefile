@@ -2,29 +2,59 @@ option '-d', '--database [DB]', 'specify the db to connect to [local|vpn|wan]'
 option '-D', '--debug', 'runs with node --debug'
 option '-P', '--pistachios', "as a post-processing step, it compiles any pistachios inline"
 option '-b', '--runBroker', 'should it run the broker locally?'
+option '-C', '--buildClient', 'override buildClient flag with yes'
 option '-B', '--configureBroker', 'should it configure the broker?'
 option '-c', '--configFile [CONFIG]', 'What config file to use.'
+
+{spawn, exec} = require 'child_process'
+# mix koding node modules into node_modules
+exec "ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules",(a,b,c)->
+  # can't run the program if this fails,
+  if a or b or c
+    console.log "Couldn't mix node_modules_koding into node_modules, exiting. (failed command: ln -sf `pwd`/node_modules_koding/* `pwd`/node_modules)"
+    process.exit(0)
+
 
 ProgressBar = require './builders/node_modules/progress'
 Builder     = require './builders/Builder'
 S3          = require './builders/s3'
 log4js      = require "./builders/node_modules/log4js"
-log         = log4js.getLogger("[Cakefile]")
+log         = log4js.getLogger("[Main]")
 prompt      = require './builders/node_modules/prompt'
 hat         = require "./builders/node_modules/hat"
 mkdirp      = require './builders/node_modules/mkdirp'
+commander     = require './builders/node_modules/commander'
+
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes   = new (require "processes")
-{daisy}     = require 'sinkrow'
-{spawn, exec} = require 'child_process'
+processes       = new (require "processes") main:true
+closureCompile  = require 'koding-closure-compiler'
+{daisy}         = require 'sinkrow'
 fs            = require "fs"
 http          = require 'http'
 url           = require 'url'
 nodePath      = require 'path'
 Watcher       = require "koding-watcher"
-commander     = require 'commander'
+
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
+
+# announcement section, don't delete it. comment out old announcements, make important announcements from here.
+console.log "###############################################################"
+console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    1- node_modules_koding is now where we store our node    #"
+console.log "#      modules. ./node_modules dir is completely ignored.     #"
+console.log "#      ./node_modules_koding is symlinked/mixed into          #"
+console.log "#      node_modules so you can use it as usual. Just don't    #"
+console.log "#      make a new one in ./node_modules, it will be ignored.  #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    2- `cake install` is now equivalent to `npm install`     #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#    3- do NOT `npm install [module]` add to package.json     #"
+console.log "#      and do another `npm install` or you will mess deploy.  #"
+console.log "# ----------------------------------------------------------- #"
+console.log "#                       questions and complaints 1-877-DEVRIM #"
+console.log "###############################################################"
 # log =
 #   info  : console.log
 #   debug : console.log
@@ -33,73 +63,40 @@ KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
 # create required folders
 mkdirp.sync "./.build/.cache"
-mkdirp.sync "./website_nonstatic"
-fs.writeFileSync "./.revision","0.0.1"
+
+
 
 # get current version
-
-if process.argv[2] is 'buildForProduction'
-  rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
-  rev[2]++
-  version = rev.join(".")
-else
-  version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
+# version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
+# if process.argv[2] is 'buildForProduction'
+#   rev = ((fs.readFileSync ".revision").toString().replace("\n","")).split(".")
+#   rev[2]++
+#   version = rev.join(".")
+# else
+#   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
 clientFileMiddleware  = (options, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
   {libraries,kdjs} = code
+  {minify}         = options
 
-  compressJs = (js,callback)->
-    totalTicks = 200
-    bar = new ProgressBar 'Closure compiling kd.js [:bar] :percent :elapseds',{total: 200,width:50,incomplete:" "}
-    ticks = 0
-    a = setInterval ->
-      bar.tick()
-      ticks++
-    ,500
 
-    tmpFile = "./.build/#{hat()}.txt"
-    tmpFileCompiled = tmpFile+".js"
-    fs.writeFile tmpFile,js,(err)->
-      execStr = "java -jar #{options.closureCompilerPath} --js #{tmpFile} --js_output_file #{tmpFileCompiled}"
-      console.log execStr
-      exec execStr,(err,stdout,stderr)->
-        if stderr
-          unless arguments[2].indexOf "\n0 error(s)"
-            log.error arguments
-            log.error "CLOSURE FAILED TO COMPILE KD.JS CHECK THE ERROR MSG ABOVE. EXITING."
-            process.exit()
-          else
-            # log.debug "closure compile finished successfully."
-        else if stdout
-          console.log "12",arguments
-        else throw err
-        bar.tick() for ko in [ticks...totalTicks]
-        fs.readFile tmpFileCompiled,'utf8',(err,data)->
-          clearInterval a
-          unless err
-            callback null,data
-            # fs.unlink tmpFileCompiled,->
-            # fs.unlink tmpFile,->
-          else
-            log.error "something wrong with compressing #{tmpFile}",execStr
-            callback err
 
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
-  # return callback null,kdjs+libraries
-  unless options.uglify
-    callback null,(libraries+kdjs)
-  else
-    compressJs (libraries+kdjs),(err,data)->
+  if minify
+    closureCompile (libraries+kdjs),(err,data)->
       unless err
         callback null,data
       else
-        throw err
+        # if error just provide the original file. so site isn't down until this is fixed.
+        callback null,(libraries+kdjs)
+  else
+    callback null,(libraries+kdjs)
 
 pipeStd =(children...)->
   for child in children when child?
@@ -126,6 +123,7 @@ buildClient =(configFile, callback=->)->
 
   configFile = normalizeConfigPath expandConfigFile configFile
   config = require configFile
+  console.log config
   builder = new Builder config.client,clientFileMiddleware,""
 
 
@@ -195,7 +193,7 @@ task 'configureRabbitMq',->
 
 expandConfigFile = (short="dev")->
   switch short
-    when "dev","prod","local","stage"
+    when "dev","prod","local","stage","local-go"
       long = "./config/#{short}.coffee"
     else
       short
@@ -205,7 +203,7 @@ configureBroker = (options,callback=->)->
   configFile = normalizeConfigPath configFilePath
   config = require configFile
   
-  vhosts = "{vhosts,[" + (options.vhosts or []).
+  vhosts = "{vhosts,[" + (config.mq.vhosts or []).
     map(({rule, vhost})-> """{"#{rule}",<<"#{vhost}">>}""").
     join(',') +
     "]}"
@@ -239,6 +237,24 @@ configureBroker = (options,callback=->)->
   fs.writeFileSync "#{config.projectRoot}/broker/apps/broker/src/broker.app.src", brokerConfig
   callback null
 
+task 'buildforproduction','set correct flags, and get ready to run in production servers.',(options)->
+  invoke 'buildForProduction'
+
+task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
+
+  config = require './config/prod.coffee'
+
+  prompt.start()
+  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
+
+    if result.p is "yes"
+      log.debug 'version',version
+      fs.writeFileSync "./.revision",version
+      invoke 'run',options
+      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
+    else
+      process.exit()
+
 task 'configureBroker',(options)->
   configureBroker options
 
@@ -247,17 +263,42 @@ task 'buildBroker', (options)->
     pipeStd(spawn './broker/build.sh')
 
 run =(options)->
+
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
 
+  fs.writeFileSync config.monit.webCake, process.pid, 'utf-8' if config.monit?.webCake?
+
   pipeStd(spawn './broker/start.sh') if options.runBroker
+
+  if config.runGoBroker
+    processes.run
+      name  : 'goBroker'
+      cmd   : "./go/bin/broker -c #{options.configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+
+  if config.guests
+    processes.run
+      name  : 'guestCleanup'
+      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: no
 
   processes.run
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-    log     : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
   processes.run
     name    : 'server'
@@ -321,8 +362,12 @@ configureVhost =(config, callback)->
     else throw e
 
 task 'run', (options)->
+  # invoke 'checkModules'
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
+
+  config.buildClient = yes if options.buildClient
+
   queue = []
   if config.vhostConfigurator?
     queue.push -> configureVhost config, -> queue.next()
@@ -344,7 +389,7 @@ task 'buildAll',"build chris's modules", ->
   buildables = ["processes","pistachio","scrubber","sinkrow","mongoop","koding-dnode-protocol","jspath","bongo-client"]
   # log.info "building..."
   b = (next) ->
-    cmd = "cd ./node_modules/#{buildables[next]} && cake build"
+    cmd = "cd ./node_modules_koding/#{buildables[next]} && cake build"
     log.info "building... cmd: #{cmd}"
     processes.run
       cmd     : cmd
@@ -361,41 +406,27 @@ task 'buildAll',"build chris's modules", ->
   b 0
 
 
-
-task 'buildForProduction','set correct flags, and get ready to run in production servers.',(options)->
-
-  options.port      = 3000
-  options.host      = "localhost"
-  options.database  = "beta"
-  options.port      = "3000"
-  options.dontStart = yes
-  options.uglify    = yes
-  options.useStatic = yes
-
-  prompt.start()
-  prompt.get [{message:"I will build revision:#{version} is this ok? (yes/no)",name:'p'}],  (err, result) ->
-
-    if result.p is "yes"
-      log.debug 'version',version
-      fs.writeFileSync "./.revision",version
-      invoke 'build'
-      console.log "YOU HAVE 10 SECONDS TO DO CTRL-C. CURRENT REV:#{version}"
-    else
-      process.exit()
-
 task 'resetGuests', (options)->
   configFile = normalizeConfigPath options.configFile
   {resetGuests} = require './workers/guestcleanup/guestinit'
   resetGuests configFile
 
 task 'install', 'install all modules in CakeNodeModules.coffee, get ready for build',(options)->
-  l = (d) -> log.info d.replace /\n+$/, ''
-  {our_modules, npm_modules} = require "./CakeNodeModules"
-  reqs = npm_modules
-  exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
-  a = exec exe,->
-  a.stdout.on 'data', l
-  a.stderr.on 'data', l
+  # l = (d) -> log.info d.replace /\n+$/, ''
+  # {our_modules, npm_modules} = require "./CakeNodeModules"
+  # reqs = npm_modules
+  # for name,ver of reqs
+  processes.run
+    name    : "npm install"
+    cmd     : "npm install"
+    restart : no
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+  # exe = ("npm i "+name+"@"+ver for name,ver of reqs).join ";\n"
+  # a = exec exe,->
+  # a.stdout.on 'data', l
+  # a.stderr.on 'data', l
 
 task 'uninstall', 'uninstall all modules listed in CakeNodeModules.coffee',(options)->
   l = (d) -> log.info d.replace /\n+$/, ''
@@ -415,6 +446,12 @@ task 'checkModules', 'check node_modules dir',(options)->
   data = fs.readdirSync "./node_modules"
   untracked_mods = (mod for mod in data when mod not in our_modules and mod not in npm_modules and "/node_modules/#{mod}" not in gitIgnore)
   if untracked_mods.length > 0
+    for umod,i in untracked_mods
+      console.log umod,i
+      try
+        untracked_mods[i] = umod+"@"+(JSON.parse(fs.readFileSync "./node_modules/#{umod}/package.json")).version
+      catch e
+        console.log umod
     console.log "[ERROR] UNTRACKED MODULES FOUND:",untracked_mods
     console.log "Untracked modules detected add each either to CakeNodeModules.coffee, and/or to .gitignore (exactly as: e.g. /node_modules/#{untracked_mods[0]}). Exiting."
     process.exit()

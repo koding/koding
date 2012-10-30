@@ -26,6 +26,12 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 # KD Global
 KD = @KD or {}
 
+noop  = ->
+
+KD.log   = log   = noop
+KD.warn  = warn  = noop
+KD.error = error = noop
+
 @KD = $.extend (KD), do ->
 
   # private member for tracking z-indexes
@@ -120,11 +126,6 @@ KD = @KD or {}
       warn "\"#{singletonName}\" singleton doesn't exist!"
       null
 
-  emptyDataCache:()->
-    for own id,object of @getAllKDInstances
-      if object instanceof KDData
-        object.destroy()
-
   getAllKDInstances:()-> KD.instances
 
   getKDViewInstanceFromDomElement:(domElement)->
@@ -156,13 +157,15 @@ KD = @KD or {}
       dataType : 'jsonp'
       success : (data)->
         inflated = JSONH.unpack data
-        console.log 'success', inflated
-        console.log Date.now()-start
+        KD.log 'success', inflated
+        KD.log Date.now()-start
 
-noop  = ->
-# KD.log   = log   = if console?.log   and (KD.debugStates.all or KD.debugStates.log)   then console.log.bind(console)   else noop
-# KD.warn  = warn  = if console?.warn  and (KD.debugStates.all or KD.debugStates.warn)  then console.warn.bind(console)  else noop
-# KD.error = error = if console?.error and (KD.debugStates.all or KD.debugStates.error) then console.error.bind(console) else noop
-KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-KD.error = error = if console?.error then console.error.bind(console) else noop
+  enableLogs:->
+    KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+    KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+    KD.error = error = if console?.error then console.error.bind(console) else noop
+    return "Logs are enabled now."
+
+KD.enableLogs() if not KD.config?.suppressLogs
+
+prettyPrint = noop

@@ -16,7 +16,7 @@ module.exports = class JGuest extends jraphical.Module
   @set
     sharedMethods   :
       static        : ['obtain', 'resetAllGuests']
-      instance      : ['on', 'getDefaultEnvironment', 'fetchStorage']
+      instance      : ['getDefaultEnvironment', 'fetchStorage']
     indexes         :
       guestId       : ['unique', 'descending']
     schema          :
@@ -56,6 +56,7 @@ module.exports = class JGuest extends jraphical.Module
   @recycle =(guest, callback=->) ->
     guestId = if guest instanceof @ then guest.getId() else guest
     @update {guestId}, $set:{status: 'needs cleanup'}, callback
+    @emit 'NeedsCleanup'
 
   recycle:-> @constructor.recycle this # YAGNI?
 

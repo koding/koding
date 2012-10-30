@@ -150,10 +150,10 @@ __utils =
     text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       "<a href='#{url}' target='_blank'>#{url}</a>"
 
-  putShowMore: (text)->
+  putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
-      minLength : 500
-      maxLength : 600
+      minLength : l
+      maxLength : l + Math.floor(l/10)
       suffix    : ' '
 
     text = if text.length > 500
@@ -306,15 +306,15 @@ __utils =
 
       if memorable
         pattern = if consonant.test(prefix) then vowel else consonant
+      
+      n   = (Math.floor(Math.random() * 100) % 94) + 33
+      chr = String.fromCharCode(n)
+      chr = chr.toLowerCase() if memorable
 
-      n    = (Math.floor(Math.random() * 100) % 94) + 33
-      char = String.fromCharCode(n)
-      char = char.toLowerCase() if memorable
-
-      unless pattern.test char
+      unless pattern.test chr
         return __utils.generatePassword length, memorable, pattern, prefix
 
-      return __utils.generatePassword length, memorable, pattern, "" + prefix + char
+      return __utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
 
   ###

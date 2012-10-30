@@ -268,11 +268,20 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (s *Service) Close() {
+	s.sessionsMutex.Lock()
+	defer s.sessionsMutex.Unlock()
+	for _, session := range s.sessions {
+		session.Close()
+	}
+	s.sessions = make(map[string]*session)
+}
+
 func (s *Service) newSession() *session {
 	sess := &session{
 		Service:         s,
-		ReceiveChan:     make(chan interface{}, 100),
-		SendChan:        make(chan interface{}, 100),
+		ReceiveChan:     make(chan interface{}, 1024),
+		SendChan:        make(chan interface{}, 1024),
 		DoConnCheck:     make(chan bool),
 		ConnCheckResult: make(chan bool),
 		ReadSemaphore:   make(chan bool, 1),

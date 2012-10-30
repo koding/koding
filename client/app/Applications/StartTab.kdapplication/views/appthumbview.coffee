@@ -11,7 +11,11 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description, authorNick} = manifest = @getData()
+    {icns, name, version, author, description, authorNick, additionalinfo} = manifest = @getData()
+
+    additionalinfo or= ''
+    description    or= ''
+    version        or= ''
 
     if not authorNick
       authorNick = KD.whoami().profile.nickname
@@ -25,7 +29,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
       error       : =>
-        # @img.$().attr "src", "#{KD.apiUri + '/images/default.app.listthumb.png'}"
         @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
         src       : thumb
@@ -55,16 +58,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
           <div class='app-tip'>
             <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
             <p class='app-desc'>#{description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{additionalinfo}
           <div>
           """
       click    : -> no
 
-    # @delete = new KDCustomHTMLView
-    #   tagName  : "span"
-    #   cssClass : "icon delete"
-    #   tooltip  :
-    #     title  : "Click to delete"
-    #   click    : -> no
+    @delete = new KDView
 
     @setClass "dev-mode" if @getData().devMode
 
@@ -80,7 +79,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @showLoader()
     @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
 
-
   showLoader:->
 
     @loader.show()
@@ -92,9 +90,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @img.$().css "opacity", "1"
 
   pistachio:->
-    # {{> @delete}}
     """
       <div class='icon-container'>
+        {{> @delete}}
         {{> @info}}
         {{> @compile}}
       </div>
@@ -103,14 +101,12 @@ class StartTabAppThumbView extends KDCustomHTMLView
       <cite>{{ #(name)}} {{ #(version)}}</cite>
     """
 
-
 class GetMoreAppsButton extends StartTabAppThumbView
 
   constructor:(options)->
 
     data =
       name        : 'Get more Apps'
-      version     : ''
       author      : 'Koding'
       description : "Get more Apps from Koding AppStore"
 
@@ -125,3 +121,59 @@ class GetMoreAppsButton extends StartTabAppThumbView
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
     appManager.openApplication 'Apps', => @hideLoader()
+
+
+class AppShortcutButton extends StartTabAppThumbView
+
+  constructor:(options, data)->
+
+    if data.type is 'comingsoon'
+      data.disabled = yes
+
+    data.additionalinfo = "<cite>This is a shortcut for an internal Koding Application</cite>"
+
+    super options, data
+
+    @img.$().attr "src", "/images/#{data.icon}"
+
+    @compile = new KDView
+    @delete  = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "icon delete"
+      tooltip  :
+        title  : "Click to delete"
+      click    : =>
+        @delete.hideTooltip()
+        modal = new KDModalView
+          title          : "Delete App"
+          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          height         : "auto"
+          overlay        : yes
+          buttons        :
+            Delete       :
+              style      : "modal-clean-red"
+              loader     :
+                color    : "#ffffff"
+                diameter : 16
+              callback   : =>
+                @showLoader()
+                @getSingleton("kodingAppsController").removeShortcut data.name, (err)=>
+                  modal.buttons.Delete.hideLoader()
+                  modal.destroy()
+                  @hideLoader()
+                  if not err then @destroy()
+
+  click : (event)->
+
+    return if $(event.target).closest('.icon-container').length > 0
+
+    {type, name, path} = @getData()
+    path = name if not path
+
+    if type is 'koding-app'
+      @showLoader()
+      appManager.openApplication path, => @hideLoader()
+    # else if type is 'comingsoon'
+    #   new KDNotificationView
+    #     title : 'Coming Soon!'
+    return no

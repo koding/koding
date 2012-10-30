@@ -15,7 +15,13 @@ class mail_relay::config {
         require => Class["mail_relay::install"],
         notify  => Class["mail_relay::postfix_service"],
     }
-    
+     file {"/etc/postfix/master.cf":
+        ensure => present,
+        source => "puppet:///modules/mail_relay/etc/postfix/master.cf",
+        require => Class["mail_relay::install"],
+        notify  => Class["mail_relay::postfix_service"],
+    }
+   
     file {"/etc/aliases":
         ensure => present,
         require => Class["mail_relay::install"],
@@ -68,4 +74,34 @@ class mail_relay::config {
           require => Class['mail_relay::install'],
           notify => Class['mail_relay::dkim_service']
     }
+
+    file { "/etc/clamd.d/clamsmtp.conf":
+          ensure => file,
+          owner => opendkim,
+          group => root,
+          mode => 0600,
+          source => "puppet:///modules/mail_relay/etc/clamd.d/clamsmtp.conf",
+          require => Class['mail_relay::install'],
+          notify => Class['mail_relay::clamav_service']
+    }
+
+    file { "/etc/clamsmtpd.conf":
+          ensure => file,
+          owner => opendkim,
+          group => root,
+          mode => 0600,
+          source => "puppet:///modules/mail_relay/etc/clamsmtpd.conf",
+          require => Class['mail_relay::install'],
+          notify => Class['mail_relay::clamav_service']
+    }
+
+   cron { freshclam:
+        command => "/usr/bin/freshclam --quiet",
+        user    => root,
+        hour    => 1,
+        minute  => 0,
+        require => Class['mail_relay::install']
+   }
+
+
 }

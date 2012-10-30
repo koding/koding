@@ -1,7 +1,8 @@
 {argv} = require 'optimist'
 
-{webPort, mongo, mq, projectRoot, kites, uploads, basicAuth} = require argv.c
-webPort = argv.p if argv.p?
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = require argv.c
+
+webPort = argv.p ? webserver.port
 
 {extend} = require 'underscore'
 express = require 'express'
@@ -33,6 +34,20 @@ process.on 'uncaughtException',(err)->
   console.trace()
 
 koding = require './bongo'
+mqOptions = extend {}, mq
+mqOptions.login = webserver.login if webserver?.login?
+
+koding = new Bongo {
+  mongo
+  root: __dirname
+  models: [
+    '../workers/social/lib/social/models/session.coffee'
+    '../workers/social/lib/social/models/guest.coffee'
+  ]
+  mq: new Broker mqOptions
+  queueName: 'koding-social'
+}
+
 kiteBroker =\
   if kites?.vhost?
     new Broker extend {}, mq, vhost: kites.vhost
@@ -79,18 +94,20 @@ app.get '/auth', (req, res)->
             callback
             )
 
-        bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
-          bindKiteQueue "disconnected"
-          kiteBroker.emit(channel, 'join', {user: username, queue: privName})
-          kiteBroker.connection.on 'error', console.log
-          kiteBroker.createQueue '', (dcQueue)->
-            dcQueue.bind exchangeName, 'disconnected'
-            dcQueue.subscribe ->
-              dcQueue.destroy()
-              setTimeout ->
-                kiteCmQueue.destroy()
-              , kites?.disconnectTimeout ? 5000
-          return res.send privName
+        bindKiteQueue "client-message", (kiteCmQueue1, exchangeName)->
+          kiteCmQueue1.close() # this will get opened back up?
+          bindKiteQueue "disconnected", (kiteCmQueue2, exchangeName) ->
+            kiteBroker.emit(channel, 'join', {user: username, queue: privName})
+
+            kiteBroker.connection.on 'error', console.log
+            kiteBroker.createQueue '', (dcQueue)->
+              dcQueue.bind exchangeName, 'disconnected'
+              dcQueue.subscribe ->
+                dcQueue.destroy()#.addCallback -> dcQueue.close()
+                setTimeout ->
+                  kiteCmQueue2.destroy()#.addCallback -> kiteCmQueue.close()
+                , kites?.disconnectTimeout ? 5000
+            return res.send privName
 
 if uploads?.enableStreamingUploads
   
@@ -134,6 +151,15 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
+app.get "/status/:data",(req,res)->
+  # req.params.data
+
+  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
+  # exchange.publish 'exit','sharedhosting is dead'
+  # exchange.close()
+  koding.mq.emit 'public-status','exit',req.params.data
+  res.send "alright."
+
 
 app.get '*', (req,res)->
   res.header 'Location', '/#!'+req.url

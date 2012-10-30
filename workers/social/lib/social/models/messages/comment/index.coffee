@@ -7,11 +7,17 @@ module.exports = class JComment extends jraphical.Reply
   {Relationship}  = require 'jraphical'
 
   @trait __dirname, '../../../traits/likeable'
+  @trait __dirname, '../../../traits/notifying'
 
   @share()
 
+  constructor:->
+    super
+    @notifyOriginWhen 'LikeIsAdded'
+
   @set
     sharedMethods  :
+      static       : ['fetchRelated']
       instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
     schema         :
       isLowQuality : Boolean

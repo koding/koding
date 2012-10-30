@@ -21,7 +21,7 @@ class OwnProfileView extends KDView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : "{{#(counts.followers)}} <span>Followers</span>"
+      pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         return if memberData.counts.followers is 0
         appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
@@ -31,7 +31,7 @@ class OwnProfileView extends KDView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : "{{#(counts.following)}} <span>Following</span>"
+      pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         return if memberData.counts.following is 0
         appManager.tell "Members", "createFolloweeContentDisplay", memberData, 'following'
@@ -41,7 +41,7 @@ class OwnProfileView extends KDView
       tagName     : 'a'
       attributes  :
         href      : '#'
-      pistachio   : "{{#(counts.likes)}} <span>Likes</span>"
+      pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         return if memberData.counts.following is 0
         appManager.tell "Members", "createLikedContentDisplay", memberData

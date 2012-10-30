@@ -30,7 +30,7 @@ class ActivityDiscussionWidget extends KDFormView
       cssClass    : "discussion-body"
       type        : "textarea"
       autogrow    : yes
-      placeholder : "What do you want to talk about?"
+      placeholder : "What do you want to talk about? (You can use markdown here)"
       validate    :
         rules     :
           required: yes
@@ -63,7 +63,7 @@ class ActivityDiscussionWidget extends KDFormView
             top       : 55
             left      : 55
           overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
+          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' placeholder='What do you want to talk about? (You can use markdown here)' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
           buttons     :
             Cancel    :
               title   : "Discard changes"
@@ -78,8 +78,8 @@ class ActivityDiscussionWidget extends KDFormView
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-10
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-20
+        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
+        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
     @heartBox = new HelpBox
       subtitle    : "About Code Sharing"

@@ -1,0 +1,1 @@
+class BottomTerminalPanel extends BottomPanel

@@ -6,15 +6,15 @@ class MemberMailLink extends KDCustomHTMLView
         href        : '#'
     , options
     super options, data
-    
+
   viewAppended:->
     super
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
-    "<span class='icon'>Contact {{#(profile.firstName)}}</span>"
-            
+    "<cite/><span>Contact</span>{{#(profile.firstName)}}"
+
   click:->
     {profile} = member = @getData()
     modal = new KDModalViewWithForms
@@ -23,8 +23,8 @@ class MemberMailLink extends KDCustomHTMLView
       cssClass                : "compose-message-modal"
       height                  : "auto"
       width                   : 500
-      position                :
-        top                     : 300
+      # position                :
+      #   top                     : 300
       overlay                 : yes
       tabs                    :
         navigable             : yes
@@ -38,11 +38,11 @@ class MemberMailLink extends KDCustomHTMLView
                 label         : "Send To:"
                 type          : "hidden"
                 name          : "recipient"
-              subject         :          
+              subject         :
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
-              Message         :          
+              Message         :
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
@@ -56,12 +56,12 @@ class MemberMailLink extends KDCustomHTMLView
                 title         : "cancel"
                 style         : "modal-cancel"
                 callback      : -> modal.destroy()
-    
+
     toField = modal.modalTabs.forms.sendForm.fields.to
-    
+
     recipientsWrapper = new KDView
       cssClass      : "completed-items"
-    
+
     recipient = new KDAutoCompleteController
       name                : "recipients"
       itemClass           : MemberAutoCompleteItemView
@@ -79,7 +79,7 @@ class MemberMailLink extends KDCustomHTMLView
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
-    
+
     @propagateEvent KDEventType: "NewMessageModalShouldOpen"
-    
+
     recipient.setDefaultValue [member]

@@ -70,18 +70,19 @@ class AccountDatabaseListController extends KDListViewController
 
     hideLoaderWhenFinished = =>
       @_loaderCount--
-      @hideLazyLoader() if @_loaderCount is 0
+      @hideLazyLoader() if @_loaderCount <= 0
 
     setTimeout =>
-      for i in dbTypes
-        hideLoaderWhenFinished()
-      @scrollView.addSubView timeout = new KDCustomHTMLView
-        cssClass : "lazy-loader"
-        partial  : "Fetching database list failed. <a href='#'>Retry</a>"
-        click    : (ins, event)=>
-          if $(event.target).is "a"
-            @loadItems()
-            timeout.destroy()
+      @hideLazyLoader()
+      if @_loaderCount > 0
+        @_timeout?.destroy?()
+        @scrollView.addSubView @_timeout = new KDCustomHTMLView
+          cssClass : "lazy-loader"
+          partial  : "Fetching database list failed. <a href='#'>Retry</a>"
+          click    : (ins, event)=>
+            if $(event.target).is "a"
+              @loadItems()
+              @_timeout.destroy()
     , 10000
 
     for dbtype in dbTypes

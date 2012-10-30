@@ -1,7 +1,3 @@
-#####
-# Base Class KDInputView
-#####
-
 class KDInputView extends KDView
 
   constructor:(o = {}, data)->
@@ -23,26 +19,6 @@ class KDInputView extends KDView
     o.enableTabKey             ?= no            # a Boolean # NOT YET READY needs some work
     o.bind                    or= ""            # a String of event names
     o.forceCase               or= null          # a String of either "lowercase" or "uppercase"
-
-    # HTML5 input properties, choose wisely. chart can be found in this link http://d.pr/vvn4
-    o.attributes                     or= {}
-    o.attributes.autocomplete        or= null
-    o.attributes.dirname             or= null
-    o.attributes.list                or= null
-    o.attributes.maxlength           or= null
-    o.attributes.pattern             or= null
-    o.attributes.readonly            or= null
-    o.attributes.required            or= null
-    o.attributes.size                or= null
-    o.attributes.list                or= null
-    o.attributes.selectionStart      or= null
-    o.attributes.selectionEnd        or= null
-    o.attributes.selectionDirection  or= null
-    o.attributes.multiple            or= null # > for email only
-    o.attributes.min                 or= null # > range, number only
-    o.attributes.max                 or= null # > range, number only
-    o.attributes.step                or= null # > range, number only
-    o.attributes.valueAsNumber       or= null # > number only
 
     o.bind += " blur change focus"
 
@@ -374,7 +350,7 @@ class KDInputView extends KDView
 
   focus:->
 
-    @getSingleton("windowController").setKeyView @
+    @setKeyView @
     yes
 
   blur:->

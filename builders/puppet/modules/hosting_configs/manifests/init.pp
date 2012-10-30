@@ -36,12 +36,12 @@ class hosting_configs {
    file { "/etc/profile.d/umask.sh":
         ensure => file,
         source => "puppet:///modules/hosting_configs/etc/profile.d/umask.sh",
-        notify => class["cloudlinux::cagefs_update"]
+        notify => Class["cloudlinux::cagefs_update"]
     }
     file { "/etc/profile.d/path.sh":
         ensure => file,
         source => "puppet:///modules/hosting_configs/etc/profile.d/path.sh",
-        notify => class["cloudlinux::cagefs_update"]
+        notify => Class["cloudlinux::cagefs_update"]
     }
    
    file { "/etc/yum.conf":

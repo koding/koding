@@ -64,13 +64,15 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
-    @appStorage = new AppStorage 'KodingApps', '1.0'
 
   # #
   # FETCHERS
   # #
 
   fetchApps:(callback)->
+
+    if KD.isLoggedIn() and not @appStorage?
+      @appStorage = new AppStorage 'KodingApps', '1.0'
 
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
@@ -137,12 +139,23 @@ class KodingAppsController extends KDController
 
   fetchAppsFromDb:(callback)->
 
-    @appStorage.fetchValue 'apps', (apps)=>
-      if apps and Object.keys(apps).length > 0
-        @constructor.manifests = apps
-        callback null, apps
+    @appStorage.fetchStorage (storage)=>
+
+      apps = @appStorage.getValue 'apps'
+      shortcuts = @appStorage.getValue 'shortcuts'
+
+      justFetchApps = =>
+        if apps and Object.keys(apps).length > 0
+          @constructor.manifests = apps
+          callback null, apps
+        else
+          callback new Error "There are no apps in the app storage."
+
+      if not shortcuts
+        @putDefaultShortcutsToAppStorage =>
+          justFetchApps()
       else
-        callback new Error "There are no apps in the app storage."
+        justFetchApps()
 
   fetchCompiledApp:(manifest, callback)->
 
@@ -150,9 +163,7 @@ class KodingAppsController extends KDController
     appPath = getAppPath manifest
     indexJsPath = "#{appPath}/index.js"
     @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      if err then warn err
       callback err, response
-
 
   # #
   # MISC
@@ -169,10 +180,53 @@ class KodingAppsController extends KDController
       else
         callback err
 
+  removeShortcut:(shortcut, callback)->
+    @appStorage.fetchValue 'shortcuts', (shortcuts)=>
+      delete shortcuts[shortcut]
+      @appStorage.setValue 'shortcuts', shortcuts, (err)=>
+        callback err
+
+  putDefaultShortcutsToAppStorage:(callback)->
+
+    shortcuts       =
+      Ace           :
+        name        : 'Ace'
+        type        : 'koding-app'
+        icon        : 'icn-ace.png'
+        description : 'Code Editor'
+        author      : 'Mozilla'
+      Terminal      :
+        name        : 'Terminal'
+        type        : 'koding-app'
+        icon        : 'icn-terminal.png'
+        description : 'Koding Terminal'
+        author      : 'Koding'
+        path        : 'WebTerm'
+      CodeMirror    :
+        name        : 'CodeMirror'
+        type        : 'comingsoon'
+        icon        : 'icn-codemirror.png'
+        description : 'Code Editor'
+        author      : 'Marijn Haverbeke'
+      yMacs         :
+        name        : 'yMacs'
+        type        : 'comingsoon'
+        icon        : 'icn-ymacs.png'
+        description : 'Code Editor'
+        author      : 'Mihai Bazon'
+      Pixlr         :
+        name        : 'Pixlr'
+        type        : 'comingsoon'
+        icon        : 'icn-pixlr.png'
+        description : 'Image Editor'
+        author      : 'Autodesk'
+
+    @appStorage.reset()
+    @appStorage.setValue 'shortcuts', shortcuts, callback
+
   putAppsToAppStorage:(apps)->
 
-    @appStorage.setValue 'apps', apps, (err)=>
-      log err if err
+    @appStorage.setValue 'apps', apps
 
   defineApp:(name, script)->
 
@@ -185,6 +239,7 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
+
       @fetchCompiledApp manifest, (err, script)=>
         if err
           @compileApp name, (err)=>
@@ -204,7 +259,7 @@ class KodingAppsController extends KDController
   runApp:(manifest, callback)->
 
     {options, name, devMode} = manifest
-    {stylesheets}   = manifest.source if manifest.source
+    {stylesheets} = manifest.source if manifest.source
 
     if stylesheets
       stylesheets.forEach (sheet)->
@@ -247,7 +302,7 @@ class KodingAppsController extends KDController
           callback?()
           return null
 
-        log "app to run:", name
+        log "App to run:", name
         callback?()
 
   addScript:(app, scriptInput, callback)->
@@ -276,14 +331,14 @@ class KodingAppsController extends KDController
       }
     , (err, response)=>
       if err then warn err
-      log response, "App saved!"
+      # log response, "App saved!"
       callback?()
 
   publishApp:(path, callback)->
 
     if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
       err = "You are not authorized to publish apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -330,7 +385,7 @@ class KodingAppsController extends KDController
 
     if not KD.checkFlag('super-admin')
       err = "You are not authorized to approve apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -421,7 +476,14 @@ class KodingAppsController extends KDController
     unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      kallback @constructor.manifests[name]
+      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+        if err
+          new KDNotificationView
+            title    : "App list is out-dated, refreshing apps..."
+            duration : 2000
+          @refreshApps noop
+        else
+          kallback @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
@@ -431,12 +493,12 @@ class KodingAppsController extends KDController
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
         callback? err
       else
-        log manifests
+        # log manifests
         if app.title in Object.keys(manifests)
           new KDNotificationView type : "mini", title : "App is already installed!"
           callback? msg : "App is already installed!"
         else
-          log "installing the app: #{app.title}"
+          # log "installing the app: #{app.title}"
           if not app.approved and not KD.checkFlag 'super-admin'
             err = "This app is not approved, installation cancelled."
             log err
@@ -454,14 +516,14 @@ class KodingAppsController extends KDController
                     appPath     : getAppPath app.manifest
                     appName     : app.manifest.name
                     version     : version
-                log "asking kite to install", options
+                # log "asking kite to install", options
                 @kiteController.run options, (err, res)=>
-                  log "kite response", err, res
+                  log "Kite response: ", err, res
                   if err then warn err
                   else
                     app.install (err)=>
                       log err if err
-                      log callback
+                      # log callback
                       # This doesnt work :#
                       appManager.openApplication "StartTab"
                       @refreshApps()
@@ -524,7 +586,7 @@ class KodingAppsController extends KDController
     manifestStr = defaultManifest type, name
     manifest    = JSON.parse manifestStr
     appPath     = getAppPath manifest
-    log manifestStr
+    # log manifestStr
 
     FSItem.create appPath, "folder", (err, fsFolder)=>
       if err then warn err

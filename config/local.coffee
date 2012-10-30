@@ -3,7 +3,7 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.0.1"
 
 # DEV database
 mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
@@ -15,7 +15,8 @@ projectRoot = nodePath.join __dirname, '..'
 module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -24,9 +25,14 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  buildClient   : yes
   social        :
     numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 2
   client        :
     version     : version
     minify      : no

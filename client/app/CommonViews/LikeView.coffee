@@ -23,9 +23,9 @@ class LikeView extends KDView
       click       : =>
         if data.meta.likes > 0
           data.fetchLikedByes {},
-              sort : timestamp : -1
-            , (err, likes) =>
-              new FollowedModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
+            sort : timestamp : -1
+          , (err, likes) =>
+            new FollowedModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
       , data
 
     @likeLink = new ActivityActionLink

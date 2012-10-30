@@ -9,11 +9,16 @@ version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 mongo = 'koding_stage_user:dkslkds84ddj@localhost:38017/koding_stage?auto_reconnect'
 
 module.exports = deepFreeze
+  monit         :
+    webCake     : '/var/run/node/webCake.pid'
+    kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
   version       : version
-  webPort       : [3020..3030]
+  webserver     :
+    port        : [3029..3030]
   mongo         : mongo
   runBroker     : no
+  runGoBroker   : yes
   configureBroker: no
   buildClient   : no
   uploads       :
@@ -23,6 +28,9 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  basicAuth     :
+    username    : 'koding'
+    password    : '314159'
   social        :
     numberOfWorkers: 10
   client        :
@@ -31,7 +39,7 @@ module.exports = deepFreeze
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
-    index       : "./website_nonstatic/index.html"
+    index       : "./website/index.html"
     closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
@@ -41,23 +49,23 @@ module.exports = deepFreeze
       mainUri   : 'https://dev.koding.com'
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
-        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
+        sockJS  : 'https://mq.koding.com/subscribe'
         auth    : 'https://dev.koding.com/auth'
-        vhost   : 'stage'
-      apiUri    : 'https://api.koding.com'
-      appsUri   : 'https://apps.koding.com'
-      env       : 'dev'
+        vhost   : '/'
+      apiUri    : 'https://dev-api.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
+      env       : 'stage'
   mq            :
     host        : 'localhost'
-    login       : 'stage'
-    password    : '#[85_[*zh7%4;4l6T]F!'
-    vhost       : 'stage'
+    login       : 'STAGE-sg46lU8J17UkVUq'
+    password    : 'TV678S1WT221t1q'
+    vhost       : '/'
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   guests:
      # define this to limit the number of guset accounts
@@ -68,7 +76,7 @@ module.exports = deepFreeze
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'stage'
-      password  : '#[85_[*zh7%4;4l6T]F!'
+      login     : 'STAGE-sg46lU8J17UkVUq'
+      password  : 'TV678S1WT221t1q'
       vhost     : 'stage-logs'
   pidFile       : '/tmp/koding.server.pid'

@@ -43,17 +43,18 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance'
+        'byRelevance', 'fetchVersion'
       ]
       instance    : [
-        'on','modify','follow','unfollow','fetchFollowersWithRelationship'
+        'modify','follow','unfollow','fetchFollowersWithRelationship'
         'fetchFollowingWithRelationship', 'fetchTopics'
         'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
         'fetchMail','fetchNotificationsTimeline','fetchActivities'
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
+        'fetchFeedByTitle'
       ]
     schema                  :
       skillTags             : [String]
@@ -105,7 +106,8 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-    relationships           :
+    relationships           : ->
+      JPrivateMessage = require './messages/privatemessage'
 
       mount         :
         as          : 'owner'
@@ -121,7 +123,7 @@ module.exports = class JAccount extends jraphical.Module
 
       follower      :
         as          : 'follower'
-        targetType  : "JAccount"
+        targetType  : JAccount
 
       followee      :
         as          : 'followee'
@@ -133,7 +135,7 @@ module.exports = class JAccount extends jraphical.Module
 
       privateMessage:
         as          : ['recipient','sender']
-        targetType  : 'JPrivateMessage'
+        targetType  : JPrivateMessage
 
       appStorage    :
         as          : 'appStorage'
@@ -153,11 +155,13 @@ module.exports = class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink"]
 
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @fetchVersion =(callback)-> callback null, KONFIG.version
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -199,14 +203,21 @@ module.exports = class JAccount extends jraphical.Module
 
   glanceMessages: secure (client, callback)->
 
-  glanceActivities: secure (client, callback)->
-    @fetchActivities {'data.flags.glanced': $ne: yes}, (err, activities)->
-      if err
-        callback err
-      else
-        queue = activities.map (activity)->
-          -> activity.mark client, 'glanced', -> queue.fin()
-        dash queue, callback
+  glanceActivities: secure (client, activityId, callback)->
+    [callback, activityId] = [activityId, callback] unless callback
+    {delegate} = client.connection
+    unless @equals delegate
+      callback new KodingError 'Access denied.'
+    else
+      selector = {'data.flags.glanced' : $ne : yes}
+      selector.targetId = activityId if activityId
+      @fetchActivities selector, (err, activities)->
+        if err
+          callback err
+        else
+          queue = activities.map (activity)->->
+            activity.mark client, 'glanced', -> queue.fin()
+          dash queue, callback
 
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
@@ -240,7 +251,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate']
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -262,7 +273,34 @@ module.exports = class JAccount extends jraphical.Module
         , -> callback null, teasers
         collectTeasers node for node in contents
 
-  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris"]
+  # Update broken counts for user
+  updateCounts:->
+
+    # Like count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
+    , (err, count)=>
+      @update ($set: 'counts.likes': count), ->
+
+    # Member Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      @update ($set: 'counts.following': count), ->
+
+    # Tag Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JTag'
+    , (err, count)=>
+      @update ($set: 'counts.topics': count), ->
+
+  dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -346,11 +384,6 @@ module.exports = class JAccount extends jraphical.Module
 
   getPrivateChannelName:-> "private-#{@getAt('profile.nickname')}-private"
 
-  addTags: secure (client, tags, callback)->
-    Taggable::addTags.call @, client, tags, (err)->
-      if err then callback err
-      else callback null
-
   fetchMail:do ->
     collectParticipants = (messages, delegate, callback)->
       fetchParticipants = race (i, message, fin)->
@@ -363,10 +396,12 @@ module.exports = class JAccount extends jraphical.Module
         , (err, rels)->
           if err
             callback err
+          else unless rels?.length
+            message.participants = []
           else
             # only include unique participants.
             message.participants = (rel for rel in rels when register.sign rel.sourceId)
-            fin()
+          fin()
       , callback
       fetchParticipants(message) for message in messages when message?
 
@@ -422,6 +457,14 @@ module.exports = class JAccount extends jraphical.Module
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
 
+  fetchFeedByTitle: secure (client, title, callback) ->
+    if @equals(client.connection.delegate)
+      @fetchFeeds (err, feeds) ->
+        for feed in feeds
+          if feed.title is title
+            return callback null, feed
+        return callback new KodingError 'Feed not found.'
+
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->
     if @equals client.connection.delegate
@@ -455,19 +498,26 @@ module.exports = class JAccount extends jraphical.Module
       return callback "Attempt to access unauthorized application storage"
 
     {appId, version} = options
-    @fetchAppStorage {}, {targetOptions:query:{appId}}, (error, storage)->
-      if error then callback error
+    @fetchAppStorage {'data.appId':appId, 'data.version':version}, (err, storage)=>
+      if err then callback err
+      else unless storage?
+        log.info 'creating new storage for application', appId, version
+        newStorage = new JAppStorage {appId, version}
+        newStorage.save (err) =>
+          if err then callback error
+          else
+            # manually add the relationship so that we can
+            # query the edge instead of the target C.T.
+            rel = new Relationship
+              targetId    : newStorage.getId()
+              targetName  : 'JAppStorage'
+              sourceId    : @getId()
+              sourceName  : 'JAccount'
+              as          : 'appStorage'
+              data        : {appId, version}
+            rel.save (err)-> callback err, newStorage
       else
-        unless storage?
-          log.info 'creating new storage for application', appId, version
-          newStorage = new JAppStorage {appId, version}
-          newStorage.save (error) =>
-            if error then callback error
-            else
-              account.addAppStorage newStorage, (err)->
-                callback err, newStorage
-        else
-          callback error, storage
+        callback err, storage
 
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->

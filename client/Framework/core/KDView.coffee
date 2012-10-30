@@ -50,7 +50,7 @@ class KDView extends KDObject
   @appendToDOMBody = (view)->
     $("body").append view.$()
     view.parentIsInDom = yes
-    view.emit 'viewAppended', view
+    view.emit "viewAppended", view
 
 # #
 # INSTANCE LEVEL
@@ -79,16 +79,14 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', =>
-      data
-      @render()
+    data?.on? 'update', => @render()
 
     @setInstanceVariables options
     @defaultInit options,data
 
-    if location.hostname is 'localhost'
+    if location.hostname is "localhost"
       @listenTo
-        KDEventTypes        : 'click'
+        KDEventTypes        : "click"
         listenedToInstance  : @
         callback            : (publishingInstance, event)=>
           if event.metaKey and event.altKey and event.ctrlKey
@@ -134,7 +132,7 @@ class KDView extends KDObject
 
   setParent:(parent)->
     if @parent?
-      console.log "view:", @, "parent:", @parent
+      log "view:", @, "parent:", @parent
       error 'View already has a parent'
     else
       if defineProperty
@@ -181,7 +179,6 @@ class KDView extends KDObject
       @setTemplate options.pistachio
       @template.update()
 
-    @setDelegate options.delegate                 if options.delegate
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
 
 
@@ -497,11 +494,15 @@ class KDView extends KDObject
   handleEvent:(event)->
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
-    # log result, event.type, "???"
-    @emit event.type, event if result
-    # deprecate below 09/2012 sinan
-    @propagateEvent (KDEventType:event.type.capitalize()),event
-    @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
+
+    # unless result
+    #   log @, result, event.type, "???"
+
+    unless result is no
+      @emit event.type, event
+      # deprecate below 09/2012 sinan
+      @propagateEvent (KDEventType:event.type.capitalize()),event
+      @propagateEvent (KDEventType:((@inheritanceChain method:"constructor.name",callback:@chainNames).replace /\.|$/g,"#{event.type.capitalize()}."), globalEvent : yes),event
     willPropagateToDOM = result
 
   scroll:(event)->     yes
@@ -552,7 +553,7 @@ class KDView extends KDObject
 
     event.preventDefault()
     event.stopPropagation()
-    no
+    # no
 
   submit:(event)-> no #propagations leads to window refresh
 
@@ -575,34 +576,32 @@ class KDView extends KDObject
 
     handle = if options.handle and options.handle instanceof KDView then handle else @
 
-    @listenTo
-      KDEventTypes       : "mousedown"
-      listenedToInstance : handle
-      callback           : (pubInst, event)=>
+    handle.on "mousedown", (event)=>
+      if "string" is typeof options.handle
+        return if $(event.target).closest(options.handle).length is 0
 
-        if "string" is typeof options.handle
-          return if $(event.target).closest(options.handle).length is 0
+      @dragIsAllowed = yes
 
-        top    = parseInt @$()[0].style.top, 10
-        right  = parseInt @$()[0].style.right, 10
-        bottom = parseInt @$()[0].style.bottom, 10
-        left   = parseInt @$()[0].style.left, 10
+      top    = parseInt @$()[0].style.top, 10
+      right  = parseInt @$()[0].style.right, 10
+      bottom = parseInt @$()[0].style.bottom, 10
+      left   = parseInt @$()[0].style.left, 10
 
-        @dragState.startX     = event.pageX
-        @dragState.startY     = event.pageY
-        @dragState.top        = top
-        @dragState.right      = right
-        @dragState.bottom     = bottom
-        @dragState.left       = left
+      @dragState.startX     = event.pageX
+      @dragState.startY     = event.pageY
+      @dragState.top        = top
+      @dragState.right      = right
+      @dragState.bottom     = bottom
+      @dragState.left       = left
 
-        @dragState.directionX = unless isNaN left then "left" else "right"
-        @dragState.directionY = unless isNaN top  then "top"  else "bottom"
+      @dragState.directionX = unless isNaN left then "left" else "right"
+      @dragState.directionY = unless isNaN top  then "top"  else "bottom"
 
-        @getSingleton('windowController').setDragView @
-        @emit "DragStarted", event, @dragState
-        event.stopPropagation()
-        event.preventDefault()
-        return no
+      @getSingleton('windowController').setDragView @
+      @emit "DragStarted", event, @dragState
+      event.stopPropagation()
+      event.preventDefault()
+      return no
 
   drag:(event, delta)->
 

@@ -1,12 +1,12 @@
 jraphical = require 'jraphical'
 
 module.exports = class Notifying
-  
+
   {ObjectRef} = require 'bongo'
   {Relationship} = jraphical
-  
+
   @getNotificationEmail =-> 'hi@koding.com'
-  
+
   @getNotificationSubject =-> 'You have pending notifications.'
 
   @getNotificationTextBody =(event, contents)->
@@ -14,20 +14,20 @@ module.exports = class Notifying
     event name: #{event};
     contents: #{JSON.stringify(contents)};
     """
-  
+
   setNotifiers:(events, listener)->
     events.forEach (event)=> @on event, listener.bind null, event
-  
+
   notifyAll:(receivers, event, contents)->
     receivers.forEach (receiver)=>
       @notify receiver, event, contents
-  
+
   notify:(receiver, event, contents)->
     CBucket = require '../models/bucket'
     JAccount = require '../models/account'
     JEmailNotification = require '../models/emailnotification'
     JUser = require '../models/user'
-    
+
     actor = contents[contents.actorType]
     {origin} = contents
     if actor? and not receiver.getId().equals actor.id

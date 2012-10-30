@@ -4,12 +4,13 @@ Flaggable = require '../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
   {secure} = require 'bongo'
+  {daisy} = require 'sinkrow'
 
   JAccount  = require './account'
   JSession  = require './session'
   JGuest    = require './guest'
-  JEmailConfirmation = require './emailconfirmation'
   JInvitation = require './invitation'
+  JFeed     = require './feed'
 
   createId = require 'hat'
 
@@ -55,12 +56,13 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    broadcastable   : no
     indexes         :
       username      : 'unique'
       email         : 'unique'
 
     sharedMethods   :
-      instance      : []
+      instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
         'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
@@ -99,7 +101,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'owner'
       emailConfirmation :
-        targetType      : JEmailConfirmation
+        targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -146,7 +148,13 @@ module.exports = class JUser extends jraphical.Module
                 if err
                   callback createKodingError err
                 else
-                  callback null, account
+                  feedData = {title: "followed"}
+                  JFeed.assureFeed account, feedData, (err, feed) ->
+                    if err
+                      callback err
+                    else
+                      #JAccount.emit "AccountAuthenticated", account
+                      callback null, account
         else @logout clientId, callback
 
 
@@ -198,7 +206,6 @@ module.exports = class JUser extends jraphical.Module
 
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
-    console.log 'CREDS', credentials
     constructor = @
     JUser.one {username, status: $ne: 'blocked'}, (err, user)->
       if err
@@ -234,8 +241,20 @@ module.exports = class JUser extends jraphical.Module
                   if err
                     callback err
                   else
-                    connection.delegate = account
-                    callback null, account, replacementToken
+                    feedData = {title: "followed"}
+                    JFeed.assureFeed account, feedData, (err, feed) ->
+                      if err
+                        callback err
+                      else
+                        connection.delegate = account
+                        JAccount.emit "AccountAuthenticated", account
+
+                        # This should be called after login and this
+                        # is not correct place to do it, FIXME GG
+                        # p.s. we could do that in workers
+                        account.updateCounts()
+
+                        callback null, account, replacementToken
 
   @logout = secure (client, callback)->
     if 'string' is typeof clientId
@@ -333,7 +352,9 @@ module.exports = class JUser extends jraphical.Module
                     }
                     user.save (err)->
                       if err
-                        callback err
+                        if err.code is 11000
+                          callback createKodingError "Sorry, \"#{email}\" is already in use!"
+                        else callback err
                       else
                         hash = getHash email
                         account = new JAccount
@@ -351,24 +372,30 @@ module.exports = class JUser extends jraphical.Module
                               if err
                                 callback err
                               else
-                                replacementToken = createId()
-                                session.update {
-                                  $set:
-                                    username      : user.username
-                                    lastLoginDate : new Date
-                                    clientId      : replacementToken
-                                  $unset          :
-                                    guestId       : 1
-                                }, (err, docs)->
-                                  if err
-                                    callback err
-                                  else
-                                    user.sendEmailConfirmation()
-                                    JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                      console.log 'An error granting invitations', err if err
-                                    createNewMemberActivity account
-                                    console.log replacementToken
-                                    callback null, account, replacementToken
+                                feedData = {title:"followed", description: "Followed Feed"}
+                                JFeed.createFeed account, feedData, (err, feed) ->
+                                  if err 
+                                    callback err 
+                                  else  
+                                    replacementToken = createId()
+                                    session.update {
+                                      $set:
+                                        username      : user.username
+                                        lastLoginDate : new Date
+                                        clientId      : replacementToken
+                                      $unset          :
+                                        guestId       : 1
+                                    }, (err, docs)->
+                                      if err
+                                        callback err
+                                      else
+                                        user.sendEmailConfirmation()
+                                        JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                          console.log 'An error granting invitations', err if err
+                                        createNewMemberActivity account
+                                        console.log replacementToken
+                                        JAccount.emit "AccountAuthenticated", account
+                                        callback null, account, replacementToken
 
 
   @fetchUser = secure (client, callback)->
@@ -390,9 +417,9 @@ module.exports = class JUser extends jraphical.Module
     @emailAvailable email, (err, res)=>
 
       if err
-        callback new KodingError "Something went wrong please try again!"
+        callback createKodingError "Something went wrong please try again!"
       else if res is no
-        callback new KodingError "Email is already in use!"
+        callback createKodingError "Email is already in use!"
       else
         @fetchUser client, (err,user)->
           account = client.connection.delegate
@@ -439,6 +466,8 @@ module.exports = class JUser extends jraphical.Module
 
   changeEmail:(account, options, callback)->
 
+    JVerificationToken = require './verificationtoken'
+
     {email, pin} = options
 
     if not pin
@@ -471,6 +500,7 @@ module.exports = class JUser extends jraphical.Module
           callback new KodingError 'PIN is not confirmed.'
 
   sendEmailConfirmation:(callback=->)->
+    JEmailConfirmation = require './emailconfirmation'
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err

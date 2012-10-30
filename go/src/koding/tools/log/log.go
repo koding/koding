@@ -4,6 +4,7 @@ import (
 	"compress/zlib"
 	"crypto/rand"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"net"
@@ -25,13 +26,24 @@ type GelfMessage struct {
 	Line         int     `json:"line"`
 }
 
+func (gelf *GelfMessage) String() string {
+	str := fmt.Sprintf("%-6v %v", LEVEL_NAMES[gelf.Level], gelf.ShortMessage)
+	if gelf.FullMessage != "" {
+		str += "\n" + gelf.FullMessage
+	}
+	return str
+}
+
 var Facility string
 var MaxLevel int = 6
+var Verbose bool = false
 var Hostname string
 var Server string = "gl.koding.com:12201"
 var conn net.Conn
 
 func init() {
+	flag.IntVar(&MaxLevel, "l", 6, "Log level")
+	flag.BoolVar(&Verbose, "v", false, "Logging to console instead of Graylog")
 	Hostname, _ = os.Hostname()
 }
 
@@ -95,14 +107,23 @@ func NewGelfMessage(level int, file string, line int, message ...interface{}) *G
 }
 
 func Send(gelf interface{}) {
+	if Verbose {
+		fmt.Println(gelf)
+		return
+	}
+
+	data, err := json.Marshal(gelf)
+	if err != nil {
+		fmt.Println("logger error: json.Marshal failed")
+		return
+	}
+
 	if conn == nil {
 		conn, _ = net.Dial("udp", Server)
 	}
-
 	chunkW := chunkWriter{conn, make([]byte, 0)}
 	compressor := zlib.NewWriter(&chunkW)
-	encoder := json.NewEncoder(compressor)
-	encoder.Encode(gelf)
+	compressor.Write(data)
 	compressor.Close()
 	chunkW.Close()
 }
@@ -124,6 +145,8 @@ const (
 	INFO   = 6
 	DEBUG  = 7
 )
+
+var LEVEL_NAMES = []string{"EMERG", "ALERT", "CRIT", "ERR", "WARN", "NOTICE", "INFO", "DEBUG"}
 
 func Emerg(message ...interface{}) {
 	Log(EMERG, "", 0, message...)
@@ -157,25 +180,29 @@ func Debug(message ...interface{}) {
 	Log(DEBUG, "", 0, message...)
 }
 
+func LogError(err interface{}) {
+	message := []interface{}{err}
+	for i := 3; ; i++ {
+		pc, file, line, ok := runtime.Caller(i)
+		if !ok {
+			break
+		}
+		fn := runtime.FuncForPC(pc)
+		var name string
+		if fn != nil {
+			name = fn.Name()
+		} else {
+			name = "<unknown>"
+		}
+		message = append(message, fmt.Sprintf("at %s (%s:%d)", name, file, line))
+	}
+	_, file, line, _ := runtime.Caller(2)
+	Log(ERR, file, line, message...)
+}
+
 func RecoverAndLog() {
 	err := recover()
 	if err != nil {
-		message := []interface{}{err}
-		for i := 2; ; i++ {
-			pc, file, line, ok := runtime.Caller(i)
-			if !ok {
-				break
-			}
-			fn := runtime.FuncForPC(pc)
-			var name string
-			if fn != nil {
-				name = fn.Name()
-			} else {
-				name = "<unknown>"
-			}
-			message = append(message, fmt.Sprintf("at %s (%s:%d)", name, file, line))
-		}
-		_, file, line, _ := runtime.Caller(2)
-		Log(ERR, file, line, message...)
+		LogError(err)
 	}
 }

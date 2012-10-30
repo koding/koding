@@ -1,7 +1,5 @@
 jraphical = require 'jraphical'
 
-JUser = require './user'
-
 module.exports = class JEmailConfirmation extends jraphical.Module
 
   crypto      = require 'crypto'
@@ -29,6 +27,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
         ]
 
   @confirmByToken = (token, callback)->
+    JUser = require './user'
     @one {token}, (err, confirmation)->
       if err or !confirmation?
         callback new KodingError err.message or 'Unrecogized token.'

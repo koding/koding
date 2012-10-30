@@ -55,7 +55,7 @@ class KDListViewController extends KDViewController
         @showLazyLoader no
       scrollView.registerListener KDEventTypes : 'LazyLoadThresholdReached', listener : @, callback : @showLazyLoader
 
-    @instantiateListItems(@getData().items or [])
+    @instantiateListItems(@getData()?.items or [])
 
     @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
@@ -64,6 +64,13 @@ class KDListViewController extends KDViewController
       @getListView().addItem itemData
 
     @emit "AllItemsAddedToList"
+
+    # Implement no Item found widget support FIXME GG
+    #
+    # if items.length is 0
+    #   options = @getOptions()
+    #   if options.noItemFoundWidget?
+    #     @getListView().addItem options.noItemFoundWidget
 
     return newItems
 

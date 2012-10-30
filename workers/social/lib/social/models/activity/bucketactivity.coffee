@@ -9,7 +9,9 @@ CActivity = require './index'
 # CReplieeBucket = require '../bucket/replieebucket'
 
 module.exports = class CBucketActivity extends CActivity
-  
+
+  @trait __dirname, '../../traits/flaggable'
+
   @setRelationships
     subject       :
       targetType  : [

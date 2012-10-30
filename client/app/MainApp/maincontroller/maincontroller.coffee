@@ -6,7 +6,8 @@ class MainController extends KDController
 
   constructor:(options = {}, data)->
 
-    options.failWait = 5000 # duration in miliseconds to show a connection failed modal
+    options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
+    options.startPage = "Activity"      # start page path
 
     super options, data
 
@@ -89,8 +90,7 @@ class MainController extends KDController
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
       @mainViewController.sidebarController.accountChanged account
-      appManager.openApplication "Groups", yes
-      # appManager.openApplication "Demos", yes
+      appManager.openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
   goToPage:(pageInfo)=>
@@ -112,6 +112,9 @@ class MainController extends KDController
             cssClass  : "login"
             title     : "<span></span>Come back soon!"
             duration  : 2000
+          # fixme: get rid of reload, clean up ui on account change
+          # tightly related to application manager refactoring
+          @utils.wait 2000, -> location.reload yes
       else
         @goToPage pageInfo
 

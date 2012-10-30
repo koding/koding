@@ -1,19 +1,19 @@
 class KDRouter
-    
+
   listenerKey = 'ಠ_ಠ'
-  
+
   tree = {}
-  
+
   getHashFragment =(url)-> url.substr url.indexOf '#'
-  
+
   handleNotFound =(route)-> @handleNotFound? route
-  
+
   changeRoute =(frag)->
     node = tree
     params = {}
     frag = frag.split('/')
     frag.shift() # first edge is garbage like '' or '#!'
-    
+
     for edge in frag
       if node[edge]
         node = node[edge]
@@ -30,14 +30,14 @@ class KDRouter
 
   window.addEventListener 'hashchange', (event)->
     changeRoute getHashFragment(event.newURL)
-  
+
   @init =-> changeRoute location.hash.substr 1 if location.hash.length
-  
-  @handleNotFound =-> console.log "The route #{route} was not found!"
-  
+
+  @handleNotFound =-> log "The route #{route} was not found!"
+
   @addRoutes =(routes)->
     @addRoute route, listener for own route, listener of routes
-  
+
   @addRoute =(route, listener)->
     node = tree
     route = route.split('/')

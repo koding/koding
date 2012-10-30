@@ -6,27 +6,27 @@ class ReviewView extends KDView
 
     @setClass "review-container"
     @createSubViews data
-    @resetDecoration()
+    @decorateCommentedState()
     @attachListeners()
 
   render:->
-    @resetDecoration()
+    @decorateCommentedState()
 
   createSubViews:(data)->
 
     @reviewList = new KDListView
       type          : "comments"
-      itemClass  : ReviewListItemView
+      itemClass     : ReviewListItemView
       delegate      : @
     , data
 
-    @reviewController         = new ReviewListViewController view: @reviewList
+    @commentController        = new ReviewListViewController view: @reviewList
     @addSubView @commentForm  = new NewReviewForm delegate : @reviewList
     @addSubView showMore      = new CommentViewHeader
       delegate        : @reviewList
       itemTypeString  : 'review'
     , data
-    @addSubView @reviewController.getView()
+    @addSubView @commentController.getView()
 
     @reviewList.on "OwnCommentHasArrived", -> showMore.ownCommentArrived()
     @reviewList.on "ReviewIsDeleted", -> showMore.ownCommentDeleted()
@@ -52,18 +52,6 @@ class ReviewView extends KDView
 
     @reviewList.on "CommentCountClicked", =>
       @reviewList.emit "AllCommentsLinkWasClicked"
-
-    @listenTo
-      KDEventTypes : "CommentViewShouldReset"
-      listenedToInstance : @reviewList
-      callback : @resetDecoration
-
-  resetDecoration:->
-    post = @getData()
-    if post.repliesCount is 0
-      @decorateNoCommentState()
-    else
-      @decorateCommentedState()
 
   decorateNoCommentState:->
     @unsetClass "active-comment"

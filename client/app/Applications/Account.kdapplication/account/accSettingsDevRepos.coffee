@@ -189,7 +189,7 @@ class AccountRepoList extends KDListView
         jr.url   = f.url    ? jr.url
         jr.color = f.color  ? jr.color
 
-        # console.log jr
+        # log jr
 
         jr.update (err)->
           log "updated",err

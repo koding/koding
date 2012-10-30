@@ -57,7 +57,7 @@ class KDSplitView extends KDView
       maximum  : @_sanitizeSize maximums[index] if maximums
 
     panel.on "KDObjectWillBeDestroyed", => @_panelIsBeingDestroyed panel
-
+    @emit "SplitPanelCreated", panel
     return panel
 
   _calculatePanelBounds:()->
@@ -175,11 +175,9 @@ class KDSplitView extends KDView
     if @getOptions().type is "vertical" then @setWidth size else @setHeight size
 
   _getParentSize:->
-    type = @getOptions().type
-    if @parent
-      if type is "vertical" then @parent.getWidth() else @parent.getHeight()
-    else
-      if type is "vertical" then $(window).width() else $(window).height()
+    type    = @getOptions().type
+    $parent = @$().parent()
+    if type is "vertical" then $parent.width() else $parent.height()
 
   _getLegitPanelSize:(size,index)->
     size =

@@ -1,13 +1,8 @@
 jraphical = require 'jraphical'
-{Model, secure} = require 'bongo'
-
-class JAppStorageOption extends Model
-  @set
-    schema:
-      name: String
-      value: {}
 
 module.exports = class JAppStorage extends jraphical.Module
+
+  {secure} = require 'bongo'
 
   @share()
 

@@ -38,12 +38,14 @@ class TopicsListItemView extends KDListItemView
       states          : [
         "Follow", (callback)->
           data.follow (err, response)=>
+            data.followee = yes
             @hideLoader()
             unless err
               @setClass 'following-btn following-topic'
               callback? null
         "Following", (callback)->
           data.unfollow (err, response)=>
+            data.followee = no
             @hideLoader()
             unless err
               @unsetClass 'following-btn following-topic'

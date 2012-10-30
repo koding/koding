@@ -245,7 +245,13 @@ Includes =
         KDToolTipMenu         : "./client/Framework/components/tooltip/KDToolTipMenu.coffee"
 
         # autocomplete
-        KDAutoCompleteController : "./client/Framework/components/autocomplete/KDAutoCompleteController.coffee"
+        KDAutoCompleteC       : "./client/Framework/components/autocomplete/autocompletecontroller.coffee"
+        KDAutoComplete        : "./client/Framework/components/autocomplete/autocomplete.coffee"
+        KDAutoCompleteList    : "./client/Framework/components/autocomplete/autocompletelist.coffee"
+        KDAutoCompleteListItem: "./client/Framework/components/autocomplete/autocompletelistitem.coffee"
+        MultipleInput         : "./client/Framework/components/autocomplete/multipleinputview.coffee"
+        KDAutoCompleteMisc    : "./client/Framework/components/autocomplete/autocompletemisc.coffee"
+        KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
 
       Applications :
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
@@ -276,20 +282,11 @@ Includes =
         # chatter
         Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
 
-        # anyterm shell
-        Shell12345            :  './client/app/Applications/Shell.kdapplication/AppController.coffee'
-        Shell                 :  './client/app/Applications/Shell.kdapplication/Shell.coffee'
-        TerminalError         :  './client/app/Applications/Shell.kdapplication/TerminalError.coffee'
-        TerminalClient        :  './client/app/Applications/Shell.kdapplication/TerminalClient.coffee'
-
-        # DiffScript            :  './client/app/Applications/Shell.kdapplication/DiffScript.coffee'
-
         # groups
         GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
         # termlib shell
         # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
         # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
-
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
@@ -315,6 +312,10 @@ Includes =
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
         discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
+        codesharebox                : "./client/app/Applications/Activity.kdapplication/views/codesharebox.coffee"
+        codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
+        codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
+        embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -323,21 +324,21 @@ Includes =
         statusWidget                : "./client/app/Applications/Activity.kdapplication/widgets/statuswidget.coffee"
         questionWidget              : "./client/app/Applications/Activity.kdapplication/widgets/questionwidget.coffee"
         codeSnippetWidget           : "./client/app/Applications/Activity.kdapplication/widgets/codesnippetwidget.coffee"
-        #codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
+        codeShareWidget             : "./client/app/Applications/Activity.kdapplication/widgets/codesharewidget.coffee"
         linkWidget                  : "./client/app/Applications/Activity.kdapplication/widgets/linkwidget.coffee"
         tutorialWidget              : "./client/app/Applications/Activity.kdapplication/widgets/tutorialwidget.coffee"
         discussionWidget            : "./client/app/Applications/Activity.kdapplication/widgets/discussionwidget.coffee"
 
         # Activity content displays
+        activityContentDisplay      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/activitycontentdisplay.coffee"
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
-        #actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
+        actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
 
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
         actLinkDisplay              : "./client/app/Applications/Activity.kdapplication/ContentDisplays/link.coffee"
         # Activity content displays commons
-        actContentDisplayController : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayControllerActivity.coffee"
         ContentDisplayAvatar        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayAuthorAvatar.coffee"
         ContentDisplayMeta          : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayMeta.coffee"
         ContentDisplayMetaTags      : "./client/app/Applications/Activity.kdapplication/ContentDisplays/ContentDisplayTags.coffee"
@@ -435,6 +436,8 @@ Includes =
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
+        GroupsFakeController          : "./client/app/Applications/GroupsFake.kdapplication/AppController.coffee"
+
         # ACCOUNT SETTINGS
 
         accountPass                   : "./client/app/Applications/Account.kdapplication/account/accSettingsPersPassword.coffee"
@@ -490,7 +493,8 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
-        broker                      : "./broker/apps/broker/priv/www/js/broker.js"
+        #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
+        broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
         pistachio                   : "./node_modules/pistachio/browser/pistachio.js"
@@ -571,13 +575,13 @@ Includes =
         sidebarKiteSelector         : "./client/app/MainApp/sidebar/modals/kiteselector.coffee"
 
         # BOOK
-        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
-        bookView                    : "./client/app/MainApp/book/bookview.coffee"
-        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
         bookTOC                     : "./client/app/MainApp/book/embedded/tableofcontents.coffee"
         bookUpdateWidget            : "./client/app/MainApp/book/embedded/updatewidget.coffee"
         bookTopics                  : "./client/app/MainApp/book/embedded/topics.coffee"
         bookDevelopButton           : "./client/app/MainApp/book/embedded/developbutton.coffee"
+        bookData                    : "./client/app/MainApp/book/bookdata.coffee"
+        bookView                    : "./client/app/MainApp/book/bookview.coffee"
+        bookPage                    : "./client/app/MainApp/book/bookpage.coffee"
 
         #maintabs
 
@@ -626,8 +630,13 @@ Includes =
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         # BOTTOM PANEL
-        bottomPanelController     : "./client/app/MainApp/bottompanel/bottompanelcontroller.coffee"
-        bottomPanel               : "./client/app/MainApp/bottompanel/bottompanel.coffee"
+        bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
+        bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
+        bottomChatPanel           : "./client/app/MainApp/bottompanels/chat/chatpanel.coffee"
+        bottomChatRoom            : "./client/app/MainApp/bottompanels/chat/chatroom.coffee"
+        bottomChatSidebar         : "./client/app/MainApp/bottompanels/chat/chatsidebar.coffee"
+        bottomChatUserItem        : "./client/app/MainApp/bottompanels/chat/chatuseritem.coffee"
+        bottomTerminalPanel       : "./client/app/MainApp/bottompanels/terminal/terminalpanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"
@@ -640,6 +649,7 @@ Includes =
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
+        keypress          : "./client/libs/keypress.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"
@@ -658,7 +668,8 @@ Includes =
         canvasLoader      : "./client/libs/canvas-loader.js"
 
         marked            : "./client/libs/marked.js"
-        google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
+        # google_code_prettify : "./client/libs/google-code-prettify/prettify.js"
+        # lessCompiler      : "./client/libs/less.min.js"
 
         # xml2json          : "./client/libs/xml2json.js"
         # zeroClipboard     : "./client/libs/ZeroClipboard.js"
@@ -675,6 +686,7 @@ Includes =
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"
+        # highlightjs       : "./client/libs/highlight.pack.js"
         # jquery            : "./client/libs/jquery-1.7.1.js"
         # jquery            : "./client/libs/jquery-1.7.1.min.js"
         # jqueryUi          : "./client/libs/jquery-ui-1.8.16.custom.min.js"
@@ -719,13 +731,13 @@ Includes =
         appkeyboard         : "./client/stylus/app.keyboard.styl"
         appprofile          : "./client/stylus/app.profile.styl"
         appstore            : "./client/stylus/appstore.styl"
-        # apphome             : "./client/stylus/app.home.styl"
+        apphome             : "./client/stylus/app.home.styl"
         appTopics           : "./client/stylus/app.topics.styl"
         appContentDisplays  : "./client/stylus/app.contentdisplays.styl"
         starttab            : "./client/stylus/app.starttab.styl"
-        terminal            : "./client/stylus/app.terminal.styl"
         viewer              : "./client/stylus/app.viewer.styl"
         book                : "./client/stylus/app.book.styl"
+        codeshare           : "./client/stylus/app.codeshare.styl"
 
         temp             : "./client/stylus/temp.styl"
 
@@ -741,14 +753,5 @@ Includes =
         reset               : "./client/css/style.css"
         highlightSunburst   : "./client/css/highlight-styles/sunburst.css"
         tipsy               : "./client/css/tipsy.css"
-        # termlib             : "./client/app/Applications/Shell.kdapplication/termlib/term_styles.css"
-        # deprecated!
-        # buttons       : "./client/css/buttons.css"
-        # wmd           : "./client/css/wmd.css"
-        # terminal      : "./client/css/terminal.css"
-        # iconic        : "./client/css/iconic.css"
-        # mediaqueries  : "./client/css/mediaqueries.css"
-        # multiselect : "./client/css/jquery.multiselect.css"
-        # tipTip    : "./client/css/tipTip.css"
-        # fonts     : "./client/css/fonts.css"
+
 module.exports = Includes

@@ -100,7 +100,7 @@ class LoginView extends KDScrollView
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        console.log 'hey-o'
+        log 'hey-o'
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
@@ -114,7 +114,9 @@ class LoginView extends KDScrollView
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doReset formData
+      callback : (formData)=>
+        formData.clientId = $.cookie('clientId')
+        @doReset formData
 
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
@@ -217,12 +219,12 @@ class LoginView extends KDScrollView
     {{> @backToHomeLink}}
     """
 
-  doReset:({recoveryToken, password})->
+  doReset:({recoveryToken, password, clientId})->
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
       @animateToForm 'login'
-      @doLogin {username, password}
+      @doLogin {username, password, clientId}
 
   doRecover:(formData)->
     KD.remote.api.JPasswordRecovery.recoverPassword formData['username-or-email'], (err)=>
@@ -241,7 +243,7 @@ class LoginView extends KDScrollView
     {kodingenUser} = formData
     formData.agree = 'on'
     KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
-      console.log arguments
+      log arguments
       @registerForm.button.hideLoader()
       if error
         {message} = error
@@ -258,13 +260,14 @@ class LoginView extends KDScrollView
           @animateToForm "login"
           @registerForm.reset()
           @registerForm.button.hideLoader()
+          # setTimeout =>
+          #   @getSingleton('mainController').emit "ShowInstructionsBook"
+          # , 1000
         , 1000
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    console.log 'before api call'
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
-      console.log 'after api call', arguments
       @loginForm.button.hideLoader()
       if error
         new KDNotificationView

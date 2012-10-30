@@ -25,6 +25,7 @@ class JContextMenuItem extends JTreeItemView
       @setTemplate @pistachio()
       @template.update()
 
+  mouseDown:-> yes
 
   addCustomView:(data)->
 

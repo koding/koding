@@ -3,7 +3,7 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 mongo = 'dev:GnDqQWt7iUQK4M@rose.mongohq.com:10084/koding_dev2?auto_reconnect'
 # mongo = 'koding_stage_user:dkslkds84ddj@web0.beta.system.aws.koding.com:38017/koding_stage?auto_reconnect'
@@ -15,9 +15,12 @@ rabbitVhost =\
   catch e then "/"
 
 module.exports = deepFreeze
+  uri           : 
+    address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
   runBroker     : no
   configureBroker: no
@@ -30,9 +33,16 @@ module.exports = deepFreeze
       awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
   social        :
     numberOfWorkers: 1
     watch       : yes
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 2
   client        :
     version     : version
     minify      : no
@@ -41,11 +51,11 @@ module.exports = deepFreeze
     css         : "./website/css/kd.#{version}.css"
     indexMaster: "./client/index-master.html"
     index       : "./website/index.html"
-    closureCompilerPath: "./builders/closure/compiler.jar"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      suppressLogs: no
       version   : version
       mainUri   : 'http://localhost:3000'
       broker    :
@@ -55,14 +65,14 @@ module.exports = deepFreeze
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'http://dev-app.koding.com'
+      appsUri   : 'https://dev-app.koding.com'
   mq            :
     host        : 'zb.koding.com'
     login       : 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : rabbitVhost
     vhosts      : [
-      rule      : '^secret-kite -'
+      rule      : '^secret-kite-'
       vhost     : 'kite'
     ]
     pidFile     : '/var/run/broker.pid'

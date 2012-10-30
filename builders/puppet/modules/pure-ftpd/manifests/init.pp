@@ -9,5 +9,9 @@
 #
 #
 class pure-ftpd {
-    include pure-ftpd::install, pure-ftpd::config, pure-ftpd::service, pure-ftpd::authapp
+    include pure-ftpd::install
+    include pure-ftpd::config
+    include pure-ftpd::service
+    include pure-ftpd::authapp
+    include pure-ftpd::scripts
 }

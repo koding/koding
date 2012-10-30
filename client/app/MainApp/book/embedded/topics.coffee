@@ -20,7 +20,8 @@ class BookTopics extends KDView
       limit : 20
     , (err, topics)=>
       loader.hide()
-      unless err
+      if err then warn err
+      else
         for topic in topics
           @addSubView topicLink = new TagLinkView null, topic
           topicLink.registerListener

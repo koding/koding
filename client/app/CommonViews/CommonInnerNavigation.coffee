@@ -1,17 +1,19 @@
 class CommonInnerNavigation extends KDView
+
   constructor:->
+
     super
+
     @setClass "common-inner-nav"
 
   setListController:(options,data,isSorter = no)->
+
     controller = new CommonInnerNavigationListController options, data
-    controller.getListView().registerListener
-      KDEventTypes :"CommonInnerNavigationListItemReceivedClick"
-      listener     : @
-      callback     : (pubInst, data)=>
-        @propagateEvent  KDEventType : "CommonInnerNavigationListItemReceivedClick", data
-    if isSorter
-      @sortController = controller
+    controller.getListView().on "NavItemReceivedClick", (data)=>
+      @emit "NavItemReceivedClick", data
+
+    @sortController = controller if isSorter
+
     return controller
 
   selectSortItem:(sortType)->
@@ -33,14 +35,11 @@ class CommonInnerNavigationListController extends KDListViewController
     listView = @getListView()
 
     listView.on 'ItemWasAdded', (view)=>
-      view.registerListener
-        KDEventTypes    : 'click'
-        listener        : @
-        callback        : (pubInst, event)=>
-          unless view.getData().disabledForBeta
-            @selectItem view
-            @propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
-            listView.propagateEvent KDEventType:'CommonInnerNavigationListItemReceivedClick', (pubInst.getData())
+      view.on 'click', (event)=>
+        unless view.getData().disabledForBeta
+          @selectItem view
+          @emit 'NavItemReceivedClick', view.getData()
+          listView.emit 'NavItemReceivedClick', view.getData()
 
   loadView:(mainView)->
     list = @getListView()

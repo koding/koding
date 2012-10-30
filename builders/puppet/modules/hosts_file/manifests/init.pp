@@ -2,7 +2,7 @@
 # Parameters:
 # arguments
 #
-define hosts_file (ipaddr,aliases) {
+define hosts_file ($ipaddr,$aliases) {
     
     host {"$name":
         ensure => "present",

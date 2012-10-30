@@ -3,27 +3,52 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.3b" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
-mongo = 'mongodb://beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
 
 module.exports = deepFreeze
+#  basicAuth     :
+#    username    : 'koding'
+#    password    : '314159'
+  uri           : 
+    address     : "https://koding.com"
+  monit         :
+    webCake     : '/var/run/node/webCake.pid'
+    kiteCake    : '/var/run/node/kiteCake.pid'
   projectRoot   : nodePath.join __dirname, '..'
+  bitly :
+    username  : "kodingen"
+    apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
-  webPort       : [3020..3030]
+  webserver     :
+    login       : 'prod-webserver'
+    port        : [3020..3021]
   mongo         : mongo
+<<<<<<< HEAD
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
       awsAccessKeyId      : 'AKIAIBHGXKRDSOQZESGQ'
       awsSecretAccessKey  : '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'
       bucket              : 'koding-uploads'
+=======
+  runBroker     : no
+  runGoBroker   : yes
+  configureBroker: no
+  buildClient   : no
+>>>>>>> 6c7d7ecc57b014a862a31a51bff9e8bc5842ff0f
   social        :
-    numberOfWorkers: 10
+    login       : 'prod-social'
+    numberOfWorkers: 4
+  feeder        :
+    queueName   : "koding-feeder"
+    exchangePrefix: "followable-"
+    numberOfWorkers: 2  
   client        :
     version     : version
-    minify      : no
+    minify      : yes
     js          : "./website/js/kd.#{version}.js"
     css         : "./website/css/kd.#{version}.css"
     indexMaster : "./client/index-master.html"
@@ -33,35 +58,39 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://api.koding.com'
     runtimeOptions:
+      suppressLogs: yes
       version   : version
-      mainUri   : 'https://dev.koding.com'
+      mainUri   : 'https://koding.com'
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
-#        sockJS  : 'http://web0.beta.system.aws.koding.com:8008/subscribe'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://dev.koding.com/auth'
+        auth    : 'https://koding.com/auth'
+        vhost   : '/'
       apiUri    : 'https://api.koding.com'
+      appsUri   : 'https://app.koding.com'
       env       : 'beta'
   mq            :
     host        : 'localhost'
-    login       : 'guest'
-    password    : 'x1srTA7!%Vb}$n|S'
+    login       : 'PROD-k5it50s4676pO9O'
+    password    : 'Dtxym6fRJXx4GJz'
     vhost       : '/'
-    pidFile     : '/tmp/koding.broker.pid'
+    pidFile     : '/var/run/broker.pid'
+  kites:
+    disconnectTimeout: 3e3
   email         :
-    host        : 'localhost'
-    protocol    : 'http:'
+    host        : 'koding.com'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
-  guestCleanup  :
+  guests:
      # define this to limit the number of guset accounts
      # to be cleaned up per collection cycle.
-    poolSize    : 1e4
     batchSize   : undefined
-    cron        : '*/10 * * * * *'
+    cleanupCron : '*/10 * * * * *'
+    poolSize    : 1e4
   logger        :
     mq          :
       host      : 'localhost'
-      login     : 'logger'
-      password  : 'logger'
-      vhost     : 'logs'
+      login     : 'PROD-k5it50s4676pO9O'
+      password  : 'Dtxym6fRJXx4GJz'
+      vhost     : '/'
   pidFile       : '/tmp/koding.server.pid'

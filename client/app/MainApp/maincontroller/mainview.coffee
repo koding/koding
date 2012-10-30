@@ -176,7 +176,3 @@ class MainView extends KDView
                     title   : 'Close'
                     style   : 'modal-clean-gray'
                     callback: -> modal.destroy()
-
-              {winHeight} = @getSingleton('windowController')
-              modal.$('.kdmodal-content').css 'max-height', winHeight - 200
-              modal.setY (winHeight - modal.getHeight())/2

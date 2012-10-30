@@ -20,6 +20,9 @@ class NFinderItem extends JTreeItemView
     @childView = new childConstructor {}, data
     @childView.$().css "margin-left", (data.depth+1)*10
 
+
+  mouseDown:-> yes
+
   resetView:(view)->
 
     if @deleteView

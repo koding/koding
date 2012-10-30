@@ -8,6 +8,8 @@ todo:
 ###
 class KDWindowController extends KDController
 
+  @keyViewHistory = []
+
   constructor:(options,data)->
     @windowResizeListeners = {}
     @keyView
@@ -85,11 +87,15 @@ class KDWindowController extends KDController
     , yes
 
     # unless window.location.hostname is 'localhost'
-    #   window.onbeforeunload = (event) =>
-    #     event or= window.event
-    #     msg = "Please make sure that you saved all your work."
-    #     event.returnValue = msg if event # For IE and Firefox prior to version 4
-    #     return msg
+    window.onbeforeunload = (event) =>
+      # fixme: fix this with appmanager
+      if @getSingleton('mainView')?.mainTabView?.panes
+        for pane in @getSingleton('mainView').mainTabView.panes
+          if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
+            event or= window.event
+            msg = "Please make sure that you saved all your work."
+            event.returnValue = msg if event # For IE and Firefox prior to version 4
+            return msg
 
   setDragInAction:(action = no)->
 
@@ -115,10 +121,15 @@ class KDWindowController extends KDController
 
     return if newKeyView is @keyView
     # debugger
+    # unless newKeyView
+    #   debugger
     # log newKeyView, "newKeyView" if newKeyView
 
     @oldKeyView = @keyView
     @keyView = newKeyView
+
+    @constructor.keyViewHistory.push newKeyView
+
     newKeyView?.emit 'KDViewBecameKeyView'
     @emit 'WindowChangeKeyView', newKeyView
 

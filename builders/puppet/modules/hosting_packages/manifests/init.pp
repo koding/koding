@@ -17,5 +17,7 @@ class hosting_packages {
     include hosting_packages::editors
     include hosting_packages::tools
     include hosting_packages::compilers
+    include hosting_packages::erlang
+    include hosting_packages::mounters
 
 }

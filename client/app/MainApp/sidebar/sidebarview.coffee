@@ -312,21 +312,29 @@ class Sidebar extends JView
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
 
   navItems =
-    id    : "navigation"
-    title : "navigation"
-    items : [
-        title : "Activity"
-      ,
-        title : "Groups"
-      ,
-        title : "Topics"
-      ,
-        title : "Members"
-      ,
-        title : "Develop",        loggedIn : yes,  path : "StartTab"
-      ,
-        title : "Apps"
-    ]
+    # temp until groups are implemented
+    do ->
+      if location.hostname is "koding.com"
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity" }
+          { title : "Topics" }
+          { title : "Members" }
+          { title : "Develop", loggedIn : yes,  path : "StartTab" }
+          { title : "Apps" }
+        ]
+      else
+        id    : "navigation"
+        title : "navigation"
+        items : [
+          { title : "Activity" }
+          { title : "Topics" }
+          { title : "Members" }
+          { title : "Groups",  path : "Groups" }
+          { title : "Develop", loggedIn : yes,  path : "StartTab" }
+          { title : "Apps" }
+        ]
 
   accNavItems =
     id    : "acc-navigation"
@@ -362,7 +370,7 @@ class Sidebar extends JView
       { title : "Help",  callback : -> @getSingleton('mainController').emit "ShowInstructionsBook" }
       { title : "About", callback : -> @showAboutDisplay() }
       { title : "Chat",  loggedIn : yes, callback : ->
-          @getSingleton('bottomPanel').emit "ToggleBottomPanel"
+          @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
           unless location.hostname is "localhost"
             new KDNotificationView title : "Coming soon..."
       }

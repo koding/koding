@@ -29,7 +29,7 @@ module.exports = class JDiscussion extends JPost
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','on','one']
+      static          : ['create','one']
       instance        : [
         'on','reply','restComments','commentsByRange'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
@@ -83,16 +83,24 @@ module.exports = class JDiscussion extends JPost
         @update $inc: repliesCount: -1, -> queue.next()
       =>
         @flushSnapshot rel.getAt('targetId'), -> queue.next()
+      =>
+        @emit 'ReplyIsRemoved', rel.targetId
+        queue.next()
       callback
     ]
     daisy queue
 
   reply: secure (client, comment, callback)->
-
     {delegate} = client.connection
+
+    JAccount = require '../../account'
+
     unless delegate instanceof JAccount
       callback new Error 'Log in required!'
     else
+      JComment = require '../comment'
+      JOpinion = require '../opinion'
+
       comment = new JOpinion
         body: comment.body
         title: comment.body
@@ -108,7 +116,7 @@ module.exports = class JDiscussion extends JPost
           else
             delegate.addContent comment, (err)->
               if err
-                log 'error adding content to delegate', err
+                log 'JDiscussion error adding content to delegate', err
             @addOpinion comment,
               flags:
                 isLowQuality    : exempt
@@ -133,6 +141,9 @@ module.exports = class JDiscussion extends JPost
                         else
                               callback null, comment
                               @fetchActivityId (err, id)->
+
+                                CActivity = require '../../activity'
+
                                 CActivity.update {_id: id}, {
                                   $set:
                                     'sorts.repliesCount'  : count
@@ -146,11 +157,12 @@ module.exports = class JDiscussion extends JPost
                                       origin
                                       subject       : ObjectRef(@).data
                                       actorType     : 'replier'
-                                      actionType    : 'reply'
+                                      actionType    : 'opinion'
                                       replier       : ObjectRef(delegate).data
-                                      reply         : ObjectRef(comment).data
+                                      opinion       : ObjectRef(comment).data
                                       repliesCount  : count
                                       relationship  : docs[0]
+                                      opinionData   : JSON.stringify comment
                                     }
                                   @follow client, emitActivity: no, (err)->
                                   @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?

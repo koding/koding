@@ -1,6 +1,6 @@
-{Message} = require 'jraphical'
+{Reply} = require 'jraphical'
 
-module.exports = class JReview extends Message
+module.exports = class JReview extends Reply
 
   {ObjectId, ObjectRef, secure, dash} = require 'bongo'
   {Relationship}  = require 'jraphical'
@@ -9,8 +9,13 @@ module.exports = class JReview extends Message
 
   @trait __dirname, '../../../traits/likeable'
   @trait __dirname, '../../../traits/protected'
+  @trait __dirname, '../../../traits/notifying'
 
   @share()
+
+  constructor:->
+    super
+    @notifyOriginWhen 'LikeIsAdded'
 
   @getDefaultRole =-> 'review'
 
@@ -24,26 +29,27 @@ module.exports = class JReview extends Message
       'delete own reviews'
       'reply to reviews'
     ]
-    sharedMethods   :
-      instance      : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
-    schema          :
-      isLowQuality  : Boolean
-      body          :
-        type        : String
-        required    : yes
-      originType    :
-        type        : String
-        required    : yes
-      originId      :
-        type        : ObjectId
-        required    : yes
-      deletedAt     : Date
-      deletedBy     : ObjectRef
-      meta          : require 'bongo/bundles/meta'
-    relationships   :
-      likedBy       :
-        targetType  : "JAccount"
-        as          : 'like'
+    sharedMethods  :
+      static       : ['fetchRelated']
+      instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
+    schema         :
+      isLowQuality : Boolean
+      body         :
+        type       : String
+        required   : yes
+      originType   :
+        type       : String
+        required   : yes
+      originId     :
+        type       : ObjectId
+        required   : yes
+      deletedAt    : Date
+      deletedBy    : ObjectRef
+      meta         : require 'bongo/bundles/meta'
+    relationships  :
+      likedBy      :
+        targetType : "JAccount"
+        as         : 'like'
 
   delete: secure (client, callback)->
     {delegate} = client.connection

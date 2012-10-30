@@ -1,13 +1,19 @@
-#include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <errno.h>
 #include <lve/lve-ctl.h>
 
 int main (int argc, char *argv[]) {
-	if(argc <= 1) {
+	if(argc < 2) {
 		return 64;
 	}
+
+	if(argc == 2 && strcmp(argv[1], "-v") == 0) {
+		printf("lve_exec version 1.1\n");
+		return 0;
+	}
+	
+	char* dir = getcwd(NULL, 0); // save current dir, it is lost when entering LVE
 	
 	struct liblve *lve = init_lve(malloc, free);
 	if(lve == NULL) {
@@ -28,5 +34,7 @@ int main (int argc, char *argv[]) {
 		return 71;
 	}
 	
+	chdir(dir);
+	free(dir);
 	return execvp(argv[1], &argv[1]);
 }

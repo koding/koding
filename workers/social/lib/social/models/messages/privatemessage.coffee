@@ -1,4 +1,5 @@
 JPost = require './post'
+JComment = require './comment'
 
 module.exports = class JPrivateMessage extends JPost
 
@@ -12,7 +13,7 @@ module.exports = class JPrivateMessage extends JPost
     sharedMethods     :
       static          : ['create','on']
       instance        : [
-        'on','reply','restComments','commentsByRange','like',
+        'reply','restComments','commentsByRange','like',
         'fetchLikedByes','disown','collectParticipants','mark',
         'unmark','fetchRelativeComments'
       ]
@@ -21,6 +22,7 @@ module.exports = class JPrivateMessage extends JPost
     relationships : JPost.relationships
 
   reply: secure (client, comment, callback)->
+    JComment = require './comment'
     JPost::reply.call @, client, JComment, comment, callback
 
   disown: secure ({connection}, callback)->
@@ -86,6 +88,6 @@ module.exports = class JPrivateMessage extends JPost
                       callback err
                     else
                       callback null, pm
-                      unless delegate.profile.nickname in to
-                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
-                          channel.publish delegate, pm
+#                      unless delegate.profile.nickname in to
+#                        jraphical.Channel.fetchPrivateChannelById delegate.getId(), (err, channel)->
+#                          channel.publish delegate, pm
