@@ -56,8 +56,8 @@ class DiscussionActivityItemView extends ActivityItemChild
         # The following line would add the new Opinion to the View
         # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
 
-        unless reply.replier.id is KD.whoami().getId()
-          @opinionBox.opinionList.emit "NewOpinionHasArrived"
+        # unless reply.replier.id is KD.whoami().getId()
+        @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
