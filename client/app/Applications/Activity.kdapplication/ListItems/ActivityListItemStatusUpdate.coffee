@@ -29,6 +29,11 @@ class StatusActivityItemView extends ActivityItemChild
     if @getData().link?.link_url? and not (@getData().link.link_url is "")
       if not ("embed" in @getData()?.link?.link_embed_hidden_items)
         @embedBox.show()
+
+        firstUrl = @getData().body.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        if firstUrl?
+          @embedBox.embedLinks.setLinks firstUrl
+
         @embedBox.embedExistingData @getData().link.link_embed, {
           maxWidth: 700
           maxHeight: 300
