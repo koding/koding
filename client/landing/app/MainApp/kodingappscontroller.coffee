@@ -542,11 +542,11 @@ class KodingAppsController extends KDController
 
   makeNewApp:(callback)->
 
-    return callback?() if newAppModal
+    return callback? yes if newAppModal
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      # content                   : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      content                     : "<div class='modalformline'>Please select the application type you want to start with.</div>"
       overlay                     : yes
       width                       : 400
       height                      : "auto"
@@ -555,34 +555,49 @@ class KodingAppsController extends KDController
         forms                     :
           form                    :
             buttons               :
-              "Blank Application" :
+              Create              :
                 cssClass          : "modal-clean-gray"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
                 callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : yes, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
-              "Sample Application":
-                cssClass          : "modal-clean-gray"
-                callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : no, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
+                  name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
+                  type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
+                  manifestStr = defaultManifest type, name
+                  manifest    = JSON.parse manifestStr
+                  appPath     = getAppPath manifest
+
+                  FSItem.doesExist appPath, (err, exists)=>
+                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                    if exists
+                      new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error"
+                        title     : "App folder with that name is already exists, please choose a new name."
+                        duration  : 3000
+                    else
+                      @prepareApplication {isBlank : type is "blank", name}, (err, response)->
+                        callback? err
+                      newAppModal.destroy()
             fields                :
+              type                :
+                label             : "Type"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "type"
+                defaultValue      : "sample"
+                selectOptions     : [
+                  { title : "Sample Application", value : "sample" }
+                  { title : "Blank Application",  value : "blank"  }
+                ]
               name                :
                 label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
-                validate          :
-                  rules           :
-                    required      : yes
-                  messages        :
-                    required      : "application name is required!"
 
     newAppModal.once "KDObjectWillBeDestroyed", ->
       newAppModal = null
-      callback? null
+      callback? yes
 
   prepareApplication:({isBlank, name}, callback)->
 
