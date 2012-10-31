@@ -1518,6 +1518,27 @@ div.kdview.link-embed-box
           // min-width      300px  // half the width - paddings
           // max-width 413px
 
+          .edit-indicator
+            borderBox()
+            opacity 0.5
+            max-height 16px
+            height 16px
+            color #bbb
+            text-transform uppercase
+            font-size 10px
+            line-height 14px
+            font-weight 300
+            border 1px solid #ccc
+            color white
+            background-color #ccc
+            padding 0px 3px
+            vendor transition, opacity 0.3s ease-in-out
+            display inline-block
+            rounded 3px
+
+            &:hover
+              opacity 1
+
           > a.preview_text_link
             noTextDeco()
             color        inherit
@@ -1792,3 +1813,14 @@ div.kdinputwithpreview.input_preview
 
     > *:last-child
       margin-bottom   0
+
+p.status-body
+
+  a
+    > span.icon
+      vertical-align:bottom
+      size 18px 16px
+      sprite()
+      display inline-block
+      &.link
+        bg position, -101px -380px

@@ -10,6 +10,7 @@ module.exports = class JStatusUpdate extends JPost
 
   schema = extend {}, JPost.schema, {
     link :
+      link_cache              : Array
       link_url                : String
       link_embed              : Object
       link_embed_hidden_items : Array
@@ -32,6 +33,7 @@ module.exports = class JStatusUpdate extends JPost
 
     if data.link_url and data.link_embed
       statusUpdate.link         =
+        link_cache              : data.link_cache
         link_url                : data.link_url
         link_embed              : data.link_embed
         link_embed_hidden_items : data.link_embed_hidden_items
@@ -47,6 +49,7 @@ module.exports = class JStatusUpdate extends JPost
 
     if data.link_url and data.link_embed
       statusUpdate.link         =
+        link_cache              : data.link_cache
         link_url                : data.link_url
         link_embed              : data.link_embed
         link_embed_hidden_items : data.link_embed_hidden_items

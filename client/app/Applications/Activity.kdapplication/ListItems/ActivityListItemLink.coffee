@@ -23,7 +23,9 @@ class LinkActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    if @getData().link_embed? then @embedBox.embedExistingData @getData().link_embed, {}, ->
+    if @getData().link_embed?
+      @embedBox.embedExistingData @getData().link_embed, {}, noop, getData().link_cache
+
     else if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
     else log "There is no link information to embed."
 

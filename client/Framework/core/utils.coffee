@@ -172,14 +172,18 @@ __utils =
   expandUrls: (text) ->
     return null unless text
     text.replace /([A-Za-z]+:\/\/)?[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
-
-      visibleUrl = url
+      originalUrl = url
+      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
 
       if not /[A-Za-z]+:\/\//.test url
         # url has no protocol
         url = '//'+url
 
-      "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}</a>"
+      # new KDView
+      #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
+      #   tooltip :
+      #     title : url
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
