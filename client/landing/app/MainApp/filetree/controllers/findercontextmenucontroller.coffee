@@ -179,9 +179,6 @@ class NFinderContextMenuController extends KDController
         items['Application menu'].children["Publish to App Catalog"] =
           action                : "publish"
 
-      fileData.on "fs.delete.finished", =>
-        @getSingleton("kodingAppsController").refreshApps()
-
     return items
 
 
