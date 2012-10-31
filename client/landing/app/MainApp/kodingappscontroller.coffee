@@ -24,15 +24,18 @@ class KodingAppsController extends KDController
             # pre     : ""
             files   : [ "./index.coffee" ]
             # post    : ""
-        stylesheets : [ "./resources/style.css" ]
       options       :
         type        : "tab"
-      icns          :
+
+    if type is "sample"
+      raw.icns      =
         "64"        : "./resources/icon.64.png"
         "128"       : "./resources/icon.128.png"
         "160"       : "./resources/icon.160.png"
         "256"       : "./resources/icon.256.png"
         "512"       : "./resources/icon.512.png"
+      raw.source.stylesheets = [ "./resources/style.css" ]
+
     json = JSON.stringify raw, null, 2
 
   @manifests = {}
