@@ -654,6 +654,7 @@ class KodingAppsController extends KDController
 
         async.parallel stack, (error, result) =>
           if err then warn err
+          @emit "aNewAppCreated" if not err
           callback? err, result
 
   # #
