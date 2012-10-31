@@ -75,6 +75,7 @@ module.exports = new Kite 'sharedHosting'
               callback? "[ERROR] can't upload file : #{err}"
 
 
+
   checkUid:(options,callback)->
     #
     # This methid will check user's uid
@@ -132,7 +133,7 @@ module.exports = new Kite 'sharedHosting'
 
     # options =
     #   username: String #username of the unix user
-    #   uid	: Number # user's UID
+    #   uid : Number # user's UID
 
     {username,uid} = options
     home = nodePath.join(config.usersPath,username)
@@ -153,6 +154,20 @@ module.exports = new Kite 'sharedHosting'
               else
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
+
+  copyAppSkeleton:(options, callback)->
+    {username, appPath} = options
+
+    appPath = escapePath "#{appPath}/"
+
+    exec "cp -r /opt/Apps/.defaults/* #{appPath}", (err, stdout, stderr)->
+      if not err
+        exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
+          console.error err if err
+          callback err
+      else
+        console.error err if err
+        callback err
 
   publishApp:(options, callback)->
 
