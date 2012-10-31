@@ -44,15 +44,17 @@ class StartTabMainView extends JView
       # iconClass   : "make-an-app"
       title       : "Make a new App"
       callback    : =>
-        appsController.makeNewApp =>
-          new KDNotificationView
-            type  : "mini"
-            title : "App is created! Check your Applications folder!"
+        appsController.makeNewApp (err)=>
+          if not err
+            new KDNotificationView
+              type     : "mini"
+              cssClass : "success"
+              title    : "App is created! Check your Applications folder!"
 
-          @removeAppIcons()
-          @showLoader()
-          appsController.refreshApps =>
-            @hideLoader()
+            @removeAppIcons()
+            @showLoader()
+            appsController.refreshApps =>
+              @hideLoader()
 
     # appManager.fetchStorage "KodingApps", "1.0", (err, storage)=>
     #   storage.update $set : { "bucket.apps" : {} }, =>
