@@ -149,7 +149,7 @@ class Topics12345 extends AppController
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                defaultValue      : Encoder.htmlDecode topic.body or ""
+                defaultValue      : topic.body or ""
 
   fetchSomeTopics:(options = {}, callback)->
 

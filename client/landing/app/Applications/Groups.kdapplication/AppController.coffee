@@ -80,7 +80,34 @@ class GroupsController extends AppController
       callback  : => @showGroupSubmissionView()
 
 
-  showGroupSubmissionView:->
+  _createGroupHandler =(formData)->
+    KD.remote.api.JGroup.create formData, (err, group)->
+      if err
+        new KDNotificationView
+          title: err.message
+          duration: 1000
+      else
+        new KDNotificationView
+          title: 'Group was created!'
+          duration: 1000
+
+  _updateGroupHandler =(group, formData)->
+    group.modify formData, (err)->
+      if err
+        new KDNotificationView
+          title: err.message
+          duration: 1000
+      else
+        new KDNotificationView
+          title: 'Group was updated!'
+          duration: 1000
+
+  showGroupSubmissionView:(group)->
+    console.log 'group', group
+    unless group?
+      console.log 'there wasnt a group'
+      group = {}
+      isNewGroup = yes
     modal = new KDModalViewWithForms
       title       : 'Create a group'
       height      : 'auto'
@@ -92,19 +119,13 @@ class GroupsController extends AppController
         goToNextFormOnSubmit: no
         forms     :
           create:
-            title: 'Create a group'
-            callback: (formData)=>
-              KD.remote.api.JGroup.create formData, (err, group)->
-                if err
-                  new KDNotificationView
-                    title: err.message
-                    duration: 1000
-                else
-                  new KDNotificationView
-                    title: 'Group was created!'
-                    duration: 1000
-                  modal.destroy()
-
+            title: if isNewGroup then 'Create a group' else 'Edit group'
+            callback:(formData)->
+              if isNewGroup
+                _createGroupHandler formData
+              else
+                _updateGroupHandler group, formData
+              modal.destroy()
             buttons:
               Save                :
                 style             : "modal-clean-gray"
@@ -125,26 +146,31 @@ class GroupsController extends AppController
                 name              : "title"
                 keydown           : (pubInst, event)->
                   setTimeout =>
-                    slug = @utils.slugify @getValue()#.toLowerCase().replace(/[^\w|\s]/g,'')
+                    slug = @utils.slugify @getValue()
                     modal.modalTabs.forms.create.inputs.Slug.setValue slug
                   , 1
-                  # defaultValue      : group.title
+                defaultValue      : group.title ? ""
               Slug                :
                 label             : "Slug"
                 itemClass         : KDInputView
                 name              : "slug"
-                # defaultValue      : slug
+                defaultValue      : group.slug ? ""
+              # TODO: fix KDImageUploadView
+              # Avatar              :
+              #   label             : "Avatar"
+              #   itemClass         : KDImageUploadView
+              #   name              : "avatar"
               Description         :
                 label             : "Description"
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                # defaultValue      : Encoder.htmlDecode group.body or ""
+                defaultValue      : group.body ? ""
               "Privacy settings"  :
                 label             : "Privacy settings"
                 type              : "select"
                 name              : "privacy"
-                defaultValue      : "public"
+                defaultValue      : group.privacy ? "public"
                 selectOptions     : [
                   { title : "Public",    value : "public" }
                   { title : "Private",   value : "private" }
@@ -153,7 +179,7 @@ class GroupsController extends AppController
                 label             : "Visibility settings"
                 type              : "select"
                 name              : "visibility"
-                defaultValue      : "visible"
+                defaultValue      : group.visibility ? "visible"
                 selectOptions     : [
                   { title : "Visible",    value : "visible" }
                   { title : "Hidden",     value : "hidden" }
@@ -182,6 +208,7 @@ class GroupsController extends AppController
                 color     : "#444444"
                 diameter  : 12
               callback    : ->
+                console.log permissionsGrid.reducedList()
                 group.getData().updatePermissions(
                   permissionsGrid.reducedList()
                   console.log.bind(console)
@@ -212,6 +239,8 @@ class GroupsController extends AppController
         if firstRun
           @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
+          @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
+            @showGroupSubmissionView groupItem.getData()
             
       @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData

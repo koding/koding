@@ -37,9 +37,9 @@ class PermissionsGrid extends KDView
   getPermissions:(structure='reducedList')->
     values = @getFormValues()
     switch structure
-      when 'reducedList' then return createReducedList values
-      when 'list' then return values
-      when 'tree' then return createTree values
+      when 'reducedList'  then return createReducedList values
+      when 'list'         then return values
+      when 'tree'         then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
   _getCheckbox =(module, permission, role)->
