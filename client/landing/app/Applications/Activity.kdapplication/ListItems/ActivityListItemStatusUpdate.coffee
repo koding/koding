@@ -19,6 +19,26 @@ class StatusActivityItemView extends ActivityItemChild
     else
       @embedBox = new KDView
 
+  attachTooltipAndEmbedInteractivity:=>
+    @$("p.status-body a").each (i,element)=>
+      href = $(element).attr("data-original-url")
+
+      twOptions = (title) ->
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+
+      $(element).twipsy twOptions(href)
+
+      $(element).prepend """<span class="icon link"></span>"""
+      element
+
+    @$("a").hover (event)=>
+      originalUrl = $(event.target).attr "data-original-url"
+
+      for link,i in @embedBox.embedLinks.linkList.items
+        if link.getData().url is originalUrl
+          @embedBox.embedLinks.linkList.items[i].changeEmbed()
+    , noop
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
@@ -37,7 +57,15 @@ class StatusActivityItemView extends ActivityItemChild
         @embedBox.embedExistingData @getData().link.link_embed, {
           maxWidth: 700
           maxHeight: 300
-        }
+        }, =>
+
+          @embedBox.setLinkFavicon @getData().link.link_url
+
+        , @getData().link.link_cache
+
+
+        @embedBox.embedLinks.hide()
+
       else
         # no need to show stuff if it should not be shown.
         @embedBox.hide()
@@ -56,6 +84,10 @@ class StatusActivityItemView extends ActivityItemChild
       else
         @embedBox.hide()
 
+    @attachTooltipAndEmbedInteractivity()
+
+
+
   render:=>
     super
 
@@ -71,6 +103,11 @@ class StatusActivityItemView extends ActivityItemChild
           @embedBox.hide()
         else
           @embedBox.show()
+        @attachTooltipAndEmbedInteractivity()
+      , link.link_cache
+
+      @embedBox.setLinkFavicon link.link_url
+
     else
       @embedBox = new KDView
 
@@ -98,7 +135,7 @@ class StatusActivityItemView extends ActivityItemChild
       if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
         str = str.replace link, ""
 
-    @utils.applyTextExpansions str, yes
+      str = @utils.applyTextExpansions str, yes
 
   pistachio:->
     """
@@ -106,7 +143,7 @@ class StatusActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
-      <p>{{@applyTextExpansions #(body)}}</p>
+      <p class="status-body">{{@applyTextExpansions #(body)}}</p>
       {{> @embedBox}}
       <footer class='clearfix'>
         <div class='type-and-time'>

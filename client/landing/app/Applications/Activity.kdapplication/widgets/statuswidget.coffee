@@ -169,16 +169,19 @@ class ActivityStatusUpdateWidget extends KDFormView
       @embedBox.setEmbedURL link.link_url
       @embedBox.setEmbedImageIndex link.link_embed_image_index
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
+      @embedBox.setEmbedCache link.link_cache
 
       # when in edit mode, show the embed and remove any "embed" from hidden
       @embedBox.embedExistingData link.link_embed, {forceShow:yes}, =>
         @embedBox.show()
+      , link.link_cache
     else
       @embedBox.hide()
 
     @switchToLargeView()
 
   submit:=>
+    @addCustomData "link_cache", @embedBox.getEmbedCache() or []
     @addCustomData "link_url", @embedBox.getEmbedURL() or ""
     @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
     @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
@@ -192,6 +195,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
     @removeCustomData "link_url"
+    @removeCustomData "link_cache"
     @removeCustomData "link_embed"
     @removeCustomData "link_embed_hidden_items"
     @removeCustomData "link_embed_image_index"
