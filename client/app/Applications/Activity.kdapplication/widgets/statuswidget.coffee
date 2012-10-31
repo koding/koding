@@ -113,16 +113,18 @@ class ActivityStatusUpdateWidget extends KDFormView
   requestEmbed:=>
     unless @requestEmbedLock is on
 
-      if @initialRequest
-        @embedBox.show()
-        @embedBox.embedLoader.show()
-        @initialRequest = no
-
       @requestEmbedLock = on
 
       setTimeout =>
         firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+
         if firstUrl?
+
+          if @initialRequest
+            @embedBox.show()
+            @embedBox.embedLoader.show()
+            @initialRequest = no
+
           @embedBox.embedLinks.setLinks firstUrl
 
           unless @previousURL is firstUrl
@@ -137,7 +139,7 @@ class ActivityStatusUpdateWidget extends KDFormView
               @previousURL = firstUrl
         else
           @requestEmbedLock = off
-      ,250
+      ,50
 
   switchToSmallView:->
 

@@ -1,12 +1,24 @@
 class EmbedBoxLinksViewItem extends KDListItemView
 
   constructor:(options,data)->
+
+    options = $.extend {}, options, {
+      tooltip :
+        title     : data.link_url or data.url
+        placement : "above"
+        offset    : 3
+        delayIn   : 300
+        html      : yes
+        animate   : yes
+    }
+
     super options,data
     @linkUrl = data.url
 
     @setClass "embed-link-item"
 
     # visible link shortening here
+    # http://www.foo.bar/baz -> www.foo.bar
     @linkUrlShort = @linkUrl.replace(/(ht|f)tp(s)?\:\/\//,"")
                     .replace(/\/.*/,"")
 
@@ -50,11 +62,6 @@ class EmbedBoxLinksViewItem extends KDListItemView
     super()
     @setTemplate @pistachio()
     @template.update()
-
-    twOptions = (title) ->
-      title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
-
-    @$("div.embed-link-wrapper").twipsy   twOptions(@getData().link_url or @getData().url)
 
   pistachio:->
     """
@@ -313,29 +320,39 @@ class EmbedBoxLinkViewImage extends KDView
     @hide() if (data?.link_embed_hidden_items?["image"]?) or\
                (data.link_embed?.images?.length is 0)
 
-  # this will get called from the image-switch click events to update the preview
-  # images when browsing the available embed links
-  setSrc:(url="http://koding.com/images/service_icons/Koding.png")->
-    @$("img.thumb").attr src : url
-
-  viewAppended:->
-    super()
-
+  # this includes a fallback for when the embedimageindex is out of bounds
+  # it will however still request a nonsensical image src
     @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or\
                   @getData().link_embed?.images?[0]?.url or\
                   "http://koding.com/images/service_icons/Koding.png" # hardcode a default
 
+    @imageAltText = (@getData().link_embed?.title + \
+                    (if @getData().link_embed?.author_name then " by "+ \
+                    @getData().link_embed?.author_name else "")) or \
+                    "untitled"
+
+    @imageView = new KDCustomHTMLView
+      tagName    : "img"
+      cssClass   : "thumb"
+      attributes :
+        src      : @imageLink
+        alt      : @imageAltText
+        title    : @imageAltText
+
+  # this will get called from the image-switch click events to update the preview
+  # images when browsing the available embed links
+  setSrc:(url="http://koding.com/images/service_icons/Koding.png")->
+    @imageView.setDomAttributes src : url
+
+  viewAppended:->
+    super()
     @setTemplate @pistachio()
     @template.update()
 
-
-
-  # this includes a fallback for when the embedimageindex is out of bounds
-  # it will however still request a nonsensical image src
   pistachio:->
     """
     <a class="preview_link" target="_blank" href="#{@getData().link_url or @getData().link_embed?.url}">
-      <img class="thumb" src="#{@imageLink}" title="#{(@getData().link_embed?.title + (if @getData().link_embed?.author_name then " by "+@getData().link_embed?.author_name else "")) or "untitled"}"/>
+      {{> @imageView}}
     </a>
     """
 
