@@ -293,6 +293,7 @@ class KodingAppsController extends KDController
               appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
               eval appScript
           catch e
+            # if not manifest.ignoreWarnings? # GG FIXME
             warn "App caused some problems:", e
           callback?()
           return appView
@@ -628,20 +629,13 @@ class KodingAppsController extends KDController
                           """
           , cb
 
-        # Uncomment followings when we have reachable files for skel of Apps
-        #
-        # stack.push (cb)=>
-        #   @kiteController.run
-        #     withArgs  :
-        #       command : "cp -f /opt/Apps/.default/README #{escapeFilePath fsFolder.path}"
-        #   , cb
-
-        # if not isBlank
-        #   stack.push (cb)=>
-        #     @kiteController.run
-        #       withArgs  :
-        #         command : "cp -rf /opt/Apps/.default/resources #{escapeFilePath fsFolder.path}"
-        #     , cb
+        # Copy default app files (app Skeleton)
+        if type isnt 'blank'
+          stack.push (cb)=>
+            @kiteController.run
+              method        : "copyAppSkeleton"
+              withArgs      : {appPath}
+              , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err
