@@ -655,12 +655,11 @@ class KodingAppsController extends KDController
           , cb
 
         # Copy default app files (app Skeleton)
-        if type isnt 'blank'
-          stack.push (cb)=>
-            @kiteController.run
-              method        : "copyAppSkeleton"
-              withArgs      : {appPath}
-              , cb
+        stack.push (cb)=>
+          @kiteController.run
+            method        : "copyAppSkeleton"
+            withArgs      : {appPath}
+            , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err
