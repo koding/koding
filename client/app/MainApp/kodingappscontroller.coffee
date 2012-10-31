@@ -288,7 +288,7 @@ class KodingAppsController extends KDController
               eval appScript
           catch e
             # if not manifest.ignoreWarnings? # GG FIXME
-            warn "App caused some problems:", e
+            console.warn "App caused some problems:", e
           callback?()
           return appView
         else
@@ -297,7 +297,7 @@ class KodingAppsController extends KDController
             do ->
               eval appScript
           catch e
-            warn "App caused some problems:", e
+            console.warn "App caused some problems:", e
           callback?()
           return null
 
