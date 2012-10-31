@@ -15,7 +15,7 @@ rabbitVhost =\
   catch e then "/"
 
 module.exports = deepFreeze
-  uri           : 
+  uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
