@@ -179,7 +179,7 @@ __utils =
         # url has no protocol
         url = '//'+url
 
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}</a>"
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
       # new KDView
       #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
       #   tooltip :
