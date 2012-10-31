@@ -11,7 +11,7 @@ class TopicsListItemView extends KDListItemView
       pistachio   : '{{#(title)}}'
       click       : (pubInst, event) =>
         @titleReceivedClick()
-        event.stopPropagation()
+        event?.stopPropagation()
         no
     , data
 
