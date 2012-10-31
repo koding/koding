@@ -16,8 +16,18 @@ class ActivityStatusUpdateWidget extends KDFormView
         rules       :
           maxLength : 2000
 
+    # saves the URL of the previous request to avoid
+    # multiple embed calls for one URL
     @previousURL = []
+
+    # prevents multiple calls to embed.ly functionality
+    # at the same time
     @requestEmbedLock = off
+
+    # will show the loader/embed box instantly when embed
+    # requests gets parsed/sent. this is only needed if the
+    # box is hidden (as it is when the widget is empty or reset)
+    @initialRequest = yes
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -38,9 +48,10 @@ class ActivityStatusUpdateWidget extends KDFormView
 
       # # this will cause problems when clicking on a embedLinks url
       # # right after entering the url -> double request
+      # the request lock should circumvent this problem.
 
-      # blur:=>
-      #   @requestEmbed()
+      blur:=>
+        @requestEmbed()
 
       keyup:=>
         # this needs to be refactored, this will only capture URLS when the user
@@ -101,7 +112,14 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   requestEmbed:=>
     unless @requestEmbedLock is on
+
+      if @initialRequest
+        @embedBox.show()
+        @embedBox.embedLoader.show()
+        @initialRequest = no
+
       @requestEmbedLock = on
+
       setTimeout =>
         firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
         if firstUrl?
@@ -119,7 +137,7 @@ class ActivityStatusUpdateWidget extends KDFormView
               @previousURL = firstUrl
         else
           @requestEmbedLock = off
-      ,500
+      ,250
 
   switchToSmallView:->
 
@@ -201,6 +219,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @removeCustomData "link_embed_image_index"
     @embedBox.resetEmbedAndHide()
     @previousURL = ""
+    @initialRequest = yes
 
     super
 
