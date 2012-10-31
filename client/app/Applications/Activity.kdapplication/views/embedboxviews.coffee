@@ -43,7 +43,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
     twOptions = (title) ->
       title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
 
-    @$("div.embed-link-wrapper").twipsy twOptions(@getData().link_url or @getData().url)
+    @$("div.embed-link-wrapper").twipsy   twOptions(@getData().link_url or @getData().url)
 
   pistachio:->
     """
@@ -169,9 +169,9 @@ class EmbedBoxLinkView extends KDView
 
   pistachio:->
     """
+    {{> @embedImageSwitch}}
     {{> @embedImage}}
     {{> @embedText}}
-    {{> @embedImageSwitch}}
     """
 
 
@@ -272,7 +272,7 @@ class EmbedBoxImageView extends KDView
   pistachio:->
     """
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="#{@getData().link_embed?.images?[0]?.url}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
+    <img src="#{@getData().link_embed?.images?[0]?.url or "http://koding.com/images/service_icons/Koding.png"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
     </a>
     """
 
@@ -304,7 +304,7 @@ class EmbedBoxLinkViewImage extends KDView
 
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
-  setSrc:(url)->
+  setSrc:(url="http://koding.com/images/service_icons/Koding.png")->
     @$("img.thumb").attr src : url
 
   viewAppended:->
