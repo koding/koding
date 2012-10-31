@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/bobappleyard/readline"
@@ -8,9 +9,11 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"os/signal"
 	"sort"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 type Entry struct {
@@ -20,7 +23,7 @@ type Entry struct {
 
 var commands = map[string]func(args []string){
 	"overview":    func(args []string) { PrintElement("overview", "overview") },
-	"vhost":       func(args []string) { ChangeVHost(args[0]) },
+	"vhost":       func(args []string) { ChangeVHost(args) },
 	"nodes":       func(args []string) { ReadList("node", false) },
 	"connections": func(args []string) { ReadList("connection", false) },
 	"channels":    func(args []string) { ReadList("channel", false) },
@@ -35,15 +38,14 @@ var commands = map[string]func(args []string){
 }
 
 var exit = false
+var abort = false
 var vhost = "/"
 var listEntries []Entry = nil
 var listKind string
 var entryPathPrefix string
 
-var bold = fmt.Sprintf("%c%s%c", readline.PromptStartIgnore, "\x1b[1m", readline.PromptEndIgnore)
-var normal = fmt.Sprintf("%c%s%c", readline.PromptStartIgnore, "\x1b[0m", readline.PromptEndIgnore)
-
 func main() {
+	readline.CatchSigint = false
 	readline.Completer = func(query, ctx string) []string {
 		completions := make([]string, 0)
 		for command := range commands {
@@ -54,8 +56,16 @@ func main() {
 		return completions
 	}
 
+	go func() {
+		signals := make(chan os.Signal, 2)
+		signal.Notify(signals, syscall.SIGINT)
+		for _ = range signals {
+			abort = true
+		}
+	}()
+
 	for !exit {
-		input, err := readline.String(bold + "alice " + vhost + " > " + normal)
+		input, err := readline.String(readline.EscapePrompt("\x1b[1malice " + vhost + " > \x1b[0m"))
 		if err == io.EOF {
 			fmt.Println()
 			break
@@ -96,9 +106,13 @@ func main() {
 	}
 }
 
-func ChangeVHost(v string) {
-	if DoRequest("vhosts/"+QueryEscape(v), "", nil) {
-		vhost = v
+func ChangeVHost(args []string) {
+	if len(args) != 1 {
+		fmt.Println("Usage: vhost <name>")
+		return
+	}
+	if Get("vhosts/"+QueryEscape(args[0]), "", nil) {
+		vhost = args[0]
 	} else {
 		fmt.Println("No such vhost.")
 	}
@@ -111,7 +125,9 @@ func ReadList(kind string, withVHost bool) {
 		path += "/" + vhost
 		query += ",vhost"
 	}
-	DoRequest(path, query, &listEntries)
+	if !Get(path, query, &listEntries) {
+		return
+	}
 	format := fmt.Sprintf("%%%dd: %%s\n", int(math.Ceil(math.Log10(float64(len(listEntries))))))
 	for i, entry := range listEntries {
 		fmt.Printf(format, i, entry.Name)
@@ -121,6 +137,14 @@ func ReadList(kind string, withVHost bool) {
 
 func Trace() {
 	fmt.Println("Under construction.")
+	return
+
+	var data map[string]interface{}
+	Get("vhosts/"+QueryEscape(vhost), "", &data)
+	if data["tracing"] != true {
+		fmt.Println("Please enable firehose tracing for this vhost first.")
+		return
+	}
 }
 
 func CreateGraph() {
@@ -136,7 +160,7 @@ func CreateGraph() {
 	file.Write([]byte("digraph G {"))
 
 	var exchanges []Entry = nil
-	DoRequest("exchanges/"+vhost, "columns=name", &exchanges)
+	Get("exchanges/"+vhost, "columns=name", &exchanges)
 	for _, exchange := range exchanges {
 		fmt.Fprintf(file, "%s;", exchange.Name)
 	}
@@ -146,24 +170,35 @@ func CreateGraph() {
 
 func PrintElement(path, name string) {
 	var data map[string]interface{}
-	DoRequest(path, "", &data)
+	if !Get(path, "", &data) {
+		return
+	}
 	fmt.Print(name + ":")
 	PrettyPrint(data, 2, GetMaxKeyLength(data))
 }
 
-func Get(path, query string, v interface{}) {
-	DoRequest(path, query, v)
+func Get(path, query string, v interface{}) bool {
+	return DoRequest("GET", path, query, nil, v)
 }
 
-func DoRequest(path, query string, v interface{}) bool {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://web0.beta.system.aws.koding.com:55672", nil)
-	req.URL.Opaque = "/api/" + path
-	req.URL.RawQuery = query
-	req.SetBasicAuth("guest", "x1srTA7!%Vb}$n|S")
+func Put(path string, data map[string]interface{}) bool {
+	body, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
+	return DoRequest("PUT", path, "", bytes.NewReader(body), nil)
+}
+
+func DoRequest(method, path, query string, body io.Reader, v interface{}) bool {
+	client := &http.Client{}
+	req, err := http.NewRequest(method, "http://web0.beta.system.aws.koding.com:55672", body)
+	if err != nil {
+		panic(err)
+	}
+	req.URL.Opaque = "/api/" + path
+	req.URL.RawQuery = query
+	req.SetBasicAuth("guest", "x1srTA7!%Vb}$n|S")
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
@@ -174,7 +209,12 @@ func DoRequest(path, query string, v interface{}) bool {
 	if v != nil {
 		body := make([]byte, resp.ContentLength)
 		i := int64(0)
+		abort = false
 		for {
+			if abort {
+				fmt.Print(" Aborted.\n")
+				return false
+			}
 			n, err := resp.Body.Read(body[i:])
 			if err != nil {
 				if err == io.EOF {
