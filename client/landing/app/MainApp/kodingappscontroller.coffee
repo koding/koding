@@ -26,15 +26,9 @@ class KodingAppsController extends KDController
             # post    : ""
       options       :
         type        : "tab"
-
-    if type is "sample"
-      raw.icns      =
-        "64"        : "./resources/icon.64.png"
+      icns          :
         "128"       : "./resources/icon.128.png"
-        "160"       : "./resources/icon.160.png"
-        "256"       : "./resources/icon.256.png"
-        "512"       : "./resources/icon.512.png"
-      raw.source.stylesheets = [ "./resources/style.css" ]
+      stylesheets   : [ "./resources/style.css" ]
 
     json = JSON.stringify raw, null, 2
 
