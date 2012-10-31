@@ -21,12 +21,13 @@ class StatusActivityItemView extends ActivityItemChild
 
   attachTooltipAndEmbedInteractivity:=>
     @$("p.status-body a").each (i,element)=>
-      href = $(element).attr("data-original-url")
+      href = $(element).attr("data-original-url") or ""
 
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
 
-      unless $(element).text() is href
+      unless $(element).text().replace("/…","") is href.replace(/\/$/,"") or\
+             "http://"+$(element).text().replace("/…","") is href.replace(/\/$/,"")
         $(element).twipsy twOptions(href)
 
       if $(element).attr("target") is "_blank"
