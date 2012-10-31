@@ -26,18 +26,19 @@ class StatusActivityItemView extends ActivityItemChild
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
 
-      $(element).twipsy twOptions(href)
+      unless $(element).text() is href
+        $(element).twipsy twOptions(href)
 
       $(element).prepend """<span class="icon link"></span>"""
       element
 
-    @$("a").hover (event)=>
-      originalUrl = $(event.target).attr "data-original-url"
-
-      for link,i in @embedBox.embedLinks.linkList.items
-        if link.getData().url is originalUrl
-          @embedBox.embedLinks.linkList.items[i].changeEmbed()
-    , noop
+    # @$("a").hover (event)=>
+    #   originalUrl = $(event.target).attr "data-original-url"
+    #   if @embedBox.embedLinks.linkList.items.length > 1
+    #     for link,i in @embedBox.embedLinks.linkList.items
+    #       if link.getData().url is originalUrl
+    #         @embedBox.embedLinks.linkList.items[i].changeEmbed()
+    # , noop
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
