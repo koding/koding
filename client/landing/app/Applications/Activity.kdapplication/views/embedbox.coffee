@@ -243,7 +243,6 @@ class EmbedBox extends KDView
       oembed = JSON.parse Encoder.htmlDecode embedData
 
       # embed.ly returns an array with x objects for x urls requested
-
       @setEmbedData oembed[0]
       @setEmbedURL url
       callback oembed[0],embedlyOptions
@@ -456,8 +455,8 @@ class EmbedBox extends KDView
 
   pistachio:->
     """
-      {{> @settingsButton}}
       {{> @embedLoader}}
+      {{> @settingsButton}}
       {{> @embedLinks}}
       <div class="link-embed clearfix">
         {{> @embedLink}}

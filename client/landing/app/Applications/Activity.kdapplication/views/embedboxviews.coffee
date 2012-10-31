@@ -17,6 +17,15 @@ class EmbedBoxLinksViewItem extends KDListItemView
       callback :=>
         @changeEmbed()
 
+    @favicon = ""
+
+    @faviconImage = new KDCustomHTMLView
+      tagName     : "img"
+      cssClass    : "embed-favicon hidden"
+      attributes  :
+        src       : @favicon
+        alt       : data.title
+
   changeEmbed:=>
     @makeActive()
 
@@ -32,8 +41,9 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
   setFavicon:(fav="")->
     @favicon = fav
-    @$("img").attr src : @favicon
-    @$("img").removeClass "hidden"
+
+    @faviconImage.setDomAttributes src:@favicon
+    @faviconImage.show()
 
   viewAppended:->
     super()
@@ -48,7 +58,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
   pistachio:->
     """
     <div class="embed-link-wrapper">
-      <img class="embed-favicon hidden" src="#{@favicon}" alt="#{@getData().title}"/>
+      {{> @faviconImage}}
       {{> @linkButton}}
     </div>
     """
