@@ -562,17 +562,18 @@ class KodingAppsController extends KDController
                   appPath     = getAppPath manifest
 
                   FSItem.doesExist appPath, (err, exists)=>
-                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                     if exists
+                      newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView
                         type      : "mini"
                         cssClass  : "error"
                         title     : "App folder with that name is already exists, please choose a new name."
                         duration  : 3000
                     else
-                      @prepareApplication {isBlank : type is "blank", name}, (err, response)->
+                      @prepareApplication {isBlank : type is "blank", name}, (err, response)=>
                         callback? err
-                      newAppModal.destroy()
+                        newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                        newAppModal.destroy()
             fields                :
               type                :
                 label             : "Type"
