@@ -439,17 +439,7 @@ class NFinderTreeController extends JTreeViewController
         @notify "Publish failed!", "error", err
 
   makeNewApp:(nodeView)->
-
-    folder = nodeView.getData()
-
-    folder.emit "fs.newAppCreation.started"
-    @getSingleton('kodingAppsController').makeNewApp (err)=>
-      folder.emit "fs.newAppCreation.finished"
-      @refreshFolder @nodes[folder.path]
-      unless err
-        @notify "App created!", "success"
-      else
-        @notify "App creation failed!", "error", err
+    @getSingleton('kodingAppsController').makeNewApp()
 
   downloadAppSource:(nodeView)->
 
