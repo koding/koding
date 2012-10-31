@@ -253,6 +253,7 @@ Includes =
         MultipleInput         : "./client/Framework/components/autocomplete/multipleinputview.coffee"
         KDAutoCompleteMisc    : "./client/Framework/components/autocomplete/autocompletemisc.coffee"
         KDAutoCompletedItems  : "./client/Framework/components/autocomplete/autocompleteditems.coffee"
+        registry              : "./client/Framework/classregistry.coffee"
 
       Applications :
         ApplicationManager    : "./client/app/MainApp/ApplicationManager.coffee"
@@ -641,7 +642,8 @@ Includes =
         jqueryDateFormat  : "./client/libs/date.format.js"
         jqueryCookie      : "./client/libs/jquery.cookie.js"
         jqueryGetCss      : "./client/libs/jquery.getcss.js"
-        keypress          : "./client/libs/keypress.js"
+        # keypress          : "./client/libs/keypress.js"
+        mousetrap         : "./client/libs/mousetrap.js"
         # jqueryWmd         : "./client/libs/jquery.wmd.js"
         # jqueryFieldSelect : "./client/libs/jquery.fieldselection.js"
         # multiselect       : "./client/libs/jquery.multiselect.min.js"

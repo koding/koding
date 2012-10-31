@@ -333,11 +333,8 @@ class KDView extends KDObject
     @$().css positionOptions
 
   getWidth:()->
-    # pre = Date.now()
-    # w = @getDomElement()[0].clientWidth
     w = @getDomElement().width()
-    # log Date.now() - pre,@,@id
-    # w
+
   setWidth:(w)->
     @getDomElement()[0].style.width = "#{w}px"
     # @getDomElement().width w
@@ -370,7 +367,6 @@ class KDView extends KDObject
 
     # instance drops itself from its parent's subviews array
     if @parent and @parent.subViews?
-      # log "parent subviews spliced"
       @parent.removeSubView @
 
     # instance removes itself from DOM
@@ -382,19 +378,13 @@ class KDView extends KDObject
     # call super to remove instance subscriptions
     # and delete instance from KD.instances registry
     super()
-    # log delete @listeners
-    # log delete @listeningTo
 
   destroySubViews:()->
     # (subView.destroy() for subView in @getSubViews())
 
     for subView in @getSubViews().slice()
-      # log "ASDSD","asd"
       if subView instanceof KDView
-        # log subView,subView.id.substring(0,5),"subView of:",@.id.substring(0,5)
         subView?.destroy?()
-        # log delete subView.listeners
-        # log delete subView.listeningTo
 
   addSubView:(subView,selector,shouldPrepend)->
     unless subView?
@@ -496,9 +486,6 @@ class KDView extends KDObject
     methodName = eventToMethodMap()[event.type] or event.type
     result     = if @[methodName]? then @[methodName] event else yes
 
-    # unless result
-    #   log @, result, event.type, "???"
-
     unless result is no
       @emit event.type, event
       # deprecate below 09/2012 sinan
@@ -561,12 +548,9 @@ class KDView extends KDObject
   submit:(event)-> no #propagations leads to window refresh
 
   addEventHandlers:(options)->
-    for key,value of options
-      if eventNames.test key
-        @listenTo
-          KDEventTypes       : key
-          listenedToInstance : @
-          callback           : value
+    for eventName, cb of options
+      if eventNames.test(eventName) and "function" is typeof cb
+        @on eventName, cb
 
   setDraggable:(options = {})->
 
