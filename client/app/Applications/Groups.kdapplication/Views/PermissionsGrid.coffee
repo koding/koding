@@ -6,38 +6,40 @@ class PermissionsGrid extends KDView
   ['list','reducedList','tree'].forEach (method)=>
     @::[method] =-> @getPermissions method
 
+  createTree =(values)->
+    values.reduce (acc, {module, role, permission})->
+      acc[module] ?= {}
+      acc[module][role] ?= []
+      acc[module][role].push permission
+      return acc
+    , {}
+
+  createReducedList =(values)->
+    cache = {}
+    values.reduce (acc, {module, role, permission})->
+      storageKey = module+':'+role
+      cached = cache[storageKey]
+      if cached?
+        cached.permissions.push permission
+      else
+        cache[storageKey] = {module, role, permissions: [permission]}
+        acc.push cache[storageKey]
+      return acc
+    , []
+
+  getFormValues:->
+    @$('form').serializeArray()
+    .map ({name})->
+      [facet, role, permission] = name.split '|'
+      module = facet.split('-')[1]
+      {module, role, permission}
+
   getPermissions:(structure='reducedList')->
-    values = @$('form')
-      .serializeArray()
-      .map ({name})->
-        [facet, role, permission] = name.split '|'
-        module = facet.split('-')[1]
-        {
-          module
-          role
-          permission
-        }
+    values = @getFormValues()
     switch structure
+      when 'reducedList' then return createReducedList values
       when 'list' then return values
-      when 'tree'
-        values.reduce (acc, {module, role, permission})->
-          acc[module] ?= {}
-          acc[module][role] ?= []
-          acc[module][role].push permission
-          return acc
-        , {}
-      when 'reducedList'
-        cache = {}
-        values.reduce (acc, {module, role, permission})->
-          storageKey = module+':'+role
-          cached = cache[storageKey]
-          if cached?
-            cached.permissions.push permission
-          else
-            cache[storageKey] = {module, role, permissions: [permission]}
-            acc.push cache[storageKey]
-          return acc
-        , []
+      when 'tree' then return createTree values
       else throw new Error "Unknown structure #{structure}"
 
   _getCheckbox =(module, permission, role)->

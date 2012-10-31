@@ -16,12 +16,20 @@ class GroupsListItemView extends KDListItemView
     , data
 
     if options.editable
-      @editButton = new KDCustomHTMLView
+      @editGroupButton = new KDCustomHTMLView
         tagName     : 'a'
         cssClass    : 'edit-group'
-        partial     : '<span class="icon"></span>Edit'
+        partial     : '<span class="icon"></span>Group settings'
         click       : (pubInst, event) =>
-          @getSingleton('mainController').emit 'GroupItemEditLinkClicked', @
+          @getSingleton('mainController').emit 'EditGroupButtonClicked', @
+      , null
+
+      @grantPermissionsButton = new KDCustomHTMLView
+        tagName     : 'a'
+        cssClass    : 'edit-group'
+        partial     : '<span class="icon"></span>Permissions'
+        click       : (pubInst, event) =>
+          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', @
       , null
     else
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
@@ -90,7 +98,6 @@ class GroupsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
-      {{> @editButton}}
       {h3{> @titleLink}}
       {article{#(body)}}
       <div class="topicmeta clearfix">
@@ -104,13 +111,19 @@ class GroupsListItemView extends KDListItemView
             <a href="#">{{#(counts.followers) or 0}}</a> Followers
           </p>
         </div>
+          <div class="edit-actions">
+          <h4>Edit:</h4>
+          <ul>
+            {li{> @editGroupButton}}
+            {li{> @grantPermissionsButton}}
+          </ul>
+        </div>
         <div class="button-container">{{> @joinButton}}</div>
       </div>
     </div>
     """
 
   refreshPartial: ->
-
     @skillList?.destroy()
     @locationList?.destroy()
     super

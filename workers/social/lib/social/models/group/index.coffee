@@ -131,6 +131,7 @@ module.exports = class JGroup extends Module
 
   updatePermissions: permit 'grant permissions'
     success: (client, permissions, callback=->)->
+      console.log 'inside updatePermissions', arguments
       @fetchPermissions (err, permissionSet)->
         if err
           callback err

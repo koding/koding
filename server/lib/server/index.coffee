@@ -15,6 +15,7 @@ nodePath = require 'path'
 
 app = express.createServer()
 
+# this is a hack so express won't write the multipart to /tmp
 delete express.bodyParser.parse['multipart/form-data']
 
 app.use express.bodyParser()
@@ -98,7 +99,7 @@ app.get '/auth', (req, res)->
 
 if uploads?.enableStreamingUploads
   
-  s3 = require('./s3')(uploads.s3)
+  s3 = require('./s3') uploads.s3
 
   app.post '/upload', s3..., (req, res)->
     res.send(for own key, file of req.files
