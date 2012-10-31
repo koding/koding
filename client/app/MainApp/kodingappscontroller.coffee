@@ -624,7 +624,22 @@ class KodingAppsController extends KDController
             method      : "uploadFile"
             withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-              contents  : "do ->"
+              contents  : if not isBlank then """
+
+                            {KDView} = KD.classes
+
+                            do ->
+                              console.log "Hello World!"
+
+                              appView.addSubView aLabel = new KDView
+                                partial: "<marquee><h1>Hello Koding!</h1></marquee>"
+
+                              aLabel.setRandomBG()
+
+                          """ else """
+                            do->
+
+                          """
           , cb
 
         stack.push (cb)=>
