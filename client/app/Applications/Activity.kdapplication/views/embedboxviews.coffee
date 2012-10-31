@@ -29,7 +29,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
       callback :=>
         @changeEmbed()
 
-    @favicon = ""
+    @favicon = data.favicon_url or ""
 
     @faviconImage = new KDCustomHTMLView
       tagName     : "img"
@@ -37,6 +37,8 @@ class EmbedBoxLinksViewItem extends KDListItemView
       attributes  :
         src       : @favicon
         alt       : data.title
+
+    @faviconImage.show() if @favicon isnt ""
 
   changeEmbed:=>
     @makeActive()
@@ -422,20 +424,20 @@ class EmbedBoxLinkViewTitle extends KDView
         cssClass : "hidden"
         partial : data.link_embed?.title or ""
 
-    @author = new KDCustomHTMLView
+    @editIndicator = new KDCustomHTMLView
       tagName : "div"
       cssClass : "edit-indicator title-edit-indicator"
       pistachio : """edited"""
       tooltip :
         title: "Original Content was: "+data.link_embed?.original_title or data.link_embed?.title or ""
-    @author.hide()
+    @editIndicator.hide()
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
     if @getData().link_embed?.titleEdited
-      @author.show()
+      @editIndicator.show()
 
   getValue:->
     if @options.hasConfig
@@ -461,7 +463,7 @@ class EmbedBoxLinkViewTitle extends KDView
     """
       {{> @titleInput}}
       <div class="preview_title">#{@getData().link_embed?.title or @getData().title or @getData().link_url or @getData().url}
-      {{> @author}}
+      {{> @editIndicator}}
       </div>
     """
 
@@ -492,13 +494,13 @@ class EmbedBoxLinkViewDescription extends KDView
         cssClass : "hidden"
         partial : data.link_embed?.description or ""
 
-    @author = new KDCustomHTMLView
+    @editIndicator = new KDCustomHTMLView
       tagName : "div"
       cssClass : "edit-indicator discussion-edit-indicator"
       pistachio : "edited"
       tooltip :
         title: "Original Content was: <p>"+(data.link_embed?.original_description or data.link_embed?.description or "")+"</p>"
-    @author.hide()
+    @editIndicator.hide()
 
   getValue:->
     if @options.hasConfig
@@ -514,7 +516,7 @@ class EmbedBoxLinkViewDescription extends KDView
     @setTemplate @pistachio()
     @template.update()
     if @getData().link_embed?.descriptionEdited
-      @author.show()
+      @editIndicator.show()
 
   click:(event)->
     if @options.hasConfig is yes
@@ -530,7 +532,7 @@ class EmbedBoxLinkViewDescription extends KDView
     """
     {{> @descriptionInput}}
     <div class="description #{if (@getData().link_embed?.description or @getData().description) and not("description" in @getData().link_embed_hidden_items) then "" else "hidden"}">#{@getData().link_embed?.description or @getData().description or ""}
-    {{> @author}}</div>
+    {{> @editIndicator}}</div>
     """
 
 class EmbedBoxLinkViewAuthor extends KDView

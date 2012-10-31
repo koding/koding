@@ -121,8 +121,8 @@ class ActivityStatusUpdateWidget extends KDFormView
         if firstUrl?
 
           if @initialRequest
-            @embedBox.show()
-            @embedBox.embedLoader.show()
+            # @embedBox.show()
+            # @embedBox.embedLoader.show()
             @initialRequest = no
 
           @embedBox.embedLinks.setLinks firstUrl
