@@ -18,12 +18,37 @@ module.exports = class JStatusUpdate extends JPost
   }
 
   @set
-    sharedMethods     : JPost.sharedMethods
+    sharedMethods     :
+      static          : ['create','one','fetchDataFromEmbedly']
+      instance        : [
+        'reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
+      ]
     schema            : schema
     relationships     : JPost.relationships
 
   @getActivityType =-> require './statusactivity'
 
+  @fetchDataFromEmbedly = (url, options, callback)->
+
+    {log}      = require 'console'
+    util       = require "util"
+
+    embedly    = require "embedly"
+    Api        = embedly.Api
+
+    api = new Api
+      user_agent : 'Mozilla/5.0 (compatible; koding/1.0; arvid@koding.com)'
+      key        : "e8d8b766e2864a129f9e53460d520115"
+
+    embedOptions = extend {}, options, {url:url}
+
+    api.preview(embedOptions).on "complete", (data)->
+      callback JSON.stringify data
+    .on "error", (data)->
+      callback JSON.stringify data
+    .start()
 
   @create = secure (client, data, callback)->
     statusUpdate  =

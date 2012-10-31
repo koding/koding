@@ -224,24 +224,37 @@ class EmbedBox extends KDView
 
   fetchEmbed:(url="#",options={},callback=noop)=>
 
-    requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
-      embedlyOptions = $.extend {}, {
-        key      : "e8d8b766e2864a129f9e53460d520115"
-        endpoint : "preview"
-        maxWidth : 530
-        maxHeight: 200
-        wmode    : "transparent"
-        error    : (node, dict)=>
-          callback? dict
-      }, options
+    # if there is no protocol, supply one! embedly doesn't support //
+    unless /^(ht|f)tp(s?)\:\/\//.test url then url = "http://"+url
 
-      # if there is no protocol, supply one! embedly doesn't support //
-      unless /^(ht|f)tp(s?)\:\/\//.test url then url = "http://"+url
+    # prepare embed.ly options
+    embedlyOptions = $.extend {}, {
+      # key      : "e8d8b766e2864a129f9e53460d520115"
+      endpoint : "preview"
+      maxWidth : 530
+      maxHeight: 200
+      wmode    : "transparent"
+      error    : (node, dict)=>
+        callback? dict
+    }, options
 
-      $.embedly url, embedlyOptions, (oembed, dict)=>
-        @setEmbedData oembed
-        @setEmbedURL url
-        callback oembed,embedlyOptions
+    # fetch embed.ly data from the server api
+    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (embedData)=>
+      oembed = JSON.parse Encoder.htmlDecode embedData
+
+      # embed.ly returns an array with x objects for x urls requested
+
+      @setEmbedData oembed[0]
+      @setEmbedURL url
+      callback oembed[0],embedlyOptions
+
+    # embed.ly provides this jQuery plugin for client-side embeds
+
+    # requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
+    #   $.embedly url, embedlyOptions, (oembed, dict)=>
+    #     @setEmbedData oembed
+    #     @setEmbedURL url
+    #     callback oembed,embedlyOptions
 
   populateEmbed:(data={},url="#",options={},cache=[])=>
     @setEmbedData data
