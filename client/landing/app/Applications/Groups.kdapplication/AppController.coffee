@@ -210,7 +210,7 @@ class GroupsController extends AppController
       if role is "super-admin"
         @listItemClass = GroupsListItemViewEditable
         if firstRun
-          @getSingleton('mainController').on "GroupItemEditLinkClicked", (groupItem)=>
+          @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
             @editPermissions groupItem
             
       @createFeed mainView
