@@ -30,6 +30,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
     @makeActive()
 
     # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
+    @getDelegate().getDelegate().getDelegate().embedLoader.hide()
     @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl, {}, (embedData)=>
       if embedData.favicon_url? then @setFavicon embedData.favicon_url
 
