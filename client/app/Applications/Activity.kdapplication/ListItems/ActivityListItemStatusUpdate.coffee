@@ -78,14 +78,14 @@ class StatusActivityItemView extends ActivityItemChild
     # This will involve heavy load on the embedly servers - every client
     # will need to make a request.
     else
-      urls = @$("span.data > a")
-      for url in urls
-        if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-          firstUrl = $(url).attr "href"
+      # urls = @$("span.data > a")
+      # for url in urls
+      #   if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      #     firstUrl = $(url).attr "href"
 
-      if firstUrl then @embedBox.embedUrl firstUrl, {}
-      else
-        @embedBox.hide()
+      # if firstUrl and @embedBox? then @embedBox.embedUrl firstUrl, {}
+      # else
+      @embedBox.hide()
 
     @attachTooltipAndEmbedInteractivity()
 
@@ -106,13 +106,13 @@ class StatusActivityItemView extends ActivityItemChild
           @embedBox.hide()
         else
           @embedBox.show()
-        @attachTooltipAndEmbedInteractivity()
       , link.link_cache
 
       @embedBox.setLinkFavicon link.link_url
 
     else
       @embedBox = new KDView
+    @attachTooltipAndEmbedInteractivity()
 
   click:(event)->
 
