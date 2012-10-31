@@ -7,3 +7,7 @@ class NFolderItemView extends NFileItemView
 
     data.on "fs.chmod.finished", (recursive)=>
       warn "todo : refresh folder" if recursive
+
+    if data.getExtension() is "kdapp"
+      data.on "fs.delete.finished", =>
+        @getSingleton("kodingAppsController").refreshApps()
