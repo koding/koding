@@ -7,6 +7,8 @@ module.exports = class JGroup extends Module
   JPermissionSet = require './permissionset'
   {permit} = JPermissionSet
 
+  KodingError = require '../../error'
+
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
@@ -16,12 +18,17 @@ module.exports = class JGroup extends Module
 
   @set
     memberRoles     : ['admin','moderator','member','guest']
-    permissions     : ['grant permissions']
+    permissions     : [
+      'grant permissions'
+      'create groups'
+      'edit groups'
+      'edit own groups'
+    ]
     indexes         :
       slug          : 'unique'
     sharedMethods   :
       static        : ['create','byRelevance','someWithRelationship','__resetAllGroups']
-      instance      : ['join','leave','fetchPermissions','updatePermissions']
+      instance      : ['join','leave','fetchPermissions','updatePermissions','modify']
     schema          :
       title         :
         type        : String
@@ -86,34 +93,38 @@ module.exports = class JGroup extends Module
 
   @create = secure (client, formData, callback)->
     JPermissionSet = require './permissionset'
+    JName = require '../name'
     {delegate} = client.connection
-    group = new @ formData
-    group.save (err)->
-      if err
-        callback err
+    JName.claim formData.slug, 'JGroup', 'slug', (err)->
+      if err then callback err
       else
-        group.addMember delegate, (err)->
+        group = new @ formData
+        group.save (err)->
           if err
             callback err
           else
-            group.addAdmin delegate, (err)->
+            group.addMember delegate, (err)->
               if err
                 callback err
               else
-                permissionSet = new JPermissionSet
-                permissionSet.save (err)->
+                group.addAdmin delegate, (err)->
                   if err
                     callback err
                   else
-                    group.addPermissionSet permissionSet, (err)->
+                    permissionSet = new JPermissionSet
+                    permissionSet.save (err)->
                       if err
                         callback err
                       else
-                        delegate.addGroup group, 'admin', (err)->
+                        group.addPermissionSet permissionSet, (err)->
                           if err
                             callback err
                           else
-                            callback null, group
+                            delegate.addGroup group, 'admin', (err)->
+                              if err
+                                callback err
+                              else
+                                callback null, group
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -130,8 +141,7 @@ module.exports = class JGroup extends Module
     }, callback
 
   updatePermissions: permit 'grant permissions'
-    success: (client, permissions, callback=->)->
-      console.log 'inside updatePermissions', arguments
+    success:(client, permissions, callback=->)->
       @fetchPermissions (err, permissionSet)->
         if err
           callback err
@@ -139,7 +149,7 @@ module.exports = class JGroup extends Module
           permissionSet.update $set:{permissions}, callback
 
   fetchPermissions: permit 'grant permissions'
-    success: (client, callback)->
+    success:(client, callback)->
       {permissionsByModule} = require '../../traits/protected'
       {delegate} = client.connection
       @fetchPermissionSet (err, permissionSet)->
@@ -151,8 +161,13 @@ module.exports = class JGroup extends Module
             permissions: permissionSet.permissions
           }
 
+  modify: permit(['edit groups','edit own groups'],
+    success:(client, formData, callback)->
+      @update {$set:formData}, callback
+  )
+
   join: secure (client, callback)->
-    callback 'JGroup#join is unimplemented'
+    callback new KodingError 'JGroup#join is unimplemented'
 
   leave: secure (client, callback)->
-    callback 'JGroup#leave is unimplemented'
+    callback new KodingError 'JGroup#leave is unimplemented'

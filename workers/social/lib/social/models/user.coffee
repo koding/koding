@@ -11,6 +11,7 @@ module.exports = class JUser extends jraphical.Module
   JGuest    = require './guest'
   JInvitation = require './invitation'
   JFeed     = require './feed'
+  JName     = require './name'
 
   createId = require 'hat'
 
@@ -347,59 +348,62 @@ module.exports = class JUser extends jraphical.Module
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    salt = createSalt()
-                    user = new JUser {
-                      username
-                      email
-                      salt
-                      password: hashPassword(password, salt)
-                    }
-                    user.save (err)->
-                      if err
-                        if err.code is 11000
-                          callback createKodingError "Sorry, \"#{email}\" is already in use!"
-                        else callback err
+                    JName.claim name, 'JUser', 'username', (err)->
+                      if err then callback err
                       else
-                        hash = getHash email
-                        account = new JAccount
-                          profile: {
-                            nickname
-                            firstName
-                            lastName
-                            hash
-                          }
-                        account.save (err)->
+                        salt = createSalt()
+                        user = new JUser {
+                          username
+                          email
+                          salt
+                          password: hashPassword(password, salt)
+                        }
+                        user.save (err)->
                           if err
-                            callback err
+                            if err.code is 11000
+                              callback createKodingError "Sorry, \"#{email}\" is already in use!"
+                            else callback err
                           else
-                            user.addOwnAccount account, (err)->
+                            hash = getHash email
+                            account = new JAccount
+                              profile: {
+                                nickname
+                                firstName
+                                lastName
+                                hash
+                              }
+                            account.save (err)->
                               if err
                                 callback err
                               else
-                                feedData = {title:"followed", description: "Followed Feed"}
-                                JFeed.createFeed account, feedData, (err, feed) ->
-                                  if err 
-                                    callback err 
-                                  else  
-                                    replacementToken = createId()
-                                    session.update {
-                                      $set:
-                                        username      : user.username
-                                        lastLoginDate : new Date
-                                        clientId      : replacementToken
-                                      $unset          :
-                                        guestId       : 1
-                                    }, (err, docs)->
-                                      if err
-                                        callback err
-                                      else
-                                        user.sendEmailConfirmation()
-                                        JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                          console.log 'An error granting invitations', err if err
-                                        createNewMemberActivity account
-                                        console.log replacementToken
-                                        JAccount.emit "AccountAuthenticated", account
-                                        callback null, account, replacementToken
+                                user.addOwnAccount account, (err)->
+                                  if err
+                                    callback err
+                                  else
+                                    feedData = {title:"followed", description: "Followed Feed"}
+                                    JFeed.createFeed account, feedData, (err, feed) ->
+                                      if err 
+                                        callback err 
+                                      else  
+                                        replacementToken = createId()
+                                        session.update {
+                                          $set:
+                                            username      : user.username
+                                            lastLoginDate : new Date
+                                            clientId      : replacementToken
+                                          $unset          :
+                                            guestId       : 1
+                                        }, (err, docs)->
+                                          if err
+                                            callback err
+                                          else
+                                            user.sendEmailConfirmation()
+                                            JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                              console.log 'An error granting invitations', err if err
+                                            createNewMemberActivity account
+                                            console.log replacementToken
+                                            JAccount.emit "AccountAuthenticated", account
+                                            callback null, account, replacementToken
 
 
   @fetchUser = secure (client, callback)->

@@ -10,9 +10,12 @@ class JPermission extends Model
 
 module.exports = class JPermissionSet extends Module
 
+  {intersection} = require 'underscore'
+
   KodingError = require '../../error'
 
   @checkPermission =(delegate, permission, target, callback)->
+    permission = [permission] unless Array.isArray permission
     target.fetchAuthorityChain (err, chain)->
       if err
         callback err
@@ -35,7 +38,7 @@ module.exports = class JPermissionSet extends Module
                       (savedPermission)->
                         savedPermission.module is target.constructor.name and\
                         savedPermission.role in roles and\
-                        permission in savedPermission.permissions
+                        !!intersection permission, savedPermission.permissions
                     )
                     permissions.push !!matchingPermissions.length
                     queue.fin()
