@@ -138,8 +138,7 @@ class StatusActivityItemView extends ActivityItemChild
       if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
         str = str.replace link, ""
 
-      str = @utils.applyTextExpansions str, yes
-
+    str = @utils.applyTextExpansions str, yes
   pistachio:->
     """
     {{> @settingsButton}}
