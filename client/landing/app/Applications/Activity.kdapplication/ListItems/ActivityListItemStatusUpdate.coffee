@@ -29,7 +29,8 @@ class StatusActivityItemView extends ActivityItemChild
       unless $(element).text() is href
         $(element).twipsy twOptions(href)
 
-      $(element).prepend """<span class="icon link"></span>"""
+      if $(element).attr("target") is "_blank"
+       $(element).prepend """<span class="icon link"></span>"""
       element
 
     # @$("a").hover (event)=>
