@@ -1,10 +1,15 @@
 do ->
   mainController = KD.getSingleton 'mainController'
 
-  KDRouter.addRoutes
-    #'/debug/:mode': ({mode})->
-    #   mode = decodeURIComponent mode
-    #   KD.debugStates[mode] = yes
+
+  handleRoute =(groupId, route)->
+    console.log 'invoking a route by group id...'
+
+  notFound =(route)->
+    KDRouter.addRoute route, ->
+      console.warn "Contract warning: shared route #{route} is not implemented."
+
+  routes =
 
     '/recover/:recoveryToken': ({recoveryToken})->
       mainController.appReady ->
@@ -36,7 +41,7 @@ do ->
       else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)->
         if err or !invite? or invite.status not in ['active','sent']
           if err then error err
-          console.log invite
+          log invite
           new KDNotificationView
             title: 'Invalid invitation code!'
         else
@@ -86,3 +91,9 @@ do ->
           if err then warn err
           else if discussion
             appManager.tell "Activity", "createContentDisplay", discussion
+
+  sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
+    route.replace /^\/Groups\/:group/, ''
+
+  notFound(route) for route in sharedRoutes when route not in Object.keys routes
+  KDRouter.addRoutes routes

@@ -60,10 +60,11 @@ class FeedController extends KDViewController
     @defineSort name, sort for own name, sort of options.sort
     @getNewFeedItems() if options.dynamicDataType?
 
-  getNewFeedItems:()->
-    {dynamicDataType} = @getOptions()
-    dynamicDataType.on 'feed.new', (items) =>
-      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
+# TODO: commented out by C.T.  Is this used anywhere?  I think not, looks botched: resultsCOntroller
+#  getNewFeedItems:()->
+#    {dynamicDataType} = @getOptions()
+#    dynamicDataType.on 'feed.new', (items) =>
+#      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
 
   defineFilter:(name, filter)->
     filter.name     = name
@@ -93,7 +94,7 @@ class FeedController extends KDViewController
     @loadFeed()
 
   getFeedSelector:->
-    # console.log @filters
+    # log @filters
     {}
 
   getFeedOptions:->

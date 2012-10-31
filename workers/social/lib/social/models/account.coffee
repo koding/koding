@@ -43,7 +43,7 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance'
+        'byRelevance', 'fetchVersion'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -53,7 +53,8 @@ module.exports = class JAccount extends jraphical.Module
         'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount'
+        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
+        'fetchFeedByTitle'
       ]
     schema                  :
       skillTags             : [String]
@@ -155,6 +156,8 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @fetchVersion =(callback)-> callback null, KONFIG.version
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -265,6 +268,33 @@ module.exports = class JAccount extends jraphical.Module
                 fin()
         , -> callback null, teasers
         collectTeasers node for node in contents
+
+  # Update broken counts for user
+  updateCounts:->
+
+    # Like count
+    Relationship.count
+      as         : 'like'
+      targetId   : @getId()
+      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
+    , (err, count)=>
+      @update ($set: 'counts.likes': count), ->
+
+    # Member Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JAccount'
+    , (err, count)=>
+      @update ($set: 'counts.following': count), ->
+
+    # Tag Following count
+    Relationship.count
+      as         : 'follower'
+      targetId   : @getId()
+      sourceName : 'JTag'
+    , (err, count)=>
+      @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = ["sinan", "devrim", "aleksey-m", "gokmen", "chris", "sntran"]
 
@@ -406,6 +436,14 @@ module.exports = class JAccount extends jraphical.Module
   modify: secure (client, fields, callback) ->
     if @equals(client.connection.delegate) and 'globalFlags' not in Object.keys(fields)
       @update $set: fields, callback
+
+  fetchFeedByTitle: secure (client, title, callback) ->
+    if @equals(client.connection.delegate)
+      @fetchFeeds (err, feeds) ->
+        for feed in feeds
+          if feed.title is title
+            return callback null, feed
+        return callback new KodingError 'Feed not found.'
 
   oldFetchMounts = @::fetchMounts
   fetchMounts: secure (client,callback)->

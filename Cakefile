@@ -196,9 +196,8 @@ configureBroker = (options,callback=->)->
   configFilePath = expandConfigFile options.configFile
   configFile = normalizeConfigPath configFilePath
   config = require configFile
-  console.log 'KONFIG', config.mq.pidFile
   vhosts = "{vhosts,["+
-    (config.mq.vhosts or []).
+    (options.vhosts or []).
     map(({rule, vhost})-> "{\"#{rule}\",<<\"#{vhost}\">>}").
     join(',')+"]}"
 
@@ -281,6 +280,16 @@ run =(options)->
       stdout  : process.stdout
       stderr  : process.stderr
       verbose : yes
+
+  if config.guests
+    processes.run
+      name  : 'guestCleanup'
+      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      restart: yes
+      restartInterval: 100
+      stdout: process.stdout
+      stderr: process.stderr
+      verbose: no
 
   processes.run
     name    : 'socialCake'

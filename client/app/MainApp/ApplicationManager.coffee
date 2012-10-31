@@ -227,7 +227,7 @@ class ApplicationManager extends KDObject
 
   passStorageToApp:(path, version, appInstance, callback)->
     @fetchStorage path, version, (error, storage)->
-      if error then console.warn 'error'
+      if error then warn 'error'
       else
         appInstance.setStorage? storage
         callback?()
