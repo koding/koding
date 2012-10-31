@@ -14,6 +14,8 @@ module.exports = class JUser extends jraphical.Module
 
   createId = require 'hat'
 
+  {Relationship} = jraphical
+
   createKodingError =(err)->
     if 'string' is typeof err
       message: err
@@ -100,6 +102,9 @@ module.exports = class JUser extends jraphical.Module
       ownAccount        :
         targetType      : JAccount
         as              : 'owner'
+      leasedAccount     :
+        targetType      : JAccount
+        as              : 'leasor'
       emailConfirmation :
         targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
@@ -123,7 +128,7 @@ module.exports = class JUser extends jraphical.Module
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
-  @authenticateClient:(clientId, callback=->)->
+  @authenticateClient:(clientId, context, callback)->
     JSession.one {clientId}, (err, session)->
       if err
         callback createKodingError err
@@ -144,7 +149,7 @@ module.exports = class JUser extends jraphical.Module
             if err
               callback? err
             else
-              user.fetchOwnAccount (err, account)->
+              user.fetchAccount context, (err, account)->
                 if err
                   callback createKodingError err
                 else
@@ -222,7 +227,6 @@ module.exports = class JUser extends jraphical.Module
             callback createKodingError 'Could not restore your session!'
           else
             replacementToken = createId()
-            console.log 'replacement token', replacementToken
             JGuest.recycle session.guestId
             session.update {
               $set            :
@@ -456,6 +460,24 @@ module.exports = class JUser extends jraphical.Module
             r.kodingenUser = if !+chunk then no else yes
             callback null, r
           res.on 'error', (err)-> callback err, r
+
+  fetchContextualAccount:(context, rest..., callback)->
+    Relationship.one {
+      as          : 'owner'
+      sourceId    : @getId()
+      targetName  : 'JAccount'
+      'data.context': context
+    }, (err, account)=>
+      if err
+        callback err
+      else if account?
+        callback null, account
+      else
+        @fetchOwnAccount rest..., callback
+
+  fetchAccount:(context, rest...)->
+    if context is 'koding' then @fetchOwnAccount rest...
+    else @fetchContextualAccount context, rest...
 
   changePassword:(newPassword, callback)->
     salt = createSalt()

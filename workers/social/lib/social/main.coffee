@@ -27,8 +27,11 @@ koding = new Bongo
   models      : './models'
   queueName   : 'koding-social'
   mq          : broker
-  fetchClient :(sessionToken, callback)->
-    koding.models.JUser.authenticateClient sessionToken, (err, account)->
+  fetchClient :(sessionToken, context, callback)->
+    [callback, context] = [context, callback] unless callback
+    context ?= 'koding'
+    callback ?= ->
+    koding.models.JUser.authenticateClient sessionToken, context, (err, account)->
       if err
         koding.emit 'error', err
       else

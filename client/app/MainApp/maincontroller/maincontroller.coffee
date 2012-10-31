@@ -40,14 +40,33 @@ class MainController extends KDController
         @getSingleton('mainView').removeLoader()
         queue.length = 0
 
-  accountChanged:(account)->
+  getUserArea:-> @userArea
 
+  setUserArea:(userArea)->
+    @emit 'UserAreaChanged', userArea  if not _.isEqual(userArea, @userArea)
+    @userArea = userArea
+
+  getGroup:-> @userArea?.group
+
+  setGroup:(group)->
+    @emit 'GroupChanged', group
+    @setUserArea {
+      group, user: KD.whoami().getAt('profile.nickname')
+    }
+
+  resetUserArea:()->
+    @setUserArea {
+      group: 'koding', user: KD.whoami().profile.nickname
+    }
+
+  accountChanged:(account)->
     connectedState.connected = yes
 
     @emit "RemoveFailModal"
     @emit "AccountChanged", account
 
     @userAccount = account
+    @resetUserArea()
 
     KDRouter.init()
     unless @mainViewController

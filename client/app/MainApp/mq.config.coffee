@@ -1,5 +1,7 @@
 KD.remote = new Bongo
 
+  getUserArea:-> KD.getSingleton('mainController').getUserArea()
+
   getSessionToken:-> $.cookie('clientId')
 
   mq: do->
