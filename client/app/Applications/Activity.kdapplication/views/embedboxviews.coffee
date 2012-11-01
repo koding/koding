@@ -181,17 +181,35 @@ class EmbedBoxLinkView extends KDView
   render:->
     @template.update()
     super()
+    setTimeout =>
+      @getDelegate().loadImages()
+    , 1000
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
+    setTimeout =>
+      @getDelegate().loadImages()
+    , 1000
+
+    # # fetch images lazily
+    # @$("img").each (i,element)->
+    #   if $(element).attr "data-src"
+    #     $(element).attr "src" : $(element).attr("data-src")
+    #     $(element).removeAttr "data-src"
+    #   element
+
 
   pistachio:->
     """
+    <div class="embed embed-link-view custom-link">
+
     {{> @embedImageSwitch}}
     {{> @embedImage}}
     {{> @embedText}}
+
+    </div>
     """
 
 
@@ -289,11 +307,23 @@ class EmbedBoxImageView extends KDView
     @setTemplate @pistachio()
     @template.update()
 
+    # # fetch images lazily
+    # @$("img").each (i,element)->
+    #   if $(element).attr "data-src"
+    #     $(element).attr "src" : $(element).attr("data-src")
+    #     $(element).removeAttr "data-src"
+    #   element
+
+
   pistachio:->
     """
+    <div class="embed embed-image-view custom-image">
+
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="#{@getData().link_embed?.images?[0]?.url or "http://koding.com/images/service_icons/Koding.png"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
+    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="#{@getData().link_embed?.images?[0]?.url or "http://koding.com/images/small-loader.gif"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
     </a>
+    </div>
+
     """
 
 
@@ -312,7 +342,9 @@ class EmbedBoxObjectView extends KDView
 
   pistachio:->
     """
+    <div class="embed embed-object-view custom-object">
     #{Encoder.htmlDecode @getData().link_embed?.object?.html}
+    </div>
     """
 
 
@@ -326,7 +358,7 @@ class EmbedBoxLinkViewImage extends KDView
   # it will however still request a nonsensical image src
     @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or\
                   @getData().link_embed?.images?[0]?.url or\
-                  "http://koding.com/images/service_icons/Koding.png" # hardcode a default
+                  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" # hardcode a default
 
     @imageAltText = (@getData().link_embed?.title + \
                     (if @getData().link_embed?.author_name then " by "+ \
@@ -337,13 +369,14 @@ class EmbedBoxLinkViewImage extends KDView
       tagName    : "img"
       cssClass   : "thumb"
       attributes :
-        src      : @imageLink
+        "data-src" : @imageLink
+        src : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
         alt      : @imageAltText
         title    : @imageAltText
 
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
-  setSrc:(url="http://koding.com/images/service_icons/Koding.png")->
+  setSrc:(url="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==")->
     @imageView.setDomAttributes src : url
 
   viewAppended:->
