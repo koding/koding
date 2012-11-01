@@ -122,7 +122,7 @@ class TopicView extends KDView
     """
     <div class="profileleft">
       <span>
-        <a class='profile-avatar' href='#'>{{#(image) || "upload an image"}}</a>
+        <a class='profile-avatar' href='#'>{{#(image) or "upload an image"}}</a>
       </span>
       {{> @followButton}}
     </div>

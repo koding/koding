@@ -54,13 +54,9 @@ class OpinionListItemView extends KDListItemView
       cssClass    : 'edit-link hidden'
 
     @commentBox = new CommentView null, data
-    # @commentBox = new OpinionCommentView null, data
 
-    @commentBox.on "DiscussionTeaserShouldRefresh",=>
-      @parent.emit "DiscussionTeaserShouldRefresh"
-
-    @on "DiscussionTeaserShouldRefresh",=>
-      @getDelegate().emit "DiscussionTeaserShouldRefresh"
+    @commentBox.on "RefreshTeaser",=>
+      @parent.emit "RefreshTeaser"
 
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
@@ -168,7 +164,10 @@ class OpinionListItemView extends KDListItemView
       @larger.show()
 
     @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # prettyPrint()
+
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   click:(event)->
     if $(event.target).is "span.avatar a, a.user-fullname"
@@ -219,7 +218,7 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body has-markdown'>
-          {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
+          {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
         </p>
         <div class="opinion-size-links">
           {{>@larger}}

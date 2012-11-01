@@ -306,7 +306,7 @@ module.exports = class JPost extends jraphical.Message
                           @fetchActivityId (err, id)->
                             CActivity.update {_id: id}, {
                               $set: 'sorts.repliesCount': count
-                            }, log
+                            }, (err)-> log err if err
                           @fetchOrigin (err, origin)=>
                             if err
                               console.log "Couldn't fetch the origin"

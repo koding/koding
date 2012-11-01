@@ -23,7 +23,7 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      static        : ['create','byCode','sendBetaInviteFromClient','grantInvitesFromClient']
+      static        : ['create','byCode','sendBetaInviteFromClient','grantInvitesFromClient','markAsSent']
     schema          :
       code          : String
       inviteeEmail  : String
@@ -81,27 +81,42 @@ module.exports = class JInvitation extends jraphical.Module
         else
           callback null
 
+  @markAsSent = secure (client,options,callback)->
+    account = client.connection.delegate
+    # unless 'super-admin' in account.globalFlags
+    unless account?.profile?.nickname is 'devrim'
+      return callback new KodingError "not authorized"
+    else
+      JInvitationRequest = require "./invitationrequest"
+      options.sort ?= 1
+      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->      
+        arr.forEach (invitation)->
+          invitation.update $set:sent:true,(err)->
+          callback null,"#{invitation.email} is marked as sent."
+        
+
+
   @sendBetaInviteFromClient = secure (client, options,callback)->
-    console.log "im called"
     JInvitationRequest = require "./invitationrequest"
     account = client.connection.delegate
     # unless 'super-admin' in account.globalFlags
     unless account?.profile?.nickname is 'devrim'
       return callback new KodingError "not authorized"
     else
+      options.sort ?= 1
       if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:1},(err,emails)->
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort},(err,emails)->
           daisy queue = emails.map (item)->
             ->
               continueLooping = ->
                 setTimeout (-> queue.next()), 50
-              item.sent = yes
+              
               JInvitation.sendBetaInvite email:item.email,(err,res)->
                 if err
                   callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
                   continueLooping()
                 else
-                  item.save (err)->
+                  item.update $set:sent:yes, (err)->                  
                     if err
                       callback 'err',"#{item.email}something went wrong saving the item as sent."
                     else

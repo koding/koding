@@ -204,6 +204,7 @@ Includes =
         KDInputValidator      : "./client/Framework/components/inputs/KDInputValidator.coffee"
         KDLabelView           : "./client/Framework/components/inputs/KDLabelView.coffee"
         KDInputView           : "./client/Framework/components/inputs/KDInputView.coffee"
+        KDInputViewWithPreview: "./client/Framework/components/inputs/KDInputViewWithPreview.coffee"
         KDHitEnterInputView   : "./client/Framework/components/inputs/KDHitEnterInputView.coffee"
         KDInputRadioGroup     : "./client/Framework/components/inputs/KDInputRadioGroup.coffee"
         KDInputSwitch         : "./client/Framework/components/inputs/KDInputSwitch.coffee"
@@ -312,6 +313,7 @@ Includes =
         codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
         embedbox                    : "./client/app/Applications/Activity.kdapplication/views/embedbox.coffee"
+        embedboxviews               : "./client/app/Applications/Activity.kdapplication/views/embedboxviews.coffee"
 
         # Activity widgets
         activityWidgetController    : "./client/app/Applications/Activity.kdapplication/widgets/widgetcontroller.coffee"
@@ -483,6 +485,7 @@ Includes =
         routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
+        sharedRoutes                : "./routes/index.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
         broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"

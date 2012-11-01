@@ -126,18 +126,43 @@ __utils =
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '
     text = __utils.putShowMore text if shorten
-    @expandWwwDotDomains @expandUrls @expandUsernames text
+    @expandUrls @expandUsernames text
+    # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
     return null unless text
     text.replace /(^|\s)(www\.[A-Za-z0-9-_]+.[A-Za-z0-9-_:%&\?\/.=]+)/g, (_, whitespace, www) ->
       "#{whitespace}<a href='http://#{www}' target='_blank'>#{www}</a>"
 
-  expandUsernames: (text) ->
+  expandUsernames: (text,sensitiveTo=no) ->
+    # sensitiveTo is a string containing parent elements whose children
+    # should not receive name expansion
+
+    # as a JQuery selector, e.g. "pre"
+    # means that all @s in <pre> tags will not be expanded
+
     return null unless text
-    text.replace /\B\@([\w\-]+)/gim, (u) ->
-      username = u.replace "@", ""
-      u.link "#!/member/#{username}"
+
+    # default case for regular text
+    if not sensitiveTo
+      text.replace /\B\@([\w\-]+)/gim, (u) ->
+        username = u.replace "@", ""
+        u.link "#!/member/#{username}"
+    # context-sensitive expansion
+    else
+      result = ""
+      $(text).each (i,element)->
+        if ($(element).parents(sensitiveTo).length is 0) and not ($(element).is sensitiveTo)
+          if $(element).html()?
+            replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
+              username = u.replace "@", ""
+              u.link "#!/member/#{username}"
+            $(element).html replacedText
+        result += $(element).get(0).outerHTML or "" # in case there is a text-only element
+      result
+
+
+
 
   expandTags: (text) ->
     return null unless text
@@ -147,8 +172,23 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
-      "<a href='#{url}' target='_blank'>#{url}</a>"
+    text.replace /([A-Za-z]+:\/\/)?([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+      originalUrl = url
+      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+
+      if not /[A-Za-z]+:\/\//.test url
+        # url has no protocol
+        url = '//'+url
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
+      # unless url in ["//more...","//less..."]
+      #   "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
+      # else
+      #   originalUrl
+
+      # new KDView
+      #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
+      #   tooltip :
+      #     title : url
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
@@ -308,7 +348,7 @@ __utils =
 
       if memorable
         pattern = if consonant.test(prefix) then vowel else consonant
-      
+
       n   = (Math.floor(Math.random() * 100) % 94) + 33
       chr = String.fromCharCode(n)
       chr = chr.toLowerCase() if memorable

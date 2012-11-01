@@ -2,6 +2,10 @@ class OpinionFormView extends KDFormView
 
   constructor :(options, data)->
 
+    # whether or not to show the preview area when the form is
+    # initially shown
+    @preview = options.preview or {}
+
     super
 
     {profile} = KD.whoami()
@@ -13,12 +17,22 @@ class OpinionFormView extends KDFormView
       loader          :
         diameter      : 12
 
-    @opinionBody = new KDInputView
+    @cancelOpinionBtn = new KDButtonView
+      title : "Cancel"
+      cssClass:"modal-cancel opinion-cancel"
+      type : "button"
+      style: "modal-cancel"
+      callback :=>
+        @parent?.editLink.$().click()
+
+    @showMarkdownPreview = options.previewVisible
+
+    @opinionBody = new KDInputViewWithPreview
+      preview         : @preview
       cssClass        : "opinion-body"
       name            : "body"
       title           : "your Opinion"
       type            : "textarea"
-      # autogrow        : yes
       placeholder     : "What do you want to contribute to the discussion?"
 
     @labelAddTags = new KDLabelView
@@ -30,19 +44,32 @@ class OpinionFormView extends KDFormView
 
     @fullScreenBtn = new KDButtonView
       style           : "clean-gray"
+      icon            : yes
+      iconClass       : "fullscreen"
+      iconOnly        : yes
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
       callback: =>
+        @textContainer = new KDView
+          cssClass:"modal-fullscreen-text"
+
+        @text = new KDInputViewWithPreview
+          type : "textarea"
+          cssClass : "fullscreen-data kdinput text"
+          defaultValue : @opinionBody.getValue()
+
+        @textContainer.addSubView @text
+
         modal = new KDModalView
           title       : "What do you want to discuss?"
           cssClass    : "modal-fullscreen"
           height      : $(window).height()-110
           width       : $(window).width()-110
+          view        : @textContainer
           position:
             top       : 55
             left      : 55
           overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@opinionBody.getValue()+"</textarea></div>"
           buttons     :
             Cancel    :
               title   : "Discard changes"
@@ -53,12 +80,28 @@ class OpinionFormView extends KDFormView
               title   : "Apply changes"
               style   : "modal-clean-gray"
               callback:=>
-                @opinionBody.setValue $("#fullscreen-data").val()
+                @opinionBody.setValue @text.getValue()
+                @opinionBody.generatePreview()
                 modal.destroy()
 
         modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
+        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
+        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
+        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
+        contentWidth = modal.$(".kdmodal-content").width()-40
+        halfWidth  = contentWidth / 2
+
+        @text.on "PreviewHidden", =>
+          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
+          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+
+        @text.on "PreviewShown", =>
+          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+          modal.$(".input_preview").width halfWidth-5
+
+        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+        modal.$(".input_preview").width halfWidth-5
 
     @markdownLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -69,14 +112,14 @@ class OpinionFormView extends KDFormView
         href      : '#'
         value     : "markdown syntax is enabled"
       cssClass    : 'markdown-link'
-      partial     : "markdown is enabled<span></span>"
+      partial     : "What is Markdown?<span></span>"
       click       : (pubInst, event)=>
         if $(event.target).is 'span'
           link.hide()
         else
           markdownText = new KDMarkdownModalText
           modal = new KDModalView
-            title       : "How to use the <em>markdown</em> syntax."
+            title       : "How to use the <em>Markdown</em> syntax."
             cssClass    : "what-you-should-know-modal markdown-cheatsheet"
             height      : "auto"
             width       : 500
@@ -86,22 +129,6 @@ class OpinionFormView extends KDFormView
                 title   : 'Close'
                 style   : 'modal-clean-gray'
                 callback: -> modal.destroy()
-
-    @markdownSelect = new KDSelectBox
-      type          : "select"
-      name          : "markdown"
-      cssClass      : "select markdown-select hidden"
-      selectOptions :
-          [
-              title : "enable markdown syntax"
-              value : "markdown"
-            ,
-              title : "disable markdown syntax"
-              value : "nomarkdown"
-          ]
-      defaultValue  : "markdown"
-      callback      : (value) =>
-        @emit "opinion.changeMarkdown", value
 
     @heartBox = new HelpBox
       subtitle : "About Discussions"
@@ -126,27 +153,6 @@ class OpinionFormView extends KDFormView
     if data instanceof KD.remote.api.JOpinion
       @opinionBody.setValue Encoder.htmlDecode data.body
 
-    @on "opinion.changeMarkdown", (value) ->
-      # markdown switch implementation here
-
-    @tagController = new TagAutoCompleteController
-      name                : "meta.tags"
-      type                : "tags"
-      itemClass           : TagAutoCompleteItemView
-      selectedItemClass   : TagAutoCompletedItemView
-      outputWrapper       : @selectedItemWrapper
-      selectedItemsLimit  : 5
-      listWrapperCssClass : "tags"
-      itemDataPath        : 'title'
-      form                : @
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        updateWidget = @getDelegate()
-        blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
-        appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
-
-    @tagAutoComplete = @tagController.getView()
-
   viewAppended:()->
     @setClass "update-options opinion"
     @setTemplate @pistachio()
@@ -160,7 +166,6 @@ class OpinionFormView extends KDFormView
       """
       <div class="opinion-box" id="opinion-form-box">
         <div class="opinion-form">
-          {{> @markdownSelect}}
           {{> @opinionBody}}
         </div>
         <div class="opinion-buttons">
@@ -171,6 +176,7 @@ class OpinionFormView extends KDFormView
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitOpinionBtn}}
+            {{> @cancelOpinionBtn}}
           </div>
         </div>
       </div>

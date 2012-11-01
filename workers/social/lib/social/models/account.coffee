@@ -43,7 +43,7 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance'
+        'byRelevance', 'fetchVersion'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -156,6 +156,8 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @fetchVersion =(callback)-> callback null, KONFIG.version
 
   @findSuggestions = (seed, options, callback)->
     {limit, blacklist, skip}  = options

@@ -1,8 +1,10 @@
 class ActivityLinkWidget extends KDFormView
 
-  constructor:->
+  constructor:(options={},data={})->
 
     super
+
+    {profile} = KD.whoami()
 
     @labelTitle = new KDLabelView
       title         : "Title:"
@@ -24,16 +26,29 @@ class ActivityLinkWidget extends KDFormView
 
     @description = new KDInputView
       label         : @labelDescription
-      name          : "body"
-      placeholder   : "What is your link about? Leave empty to display your links embedded description"
+      type          : "textarea"
+      placeholder   : "Please enter a description, #{Encoder.htmlDecode profile.firstName}."
+      name          : 'body'
+      style         : 'input-with-extras'
+      autogrow      : yes
       validate      :
         rules       :
+          required  : yes
           maxLength : 3000
+        messages    :
+          required  : "Please enter a description..."
 
     @labelLink = new KDLabelView
-      title : "Link:"
+      title : "URL:"
 
-    @embedBox = new EmbedBox
+    embedOptions = $.extend {}, options, {
+      delegate:@
+      hasDropdown : yes
+      click:->
+        no
+    }
+
+    @embedBox = new EmbedBox embedOptions,data
 
     @previousLink = ''
     @link = new KDInputView
@@ -49,12 +64,16 @@ class ActivityLinkWidget extends KDFormView
         unless @link.getValue() is @previousLink
           @previousLink = @link.getValue()
 
-          @embedBox.embedUrl @link.getValue(), {}, (linkData)=>
+          @embedBox.embedUrl @link.getValue(), {
+            maxWidth:525
+            }, (linkData)=>
 
-            @labelTitle.show()
-            @labelDescription.show()
-            @title.show()
-            @description.show()
+            @$("div.formline.link-title").show()
+            @$("div.formline.link-description").show()
+            # @labelTitle.show()
+            # @labelDescription.show()
+            # @title.show()
+            # @description.show()
 
             @title.setValue linkData.title
             @description.setValue linkData.description
@@ -71,13 +90,13 @@ class ActivityLinkWidget extends KDFormView
 
     @submitBtn = new KDButtonView
       style : "clean-gray"
-      title : "Share your Code Snippet"
+      title : "Share your Link"
       type  : 'submit'
 
     @heartBox = new HelpBox
-      subtitle    : "About Code Sharing"
+      subtitle    : "About Links"
       tooltip     :
-        title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
+        title     : "Link to things."
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -107,24 +126,37 @@ class ActivityLinkWidget extends KDFormView
 
 
   submit:=>
+    @addCustomData "link_url", @link.getValue()
+    @addCustomData "link_embed", @embedBox.getEmbedData()
+    @addCustomData "link_embed_hidden_items", @embedBox.embedHiddenItems
+
     @once "FormValidationPassed", => @reset()
     super
 
   reset:=>
+
     @submitBtn.setTitle "Share your Link"
+
     @removeCustomData "activity"
+
     @title.setValue ''
     @description.setValue ''
     @link.setValue ''
 
-    @embedBox.clearEmbed()
+    @embedBox.resetEmbedAndHide()
+
+    @previousLink = 'this was the previous link'
 
     @tagController.reset()
 
   switchToEditView:(activity)->
+
     @submitBtn.setTitle "Edit link"
     @addCustomData "activity", activity
-    {title, body, tags, link_url, link_embed} = activity
+    {title, body, tags, link_url, link_embed, link_embed_hidden_items} = activity
+
+    @$("div.formline.link-title").show()
+    @$("div.formline.link-description").show()
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -132,7 +164,13 @@ class ActivityLinkWidget extends KDFormView
     @title.setValue Encoder.htmlDecode title
     @description.setValue Encoder.htmlDecode body
 
-    @embedBox.embedUrl link_url
+    @link.setValue Encoder.htmlDecode link_url
+
+    # refresh the embed data when editing
+    @embedBox.embedUrl link_url, {
+      maxWidth:525
+    }
+    @embedBox.setEmbedHiddenItems link_embed_hidden_items
 
 
   widgetShown:->
@@ -143,10 +181,8 @@ class ActivityLinkWidget extends KDFormView
     @setTemplate @pistachio()
     @template.update()
 
-    @labelTitle.hide()
-    @labelDescription.hide()
-    @description.hide()
-    @title.hide()
+    @$("div.formline.link-title").hide()
+    @$("div.formline.link-description").hide()
 
   pistachio:->
     """
