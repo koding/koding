@@ -97,4 +97,21 @@ module.exports = deepFreeze
       """.replace /\n/g, ' '
     uri         : 'http://zb.koding.com:3008/resetVhost'
     webPort     : 3008
-  pidFile           : '/tmp/koding.server.pid'
+  pidFile       : '/tmp/koding.server.pid'
+  crypto :
+    encrypt: (str,key=Math.floor(Date.now()/1000/60))->
+      crypto = require "crypto"
+      str = str+""
+      key = key+""
+      cipher = crypto.createCipher('aes-256-cbc',""+key)
+      cipher.update(str,'utf-8')
+      a = cipher.final('hex')
+      return a
+    decrypt: (str,key=Math.floor(Date.now()/1000/60))->
+      crypto = require "crypto"
+      str = str+""
+      key = key+""
+      decipher = crypto.createDecipher('aes-256-cbc',""+key)
+      decipher.update(str,'hex')
+      b = decipher.final('utf-8')
+      return b

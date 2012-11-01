@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
-
-{webserver, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
+KONFIG = require argv.c
+{webserver, mongo, mq, projectRoot, kites, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
 
@@ -114,14 +114,16 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
-app.get "/status/:data",(req,res)->
+app.get "/status/processIsDead/:name/:encryptedPid",(req,res)->
   # req.params.data
-
-  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
-  # exchange.publish 'exit','sharedhosting is dead'
-  # exchange.close()
-  koding.mq.emit 'public-status','exit',req.params.data
-  res.send "alright."
+  console.log req.params
+  
+  obj =
+    processName : req.params.name
+    processId   : KONFIG.crypto.decrypt req.params.encryptedPid
+  
+  koding.mq.emit 'public-status','processIsDead',obj
+  res.send "got it."
 
 
 app.get '*', (req,res)->
