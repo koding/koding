@@ -145,9 +145,9 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
-        separator                 : yes
-      'Create a CodeShare'        :
-        action                    : 'codeShare'
+      #   separator                 : yes
+      # 'Create a CodeShare'        :
+      #   action                    : 'codeShare'
 
     if fileView.expanded
       delete items.Expand
