@@ -1,7 +1,7 @@
 class WebTermView extends KDView
   viewAppended: ->
     @container = new KDView
-      cssClass : "console"
+      cssClass : "console ubuntu-mono black-on-white"
     @addSubView @container
 
     @sessionBox = new KDView
