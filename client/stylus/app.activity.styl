@@ -476,8 +476,9 @@ button.kdbutton.dark
     padding               8px 10px 6px 10px
     line-height           17px
     borderBox()
-    &:hover
-      border-color        rgb(199,199,199)
+    // this breaks focus border color better to be removed
+    // &:hover
+    //   border-color        rgb(199,199,199)
     &.discussion-body
       min-height 72px
       max-height 300px
