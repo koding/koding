@@ -151,7 +151,7 @@ class KDWindowController extends KDController
       view.setClass "mousetrap"
       @currentCombos = superizeCombos combos
       for combo, cb of @currentCombos
-        Mousetrap.bind combo, cb
+        Mousetrap.bind combo, cb, 'keydown'
 
   unregisterKeyCombos:->
 
