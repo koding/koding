@@ -156,10 +156,12 @@ __utils =
       maxLength : l + Math.floor(l/10)
       suffix    : ' '
 
-    text = if text.length > 500
+
+
+    text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
-      morePart += text.substr 500
+      morePart += text.substr shortenedText.length
       morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
       morePart += "</span>"
       shortenedText + morePart
@@ -167,7 +169,7 @@ __utils =
       shortenedText
 
   shortenText:do ->
-    tryToShorten = (longText, optimalBreak, suffix)->
+    tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
         longText.split(optimalBreak).slice(0, -1).join(optimalBreak) + (suffix ? optimalBreak)
