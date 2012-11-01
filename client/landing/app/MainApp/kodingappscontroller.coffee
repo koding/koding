@@ -424,7 +424,7 @@ class KodingAppsController extends KDController
         else
           orderedBlocks.push blockOptions
 
-      if source.stylesheets
+      if app.devMode
         appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
 
         asyncStack.push (cb)=>
