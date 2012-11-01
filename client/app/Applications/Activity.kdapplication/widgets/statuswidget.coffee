@@ -108,9 +108,32 @@ class ActivityStatusUpdateWidget extends KDFormView
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
+    @inputLinkInfoBox = new KDView
+      pistachio : """For links, please provide a protocol such as http:// or // <a target="_blank" href="http://tools.ietf.org/html/rfc3986#section-4.2">(relative reference)</a>"""
+
     @tagAutoComplete = @tagController.getView()
 
+  # will automatically add // to any non-protocol urls
+  sanitizeUrls:(text)->
+    text.replace /(([a-zA-Z]+\:)?\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)->
+      test = /^(([a-zA-Z]+\:)?\/\/)/.test url
+      if test is no
+
+        # here there could be a warning/popup that explains how and why
+        # we change the links in the edit
+
+        "//"+url
+
+      else
+
+        # if a protocol of any sort is found, no change
+
+        url
+
   requestEmbed:=>
+
+    @largeInput.setValue @sanitizeUrls @largeInput.getValue()
+
     unless @requestEmbedLock is on
 
       @requestEmbedLock = on
@@ -237,7 +260,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   pistachio:->
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}</div>
+    <div class="large-input">{{> @largeInput}}{{>@inputLinkInfoBox}}</div>
     <div class="formline">
     {{> @embedBox}}
     </div>
