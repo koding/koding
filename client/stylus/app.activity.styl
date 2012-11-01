@@ -1822,11 +1822,42 @@ div.kdinputwithpreview.input_preview
 p.status-body
 
   a
-    > span.icon
+    > span.icon, span
       vertical-align:bottom
       size 18px 16px
       sprite()
       display inline-block
       margin-bottom 1px
-      &.link
+      &.link, &.expanded-link
         bg position, -101px -380px
+
+
+div.protocol-info-box
+  borderBox()
+  rounded 4px
+  border 1px solid #e8e8e8
+  padding 6px 9px
+
+  > button.kdbutton.hide-info-box
+    position absolute
+    top -1px
+    right -1px
+    size 20px,20px
+    margin 0px
+    padding 0px
+    border none
+    opacity 0.15
+    background transparent
+    vendor transition, opacity 0.3s ease-in-out
+    z-index 3
+
+    > span.icon
+      sprite()
+
+      &.hide
+        bg position, -80px -240px
+      &.report
+        bg position, 0px -120px
+
+    &:hover
+      opacity 1

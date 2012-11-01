@@ -172,18 +172,14 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([A-Za-z]+:\/\/)?([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+    text.replace /(([A-Za-z]+:)?\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       originalUrl = url
-      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+      visibleUrl = url.replace(/((ht|f)tp(s)?\:)?\/\//,"").replace(/\/.*/,"")
 
       if not /[A-Za-z]+:\/\//.test url
         # url has no protocol
         url = '//'+url
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
-      # unless url in ["//more...","//less..."]
-      #   "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
-      # else
-      #   originalUrl
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}<span class='expanded-link'></span></a>"
 
       # new KDView
       #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
