@@ -1,0 +1,43 @@
+@font-face {
+    font-family: 'SourceCodePro';
+    src: url('SourceCodePro-Regular-webfont.eot');
+    src: url('SourceCodePro-Regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('SourceCodePro-Regular-webfont.woff') format('woff'),
+         url('SourceCodePro-Regular-webfont.ttf') format('truetype'),
+         url('SourceCodePro-Regular-webfont.svg#SourceCodeProRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SourceCodePro';
+    src: url('SourceCodePro-Bold-webfont.eot');
+    src: url('SourceCodePro-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('SourceCodePro-Bold-webfont.woff') format('woff'),
+         url('SourceCodePro-Bold-webfont.ttf') format('truetype'),
+         url('SourceCodePro-Bold-webfont.svg#SourceCodeProBold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UbuntuMono';
+    src: url('UbuntuMono-R-webfont.eot');
+    src: url('UbuntuMono-R-webfont.eot?#iefix') format('embedded-opentype'),
+         url('UbuntuMono-R-webfont.woff') format('woff'),
+         url('UbuntuMono-R-webfont.ttf') format('truetype'),
+         url('UbuntuMono-R-webfont.svg#UbuntuMonoRegular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'UbuntuMono';
+    src: url('UbuntuMono-B-webfont.eot');
+    src: url('UbuntuMono-B-webfont.eot?#iefix') format('embedded-opentype'),
+         url('UbuntuMono-B-webfont.woff') format('woff'),
+         url('UbuntuMono-B-webfont.ttf') format('truetype'),
+         url('UbuntuMono-B-webfont.svg#UbuntuMonoBold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
