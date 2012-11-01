@@ -24,11 +24,11 @@ class KodingAppsController extends KDController
             # pre     : ""
             files   : [ "./index.coffee" ]
             # post    : ""
+        stylesheets : [ "./resources/style.css" ]
       options       :
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
-      stylesheets   : [ "./resources/style.css" ]
 
     json = JSON.stringify raw, null, 2
 
@@ -261,15 +261,15 @@ class KodingAppsController extends KDController
     if stylesheets
       stylesheets.forEach (sheet)->
         if devMode
-          $("head ##{__utils.slugify name}").remove()
-          $('head').append "<link id='#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+          $("head #app-#{__utils.slugify name}").remove()
+          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head ##{__utils.slugify name}").remove()
-            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $("head #app-#{__utils.slugify name}").remove()
+            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
