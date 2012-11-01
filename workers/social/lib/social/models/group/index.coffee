@@ -142,11 +142,16 @@ module.exports = class JGroup extends Module
 
   updatePermissions: permit 'grant permissions'
     success:(client, permissions, callback=->)->
-      @fetchPermissions (err, permissionSet)->
+      @fetchPermissions client, (err, permissionSet)=>
         if err
           callback err
+        else if permissionSet?
+          # TODO: permissionSet.permissionSet is botched.
+          console.log 'there is a permission set', permissionSet, permissionSet.constructor
+          permissionSet.permissionSet.update $set:{permissions}, callback
         else
-          permissionSet.update $set:{permissions}, callback
+          permissionSet = new JPermissionSet {permissions}
+          permissionSet.save callback
 
   fetchPermissions: permit 'grant permissions'
     success:(client, callback)->
@@ -158,7 +163,7 @@ module.exports = class JGroup extends Module
         else
           callback null, {
             permissionsByModule
-            permissions: permissionSet.permissions
+            permissionSet: permissionSet
           }
 
   modify: permit(['edit groups','edit own groups'],

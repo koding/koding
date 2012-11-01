@@ -10,6 +10,12 @@ class JPermission extends Model
 
 module.exports = class JPermissionSet extends Module
 
+  @share()
+
+  @set
+    schema        :
+      permissions : [JPermission]
+
   {intersection} = require 'underscore'
 
   KodingError = require '../../error'
@@ -72,8 +78,3 @@ module.exports = class JPermissionSet extends Module
           else
             failure new KodingError 'Access denied!'
       )
-
-  @set
-    schema        :
-      permissions : [JPermission]
-
