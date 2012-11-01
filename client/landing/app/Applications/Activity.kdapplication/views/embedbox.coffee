@@ -303,7 +303,7 @@ class EmbedBox extends KDView
 
       switch type
 
-        when "audio", "xml", "video", "json", "ppt", "rss", "atom"
+        when "audio", "xml", "json", "ppt", "rss", "atom"
           displayEmbedType "object"
 
           @embedObject.populate
@@ -334,7 +334,7 @@ class EmbedBox extends KDView
         # link is fallback for things that may or may not have any kind of preview
         # or are links explicitly
         # also captures "rich content" and makes regular links from that data
-        when "link", "rich", "html", "text"
+        when "link", "rich", "html", "text", "video"
 
           # Unless the provider is whitelisted by us, we will not allow the custom HTML
           # that embedly provides to be displayed, rather use our own small box
@@ -353,7 +353,7 @@ class EmbedBox extends KDView
 
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
-          else if data?.type in ["html", "xml", "text"]
+          else if data?.type in ["html", "xml", "text", "video"]
 
             displayEmbedType "link"
 

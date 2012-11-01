@@ -29,6 +29,9 @@ class ActivityStatusUpdateWidget extends KDFormView
     # box is hidden (as it is when the widget is empty or reset)
     @initialRequest = yes
 
+    # will hide the link helper box once it's been closed once
+    @inputLinkInfoBoxPermaHide = off
+
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
@@ -108,9 +111,54 @@ class ActivityStatusUpdateWidget extends KDFormView
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
+
+    @inputLinkInfoBoxCloseButton = new KDButtonView
+      name: "hide-info-box"
+      cssClass      : "hide-info-box"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "hide"
+      title     : "Close"
+      callback  : =>
+        @inputLinkInfoBox.hide()
+        @inputLinkInfoBoxPermaHide = on
+
+    @inputLinkInfoBox = new KDView
+      cssClass : "protocol-info-box hidden"
+      pistachio : """
+      <p>For links, please provide a protocol such as
+        <abbr title="Hypertext Transfer Protocol">http://</abbr> or
+        <a title="Relative Reference" target="_blank" href="http://tools.ietf.org/html/rfc3986#section-4.2">//</a>
+      </p>
+      """
+
+    @inputLinkInfoBox.addSubView @inputLinkInfoBoxCloseButton
+
     @tagAutoComplete = @tagController.getView()
 
+  # will automatically add // to any non-protocol urls
+  sanitizeUrls:(text)->
+    text.replace /(([a-zA-Z]+\:)?\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
+      test = /^(([a-zA-Z]+\:)?\/\/)/.test url
+      if test is no
+
+        # here is a warning/popup that explains how and why
+        # we change the links in the edit
+
+        unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
+
+        "//"+url
+
+      else
+
+        # if a protocol of any sort is found, no change
+
+        url
+
   requestEmbed:=>
+
+    @largeInput.setValue @sanitizeUrls @largeInput.getValue()
+
     unless @requestEmbedLock is on
 
       @requestEmbedLock = on
@@ -237,7 +285,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   pistachio:->
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}</div>
+    <div class="large-input">{{> @largeInput}}{{>@inputLinkInfoBox}}</div>
     <div class="formline">
     {{> @embedBox}}
     </div>
