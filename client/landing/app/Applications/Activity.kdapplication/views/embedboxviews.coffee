@@ -181,24 +181,25 @@ class EmbedBoxLinkView extends KDView
   render:->
     @template.update()
     super()
-    setTimeout =>
-      @getDelegate().loadImages()
-    , 1000
+
+    @loadImages()
+
 
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
-    setTimeout =>
-      @getDelegate().loadImages()
-    , 1000
 
-    # # fetch images lazily
-    # @$("img").each (i,element)->
-    #   if $(element).attr "data-src"
-    #     $(element).attr "src" : $(element).attr("data-src")
-    #     $(element).removeAttr "data-src"
-    #   element
+    @loadImages()
+
+  loadImages:->
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
 
 
   pistachio:->
@@ -302,17 +303,25 @@ class EmbedBoxImageView extends KDView
     @options = data.link_options
     @viewAppended()
 
+  render:->
+    super()
+    @loadImages()
+
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
 
-    # # fetch images lazily
-    # @$("img").each (i,element)->
-    #   if $(element).attr "data-src"
-    #     $(element).attr "src" : $(element).attr("data-src")
-    #     $(element).removeAttr "data-src"
-    #   element
+    @loadImages()
+
+  loadImages:->
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
 
 
   pistachio:->

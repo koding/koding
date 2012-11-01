@@ -99,17 +99,14 @@ class EmbedBox extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-    setTimeout =>
-      @loadImages()
-    , 5000
-
   loadImages:->
-    # fetch images lazily
-    @$("img").each (i,element)->
-      if $(element).attr "data-src"
-        $(element).attr "src" : $(element).attr("data-src")
-        $(element).removeAttr "data-src"
-      element
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
 
   refreshEmbed:=>
     @populateEmbed @getEmbedData(), @embedURL, {}, @getEmbedCache()
