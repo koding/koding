@@ -42,7 +42,6 @@ class AceView extends JView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
 
-
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
     @previewButton = new KDButtonView
       style     : "editor-button"
@@ -56,16 +55,20 @@ class AceView extends JView
 
     @previewButton.hide() unless publicUrlCheck.test(@getData().path)
 
-    @compileButton = new KDButtonView
+    @compileAndRunButton = new KDButtonView
       style     : "editor-button"
       icon      : yes
       iconOnly  : yes
       iconClass : "compile"
+      tooltip   :
+        title   : "Compile & Run"
       callback  : =>
-        @getSingleton('kodingAppsController').compileApp @getData().path, =>
+        manifest = KodingAppsController.getManifestFromPath @getData().parentPath
+        @getSingleton('kodingAppsController').compileApp manifest.name, =>
           @ace.notify "App compiled!", "success"
+          @getSingleton('kodingAppsController').runApp manifest
 
-    @compileButton.hide() unless /\.kdapp\//.test @getData().path
+    @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
 
     @setViewListeners()
 
@@ -101,7 +104,7 @@ class AceView extends JView
     """
     <div class="kdview editor-header">
       <div class="kdview header-buttons">
-        {{> @compileButton}}
+        {{> @compileAndRunButton}}
         {{> @previewButton}}
         {{> @saveButton}}
       </div>

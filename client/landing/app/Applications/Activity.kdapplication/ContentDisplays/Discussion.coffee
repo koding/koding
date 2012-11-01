@@ -34,8 +34,12 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
 
     @opinionForm = new OpinionFormView
-      cssClass  : "opinion-container"
-      callback  : (data)=>
+      preview         :
+        language      : "markdown"
+        autoUpdate    : yes
+        showInitially : no
+      cssClass        : "opinion-container"
+      callback        : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
           @opinionForm.submitOpinionBtn.hideLoader()
@@ -247,19 +251,24 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
+  hightlightCode:=>
+    @$("pre").addClass "prettyprint"
+    @$("p.discussion-body span.data pre").each (i,element)=>
+      hljs.highlightBlock element
+
   render:->
     super()
-
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    @hightlightCode()
 
   viewAppended:()->
     super()
+
     @setTemplate @pistachio()
     @template.update()
 
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    @hightlightCode()
+
+    @$(".discussion-body .data").addClass "has-markdown"
 
   pistachio:->
     """
@@ -284,7 +293,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body'>{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
+            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
