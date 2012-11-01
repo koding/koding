@@ -1152,6 +1152,32 @@ button.cancel-edit-button
     .close-icon
       bg              position, -60px -241px
 
+.kdautocomplete.listview-wrapper.tags
+  max-width             300px
+  .kdview.kdlistview.kdautocompletelist
+    .kdautocompletelistitem
+      clear             none
+      float             left
+      width             auto
+      &.suggest
+        width           100%
+        float           none
+        clear           both
+        &.active
+          bg            color, #7dbef1
+          .ttag
+            bg          color, #ff9200
+        .ttag
+          bg            color, #ff9200
+          max-width     560px
+
+      &.active
+        bg              color, transparent
+        shadow          none
+        .ttag
+          bg            color, #0a92ba          
+          text-shadow   none
+
 
 figure.code-container
   position              relative
