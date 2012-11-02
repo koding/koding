@@ -193,8 +193,6 @@ __utils =
       maxLength : l + Math.floor(l/10)
       suffix    : ' '
 
-
-
     text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"

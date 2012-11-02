@@ -71,6 +71,7 @@
         , placement
         , $tip
         , tp
+        , className
 
       if (this.hasContent() && this.enabled) {
         $tip = this.tip()
@@ -95,6 +96,8 @@
 
         placement = maybeCall(this.options.placement, this, [ $tip[0], this.$element[0] ])
 
+        className = this.options.className
+
         switch (placement) {
           case 'below':
             tp = {top: pos.top + pos.height + this.options.offset, left: pos.left + pos.width / 2 - actualWidth / 2}
@@ -114,6 +117,7 @@
           .css(tp)
           .addClass(placement)
           .addClass('in')
+          .addClass(className)
       }
     }
 
@@ -163,7 +167,7 @@
         }
 
         title = ('' + title).replace(/(^\s*|\s*$)/, "")
-        
+
         return title || o.fallback
     }
 
@@ -302,6 +306,7 @@
   , title: 'title'
   , trigger: 'hover'
   , template: '<div class="twipsy-arrow"></div><div class="twipsy-inner"></div>'
+  , className: 'tooltip'
   }
 
   $.fn.twipsy.rejectAttrOptions = [ 'title' ]
