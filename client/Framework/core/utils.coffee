@@ -172,11 +172,11 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /(([A-Za-z]+:)?\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+    text.replace /([A-Za-z]+:\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       originalUrl = url
 
       # remove protocol and trailing path
-      visibleUrl = url.replace(/((ht|f)tp(s)?\:)?\/\//,"").replace(/\/.*/,"")
+      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
 
       checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
 
