@@ -1155,13 +1155,13 @@ div.kdview.link-embed-box
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
     position absolute
-    top -1px
-    right -1px
+    top 4px
+    right 3px
     size 20px,20px
     margin 0px
     padding 0px
     border none
-    opacity 0.15
+    opacity 0.5
     background transparent
     vendor transition, opacity 0.3s ease-in-out
     z-index 3
@@ -1826,17 +1826,18 @@ div.kdinputwithpreview.input_preview
 
 .twipsy.link-expander
 
-  border-color #e8e8e8
-  vendor box-shadow, none
   .twipsy-inner
 
-    background-color #fff!important
-    color #000!important
+    vendor box-shadow,  0 3px 7px rgba(0, 0, 0, 0.5)
+    background-color    #fff!important
+    color               #000
     &:hover
-      color #27A3C9!important
+      color             #27A3C9
 
     span
-      color #ff9200
+      color             #ff9200
+  .twipsy-arrow
+    border-top          3px solid #fff!important
 
 p.status-body
 
@@ -1863,13 +1864,13 @@ div.protocol-info-box
 
   > button.kdbutton.hide-info-box
     position absolute
-    top -1px
-    right -1px
+    top 4px
+    right 3px
     size 20px,20px
     margin 0px
     padding 0px
     border none
-    opacity 0.15
+    opacity 0.5
     background transparent
     vendor transition, opacity 0.3s ease-in-out
     z-index 3
