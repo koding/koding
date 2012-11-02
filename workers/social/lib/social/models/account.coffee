@@ -151,7 +151,7 @@ module.exports = class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"]
 
       feed         :
         as          : "owner"
@@ -247,7 +247,7 @@ module.exports = class JAccount extends jraphical.Module
     selector            or= {}
     selector.as           = 'like'
     selector.targetId     = @getId()
-    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
+    selector.sourceName or= $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
 
     Relationship.some selector, options, (err, contents)=>
       if err then callback err, []
@@ -276,7 +276,7 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.count
       as         : 'like'
       targetId   : @getId()
-      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink']
+      sourceName : $in: ['JCodeSnip', 'JStatusUpdate', 'JDiscussion', 'JOpinion', 'JCodeShare', 'JLink', 'JTutorial']
     , (err, count)=>
       @update ($set: 'counts.likes': count), ->
 

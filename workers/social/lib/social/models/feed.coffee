@@ -19,7 +19,7 @@ module.exports = class JFeed extends jraphical.Module
     relationships   :
       content       :
         as          : 'container'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment"]
+        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JDiscussion", "JTutorial"]
 
     sharedMethods   :
       instance      : [
@@ -29,7 +29,7 @@ module.exports = class JFeed extends jraphical.Module
   saveFeedToAccount = (feed, account, callback) ->
     feed.save (err) ->
       if err then callback err
-      else 
+      else
         account.addFeed feed, (err) ->
           if err then callback err
           else callback null, feed

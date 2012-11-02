@@ -24,6 +24,8 @@ class EmbedBox extends KDView
     @setEmbedImageIndex data.link_embed_image_index or data.link?.link_embed_image_index or 0
     @setEmbedHiddenItems data.link_embed_hidden_items or data.link?.link_embed_hidden_items or []
 
+    @hasValidContent = no
+
 
     super options,data
 
@@ -241,6 +243,8 @@ class EmbedBox extends KDView
       @setEmbedURL url
       callback oembed[0],embedlyOptions
 
+      @hasValidContent = yes
+
     # embed.ly provides this jQuery plugin for client-side embeds
 
     # requirejs ["http://scripts.embed.ly/jquery.embedly.min.js"], (embedly)=>
@@ -253,6 +257,9 @@ class EmbedBox extends KDView
     @setEmbedData data
     @setEmbedURL url
     @setEmbedCache cache unless cache is []
+
+    @hasValidContent = yes
+
 
     displayEmbedType=(embedType)=>
       # log "setting up", embedType, @getEmbedData()
@@ -354,8 +361,10 @@ class EmbedBox extends KDView
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ["html", "xml", "text", "video"]
-
-            displayEmbedType "link"
+            if (not @options.forceType?)
+              displayEmbedType "link"
+            else
+              displayEmbedType @options.forceType
 
             @embedContainer.populate
               link_embed : data
@@ -440,6 +449,7 @@ class EmbedBox extends KDView
 
     @embedLoader.show()
     @$("div.link-embed").addClass "loading"
+    log "options prefetch", options
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
         @resetEmbed()
