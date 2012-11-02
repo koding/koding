@@ -1122,6 +1122,8 @@ div.kdview.link-embed-box
   borderBox()
   position relative
 
+  vendor transition, opacity .1s linear
+
   width auto
   height auto
 
@@ -1136,6 +1138,9 @@ div.kdview.link-embed-box
   rounded 4px
   border 1px solid black
   border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+
+  // Fix YouTube style breakage in Chrome
+  // vendor font-smoothing, subpixel-antialiased !important;
 
   background-color #F7F7F7
 
@@ -1829,7 +1834,10 @@ p.status-body
       display inline-block
       margin-bottom 1px
       &.link, &.expanded-link
-        bg position, -101px -380px
+        bg position, -1px -440px
+
+        &.shortened
+          bg position, -21px -440px
 
 
 div.protocol-info-box
