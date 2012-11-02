@@ -37,6 +37,10 @@ class TutorialFormView extends KDFormView
       title           : "your Video"
       type            : "text"
       placeholder     : "The URL to your video"
+      focus:=>
+        @getDelegate().embedBox.show()
+      blur:=>
+        @getDelegate().embedBox.hide()
       paste:=>
           @utils.wait =>
 

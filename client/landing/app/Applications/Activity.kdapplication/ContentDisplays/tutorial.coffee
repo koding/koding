@@ -9,6 +9,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     super options, data
 
+    @setClass "tutorial"
+
     origin =
       constructorName  : data.originType
       id               : data.originId
