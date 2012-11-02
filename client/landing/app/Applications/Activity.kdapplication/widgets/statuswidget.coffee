@@ -147,7 +147,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
         unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
 
-        "//"+url
+        "http://"+url
 
       else
 

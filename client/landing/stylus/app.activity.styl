@@ -1127,12 +1127,12 @@ div.kdview.link-embed-box
   width auto
   height auto
 
-  // this is gecko
-  width max-content
+  // // this is gecko
+  // width max-content
   height max-content
 
-  // this is webkit-only
-  width intrinsic
+  // // this is webkit-only
+  // width intrinsic
   height intrinsic
 
   rounded 4px
@@ -1825,26 +1825,34 @@ div.kdinputwithpreview.input_preview
       margin-bottom   0
 
 .twipsy.link-expander
+
+  border-color #e8e8e8
+  vendor box-shadow, none
   .twipsy-inner
-    background-color #E8E8E8!important
-    color #ff9200!important
+
+    background-color #fff!important
+    color #000!important
     &:hover
       color #27A3C9!important
 
+    span
+      color #ff9200
+
 p.status-body
 
-  a
-    > span.icon, span
-      vertical-align:bottom
-      size 18px 16px
-      sprite()
-      display inline-block
-      margin-bottom 1px
-      &.link, &.expanded-link
-        bg position, -1px -440px
+  // a
+  //   > span.icon, span
 
-        &.shortened
-          bg position, -21px -440px
+  //     vertical-align:bottom
+  //     size 18px 16px
+  //     sprite()
+  //     display inline-block
+  //     margin-bottom 1px
+  //     &.link, &.expanded-link
+  //       bg position, -1px -440px
+
+  //       &.shortened
+  //         bg position, -21px -440px
 
 
 div.protocol-info-box

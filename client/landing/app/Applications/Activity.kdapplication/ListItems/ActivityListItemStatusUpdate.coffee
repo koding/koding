@@ -26,12 +26,12 @@ class StatusActivityItemView extends ActivityItemChild
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      linkIsShortened = no
+      # linkIsShortened = no
 
-      unless $(element).text() is href.replace(/^(((ht|f)tp(s)?\:)?\/\/)/,"").replace(/\/$/,"") or\
-             "http://"+$(element).text().replace("","") is href.replace(/\/$/,"")
-        $(element).twipsy twOptions(href)
-        linkIsShortened = yes
+      # unless $(element).text() is href.replace(/^(((ht|f)tp(s)?\:)?\/\/)/,"").replace(/\/$/,"") or\
+      #        "http://"+$(element).text().replace("","") is href.replace(/\/$/,"")
+      $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+        # linkIsShortened = yes
 
       element
 
