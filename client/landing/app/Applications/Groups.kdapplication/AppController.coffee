@@ -81,7 +81,7 @@ class GroupsController extends AppController
 
 
   _createGroupHandler =(formData)->
-    KD.remote.api.JGroup.create formData, (err, group)->
+    KD.remote.api.JGroup.create formData, (err, group)=>
       if err
         new KDNotificationView
           title: err.message
@@ -90,6 +90,7 @@ class GroupsController extends AppController
         new KDNotificationView
           title: 'Group was created!'
           duration: 1000
+        @showContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -120,9 +121,9 @@ class GroupsController extends AppController
         forms     :
           create:
             title: if isNewGroup then 'Create a group' else 'Edit group'
-            callback:(formData)->
+            callback:(formData)=>
               if isNewGroup
-                _createGroupHandler formData
+                _createGroupHandler.call @, formData
               else
                 _updateGroupHandler group, formData
               modal.destroy()
@@ -266,8 +267,8 @@ class GroupsController extends AppController
   #     else
   #       log tag,"created topic #{tag.title}"
 
-  createContentDisplay:(tag,doShow = yes)->
-    @showContentDisplay tag
+  createContentDisplay:(group, doShow = yes)->
+    @showContentDisplay group
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -283,7 +284,7 @@ class GroupsController extends AppController
 
   showContentDisplay:(content)->
     contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerTopic null, content
+    controller = new ContentDisplayControllerGroups null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 

@@ -12,7 +12,10 @@ class ContentDisplayControllerMember extends KDViewController
 
     # mainView.addSubView header = new HeaderViewSection type : "big", title : "Profile"
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
-    subHeader.addSubView backLink = new KDCustomHTMLView tagName : "a", partial : "<span>&laquo;</span> Back"
+    subHeader.addSubView backLink = new KDCustomHTMLView
+        tagName : "a"
+        partial : "<span>&laquo;</span> Back"
+        click: -> console.log history; history.back(); no
 
     contentDisplayController = @getSingleton "contentDisplayController"
 

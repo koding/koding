@@ -62,8 +62,8 @@ class GroupsListItemView extends KDListItemView
     , data
 
   titleReceivedClick:(event)->
-    tag = @getData()
-    appManager.tell "Topics", "createContentDisplay", tag
+    group = @getData()
+    appManager.tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"

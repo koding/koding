@@ -1,4 +1,4 @@
-class ContentDisplayControllerApps extends KDViewController
+class ContentDisplayControllerGroups extends KDViewController
   constructor:(options = {}, data)->
 
     options.view or= mainView = new KDView cssClass : 'apps content-display'
@@ -7,7 +7,7 @@ class ContentDisplayControllerApps extends KDViewController
 
   loadView:(mainView)->
 
-    app = @getData()
+    group = @getData()
 
     mainView.addSubView subHeader = new KDCustomHTMLView tagName : "h2", cssClass : 'sub-header'
     subHeader.addSubView backLink = new KDCustomHTMLView
@@ -22,14 +22,14 @@ class ContentDisplayControllerApps extends KDViewController
 
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
 
-    mainView.addSubView appView = new AppView
+    mainView.addSubView appView = new GroupView
       cssClass : "profilearea clearfix"
       delegate : mainView
-    , app
+    , group
 
-    mainView.addSubView appView = new AppDetailsView
-      cssClass : "info-wrapper"
-      delegate : mainView
-    , app
+    # mainView.addSubView appView = new AppDetailsView
+    #   cssClass : "info-wrapper"
+    #   delegate : mainView
+    # , app
 
 
