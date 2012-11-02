@@ -24,7 +24,7 @@ class StatusActivityItemView extends ActivityItemChild
       href = $(element).attr("data-original-url") or ""
 
       twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
       linkIsShortened = no
 
