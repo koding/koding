@@ -174,17 +174,18 @@ __utils =
     return null unless text
     text.replace /(([A-Za-z]+:)?\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       originalUrl = url
+
+      # remove protocol and trailing path
       visibleUrl = url.replace(/((ht|f)tp(s)?\:)?\/\//,"").replace(/\/.*/,"")
 
+      checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
+
       if not /[A-Za-z]+:\/\//.test url
+
         # url has no protocol
         url = '//'+url
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}<span class='expanded-link'></span></a>"
 
-      # new KDView
-      #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
-      #   tooltip :
-      #     title : url
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}<span class='expanded-link #{if checkForPostSlash then "shortened" else ""}'></span></a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
