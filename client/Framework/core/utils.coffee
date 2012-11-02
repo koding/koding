@@ -185,7 +185,7 @@ __utils =
         # url has no protocol
         url = '//'+url
 
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}<span class='expanded-link #{if checkForPostSlash then "shortened" else ""}'></span></a>"
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
