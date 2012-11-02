@@ -9,7 +9,13 @@ do ->
     KDRouter.addRoute route, ->
       console.warn "Contract warning: shared route #{route} is not implemented."
 
+  handleRoot =->
+    KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+
   routes =
+
+    '/' : handleRoot
+    ''  : handleRoot
 
     '/recover/:recoveryToken': ({recoveryToken})->
       mainController.appReady ->
@@ -79,18 +85,47 @@ do ->
             title     : "Thanks for confirming your email address!"
 
     '/member/:username': ({username})->
-
         KD.remote.api.JAccount.one "profile.nickname" : username, (err, account)->
           if err then warn err
           else if account
             appManager.tell "Members", "createContentDisplay", account
 
     '/discussion/:title': ({title})->
-
         KD.remote.api.JDiscussion.one "title": title, (err, discussion)->
           if err then warn err
           else if discussion
             appManager.tell "Activity", "createContentDisplay", discussion
+
+    '/:name': (params)->
+      KD.remote.cacheable params.name, (err, model, name)->
+        log arguments
+        switch name.constructorName
+          when 'JAccount'
+            appManager.tell 'Members', 'createContentDisplay', model
+          when 'JGroup'
+            appManager.tell 'Groups', 'createContentDisplay', model
+          when 'JTopic'
+            appManager.tell 'Groups', 'createContentDisplay', model
+          else log "404 - /#{params.name}"
+      # KD.remote.api.JName.one {name: params.name}, (err, name)->
+      #   if err or not name? then log "404 - /#{params.name}"
+      #   else switch name.constructorName
+      #     when 'JUser'
+      #       selector = {'profile.nickname': name.name}
+      #       KD.remote.api.JAccount.one selector, (err, account)->
+      #         if err then log "404 - /#{params.name}"
+      #         else appManager.tell 'Members', 'createContentDisplay', account
+      #     when 'JGroup'
+      #       selector = {title:name.name}
+      #       KD.remote.api.JGroup.one selector, (err, group)->
+      #         if err then log "404 - /#{params.name}"
+      #         else appManager.tell 'Groups', 'createContentDisplay', group    
+      #     when 'JTopic'
+      #       selector = {title:name.name}
+      #       KD.remote.api.JTopic.one selector, (err, topic)->
+      #         if err then log "404 - /#{params.name}"
+      #         else appManager.tell 'Topics', 'createContentDisplay', topic
+      #     else log "404 - /#{params.name}"
 
   sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
     route.replace /^\/Groups\/:group/, ''
