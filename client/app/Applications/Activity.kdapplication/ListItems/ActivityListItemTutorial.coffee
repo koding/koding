@@ -12,10 +12,25 @@ class TutorialActivityItemView extends ActivityItemChild
 
     super options,data
 
+    @embedOptions = $.extend {}, options,
+      hasDropdown : no
+      delegate : @
+
     @actionLinks = new TutorialActivityActionsView
       delegate : @commentBox.opinionList
       cssClass : "reply-header"
     , data
+
+    @previewImage = new KDCustomHTMLView
+      tagName : "img"
+      cssClass : "tutorial-preview-image"
+      attributes:
+        src: data.link?.link_embed.images[0].url or ""
+        title:"Show the Tutorial"
+        alt:"Show the tutorial"
+        "data-paths":"preview"
+
+    @previewImage.hide() unless data.link?
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
@@ -101,7 +116,7 @@ class TutorialActivityItemView extends ActivityItemChild
     super()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
+    if $(event.target).closest("[data-paths~=title],[data-paths~=body],[data-paths~=preview]")
       if not $(event.target).is("a.action-link, a.count, .like-view")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
@@ -116,14 +131,17 @@ class TutorialActivityItemView extends ActivityItemChild
 
     return str
 
+      # {{> @opinionBox}}
   pistachio:->
     """
+  <div class="tutorial-badge"></div>
   <div class="activity-discussion-container">
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
       <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      {{> @previewImage}}
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
@@ -132,7 +150,6 @@ class TutorialActivityItemView extends ActivityItemChild
         </div>
         {{> @actionLinks}}
       </footer>
-      {{> @opinionBox}}
     </div>
   </div>
     """

@@ -54,7 +54,6 @@ class TutorialFormView extends KDFormView
                 maxWidth: 540
                 maxHeight: 200
               }, =>
-                log "eb"
                 @getDelegate().embedBox.show()
 
     @discussionTitle = new KDInputView

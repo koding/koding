@@ -361,10 +361,10 @@ class EmbedBox extends KDView
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ["html", "xml", "text", "video"]
-            if (not @options.forceType?)
+            if (not @options.forceType? and not options.forceType?)
               displayEmbedType "link"
             else
-              displayEmbedType @options.forceType
+              displayEmbedType options.forceType or @options.forceType
 
             @embedContainer.populate
               link_embed : data

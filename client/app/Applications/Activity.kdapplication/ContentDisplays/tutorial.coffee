@@ -136,7 +136,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               @editDiscussionForm?.destroy()
               delete @editDiscussionForm
               @$(".discussion-body .data").show()
-              @embedBox.show()
+              @utils.wait =>
+                @embedBox.show()
             else
               @editDiscussionForm = new TutorialFormView
                 title         : "edit-discussion"
@@ -153,6 +154,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                       @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
                       @$(".discussion-body .data").show()
+                      @utils.wait =>
+                        @embedBox.show()
               , data
 
               @addSubView @editDiscussionForm, "p.discussion-body", yes
