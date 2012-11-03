@@ -29,6 +29,8 @@ ebin
 .project
 /kites/terminal/.tmp
 
+/client/Framework/classregistry.coffee
+
 /node_modules/*
 
 /.deployments

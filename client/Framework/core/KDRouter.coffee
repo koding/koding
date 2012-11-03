@@ -28,9 +28,9 @@ class KDRouter
     if listeners?.length
       listener.call null, params for listener in listeners
 
-  window.addEventListener 'popstate', (event)->
-    console.log event
-    console.log location
+  # window.addEventListener 'popstate', (event)->
+  #   log event
+  #   log location
 
   window.addEventListener 'hashchange', (event)->
     changeRoute getHashFragment(event.newURL)

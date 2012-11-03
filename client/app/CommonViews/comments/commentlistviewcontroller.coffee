@@ -65,6 +65,8 @@ class CommentListViewController extends KDListViewController
           if not @getSingleton('activityController').flags?.liveUpdates
             listView.addItem reply
             listView.emit "OwnCommentHasArrived"
+          else
+            listView.emit "OwnCommentWasSubmitted"
           listView.emit "BackgroundActivityFinished"
 
   fetchCommentsByRange:(from,to,callback)=>

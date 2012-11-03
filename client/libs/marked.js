@@ -20,7 +20,7 @@ var block = {
   list: /^( *)(bull) [^\0]+?(?:hr|\n{2,}(?! )(?!\1bull )\n*|\s*$)/,
   html: /^ *(?:comment|closed|closing) *(?:\n{2,}|\s*$)/,
   def: /^ *\[([^\]]+)\]: *([^\s]+)(?: +["(]([^\n]+)[")])? *(?:\n+|$)/,
-  paragraph: /^([^\n]+\n?(?!body))+\n*/,
+  paragraph: /^([^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+\n*/,
   text: /^[^\n]+/
 };
 
@@ -42,25 +42,14 @@ block.html = replace(block.html)
   (/tag/g, tag())
   ();
 
-block.paragraph = (function() {
-  var paragraph = block.paragraph.source
-    , body = [];
-
-  (function push(rule) {
-    rule = block[rule] ? block[rule].source : rule;
-    body.push(rule.replace(/(^|[^\[])\^/g, '$1'));
-    return push;
-  })
-  ('hr')
-  ('heading')
-  ('lheading')
-  ('blockquote')
-  ('<' + tag())
-  ('def');
-
-  return new
-    RegExp(paragraph.replace('body', body.join('|')));
-})();
+block.paragraph = replace(block.paragraph)
+  ('hr', block.hr)
+  ('heading', block.heading)
+  ('lheading', block.lheading)
+  ('blockquote', block.blockquote)
+  ('tag', '<' + tag())
+  ('def', block.def)
+  ();
 
 block.normal = {
   fences: block.fences,
@@ -73,7 +62,7 @@ block.gfm = {
 };
 
 block.gfm.paragraph = replace(block.paragraph)
-  ('(?!', '(?!' + block.gfm.fences.source.replace(/(^|[^\[])\^/g, '$2') + '|')
+  ('(?!', '(?!' + block.gfm.fences.source.replace('\\1', '\\2') + '|')
   ();
 
 /**
@@ -257,7 +246,9 @@ block.token = function(src, tokens, top) {
     if (cap = block.html.exec(src)) {
       src = src.substring(cap[0].length);
       tokens.push({
-        type: 'html',
+        type: options.sanitize
+          ? 'paragraph'
+          : 'html',
         pre: cap[1] === 'pre',
         text: cap[0]
       });
@@ -610,9 +601,6 @@ function tok() {
         + '</li>\n';
     }
     case 'html': {
-      if (options.sanitize) {
-        return inline.lexer(token.text);
-      }
       return !token.pre && !options.pedantic
         ? inline.lexer(token.text)
         : token.text;
@@ -700,7 +688,9 @@ function replace(regex, opt) {
   opt = opt || '';
   return function self(name, val) {
     if (!name) return new RegExp(regex, opt);
-    regex = regex.replace(name, val.source || val);
+    val = val.source || val;
+    val = val.replace(/(^|[^\[])\^/g, '$1');
+    regex = regex.replace(name, val);
     return self;
   };
 }
