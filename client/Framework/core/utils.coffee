@@ -172,27 +172,26 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /(([A-Za-z]+:)?\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+    text.replace /([A-Za-z]+:\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
       originalUrl = url
-      visibleUrl = url.replace(/((ht|f)tp(s)?\:)?\/\//,"").replace(/\/.*/,"")
+
+      # remove protocol and trailing path
+      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+
+      checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
 
       if not /[A-Za-z]+:\/\//.test url
+
         # url has no protocol
         url = '//'+url
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}<span class='expanded-link'></span></a>"
 
-      # new KDView
-      #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
-      #   tooltip :
-      #     title : url
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
       suffix    : ' '
-
-
 
     text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"

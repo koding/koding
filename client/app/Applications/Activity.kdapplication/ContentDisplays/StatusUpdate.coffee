@@ -40,6 +40,16 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
+  attachTooltipAndEmbedInteractivity:=>
+    @$("p.status-body a").each (i,element)=>
+      href = $(element).attr("data-original-url") or ""
+
+      twOptions = (title) ->
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
+
+      $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+      element
+
   viewAppended:()->
 
     # return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -47,26 +57,31 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    # If there is embed data in the model, use that!
-    if @getData()?.link
-      if not ("embed" in @getData().link.link_embed_hidden_items)
-        @embedBox.show()
-        @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+    @utils.wait =>
+
+      # If there is embed data in the model, use that!
+      if @getData()?.link
+        if not ("embed" in @getData().link.link_embed_hidden_items)
+          @embedBox.show()
+          @embedBox.embedExistingData @getData()?.link?.link_embed, {}
+        else
+          # no need to show stuff if it should not be shown. not even in the code
+          @embedBox.hide()
+          @embedBox.destroy()
+
+      # This will involve heavy load on the embedly servers - every client
+      # will need to make a request.
       else
-        # no need to show stuff if it should not be shown. not even in the code
-        @embedBox.hide()
-        @embedBox.destroy()
+        urls = @$("span.data > a")
+        for url in urls
+          if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
+            firstUrl = $(url).attr "href"
 
-    # This will involve heavy load on the embedly servers - every client
-    # will need to make a request.
-    else
-      urls = @$("span.data > a")
-      for url in urls
-        if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*\S)?/g)
-          firstUrl = $(url).attr "href"
+        if firstUrl then @embedBox.embedUrl firstUrl, {}
+        else @embed
 
-      if firstUrl then @embedBox.embedUrl firstUrl, {}
-      else @embed
+      @attachTooltipAndEmbedInteractivity()
+
 
     # temp for beta
     # take this bit to comment view
@@ -81,7 +96,10 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     data = @getData().link or {}
     @embedBox.setEmbedHiddenItems data.link_embed_hidden_items
     @embedBox.setEmbedImageIndex data.link_embed_image_index
-    @embedBox?.embedExistingData data.link_embed, {}
+
+    @embedBox?.embedExistingData data.link_embed, {}, noop, data.link_cache
+
+    @attachTooltipAndEmbedInteractivity()
 
   pistachio:->
 
@@ -95,7 +113,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='hidden'></h3>
-        <p>{{@utils.applyTextExpansions #(body)}}</p>
+        <p class="status-body">{{@utils.applyTextExpansions #(body)}}</p>
         {{> @embedBox}}
         <footer class='clearfix'>
           <div class='type-and-time'>

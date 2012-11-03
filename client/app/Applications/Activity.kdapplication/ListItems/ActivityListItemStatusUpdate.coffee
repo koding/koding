@@ -24,14 +24,15 @@ class StatusActivityItemView extends ActivityItemChild
       href = $(element).attr("data-original-url") or ""
 
       twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      unless $(element).text().replace("/…","") is href.replace(/\/$/,"") or\
-             "http://"+$(element).text().replace("/…","") is href.replace(/\/$/,"")
-        $(element).twipsy twOptions(href)
+      # linkIsShortened = no
 
-      if $(element).attr("target") is "_blank"
-       $(element).prepend """<span class="icon link hidden"></span>"""
+      # unless $(element).text() is href.replace(/^(((ht|f)tp(s)?\:)?\/\/)/,"").replace(/\/$/,"") or\
+      #        "http://"+$(element).text().replace("","") is href.replace(/\/$/,"")
+      $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+        # linkIsShortened = yes
+
       element
 
     # @$("a").hover (event)=>
@@ -48,46 +49,53 @@ class StatusActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    # If there is embed data in the model, use that!
-    if @getData().link?.link_url? and not (@getData().link.link_url is "")
-      if not ("embed" in @getData()?.link?.link_embed_hidden_items)
-        @embedBox.show()
+    # load embed on next callstack
 
-        firstUrl = @getData().body.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-        if firstUrl?
-          @embedBox.embedLinks.setLinks firstUrl
+    @utils.wait =>
 
-        @embedBox.embedExistingData @getData().link.link_embed, {
-          maxWidth: 700
-          maxHeight: 300
-        }, =>
+      # If there is embed data in the model, use that!
+      if @getData().link?.link_url? and not (@getData().link.link_url is "")
 
-          @embedBox.setLinkFavicon @getData().link.link_url
+        if not ("embed" in @getData()?.link?.link_embed_hidden_items)
 
-        , @getData().link.link_cache
+          @embedBox.show()
+          @embedBox.$().fadeIn 200
+
+          firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+          if firstUrl?
+            @embedBox.embedLinks.setLinks firstUrl
+
+          @embedBox.embedExistingData @getData().link.link_embed, {
+            maxWidth: 700
+            maxHeight: 300
+          }, =>
+
+            @embedBox.setLinkFavicon @getData().link.link_url
+
+          , @getData().link.link_cache
 
 
-        @embedBox.embedLinks.hide()
+          @embedBox.embedLinks.hide()
 
+        else
+          # no need to show stuff if it should not be shown.
+          @embedBox.hide()
+          # # not even in the code
+          # @embedBox.destroy()
+
+      # This will involve heavy load on the embedly servers - every client
+      # will need to make a request.
       else
-        # no need to show stuff if it should not be shown.
+        # urls = @$("span.data > a")
+        # for url in urls
+        #   if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        #     firstUrl = $(url).attr "href"
+
+        # if firstUrl and @embedBox? then @embedBox.embedUrl firstUrl, {}
+        # else
         @embedBox.hide()
-        # # not even in the code
-        # @embedBox.destroy()
 
-    # This will involve heavy load on the embedly servers - every client
-    # will need to make a request.
-    else
-      # urls = @$("span.data > a")
-      # for url in urls
-      #   if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      #     firstUrl = $(url).attr "href"
-
-      # if firstUrl and @embedBox? then @embedBox.embedUrl firstUrl, {}
-      # else
-      @embedBox.hide()
-
-    @attachTooltipAndEmbedInteractivity()
+      @attachTooltipAndEmbedInteractivity()
 
 
 
@@ -139,6 +147,7 @@ class StatusActivityItemView extends ActivityItemChild
         str = str.replace link, ""
 
     str = @utils.applyTextExpansions str, yes
+
   pistachio:->
     """
     {{> @settingsButton}}
