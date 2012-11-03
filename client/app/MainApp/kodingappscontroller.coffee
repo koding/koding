@@ -619,28 +619,17 @@ class KodingAppsController extends KDController
               contents  : manifestStr
           , cb
 
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-              contents  : if not isBlank then """
+        if isBlank
+          stack.push (cb)=>
+            @kiteController.run
+              method      : "uploadFile"
+              withArgs    :
+                path      : escapeFilePath "#{fsFolder.path}/index.coffee"
+                contents  : """
+                              do->
 
-                            {KDView} = KD.classes
-
-                            do ->
-                              console.log "Hello World!"
-
-                              appView.addSubView aLabel = new KDView
-                                partial: "<marquee><h1>Hello Koding!</h1></marquee>"
-
-                              aLabel.setRandomBG()
-
-                          """ else """
-                            do->
-
-                          """
-          , cb
+                            """
+            , cb
 
         stack.push (cb)=>
           @kiteController.run
@@ -658,7 +647,9 @@ class KodingAppsController extends KDController
         stack.push (cb)=>
           @kiteController.run
             method        : "copyAppSkeleton"
-            withArgs      : {appPath}
+            withArgs      :
+              type        : if isBlank then "blank" else "sample"
+              appPath     : appPath
             , cb
 
         async.parallel stack, (error, result) =>
