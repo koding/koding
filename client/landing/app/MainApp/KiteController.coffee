@@ -49,14 +49,17 @@ class KiteController extends KDController
       command = options
       options = {}
 
-    options.kiteName or= "sharedHosting"
+    options.kiteName or= "os"
     options.kiteId   or= @kiteIds.sharedHosting?[0]
-    options.method   or= "executeCommand"
+    options.method   or= "exec"
     if command
-      options.withArgs = {command}
+      options.withArgs = command
+    else if options.withArgs?.command
+      options.withArgs = options.withArgs.command
     else
       options.withArgs or= {}
 
+    console.log options
     # notify "Talking to #{options.kiteName} asking #{options.toDo}"
     # debugger
     KD.whoami().tellKite options, (err, response)=>
