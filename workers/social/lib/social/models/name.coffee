@@ -4,7 +4,7 @@ module.exports = class JName extends Model
 
   KodingError = require '../error'
 
-  {secure} = require 'bongo'
+  {secure, JsPath:{getAt}} = require 'bongo'
 
   @share()
 
@@ -57,7 +57,8 @@ module.exports = class JName extends Model
               cursor.each (err, doc)=>
                 if err then callback err
                 else if doc?
-                  @claim doc[usedAsPath], konstructor, usedAsPath, (err)->
+                  name = getAt doc, usedAsPath
+                  @claim name, konstructor, usedAsPath, (err)->
                     if err
                       console.log "Couln't claim name #{name}"
                       callback err

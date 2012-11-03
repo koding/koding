@@ -274,6 +274,24 @@ __utils =
     parentPath.pop()
     return parentPath.join('/')
 
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    canPost = window?.postMessage and window.addEventListener
+    if canPost
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          if queue.length > 0
+            fn = queue.shift()
+            fn()
+      ), true
+      (fn) ->
+        queue.push fn
+        window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 0
+
   wait: (duration, fn) ->
     if "function" is typeof duration
       fn = duration
