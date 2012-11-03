@@ -128,8 +128,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       pistachio : """
       <p>For links, please provide a protocol such as
         <abbr title="Hypertext Transfer Protocol">http://</abbr>
-        <label for="stop-sanitizing">
-        Don't touch my Status Update.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
+        <label for="stop-sanitizing" title="This will disable the automatic URL completion.">
+        Disable URL auto-complete.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
       </p>
       """
 
