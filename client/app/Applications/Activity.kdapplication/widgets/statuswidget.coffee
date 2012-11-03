@@ -18,7 +18,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     # saves the URL of the previous request to avoid
     # multiple embed calls for one URL
-    @previousURL = []
+    @previousURL = ""
 
     # prevents multiple calls to embed.ly functionality
     # at the same time
@@ -174,7 +174,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
           @embedBox.embedLinks.setLinks firstUrl
 
-          unless @previousURL is firstUrl
+          unless (@previousURL in firstUrl)
             @embedBox.embedUrl firstUrl?[0], {
               maxWidth: 525
             }, (embedData)=>
@@ -183,7 +183,9 @@ class ActivityStatusUpdateWidget extends KDFormView
               @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
 
               @requestEmbedLock = off
-              @previousURL = firstUrl
+              @previousURL = firstUrl?[0]
+          else
+            @requestEmbedLock = off
         else
           @requestEmbedLock = off
       ,50
