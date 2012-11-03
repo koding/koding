@@ -1,6 +1,8 @@
-{Module, Relationship} = require 'jraphical'
+{Module} = require 'jraphical'
 
 module.exports = class JGroup extends Module
+
+  {Relationship} = require 'jraphical'
 
   {Inflector, ObjectRef, secure} = require 'bongo'
 
@@ -17,6 +19,7 @@ module.exports = class JGroup extends Module
   @share()
 
   @set
+    feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
     permissions     : [
       'grant permissions'
@@ -95,7 +98,7 @@ module.exports = class JGroup extends Module
     JPermissionSet = require './permissionset'
     JName = require '../name'
     {delegate} = client.connection
-    JName.claim formData.slug, 'JGroup', 'slug', (err)->
+    JName.claim formData.slug, 'JGroup', 'slug', (err)=>
       if err then callback err
       else
         group = new @ formData
@@ -103,27 +106,33 @@ module.exports = class JGroup extends Module
           if err
             callback err
           else
+            console.log 'group is saved'
             group.addMember delegate, (err)->
               if err
                 callback err
               else
+                console.log 'member is added'
                 group.addAdmin delegate, (err)->
                   if err
                     callback err
                   else
+                    console.log 'admin is added'
                     permissionSet = new JPermissionSet
                     permissionSet.save (err)->
                       if err
                         callback err
                       else
+                        console.log 'permissionSet is saved'
                         group.addPermissionSet permissionSet, (err)->
                           if err
                             callback err
                           else
+                            console.log 'permissionSet is added'
                             delegate.addGroup group, 'admin', (err)->
                               if err
                                 callback err
                               else
+                                console.log 'group is added'
                                 callback null, group
 
   @findSuggestions = (seed, options, callback)->

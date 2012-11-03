@@ -22,7 +22,8 @@ class ProfileLinkView extends LinkView
 
   click:(event)->
 
-    appManager.tell "Members", "createContentDisplay", @getData()
+    #appManager.tell "Members", "createContentDisplay", @getData()
+    KDRouter.handleRoute '/'+@getData().profile.nickname
     event.preventDefault()
     event.stopPropagation()
     no

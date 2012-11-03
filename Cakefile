@@ -313,14 +313,14 @@ run =(options)->
   )
   if config.social.watch?
     watcher = new Watcher
-      groups:
-        social :
-          folders : ['./workers/social']
-          onChange : (path) ->
+      groups        :
+        social      :
+          folders   : ['./workers/social']
+          onChange  : (path) ->
             processes.kill "social"
-        server :
-          folders : ['./server']
-          onChange : ->
+        server      :
+          folders   : ['./server']
+          onChange  : ->
             processes.kill "server"
 
 assureVhost =(uri, vhost, vhostFile, callback)->

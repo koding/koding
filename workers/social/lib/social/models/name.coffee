@@ -10,7 +10,7 @@ module.exports = class JName extends Model
 
   @set
     sharedMethods     :
-      static          : ['claimNames']
+      static          : ['one','claimNames']
     indexes           :
       name            : ['unique']
     schema            :
