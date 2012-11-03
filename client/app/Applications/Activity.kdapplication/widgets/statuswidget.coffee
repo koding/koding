@@ -277,6 +277,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @embedBox.resetEmbedAndHide()
     @previousURL = ""
     @initialRequest = yes
+    @inputLinkInfoBoxPermaHide = off
+    @inputLinkInfoBox.hide()
 
     super
 
