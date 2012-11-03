@@ -1122,20 +1122,25 @@ div.kdview.link-embed-box
   borderBox()
   position relative
 
+  vendor transition, opacity .1s linear
+
   width auto
   height auto
 
-  // this is gecko
-  width max-content
+  // // this is gecko
+  // width max-content
   height max-content
 
-  // this is webkit-only
-  width intrinsic
+  // // this is webkit-only
+  // width intrinsic
   height intrinsic
 
   rounded 4px
   border 1px solid black
   border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+
+  // Fix YouTube style breakage in Chrome
+  // vendor font-smoothing, subpixel-antialiased !important;
 
   background-color #F7F7F7
 
@@ -1150,13 +1155,13 @@ div.kdview.link-embed-box
   // report button for embeds
   > button.kdbutton.report-embed, button.kdbutton.hide-embed
     position absolute
-    top -1px
-    right -1px
+    top 4px
+    right 3px
     size 20px,20px
     margin 0px
     padding 0px
     border none
-    opacity 0.15
+    opacity 0.5
     background transparent
     vendor transition, opacity 0.3s ease-in-out
     z-index 3
@@ -1819,17 +1824,36 @@ div.kdinputwithpreview.input_preview
     > *:last-child
       margin-bottom   0
 
+.twipsy.link-expander
+
+  .twipsy-inner
+
+    vendor box-shadow,  0 3px 7px rgba(0, 0, 0, 0.5)
+    background-color    #fff!important
+    color               #000
+    &:hover
+      color             #27A3C9
+
+    span
+      color             #ff9200
+  .twipsy-arrow
+    border-top          3px solid #fff!important
+
 p.status-body
 
-  a
-    > span.icon, span
-      vertical-align:bottom
-      size 18px 16px
-      sprite()
-      display inline-block
-      margin-bottom 1px
-      &.link, &.expanded-link
-        bg position, -101px -380px
+  // a
+  //   > span.icon, span
+
+  //     vertical-align:bottom
+  //     size 18px 16px
+  //     sprite()
+  //     display inline-block
+  //     margin-bottom 1px
+  //     &.link, &.expanded-link
+  //       bg position, -1px -440px
+
+  //       &.shortened
+  //         bg position, -21px -440px
 
 
 div.protocol-info-box
@@ -1840,13 +1864,13 @@ div.protocol-info-box
 
   > button.kdbutton.hide-info-box
     position absolute
-    top -1px
-    right -1px
+    top 4px
+    right 3px
     size 20px,20px
     margin 0px
     padding 0px
     border none
-    opacity 0.15
+    opacity 0.5
     background transparent
     vendor transition, opacity 0.3s ease-in-out
     z-index 3

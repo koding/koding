@@ -127,8 +127,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       cssClass : "protocol-info-box hidden"
       pistachio : """
       <p>For links, please provide a protocol such as
-        <abbr title="Hypertext Transfer Protocol">http://</abbr> or
-        <a title="Relative Reference" target="_blank" href="http://tools.ietf.org/html/rfc3986#section-4.2">//</a>
+        <abbr title="Hypertext Transfer Protocol">http://</abbr>
       </p>
       """
 
@@ -138,8 +137,9 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   # will automatically add // to any non-protocol urls
   sanitizeUrls:(text)->
-    text.replace /(([a-zA-Z]+\:)?\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
-      test = /^(([a-zA-Z]+\:)?\/\/)/.test url
+    text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
+      test = /^([a-zA-Z]+\:\/\/)/.test url
+
       if test is no
 
         # here is a warning/popup that explains how and why
@@ -147,7 +147,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
         unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
 
-        "//"+url
+        "http://"+url
 
       else
 
@@ -165,7 +165,6 @@ class ActivityStatusUpdateWidget extends KDFormView
 
       setTimeout =>
         firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-
         if firstUrl?
 
           if @initialRequest

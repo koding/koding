@@ -84,30 +84,13 @@ class EmbedBox extends KDView
     @embedType = data.link_embed?.object?.type or data.link_embed?.type or "link"
     # log "Initital type is ",@embedType
 
-    embedLinkOptions = _.extend {}, options, {
-      cssClass : "embed embed-link-view hidden"
-      delegate : @
-    }
-
-    embedObjectOptions = _.extend {}, options, {
-      cssClass : "embed embed-object-view hidden"
-      delegate : @
-    }
-
-    embedImageOptions = _.extend {}, options, {
-      cssClass : "embed embed-image-view hidden"
-      delegate : @
-    }
-
-    @embedLink = new EmbedBoxLinkView embedLinkOptions, data
-    @embedImage = new EmbedBoxImageView embedImageOptions, data
-    @embedObject = new EmbedBoxObjectView embedObjectOptions, data
-
     @embedLinks = new EmbedBoxLinksView
       cssClass : "embed-links-container"
       delegate : @
 
     @embedLinks.hide()
+
+    @embedContainer = new KDView options, data
 
     unless data is {} then @hide()
 
@@ -115,6 +98,15 @@ class EmbedBox extends KDView
     super()
     @setTemplate @pistachio()
     @template.update()
+
+  loadImages:->
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
 
   refreshEmbed:=>
     @populateEmbed @getEmbedData(), @embedURL, {}, @getEmbedCache()
@@ -149,18 +141,18 @@ class EmbedBox extends KDView
   getEmbedDataForSubmit:->
     data              = @getEmbedData()
     unless data.original_title?
-      data.original_title = @embedLink.embedText?.embedTitle?.getOriginalValue() or ""
-    data.title        = @embedLink.embedText?.embedTitle?.titleInput?.getValue() or ""
+      data.original_title = @embedContainer.embedText?.embedTitle?.getOriginalValue() or ""
+    data.title        = @embedContainer.embedText?.embedTitle?.titleInput?.getValue() or ""
     unless data.original_description?
-      data.original_description = @embedLink.embedText?.embedDescription?.getOriginalValue() or ""
-    data.description  = @embedLink.embedText?.embedDescription?.descriptionInput?.getValue() or ""
+      data.original_description = @embedContainer.embedText?.embedDescription?.getOriginalValue() or ""
+    data.description  = @embedContainer.embedText?.embedDescription?.descriptionInput?.getValue() or ""
 
-    unless @embedLink.embedText?.embedTitle?.titleInput?.getValue() is \
-           @embedLink.embedText?.embedTitle?.getOriginalValue()
+    unless @embedContainer.embedText?.embedTitle?.titleInput?.getValue() is \
+           @embedContainer.embedText?.embedTitle?.getOriginalValue()
       data.titleEdited = yes
 
-    unless @embedLink.embedText?.embedDescription?.descriptionInput?.getValue() is \
-           @embedLink.embedText?.embedDescription?.getOriginalValue()
+    unless @embedContainer.embedText?.embedDescription?.descriptionInput?.getValue() is \
+           @embedContainer.embedText?.embedDescription?.getOriginalValue()
       data.descriptionEdited = yes
     data
 
@@ -263,19 +255,27 @@ class EmbedBox extends KDView
     @setEmbedCache cache unless cache is []
 
     displayEmbedType=(embedType)=>
+      # log "setting up", embedType, @getEmbedData()
+
+      embedOptions = _.extend {}, @options, {
+        cssClass : "link-embed clearfix"
+        delegate : @
+      }
+
+      @embedContainer.destroy()
+
       switch embedType
         when "link"
-          @embedLink.show()
-          @embedObject.hide()
-          @embedImage.hide()
+          @embedContainer = new EmbedBoxLinkView embedOptions, @getData()
         when "image"
-          @embedLink.hide()
-          @embedObject.hide()
-          @embedImage.show()
+          @embedContainer = new EmbedBoxImageView embedOptions, @getData()
         when "object"
-          @embedLink.hide()
-          @embedObject.show()
-          @embedImage.hide()
+          @embedContainer = new EmbedBoxObjectView embedOptions, @getData()
+
+      @embedContainer.show()
+
+      @addSubView @embedContainer
+
 
     # if the whole embed should be hidden, no content needs to be prepared
     if ("embed" in @getEmbedHiddenItems())
@@ -306,7 +306,7 @@ class EmbedBox extends KDView
         when "audio", "xml", "json", "ppt", "rss", "atom"
           displayEmbedType "object"
 
-          @embedObject.populate
+          @embedContainer.populate
             link_cache : @getEmbedCache()
             link_embed : data
             link_url : url
@@ -318,7 +318,7 @@ class EmbedBox extends KDView
         when "photo","image"
           displayEmbedType "image"
 
-          @embedImage.populate
+          @embedContainer.populate
             link_embed : data
             link_url : url
             link_options : options
@@ -343,7 +343,7 @@ class EmbedBox extends KDView
           if (data?.provider_name in @getRichEmbedWhitelist())
             displayEmbedType "object"
 
-            @embedObject.populate
+            @embedContainer.populate
               link_embed : data
               link_url : url
               link_cache : @getEmbedCache()
@@ -357,7 +357,7 @@ class EmbedBox extends KDView
 
             displayEmbedType "link"
 
-            @embedLink.populate
+            @embedContainer.populate
               link_embed : data
               link_cache : @getEmbedCache()
               link_url : url
@@ -460,9 +460,4 @@ class EmbedBox extends KDView
       {{> @embedLoader}}
       {{> @settingsButton}}
       {{> @embedLinks}}
-      <div class="link-embed clearfix">
-        {{> @embedLink}}
-        {{> @embedImage}}
-        {{> @embedObject}}
-      </div>
     """
