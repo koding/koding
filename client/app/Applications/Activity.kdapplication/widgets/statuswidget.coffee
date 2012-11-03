@@ -128,6 +128,8 @@ class ActivityStatusUpdateWidget extends KDFormView
       pistachio : """
       <p>For links, please provide a protocol such as
         <abbr title="Hypertext Transfer Protocol">http://</abbr>
+        <label for="stop-sanitizing">
+        Stop this.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
       </p>
       """
 
@@ -147,7 +149,10 @@ class ActivityStatusUpdateWidget extends KDFormView
 
         unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
 
-        "http://"+url
+        unless @$("input.stop-sanitizing").prop "checked"
+          "http://"+url
+        else
+          url
 
       else
 
