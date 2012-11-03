@@ -24,11 +24,11 @@ class KodingAppsController extends KDController
             # pre     : ""
             files   : [ "./index.coffee" ]
             # post    : ""
+        stylesheets : [ "./resources/style.css" ]
       options       :
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
-      stylesheets   : [ "./resources/style.css" ]
 
     json = JSON.stringify raw, null, 2
 
@@ -261,15 +261,15 @@ class KodingAppsController extends KDController
     if stylesheets
       stylesheets.forEach (sheet)->
         if devMode
-          $("head ##{__utils.slugify name}").remove()
-          $('head').append "<link id='#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+          $("head #app-#{__utils.slugify name}").remove()
+          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head ##{__utils.slugify name}").remove()
-            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $("head #app-#{__utils.slugify name}").remove()
+            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
@@ -424,7 +424,7 @@ class KodingAppsController extends KDController
         else
           orderedBlocks.push blockOptions
 
-      if source.stylesheets
+      if app.devMode
         appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
 
         asyncStack.push (cb)=>
@@ -619,28 +619,17 @@ class KodingAppsController extends KDController
               contents  : manifestStr
           , cb
 
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-              contents  : if not isBlank then """
+        if isBlank
+          stack.push (cb)=>
+            @kiteController.run
+              method      : "uploadFile"
+              withArgs    :
+                path      : escapeFilePath "#{fsFolder.path}/index.coffee"
+                contents  : """
+                              do->
 
-                            {KDView} = KD.classes
-
-                            do ->
-                              console.log "Hello World!"
-
-                              appView.addSubView aLabel = new KDView
-                                partial: "<marquee><h1>Hello Koding!</h1></marquee>"
-
-                              aLabel.setRandomBG()
-
-                          """ else """
-                            do->
-
-                          """
-          , cb
+                            """
+            , cb
 
         stack.push (cb)=>
           @kiteController.run
@@ -658,7 +647,9 @@ class KodingAppsController extends KDController
         stack.push (cb)=>
           @kiteController.run
             method        : "copyAppSkeleton"
-            withArgs      : {appPath}
+            withArgs      :
+              type        : if isBlank then "blank" else "sample"
+              appPath     : appPath
             , cb
 
         async.parallel stack, (error, result) =>
