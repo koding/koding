@@ -156,7 +156,7 @@ class MainView extends KDView
       attributes  :
         href      : "#"
       partial     : "What you should know about this beta...<span></span>"
-      click       : (pubInst, event)=>
+      click       : (event)=>
         if $(event.target).is 'span'
           link.hide()
         else

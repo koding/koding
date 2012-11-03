@@ -15,7 +15,7 @@ rabbitVhost =\
   catch e then "/"
 
 module.exports = deepFreeze
-  uri           : 
+  uri           :
     address     : "http://localhost:3000"
   projectRoot   : projectRoot
   version       : version
@@ -24,7 +24,7 @@ module.exports = deepFreeze
   mongo         : mongo
   runBroker     : no
   configureBroker: no
-  buildClient   : yes
+  buildClient   : no
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"

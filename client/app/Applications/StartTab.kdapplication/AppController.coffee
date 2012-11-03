@@ -23,7 +23,7 @@ class StartTab12345 extends AppController
   initApplication:(options, callback)=>
     @openTabs       = []
     @_storage       = no
-    # console.log 'init application called'
+    # log 'init application called'
     notification    = no
 
     callback()

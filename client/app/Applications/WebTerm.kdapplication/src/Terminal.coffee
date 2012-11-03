@@ -9,7 +9,7 @@ class WebTerm.Terminal
     '\r': '\\r'
     '\\': '\\\\'
     '\u001b': '\\e'
-  
+
   constructor: (@container) ->
     localStorage?["WebTerm.logRawOutput"] ?= "false"
     localStorage?["WebTerm.slowDrawing"]  ?= "false"
@@ -18,7 +18,7 @@ class WebTerm.Terminal
     @server = null
     @sessionEndedCallback = null
     @setTitleCallback = null
-    
+
     @pixelWidth = 0
     @pixelHeight = 0
     @sizeX = 80
@@ -28,38 +28,38 @@ class WebTerm.Terminal
     @definedColors = []
     @currentCharacterSets = ["B", "A", "A", "A"]
     @currentCharacterSetIndex = 0
-    
+
     @inputHandler = new WebTerm.InputHandler(this)
     @screenBuffer = new WebTerm.ScreenBuffer(this)
     @cursor = new WebTerm.Cursor(this)
-    
+
     @measurebox = $(document.createElement("div"))
     @measurebox.css "position", "absolute"
     @measurebox.css "visibility", "hidden"
     @container.append @measurebox
     @updateSizeTimer = null
     @updateSize()
-    
+
     @outputbox = $(document.createElement("div"))
     @outputbox.css "cursor", "text"
     @container.append @outputbox
-    
+
     @container.on "mousedown mousemove mouseup mousewheel contextmenu", (event) =>
       @inputHandler.mouseEvent event if @inSession
-    
+
     @clientInterface =
       sessionStarted: () =>
         @inSession = true
         @scrollToBottom()
         @cursor.resetBlink()
         @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
-      
+
       sessionEnded: () =>
         @inSession = false
         @sessionEndedCallback()
-      
+
       output: (data) =>
-        console.log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
+        log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
         @controlCodeReader.addData data
         if localStorage?["WebTerm.slowDrawing"] is "true"
           @controlCodeInterval ?= window.setInterval =>
@@ -75,42 +75,42 @@ class WebTerm.Terminal
           atEnd = false
           atEnd = @controlCodeReader.process() until atEnd
           @screenBuffer.flush()
-  
+
   createSession: (name) ->
     @server.createSession name, @sizeX, @sizeY
-  
+
   joinSession: (id) ->
     @server.joinSession id, @sizeX, @sizeY
-  
+
   keyDown: (event) ->
     @inputHandler.keyDown event if @inSession
-    
+
   keyPress: (event) ->
     @inputHandler.keyPress event if @inSession
-    
+
   keyUp: (event) ->
     @inputHandler.keyUp event if @inSession
-  
+
   setFocused: (value) ->
     @cursor.setFocused value
-  
+
   setSize: (x, y) ->
     return if x is @sizeX and y is @sizeY
-    
+
     cursorLineIndex = @screenBuffer.toLineIndex(@cursor.y)
     @sizeX = x
     @sizeY = y
     @screenBuffer.scrollingRegion = [0, y - 1]
-    
+
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
     @server.setSize x, y if @inSession
-    
+
   updateSize: ->
     return if @pixelWidth is @container.prop("clientWidth") and @pixelHeight is @container.prop("clientHeight")
     @container.scrollTop @container.scrollTop() + @pixelHeight - @container.prop("clientHeight") + 1 if @container.prop("clientHeight") < @pixelHeight
     @pixelWidth = @container.prop("clientWidth")
     @pixelHeight = @container.prop("clientHeight")
-    
+
     width = 1
     height = 1
     for n in [0..10] # avoid infinite loop
@@ -129,37 +129,37 @@ class WebTerm.Terminal
       break if newWidth > 1000 or newHeight > 1000 # sanity check
       width = newWidth
       height = newHeight
-    
+
     @measurebox.empty()
     @setSize width, height
-  
+
   windowDidResize: ->
     window.clearTimeout @updateSizeTimer
     @updateSizeTimer = window.setTimeout (=> @updateSize()), 500
-  
+
   lineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[1]
       @screenBuffer.scroll 1
     else
       @cursor.move 0, 1
-  
+
   reverseLineFeed: ->
     if @cursor.y is @screenBuffer.scrollingRegion[0]
       @screenBuffer.scroll -1
     else
       @cursor.move(0, -1)
-  
+
   writeText: (text, options) ->
     return if text.length is 0
     x = options?.x ? @cursor.x
     y = options?.y ? @cursor.y
     style = options?.style ? @currentStyle
     insert = options?.insert ? false
-    
+
     lineIndex = @screenBuffer.toLineIndex y
     oldContent = @screenBuffer.getLineContent lineIndex
     newContent = oldContent.substring 0, x
-    
+
     text = text.replace /[ ]/g, "\xA0" # NBSP
     switch @currentCharacterSets[@currentCharacterSetIndex]
       when "0"
@@ -175,10 +175,10 @@ class WebTerm.Terminal
         newContent.push new WebTerm.StyledText(text, style)
       else
         newContent.push new WebTerm.StyledText(text, style)
-  
+
     newContent.pushAll oldContent.substring(if insert then x else x + text.length)
     @screenBuffer.setLineContent lineIndex, newContent
-  
+
   writeEmptyText: (lenght, options) ->
     if not @currentWhitespaceStyle?
       @currentWhitespaceStyle = jQuery.extend true, {}, @currentStyle
@@ -189,7 +189,7 @@ class WebTerm.Terminal
     text = ""
     text += "\xA0" for i in [0...lenght]
     @writeText text, options
-  
+
   deleteCharacters: (count, options) ->
     x = options?.x ? @cursor.x
     y = options?.y ? @cursor.y
@@ -201,30 +201,30 @@ class WebTerm.Terminal
     text += "\xA0" for i in [0...count]
     newContent.push new WebTerm.StyledText(text, oldContent.get(oldContent.length() - 1).style)
     @screenBuffer.setLineContent lineIndex, newContent
-  
+
   setStyle: (name, value) ->
     @currentStyle = jQuery.extend true, {}, @currentStyle
     @currentStyle[name] = value
     @currentWhitespaceStyle = null
-  
+
   resetStyle: ->
     @currentStyle = WebTerm.StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle = null
-  
+
   defineColor: (index, color) ->
     @definedColors[index] = color
-  
+
   setCharacterSet: (index, charset) ->
     @currentCharacterSets[index] = charset
-  
+
   setCharacterSetIndex: (index) ->
     @currentCharacterSetIndex = index
-  
+
   changeScreenBuffer: (index) ->
-  
+
   isScrolledToBottom: ->
     @container.scrollTop() + @container.prop("clientHeight") >= @container.prop("scrollHeight") - 3
-  
+
   scrollToBottom: ->
     return if @isScrolledToBottom()
     @container.stop()
@@ -238,4 +238,3 @@ class WebTerm.Terminal
       hex = "0" + hex if hex.length is 1
       '\\x' + hex
     '"' + escaped.replace('"', '\\"') + '"'
-    

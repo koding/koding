@@ -28,11 +28,8 @@ class KodingAppsController extends KDController
       options       :
         type        : "tab"
       icns          :
-        "64"        : "./resources/icon.64.png"
         "128"       : "./resources/icon.128.png"
-        "160"       : "./resources/icon.160.png"
-        "256"       : "./resources/icon.256.png"
-        "512"       : "./resources/icon.512.png"
+
     json = JSON.stringify raw, null, 2
 
   @manifests = {}
@@ -264,15 +261,15 @@ class KodingAppsController extends KDController
     if stylesheets
       stylesheets.forEach (sheet)->
         if devMode
-          $("head ##{__utils.slugify name}").remove()
-          $('head').append "<link id='#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+          $("head #app-#{__utils.slugify name}").remove()
+          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head ##{__utils.slugify name}").remove()
-            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $("head #app-#{__utils.slugify name}").remove()
+            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
@@ -287,9 +284,11 @@ class KodingAppsController extends KDController
           try
             # security please!
             do (appView)->
+              appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
               eval appScript
           catch e
-            warn "App caused some problems:", e
+            # if not manifest.ignoreWarnings? # GG FIXME
+            console.warn "App caused some problems:", e
           callback?()
           return appView
         else
@@ -298,7 +297,7 @@ class KodingAppsController extends KDController
             do ->
               eval appScript
           catch e
-            warn "App caused some problems:", e
+            console.warn "App caused some problems:", e
           callback?()
           return null
 
@@ -338,7 +337,7 @@ class KodingAppsController extends KDController
 
     if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
       err = "You are not authorized to publish apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -385,7 +384,7 @@ class KodingAppsController extends KDController
 
     if not KD.checkFlag('super-admin')
       err = "You are not authorized to approve apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -425,7 +424,7 @@ class KodingAppsController extends KDController
         else
           orderedBlocks.push blockOptions
 
-      if source.stylesheets
+      if app.devMode
         appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
 
         asyncStack.push (cb)=>
@@ -537,11 +536,11 @@ class KodingAppsController extends KDController
 
   makeNewApp:(callback)->
 
-    return callback?() if newAppModal
+    return callback? yes if newAppModal
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      # content                   : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      content                     : "<div class='modalformline'>Please select the application type you want to start with.</div>"
       overlay                     : yes
       width                       : 400
       height                      : "auto"
@@ -550,34 +549,50 @@ class KodingAppsController extends KDController
         forms                     :
           form                    :
             buttons               :
-              "Blank Application" :
+              Create              :
                 cssClass          : "modal-clean-gray"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
                 callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : yes, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
-              "Sample Application":
-                cssClass          : "modal-clean-gray"
-                callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : no, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
+                  name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
+                  type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
+                  manifestStr = defaultManifest type, name
+                  manifest    = JSON.parse manifestStr
+                  appPath     = getAppPath manifest
+
+                  FSItem.doesExist appPath, (err, exists)=>
+                    if exists
+                      newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                      new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error"
+                        title     : "App folder with that name is already exists, please choose a new name."
+                        duration  : 3000
+                    else
+                      @prepareApplication {isBlank : type is "blank", name}, (err, response)=>
+                        callback? err
+                        newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                        newAppModal.destroy()
             fields                :
+              type                :
+                label             : "Type"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "type"
+                defaultValue      : "sample"
+                selectOptions     : [
+                  { title : "Sample Application", value : "sample" }
+                  { title : "Blank Application",  value : "blank"  }
+                ]
               name                :
                 label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
-                validate          :
-                  rules           :
-                    required      : yes
-                  messages        :
-                    required      : "application name is required!"
 
     newAppModal.once "KDObjectWillBeDestroyed", ->
       newAppModal = null
-      callback? null
+      callback? yes
 
   prepareApplication:({isBlank, name}, callback)->
 
@@ -604,13 +619,17 @@ class KodingAppsController extends KDController
               contents  : manifestStr
           , cb
 
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-              contents  : "do ->"
-          , cb
+        if isBlank
+          stack.push (cb)=>
+            @kiteController.run
+              method      : "uploadFile"
+              withArgs    :
+                path      : escapeFilePath "#{fsFolder.path}/index.coffee"
+                contents  : """
+                              do->
+
+                            """
+            , cb
 
         stack.push (cb)=>
           @kiteController.run
@@ -624,23 +643,18 @@ class KodingAppsController extends KDController
                           """
           , cb
 
-        # Uncomment followings when we have reachable files for skel of Apps
-        #
-        # stack.push (cb)=>
-        #   @kiteController.run
-        #     withArgs  :
-        #       command : "cp -f /opt/Apps/.default/README #{escapeFilePath fsFolder.path}"
-        #   , cb
-
-        # if not isBlank
-        #   stack.push (cb)=>
-        #     @kiteController.run
-        #       withArgs  :
-        #         command : "cp -rf /opt/Apps/.default/resources #{escapeFilePath fsFolder.path}"
-        #     , cb
+        # Copy default app files (app Skeleton)
+        stack.push (cb)=>
+          @kiteController.run
+            method        : "copyAppSkeleton"
+            withArgs      :
+              type        : if isBlank then "blank" else "sample"
+              appPath     : appPath
+            , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err
+          @emit "aNewAppCreated" if not err
           callback? err, result
 
   # #

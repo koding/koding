@@ -8,13 +8,13 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
-      # 'CLinkActivity'
       'CCodeSnipActivity'
-      # 'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+      # 'CDiscussionActivity'
+      # 'CLinkActivity'
       # 'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
@@ -160,48 +160,48 @@ class Activity12345 extends AppController
         @activityListController.isLoading = no
         @activityListController.hideLazyLoader()
 
-  performFetchingTeasers:(type, selector, options, callback) -> 
-    if type is 'public' 
-      appManager.fetchStorage 'Activity', '1.0', (err, storage) => 
-        if err 
-          log '>> error fetching app storage', err 
-        else 
-          options.collection = 'activities' 
-          flags = KD.whoami().globalFlags 
-          exempt = flags?.indexOf 'exempt' 
-          exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent' 
-          $.ajax KD.apiUri+'/1.0' 
-            data      : 
-              t       : if exempt then 1 else undefined 
-              data    : JSON.stringify(_.extend options, selector) 
-              env     : KD.config.env 
-            dataType  : 'jsonp' 
-            success   : (data) -> callback null, data 
-          # unless exempt 
-          #   selector['isLowQuality'] = {'$ne':yes} 
-          # KD.remote.api.CActivity.some selector, options, (err, data) -> 
-          #   if err  
-          #     callback err  
-          #   else  
-          #     for datum in data  
-          #       datum.snapshot = datum.snapshot?.replace /&quot;/g, '"' 
-          #     callback null, data 
+  performFetchingTeasers:(type, selector, options, callback) ->
+    if type is 'public'
+      appManager.fetchStorage 'Activity', '1.0', (err, storage) =>
+        if err
+          log '>> error fetching app storage', err
+        else
+          options.collection = 'activities'
+          flags = KD.whoami().globalFlags
+          exempt = flags?.indexOf 'exempt'
+          exempt = (exempt? and ~exempt) or storage.getAt 'bucket.showLowQualityContent'
+          $.ajax KD.apiUri+'/1.0'
+            data      :
+              t       : if exempt then 1 else undefined
+              data    : JSON.stringify(_.extend options, selector)
+              env     : KD.config.env
+            dataType  : 'jsonp'
+            success   : (data) -> callback null, data
+          # unless exempt
+          #   selector['isLowQuality'] = {'$ne':yes}
+          # KD.remote.api.CActivity.some selector, options, (err, data) ->
+          #   if err
+          #     callback err
+          #   else
+          #     for datum in data
+          #       datum.snapshot = datum.snapshot?.replace /&quot;/g, '"'
+          #     callback null, data
 
-    else if type is 'private' 
-      KD.whoami().fetchFeedByTitle "followed", (err, feed) -> 
-        feed.fetchActivities selector, options, (err, data) -> 
-          if err 
-            callback err 
-          else 
-            for datum in data 
-              datum.snapshot = datum.snapshot.replace /&quot;/g, '"' 
-            callback null, data 
+    else if type is 'private'
+      KD.whoami().fetchFeedByTitle "followed", (err, feed) ->
+        feed.fetchActivities selector, options, (err, data) ->
+          if err
+            callback err
+          else
+            for datum in data
+              datum.snapshot = datum.snapshot.replace /&quot;/g, '"'
+            callback null, data
 
   fetchTeasers:(selector,options,callback)->
-    type = @activityListController._state 
-    @performFetchingTeasers type, selector, options, (err, data) -> 
-      KD.remote.reviveFromSnapshots data, (err, instances)-> 
-        callback instances     
+    type = @activityListController._state
+    @performFetchingTeasers type, selector, options, (err, data) ->
+      KD.remote.reviveFromSnapshots data, (err, instances)->
+        callback instances
 
     # # Old code
     #
@@ -221,7 +221,7 @@ class Activity12345 extends AppController
     #       dataType  : 'jsonp'
     #       success   : (data)->
     #         KD.remote.reviveFromSnapshots data, (err, instances)->
-    #           # console.log instances
+    #           # log instances
     #           callback instances
 
     # # Unused code from before
@@ -240,12 +240,12 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
-          # 'CDiscussionActivity'
-          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES
+          # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+          # 'CDiscussionActivity'
+          # 'CLinkActivity'
           # 'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
@@ -313,13 +313,13 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
-        # 'CLinkActivity'
         'CCodeSnipActivity'
-        # 'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES
+        # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+        # 'CDiscussionActivity'
+        # 'CLinkActivity'
         # 'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]
@@ -430,18 +430,18 @@ class ActivityListController extends KDListViewController
     id = KD.whoami().getId()
     id? and id in [activity.originId, activity.anchor?.id]
 
-  isInFollowing:(activity, callback)-> 
-    account = KD.whoami() 
-    {originId, anchor} = activity 
-    account.isFollowing originId, 'JAccount', (result) -> 
-      if result 
-        callback true 
-      else 
-        activity.fetchTeaser? (err, {tags}) => 
-          callback false unless tags? 
-          tagIds = tags.map((tag) -> tag._id) 
-          account.isFollowing {$in: tagIds}, 'JTag', (result) -> 
-            callback result 
+  isInFollowing:(activity, callback)->
+    account = KD.whoami()
+    {originId, anchor} = activity
+    account.isFollowing originId, 'JAccount', (result) ->
+      if result
+        callback true
+      else
+        activity.fetchTeaser? (err, {tags}) =>
+          callback false unless tags?
+          tagIds = tags.map((tag) -> tag._id)
+          account.isFollowing {$in: tagIds}, 'JTag', (result) ->
+            callback result
 
   # isInFollowing:(activity)->
   #   activity.originId in @_following or activity.anchor?.id in @_following
@@ -452,16 +452,16 @@ class ActivityListController extends KDListViewController
       @scrollView.scrollTo {top : 0, duration : 200}, ->
         view.slideIn()
 
-  followedActivityArrived: (activity) -> 
-    if @_state is 'private' 
-      view = @addHiddenItem activity, 0 
-      @activityHeader.newActivityArrived() 
+  followedActivityArrived: (activity) ->
+    if @_state is 'private'
+      view = @addHiddenItem activity, 0
+      @activityHeader.newActivityArrived()
 
   newActivityArrived:(activity)->
     return unless @_state is 'public'
     unless @isMine activity
-      view = @addHiddenItem activity, 0 
-      @activityHeader.newActivityArrived() 
+      view = @addHiddenItem activity, 0
+      @activityHeader.newActivityArrived()
 
     #   if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
     #     view = @addHiddenItem activity, 0
@@ -480,7 +480,7 @@ class ActivityListController extends KDListViewController
   addItem:(activity, index, animation = null) ->
     @noActivityItem.hide()
     # log "ADD:", activity
-    @getListView().addItem activity, index, animation 
+    @getListView().addItem activity, index, animation
 
     # if (@_state is 'private' and @isInFollowing activity) or @_state is 'public'
     #   @getListView().addItem activity, index, animation

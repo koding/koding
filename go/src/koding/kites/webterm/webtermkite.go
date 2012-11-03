@@ -78,7 +78,7 @@ func (server *WebtermServer) runScreen(args []string, sizeX, sizeY float64) {
 		panic("Trying to open more than one session.")
 	}
 
-	command := []string{"/bin/bash"}
+	command := []string{"/bin/bash", "-l"}
 	// command = append(command, args...)
 
 	pty := pty.New()

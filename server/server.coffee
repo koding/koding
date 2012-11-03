@@ -33,8 +33,6 @@ process.on 'uncaughtException',(err)->
 mqOptions = extend {}, mq
 mqOptions.login = webserver.login if webserver?.login?
 
-console.log 'WEBSERVER CONFIG', webserver, mqOptions
-
 koding = new Bongo {
   mongo
   root: __dirname
@@ -92,18 +90,20 @@ app.get '/auth', (req, res)->
             callback
             )
 
-        bindKiteQueue "client-message", (kiteCmQueue, exchangeName)->
-          bindKiteQueue "disconnected"
-          kiteBroker.emit(channel, 'join', {user: username, queue: privName})
-          kiteBroker.connection.on 'error', console.log
-          kiteBroker.createQueue '', (dcQueue)->
-            dcQueue.bind exchangeName, 'disconnected'
-            dcQueue.subscribe ->
-              dcQueue.destroy -> dcQueue.close()
-              setTimeout ->
-                kiteCmQueue.destroy -> kiteCmQueue.close()
-              , kites?.disconnectTimeout ? 5000
-          return res.send privName
+        bindKiteQueue "client-message", (kiteCmQueue1, exchangeName)->
+          kiteCmQueue1.close() # this will get opened back up?
+          bindKiteQueue "disconnected", (kiteCmQueue2, exchangeName) ->
+            kiteBroker.emit(channel, 'join', {user: username, queue: privName})
+
+            kiteBroker.connection.on 'error', console.log
+            kiteBroker.createQueue '', (dcQueue)->
+              dcQueue.bind exchangeName, 'disconnected'
+              dcQueue.subscribe ->
+                dcQueue.destroy()#.addCallback -> dcQueue.close()
+                setTimeout ->
+                  kiteCmQueue2.destroy()#.addCallback -> kiteCmQueue.close()
+                , kites?.disconnectTimeout ? 5000
+            return res.send privName
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
@@ -114,6 +114,15 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
+app.get "/status/:data",(req,res)->
+  # req.params.data
+
+  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
+  # exchange.publish 'exit','sharedhosting is dead'
+  # exchange.close()
+  koding.mq.emit 'public-status','exit',req.params.data
+  res.send "alright."
+
 
 app.get '*', (req,res)->
   res.header 'Location', '/#!'+req.url

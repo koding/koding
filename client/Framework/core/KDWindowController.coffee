@@ -9,15 +9,23 @@ todo:
 class KDWindowController extends KDController
 
   @keyViewHistory = []
+  superKey        = if navigator.userAgent.indexOf("Mac OS X") is -1 then "ctrl" else "command"
 
   constructor:(options,data)->
+
     @windowResizeListeners = {}
-    @keyView
-    @dragView
-    @scrollingEnabled = yes
+    @keyEventsToBeListened = ['keydown', 'keyup', 'keypress']
+    @currentCombos         = {}
+    @keyView               = null
+    @dragView              = null
+    @scrollingEnabled      = yes
+
     @bindEvents()
     @setWindowProperties()
-    super
+
+    super options, data
+
+    KD.registerSingleton "windowController", @, yes
 
   addLayer: (layer)->
 
@@ -36,11 +44,7 @@ class KDWindowController extends KDController
 
   bindEvents:()->
 
-    $(window).bind "keydown keyup keypress",@key
-
-    # document.body.addEventListener "keydown",  (event)=> @key event , yes
-    # document.body.addEventListener "keyup",    (event)=> @key event , yes
-    # document.body.addEventListener "keypress", (event)=> @key event , yes
+    $(window).bind @keyEventsToBeListened.join(' '), @key
 
     $(window).bind "resize",(event)=>
       @setWindowProperties event
@@ -117,6 +121,44 @@ class KDWindowController extends KDController
     if view is @keyView and @keyView isnt @oldKeyView
       @setKeyView @oldKeyView
 
+  superizeCombos = (combos)->
+
+    safeCombos = {}
+    for combo, cb of combos
+      if /\bsuper(\+|\s)/.test combo
+        combo = combo.replace /super/g, superKey
+      safeCombos[combo] = cb
+
+    return safeCombos
+
+  viewHasKeyCombos:(view)->
+
+    return unless view
+
+    o      = view.getOptions()
+    combos = {}
+
+    for e in @keyEventsToBeListened
+      if "object" is typeof o[e]
+        for combo, cb of o[e]
+          combos[combo] = cb
+
+    return if Object.keys(combos).length > 0 then combos else no
+
+  registerKeyCombos:(view)->
+
+    if combos = @viewHasKeyCombos view
+      view.setClass "mousetrap"
+      @currentCombos = superizeCombos combos
+      for combo, cb of @currentCombos
+        Mousetrap.bind combo, cb, 'keydown'
+
+  unregisterKeyCombos:->
+
+    @currentCombos = {}
+    Mousetrap.reset()
+    @keyView.unsetClass "mousetrap" if @keyView
+
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
@@ -125,8 +167,10 @@ class KDWindowController extends KDController
     #   debugger
     # log newKeyView, "newKeyView" if newKeyView
 
+    @unregisterKeyCombos()
     @oldKeyView = @keyView
-    @keyView = newKeyView
+    @keyView    = newKeyView
+    @registerKeyCombos newKeyView
 
     @constructor.keyViewHistory.push newKeyView
 
@@ -163,6 +207,9 @@ class KDWindowController extends KDController
 
   key:(event)=>
     # log event.type, @keyView.constructor.name, @keyView.getOptions().name
+    # if Object.keys(@currentCombos).length > 0
+    #   return yes
+    # else
     @keyView?.handleEvent event
 
   allowScrolling:(shouldAllowScrolling)->
@@ -194,3 +241,5 @@ class KDWindowController extends KDController
   #   for key,instance of @windowResizeListeners
   #     instance._windowDidResize? event
   # ,50
+
+new KDWindowController

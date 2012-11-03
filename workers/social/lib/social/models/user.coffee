@@ -153,7 +153,7 @@ module.exports = class JUser extends jraphical.Module
                     if err
                       callback err
                     else
-                      JAccount.emit "AccountAuthenticated", account
+                      #JAccount.emit "AccountAuthenticated", account
                       callback null, account
         else @logout clientId, callback
 
@@ -248,12 +248,12 @@ module.exports = class JUser extends jraphical.Module
                       else
                         connection.delegate = account
                         JAccount.emit "AccountAuthenticated", account
-                        
+
                         # This should be called after login and this
                         # is not correct place to do it, FIXME GG
                         # p.s. we could do that in workers
                         account.updateCounts()
-                        
+
                         callback null, account, replacementToken
 
   @logout = secure (client, callback)->

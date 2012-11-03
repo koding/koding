@@ -11,9 +11,10 @@ option '-s', '--silent', 'Set this flag to suppress stdout'
 
 task 'run', ({configPath, silent})->
   configPath ?= '../config/dev'
-  {webPort, logger} = require configPath
+  {webserver, logger} = require configPath
   logger = new KodingLogger 'webserver', os.hostname(), logger.mq
   logger.tailTo process.stdout unless silent
+  webPort = webserver.port
   webPort = [webPort] unless Array.isArray webPort
   webPort.forEach (port)->
     runServer configPath, logger, port
