@@ -156,11 +156,12 @@ module.exports = new Kite 'sharedHosting'
                 callback? error
 
   copyAppSkeleton:(options, callback)->
-    {username, appPath} = options
+    {username, appPath, type} = options
 
     appPath = escapePath "#{appPath}/"
+    type = "blank" if not type in ["blank", "sample"]
 
-    exec "cp -r /opt/Apps/.defaults/* #{appPath}", (err, stdout, stderr)->
+    exec "cp -r /opt/Apps/.defaults/#{type}/* #{appPath}", (err, stdout, stderr)->
       if not err
         exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
           console.error err if err

@@ -18,7 +18,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     # saves the URL of the previous request to avoid
     # multiple embed calls for one URL
-    @previousURL = []
+    @previousURL = ""
 
     # prevents multiple calls to embed.ly functionality
     # at the same time
@@ -128,10 +128,11 @@ class ActivityStatusUpdateWidget extends KDFormView
       pistachio : """
       <p>For links, please provide a protocol such as
         <abbr title="Hypertext Transfer Protocol">http://</abbr>
-        <label for="stop-sanitizing">
-        Stop this.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
+        <label for="stop-sanitizing" title="This will disable the automatic URL completion.">
+        Disable URL auto-complete.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
       </p>
       """
+
 
     @inputLinkInfoBox.addSubView @inputLinkInfoBoxCloseButton
 
@@ -179,7 +180,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
           @embedBox.embedLinks.setLinks firstUrl
 
-          unless @previousURL is firstUrl
+          unless (@previousURL in firstUrl)
             @embedBox.embedUrl firstUrl?[0], {
               maxWidth: 525
             }, (embedData)=>
@@ -188,7 +189,9 @@ class ActivityStatusUpdateWidget extends KDFormView
               @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
 
               @requestEmbedLock = off
-              @previousURL = firstUrl
+              @previousURL = firstUrl?[0]
+          else
+            @requestEmbedLock = off
         else
           @requestEmbedLock = off
       ,50
@@ -274,6 +277,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @embedBox.resetEmbedAndHide()
     @previousURL = ""
     @initialRequest = yes
+    @inputLinkInfoBoxPermaHide = off
+    @inputLinkInfoBox.hide()
 
     super
 

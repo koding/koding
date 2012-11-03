@@ -57,16 +57,17 @@ class AceView extends JView
 
     @compileAndRunButton = new KDButtonView
       style     : "editor-button"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "compile"
-      tooltip   :
-        title   : "Compile & Run"
+      title     : "Compile & Run"
+      loader    :
+        color   : "#444444"
+        diameter: 12
       callback  : =>
         manifest = KodingAppsController.getManifestFromPath @getData().parentPath
+        @ace.notify "Compiling...", null, yes
         @getSingleton('kodingAppsController').compileApp manifest.name, =>
           @ace.notify "App compiled!", "success"
           @getSingleton('kodingAppsController').runApp manifest
+          @compileAndRunButton.hideLoader()
 
     @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
 
