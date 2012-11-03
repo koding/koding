@@ -4,6 +4,8 @@ class KDRouter
 
   tree = {}
 
+  currentPath = location.pathname
+
   getHashFragment =(url)-> url.substr 1 + url.indexOf '#'
 
   handleNotFound =(route)=> @handleNotFound? route
@@ -15,7 +17,7 @@ class KDRouter
     frag.shift() # first edge is garbage like '' or '#!'
 
     path = frag.join '/'
-    history.pushState path, KDRouter.getTitle(path), path
+    history.pushState {}, KDRouter.getTitle(path), path
 
     for edge in frag
       if node[edge]
@@ -32,8 +34,9 @@ class KDRouter
       listener.call null, params for listener in listeners
 
   window.addEventListener 'popstate', (event)->
-    console.log event
-    changeRoute event.state, no  if event.state?
+    if location.pathname isnt currentPath
+      currentPath = location.pathname
+      changeRoute location.pathname, no 
 
   window.addEventListener 'hashchange', (event)->
     changeRoute getHashFragment(event.newURL), yes
