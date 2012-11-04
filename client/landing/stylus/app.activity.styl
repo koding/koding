@@ -114,7 +114,7 @@ app.activity.styl
 .activity-related
   borderBox()
   a
-    color                 #E80
+    color                 #FF9200
     font-weight           600
     font-size             11px
     cursor                pointer
@@ -476,10 +476,12 @@ button.kdbutton.dark
     padding               8px 10px 6px 10px
     line-height           17px
     borderBox()
-    &:hover
-      border-color        rgb(199,199,199)
+    // this breaks focus border color better to be removed
+    // &:hover
+    //   border-color        rgb(199,199,199)
     &.discussion-body
       min-height 72px
+      max-height 300px
       height 72px
 
   input:-moz-placeholder,
@@ -1070,44 +1072,825 @@ div.show-more-opinions
     noTextDeco()
 
 div.show-more-discussion
-  padding-top 5px
-  padding-bottom 5px
-  background-color #f7f7f7
-  padding-left 10px
+  padding-top                     5px
+  padding-bottom                  5px
+  background-color                #f7f7f7
+  padding-left                    10px
   a.discussion-view-more
     noTextDeco()
 
-// form.link-widget.update-options, form.status-widget
+div.discussion-widget-content
+  width                           100%
+  float                           right
+  display                         block
+  text-align                      right
 
-//   div.formline
-div.link-embed-box
-      borderBox()
-      rounded 4px
-      div.link-embed
-        borderBox()
-        div.embed
-          borderBox()
-          margin-top 15px
+  label.markdown-preview-label
+    font-size                     11px
+    color                         #FF9200
+    font-weight                   600
+    margin-right                  0px
+    display                       inline-block
+    float                         none
+
+  input.checkbox.markdownPreviewCheckbox
+    vertical-align                middle
+    margin-right                  10px
+
+  button
+    margin-top                    12px
+
+    &.fullscreen-button
+      padding 0px 2px
+      height 24px
+      span
+        &.fullscreen
+          bg              position,-20px -360px
+
+  a.markdown-link
+    margin-top                    11px
+    display                       inline-block
+    margin-right                  9px
+    line-height                   100%
+    text-decoration               none
+    font-size                     11px
+    font-weight                   600
+    color                         #ff9200
+
+
+div.kdview.link-embed-box
+  borderBox()
+  position relative
+
+  vendor transition, opacity .1s linear
+
+  width auto
+  height auto
+
+  // // this is gecko
+  // width max-content
+  height max-content
+
+  // // this is webkit-only
+  // width intrinsic
+  height intrinsic
+
+  rounded 4px
+  border 1px solid black
+  border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+
+  // Fix YouTube style breakage in Chrome
+  // vendor font-smoothing, subpixel-antialiased !important;
+
+  background-color #F7F7F7
+
+  padding 0px 0px
+  margin-top 15px
+
+  min-height 75px
+
+  &.link-wigdet
+    margin-top 0px
+
+  // report button for embeds
+  > button.kdbutton.report-embed, button.kdbutton.hide-embed
+    position absolute
+    top 4px
+    right 3px
+    size 20px,20px
+    margin 0px
+    padding 0px
+    border none
+    opacity 0.5
+    background transparent
+    vendor transition, opacity 0.3s ease-in-out
+    z-index 3
+
+    > span.icon
+      sprite()
+
+      &.hide
+        bg position, -80px -240px
+      &.report
+        bg position, 0px -120px
+
+    &:hover
+      opacity 1
+
+  > div.embed-box-settings
+    vendor            transition, opacity .1s ease-out
+    size              21px, 18px
+    opacity           .2
+    position          absolute
+    top               0
+    right             20px
+    z-index           10
+    position absolute
+    right 0px
+    top 0px
+    margin 0px
+    display inline-block
+    height inherit
+
+    .kdview.jcontextmenu.kdbuttonmenu
+      border-color          rgba(0,0,0,.2)
+      .chevron-ghost-wrapper
+        border-color        rgba(0,0,0,.2)
+        rounded             2px 2px 0 0
+        width               19px
+        span.chevron-ghost
+          margin            0 auto
+          bg                position, -80px -261px
+      .kdcontextmenutreeview
+        margin              3px 0
+        .kdview.kdtreeitemview.default
+          padding           2px
+          font-size         11px
+
+    button.kdbutton.with-icon
+      padding         1px 2px
+      padding-right   3px!important
+
+      &:hover
+        gradient      #eee, #ddd
+        rounded       2px
+
+      span.icon
+        display block
+        float left
+        position relative
+        background-repeat no-repeat
+        background-color transparent
+        background-image url("../images/_kd.sprites.png")
+        margin 0
+        padding 0
+        height 16px
+        width 16px
+        background-position -81px -281px
+        bg            position, -81px -281px
+        size          16px, 16px
+        padding       0
+        margin        0
+
+    .chevron
+      display         none
+    .chevron-separator
+      display         none
+
+  span.embed-loader
+    position absolute
+    left 50%
+    right 50%
+    top 40%
+    bottom 50%
+
+  > div.embed-links-container
+    // div.embed-link-list-head
+    //   float left
+    //   height 34px
+    //   border 1px solid #e8e8e8
+    //   margin 5px 0 0 5px
+    //   border-right none
+    //   max-width 50px
+    //   rounded 4px 0px 0px 4px
+    //   span
+    //     color #999
+    //     font-size 11px
+
+    div.embed-link-list
+      padding 5px
+
+      &.layout-wrapper
+        padding 5px 5px 2px 5px
+        margin 5px
+        border 1px solid #e8e8e8
+        background-color #fff
+        rounded 4px
+
+
+      div.embed-link-item
+        width auto
+        display inline-block
+        margin-right 10px
+        margin-bottom 0px
+        max-height inherit
+        line-height inherit
+        vertical-align inherit
+        max-width 200px
+        overflow hidden
+
+        // div.embed-link-indicator
+        //   float left
+        //   display inline-block
+        //   size 20px 15px
+        //   margin-right 1px
+        //   > span.icon
+
+        //     size 20px 15px
+        //     sprite()
+        //     display block
+        //     float left
+        //     &.link
+        //       // bg position, -222px -442px
+        //       bg position, -141px -400px
+
+
+        //   > span.link-text
+        //     font-size 8px
+        //     line-height 8px
+        //     display block
+        //     color #bbb
+
+        &.active, &.active:hover
+          div.embed-link-wrapper
+            button
+              span.button-title
+                // color #ff9200
+                text-decoration underline
+
+        &:hover
+          div.embed-link-wrapper
+            button
+              span.button-title
+                color #27A3C9
+
+        &:last-child
+          margin-right 0px
+
+        div.embed-link-wrapper
+          display inline-block
+          padding 0 2px 2px 0
+          background-color white
+          min-height 18px
+          height 18px
           rounded 4px
-          border 1px solid black
-          border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
-          padding 10px
+
+          img.embed-favicon
+            float left
+            max-height 14px
+            max-width 14px
+            margin 3px 3px 0 3px
+
+          button
+            border none
+            vendor box-shadow none
+            // bg color, lighten(#5f5f5f, 50%) //#ff9200
+            bg color, #fff
+            color #ff9200
+            text-shadow none
+            background-image none
+            rounded 3px
+            max-width 190px
+            height 18px
+            max-height  18px
+            display block
+            vendor transition, max-width 0.1s ease-in-out
+            overflow hidden
+            padding 3px 3px 4px 3px
+            // &:hover
+            //   max-width:100%
+
+
+            span.button-title
+              text-overflow ellipsis
+              max-width 180px
+              max-height inherit
+              overflow hidden
+              display block
+              height 15px
+              white-space nowrap
+
+  > div.link-embed
+    borderBox()
+    height inherit
+    opacity 1
+    vendor transition, opacity 0.15s ease-in-out
+
+    &.loading
+      opacity 0.5
+
+
+    > div.embed
+      borderBox()
+      height inherit
+      rounded 4px
+      padding 15px 15px 12px 15px
+
+      // this will overload the default twitter embed by embedly
+      > div.embedly_twitter.custom-twitter
+        background none!important
+        font-size 13px!important
+        padding 0px!important
+        > div.embedly_tweet_content
+          font-size 13px!important
+          background none!important
+          padding 0px!important
+          > div.components-middle
+            font-size 13px!important
+            > p
+              font-size 13px!important
+              color #5F5F5F!important
+              background none!important
+              padding 0px!important
+              > a
+                font-size 13px!important
+                color #FF9200!important
+              > span.metadata
+                font-size 13px!important
+                > span.author
+                  font-size 13px!important
+                  > a
+                    font-size 13px!important
+                  > strong
+                    > a
+                      font-size 13px!important
+                      color #FF9200!important
+
+              > span.embedly_timestamp
+                font-size 13px!important
+                > a
+                  font-size 13px!important
+                  font-weight 300px!important
+                  color #FF9200!important
+
+              > span.tweet-actions
+                font-size 13px!important
+                >a  >span >b
+                  font-size 13px!important
+                  font-weight 300!important
+                  color #FF9200!important
+
+      &.custom-link, &.custom-rich, &.custom-video
+        font-size 13px
+        font-weight 400
+        overflow hidden
+
+
+        > div.preview_image
+          borderBox()
+          display inline-block
+          float left
+          margin-right 15px
+          max-height 300px
+          min-height 20px
+          height 100%
+          max-width 100px
+          min-width 50px
+          overflow visible
+          position relative
+          // width auto
+
+          > iframe
+            max-height 90px
+            min-height 50px
+            min-width inherit
+            max-width inherit
+            line-height 100%
+            margin 0
+            padding 0
+            noTextDeco()
+
+          > a.preview_link
+            max-height 90px
+            min-height 20px
+            min-width inherit
+            max-width inherit
+            line-height 100%
+            margin 0
+            padding 0
+            noTextDeco()
+
+            > img.thumb
+              borderBox()
+              max-height inherit
+              min-height inherit
+              min-width inherit
+              max-width inherit
+              margin 0
+              padding 0
+
+        > div.preview_link_pager
+          // position absolute
+          // left 14px
+          // bottom 12px
+          padding-top 2px
+          padding-bottom 5px
+          clear both
+          margin-bottom 15px
+
+          > a.preview_link_switch
+            borderBox()
+            color #ff9200
+            border 1px solid #FF9200
+            background-color white
+            margin 0px
+            padding 2px 5px
+            cursor pointer
+            font-size 10px
+            line-height 12px
+            &:hover
+              color white
+              background-color #ff9200
+            &.previous
+              rounded 4px 0 0 4px
+              margin-right 2px
+            &.next
+              rounded 0 4px 4px 0
+            &.disabled
+              color #E8E8E8
+              cursor inherit
+              border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
+              &:hover
+                color #E8E8E8
+                background-color white
+
+          > div.thumb_count
+            display inline
+            color #5F5F5F
+            font-size 10px
+            span.thumb_nr
+              color #5F5F5F
+            span.thumb_all
+              color #5F5F5F
+            // span.thumb_text
+            //   display none
+
+        div.preview_text
+          borderBox()
+          display        block
+          overflow       hidden
+          width          auto
+          min-height     20px
+          font-size      12px
+          font-weight    400
+          color          #797979
+          // max-height 90px
+          // min-width      300px  // half the width - paddings
+          // max-width 413px
+
+          .edit-indicator
+            borderBox()
+            opacity 0.5
+            max-height 16px
+            height 16px
+            color #bbb
+            text-transform uppercase
+            font-size 10px
+            line-height 14px
+            font-weight 300
+            border 1px solid #ccc
+            color white
+            background-color #ccc
+            padding 0px 3px
+            vendor transition, opacity 0.3s ease-in-out
+            display inline-block
+            rounded 3px
+
+            &:hover
+              opacity 1
+
+          > a.preview_text_link
+            noTextDeco()
+            color        inherit
+            font-size    inherit
+            font-weight  400
+            &.has-config:hover
+              cursor     text
+
+            > input, textarea
+              overflow   hidden
+              height     auto
+              padding    1px 3px
+
+              min-width  350px
+              max-width  540px
+
+            > input
+              margin-bottom 3px
+
+            > textarea
+              margin-top 3px
+              min-height 100px
+
+            > div.preview_title
+              font-size  inherit
+              font-weight 400
+              margin-bottom 3px
+              noTextDeco()
+              color #FF9200
+              &:hover
+                color #27A3C9
+
+
+            > div.description
+              margin-top 17px
+              noTextDeco()
+              display block
+              font-weight 400
+              font-size inherit
+              overflow hidden
+              color inherit
+
+
+          // > div.provider_info:last-of-type
+          //   margin-bottom 0px
+
+          > div.author_info
+            display inline-block
+            font-weight inherit
+            font-size inherit
+            color inherit
+            a
+              font-weight 400
+              font-size inherit
+              noTextDeco()
+              color #FF9200
+              // color #5F5F5F
+              // color black
+
+              &:hover
+                color #27A3C9
+
+          > div.provider_info
+            noTextDeco()
+            font-size inherit
+            font-weight inherit
+            // margin-bottom 17px
+            color inherit
+            strong
+              font-weight inherit
+              // color black
+            a
+              font-weight 400
+              font-size inherit
+              noTextDeco()
+              color #FF9200
+              // color #5F5F5F
+              // color black
+
+              &:hover
+                color #27A3C9
+
+
+      // img.thumb
+      //   max-height 100px!important
+      //   max-width 100px!important
+      //   min-height 25px
+      //   // min-width 25px
+      //   float left
+
+      // a
+      //   display block
+      // a.provider
+      //   display block
+
+div.kdview.status-widget.link-embed-box
+  div.link-embed
+    width : 560px
+
+div.link
+  div.activity-item-right-col
+    h3
+      cursor inherit
+      a
+        font-size 13px
+        font-weight 500
+        noTextDeco()
+    > p
+      > span
+        cursor inherit
+
+
+form.link-widget
+  div.formline
+    textarea.kdinput.text
+      min-height    70px
 
 form.status-widget
   div.formline
     div.link-embed-box
-      margin-left 153px
+      margin-left   153px
 
-// div.activity-item.link, div.activity-item.status
-//   div.activity-item-right-col
-//     div.link-embed
-//       borderBox()
-//       width auto
-//       div.embed
-//         borderBox()
-//         margin-top 15px
-//         rounded 4px
-//         border 1px solid black
-//         border-color #E8E8E8 #E8E8E8 #E0E0E0 #E8E8E8
-//         padding 10px
+div.modal-fullscreen-text
+  textarea.fullscreen-data
+    float           left
+    // vendor          transition, width 0.01s linear
+  div.kdinputwithpreview.input_preview
+    position        absolute
+    top             5px
+    right           8px
+    borderBox()
+    // margin-top 5px
+    z-index         500
+    div.preview_content
+      // max-height inherit
+      height        inherit
 
+div.kdinputwithpreview.input_preview
+  borderBox()
+  margin              0 0 0px 0
+  padding             5px 0 0 0
+  min-height          40px
+  position            relative
+  overflow            auto
+
+  &.content-hidden
+    margin-bottom     0px
+
+  div.preview_switch
+    borderBox()
+    position          absolute
+    right             1px
+    top               6px
+    float             none
+    bg                color, #F4F4F4
+    rounded           0px 4px 0px 4px
+    padding           1px 3px
+    border-left       1px solid
+    border-bottom     1px solid
+    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+    height            23px
+    width             auto
+    // box-shadow -2px 2px 10px 0px rgba(0,0,0,0.29)
+
+    &.content-hidden
+      rounded         4px
+      border          1px solid
+      top             5px
+      right           0px
+      height 24px
+      border-color    #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+
+    label.preview_switch_label
+      color           #ff9200
+      width           auto
+      min-width       auto
+      display         inline-block
+      float           none
+      font-size       11px
+      line-height     16px
+      padding         2px 2px
+      margin-right    5px
+      font-weight     600
+
+    // input.preview_checkbox
+    //   padding         2px 2px
+    //   margin          2px
+    //   min-width       auto
+    //   width           auto
+    //   float           none
+    //   display         inline-block
+    //   vertical-align  middle
+
+    div.kdinput.on-off
+      margin-top            2px
+      float                 right
+      font-family           sans
+      width                 auto
+      rounded               2px
+      a
+        display             inline-block
+        border              1px solid #cfcfcf
+        font-size           9px
+        font-weight         bold
+        color               #b6b6b6
+        line-height         8px
+        text-align          center
+        padding             7px 0px 6px 0px
+        text-decoration     none
+        text-shadow         0 1px 0 #ffffff
+        text-transform      uppercase
+        size                28px,auto
+        gradient1           #e6e5e5,85.3%,white,23.9%
+        shadow              0 1px 0 rgba(255, 255, 255, 0.69)
+        &:hover
+          gradient1         white,100%,#e6e5e5,15.3%
+          color             #918f8c
+          text-shadow       0 1px 0 #ffffff
+          shadow            inset 0 1px 1px -1px rgba(0,0,0,0.32)
+          border-top-color  #b9b9b9
+        &.active
+          border-color      #e2963f
+          color             #ffffff
+          text-shadow       0 -1px 0 #b97e42
+          shadow            0 1px 0 rgba(255, 255, 255, 0.69), inset 0 1px 1px hsla(0, 0%, 0%, 0.12)
+          gradient1         #f49f3f,82.7%,#e18931,30%
+          &.off
+            color               rgb(140,140,140)
+            gradient1           white, 85.9%, #e6e5e5, 23.3%
+            border              1px solid #cfcfcf
+            text-shadow         0 0 0 #ccc
+            shadow              0 1px 0 rgba(255,255,255,0.69), inset 0 3px 6px -5px rgba(0,0,0,0.69)
+            // gradient1       rgb(199,81,29),100%,rgb(168,70,25),44%
+        &.off
+          // border-left       1px solid rgba(51, 51, 51, 0.15)
+          letter-spacing    0px
+          rounded           0 2px 2px 0
+        &.on
+          border-right      1px solid rgba(51, 51, 51, 0.15)
+          rounded           2px 0 0 2px
+      &.big
+        width               76px
+        a
+          font-size         11px
+          padding           9px 0px
+          width             36px
+
+      &.tiny
+        a
+          padding           3px 0px 2px 0px
+
+      &.dark
+        a
+          shadow            none
+          &:hover
+            shadow          none
+          &.active
+            shadow          none
+            &.off
+              shadow        none
+
+  div.preview_content
+    borderBox()
+    border            1px solid
+    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+    padding           10px
+    rounded           4px
+    max-height        300px
+    min-height        24px
+    overflow          auto
+    vendor            transition, all 0.1s linear
+
+    > *:last-child
+      margin-bottom   0
+
+.twipsy.link-expander
+
+  .twipsy-inner
+
+    vendor box-shadow,  0 3px 7px rgba(0, 0, 0, 0.5)
+    background-color    #fff!important
+    color               #000
+    &:hover
+      color             #27A3C9
+
+    span
+      color             #ff9200
+  .twipsy-arrow
+    border-top          3px solid #fff!important
+
+p.status-body
+
+  // a
+  //   > span.icon, span
+
+  //     vertical-align:bottom
+  //     size 18px 16px
+  //     sprite()
+  //     display inline-block
+  //     margin-bottom 1px
+  //     &.link, &.expanded-link
+  //       bg position, -1px -440px
+
+  //       &.shortened
+  //         bg position, -21px -440px
+
+
+div.protocol-info-box
+  borderBox()
+  rounded 4px
+  border 1px solid #e8e8e8
+  padding 6px 9px
+
+  label
+    opacity 0.75
+    margin-left 15px
+
+  input.stop-sanitizing
+    vertical-align top
+    margin-top 2px
+    margin-left 2px
+
+  > button.kdbutton.hide-info-box
+    position absolute
+    top 4px
+    right 3px
+    size 20px,20px
+    margin 0px
+    padding 0px
+    border none
+    opacity 0.5
+    background transparent
+    vendor transition, opacity 0.3s ease-in-out
+    z-index 3
+
+    > span.icon
+      sprite()
+
+      &.hide
+        bg position, -80px -240px
+      &.report
+        bg position, 0px -120px
+
+    &:hover
+      opacity 1

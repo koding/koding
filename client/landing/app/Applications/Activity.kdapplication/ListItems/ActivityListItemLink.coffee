@@ -10,7 +10,12 @@ class LinkActivityItemView extends ActivityItemChild
 
     super options,data
 
-    @embedBox = new EmbedBox
+    embedOptions = $.extend {}, options, {
+      delegate:@
+      hasDropdown: no
+    }
+
+    @embedBox = new EmbedBox embedOptions,data
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CLinkActivity
@@ -18,14 +23,18 @@ class LinkActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    @embedBox.embedUrl @getData().link_url
+    if @getData().link_embed?
+      @embedBox.embedExistingData @getData().link_embed, {}, noop, getData().link_cache
 
-  click:(event)->
+    else if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
+    else log "There is no link information to embed."
 
-    super
+  # click:(event)->
 
-    if $(event.target).is("[data-paths~=body]")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+  #   super
+
+  #   if $(event.target).is("[data-paths~=body]")
+  #     appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")-> @utils.applyTextExpansions str, yes
 
@@ -35,7 +44,7 @@ class LinkActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       <h3 class='hidden'></h3>
-      <h3>{{@applyTextExpansions #(title)}}</h3>
+      <h3><a href="#{@getData().link_url or "#"}" target="_blank">{{@applyTextExpansions #(title)}}</a></h3>
       <p>{{@applyTextExpansions #(body)}}</p>
       {{> @embedBox}}
       <footer class='clearfix'>

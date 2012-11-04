@@ -16,7 +16,21 @@ class ActivityStatusUpdateWidget extends KDFormView
         rules       :
           maxLength : 2000
 
-    # @previousWhich = 0
+    # saves the URL of the previous request to avoid
+    # multiple embed calls for one URL
+    @previousURL = ""
+
+    # prevents multiple calls to embed.ly functionality
+    # at the same time
+    @requestEmbedLock = off
+
+    # will show the loader/embed box instantly when embed
+    # requests gets parsed/sent. this is only needed if the
+    # box is hidden (as it is when the widget is empty or reset)
+    @initialRequest = yes
+
+    # will hide the link helper box once it's been closed once
+    @inputLinkInfoBoxPermaHide = off
 
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
@@ -31,14 +45,23 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
-      # keydown:=>
-      #   if ($(event.which)[0] is 32) or ($(event.which)[0] is 86 and @previousWhich is 91)
-      #     setTimeout =>
-      #       firstUrl = @largeInput.getValue().match(/[a-zA-Z\d]+:\/\/(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/.*)?/g)
-      #       @embedBox.embedUrl firstUrl?[0]
-      #     ,500
-      #   @previousWhich = $(event.which)[0]
 
+      paste:=>
+        @requestEmbed()
+
+      # # this will cause problems when clicking on a embedLinks url
+      # # right after entering the url -> double request
+      # the request lock should circumvent this problem.
+
+      blur:=>
+        @requestEmbed()
+
+      keyup:=>
+        # this needs to be refactored, this will only capture URLS when the user
+        # adds a space after them
+
+        if ($(event.which)[0] is 32) # when space key is hit, URL is usually complete
+          @requestEmbed()
 
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -52,7 +75,13 @@ class ActivityStatusUpdateWidget extends KDFormView
       title       : "Submit"
       type        : "submit"
 
-    # @embedBox = new EmbedBox
+    embedOptions = $.extend {}, options,
+      delegate  : @
+      hasConfig : yes
+      click:->
+        no
+
+    @embedBox = new EmbedBox embedOptions, data
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -82,7 +111,90 @@ class ActivityStatusUpdateWidget extends KDFormView
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
+
+    @inputLinkInfoBoxCloseButton = new KDButtonView
+      name: "hide-info-box"
+      cssClass      : "hide-info-box"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "hide"
+      title     : "Close"
+      callback  : =>
+        @inputLinkInfoBox.hide()
+        @inputLinkInfoBoxPermaHide = on
+
+    @inputLinkInfoBox = new KDView
+      cssClass : "protocol-info-box hidden"
+      pistachio : """
+      <p>For links, please provide a protocol such as
+        <abbr title="Hypertext Transfer Protocol">http://</abbr>
+        <label for="stop-sanitizing" title="This will disable the automatic URL completion.">
+        Disable URL auto-complete.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
+      </p>
+      """
+
+
+    @inputLinkInfoBox.addSubView @inputLinkInfoBoxCloseButton
+
     @tagAutoComplete = @tagController.getView()
+
+  # will automatically add // to any non-protocol urls
+  sanitizeUrls:(text)->
+    text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
+      test = /^([a-zA-Z]+\:\/\/)/.test url
+
+      if test is no
+
+        # here is a warning/popup that explains how and why
+        # we change the links in the edit
+
+        unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
+
+        unless @$("input.stop-sanitizing").prop "checked"
+          "http://"+url
+        else
+          url
+
+      else
+
+        # if a protocol of any sort is found, no change
+
+        url
+
+  requestEmbed:=>
+
+    @largeInput.setValue @sanitizeUrls @largeInput.getValue()
+
+    unless @requestEmbedLock is on
+
+      @requestEmbedLock = on
+
+      setTimeout =>
+        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        if firstUrl?
+
+          if @initialRequest
+            # @embedBox.show()
+            # @embedBox.embedLoader.show()
+            @initialRequest = no
+
+          @embedBox.embedLinks.setLinks firstUrl
+
+          unless (@previousURL in firstUrl)
+            @embedBox.embedUrl firstUrl?[0], {
+              maxWidth: 525
+            }, (embedData)=>
+
+              # add favicon to link list if possible
+              @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
+
+              @requestEmbedLock = off
+              @previousURL = firstUrl?[0]
+          else
+            @requestEmbedLock = off
+        else
+          @requestEmbedLock = off
+      ,50
 
   switchToSmallView:->
 
@@ -109,16 +221,47 @@ class ActivityStatusUpdateWidget extends KDFormView
     @getSingleton("windowController").addLayer tabView
 
   switchToEditView:(activity)->
-    {tags, body} = activity
+    {tags, body, link} = activity
     @tagController.reset()
     @tagController.setDefaultValue tags
     @submitBtn.setTitle "Edit status update"
     @addCustomData "activity", activity
     @largeInput.setValue Encoder.htmlDecode body
-    @switchToLargeView()
     @utils.selectText @largeInput.$()[0]
+    if link?
 
-  submit:->
+      bodyUrls = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      if bodyUrls?
+
+        # put the item with link_url as its url to array[0] for auto-active
+        selected = bodyUrls.splice(bodyUrls.indexOf(link.link_url),1)
+        bodyUrls.unshift selected[0]
+        @embedBox.embedLinks.setLinks bodyUrls
+
+      @previousURL = link.link_url
+
+      @embedBox.setEmbedData link.link_embed
+      @embedBox.setEmbedURL link.link_url
+      @embedBox.setEmbedImageIndex link.link_embed_image_index
+      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
+      @embedBox.setEmbedCache link.link_cache
+
+      # when in edit mode, show the embed and remove any "embed" from hidden
+      @embedBox.embedExistingData link.link_embed, {forceShow:yes}, =>
+        @embedBox.show()
+      , link.link_cache
+    else
+      @embedBox.hide()
+
+    @switchToLargeView()
+
+  submit:=>
+    @addCustomData "link_cache", @embedBox.getEmbedCache() or []
+    @addCustomData "link_url", @embedBox.getEmbedURL() or ""
+    @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
+    @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
+    @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
+
     @once 'FormValidationPassed', => @reset()
     super
 
@@ -126,6 +269,17 @@ class ActivityStatusUpdateWidget extends KDFormView
     @tagController.reset()
     @submitBtn.setTitle "Submit"
     @removeCustomData "activity"
+    @removeCustomData "link_url"
+    @removeCustomData "link_cache"
+    @removeCustomData "link_embed"
+    @removeCustomData "link_embed_hidden_items"
+    @removeCustomData "link_embed_image_index"
+    @embedBox.resetEmbedAndHide()
+    @previousURL = ""
+    @initialRequest = yes
+    @inputLinkInfoBoxPermaHide = off
+    @inputLinkInfoBox.hide()
+
     super
 
   viewAppended:->
@@ -138,11 +292,11 @@ class ActivityStatusUpdateWidget extends KDFormView
       @switchToSmallView()
 
   pistachio:->
-    # {{> @embedBox}}
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}</div>
+    <div class="large-input">{{> @largeInput}}{{> @inputLinkInfoBox}}</div>
     <div class="formline">
+    {{> @embedBox}}
     </div>
     <div class="formline">
       {{> @labelAddTags}}
