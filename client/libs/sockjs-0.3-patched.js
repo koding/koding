@@ -566,7 +566,7 @@ var unload_triggered = function() {
 
 // Onbeforeunload alone is not reliable. We could use only 'unload'
 // but it's not working in opera within an iframe. Let's use both.
-utils.attachEvent('beforeunload', unload_triggered);
+// utils.attachEvent('beforeunload', unload_triggered);
 utils.attachEvent('unload', unload_triggered);
 
 utils.unload_add = function(listener) {

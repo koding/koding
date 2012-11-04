@@ -294,7 +294,7 @@ class ActivityStatusUpdateWidget extends KDFormView
   pistachio:->
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}{{>@inputLinkInfoBox}}</div>
+    <div class="large-input">{{> @largeInput}}{{> @inputLinkInfoBox}}</div>
     <div class="formline">
     {{> @embedBox}}
     </div>
