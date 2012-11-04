@@ -380,7 +380,7 @@ task 'run', (options)->
       queue.next()
 
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next()
+    queue.push -> buildClient options, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options
