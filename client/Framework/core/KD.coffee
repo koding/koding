@@ -95,7 +95,7 @@ KD.error = error = noop
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
-    @classes[anInstance.constructor.name] ?= anInstance.constructor
+    # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->
     # warn "Instance being unregistered doesn't exist in registry!!", anInstance unless @instances[anInstance.id]

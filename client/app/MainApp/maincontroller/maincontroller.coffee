@@ -14,7 +14,6 @@ class MainController extends KDController
     window.appManager = new ApplicationManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
-    KD.registerSingleton "windowController", new KDWindowController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
 

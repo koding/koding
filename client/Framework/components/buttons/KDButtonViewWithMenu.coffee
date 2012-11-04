@@ -30,7 +30,6 @@ class KDButtonViewWithMenu extends KDButtonView
     no
 
   createContextMenu:(event)->
-
     o = @getOptions()
     @buttonMenu = new (o.buttonMenuClass or JButtonMenu)
       cssClass          : o.style
@@ -40,7 +39,23 @@ class KDButtonViewWithMenu extends KDButtonView
       treeItemClass     : o.treeItemClass
       itemChildClass    : o.itemChildClass
       itemChildOptions  : o.itemChildOptions
-    , if "function" is typeof o.menu then o.menu() else o.menu
+    , if "function" is typeof o.menu then o.menu() else
+
+      # this allows for "sorted" menus that can have elements added to then
+      # dynamically at runtime. it also allows to adding elements at certain
+      # positions  with Array.splice (whereas Objects properties can't be enumerated)
+
+      if o.menu instanceof Array
+        menuArrayToObj = {}
+        for menuObject in o.menu
+          for menuObjectProperty,menuObjectValue of menuObject
+            menuArrayToObj[menuObjectProperty]=menuObjectValue if menuObjectProperty? and menuObjectValue?
+
+        # leave original o.menu array intact so it can be modified
+        # and re-converted on each method call
+
+        menuArrayToObj
+      else o.menu
 
     @buttonMenu.on "ContextMenuItemReceivedClick", => @buttonMenu.destroy()
 

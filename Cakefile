@@ -121,7 +121,6 @@ buildClient =(options, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   console.log config
@@ -160,7 +159,6 @@ buildClient =(options, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  # configFile = normalizeConfigPath expandConfigFile options.configFile
   buildClient options
 
 task 'configureRabbitMq',->
@@ -379,7 +377,7 @@ task 'run', (options)->
       queue.next()
 
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next()
+    queue.push -> buildClient options, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

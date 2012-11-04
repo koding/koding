@@ -79,7 +79,7 @@ class ActivityUpdateWidgetController extends KDViewController
             return notifySubmissionStopped()
           else
             @linkWidgetSubmit formData, stopSubmission
-            updateWidget.switchToSmallView()
+            # updateWidget.switchToSmallView()
             mainView.resetWidgets()
 
     mainView.addWidgetPane
@@ -105,6 +105,15 @@ class ActivityUpdateWidgetController extends KDViewController
     # THIS WILL DISABLE CODE SHARES
     codeSharePane.on 'PaneDidShow', -> codeShareWidget.widgetShown()
 
+    @getSingleton('mainController').on "CreateNewActivityRequested", (type, data)=>
+      appManager.openApplication "Activity"
+      switch type
+        # THIS WILL DISABLE CODE SHARES
+        when "JCodeShare"
+          mainView.showPane "codeshare"
+          # log "Will add this data:", data
+          codeShareWidget.setCodeShareData data
+
     @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
       appManager.openApplication "Activity"
@@ -126,7 +135,7 @@ class ActivityUpdateWidgetController extends KDViewController
           codeShareWidget.switchToEditView activity
         when "JLink"
           mainView.showPane "link"
-          codeShareWidget.switchToEditView activity
+          linkWidget.switchToEditView activity
 
     @getSingleton('mainController').on "ContentDisplayItemForkLinkClicked", (activity)=>
       mainView.setClass "edit-mode"

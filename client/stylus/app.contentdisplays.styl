@@ -410,13 +410,35 @@ app.contentdisplays.styl
   code
     font-size                                     12px
 
-  ul
-  ol
+  ul,ol
     margin-bottom                                 15px
+    padding-left 10px
+
+  > ol
+    list-style upper-roman inside
+
+    ol
+      list-style decimal inside
+
+    ul
+      list-style disc inside
+
+  > ul
+    list-style disc inside
+
+    ul
+      list-style disc inside
+
+    ol
+      list-style decimal inside
+
+  li
+    padding-left 5px
 
   a
     font-size                                     14px
     font-weight                                   300
+    noTextDeco()
 
   &.force-small-markdown
     *
@@ -499,16 +521,20 @@ div.kdview.activity-item.discussion.content-display-main-section
           margin-bottom                           15px
 
         footer.discussion-footer
-          padding-bottom                          15px
+          padding-bottom                          0px
 
           .type-and-time
-            font-weight                           300
+            font-weight                           400
             font-size                             11px
             color                                 #a5a5a5
+
+            .link-group
+              font-size                           11px
 
           a
             noTextDeco()
             color                                 #FF9200
+            font-size                             11px
 
           a.count
             font-style                            normal
@@ -524,7 +550,7 @@ div.kdview.activity-item.discussion.content-display-main-section
           span.activity-text
             margin                                0px 2px
             color                                 #FF9200
-            font-size                             11px
+            font-size                             12px
             font-weight                           bold
 
         a.delete-link
@@ -570,9 +596,20 @@ div.kdview.activity-item.discussion.content-display-main-section
                 height                            auto
                 position                          relative
 
+                div.markdown_preview
+                  margin 5px 0px
+                  borderBox()
+                  border 1px dashed #D7D7D7
+                  padding 10px 10px 10px 10px
+
+                  > *:last-child
+                    margin-bottom 0
+
                 input.discussion-title
                   width                           100%
                   margin-bottom                   10px
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
 
                 textarea.discussion-body
                   max-height                      800px
@@ -583,6 +620,8 @@ div.kdview.activity-item.discussion.content-display-main-section
                   width                           100%
                   box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
                   borderBox()
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
 
               div.discussion-buttons
                 height                            35px
@@ -598,8 +637,31 @@ div.kdview.activity-item.discussion.content-display-main-section
                   float                           right
                   display                         block
 
+                  .modal-cancel
+                    font-weight 600
+                    line-height 15px!important
+                    font-size 11px
+                    margin-top 0px
+
+                  label.markdown-preview-label
+                    font-size 11px
+                    color  #FF9200
+                    font-weight 600
+                    margin-right 0px
+
+                  input.checkbox.markdownPreviewCheckbox
+                    vertical-align middle
+                    margin-right 10px
+
                   button
                     margin-top                    12px
+
+                    &.fullscreen-button
+                      padding 0px 2px
+                      height 24px
+                      span
+                        &.fullscreen
+                          bg              position,-20px -360px
 
                   a.markdown-link
                     margin-top                    19px
@@ -608,6 +670,7 @@ div.kdview.activity-item.discussion.content-display-main-section
                     line-height                   100%
                     text-decoration               none
                     font-size                     11px
+                    font-weight                   600
 
 
   // Opinion List - 100%
@@ -667,9 +730,12 @@ div.kdview.activity-item.discussion.content-display-main-section
               margin-top                          15px
 
               .type-and-time
-                font-weight                       300
-                font-size                         11px
+                font-weight                       400
+                font-size                         12px
                 color                             #a5a5a5
+
+                .link-group
+                  font-size                       12px
 
               a
                 noTextDeco()
@@ -741,6 +807,15 @@ div.kdview.activity-item.discussion.content-display-main-section
                     height                        auto
                     position                      relative
 
+                    div.markdown_preview
+                      margin 5px 0px
+                      borderBox()
+                      border 1px dashed #D7D7D7
+                      padding 10px 10px 10px 10px
+
+                      > *:last-child
+                        margin-bottom 0
+
                     textarea.opinion-body
                       max-height                  800px
                       outline                     none
@@ -750,6 +825,8 @@ div.kdview.activity-item.discussion.content-display-main-section
                       width                       100%
                       box-shadow                  inset 0 1px 2px rgba(0,0,0,0.10)
                       borderBox()
+                      font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                      font-size 12px
 
                   div.opinion-buttons
                     height                        35px
@@ -761,12 +838,36 @@ div.kdview.activity-item.discussion.content-display-main-section
                       .help-box
                         margin-top                11px
 
+
                     .opinion-submit
                       float                       right
                       display                     block
 
+                      .modal-cancel
+                        font-weight 600
+                        line-height 15px!important
+                        font-size 11px
+                        margin-top 0px
+
+                      label.markdown-preview-label
+                        font-size 11px
+                        color  #FF9200
+                        font-weight 600
+                        margin-right 0px
+
+                      input.checkbox.markdownPreviewCheckbox
+                        vertical-align middle
+                        margin-right 10px
+
                       button
                         margin-top                12px
+
+                        &.fullscreen-button
+                          padding 0px 2px
+                          height 24px
+                          span
+                            &.fullscreen
+                              bg              position,-20px -360px
 
                       a.markdown-link
                         margin-top                19px
@@ -924,15 +1025,26 @@ div.kdview.activity-item.discussion.content-display-main-section
           height                                  auto
           position                                relative
 
-          textarea.opinion-body
-            max-height                            800px
-            outline                               none
-            height                                auto
-            min-height                            144px
-            padding                               10px
-            width                                 100%
-            box-shadow                            inset 0 1px 2px rgba(0,0,0,0.10)
+          div.markdown_preview
+            margin 5px 0px
             borderBox()
+            border 1px dashed #D7D7D7
+            padding 10px 10px 10px 10px
+
+            > *:last-child
+              margin-bottom 0
+
+          textarea.opinion-body
+            max-height                      800px
+            outline                         none
+            height                          auto
+            min-height                      144px
+            padding                         10px
+            width                           100%
+            box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
+            borderBox()
+            font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+            font-size 12px
 
         div.opinion-buttons
           height                                  35px
@@ -948,8 +1060,31 @@ div.kdview.activity-item.discussion.content-display-main-section
             float                                 right
             display                               block
 
+            .modal-cancel
+              font-weight 600
+              line-height 15px!important
+              font-size 11px
+              margin-top 0px
+
+            label.markdown-preview-label
+              font-size 11px
+              color  #FF9200
+              font-weight 600
+              margin-right 0px
+
+            input.checkbox.markdownPreviewCheckbox
+              vertical-align middle
+              margin-right 10px
+
             button
               margin-top                          12px
+
+              &.fullscreen-button
+                padding 0px 2px
+                height 24px
+                span
+                  &.fullscreen
+                    bg              position,-20px -360px
 
             a.markdown-link
               margin-top                          19px
@@ -1123,3 +1258,25 @@ li.L0,li.L1,li.L2,li.L3,li.L5,li.L6,li.L7,li.L8
   pre .atv, code .atv
     color #060
 
+div.markdown-cheatsheet
+
+  a
+    color #ff9200
+    noTextDeco()
+    font-weight 600
+
+  div.modal-block
+    > h3
+      font-size 14px
+      font-weight 400
+      color #ff9200
+      margin-bottom 5px
+
+    > pre
+      padding 0
+      margin 5px 5px 20px 10px
+
+      > code
+        rounded 4px
+        padding 20px 25px
+        background-color #333
