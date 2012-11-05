@@ -13,7 +13,8 @@ class Activity12345 extends AppController
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # 'CDiscussionActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
       # 'CLinkActivity'
       # 'CCodeShareActivity'
       'CInstallerBucketActivity'
@@ -244,7 +245,8 @@ class Activity12345 extends AppController
           'CNewMemberBucket'
           # 'COpinionActivity'
           # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-          # 'CDiscussionActivity'
+          'CDiscussionActivity'
+          'CTutorialActivity'
           # 'CLinkActivity'
           # 'CCodeShareActivity'
           'CInstallerBucketActivity'
@@ -318,7 +320,8 @@ class Activity12345 extends AppController
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
         # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-        # 'CDiscussionActivity'
+        'CDiscussionActivity'
+        'CTutorialActivity'
         # 'CLinkActivity'
         # 'CCodeShareActivity'
         'CInstallerBucketActivity'
@@ -336,7 +339,8 @@ class Activity12345 extends AppController
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
       # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
-      # when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JDiscussion"   then @createDiscussionContentDisplay activity
+      when "JTutorial"     then @createTutorialContentDisplay activity
       # when "JCodeShare"    then @createCodeShareContentDisplay activity
       # when "JLink"         then @createLinkContentDisplay activity
 
@@ -377,6 +381,12 @@ class Activity12345 extends AppController
     @showContentDisplay new ContentDisplayDiscussion
       title : "Discussion"
       type  : "discussion"
+    ,activity
+
+  createTutorialContentDisplay:(activity)->
+    @showContentDisplay new ContentDisplayTutorial
+      title : "Tutorial"
+      type  : "tutorial"
     ,activity
 
 class ActivityListController extends KDListViewController

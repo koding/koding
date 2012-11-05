@@ -26,7 +26,6 @@ class EmbedBox extends KDView
 
     @hasValidContent = no
 
-
     super options,data
 
 
@@ -260,7 +259,6 @@ class EmbedBox extends KDView
 
     @hasValidContent = yes
 
-
     displayEmbedType=(embedType)=>
       # log "setting up", embedType, @getEmbedData()
 
@@ -361,6 +359,7 @@ class EmbedBox extends KDView
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ["html", "xml", "text", "video"]
+
             if (not @options.forceType? and not options.forceType?)
               displayEmbedType "link"
             else
@@ -421,7 +420,7 @@ class EmbedBox extends KDView
 
       callback data
     else
-      @hide()
+      @hide() unless @options.hasConfig
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
@@ -450,7 +449,6 @@ class EmbedBox extends KDView
 
     @embedLoader.show()
     @$("div.link-embed").addClass "loading"
-    log "options prefetch", options
     @fetchEmbed url, options, (data,embedlyOptions)=>
       unless data.type is "error"
         @resetEmbed()
@@ -461,7 +459,7 @@ class EmbedBox extends KDView
 
         callback data
       else
-        @hide()
+        @hide() unless @options.hasConfig
         callback no
       @embedLoader.hide()
       @$("div.link-embed").removeClass "loading"
