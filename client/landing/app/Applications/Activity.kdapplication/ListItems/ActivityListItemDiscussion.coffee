@@ -56,8 +56,8 @@ class DiscussionActivityItemView extends ActivityItemChild
         # The following line would add the new Opinion to the View
         # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
 
-        unless reply.replier.id is KD.whoami().getId()
-          @opinionBox.opinionList.emit "NewOpinionHasArrived"
+        # unless reply.replier.id is KD.whoami().getId()
+        @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
     @opinionBox = new DiscussionActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
@@ -77,7 +77,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       # for newly added JOpinions, for some reason. --arvid
 
       for item,i in @opinionBox.opinionList.items
-        if item.getData()._id is replyId
+        if item?.getData()._id is replyId
           item.hide()
           item.destroy()
 
@@ -86,9 +86,6 @@ class DiscussionActivityItemView extends ActivityItemChild
     super()
     @setTemplate @pistachio()
     @template.update()
-
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
 
     # Here, the maxheight-reliant "View full discussion"-bar is toggled.
     # The shortened text is not sufficient since it can contain 500 line breaks
@@ -102,9 +99,6 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   render:->
     super()
-
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
