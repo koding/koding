@@ -117,7 +117,6 @@ else:
         status = get_snaphost_status(vid)
 
     sys.stdout.write("Snapshot has been created\n")
-    sys.stdout.write("removing old snapshots\n")
     for snap in get_purgable_snapshots(vid):
         if ec2.delete_snapshot(snap.id):
             sys.stdout.write("snapshot dated by %s with id %s has been removed\n" % (snap.start_time,snap.id))
