@@ -412,7 +412,7 @@ class EmbedBox extends KDView
 
       callback data
     else
-      @hide()
+      @hide() unless @options.hasConfig
       callback no
 
   embedUrl:(url,options={},callback=noop)=>
@@ -451,7 +451,7 @@ class EmbedBox extends KDView
 
         callback data
       else
-        @hide()
+        @hide() unless @options.hasConfig
         callback no
       @embedLoader.hide()
       @$("div.link-embed").removeClass "loading"
