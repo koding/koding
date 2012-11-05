@@ -1,5 +1,8 @@
-proxifyUrl =(url)->
-  "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+proxifyUrl =(url="")->
+  if url is ""
+    "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+  else
+    "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
 class EmbedBoxLinksViewItem extends KDListItemView
 
