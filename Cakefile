@@ -108,7 +108,7 @@ normalizeConfigPath =(path)->
   # console.log __dirname, path
   nodePath.join __dirname, path
 
-buildClient =(configFile, callback=->)->
+buildClient =(options, callback=->)->
   # try
   #   config = require configFile
   # catch e
@@ -121,7 +121,8 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = normalizeConfigPath expandConfigFile configFile
+
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   console.log config
   builder = new Builder config.client,clientFileMiddleware,""
@@ -130,9 +131,9 @@ buildClient =(configFile, callback=->)->
   builder.watcher.initialize()
 
   builder.watcher.on "initDidComplete",(changes)->
-    builder.buildClient "",()->
-      builder.buildCss "",()->
-        builder.buildIndex "",()->
+    builder.buildClient options,()->
+      builder.buildCss {},()->
+        builder.buildIndex {},()->
           if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
@@ -160,7 +161,7 @@ buildClient =(configFile, callback=->)->
 
 task 'buildClient', (options)->
   # configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient options.configFile
+  buildClient options
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->

@@ -170,7 +170,7 @@ __utils =
     tryToShorten = (longText, optimalBreak, suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
-        longText.split(optimalBreak).slice(0, -1).join(optimalBreak) + (suffix ? optimalBreak)
+        "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
@@ -274,6 +274,19 @@ __utils =
     parentPath.pop()
     return parentPath.join('/')
 
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    if window?.postMessage and window.addEventListener
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          do queue.shift()  if queue.length > 0
+      ), yes
+      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 1
+
   wait: (duration, fn) ->
     if "function" is typeof duration
       fn = duration
@@ -284,8 +297,7 @@ __utils =
 
   getCancellableCallback:(callback)->
     cancelled = no
-    kallback = (rest...)->
-      callback rest... unless cancelled
+    kallback = (rest...)-> callback rest...  unless cancelled
     kallback.cancel = -> cancelled = yes
     kallback
 
