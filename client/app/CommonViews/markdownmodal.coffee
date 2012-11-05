@@ -1,17 +1,22 @@
 class KDMarkdownModalText
 
   markdownText:->
+    # if we ever need any highlighting
+    text = @markdownTextHTML()
+
+  markdownTextHTML:->
     """
 
-<div class='modalformline'>This form supports markdown. Here is how to use it:</div>
+<div class='modalformline'>This form supports <a href="http://daringfireball.net/projects/markdown/" target="_blank" title="Markdown project homepage">Markdown</a>. Here is how to use it:</div>
 
 <div class="modalformline markdown-cheatsheet">
-
+<div class="modal-block">
 <h3>Phrase Emphasis</h3>
 
 <pre><code>*italic*   **bold**
 _italic_   __bold__
 </code></pre>
+</div><div class="modal-block">
 
 <h3>Links</h3>
 
@@ -27,7 +32,7 @@ else in the doc, define the link:
 
   [id]: http://example.com/  "Title"
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Images</h3>
 
 <p>Inline (titles are optional):</p>
@@ -41,7 +46,7 @@ else in the doc, define the link:
 
 [id]: /url/to/img.jpg "Title"
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Headers</h3>
 
 <p>Setext-style:</p>
@@ -61,7 +66,7 @@ Header 2
 
 ###### Header 6
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Lists</h3>
 
 <p>Ordered, without paragraphs:</p>
@@ -90,7 +95,7 @@ Header 2
     3. burper
 *   Cunning
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Blockquotes</h3>
 
 <pre><code>&gt; Email-style angle brackets
@@ -103,7 +108,7 @@ Header 2
 &gt; * You can quote a list.
 &gt; * Etc.
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Code Spans</h3>
 
 <pre><code>`&lt;code&gt;` spans are delimited
@@ -112,7 +117,7 @@ by backticks.
 You can include literal backticks
 like `` `this` ``.
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Preformatted Code Blocks</h3>
 
 <p>Indent every line of a code block by at least 4 spaces or 1 tab.</p>
@@ -122,7 +127,7 @@ like `` `this` ``.
     This is a preformatted
     code block.
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Horizontal Rules</h3>
 
 <p>Three or more dashes or asterisks:</p>
@@ -133,7 +138,7 @@ like `` `this` ``.
 
 - - - -
 </code></pre>
-
+</div><div class="modal-block">
 <h3>Manual Line Breaks</h3>
 
 <p>End a line with two or more spaces:</p>
@@ -141,6 +146,7 @@ like `` `this` ``.
 <pre><code>Roses are red,
 Violets are blue.
 </code></pre>
+</div>
 </div>
 </div>
   """

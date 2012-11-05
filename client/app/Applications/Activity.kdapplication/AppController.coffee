@@ -8,13 +8,13 @@ class Activity12345 extends AppController
 
     @currentFilter = [
       'CStatusActivity'
-      # 'CLinkActivity'
       'CCodeSnipActivity'
-      # 'CDiscussionActivity'
       'CFollowerBucketActivity'
       'CNewMemberBucketActivity'
       # 'COpinionActivity'
-      # THIS WILL DISABLE CODE SHARES
+      # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+      # 'CDiscussionActivity'
+      # 'CLinkActivity'
       # 'CCodeShareActivity'
       'CInstallerBucketActivity'
     ]
@@ -240,12 +240,12 @@ class Activity12345 extends AppController
         $in     : [
           'CStatusActivity'
           'CCodeSnipActivity'
-          # 'CDiscussionActivity'
-          # 'CLinkActivity'
           'CFolloweeBucketActivity'
           'CNewMemberBucket'
           # 'COpinionActivity'
-          # THIS WILL DISABLE CODE SHARES
+          # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+          # 'CDiscussionActivity'
+          # 'CLinkActivity'
           # 'CCodeShareActivity'
           'CInstallerBucketActivity'
         ]
@@ -313,13 +313,13 @@ class Activity12345 extends AppController
     else
       @currentFilter = if show? then [show] else [
         'CStatusActivity'
-        # 'CLinkActivity'
         'CCodeSnipActivity'
-        # 'CDiscussionActivity'
         'CFollowerBucketActivity'
         'CNewMemberBucketActivity'
         # 'COpinionActivity'
-        # THIS WILL DISABLE CODE SHARES
+        # THIS WILL DISABLE CODE SHARES/LINKS/DISCUSSIONS
+        # 'CDiscussionActivity'
+        # 'CLinkActivity'
         # 'CCodeShareActivity'
         'CInstallerBucketActivity'
       ]

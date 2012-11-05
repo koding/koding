@@ -126,18 +126,43 @@ __utils =
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '
     text = __utils.putShowMore text if shorten
-    @expandWwwDotDomains @expandUrls @expandUsernames text
+    @expandUrls @expandUsernames text
+    # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
     return null unless text
     text.replace /(^|\s)(www\.[A-Za-z0-9-_]+.[A-Za-z0-9-_:%&\?\/.=]+)/g, (_, whitespace, www) ->
       "#{whitespace}<a href='http://#{www}' target='_blank'>#{www}</a>"
 
-  expandUsernames: (text) ->
+  expandUsernames: (text,sensitiveTo=no) ->
+    # sensitiveTo is a string containing parent elements whose children
+    # should not receive name expansion
+
+    # as a JQuery selector, e.g. "pre"
+    # means that all @s in <pre> tags will not be expanded
+
     return null unless text
-    text.replace /\B\@([\w\-]+)/gim, (u) ->
-      username = u.replace "@", ""
-      u.link "#!/member/#{username}"
+
+    # default case for regular text
+    if not sensitiveTo
+      text.replace /\B\@([\w\-]+)/gim, (u) ->
+        username = u.replace "@", ""
+        u.link "#!/member/#{username}"
+    # context-sensitive expansion
+    else
+      result = ""
+      $(text).each (i,element)->
+        if ($(element).parents(sensitiveTo).length is 0) and not ($(element).is sensitiveTo)
+          if $(element).html()?
+            replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
+              username = u.replace "@", ""
+              u.link "#!/member/#{username}"
+            $(element).html replacedText
+        result += $(element).get(0).outerHTML or "" # in case there is a text-only element
+      result
+
+
+
 
   expandTags: (text) ->
     return null unless text
@@ -147,8 +172,20 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /[A-Za-z]+:\/\/[A-Za-z0-9-_]+\.[A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
-      "<a href='#{url}' target='_blank'>#{url}</a>"
+    text.replace /([A-Za-z]+:\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+      originalUrl = url
+
+      # remove protocol and trailing path
+      visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
+
+      checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
+
+      if not /[A-Za-z]+:\/\//.test url
+
+        # url has no protocol
+        url = '//'+url
+
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
@@ -156,10 +193,10 @@ __utils =
       maxLength : l + Math.floor(l/10)
       suffix    : ' '
 
-    text = if text.length > 500
+    text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
-      morePart += text.substr 500
+      morePart += text.substr shortenedText.length
       morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
       morePart += "</span>"
       shortenedText + morePart
@@ -167,7 +204,7 @@ __utils =
       shortenedText
 
   shortenText:do ->
-    tryToShorten = (longText, optimalBreak, suffix)->
+    tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
         "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
@@ -318,7 +355,7 @@ __utils =
 
       if memorable
         pattern = if consonant.test(prefix) then vowel else consonant
-      
+
       n   = (Math.floor(Math.random() * 100) % 94) + 33
       chr = String.fromCharCode(n)
       chr = chr.toLowerCase() if memorable

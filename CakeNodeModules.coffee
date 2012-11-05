@@ -42,3 +42,4 @@ module.exports =
     jsonify         : '0.0.0'
     cron            : '0.3.4'
     csv             : '0.0.17'
+    embedly         : '0.6.0'

@@ -1,4 +1,5 @@
 class KDObject extends KDEventEmitter
+
   utils: __utils
 
   constructor:(options = {}, data)->
@@ -11,6 +12,7 @@ class KDObject extends KDEventEmitter
     @subscriptionCountByListenerId = {}
     @listeningTo = []
     super
+
 
   if KD.MODE is 'development'
     interfere:(o)-> o
