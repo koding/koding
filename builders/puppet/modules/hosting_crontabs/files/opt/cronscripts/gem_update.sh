@@ -7,13 +7,10 @@
 rc=0
 for job in $(jobs -p) 
 do
-    echo $job
     wait $job || rc=$(($rc+$?))
 done
 
 if [[ $rc -lt 2 ]]; then
     echo "updating gems"
     cagefsctl --update
-else
-    echo "no updates available"
 fi
