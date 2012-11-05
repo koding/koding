@@ -49,7 +49,7 @@ class FSHelper
         [itemCount] = lines.splice(0,3)
         parentPath = parentPaths[0]
       for line in lines when line
-        unless line[0] is 'l' # broken symlinks has l type
+        unless line[0] in ['l', '?'] # broken symlinks has l type and it can be ? in someway
           unless systemFilesRegExp.test line
             data.push FSHelper.createFile parseFile parentPath, line
     data
