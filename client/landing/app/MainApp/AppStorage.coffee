@@ -55,3 +55,6 @@ class AppStorage
     _key = group+'.'+key
     pack[_key] = value
     pack
+
+# Let people can use AppStorage
+KD.classes.AppStorage = AppStorage
