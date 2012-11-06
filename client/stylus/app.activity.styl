@@ -1420,8 +1420,6 @@ div.kdview.link-embed-box
                   font-weight 300!important
                   color #FF9200!important
 
-
-
       &.custom-link, &.custom-rich, &.custom-video
         font-size 13px
         font-weight 400
@@ -1916,6 +1914,43 @@ div.preview_image
   img.tutorial-preview-image
     max-height 200px
     cursor pointer
+
+div.custom-video
+  .preview_image
+    a::before
+      color white
+      content "\25B6"
+      position absolute
+      vendor text-shadow, 0 3px black
+      z-index 100
+      font-size 20px
+      line-height 20px
+      padding 10px
+      left 20px
+      top 20px
+      border 1px solid white
+      background-color rgba(255,255,255,0.25)
+      vendor transition, color 0.2s ease-in-out
+    a:hover::before
+      color #ff9200
+
+div.activity-tutorial-container
+  .preview_image::before
+      color white
+      content "\25B6"
+      position absolute
+      vendor text-shadow, 0 3px black
+      z-index 100
+      font-size 20px
+      line-height 20px
+      padding 10px
+      left 20px
+      top 20px
+      border 1px solid white
+      background-color rgba(255,255,255,0.25)
+      vendor transition, color 0.2s ease-in-out
+  .preview_image:hover::before
+      color #ff9200
 
 div.tutorial-badge
   position absolute

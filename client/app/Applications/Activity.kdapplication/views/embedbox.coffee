@@ -375,9 +375,6 @@ class EmbedBox extends KDView
               link_embed_image_index : @getEmbedImageIndex()
               link_embed_hidden_items : @getEmbedHiddenItems()
 
-            if type is "video"
-              @embedContainer.embedImage?.imageOverlay?.show()
-
           # this can be audio or video files
           else
             html = "Embedding #{data.type or "unknown"} content like this is not supported."
