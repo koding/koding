@@ -161,9 +161,6 @@ __utils =
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
 
-
-
-
   expandTags: (text) ->
     return null unless text
     text.replace /[#]+[A-Za-z0-9-_]+/g, (t) ->

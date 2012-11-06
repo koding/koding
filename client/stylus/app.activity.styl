@@ -1690,6 +1690,10 @@ div.modal-fullscreen-text
       // max-height inherit
       height        inherit
 
+textarea.kdinputwithpreview
+  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+
+
 div.kdinputwithpreview.input_preview
   borderBox()
   margin              0 0 0px 0
@@ -1697,6 +1701,9 @@ div.kdinputwithpreview.input_preview
   min-height          40px
   position            relative
   overflow            auto
+
+  & textarea
+    font-family monospace
 
   &.content-hidden
     margin-bottom     0px
