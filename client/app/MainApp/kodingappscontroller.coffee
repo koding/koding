@@ -275,6 +275,8 @@ class KodingAppsController extends KDController
                     <cite>Check Console for more details.</cite>
                   </p>
                   """
+                  # We may after put a full stck to the output
+                  # It looks weird for now.
                   # <pre>#{error.stack}</pre>
 
       console.warn error.message, error
