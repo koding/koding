@@ -7,10 +7,9 @@ class hosting_crontabs::ebs_snapshots {
          require => Class["hosting_crontabs::scripts_dir"],
     }
     cron { ebs_snapshots:
-        ensure => absent,
         command => "/opt/cronscripts/ebs_snapshots.py",
         user    => root,
-        minute  => "*/50",
+        minute  => "50",
         require => File['/opt/cronscripts/ebs_snapshots.py'],
     }
 
