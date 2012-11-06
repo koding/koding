@@ -479,7 +479,7 @@ class KodingAppsController extends KDController
     unless @constructor.manifests[name]
       @fetchApps (err, apps)=> kallback apps[name]
     else
-      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+      @kiteController.run "stat #{escapeFilePath getAppPath @constructor.manifests[name]}", (err)=>
         if err
           new KDNotificationView
             title    : "App list is out-dated, refreshing apps..."
