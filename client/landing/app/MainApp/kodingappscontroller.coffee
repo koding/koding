@@ -275,6 +275,24 @@ class KodingAppsController extends KDController
             $("head #app-#{__utils.slugify name}").remove()
             $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
+    showError = (error)->
+      new KDModalView
+        title   : "An error occured while running the App!"
+        width   : 500
+        overlay : yes
+        content : """
+                  <div class='modalformline'>
+                    <h3>#{error.constructor.name}</h3><br/>
+                    <pre>#{error.message}</pre>
+                  </div>
+                  <p class='modalformline'>
+                    <cite>Check Console for more details.</cite>
+                  </p>
+                  """
+                  # <pre>#{error.stack}</pre>
+
+      console.warn error.message, error
+
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
       else
@@ -290,9 +308,9 @@ class KodingAppsController extends KDController
             do (appView)->
               appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
               eval appScript
-          catch e
+          catch error
             # if not manifest.ignoreWarnings? # GG FIXME
-            console.warn "App caused some problems:", e
+            showError error
           callback?()
           return appView
         else
@@ -300,8 +318,8 @@ class KodingAppsController extends KDController
             # security please!
             do ->
               eval appScript
-          catch e
-            console.warn "App caused some problems:", e
+          catch error
+            showError error
           callback?()
           return null
 
