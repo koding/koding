@@ -173,46 +173,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     activity.on 'ReplyIsAdded',(reply)=>
 
       if data.bongo_.constructorName is "JTutorial"
-
-        # Why this workaround, you ask?
-        #
-        #  Getting the data from the JDiscussion.reply event "ReplyIsAdded"
-        #  without JSONifying it locks up the UI for up to 10 seconds.
-
-        # Create new JOpinion and convert JSON into Object
-
-        # newOpinion = new bongo.api.JOpinion
-        # opinionData = JSON.parse(reply.opinionData)
-
-        # Copy JSON data to the newly created JOpinion
-
-        # for variable of opinionData
-        #   newOpinion[variable] = opinionData[variable]
-
-        # Updating the local data object, then adding the item to the box
-        # and increasing the count box
-
-
-        # unless newOpinion.originId is KD.whoami().getId()
         unless reply.replier.id is KD.whoami().getId()
-
-          # Manually add the opinion to the data...
-
-          # if data.opinions?
-          #   unless data.opinions.indexOf newOpinion is -1
-          #     data.opinions.push newOpinion
-          # else
-          #   data.opinions = [newOpinion]
-
-          # The following line would add the new Opinion to the View
-          # @opinionBox.opinionList.addItem newOpinion, null, {type : "slideDown", duration : 100}
-
           # newAnswers populated the headerCountString if it is not OwnOpinion
           @newAnswers++
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
-
         @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
@@ -285,7 +252,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @$(".discussion-body .data").addClass "has-markdown"
 
-    log @getData()
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
         @embedBox.show()
