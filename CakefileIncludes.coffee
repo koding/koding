@@ -354,6 +354,8 @@ Includes =
         ActListItemLink             : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee"
         ActListItemQuestion         : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee"
         ActListItemTutorial         : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee"
+        SelActListItem              : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee"
+        SelActListItemTutorial      : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee"
 
         # TOPICS VIEWS
         topicsAppView                 : "./client/app/Applications/Topics.kdapplication/AppView.coffee"
