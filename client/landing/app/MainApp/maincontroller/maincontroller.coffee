@@ -67,7 +67,11 @@ class MainController extends KDController
     @userAccount = account
     @resetUserArea()
 
-    KDRouter.init()
+    oldRouter = @router ? KD.getSingleton 'router'
+    oldRouter.stopListening()  if oldRouter?
+    @router = new KodingRouter
+    KD.registerSingleton 'router', @router, oldRouter? # need to override if the old router exists.
+
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
@@ -134,7 +138,8 @@ class MainController extends KDController
           # tightly related to application manager refactoring
           @utils.wait 2000, -> location.reload yes
       else
-        @goToPage pageInfo
+        @router.handleRoute pageInfo.path
+        #@goToPage pageInfo
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
