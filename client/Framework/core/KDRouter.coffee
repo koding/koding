@@ -10,14 +10,21 @@ class KDRouter
 
   handleNotFound =(route)=> @handleNotFound? route
 
-  changeRoute =(frag, rewriteHashFragment=no)->
+  changeRoute =(frag, options={})->
+    {shouldPushState} = options
     node = tree
     params = {}
+    isRooted = '/' is frag[0]
+
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'
 
     path = frag.join '/'
-    history.pushState {}, KDRouter.getTitle(path), path
+    
+    if shouldPushState
+      history[if options.replaceState then 'replaceState' else 'pushState'](
+        {}, KDRouter.getTitle(path), "/#{path}"
+      )
 
     for edge in frag
       if node[edge]
@@ -31,28 +38,31 @@ class KDRouter
 
     listeners = node[listenerKey]
     if listeners?.length
-      listener.call null, params for listener in listeners
+      listener.call @, params for listener in listeners
 
-  window.addEventListener 'popstate', (event)->
-    if location.pathname isnt currentPath
-      currentPath = location.pathname
-      changeRoute location.pathname, no 
+  window.addEventListener 'popstate', (event)=>
+    currentPath = location.pathname
+    changeRoute.call @, location.pathname, shouldPushState: no
 
-  window.addEventListener 'hashchange', (event)->
-    changeRoute getHashFragment(event.newURL), yes
+  @routes = {}
 
   @getTitle =(path)-> path
 
-  @init =-> changeRoute location.hash.substr 1 if location.hash.length
-
+  @init =->
+    if location.hash.length
+      changeRoute.call @, location.hash.substr(1), shouldPushState: yes
+  
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
-  @handleRoute =(route)-> changeRoute route, no
+  @handleRoute =(route, options={})->
+    options.shouldPushState ?= yes
+    changeRoute.call @, route, options
 
   @addRoutes =(routes)->
     @addRoute route, listener for own route, listener of routes
 
   @addRoute =(route, listener)->
+    @routes[route] = listener
     node = tree
     route = route.split('/')
     route.shift() # first edge is garbage like '' or '#!'

@@ -9,10 +9,7 @@ class GroupsListItemView extends KDListItemView
       attributes  :
         href      : '#'
       pistachio   : '{{#(title)}}'
-      click       : (pubInst, event) =>
-        @titleReceivedClick()
-        event.stopPropagation()
-        no
+      click       : (pubInst, event) => @titleReceivedClick()
     , data
 
     if options.editable

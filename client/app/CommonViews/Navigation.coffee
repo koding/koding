@@ -33,24 +33,24 @@ class NavigationList extends KDListView
 class NavigationLink extends KDListItemView
 
   constructor:(options,data)->
-
     super options,data
 
     @name = data.title
     @setClass 'navigation-item clearfix'
 
   mouseDown:(event)->
-
-    mc = @getSingleton('mainController')
-    mc.emit "NavigationLinkTitleClick"
-      orgEvent : event
-      pageName : @getData().title
-      appPath  : @getData().path or @getData().title
-      navItem  : @
+    {title, path} = @getData()
+    KDRouter.handleRoute path
+    #history.pushState {}, title, path
+    # mc = @getSingleton('mainController')
+    # mc.emit "NavigationLinkTitleClick"
+    #   orgEvent : event
+    #   pageName : @getData().title
+    #   appPath  : @getData().appPath or @getData().title
+    #   navItem  : @
 
   partial:(data)->
-
-    "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+    "<span class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</span>"
 
 class AdminNavigationLink extends NavigationLink
 
