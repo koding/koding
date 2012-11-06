@@ -35,16 +35,16 @@ class EmbedBoxLinksViewItem extends KDListItemView
       callback :=>
         @changeEmbed()
 
-    @favicon = (data.favicon_url) or ""
+    # @favicon = (data.favicon_url) or ""
 
-    @faviconImage = new KDCustomHTMLView
-      tagName     : "img"
-      cssClass    : "embed-favicon hidden"
-      attributes  :
-        src       : proxifyUrl @favicon
-        alt       : data.title
+    # @faviconImage = new KDCustomHTMLView
+    #   tagName     : "img"
+    #   cssClass    : "embed-favicon hidden"
+    #   attributes  :
+    #     src       : proxifyUrl @favicon
+    #     alt       : data.title
 
-    @faviconImage.show() if @favicon isnt ""
+    # @faviconImage.show() if @favicon isnt ""
 
   changeEmbed:=>
     @makeActive()
@@ -52,7 +52,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
     # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
     @getDelegate().getDelegate().getDelegate().embedLoader.hide()
     @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl, {}, (embedData)=>
-      if embedData.favicon_url? then @setFavicon embedData.favicon_url
+      # if embedData.favicon_url? then @setFavicon embedData.favicon_url
 
   makeActive:->
     for item in @getDelegate().items
@@ -60,12 +60,12 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
     @setClass "active"
 
-  setFavicon:(fav)->
-    if fav?
-      @favicon = fav
+  # setFavicon:(fav)->
+  #   if fav?
+  #     @favicon = fav
 
-      @faviconImage.setDomAttributes src:proxifyUrl @favicon
-      @faviconImage.show()
+  #     @faviconImage.setDomAttributes src:proxifyUrl @favicon
+  #     @faviconImage.show()
 
   viewAppended:->
     super()
@@ -75,7 +75,6 @@ class EmbedBoxLinksViewItem extends KDListItemView
   pistachio:->
     """
     <div class="embed-link-wrapper">
-      {{> @faviconImage}}
       {{> @linkButton}}
     </div>
     """

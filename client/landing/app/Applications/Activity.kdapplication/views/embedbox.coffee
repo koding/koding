@@ -402,8 +402,8 @@ class EmbedBox extends KDView
       for link,j in @embedLinks.linkList.items
         if link.getData().url is url
           link.makeActive()
-        if item.url is link.getData().url
-          link.setFavicon item.favicon_url
+        # if item.url is link.getData().url
+          # link.setFavicon item.favicon_url
             # unless link.favicon is item.favicon_url
 
 
