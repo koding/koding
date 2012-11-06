@@ -259,7 +259,7 @@ class KodingAppsController extends KDController
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
             $("head #app-#{__utils.slugify name}").remove()
-            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     showError = (error)->
       new KDModalView
