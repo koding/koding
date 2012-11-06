@@ -114,7 +114,7 @@ class DbQuota(object):
                 self.c.execute(revoke_access % (db, user))
                 self.killUsersSession(user)
         else:
-            print("all write permissions on huge DBs already revoked")
+            #print("all write permissions on huge DBs already revoked")
             syslog.syslog(syslog.LOG_INFO, "all write permissions on huge DBs already revoked")
 
 
