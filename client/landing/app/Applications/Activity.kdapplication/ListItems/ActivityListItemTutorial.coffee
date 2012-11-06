@@ -30,15 +30,7 @@ class TutorialActivityItemView extends ActivityItemChild
         alt:"Show the tutorial"
         "data-paths":"preview"
 
-    @imageOverlay = new KDCustomHTMLView
-      tagName :"div"
-      cssClass : "video-overlay-play hidden"
-      partial :  '<span class="icon play"></span>'
-      click:(event)=>
-        @click event
-
     @previewImage.hide() unless data.link?
-    @imageOverlay.show() if data.link?
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
@@ -143,7 +135,7 @@ class TutorialActivityItemView extends ActivityItemChild
   pistachio:->
     """
   <div class="tutorial-badge"></div>
-  <div class="activity-discussion-container">
+  <div class="activity-discussion-container activity-tutorial-container">
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
@@ -151,7 +143,6 @@ class TutorialActivityItemView extends ActivityItemChild
       <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
       <div class="preview_image">
       {{> @previewImage}}
-      {{> @imageOverlay}}
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
