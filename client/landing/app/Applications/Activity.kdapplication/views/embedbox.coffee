@@ -276,8 +276,10 @@ class EmbedBox extends KDView
           @embedContainer = new EmbedBoxImageView embedOptions, @getData()
         when "object"
           @embedContainer = new EmbedBoxObjectView embedOptions, @getData()
+        else
+          @embedContainer = new EmbedBoxLinkView embedOptions, @getData()
 
-      @embedContainer.show()
+      @embedContainer?.show()
 
       @addSubView @embedContainer
 
@@ -372,6 +374,9 @@ class EmbedBox extends KDView
               link_options : _.extend {}, options, @options
               link_embed_image_index : @getEmbedImageIndex()
               link_embed_hidden_items : @getEmbedHiddenItems()
+
+            if type is "video"
+              @embedContainer.embedImage?.imageOverlay?.show()
 
           # this can be audio or video files
           else

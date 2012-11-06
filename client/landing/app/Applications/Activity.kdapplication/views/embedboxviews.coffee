@@ -389,6 +389,13 @@ class EmbedBoxLinkViewImage extends KDView
         alt      : @imageAltText
         title    : @imageAltText
 
+    if data.link_embed?.object.type is "video"
+      @imageOverlay = new KDView
+        cssClass : "video-overlay-play hidden"
+        partial :  '<span class="icon play"></span>'
+    else
+      @imageOverlay = new KDView
+
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
   setSrc:(url="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==")->
@@ -403,6 +410,7 @@ class EmbedBoxLinkViewImage extends KDView
     """
     <a class="preview_link" target="_blank" href="#{@getData().link_url or @getData().link_embed?.url}">
       {{> @imageView}}
+      {{> @imageOverlay}}
     </a>
     """
 

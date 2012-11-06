@@ -1420,6 +1420,8 @@ div.kdview.link-embed-box
                   font-weight 300!important
                   color #FF9200!important
 
+
+
       &.custom-link, &.custom-rich, &.custom-video
         font-size 13px
         font-weight 400
@@ -1908,9 +1910,13 @@ div.protocol-info-box
     &:hover
       opacity 1
 
-img.tutorial-preview-image
-  max-height 200px
-  cursor pointer
+div.preview_image
+  position relative
+
+  img.tutorial-preview-image
+    max-height 200px
+    cursor pointer
+
 div.tutorial-badge
   position absolute
   left -20px
@@ -1919,3 +1925,20 @@ div.tutorial-badge
   background-color:#ff9200
   opacity 1!important
   vendor transform, rotate(-45deg)
+
+.video-overlay-play
+  position absolute
+  bottom 4px
+  left 0px
+  border 1px solid white
+  margin 5px
+  color white
+  size 20px 20px
+  // padding 10px
+  bg color, rgba(255,255,255,0.25)
+  cursor pointer
+
+
+  sprite()
+  size 20px 20px
+  bg position, -193px -57px
