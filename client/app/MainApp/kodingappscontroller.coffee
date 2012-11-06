@@ -87,7 +87,6 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    # require ["coffee-script"], (coffee)=>
     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
       if err
         @putAppsToAppStorage {}
@@ -108,29 +107,16 @@ class KodingAppsController extends KDController
             manifestFile.fetchContents (err, response)->
               cb null, response # shadowing the error is intentional here to not to break the results of the stack
 
-            # @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-
-            # FSItem.doesExist "#{app.path}/.manifest", (err, result)=>
-            #   if result
-            #     manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-            #     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-            #       manifestFile.fetchContents cb
-            #   else
-            #     cb null, "no manifest"
-
         manifests = @constructor.manifests
         async.parallel stack, (err, results)=>
           warn err if err
           results.forEach (rawManifest)->
-            # if rawManifest.substr(0,1) is '{'
-            #   manifest = JSON.parse rawManifest
-            # else
-            #   manifest = eval coffee.compile rawManifest, { bare : yes }
-            #   # debugger
             if rawManifest
-              manifest = JSON.parse rawManifest
-              manifests["#{manifest.name}"] = manifest
-
+              try
+                manifest = JSON.parse rawManifest
+                manifests["#{manifest.name}"] = manifest
+              catch e
+                console.warn "Manifest file is broken", e
           @putAppsToAppStorage manifests
           callback? null, manifests
 
