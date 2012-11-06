@@ -495,10 +495,10 @@ Includes =
         # ircTabs               : "./client/app/MainApp/oldPages/irc/tabs.coffee"
         accountMixins             : "./client/app/MainApp/account-mixins.coffee"
         main                      : "./client/app/MainApp/main.coffee"
-        routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
         sharedRoutes                : "./routes/index.coffee"
+        kodingrouter                : "./client/app/MainApp/kodingrouter.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
         sockjs                      : "./client/libs/sockjs-0.3-patched.js"
         broker                      : "./node_modules/broker-client/browser/broker.js"

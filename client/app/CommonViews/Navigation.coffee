@@ -39,15 +39,14 @@ class NavigationLink extends KDListItemView
     @setClass 'navigation-item clearfix'
 
   mouseDown:(event)->
-    {title, path} = @getData()
-    KDRouter.handleRoute path
-    #history.pushState {}, title, path
-    # mc = @getSingleton('mainController')
-    # mc.emit "NavigationLinkTitleClick"
-    #   orgEvent : event
-    #   pageName : @getData().title
-    #   appPath  : @getData().appPath or @getData().title
-    #   navItem  : @
+    {appPath, title, path} = @getData()
+    mc = @getSingleton('mainController')
+    mc.emit "NavigationLinkTitleClick",
+      orgEvent  : event
+      pageName  : title
+      appPath   : appPath or title
+      path      : path
+      navItem   : @
 
   partial:(data)->
     "<span class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</span>"
