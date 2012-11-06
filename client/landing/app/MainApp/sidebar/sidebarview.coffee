@@ -318,22 +318,22 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity" }
-          { title : "Topics" }
-          { title : "Members" }
-          { title : "Develop", loggedIn : yes,  path : "StartTab" }
-          { title : "Apps" }
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Develop",    path: "/Develop", loggedIn: yes, appPath: "StartTab"}
+          { title : "Apps",       path: "/Apps" }
         ]
       else
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity" }
-          { title : "Topics" }
-          { title : "Members" }
-          { title : "Groups",  path : "Groups" }
-          { title : "Develop", loggedIn : yes,  path : "StartTab" }
-          { title : "Apps" }
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Groups",     path: "/Groups",   appPath: "Groups" }
+          { title : "Develop",    path: "/Develop",  loggedIn: yes,  appPath: "StartTab" }
+          { title : "Apps",       path: "/Apps" }
         ]
 
   accNavItems =
@@ -349,7 +349,7 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",    path : "WebTerm" }
+      { title : "Launch Terminal",    icon : "terminal",    appPath : "WebTerm" }
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }

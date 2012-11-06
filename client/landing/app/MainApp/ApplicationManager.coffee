@@ -46,38 +46,45 @@ class ApplicationManager extends KDObject
   getFrontApp:-> @frontApp
 
   expandApplicationPath = (path)->
+    path ?= KD.getSingleton('mainController').getOptions().startPage
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
-  openApplication:(path, doBringToFront, callback)->
-    switch arguments.length
-      when 1, 2
-        [path, callback] = arguments
-        doBringToFront = yes
-
-    path = expandApplicationPath path
-    appManager = @
-
-    beforeCallback = (appInstance)->
-      appManager.emit "AppManagerOpensAnApplication", appInstance
+  openApplication:do->
+    openAppHandler =(appInstance, path, doBringToFront, callback)->
+      @emit "AppManagerOpensAnApplication", appInstance
+      @utils.defer -> callback? appInstance
       if doBringToFront
         appManager.setFrontApp path
-      callback? appInstance
+        appInstance.bringToFront()
 
-    #application already open or initialization in process
-    isOpenOrInitializing = (@waitForAppInitialization path, (appInstance)->
-      appInstance.bringToFront() if doBringToFront
-      beforeCallback appInstance)
-    #application needs opening
-    unless isOpenOrInitializing
-      @createAppInstance path, (appInstance)->
-        if doBringToFront
-          appManager.initializeAppInstance path, appInstance, 'initAndBringToFront', beforeCallback
-        else
-          if "function" is typeof appInstance.initApplication
-            appManager.initializeAppInstance path, appInstance, 'initApplication', beforeCallback
-          else
-            appManager.initializeAppInstance path, appInstance, beforeCallback
+    (path, doBringToFront, callback)->
+      [callback, doBringToFront] = [doBringToFront, callback] unless callback
+      doBringToFront ?= yes
+
+      path = expandApplicationPath path
+      appManager = @
+
+      # TODO: this isOpenOrInitializing crap is completely botched C.T.
+      #application already open or initialization in process
+      isOpenOrInitializing = @waitForAppInitialization path, (appInstance)=>
+        openAppHandler.call @, appInstance, path, doBringToFront, callback
+      #application needs opening
+      unless isOpenOrInitializing
+        @createAppInstance path, (appInstance)=>
+          handler = openAppHandler.bind(
+            @, appInstance, path, doBringToFront, callback
+          )
+          if doBringToFront and\
+             "function" is typeof appInstance.initAndBringToFront
+            appManager.initializeAppInstance(
+              path, appInstance, 'initAndBringToFront', handler
+            )
+          else if "function" is typeof appInstance.initApplication
+            appManager.initializeAppInstance(
+              path, appInstance, 'initApplication', handler
+            )
+          else appManager.initializeAppInstance path, appInstance, handler
 
   replaceStartTabWithApplication:(applicationPath, tab)->
     @openApplication applicationPath, no, (appInstance)->

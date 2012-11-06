@@ -11,11 +11,19 @@ do ->
 
   handleRoot =->
     KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+    #appManager.openApplication null
 
   routes =
 
     '/' : handleRoot
     ''  : handleRoot
+
+    '/Groups'     : ->  appManager.openApplication 'Groups'
+    '/Activity'   : ->  appManager.openApplication 'Activity'
+    '/Members'    : ->  appManager.openApplication 'Members'
+    '/Topics'     : ->  appManager.openApplication 'Topics'
+    '/Develop'    : ->  appManager.openApplication 'StartTab'
+    '/Apps'       : ->  appManager.openApplication 'Apps'
 
     '/recover/:recoveryToken': ({recoveryToken})->
       mainController.appReady ->
@@ -66,10 +74,6 @@ do ->
                 mainController.propagateEvent KDEventType: 'InvitationReceived', invite
             , 3000
           , 2000
-            # mainController.loginScreen.show()
-            # mainController.loginScreen.$().css marginTop : 0
-            # mainController.loginScreen.hidden = no
-            # mainController.loginScreen.animateToForm 'register'
         location.replace '#'
 
     '/verify/:confirmationToken': ({confirmationToken})->
@@ -96,36 +100,23 @@ do ->
           else if discussion
             appManager.tell "Activity", "createContentDisplay", discussion
 
+    '/Groups/:group'      : ({group})->
+      @handleRoute group, replaceState: yes
+
+    '/Members/:nickname'  : ({nickname})->
+      @handleRoute nickname, replaceState: yes
+
     '/:name': (params)->
+      console.log 'this is a 404'  unless name?
       KD.remote.cacheable params.name, (err, model, name)->
-        log arguments
         switch name.constructorName
           when 'JAccount'
             appManager.tell 'Members', 'createContentDisplay', model
           when 'JGroup'
             appManager.tell 'Groups', 'createContentDisplay', model
           when 'JTopic'
-            appManager.tell 'Groups', 'createContentDisplay', model
+            appManager.tell 'Topics', 'createContentDisplay', model
           else log "404 - /#{params.name}"
-      # KD.remote.api.JName.one {name: params.name}, (err, name)->
-      #   if err or not name? then log "404 - /#{params.name}"
-      #   else switch name.constructorName
-      #     when 'JUser'
-      #       selector = {'profile.nickname': name.name}
-      #       KD.remote.api.JAccount.one selector, (err, account)->
-      #         if err then log "404 - /#{params.name}"
-      #         else appManager.tell 'Members', 'createContentDisplay', account
-      #     when 'JGroup'
-      #       selector = {title:name.name}
-      #       KD.remote.api.JGroup.one selector, (err, group)->
-      #         if err then log "404 - /#{params.name}"
-      #         else appManager.tell 'Groups', 'createContentDisplay', group    
-      #     when 'JTopic'
-      #       selector = {title:name.name}
-      #       KD.remote.api.JTopic.one selector, (err, topic)->
-      #         if err then log "404 - /#{params.name}"
-      #         else appManager.tell 'Topics', 'createContentDisplay', topic
-      #     else log "404 - /#{params.name}"
 
   sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
     route.replace /^\/Groups\/:group/, ''
