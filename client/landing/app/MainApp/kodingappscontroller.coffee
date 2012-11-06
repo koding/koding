@@ -429,11 +429,12 @@ class KodingAppsController extends KDController
           orderedBlocks.push blockOptions
 
       if app.devMode
-        appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
+        appResourceRoot = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications"
+        appDevModePath  = "#{appResourceRoot}/#{__utils.slugify name}"
 
         asyncStack.push (cb)=>
           @kiteController.run "rm -rf #{escapeFilePath appDevModePath}", =>
-            @kiteController.run "mkdir /Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications", =>
+            @kiteController.run "test -d #{appResourceRoot} || mkdir #{appResourceRoot}", =>
               @kiteController.run "ln -s #{escapeFilePath getAppPath app} #{escapeFilePath appDevModePath}", -> cb()
 
       orderedBlocks.forEach (block)=>
