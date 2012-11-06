@@ -185,7 +185,7 @@ class ActivityTutorialWidget extends KDFormView
         title  : "Click me for additional information"
       click :->
         modal = new KDModalView
-          title          : "Additional information on Discussions"
+          title          : "Additional information on Tutorials"
           content        : "<div class='modalformline signature'><h3>Hi!</h3><p>Anything odd? Drop me a message.</p><p>--@arvidkahl</p></div>"
           height         : "auto"
           overlay        : yes
@@ -198,6 +198,65 @@ class ActivityTutorialWidget extends KDFormView
               callback   : =>
                 modal.buttons.Okay.hideLoader()
                 modal.destroy()
+
+    @followupLink = new KDCustomHTMLView
+      tagName : "a"
+      attributes :
+        title : "Select related Tutorials"
+        href : "#"
+      cssClass : "followup-link"
+      partial : "This Tutorial is a Followup"
+      click:->
+
+        modal = new KDModalView
+          title : "Select the previous Tutorial"
+          content : ""
+          cssClass : "modal-select-tutorials"
+          height:400
+          width:600
+          overlay: yes
+          buttons :
+            Select :
+              style : "modal-clean-gray"
+              callback: => modal.destroy()
+        appManager.tell 'Feeder', 'createContentFeedController', {
+          itemClass             : SelectableActivityListItemView
+          listControllerClass   : ActivityListController
+          listCssClass          : "activity-related"
+          limitPerPage          : 8
+          delegate : @
+          filter                :
+            Tutorials          :
+              title             : "Tutorials"
+              dataSource        : (selector, options, callback)=>
+                selector.originId = KD.whoami().getId()
+                selector.type = $in: [
+                  'CTutorialActivity'
+                ]
+                appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+                  callback null, data
+          sort                  :
+            'sorts.likesCount'  :
+              title             : "Most popular"
+              direction         : -1
+            'modifiedAt'        :
+              title             : "Latest activity"
+              direction         : -1
+            'sorts.repliesCount':
+              title             : "Most activity"
+              direction         : -1
+            # and more
+        }, (controller)=>
+          #put listeners here, look for the other feeder instances
+
+          # unless KD.isMine account
+          #   @listenTo
+          #     KDEventTypes       : "mouseenter"
+          #     listenedToInstance : controller.getView()
+          #     callback           : => @mouseEnterOnFeed()
+          # log controller
+         modal.addSubView controller.getView()
+
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -301,6 +360,7 @@ class ActivityTutorialWidget extends KDFormView
           <div>
             {{> @inputContent}}
             <div class="discussion-widget-content">
+            {{> @followupLink}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             </div>
