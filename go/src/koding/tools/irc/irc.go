@@ -56,7 +56,7 @@ func (conn *Conn) sendLoop() {
 		select {
 		case message, ok = <-conn.SendChannel:
 			if !ok {
-				break
+				return
 			}
 		case <-time.After(30 * time.Second):
 			message = &Message{Command: "PING", Params: []string{"0"}}

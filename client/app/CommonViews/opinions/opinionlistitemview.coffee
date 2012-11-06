@@ -221,8 +221,8 @@ class OpinionListItemView extends KDListItemView
           {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
         </p>
         <div class="opinion-size-links">
-          {{>@larger}}
-          {{>@smaller}}
+          {{> @larger}}
+          {{> @smaller}}
         </div>
     </div>
         <footer class='opinion-footer clearfix'>

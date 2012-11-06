@@ -258,11 +258,15 @@ class KodingAppsController extends KDController
     {options, name, devMode} = manifest
     {stylesheets} = manifest.source if manifest.source
 
+    proxifyUrl=(url)->
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+
     if stylesheets
       stylesheets.forEach (sheet)->
         if devMode
           $("head #app-#{__utils.slugify name}").remove()
-          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+          urlToStyle = proxifyUrl "http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
+          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
