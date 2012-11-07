@@ -106,7 +106,7 @@ class KodingRouter extends KDRouter
 
       '/:name': (params)->
         KD.remote.cacheable params.name, (err, model, name)->
-          switch name.constructorName
+          switch name?.constructorName
             when 'JAccount'
               appManager.tell 'Members', 'createContentDisplay', model
             when 'JGroup'
