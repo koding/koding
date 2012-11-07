@@ -43,6 +43,7 @@ KD.error = error = noop
   classes         : {}
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
+  utils           : __utils
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
