@@ -47,8 +47,10 @@ class KodingAppsController extends KDController
 
   @getManifestFromPath = getManifestFromPath = (path)->
 
-    folderName = (arr = path.split("/"))[arr.length-1]
+    folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
     app        = null
+
+    return app unless folderName
 
     for own name, manifest of KodingAppsController.manifests
       do ->
