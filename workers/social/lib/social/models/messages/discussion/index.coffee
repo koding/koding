@@ -229,6 +229,43 @@ module.exports = class JDiscussion extends JPost
     .endGraphlet()
     .fetchRoot callback
 
+  # fetchTeaser:(callback)->
+  #   @beginGraphlet()
+  #     .edges
+  #       query         :
+  #         sourceName  : 'JDiscussion'
+  #         targetName  : 'JTag'
+  #         as          : 'tag'
+  #       limit         : 5
+  #     .and()
+  #     .edges
+  #       query         :
+  #         targetName  : 'JOpinion'
+  #         as          : 'opinion'
+  #         'data.deletedAt':
+  #           $exists   : no
+  #         'data.flags.isLowQuality':
+  #           $ne       : yes
+  #       limit         : 5
+  #       sort          :
+  #         timestamp   : 1
+  #     .nodes()
+  #     .edgesOfEach
+  #       query         :
+  #         sourceName  : 'JOpinion'
+  #         targetName  : 'JComment'
+  #         as          : 'reply'
+  #         'data.deletedAt':
+  #           $exists   : no
+  #         'data.flags.isLowQuality':
+  #           $ne       : yes
+  #       limit         : 3
+  #       sort          :
+  #         timestamp   : 1
+  #     .nodes()
+  #   .endGraphlet()
+  #   .fetchRoot callback
+
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
     if before? and after?
