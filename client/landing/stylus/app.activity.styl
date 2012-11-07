@@ -1915,19 +1915,31 @@ div.preview_image
     max-height 200px
     cursor pointer
 
+div.activity-tutorial-container.small
+  img.tutorial-preview-image
+    max-width 100px
+div.activity-item.tutorial.selectable.selected
+    border: 2px solid black
+
+
 div.custom-video
   .preview_image
+    text-align center
+    vertical-align middle
     a::before
+      cursor pointer
       color white
       content "\25B6"
       position absolute
       vendor text-shadow, 0 3px black
-      z-index 100
-      font-size 20px
-      line-height 20px
-      padding 10px
-      left 20px
-      top 20px
+      // z-index 100
+      font-size 15px
+      line-height 15px
+      padding 5px
+      left 30%
+      top 30%
+      right 30%
+      bottom 30%
       border 1px solid white
       background-color rgba(255,255,255,0.25)
       vendor transition, color 0.2s ease-in-out
@@ -1936,11 +1948,12 @@ div.custom-video
 
 div.activity-tutorial-container
   .preview_image::before
+      cursor pointer
       color white
       content "\25B6"
       position absolute
       vendor text-shadow, 0 3px black
-      z-index 100
+      // z-index 100
       font-size 20px
       line-height 20px
       padding 10px
@@ -1961,19 +1974,6 @@ div.tutorial-badge
   opacity 1!important
   vendor transform, rotate(-45deg)
 
-.video-overlay-play
-  position absolute
-  bottom 4px
-  left 0px
-  border 1px solid white
-  margin 5px
-  color white
-  size 20px 20px
-  // padding 10px
-  bg color, rgba(255,255,255,0.25)
-  cursor pointer
-
-
-  sprite()
-  size 20px 20px
-  bg position, -193px -57px
+div.modal-select-tutorials
+  width:80%
+  height : 80%
