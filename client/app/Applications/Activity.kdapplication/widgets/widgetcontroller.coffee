@@ -95,7 +95,9 @@ class ActivityUpdateWidgetController extends KDViewController
           if submissionStopped
             return notifySubmissionStopped()
           else
-            @tutorialWidgetSubmit data, stopSubmission
+            @tutorialWidgetSubmit data, stopSubmission, ->
+              log arguments
+
             mainView.resetWidgets()
 
     mainView.addWidgetPane
@@ -283,7 +285,24 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
       KD.remote.api.JTutorial.create data, (err, tutorial) =>
-        callback? err, tutorial
+        log "Tutorial Created", tutorial, data
+        if data.startListWith?
+          log "Creating new TutorialList"
+          KD.remote.api.JTutorialList.create
+            title : "New List"
+            body  : ""
+          , (err, list)=>
+            if err then callback err
+            else
+              log "adding entries"
+              list.addItem data.startListWith._id, (err)=>
+                if err then log err
+                list.addItem tutorial._id, (err)=>
+                  if err then log err
+                  log "done adding entries"
+                  callback? err, tutorial, list
+        else
+          callback? err, tutorial
         stopSubmission()
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"

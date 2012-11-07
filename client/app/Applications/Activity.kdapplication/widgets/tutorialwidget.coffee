@@ -206,7 +206,7 @@ class ActivityTutorialWidget extends KDFormView
         href : "#"
       cssClass : "followup-link"
       partial : "This Tutorial is a Followup"
-      click:->
+      click:=>
 
         modal = new KDModalView
           title : "Select the previous Tutorial"
@@ -218,7 +218,11 @@ class ActivityTutorialWidget extends KDFormView
           buttons :
             Select :
               style : "modal-clean-gray"
-              callback: => modal.destroy()
+              callback: =>
+                modal.destroy()
+
+
+
         appManager.tell 'Feeder', 'createContentFeedController', {
           itemClass             : SelectableActivityListItemView
           listControllerClass   : ActivityListController
@@ -255,8 +259,12 @@ class ActivityTutorialWidget extends KDFormView
           #     listenedToInstance : controller.getView()
           #     callback           : => @mouseEnterOnFeed()
           # log controller
-         modal.addSubView controller.getView()
-
+         tutorialFeeder = controller.getView()
+         modal.addSubView tutorialFeeder
+         tutorialFeeder.on "setSelectedData", (selectedData)=>
+           log "Setting data"
+           @selectedData = selectedData
+           log "Data set to",@selectedData
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -308,6 +316,11 @@ class ActivityTutorialWidget extends KDFormView
         link_embed_hidden_items:@embedBox.getEmbedHiddenItems()
         link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
+
+    log "In Sbumit, checking for stuff", @selectedData
+
+    if @selectedData?
+      @addCustomData "startListWith", @selectedData
 
     super
 

@@ -1,100 +1,160 @@
-JPost = require '../post'
+jraphical   = require 'jraphical'
 
-module.exports = class JTutorialList extends JPost
+module.exports = class JTutorialList extends jraphical.Module
 
-  # @mixin Followable
-  # @::mixin Followable::
-  # @::mixin Taggable::
-  # @::mixin Notifying::
-  # @mixin Flaggable
-  # @::mixin Flaggable::
-  # @::mixin Likeable::
+  CActivity = require '../../activity'
+  JAccount  = require '../../account'
+  CBucket   = require '../../bucket'
+  JTag      = require '../../tag'
+  JTutorial = require '../tutorial'
 
-  {Base,ObjectId,ObjectRef,secure,dash,daisy} = require 'bongo'
-  {Relationship} = require 'jraphical'
 
-  {log} = console
+  @trait __dirname, '../../../traits/filterable'       # brings only static methods
+  @trait __dirname, '../../../traits/followable'
+  @trait __dirname, '../../../traits/taggable'
+  @trait __dirname, '../../../traits/likeable'
 
-  {once, extend} = require 'underscore'
+  {Inflector,JsPath,secure,daisy,ObjectId,ObjectRef,Base} = require 'bongo'
+  {Relationship} = jraphical
 
   @share()
 
-  schema = extend {}, JPost.schema, { items : Array }
-
-  @getActivityType =-> require './tutoriallistactivity'
-
-  @getAuthorType =-> require '../../account'
-
-  @getFlagRole =-> ['sender', 'recipient']
   @set
-    emitFollowingActivities: yes
-    taggedContentRole : 'post'
-    tagRole           : 'tag'
-    sharedMethods     :
-      static          : ['create','one']
-      instance        : [
-        'on','reply','restComments','commentsByRange'
-        'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
-        'delete','modify','fetchRelativeComments'
-        'updateTeaser'
+
+    indexes         :
+      title         : 'ascending'
+
+    sharedMethods   :
+      instance      : [
+        'update', 'follow', 'unfollow', 'delete', 'review',
+        'like', 'checkIfLikedBefore', 'fetchLikedByes',
+        'fetchFollowersWithRelationship', 'addItem'
+        'fetchFollowingWithRelationship', 'fetchCreator',
       ]
-    schema            : schema
-    relationships     :
-      tutorial         :
-        targetType    : "JTutorial"
-        as            : 'tutorial'
-      participant     :
-        targetType    : "JAccount"
-        as            : ['author','commenter']
-      likedBy         :
-        targetType    : "JAccount"
-        as            : 'like'
-      repliesActivity :
-        targetType    : "CRepliesActivity"
-        as            : 'repliesActivity'
-      tag             :
-        targetType    : "JTag"
-        as            : 'tag'
-      follower        :
-        as            : 'follower'
-        targetType    : "JAccount"
+      static        : [
+        "one","on","some","create","byRelevance",
+        "someWithRelationship", "fetchForTutorialId"
+      ]
+
+    schema          :
+      title         :
+        type        : String
+        set         : (value)-> value?.trim()
+        required    : yes
+      body          : String
+      counts        :
+        views       :
+          type      : Number
+          default   : 0
+      thumbnails    : [Object]
+      meta          : require "bongo/bundles/meta"
+      # type          :
+      #   type        : String
+      #   enum        : ["Wrong type specified!",["web-app", "add-on", "server-stack", "framework"]]
+      #   default     : "web-app"
+      originId      : ObjectId
+      originType    : String
+      repliesCount  :
+        type        : Number
+        default     : 0
+
+    relationships   :
+      tutorial      :
+        targetType  : JTutorial
+        as          : "tutorial"
+      creator       :
+        targetType  : JAccount
+        as          : "related"
+      activity      :
+        targetType  : CActivity
+        as          : 'activity'
+      follower      :
+        targetType  : JAccount
+        as          : 'follower'
+      likedBy       :
+        targetType  : JAccount
+        as          : 'like'
+      participant   :
+        targetType  : JAccount
+        as          : ['author','viewer']
+      tag           :
+        targetType  : JTag
+        as          : 'tag'
+
+  @getAuthorType =-> JAccount
+
+  {log} = console
 
   @create = secure (client, data, callback)->
-    discussion =
-      title       : data.title
-      body        : data.body
-      meta        : data.meta
-      items        : data.items
-    JPost.create.call @, client, discussion, callback
 
-  modify: secure (client, data, callback)->
-    discussion =
-      title       : data.title
-      body        : data.body
-      meta        : data.meta
-      items        : data.items
-    JPost::modify.call @, client, discussion, callback
+    {connection:{delegate}} = client
 
-  fetchTeaser:(callback)->
+    list = new JTutorialList
+      title : data.title
+      body  : data.body
+      originId : delegate.getId()
+      originType : delegate.constructor.name
+
+    list.save (err)->
+      if err
+        log "Could not save TutorialList"
+        callback err
+      else
+        list.addCreator delegate, (err)->
+          if err
+            log "Could not add creator to TutorialList"
+            callback err
+          else
+            callback null, list
+
+  addItem : secure ({connection}, tutorialId, callback)->
+    JTutorial.one
+      _id: tutorialId
+    , (err, tut)=>
+      if tut
+        @addTutorial tut, {as:"tutorial",respondWithCount:yes}, (err, docs, count)=>
+          if err
+            log err
+            callback err
+          else
+            @update ($set: "repliesCount": count), (err)=>
+              if err then callback err
+              else
+                callback null
+      else
+        log "Not found."
+
+  @fetchForTutorialId : (tutorialId, callback)->
+    Relationship.one
+      sourceName:'JTutorialList'
+      targetName:'JTutorial'
+      targetId: tutorialId
+      as: "tutorial"
+    , (err, tutorialRelationship)=>
+      if err
+        callback err
+      else
+        JTutorialList.one
+          _id : tutorialRelationship.sourceId
+        , (err, tutorialList)=>
+          log err,tutorialList
+          if err
+            callback err
+          else
+            tutorialList.fetchList (err,list)=>
+              if err
+                log err
+                callback err
+              else
+                callback list
+
+  fetchList:(callback)->
     @beginGraphlet()
       .edges
         query         :
           sourceName  : 'JTutorialList'
-          targetName  : 'JTag'
-          as          : 'tag'
-        limit         : 5
-      .and()
-      .edges
-        query         :
           targetName  : 'JTutorial'
           as          : 'tutorial'
-          'data.deletedAt':
-            $exists   : no
-          'data.flags.isLowQuality':
-            $ne       : yes
-        limit         : 5
-        sort          :
-          timestamp   : 1
       .nodes()
     .endGraphlet()
     .fetchRoot callback

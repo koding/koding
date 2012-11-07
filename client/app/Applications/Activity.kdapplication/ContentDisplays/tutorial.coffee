@@ -198,6 +198,16 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
+    @listInfo = new KDView
+
+    KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
+      log "list",listData
+      @listInfo.updatePartial "In list '#{listData.title}'"
+      for tutorial,i in listData.tutorials
+        if tutorial._id is @getData()._id
+          log "FOUND AT I",i
+      log listData.tutorials.indexOf @getData()
+
   opinionHeaderCountString:(count)=>
     if count is 0
       countString = "No Answers yet"
@@ -270,6 +280,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <span class="author">AUTHOR</span>
           </span>
           <div class='discussion-main-opinion'>
+            {{> @listInfo}}
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>

@@ -36,7 +36,7 @@ module.exports = class JTutorial extends JPost
         'on','reply','restComments','commentsByRange'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments'
-        'updateTeaser'
+        'updateTeaser', 'fetchList'
       ]
     schema            : schema
     relationships     :
@@ -281,6 +281,18 @@ module.exports = class JTutorial extends JPost
         # log "restcomment comments are",comments
         # comments.reverse()
         callback null, comments
+
+  fetchList:(callback)->
+    log @getId()
+    @beginGraphlet()
+      .edges
+        query :
+          sourceName:'JTutorialList'
+          targetName:'JTutorial'
+          targetId: @getId()
+      .nodes()
+    .endGraphlet()
+    .fetchRoot callback
 
   fetchEntireMessage:(callback)->
     @beginGraphlet()
