@@ -198,12 +198,10 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-    # @listInfo = new KDView
-
-    @listAnchor = new KDView
+    @listAnchorNext = new KDView
+    @listAnchorPrevious = new KDView
 
     KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
-      log "list",listData
       if listData
         # @listInfo.updatePartial "In list '#{listData.title}'"
         for tutorial,i in listData.tutorials
@@ -211,13 +209,12 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             @position = i
             @before = listData.tutorials[0...i]
             @after = listData.tutorials[i+1..]
-        log "at",@position,"before",@before,"after",@after
         if @after.length >0
-          @listAnchor.addSubView new TutorialListSwitchBox
+          @listAnchorNext.addSubView new TutorialListSwitchBox
             direction:"next"
           , @after[0]
         if @before.length >0
-          @listAnchor.addSubView new TutorialListSwitchBox
+          @listAnchorPrevious.addSubView new TutorialListSwitchBox
             direction:"previous"
           , @before[0]
 
@@ -294,7 +291,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <span class="author">AUTHOR</span>
           </span>
           <div class='discussion-main-opinion'>
-            {{> @listAnchor}}
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>
@@ -306,7 +302,9 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
+            {{> @listAnchorPrevious}}
             {{> @embedBox}}
+            {{> @listAnchorNext}}
             <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
@@ -333,13 +331,11 @@ class TutorialListSwitchBox extends KDView
 
     @outgoingContainer = new KDView
     if data.link?
-      log data.link
       image = new KDCustomHTMLView
         cssClass : "image-preview"
         tagName : "img"
         attributes :
           src : @utils.proxifyUrl data.link.link_embed.images[0].url
-      log image
       @outgoingContainer.addSubView image
 
     @outgoingLink = new KDButtonView
