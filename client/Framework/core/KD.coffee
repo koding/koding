@@ -167,6 +167,11 @@ KD.error = error = noop
     KD.error = error = if console?.error then console.error.bind(console) else noop
     return "Logs are enabled now."
 
+  exportKDFramework:->
+    (window[item] = KD.classes[item] for item of KD.classes)
+    KD.exportKDFramework = -> "Already exported."
+    "KDFramework loaded successfully."
+
 KD.enableLogs() if not KD.config?.suppressLogs
 
 prettyPrint = noop
