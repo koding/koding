@@ -253,7 +253,7 @@ class KodingAppsController extends KDController
       stylesheets.forEach (sheet)->
         if devMode
           $("head #app-#{__utils.slugify name}").remove()
-          urlToStyle = proxifyUrl "http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
+          urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
           $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
         else
           if /(http)|(:\/\/)/.test sheet
@@ -479,7 +479,6 @@ class KodingAppsController extends KDController
           _final += "#{if output then output else '//couldn\'t compile the hunk!'}"
           _final += "\n\n/* BLOCK ENDS */\n\n"
         _final += "/* KDAPP ENDS */\n\n}).call();"
-
 
         _final = @defineApp app.name, _final
         @saveCompiledApp app, _final, =>
