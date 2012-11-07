@@ -109,6 +109,7 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
 
     @parent.parent.$("div.tutorial.selected").removeClass "selected"
     @setClass "selected"
+    @parent.parent.parent.parent.parent.parent.parent.parent.emit "setSelectedData", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
