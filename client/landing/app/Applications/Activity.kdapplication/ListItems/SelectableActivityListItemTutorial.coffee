@@ -107,15 +107,8 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
 
   click:(event)->
 
-    log @parent, @parent.$("div")
-    @parent.$("div.tutorial.selectable.selected").each (i,e)->
-      log i;e.removeClass "selected"
-    # $(event.target).parent("div.kdlistview").each (i, element)->
-      # element.removeClass "selected"
+    @parent.parent.$("div.tutorial.selected").removeClass "selected"
     @setClass "selected"
-  #   if $(event.target).closest("[data-paths~=title],[data-paths~=body],[data-paths~=preview]")
-  #     if not $(event.target).is("a.action-link, a.count, .like-view")
-  #       appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
