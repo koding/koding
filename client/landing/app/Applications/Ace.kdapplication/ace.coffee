@@ -124,7 +124,7 @@ class Ace extends KDView
     @appStorage.getValue('showInvisibles') or @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue('fontSize') or parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
+    @appStorage.getValue('fontSize') or parseInt @$("#editor#{@getId()}").css("font-size") ? 12, 10
 
   getTabSize:->
     @appStorage.getValue('tabSize') or @editor.getSession().getTabSize()
