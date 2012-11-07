@@ -198,15 +198,29 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-    @listInfo = new KDView
+    # @listInfo = new KDView
+
+    @listAnchor = new KDView
 
     KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
       log "list",listData
-      @listInfo.updatePartial "In list '#{listData.title}'"
-      for tutorial,i in listData.tutorials
-        if tutorial._id is @getData()._id
-          log "FOUND AT I",i
-      log listData.tutorials.indexOf @getData()
+      if listData
+        # @listInfo.updatePartial "In list '#{listData.title}'"
+        for tutorial,i in listData.tutorials
+          if tutorial._id is @getData()._id
+            @position = i
+            @before = listData.tutorials[0...i]
+            @after = listData.tutorials[i+1..]
+        log "at",@position,"before",@before,"after",@after
+        if @after.length >0
+          @listAnchor.addSubView new TutorialListSwitchBox
+            direction:"next"
+          , @after[0]
+        if @before.length >0
+          @listAnchor.addSubView new TutorialListSwitchBox
+            direction:"previous"
+          , @before[0]
+
 
   opinionHeaderCountString:(count)=>
     if count is 0
@@ -280,7 +294,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             <span class="author">AUTHOR</span>
           </span>
           <div class='discussion-main-opinion'>
-            {{> @listInfo}}
+            {{> @listAnchor}}
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
             <footer class='discussion-footer clearfix'>
               <div class='type-and-time'>
@@ -305,4 +319,42 @@ class ContentDisplayTutorial extends ActivityContentDisplay
         </div>
       </div>
     </div>
+    """
+
+class TutorialListSwitchBox extends KDView
+  constructor:(options, data)->
+
+    @options = options
+    @options.direction or= "next"
+
+    super options, data
+
+    @setClass "tutorial-navigation-box"
+
+    @outgoingContainer = new KDView
+    if data.link?
+      log data.link
+      image = new KDCustomHTMLView
+        cssClass : "image-preview"
+        tagName : "img"
+        attributes :
+          src : @utils.proxifyUrl data.link.link_embed.images[0].url
+      log image
+      @outgoingContainer.addSubView image
+
+    @outgoingLink = new KDButtonView
+      cssClass :"modal-clean-red"
+      pistachio: @options.direction
+      callback:=>
+        appManager.tell "Activity", "createContentDisplay", @getData()
+
+  viewAppended:->
+    super()
+
+    @setTemplate @pistachio()
+    @template.update()
+  pistachio:->
+    """
+    {{> @outgoingContainer}}
+      {{> @outgoingLink}}
     """

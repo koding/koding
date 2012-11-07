@@ -134,19 +134,21 @@ module.exports = class JTutorialList extends jraphical.Module
       if err
         callback err
       else
-        JTutorialList.one
-          _id : tutorialRelationship.sourceId
-        , (err, tutorialList)=>
-          log err,tutorialList
-          if err
-            callback err
-          else
-            tutorialList.fetchList (err,list)=>
-              if err
-                log err
-                callback err
-              else
-                callback list
+        if tutorialRelationship
+          JTutorialList.one
+            _id : tutorialRelationship.sourceId
+          , (err, tutorialList)=>
+            if err
+              callback err
+            else
+              tutorialList.fetchList (err,list)=>
+                if err
+                  log err
+                  callback err
+                else
+                  callback list
+        else
+          callback null
 
   fetchList:(callback)->
     @beginGraphlet()
