@@ -83,7 +83,7 @@ class AceSettingsView extends KDTreeItemView
     <p>Syntax                   {{> @syntax}}</p>
     <p>Font                     {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
-    <p class='hidden'>Tab size  {{> @tabSize}}</p>
+    <p>Tab size                 {{> @tabSize}}</p>
 
     <p class='hidden'>{{> @shortcuts}}</p>
 

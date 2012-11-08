@@ -25,13 +25,11 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
-    if authorNick is KD.whoami().profile.nickname and manifest.devMode?
-      resourceRoot = "http://#{authorNick}.koding.com/.applications/#{name}/"
+    if manifest.devMode?
+      resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
 
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
       thumb = "#{resourceRoot}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
-      if authorNick is KD.whoami().profile.nickname and manifest.devMode?
-        thumb = proxifyUrl thumb
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 

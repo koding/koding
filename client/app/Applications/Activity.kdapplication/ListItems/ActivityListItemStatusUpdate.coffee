@@ -20,7 +20,7 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox = new KDView
 
   attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body a").each (i,element)=>
+    @$("p.status-body > span.data > a").each (i,element)=>
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->

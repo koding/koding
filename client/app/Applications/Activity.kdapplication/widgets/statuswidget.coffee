@@ -186,7 +186,7 @@ class ActivityStatusUpdateWidget extends KDFormView
             }, (embedData)=>
 
               # add favicon to link list if possible
-              @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
+              # @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
 
               @requestEmbedLock = off
               @previousURL = firstUrl?[0]
