@@ -20,10 +20,10 @@ class ActivityItemChild extends KDView
 
 
     # for discussion, switch to the View that supports nested structures
-    # JDiscussion
+    # JDiscussion,JTutorial
     # -> JOpinion
     #    -> JComment
-    if data.bongo_.constructorName is "JDiscussion"
+    if data.bongo_.constructorName in ["JDiscussion","JTutorial"]
       @commentBox = new OpinionView null, data
     else
       @commentBox = new CommentView null, data

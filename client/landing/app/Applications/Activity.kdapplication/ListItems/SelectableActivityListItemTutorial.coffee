@@ -1,9 +1,9 @@
-class TutorialActivityItemView extends ActivityItemChild
+class SelectableTutorialActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
     options = $.extend
-      cssClass    : "activity-item discussion"
+      cssClass    : "activity-item discussion selectable tutorial"
       tooltip     :
         title     : "Tutorial"
         offset    : 3
@@ -102,23 +102,14 @@ class TutorialActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    # Here, the maxheight-reliant "View full discussion"-bar is toggled.
-    # The shortened text is not sufficient since it can contain 500 line breaks
-    # or <code> with very high whitespace amount. This keeps the snapshot view
-    # clean.
-
-    if @$("p.comment-body").height() >= 250
-      @$("div.view-full-discussion").show()
-    else
-      @$("div.view-full-discussion").hide()
-
   render:->
     super()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+
+    @parent.parent.$("div.tutorial.selected").removeClass "selected"
+    @setClass "selected"
+    @parent.parent.parent.parent.parent.parent.parent.parent.emit "setSelectedData", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -134,9 +125,7 @@ class TutorialActivityItemView extends ActivityItemChild
       # {{> @opinionBox}}
   pistachio:->
     """
-  <div class="tutorial-badge"></div>
-  <div class="activity-discussion-container activity-tutorial-container">
-    <span class="avatar">{{> @avatar}}</span>
+  <div class="activity-discussion-container activity-tutorial-container small">
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
       <h3 class='hidden'></h3>
@@ -148,7 +137,6 @@ class TutorialActivityItemView extends ActivityItemChild
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
-          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>
