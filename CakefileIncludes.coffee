@@ -309,6 +309,7 @@ Includes =
         listgroupshowmeitem         : "./client/app/Applications/Activity.kdapplication/views/listgroupshowmeitem.coffee"
         ActivityItemChild           : "./client/app/Applications/Activity.kdapplication/views/activityitemchild.coffee"
         discussionactivityaction    : "./client/app/Applications/Activity.kdapplication/views/discussionactivityactions.coffee"
+        tutorialactivityaction      : "./client/app/Applications/Activity.kdapplication/views/tutorialactivityactions.coffee"
         codesharebox                : "./client/app/Applications/Activity.kdapplication/views/codesharebox.coffee"
         codesharetab                : "./client/app/Applications/Activity.kdapplication/views/codesharetabview.coffee"
         codesharetabpane            : "./client/app/Applications/Activity.kdapplication/views/codesharetabpaneview.coffee"
@@ -332,6 +333,7 @@ Includes =
         actUpdateDisplay            : "./client/app/Applications/Activity.kdapplication/ContentDisplays/StatusUpdate.coffee"
         actCodeSnippetDisplay       : "./client/app/Applications/Activity.kdapplication/ContentDisplays/CodeSnippet.coffee"
         actDiscussionDisplay        : "./client/app/Applications/Activity.kdapplication/ContentDisplays/Discussion.coffee"
+        actTutorialDisplay          : "./client/app/Applications/Activity.kdapplication/ContentDisplays/tutorial.coffee"
         actCodeShareDisplay         : "./client/app/Applications/Activity.kdapplication/ContentDisplays/codeshare.coffee"
 
         actQADisplay                : "./client/app/Applications/Activity.kdapplication/ContentDisplays/QA.coffee"
@@ -352,6 +354,8 @@ Includes =
         ActListItemLink             : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemLink.coffee"
         ActListItemQuestion         : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemQuestion.coffee"
         ActListItemTutorial         : "./client/app/Applications/Activity.kdapplication/ListItems/ActivityListItemTutorial.coffee"
+        SelActListItem              : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItem.coffee"
+        SelActListItemTutorial      : "./client/app/Applications/Activity.kdapplication/ListItems/SelectableActivityListItemTutorial.coffee"
 
         # TOPICS VIEWS
         topicsAppView                 : "./client/app/Applications/Topics.kdapplication/AppView.coffee"
@@ -550,6 +554,9 @@ Includes =
         OpinionView                   : "./client/app/CommonViews/opinions/opinionview.coffee"
         DiscussionActivityOpinionView : "./client/app/CommonViews/opinions/discussionactivityopinionview.coffee"
         DiscussionActivityOpinionLI   : "./client/app/CommonViews/opinions/discussionactivityopinionlistitemview.coffee"
+        TutorialActivityOpinionView   : "./client/app/CommonViews/opinions/tutorialactivityopinionview.coffee"
+        TutorialActivityOpinionLI     : "./client/app/CommonViews/opinions/tutorialactivityopinionlistitemview.coffee"
+        TutorialOpinionViewHeader     : "./client/app/CommonViews/opinions/tutorialopinionviewheader.coffee"
         OpinionViewHeader             : "./client/app/CommonViews/opinions/opinionviewheader.coffee"
         OpinionListViewController     : "./client/app/CommonViews/opinions/opinionlistviewcontroller.coffee"
         OpinionListItemView           : "./client/app/CommonViews/opinions/opinionlistitemview.coffee"
@@ -557,6 +564,7 @@ Includes =
         OpinionFormView               : "./client/app/CommonViews/opinions/opinionformview.coffee"
         OpinionCommentView            : "./client/app/CommonViews/opinions/opinioncommentview.coffee"
         DiscussionFormView            : "./client/app/CommonViews/opinions/discussionformview.coffee"
+        TutorialFormView              : "./client/app/CommonViews/opinions/tutorialformview.coffee"
 
         MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
 

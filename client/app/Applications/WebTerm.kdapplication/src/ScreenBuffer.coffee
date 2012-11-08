@@ -48,15 +48,20 @@ class WebTerm.ScreenBuffer
     @linesToUpdate.push absoluteIndex unless absoluteIndex in @linesToUpdate
   
   flush: ->
-    for index in @linesToUpdate
-      while @lineDivs.length <= index
-        scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
+    @linesToUpdate.sort (a, b) -> a - b
+    maxLineIndex = @linesToUpdate[@linesToUpdate.length - 1]
+    if @lineDivs.length <= maxLineIndex
+      scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
+      newDivs = []
+      while @lineDivs.length <= maxLineIndex
         div = $(document.createElement("div"))
         div.text "\xA0"
-        @terminal.outputbox.append div
-        @terminal.scrollToBottom() if scrolledToBottom
+        newDivs.push div
         @lineDivs.push div
+      @terminal.outputbox.append newDivs
+      @terminal.scrollToBottom() if scrolledToBottom
 
+    for index in @linesToUpdate
       content = @getLineContent index
       content = @terminal.cursor.addCursorElement content if index is @toLineIndex(@terminal.cursor.y)
       

@@ -1,4 +1,4 @@
-class ActivityListItemView extends KDListItemView
+class SelectableActivityListItemView extends KDListItemView
 
   getActivityChildConstructors = ->
     # CStatusActivity     : StatusActivityItemView
@@ -8,7 +8,7 @@ class ActivityListItemView extends KDListItemView
     JQuestionActivity   : QuestionActivityItemView
     JDiscussion         : DiscussionActivityItemView
     JLink               : LinkActivityItemView
-    JTutorial           : TutorialActivityItemView
+    JTutorial           : SelectableTutorialActivityItemView
     # THIS WILL DISABLE CODE SHARES
     JCodeShare            : CodeShareActivityItemView
 

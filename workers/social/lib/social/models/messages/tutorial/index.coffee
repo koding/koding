@@ -1,6 +1,6 @@
 JPost = require '../post'
 
-module.exports = class JDiscussion extends JPost
+module.exports = class JTutorial extends JPost
 
   # @mixin Followable
   # @::mixin Followable::
@@ -15,11 +15,13 @@ module.exports = class JDiscussion extends JPost
 
   {log} = console
 
-  {once} = require 'underscore'
+  {once, extend} = require 'underscore'
 
   @share()
 
-  @getActivityType =-> require './discussionactivity'
+  schema = extend {}, JPost.schema, { link : Object }
+
+  @getActivityType =-> require './tutorialactivity'
 
   @getAuthorType =-> require '../../account'
 
@@ -34,9 +36,9 @@ module.exports = class JDiscussion extends JPost
         'on','reply','restComments','commentsByRange'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments'
-        'updateTeaser'
+        'updateTeaser', 'fetchList'
       ]
-    schema        : JPost.schema
+    schema            : schema
     relationships     :
       opinion         :
         targetType    : "JOpinion"
@@ -62,6 +64,7 @@ module.exports = class JDiscussion extends JPost
       title       : data.title
       body        : data.body
       meta        : data.meta
+      link        : data.link
     JPost.create.call @, client, discussion, callback
 
   modify: secure (client, data, callback)->
@@ -69,6 +72,7 @@ module.exports = class JDiscussion extends JPost
       title       : data.title
       body        : data.body
       meta        : data.meta
+      link        : data.link
     JPost::modify.call @, client, discussion, callback
 
   removeReply:(rel, callback)->
@@ -139,33 +143,33 @@ module.exports = class JDiscussion extends JPost
                         if err
                           callback err
                         else
-                          callback null, comment
-                          @fetchActivityId (err, id)->
+                              callback null, comment
+                              @fetchActivityId (err, id)->
 
-                            CActivity = require '../../activity'
+                                CActivity = require '../../activity'
 
-                            CActivity.update {_id: id}, {
-                              $set:
-                                'sorts.repliesCount'  : count
-                            }, log
-                          @fetchOrigin (err, origin)=>
-                            if err
-                              log "Couldn't fetch the origin"
-                            else
-                              unless exempt
-                                @emit 'ReplyIsAdded', {
-                                  origin
-                                  subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'opinion'
-                                  replier       : ObjectRef(delegate).data
-                                  opinion       : ObjectRef(comment).data
-                                  repliesCount  : count
-                                  relationship  : docs[0]
-                                  # opinionData   : JSON.stringify comment
-                                }
-                              @follow client, emitActivity: no, (err)->
-                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                                CActivity.update {_id: id}, {
+                                  $set:
+                                    'sorts.repliesCount'  : count
+                                }, log
+                              @fetchOrigin (err, origin)=>
+                                if err
+                                  log "Couldn't fetch the origin"
+                                else
+                                  unless exempt
+                                    @emit 'ReplyIsAdded', {
+                                      origin
+                                      subject       : ObjectRef(@).data
+                                      actorType     : 'replier'
+                                      actionType    : 'opinion'
+                                      replier       : ObjectRef(delegate).data
+                                      opinion       : ObjectRef(comment).data
+                                      repliesCount  : count
+                                      relationship  : docs[0]
+                                      # opinionData   : JSON.stringify comment
+                                    }
+                                  @follow client, emitActivity: no, (err)->
+                                  @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   updateTeaser:(callback)->
     activity = null
@@ -196,7 +200,7 @@ module.exports = class JDiscussion extends JPost
     @beginGraphlet()
       .edges
         query         :
-          sourceName  : 'JDiscussion'
+          sourceName  : 'JTutorial'
           targetName  : 'JTag'
           as          : 'tag'
         limit         : 5
@@ -213,7 +217,7 @@ module.exports = class JDiscussion extends JPost
         sort          :
           timestamp   : 1
       .nodes()
-      .edgesOfEach
+      .edges
         query         :
           sourceName  : 'JOpinion'
           targetName  : 'JComment'
@@ -222,49 +226,12 @@ module.exports = class JDiscussion extends JPost
             $exists   : no
           'data.flags.isLowQuality':
             $ne       : yes
-        limit         : 3
+        # limit         : 3
         sort          :
           timestamp   : 1
       .nodes()
     .endGraphlet()
     .fetchRoot callback
-
-  # fetchTeaser:(callback)->
-  #   @beginGraphlet()
-  #     .edges
-  #       query         :
-  #         sourceName  : 'JDiscussion'
-  #         targetName  : 'JTag'
-  #         as          : 'tag'
-  #       limit         : 5
-  #     .and()
-  #     .edges
-  #       query         :
-  #         targetName  : 'JOpinion'
-  #         as          : 'opinion'
-  #         'data.deletedAt':
-  #           $exists   : no
-  #         'data.flags.isLowQuality':
-  #           $ne       : yes
-  #       limit         : 5
-  #       sort          :
-  #         timestamp   : 1
-  #     .nodes()
-  #     .edgesOfEach
-  #       query         :
-  #         sourceName  : 'JOpinion'
-  #         targetName  : 'JComment'
-  #         as          : 'reply'
-  #         'data.deletedAt':
-  #           $exists   : no
-  #         'data.flags.isLowQuality':
-  #           $ne       : yes
-  #       limit         : 3
-  #       sort          :
-  #         timestamp   : 1
-  #     .nodes()
-  #   .endGraphlet()
-  #   .fetchRoot callback
 
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
@@ -314,6 +281,18 @@ module.exports = class JDiscussion extends JPost
         # log "restcomment comments are",comments
         # comments.reverse()
         callback null, comments
+
+  fetchList:(callback)->
+    log @getId()
+    @beginGraphlet()
+      .edges
+        query :
+          sourceName:'JTutorialList'
+          targetName:'JTutorial'
+          targetId: @getId()
+      .nodes()
+    .endGraphlet()
+    .fetchRoot callback
 
   fetchEntireMessage:(callback)->
     @beginGraphlet()
