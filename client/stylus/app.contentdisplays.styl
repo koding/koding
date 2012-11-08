@@ -1287,31 +1287,53 @@ div.tutorial
     margin-top 0
   .discussion-body
     margin-top 15px
+  .custom-object.custom-video
+    text-align center
+
+div.tutorial-navigation-container
+  clear:both
+  width:100%
+  display block
+  text-align center
+
 div.tutorial-anchor
   width auto
   vertical-align top
-  display inline
+  display inline-block
+  &.next
+    float right
+  &.previous
+    float left
+
 div.tutorial-navigation-box
   cursor pointer
   display inline-block
-  padding 0px 10px
+  padding 5px 0px
   width auto
-  max-width 100px
-
-  &.next
-    float right
-    padding-left 10px
-  &.previous
-    float left
-    padding-right 10px
+  max-width 200px
 
   p.title-preview
     text-overflow ellipsis
     overflow hidden
     white-space nowrap
+
   img.image-preview
     max-width 100px
     max-height 100px
 
+button.tutorial-video-button
+  span.button-content
+    white-space nowrap
+    overflow hidden
+    text-overflow ellipsis
 
-
+div.coming-up-next-anchor
+  max-width 500px
+  display inline-block
+  width auto
+  div.coming-up-next
+    margin 10px 10px 0px 10px
+    color #5f5f5f
+    white-space nowrap
+    overflow hidden
+    text-overflow ellipsis

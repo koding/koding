@@ -199,9 +199,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.destroy()
 
     @listAnchorNext = new KDView
-      cssClass : "tutorial-anchor"
+      cssClass : "tutorial-anchor next"
     @listAnchorPrevious = new KDView
-      cssClass : "tutorial-anchor"
+      cssClass : "tutorial-anchor previous"
+    @comingUpNextAnchor = new KDView
+      cssClass : "coming-up-next-anchor"
 
     KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
       if listData
@@ -216,6 +218,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             direction:"next"
             delegate:@
           , @after[0]
+
+          @comingUpNext = new KDCustomHTMLView
+            cssClass : "coming-up-next"
+            partial: "Coming up: "+@after[0].title
+
+          @comingUpNextAnchor.addSubView @comingUpNext
+
         if @before.length >0
           @listAnchorPrevious.addSubView new TutorialListSwitchBox
             direction:"previous"
@@ -306,11 +315,12 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <div class="tutorial-navigation-container">
+            {{> @embedBox}}
+            <div class="tutorial-navigation-container clear clearfix">
             {{> @listAnchorPrevious}}
+            {{> @comingUpNextAnchor}}
             {{> @listAnchorNext}}
             </div>
-            {{> @embedBox}}
             <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
@@ -336,36 +346,49 @@ class TutorialListSwitchBox extends KDView
     @setClass "tutorial-navigation-box"
     @setClass @options.direction
 
-    @outgoingContainer = new KDView
-      click:=>
-        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+    if data.link?
+
+      @tooltipSource = """
+      <div class="container-preview">
+        <p class="title-preview">#{data.title}</p>
+        <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
+      </div>
+      """
+    else
+      @tooltipSource = data.title or ""
+
+    @outgoingButton = new KDButtonView
+      cssClass : "clean-gray tutorial-video-button"
+      title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
+      tooltip:
+        title: if data.title then data.title else ""
+        placement : "above"
+        # offset : 3
+        delayIn : 300
+        html : no
+        animate : no
+        className : "tutorial-video"
+      callback:=>
         appManager.tell "Activity", "createContentDisplay", @getData()
 
-
-
-    if data.link?
-      title = new KDCustomHTMLView
-        tagName: "p"
-        cssClass : "title-preview"
-        attributes:
-          title:data.title
-        partial: data.title
-
-      @outgoingContainer.addSubView title
-
-      image = new KDCustomHTMLView
-        cssClass : "image-preview"
-        tagName : "img"
-        attributes :
-          src : @utils.proxifyUrl data.link.link_embed.images[0].url
-      @outgoingContainer.addSubView image
+  click:->
+    @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+    appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended:->
     super()
 
     @setTemplate @pistachio()
     @template.update()
+
+    # @outgoingContainer.$().hover noop, =>
+    #   @outgoingContainer.hide()
+
+    # @outgoingButton.$().hover =>
+    #   @outgoingContainer.show()
+    # , noop
+
   pistachio:->
     """
-    {{> @outgoingContainer}}
+    {{> @outgoingButton}}
     """
