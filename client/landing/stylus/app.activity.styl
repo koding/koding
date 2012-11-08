@@ -1922,32 +1922,23 @@ div.activity-item.tutorial.selectable.selected
     border: 2px solid black
 
 playButton(distance=10px)
-  cursor pointer!important
-  color white
-  content "\25B6"
   position absolute
-  vendor text-shadow, 0 3px rgba(0,0,0,0.85)
-  font-size 20px
-  line-height 20px
-  padding 5px 8px 3px 10px
-
-  left distance
   bottom distance
-  border 1px solid white
-  rounded 4px
+  left distance
+  width 40px
+  height 40px
+  margin 0
+  padding 0
+  sprite()
+  bg position, -580px 0px
+  cursor pointer
+  opacity 0.8
+  vendor transition opacity, 0.3s ease-in-out
+  &:hover
+    opacity 1
 
-  background-color rgba(255,255,255,0.25)
-
-div.custom-video
-  .preview_image
-    text-align center
-    vertical-align middle
-    a::before
-      playButton()
-
-div.activity-tutorial-container
-  .preview_image::before
-    playButton()
+.preview-image-overlay
+  playButton()
 
 div.tutorial-badge
   position absolute
