@@ -1287,8 +1287,28 @@ div.tutorial
     margin-top 0
   .discussion-body
     margin-top 15px
-
+div.tutorial-anchor
+  width auto
+  vertical-align top
+  display inline
 div.tutorial-navigation-box
+  cursor pointer
+  display inline-block
+  padding 0px 10px
+  width auto
+  max-width 100px
+
+  &.next
+    float right
+    padding-left 10px
+  &.previous
+    float left
+    padding-right 10px
+
+  p.title-preview
+    text-overflow ellipsis
+    overflow hidden
+    white-space nowrap
   img.image-preview
     max-width 100px
     max-height 100px

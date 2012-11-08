@@ -317,10 +317,10 @@ class ActivityTutorialWidget extends KDFormView
         link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
 
-    log "In Sbumit, checking for stuff", @selectedData
-
     if @selectedData?
-      @addCustomData "startListWith", @selectedData
+      @addCustomData "appendToList", @selectedData
+
+
 
     super
 

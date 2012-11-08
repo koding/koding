@@ -199,7 +199,9 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.destroy()
 
     @listAnchorNext = new KDView
+      cssClass : "tutorial-anchor"
     @listAnchorPrevious = new KDView
+      cssClass : "tutorial-anchor"
 
     KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
       if listData
@@ -216,7 +218,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
         if @before.length >0
           @listAnchorPrevious.addSubView new TutorialListSwitchBox
             direction:"previous"
-          , @before[0]
+          , @before[@before.length-1]
 
 
   opinionHeaderCountString:(count)=>
@@ -302,9 +304,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
+            <div class="tutorial-navigation-container">
             {{> @listAnchorPrevious}}
-            {{> @embedBox}}
             {{> @listAnchorNext}}
+            </div>
+            {{> @embedBox}}
             <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
@@ -328,21 +332,28 @@ class TutorialListSwitchBox extends KDView
     super options, data
 
     @setClass "tutorial-navigation-box"
+    @setClass @options.direction
 
     @outgoingContainer = new KDView
+      click:=>
+        appManager.tell "Activity", "createContentDisplay", @getData()
+
+
+
     if data.link?
+      title = new KDCustomHTMLView
+        tagName: "p"
+        cssClass : "title-preview"
+        partial: data.title
+
+      @outgoingContainer.addSubView title
+
       image = new KDCustomHTMLView
         cssClass : "image-preview"
         tagName : "img"
         attributes :
           src : @utils.proxifyUrl data.link.link_embed.images[0].url
       @outgoingContainer.addSubView image
-
-    @outgoingLink = new KDButtonView
-      cssClass :"modal-clean-red"
-      pistachio: @options.direction
-      callback:=>
-        appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended:->
     super()
@@ -352,5 +363,4 @@ class TutorialListSwitchBox extends KDView
   pistachio:->
     """
     {{> @outgoingContainer}}
-      {{> @outgoingLink}}
     """
