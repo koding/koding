@@ -15,6 +15,7 @@ class hosting_packages::python {
     
     package { ["python","python27"]:
         ensure => installed,
+        require => Class["yumrepos::koding"],
     }
 
     exec { "pip":
