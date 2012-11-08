@@ -6,7 +6,7 @@
 #   createVolume() 
 #   attachVolume()   
 
-from boto.ec2 import regions
+from boto.ec2 import get_region
 from boto.ec2.connection import EC2Connection
 from boto.ec2 import blockdevicemapping
 from pprint import pprint
@@ -23,26 +23,26 @@ import config
 #centos_id     = 'ami-c49030ad' # koding ami (centos)
 centos_id     = 'ami-2f219746' # koding ami (centos)
 
-#cloudlinux_id = 'ami-888f2fe1' # CloudLinux
-cloudlinux_id = 'ami-dd02b4b4'
+cloudlinux_id = 'ami-dd02b4b4' # CloudLinux
+#cloudlinux_id = 'ami-7422981d'# HVM
 key_name      = 'koding'
-zone          = 'us-east-1b'
+zone          = 'us-east-1c'
 placement     = 'us-east-1'
 #instance_type = 'm1.small'
 #instance_type = 'm1.large'
-security_groups = ['koding']
+security_groups = ['hosting','admin','nfs']
 #security_groups = ['internal']
 #security_groups = ['smtp']
 
 syslog.openlog("install_ec2", syslog.LOG_PID, syslog.LOG_SYSLOG)
 
 
-region  = regions(aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
-for r in region:
-    if r.__dict__['name'] == placement:
-        location = r
-        break
-
+#region  = regions(aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
+#for r in region:
+#    if r.__dict__['name'] == placement:
+#        location = r
+#        break
+location = get_region(placement,aws_access_key_id=config.aws_access_key_id, aws_secret_access_key=config.aws_secret_access_key)
 ec2 = EC2Connection(config.aws_access_key_id, config.aws_secret_access_key,region=location)
 
 
@@ -57,7 +57,7 @@ ec2 = EC2Connection(config.aws_access_key_id, config.aws_secret_access_key,regio
 
 def getVolumeStatus(id):
     r = ec2.get_all_volumes(filters={"volume-id":id})
-    while not r.__dict__['status']:
+    while not r.status:
         #sys.stdout.write("Creating volume...\n")
         getVolumeStatus(id)
     else:
@@ -68,8 +68,8 @@ def getInstanceStatus(id):
     reservations = ec2.get_all_instances()
     instances = [i for r in reservations for i in r.instances]
     for i in instances:
-        if i.__dict__['id'] == id:
-            if i.__dict__['state'] != 'running':
+        if i.id == id:
+            if i._state.name != 'running':
                 #sys.stdout.write('deploying...\n')
                 sleep(1)
                 getInstanceStatus(id)
@@ -83,8 +83,8 @@ def getSystemAddr(id):
     reservations = ec2.get_all_instances()
     instances = [i for r in reservations for i in r.instances]
     for i in instances:
-        if i.__dict__['id'] == id:
-            return i.__dict__['public_dns_name']
+        if i.id == id:
+            return i.public_dns_name
     else:
         sys.stderr.write("getSystemAddr: Can't find instance")
         syslog.syslog(syslog.LOG_ERR,"getSystemAddr: Can't find instance")
@@ -92,9 +92,9 @@ def getSystemAddr(id):
 
 def createVolume(size,fqdn):
     r = ec2.create_volume(size,zone)
-    getVolumeStatus(r.__dict__['id'])
-    ec2.create_tags([r.__dict__['id']],{"Name":fqdn})
-    return  r.__dict__['id']
+    getVolumeStatus(r.id)
+    ec2.create_tags([r.id],{"Name":fqdn})
+    return  r.id
 
 
 def attachVolume(volumeID,instanceID):
@@ -126,21 +126,21 @@ def launchInstance(fqdn, type ,instance_type, ami_id = centos_id):
         placement = zone,
         #block_device_map = bdm,
     )
-    ec2.create_tags([reservation.__dict__['instances'][0].id],{"Name":fqdn})
-    getInstanceStatus(reservation.__dict__['instances'][0].id)
-    return reservation.__dict__['instances'][0].id
+    ec2.create_tags([reservation.instances[0].id],{"Name":fqdn})
+    getInstanceStatus(reservation.instances[0].id)
+    return reservation.instances[0].id
 
 
 def attachElasticIP(instacneID):
 
     r = ec2.allocate_address()
     pprint(r.__dict__)
-    if r.__dict__['public_ip']:
-        if ec2.associate_address(instacneID,r.__dict__['public_ip']):
+    if r.public_ip:
+        if ec2.associate_address(instacneID,r.public_ip):
             #sys.stdout.write("Public IP %s has been attached\n" % r.__dict__['public_ip'] )
-            return r.__dict__['public_ip']
+            return r.public_ip
         else:
-            sys.stderr.write("Can't attach public IP %s\n" % r.__dict__['public_ip'] )
+            sys.stderr.write("Can't attach public IP %s\n" % r.public_ip )
             return False
 
 if __name__ == "__main__":
