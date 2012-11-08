@@ -347,6 +347,8 @@ class TutorialListSwitchBox extends KDView
       title = new KDCustomHTMLView
         tagName: "p"
         cssClass : "title-preview"
+        attributes:
+          title:data.title
         partial: data.title
 
       @outgoingContainer.addSubView title
