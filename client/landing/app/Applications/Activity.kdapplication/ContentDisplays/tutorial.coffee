@@ -214,10 +214,12 @@ class ContentDisplayTutorial extends ActivityContentDisplay
         if @after.length >0
           @listAnchorNext.addSubView new TutorialListSwitchBox
             direction:"next"
+            delegate:@
           , @after[0]
         if @before.length >0
           @listAnchorPrevious.addSubView new TutorialListSwitchBox
             direction:"previous"
+            delegate:@
           , @before[@before.length-1]
 
 
@@ -336,6 +338,7 @@ class TutorialListSwitchBox extends KDView
 
     @outgoingContainer = new KDView
       click:=>
+        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
         appManager.tell "Activity", "createContentDisplay", @getData()
 
 
