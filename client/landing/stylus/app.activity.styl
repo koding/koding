@@ -1921,49 +1921,33 @@ div.activity-tutorial-container.small
 div.activity-item.tutorial.selectable.selected
     border: 2px solid black
 
+playButton(distance=10px)
+  cursor pointer!important
+  color white
+  content "\25B6"
+  position absolute
+  vendor text-shadow, 0 3px rgba(0,0,0,0.85)
+  font-size 20px
+  line-height 20px
+  padding 5px 8px 3px 10px
+
+  left distance
+  bottom distance
+  border 1px solid white
+  rounded 4px
+
+  background-color rgba(255,255,255,0.25)
 
 div.custom-video
   .preview_image
     text-align center
     vertical-align middle
     a::before
-      cursor pointer
-      color white
-      content "\25B6"
-      position absolute
-      vendor text-shadow, 0 3px black
-      // z-index 100
-      font-size 15px
-      line-height 15px
-      padding 5px
-      left 30%
-      top 30%
-      right 30%
-      bottom 30%
-      border 1px solid white
-      background-color rgba(255,255,255,0.25)
-      vendor transition, color 0.2s ease-in-out
-    a:hover::before
-      color #ff9200
+      playButton()
 
 div.activity-tutorial-container
   .preview_image::before
-      cursor pointer
-      color white
-      content "\25B6"
-      position absolute
-      vendor text-shadow, 0 3px black
-      // z-index 100
-      font-size 20px
-      line-height 20px
-      padding 10px
-      left 20px
-      top 20px
-      border 1px solid white
-      background-color rgba(255,255,255,0.25)
-      vendor transition, color 0.2s ease-in-out
-  .preview_image:hover::before
-      color #ff9200
+    playButton()
 
 div.tutorial-badge
   position absolute
