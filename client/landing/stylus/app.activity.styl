@@ -1425,6 +1425,10 @@ div.kdview.link-embed-box
         font-weight 400
         overflow hidden
 
+        iframe
+          max-width 100%
+
+
 
         > div.preview_image
           borderBox()
@@ -1686,6 +1690,10 @@ div.modal-fullscreen-text
       // max-height inherit
       height        inherit
 
+textarea.kdinputwithpreview
+  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+
+
 div.kdinputwithpreview.input_preview
   borderBox()
   margin              0 0 0px 0
@@ -1693,6 +1701,9 @@ div.kdinputwithpreview.input_preview
   min-height          40px
   position            relative
   overflow            auto
+
+  & textarea
+    font-family monospace
 
   &.content-hidden
     margin-bottom     0px
@@ -1872,6 +1883,7 @@ div.protocol-info-box
     margin-top 2px
     margin-left 2px
 
+
   > button.kdbutton.hide-info-box
     position absolute
     top 4px
@@ -1895,3 +1907,73 @@ div.protocol-info-box
 
     &:hover
       opacity 1
+
+div.preview_image
+  position relative
+
+  img.tutorial-preview-image
+    max-height 200px
+    cursor pointer
+
+div.activity-tutorial-container.small
+  img.tutorial-preview-image
+    max-width 100px
+div.activity-item.tutorial.selectable.selected
+    border: 2px solid black
+
+
+// div.custom-video
+//   .preview_image
+//     text-align center
+//     vertical-align middle
+//     a::before
+//       cursor pointer
+//       color white
+//       content "\25B6"
+//       position absolute
+//       vendor text-shadow, 0 3px black
+//       // z-index 100
+//       font-size 15px
+//       line-height 15px
+//       padding 5px
+//       left 30%
+//       top 30%
+//       right 30%
+//       bottom 30%
+//       border 1px solid white
+//       background-color rgba(255,255,255,0.25)
+//       vendor transition, color 0.2s ease-in-out
+//     a:hover::before
+//       color #ff9200
+
+// div.activity-tutorial-container
+//   .preview_image::before
+//       cursor pointer
+//       color white
+//       content "\25B6"
+//       position absolute
+//       vendor text-shadow, 0 3px black
+//       // z-index 100
+//       font-size 20px
+//       line-height 20px
+//       padding 10px
+//       left 20px
+//       top 20px
+//       border 1px solid white
+//       background-color rgba(255,255,255,0.25)
+//       vendor transition, color 0.2s ease-in-out
+//   .preview_image:hover::before
+//       color #ff9200
+
+// div.tutorial-badge
+//   position absolute
+//   left -20px
+//   top -20px
+//   size 40px 40px
+//   background-color:#ff9200
+//   opacity 1!important
+//   vendor transform, rotate(-45deg)
+
+// div.modal-select-tutorials
+//   width:80%
+//   height : 80%
