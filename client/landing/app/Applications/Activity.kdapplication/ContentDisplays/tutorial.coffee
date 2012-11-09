@@ -317,9 +317,9 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             {{> @deleteDiscussionLink}}
             {{> @embedBox}}
             <div class="tutorial-navigation-container clear clearfix">
-            {{> @listAnchorPrevious}}
-            {{> @comingUpNextAnchor}}
-            {{> @listAnchorNext}}
+              {{> @listAnchorPrevious}}
+              {{> @comingUpNextAnchor}}
+              {{> @listAnchorNext}}
             </div>
             <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>

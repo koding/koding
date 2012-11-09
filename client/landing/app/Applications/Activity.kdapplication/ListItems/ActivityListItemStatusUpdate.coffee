@@ -113,8 +113,6 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox.embedExistingData link.link_embed, {} ,=>
         if "embed" in link.link_embed_hidden_items
           @embedBox.hide()
-        else
-          @embedBox.show()
       , link.link_cache
 
       @embedBox.setLinkFavicon link.link_url
