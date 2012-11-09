@@ -148,7 +148,8 @@ class OpinionListItemView extends KDListItemView
     super()
 
     @$("pre").addClass "prettyprint"
-    prettyPrint()
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   viewAppended:->
     @setTemplate @pistachio()
