@@ -9,5 +9,6 @@ class hosting_crontabs {
     include hosting_crontabs::mysql_total_size
     include hosting_crontabs::gem_update
     include hosting_crontabs::ebs_snapshots
+    include hosting_crontabs::mail_queue
 
 }
