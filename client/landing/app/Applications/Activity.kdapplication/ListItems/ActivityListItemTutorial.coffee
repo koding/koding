@@ -3,7 +3,7 @@ class TutorialActivityItemView extends ActivityItemChild
   constructor:(options, data)->
 
     options = $.extend
-      cssClass    : "activity-item discussion"
+      cssClass    : "activity-item tutorial"
       tooltip     :
         title     : "Tutorial"
         offset    : 3
