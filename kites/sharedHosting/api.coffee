@@ -16,7 +16,8 @@ createTmpDir = require './createtmpdir'
 
 console.log "new sharedhosting api."
 
-escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
+escapePath = (name)-> nodePath.normalize name
+  # return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
 
 makedirp = (path, user, cb)->
   exec "mkdir -p #{path} && chown #{user}: #{path}", cb

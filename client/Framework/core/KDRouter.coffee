@@ -12,9 +12,11 @@ class KDRouter extends KDObject
       @handleRoute location.hash.substr(1), shouldPushState: yes
     @startListening()
 
-  onpopstate:(event)=> # fat-arrow binding makes this easier to remove.
+  onpopstate:(event)=> # fat-arrow binding makes this handler easier to remove.
     @currentPath = location.pathname
-    @handleRoute location.pathname, shouldPushState: no
+    @handleRoute location.pathname,
+      shouldPushState   : no
+      state             : KD.remote.revive(event.state)
 
   startListening:->
     return no  if @isListening # make this action idempotent
@@ -88,4 +90,4 @@ class KDRouter extends KDObject
 
     listeners = node[listenerKey]
     if listeners?.length
-      listener.call @, params for listener in listeners
+      listener.call @, params, state for listener in listeners

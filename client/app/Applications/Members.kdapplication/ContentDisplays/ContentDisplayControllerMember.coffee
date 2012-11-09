@@ -22,7 +22,9 @@ class ContentDisplayControllerMember extends KDViewController
     @listenTo
       KDEventTypes : "click"
       listenedToInstance : backLink
-      callback : ()=>
+      callback : (pubInst, event)=>
+        event.stopPropagation()
+        event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     # FIX THIS GG

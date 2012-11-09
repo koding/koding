@@ -7,6 +7,7 @@ module.exports = class CCodeSnipActivity extends CActivity
   @share()
 
   @set
+    slugifyFrom     : 'title'
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema

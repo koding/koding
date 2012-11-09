@@ -14,7 +14,7 @@ class KodingRouter extends KDRouter
     KD.getSingleton("contentDisplayController").hideAllContentDisplays()
     #appManager.openApplication null
 
-  go =(app, group)->
+  go =(app, group, rest...)->
     unless group?
       appManager.openApplication app
     else
@@ -34,6 +34,13 @@ class KodingRouter extends KDRouter
       '/:name?/Topics'     : ({name})->  go 'Topics'    , name
       '/:name?/Develop'    : ({name})->  go 'StartTab'  , name
       '/:name?/Apps'       : ({name})->  go 'Apps'      , name
+
+      '/:name?/Topics/:topicSlug': ({name, topicSlug}, state)->
+        appManager.tell 'Topics', 'setGroup', name  if name?
+        if state?
+          appManager.tell 'Topics', 'createContentDisplay', state
+        else
+          console.log 'no state object was provided.'
 
       '/recover/:recoveryToken': ({recoveryToken})->
         mainController.appReady ->
