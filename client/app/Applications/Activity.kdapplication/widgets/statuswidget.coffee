@@ -140,9 +140,8 @@ class ActivityStatusUpdateWidget extends KDFormView
 
   # will automatically add // to any non-protocol urls
   sanitizeUrls:(text)->
-    text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
-
       if test is no
 
         # here is a warning/popup that explains how and why
@@ -170,15 +169,14 @@ class ActivityStatusUpdateWidget extends KDFormView
       @requestEmbedLock = on
 
       setTimeout =>
-        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g)
         if firstUrl?
 
           if @initialRequest
-            # @embedBox.show()
-            # @embedBox.embedLoader.show()
             @initialRequest = no
 
           @embedBox.embedLinks.setLinks firstUrl
+          @embedBox.show()
 
           unless (@previousURL in firstUrl)
             @embedBox.embedUrl firstUrl?[0], {
