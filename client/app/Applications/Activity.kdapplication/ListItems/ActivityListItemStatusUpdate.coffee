@@ -26,14 +26,8 @@ class StatusActivityItemView extends ActivityItemChild
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      # linkIsShortened = no
-
-      # unless $(element).text() is href.replace(/^(((ht|f)tp(s)?\:)?\/\/)/,"").replace(/\/$/,"") or\
-      #        "http://"+$(element).text().replace("","") is href.replace(/\/$/,"")
       unless /^(#!)/.test href
         $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
-        # linkIsShortened = yes
-
       element
 
     # @$("a").hover (event)=>
@@ -71,7 +65,7 @@ class StatusActivityItemView extends ActivityItemChild
             maxHeight: 300
           }, =>
 
-            @embedBox.setLinkFavicon @getData().link.link_url
+            @embedBox.setActiveLink @getData().link.link_url
 
           , @getData().link.link_cache
 
@@ -79,21 +73,9 @@ class StatusActivityItemView extends ActivityItemChild
           @embedBox.embedLinks.hide()
 
         else
-          # no need to show stuff if it should not be shown.
           @embedBox.hide()
-          # # not even in the code
-          # @embedBox.destroy()
 
-      # This will involve heavy load on the embedly servers - every client
-      # will need to make a request.
       else
-        # urls = @$("span.data > a")
-        # for url in urls
-        #   if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-        #     firstUrl = $(url).attr "href"
-
-        # if firstUrl and @embedBox? then @embedBox.embedUrl firstUrl, {}
-        # else
         @embedBox.hide()
 
       @attachTooltipAndEmbedInteractivity()
@@ -115,7 +97,7 @@ class StatusActivityItemView extends ActivityItemChild
           @embedBox.hide()
       , link.link_cache
 
-      @embedBox.setLinkFavicon link.link_url
+      @embedBox.setActiveLink link.link_url
 
     else
       @embedBox = new KDView
