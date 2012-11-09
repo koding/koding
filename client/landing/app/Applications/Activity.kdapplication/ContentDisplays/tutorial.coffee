@@ -110,14 +110,14 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @deleteDiscussionLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        title     : "Delete your discussion"
+        title     : "Delete your tutorial"
         href      : '#'
       cssClass    : 'delete-link hidden'
 
     @editDiscussionLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        title     : "Edit your discussion"
+        title     : "Edit your tutorial"
         href      : '#'
       cssClass    : 'edit-link hidden'
 
@@ -135,13 +135,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             if @editDiscussionForm?
               @editDiscussionForm?.destroy()
               delete @editDiscussionForm
-              @$(".discussion-body .data").show()
+              @$(".tutorial-body .data").show()
               @utils.wait =>
                 @embedBox.show()
             else
               @editDiscussionForm = new TutorialFormView
-                title         : "edit-discussion"
-                cssClass      : "edit-discussion-form"
+                title         : "edit-tutorial"
+                cssClass      : "edit-tutorial-form"
                 delegate      : @
                 callback      : (data)=>
                   @getData().modify data, (err, discussion) =>
@@ -153,13 +153,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                     else
                       @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
-                      @$(".discussion-body .data").show()
+                      @$(".tutorial-body .data").show()
                       @utils.wait =>
                         @embedBox.show()
               , data
 
-              @addSubView @editDiscussionForm, "p.discussion-body", yes
-              @$(".discussion-body .data").hide()
+              @addSubView @editDiscussionForm, "p.tutorial-body", yes
+              @$(".tutorial-body .data").hide()
               @embedBox.hide()
 
         @listenTo
@@ -246,7 +246,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     modal = new KDModalView
       title          : "Delete Tutorial"
-      content        : "<div class='modalformline'>Are you sure you want to delete this discussion and all it's opinions and comments?</div>"
+      content        : "<div class='modalformline'>Are you sure you want to delete this tutorial and all it's opinions and comments?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -269,7 +269,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
   hightlightCode:=>
     @$("pre").addClass "prettyprint"
-    @$("p.discussion-body span.data pre").each (i,element)=>
+    @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
   render:->
@@ -284,7 +284,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @hightlightCode()
 
-    @$(".discussion-body .data").addClass "has-markdown"
+    @$(".tutorial-body .data").addClass "has-markdown"
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
@@ -296,16 +296,16 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     """
     {{> @header}}
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class='kdview content-display-main-section activity-item discussion'>
-      <div class='discussion-contents'>
-        <div class="discussion-content">
+    <div class='kdview content-display-main-section activity-item tutorial'>
+      <div class='tutorial-contents'>
+        <div class="tutorial-content">
           <span>
             {{> @avatar}}
             <span class="author">AUTHOR</span>
           </span>
-          <div class='discussion-main-opinion'>
+          <div class='tutorial-main-opinion'>
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
-            <footer class='discussion-footer clearfix'>
+            <footer class='tutorial-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
                 <time>{{$.timeago #(meta.createdAt)}}</time>
@@ -321,7 +321,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             {{> @comingUpNextAnchor}}
             {{> @listAnchorNext}}
             </div>
-            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
