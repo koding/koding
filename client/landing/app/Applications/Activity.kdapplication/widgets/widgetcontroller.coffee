@@ -96,7 +96,6 @@ class ActivityUpdateWidgetController extends KDViewController
             return notifySubmissionStopped()
           else
             @tutorialWidgetSubmit data, stopSubmission, ->
-              log arguments
 
             mainView.resetWidgets()
 
