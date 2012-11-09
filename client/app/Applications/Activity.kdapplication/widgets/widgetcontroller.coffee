@@ -275,8 +275,29 @@ class ActivityUpdateWidgetController extends KDViewController
     if data.activity
       {activity} = data
       delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
+      activity.modify data, (err, tutorial)=>
+        log data,activity
+        if data.appendToList?
+          KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+
+              unless existingList
+                KD.remote.api.JTutorialList.create
+                  title : "New List"
+                  body  : ""
+                , (err, list)=>
+                  if err then callback err
+                  else
+                    list.addItemById data.appendToList._id, (err)=>
+                      if err then log err
+                      list.addItemById tutorial._id, (err)=>
+                        if err then log err
+                        callback? err, tutorial, list
+              else
+                existingList.addItemById activity._id, (err,tutlist)=>
+                  if err then log err
+                  else callback? err, tutorial, tutlist
+
+        callback? err, tutorial
         unless err
           new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
         else

@@ -202,10 +202,10 @@ class ActivityTutorialWidget extends KDFormView
     @followupLink = new KDCustomHTMLView
       tagName : "a"
       attributes :
-        title : "Select related Tutorials"
+        title : "If your tutorial is a followup, then select the previous video here."
         href : "#"
       cssClass : "followup-link"
-      partial : "This Tutorial is a Followup"
+      partial : "Select a related Tutorial"
       click:=>
 
         modal = new KDModalView
@@ -262,9 +262,8 @@ class ActivityTutorialWidget extends KDFormView
          tutorialFeeder = controller.getView()
          modal.addSubView tutorialFeeder
          tutorialFeeder.on "setSelectedData", (selectedData)=>
-           log "Setting data"
            @selectedData = selectedData
-           log "Data set to",@selectedData
+           @followupLink.updatePartial "Linked with '"+selectedData.title+"'"
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -319,8 +318,6 @@ class ActivityTutorialWidget extends KDFormView
 
     if @selectedData?
       @addCustomData "appendToList", @selectedData
-
-
 
     super
 
