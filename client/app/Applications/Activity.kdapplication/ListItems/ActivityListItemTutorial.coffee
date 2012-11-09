@@ -151,8 +151,8 @@ class TutorialActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
-      <h3 class='hidden'></h3>
-      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
+      <p class="hidden comment-title"></p>
       <div class="preview_image">
       {{> @previewImageBox}}
       </div>
