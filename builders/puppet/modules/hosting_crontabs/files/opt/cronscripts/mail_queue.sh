@@ -1,5 +1,4 @@
 #!/bin/bash
-ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf.d/mailq.conf"
 ZABBIX_SENDER="/usr/bin/zabbix_sender"
 ZABBIX_HOST="mon.prod.system.aws.koding.com"
 ZABBIX_PORT="10051"
