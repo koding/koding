@@ -132,11 +132,26 @@ class ActivityStatusUpdateWidget extends KDFormView
         Disable URL auto-complete.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
       </p>
       """
+      click:(event)=>
+        if $(event.target).is("input")
+          @utils.wait =>
+            if $(event.target).prop "checked"
+              @appStorage.setValue 'UrlSanitizerCheckboxIsChecked', yes, =>
+            else
+              @appStorage.setValue 'UrlSanitizerCheckboxIsChecked', no, =>
 
 
     @inputLinkInfoBox.addSubView @inputLinkInfoBoxCloseButton
 
     @tagAutoComplete = @tagController.getView()
+
+    # checkbox autocheck
+    @appStorage = new AppStorage 'Activity', '1.0'
+    @updateCheckboxFromStorage()
+
+  updateCheckboxFromStorage:->
+    @appStorage.fetchValue 'UrlSanitizerCheckboxIsChecked',(checked)=>
+      @inputLinkInfoBox.$("input.stop-sanitizing").prop {checked}
 
   # will automatically add // to any non-protocol urls
   sanitizeUrls:(text)->
@@ -277,6 +292,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @initialRequest = yes
     @inputLinkInfoBoxPermaHide = off
     @inputLinkInfoBox.hide()
+    @updateCheckboxFromStorage()
 
     super
 
@@ -288,6 +304,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView.on "MainInputTabsReset", =>
       @reset()
       @switchToSmallView()
+
+
 
   pistachio:->
     """
