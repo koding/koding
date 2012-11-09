@@ -10,7 +10,7 @@ class AboutView extends JView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : =>
-        log 'history:back'; history.back(); no#@getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
   viewAppended:->
 

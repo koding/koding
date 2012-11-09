@@ -16,7 +16,8 @@ createTmpDir = require './createtmpdir'
 
 console.log "new sharedhosting api."
 
-escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
+escapePath = (name)-> nodePath.normalize name
+  # return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
 
 makedirp = (path, user, cb)->
   exec "mkdir -p #{path} && chown #{user}: #{path}", cb
@@ -388,6 +389,7 @@ module.exports = new Kite 'sharedHosting'
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
+    cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown #{uid}:#{uid} /Users/#{username}/.bashrc"
     log.debug "executing CreateVhost:",cmd
 
     exec cmd,(err,stdout,stderr)->

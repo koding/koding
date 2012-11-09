@@ -6,6 +6,7 @@ class KDInputViewWithPreview extends KDInputView
     options.preview.autoUpdate    ?= yes
     options.preview.language      or= "markdown"
     options.preview.showInitially ?= yes
+    options.preview.mirrorScroll  ?= yes
 
     options.keyup ?= (event)=>
       if @options.preview.autoUpdate
@@ -52,6 +53,19 @@ class KDInputViewWithPreview extends KDInputView
 
     @addSubView @previewOnOffContainer
 
+  getEditScrollPercentage:->
+      scrollPosition = @$().scrollTop()
+      scrollHeight = @$().height()
+      scrollMaxheight = @getDomElement()[0].scrollHeight
+
+      scrollPosition / (scrollMaxheight - scrollHeight) * 100
+
+  setPreviewScrollPercentage:(percentage)->
+    s = @$("div.preview_content")
+    s.animate
+     scrollTop : ((s[0].scrollHeight - s.height())*percentage/100)
+    , 50, "linear"
+
   setDomElement:(CssClass="")->
     super CssClass
 
@@ -79,6 +93,8 @@ class KDInputViewWithPreview extends KDInputView
 
     @$("div.preview_content").addClass("has-"+@options.preview.language)
 
+    if @options.preview.mirrorScroll then @$().scroll (event)=>
+      @setPreviewScrollPercentage @getEditScrollPercentage()
 
   generatePreview:=>
     if @showPreview

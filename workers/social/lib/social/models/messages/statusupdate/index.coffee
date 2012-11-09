@@ -18,6 +18,7 @@ module.exports = class JStatusUpdate extends JPost
   }
 
   @set
+    slugifyFrom       : 'body'
     sharedMethods     :
       static          : ['create','one','fetchDataFromEmbedly']
       instance        : [

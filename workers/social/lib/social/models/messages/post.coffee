@@ -17,6 +17,7 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/flaggable'
   @trait __dirname, '../../traits/likeable'
   @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/slugifiable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -26,6 +27,7 @@ module.exports = class JPost extends jraphical.Message
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
+    slug          : String
     counts        :
       followers   :
         type      : Number
@@ -37,6 +39,9 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    slugifyFrom : 'title'
+    indexes     :
+      slug      : 'unique' 
     permissions: [
       'read posts'
       'create posts'
@@ -81,6 +86,23 @@ module.exports = class JPost extends jraphical.Message
 
   @getFlagRole =-> ['sender', 'recipient']
 
+  # @slugifyAllPosts = secure (client, callback)->
+  #   queue = @encapsulatedSubclasses.map (subclass)->->
+  #     subclass.someData {slug:$exists:no}, fields, (err, cursor)->
+  #       if err then queue.fin err
+  #       else
+  #         smallQueue = []
+  #         cursor.each (err, doc)->
+  #           if err then queue.fin err
+  #           else
+  #             subclass::createSlug.call doc, (err, slug)->
+  #               if err then queue.fin err
+  #               else
+  #                 subclass.update {_id:doc._id}, $set:{slug}, (err)->
+  #                   if err then queue.fin err
+  #                   else queue.fin()
+
+
   createKodingError =(err)->
     if 'string' is typeof err
       kodingErr = message: err
@@ -109,6 +131,13 @@ module.exports = class JPost extends jraphical.Message
       activity.originType = delegate.constructor.name
       teaser = null
       daisy queue = [
+        ->
+          status.createSlug (err, slug)->
+            if err
+              callback err
+            else
+              status.slug = slug
+              queue.next()
         ->
           status
             .sign(delegate)

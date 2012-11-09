@@ -20,10 +20,12 @@ class ContentDisplayController extends KDController
     @slideWrapperIn wrapper
 
   hideContentDisplay:(view)->
-    @slideWrapperOut view
+    history.back()
+    #console.log 'content display wants to be hidden', view
+    #@slideWrapperOut view
 
   hideAllContentDisplays:->
-    displayIds = (id for id,display of @displays)
+    displayIds = (id for own id,display of @displays)
     return if displayIds.length is 0
 
     lastId = displayIds.pop()

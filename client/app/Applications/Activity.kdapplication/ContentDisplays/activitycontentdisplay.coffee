@@ -13,8 +13,10 @@ class ActivityContentDisplay extends KDScrollView
     @back   = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
-      click   : =>
-        log 'history:back'; history.back(); no#@getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+      click   : (event)=>
+        event?.stopPropagation()
+        event?.preventDefault()
+        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
 
 

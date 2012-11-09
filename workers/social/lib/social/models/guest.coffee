@@ -29,6 +29,7 @@ module.exports = class JGuest extends jraphical.Module
         default     : 'pristine'
       clientId      : String
       leaseId       : String
+      leasedAt      : Date
       profile       :
         nickname    :
           type      : String
@@ -69,7 +70,11 @@ module.exports = class JGuest extends jraphical.Module
       callback error 'Logged in user cannot obtain a guest account!'
     else
       leaseId = createId()
-      @update {status: 'pristine'}, $set:{status: 'leasing', leaseId}, (err)=>
+      @update {status: 'pristine'}, $set:{
+        status    : 'leasing'
+        leasedAt  : new Date
+        leaseId
+      }, (err)=>
         if err then callback error err
         else
           @one {leaseId}, (err, guest)=>
