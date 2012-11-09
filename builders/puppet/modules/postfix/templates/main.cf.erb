@@ -5,4 +5,5 @@ alias_database = hash:/etc/aliases
 mydestination = $myhostname, localhost.$mydomain, localhost
 mynetworks = 127.0.0.0/8
 inet_interfaces = localhost
+smtpd_recipient_restrictions = check_sender_access hash:/etc/postfix/sender_access
 relayhost = [relay1.beta.system.aws.koding.com]
