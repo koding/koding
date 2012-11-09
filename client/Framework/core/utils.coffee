@@ -103,21 +103,11 @@ __utils =
       gfm: true
       pedantic: false
       sanitize: true
-      highlight:(text)->
-        # log "highlight callback called"
-        # if hljs?
-        #   requirejs (['js/highlightjs/highlight.js']), ->
-        #     requirejs (["highlightjs/languages/javascript"]), ->
-        #       try
-        #         hljs.compileModes()
-        #         _text = hljs.highlightAuto text
-        #         log "hl",_text,text
-        #         return _text.value
-        #       catch err
-        #         log "Error applying highlightjs syntax", err
-        # else
-        #   log "hljs not found"
-          return text
+      highlight:(text,lang)->
+        if hljs.LANGUAGES[lang]?
+          hljs.highlight(lang,text).value
+        else
+          text
 
     text = Encoder.htmlDecode text
 
