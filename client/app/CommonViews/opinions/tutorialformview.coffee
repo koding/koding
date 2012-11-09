@@ -11,13 +11,13 @@ class TutorialFormView extends KDFormView
     @submitDiscussionBtn = new KDButtonView
       title           : "Save your changes"
       type            : "submit"
-      cssClass        : "clean-gray discussion-submit-button"
+      cssClass        : "clean-gray tutorial-submit-button"
       loader          :
         diameter      : 12
 
     @cancelDiscussionBtn = new KDButtonView
       title : "Cancel"
-      cssClass:"modal-cancel discussion-cancel"
+      cssClass:"modal-cancel tutorial-cancel"
       type : "button"
       style: "modal-cancel"
       callback :=>
@@ -25,14 +25,14 @@ class TutorialFormView extends KDFormView
 
     @discussionBody = new KDInputViewWithPreview
       preview         : @preview
-      cssClass        : "discussion-body"
+      cssClass        : "tutorial-body"
       name            : "body"
       title           : "your Discussion Topic"
       type            : "textarea"
       placeholder     : "What do you want to contribute to the discussion?"
 
     @discussionEmbedLink = new KDInputView
-      cssClass        : "discussion-title"
+      cssClass        : "tutorial-title"
       name            : "embed"
       title           : "your Video"
       type            : "text"
@@ -57,7 +57,7 @@ class TutorialFormView extends KDFormView
                 @getDelegate().embedBox.show()
 
     @discussionTitle = new KDInputView
-      cssClass        : "discussion-title"
+      cssClass        : "tutorial-title"
       name            : "title"
       title           : "your Opinion"
       type            : "text"
@@ -250,7 +250,7 @@ class TutorialFormView extends KDFormView
         url
 
   viewAppended:()->
-    @setClass "update-options discussion"
+    @setClass "update-options tutorial"
     @setTemplate @pistachio()
     @template.update()
 
@@ -270,14 +270,14 @@ class TutorialFormView extends KDFormView
 
   pistachio:->
       """
-      <div class="discussion-box">
-        <div class="discussion-form">
+      <div class="tutorial-box">
+        <div class="tutorial-form">
           {{> @discussionTitle}}
           {{> @discussionEmbedLink}}
           {{> @discussionBody}}
         </div>
-        <div class="discussion-buttons">
-          <div class="discussion-submit">
+        <div class="tutorial-buttons">
+          <div class="tutorial-submit">
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             {{> @submitDiscussionBtn}}
