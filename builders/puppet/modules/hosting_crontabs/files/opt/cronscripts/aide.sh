@@ -6,4 +6,4 @@ ZABBIX_KEY="aide.result"
 
 /usr/sbin/aide --check >> /var/log/aide.log 
 
-${ZABBIX_SENDER} -z ${ZABBIX_HOST} -p ${ZABBIX_PORT} -s ${HOSTNAME} -k ${ZABBIX_KEY} -o $?
+${ZABBIX_SENDER} -z ${ZABBIX_HOST} -p ${ZABBIX_PORT} -s ${HOSTNAME} -k ${ZABBIX_KEY} -o $? >/dev/null
