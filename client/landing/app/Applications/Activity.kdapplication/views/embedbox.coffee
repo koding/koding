@@ -379,7 +379,7 @@ class EmbedBox extends KDView
           else
             html = "Embedding #{data.type or "unknown"} content like this is not supported."
 
-          @setLinkFavicon url
+          @setActiveLink url
 
         # embedly supports many error types. we could display those to the user
         when "error"
@@ -399,7 +399,7 @@ class EmbedBox extends KDView
       log "EmbedBox encountered an Error!",data?.error_type,data?.error_message
       @hide()
 
-  setLinkFavicon:(url)->
+  setActiveLink:(url)->
     for item,i in @getEmbedCache()
       for link,j in @embedLinks.linkList.items
         if link.getData().url is url
