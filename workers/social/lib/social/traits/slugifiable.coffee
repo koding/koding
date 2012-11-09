@@ -1,6 +1,6 @@
-module.exports = class Sluggifiable
+module.exports = class Slugifiable
 
-  generateSlug =(str)->
+  slugify =(str)->
     slug = str
       .toLowerCase()                # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
@@ -10,8 +10,6 @@ module.exports = class Sluggifiable
       .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
 
   generateUniqueSlug =(constructor, slug, i, callback)->
-    [callback, i] = [i, callback] unless callback
-    i ?= 0
     candidate = "#{slug}#{i or ''}"
     constructor.count slug: candidate, (err, count)->
       if err then callback err
@@ -23,5 +21,5 @@ module.exports = class Sluggifiable
   createSlug:(callback)->
     {constructor} = this
     {slugifyFrom} = constructor
-    slug = generateSlug @[slugifyFrom]
-    generateUniqueSlug constructor, slug, callback
+    slug = slugify @[slugifyFrom]
+    generateUniqueSlug constructor, slug, 0, callback
