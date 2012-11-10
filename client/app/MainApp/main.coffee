@@ -82,6 +82,9 @@ do ->
 
   KD.remote.connect()
 
+  # Its required for apps
+  KD.exportKDFramework()
+
   # updateModalActive = no
   # KD.models.api.JAccount.fetchVersion (err, version)->
   #   return if KD.version is version or updateModalActive

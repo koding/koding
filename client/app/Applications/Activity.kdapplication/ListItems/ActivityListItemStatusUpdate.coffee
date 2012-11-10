@@ -20,8 +20,8 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox = new KDView
 
   attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body a").each (i,element)=>
-      href = $(element).attr("data-original-url") or ""
+    @$("p.status-body > span.data > a").each (i,element)=>
+      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
@@ -30,7 +30,8 @@ class StatusActivityItemView extends ActivityItemChild
 
       # unless $(element).text() is href.replace(/^(((ht|f)tp(s)?\:)?\/\/)/,"").replace(/\/$/,"") or\
       #        "http://"+$(element).text().replace("","") is href.replace(/\/$/,"")
-      $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
+      unless /^(#!)/.test href
+        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
         # linkIsShortened = yes
 
       element

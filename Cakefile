@@ -102,7 +102,7 @@ normalizeConfigPath =(path)->
   path ?= './config/dev'
   nodePath.join __dirname, path
 
-buildClient =(configFile, callback=->)->
+buildClient =(options, callback=->)->
   # try
   #   config = require configFile
   # catch e
@@ -115,7 +115,7 @@ buildClient =(configFile, callback=->)->
   #       builder.buildIndex "", ->
   #         callback null
 
-  configFile = expandConfigFile configFile
+  configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   console.log config
   builder = new Builder config.client,clientFileMiddleware,""
@@ -124,9 +124,9 @@ buildClient =(configFile, callback=->)->
   builder.watcher.initialize()
 
   builder.watcher.on "initDidComplete",(changes)->
-    builder.buildClient "",()->
-      builder.buildCss "",()->
-        builder.buildIndex "",()->
+    builder.buildClient options,()->
+      builder.buildCss {},()->
+        builder.buildIndex {},()->
           if config.client.watch is yes
             log.info "started watching for changes.."
             builder.watcher.start 1000
@@ -153,8 +153,7 @@ buildClient =(configFile, callback=->)->
     spawn.apply null, ["say",["coffee script error"]]
 
 task 'buildClient', (options)->
-  configFile = normalizeConfigPath expandConfigFile options.configFile
-  buildClient configFile
+  buildClient options
 
 task 'configureRabbitMq',->
   exec 'which rabbitmq-server',(a,stdout,c)->
@@ -381,7 +380,7 @@ task 'run', (options)->
       queue.next()
 
   if options.buildClient ? config.buildClient
-    queue.push -> buildClient options.configFile, -> queue.next()
+    queue.push -> buildClient options, -> queue.next()
   if options.configureBroker ? config.configureBroker
     queue.push -> configureBroker options, -> queue.next()
   queue.push -> run options

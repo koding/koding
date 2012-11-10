@@ -88,6 +88,12 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
+  proxifyUrl:(url="")->
+    if url is ""
+      "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    else
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+
   applyMarkdown: (text)->
     # problems with markdown so far:
     # - links are broken due to textexpansions (images too i guess)
@@ -160,9 +166,6 @@ __utils =
             $(element).html replacedText
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
-
-
-
 
   expandTags: (text) ->
     return null unless text

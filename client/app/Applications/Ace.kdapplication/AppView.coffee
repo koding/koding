@@ -62,7 +62,7 @@ class AceView extends JView
         color   : "#444444"
         diameter: 12
       callback  : =>
-        manifest = KodingAppsController.getManifestFromPath @getData().parentPath
+        manifest = KodingAppsController.getManifestFromPath @getData().path
         @ace.notify "Compiling...", null, yes
         @getSingleton('kodingAppsController').compileApp manifest.name, =>
           @ace.notify "App compiled!", "success"
