@@ -38,6 +38,7 @@ koding = new Bongo {
   root: __dirname
   models: [
     '../workers/social/lib/social/models/session.coffee'
+    '../workers/social/lib/social/models/account.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
   mq: new Broker mqOptions
@@ -71,7 +72,7 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        res.send privName 
+        res.send privName
       else unless session?
         authenticationFailed(res)
       else if type is 'kite'
@@ -82,7 +83,7 @@ app.get '/auth', (req, res)->
         )
         privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
-        
+
         bindKiteQueue = (binding, callback) ->
           kiteBroker.bindQueue(
             privName, privName, binding,
@@ -114,6 +115,7 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
+
 app.get "/status/:data",(req,res)->
   # req.params.data
 
@@ -123,6 +125,16 @@ app.get "/status/:data",(req,res)->
   koding.mq.emit 'public-status','exit',req.params.data
   res.send "alright."
 
+app.get "/api/user/:username/flags/:flag", (req, res)->
+  {username, flag} = req.params
+  {JAccount}       = koding.models
+
+  JAccount.one "profile.nickname" : username, (err, account)->
+    if err or not account
+      state = false
+    else
+      state = account.checkFlag('super-admin') or account.checkFlag(flag)
+    res.end "#{state}"
 
 app.get '*', (req,res)->
   res.header 'Location', '/#!'+req.url
