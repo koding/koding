@@ -128,8 +128,3 @@ module.exports =(options, callback)->
       else
         execute {command,username},callback
         # log.debug "exec directly",command
-
-
-
-
-

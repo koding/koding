@@ -3,7 +3,11 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
+<<<<<<< HEAD
 version = "0.9.4a" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+=======
+version = "0.9.4d" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+>>>>>>> 5884de57b57d63dceb8b0189cc382e6cbfe2bd7a
 
 # PROD
 mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
