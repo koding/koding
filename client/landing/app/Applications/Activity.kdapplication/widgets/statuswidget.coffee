@@ -83,7 +83,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
       tooltip  :
-        title  : "This a public wall, here you can share anything with the Koding community."
+        title  : "This is a public wall, here you can share anything with the Koding community."
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
