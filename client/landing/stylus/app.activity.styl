@@ -1926,15 +1926,18 @@ div.protocol-info-box
 
 div.preview_image
   position relative
-  rounded 4px
-  border 1px solid black
-  background-color #f7f7f7
-  border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-  padding 15px 15px 12px 15px
-
-  img.tutorial-preview-image
-    max-height 200px
-    cursor pointer
+  div.tutorial-preview-image-box
+    borderBox()
+    rounded 4px
+    border 1px solid black
+    background-color #f7f7f7
+    border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+    padding 15px 15px 12px 15px
+    width 100%
+    img.tutorial-preview-image
+      max-height 200px
+      cursor pointer
+      width auto
 
 
 
@@ -1984,3 +1987,12 @@ a.followup-link
   color #ff9200
   font-weight 600
   float left
+
+div.discussion-body-container
+  max-height 200px
+  overflow-y scroll
+  rounded 4px
+  border 1px solid black
+  background-color #f7f7f7
+  border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+  padding 15px 15px 12px 15px

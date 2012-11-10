@@ -267,14 +267,14 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  hightlightCode:=>
+  highlightCode:=>
     @$("pre").addClass "prettyprint"
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
   render:->
     super()
-    @hightlightCode()
+    @highlightCode()
 
   viewAppended:()->
     super()
@@ -282,7 +282,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    @hightlightCode()
+    @highlightCode()
 
     @$(".tutorial-body .data").addClass "has-markdown"
 
