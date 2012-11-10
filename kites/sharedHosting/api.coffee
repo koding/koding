@@ -26,10 +26,10 @@ class AuthorizationError extends Error
     @message = message or "You are not authorized to do this."
     @name = 'AuthorizationError'
 
-normalizeUserPath = (username, path)-> path.replace(/\~/g, '/Users/#{username}')
-safeForUser       = (username, path)-> path.indexOf("/Users/#{username}/") is 0
-escapePath        = (path)-> nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
-                                                    .replace(/\s/g, '\\ ')
+normalizeUserPath = (username, path)-> path?.replace(/\~/g, '/Users/#{username}')
+safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
+escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
+                                                                 .replace(/\s/g, '\\ ')
 
 makedirp = (path, user, cb)->
   exec "mkdir -p #{path} && chown #{user}: #{path}", cb
@@ -227,7 +227,7 @@ module.exports = new Kite 'sharedHosting'
 
     {username, profile, version, appName, userAppPath} = options
 
-    if not username in dummyAdmins
+    if username not in dummyAdmins
       callback? new AuthorizationError username
       return no
 
@@ -324,7 +324,7 @@ module.exports = new Kite 'sharedHosting'
 
     {username, authorNick, version, appName} = options
 
-    if not username in dummyAdmins
+    if username not in dummyAdmins
       callback? new AuthorizationError username
       return no
 
