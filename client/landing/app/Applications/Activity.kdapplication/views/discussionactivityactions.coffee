@@ -48,7 +48,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}} ·
+    {{> @opinionCountLink}} {{> @opinionCount}}
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
@@ -95,7 +95,7 @@ class OpinionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @commentLink}}{{> @commentCount}} ·
+    {{> @commentLink}}{{> @commentCount}}
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
