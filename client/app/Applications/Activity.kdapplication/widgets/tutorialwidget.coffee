@@ -29,17 +29,22 @@ class ActivityTutorialWidget extends KDFormView
         messages    :
           required  : "Tutorial title is required!"
 
+    @inputTutorialEmbedShowLink = new KDOnOffSwitch
+      cssClass:"show-tutorial-embed"
+      defaultState:off
+      callback:(state)=>
+        if state
+          if @embedBox.hasValidContent
+            @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
+            @embedBox.$().animate {top: "0px"}, 300
+        else
+          @embedBox.$().animate {top : "-400px"}, 300, =>
+            @embedBox.hide()
+
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
       label         : @labelEmbedLink
       placeholder   : "Please enter a URL to a video..."
-
-      focus:=>
-        if @embedBox.hasValidContent
-          @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
-          @embedBox.$().animate {top: "0px"}, 300
-
-      blur:=>
 
       paste :=>
           @utils.wait =>
@@ -54,7 +59,7 @@ class ActivityTutorialWidget extends KDFormView
                 maxWidth: 540
                 maxHeight: 200
               }, =>
-                @embedBox.show()
+                @embedBox.hide()
 
     embedOptions = $.extend {}, options,
       delegate  : @
@@ -290,12 +295,12 @@ class ActivityTutorialWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   click:(event)->
-    if $(event.target).parents("div.link-embed-box").length > 0
-      #log "EMBED"
-    else
-      #log "not EMBED"
-      @embedBox.$().animate {top : "-400px"}, 300, =>
-        @embedBox.hide()
+    # if $(event.target).parents("div.link-embed-box").length > 0
+    #   #log "EMBED"
+    # else
+    #   #log "not EMBED"
+    #   @embedBox.$().animate {top : "-400px"}, 300, =>
+    #     @embedBox.hide()
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
@@ -372,6 +377,7 @@ class ActivityTutorialWidget extends KDFormView
           {{> @labelEmbedLink}}
           <div>
             {{> @inputTutorialEmbedLink}}
+            {{> @inputTutorialEmbedShowLink}}
             {{> @embedBox}}
           </div>
         </div>
