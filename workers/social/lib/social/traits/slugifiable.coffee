@@ -1,6 +1,6 @@
 module.exports = class Slugifiable
 
-  {dash} = require 'bongo'
+  {dash, daisy} = require 'bongo'
 
   slugify =(str)->
     slug = str
@@ -10,6 +10,7 @@ module.exports = class Slugifiable
       .replace(/[^a-z0-9-]+/g, "")  # remove all non-alphanumeric characters except the hyphen
       .replace(/[-]+/g, "-")        # replace multiple instances of the hyphen with a single instance
       .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
+      .substr 0, 256                # limit these to 256-chars (pre-suffix), for sanity
 
   generateUniqueSlug =(constructor, slug, i, callback)->
     candidate = "#{slug}#{i or ''}"
@@ -23,27 +24,27 @@ module.exports = class Slugifiable
   @updateAllSlugs = (options, callback)->
     [callback, options] = [options, callback] unless callback
     options ?= {}
-    selector = if options.force then {} else {slug: $exists: no}
+    selector = if options.force then {} else {slug_: $exists: no}
     subclasses = @encapsulatedSubclasses ? [@]
     contentTypeQueue = subclasses.map (subclass)->->
       subclass.cursor selector, options, (err, cursor)->
-        if err then contentTypeQueue.fin err
+        if err then contentTypeQueue.next err
         else
           postQueue = []
           cursor.each (err, post)->
-            if err then postQueue.fin err
+            if err then postQueue.next err
             else if post?
               postQueue.push -> post.updateSlug (err, slug)->
                 callback null, slug
-                postQueue.fin()
+                postQueue.next()
             else
-              dash postQueue, -> contentTypeQueue.fin()
+              daisy postQueue, -> contentTypeQueue.fin()
     dash contentTypeQueue, callback
 
   updateSlug:(callback)->
     @createSlug (err, slug)=>
       if err then callback err
-      else @update $set:{slug}, (err)->
+      else @update $set:{slug, slug_:slug}, (err)->
         callback err, unless err then slug
 
   createSlug:(callback)-> 
