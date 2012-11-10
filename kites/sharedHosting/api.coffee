@@ -6,27 +6,68 @@ log       = log4js.getLogger("[#{config.name}]")
 nodePath  = require 'path'
 {exec}    = require 'child_process'
 fs        = require 'fs'
+fse       = require 'fs.extra'
 hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
+coffee    = require 'coffee-script'
 
 createTmpDir = require './createtmpdir'
 
-console.log "new sharedhosting api."
+dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvid"]
 
-escapePath = (name)-> return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\s/g, '\\ ')
+class AuthorizationError extends Error
+  constructor:(username, message)->
+    console.error "[AuthorizationError] User '#{username}' made something bad."
+    return new AuthorizationError(message) unless @ instanceof AuthorizationError
+    Error.call @
+    @message = message or "You are not authorized to do this."
+    @name = 'AuthorizationError'
+
+normalizeUserPath = (username, path)-> path?.replace(/\~/g, '/Users/#{username}')
+safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
+escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
+                                                                 .replace(/\s/g, '\\ ')
 
 makedirp = (path, user, cb)->
   exec "mkdir -p #{path} && chown #{user}: #{path}", cb
 
 createAppsDir = (user, cb)->
   path = escapePath "/Users/#{user}/Applications"
-  makedirp path, user, cb
+  if not safeForUser user, path
+    cb new AuthorizationError user
+  else
+    makedirp path, user, cb
+
+chownr = (options, callback)->
+  {path, username, uid, gid} = options
+
+  letsWalk = (uid, gid)->
+    fs.chown path, uid, gid, (err)->
+      walker = fse.walk path
+      for type in ["file", "directory"]
+        walker.on type, (root, stat, next)->
+          filePath = nodePath.join root, stat.name
+          fs.chown filePath, uid, gid, (err)->
+            next() if not err
+      walker.on "end", callback
+
+  if not uid or not gid
+    getIds username, (err, {uid, gid})->
+      if not err then letsWalk uid, gid
+      else callback err
+  else
+    letsWalk uid, gid
+
+getIds = (username, callback)->
+  exec "/usr/bin/id #{username}", (err, stdout, stderr)->
+    callback err if err
+    [tmp, uid, gid] = stdout.match /^[^\d]+(\d+)[^\d]+(\d+)/
+    callback null, {uid:+uid, gid:+gid}
 
 module.exports = new Kite 'sharedHosting'
-
 
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -68,13 +109,11 @@ module.exports = new Kite 'sharedHosting'
         if err
           callback err
         else
-          @executeCommand {username,command:"cp #{tmpPath} #{path}"}, (err,res)->
+          @executeCommand {username, command:"cp #{tmpPath} #{path}"}, (err,res)->
             unless err
               callback? null,path
             else
               callback? "[ERROR] can't upload file : #{err}"
-
-
 
   checkUid:(options,callback)->
     #
@@ -135,7 +174,7 @@ module.exports = new Kite 'sharedHosting'
     #   username: String #username of the unix user
     #   uid : Number # user's UID
 
-    {username,uid} = options
+    {username, uid} = options
     home = nodePath.join(config.usersPath,username)
     fs.mkdir home, 0o0755,(error)=>
       if error?
@@ -158,21 +197,41 @@ module.exports = new Kite 'sharedHosting'
   copyAppSkeleton:(options, callback)->
     {username, appPath, type} = options
 
-    appPath = escapePath "#{appPath}/"
+    appPath = normalizeUserPath(username, escapePath "#{appPath}/")
     type = "blank" if not type in ["blank", "sample"]
 
-    exec "cp -r /opt/Apps/.defaults/#{type}/* #{appPath}", (err, stdout, stderr)->
-      if not err
-        exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
-          console.error err if err
+    if safeForUser username, appPath
+      getIds options.username, (err, {uid, gid})->
+        if err
+          console.error err
           callback err
-      else
-        console.error err if err
-        callback err
+        else
+          fse.copy "/opt/Apps/.defaults/#{type}/README", "#{appPath}/README", (err)->
+            fse.copy "/opt/Apps/.defaults/#{type}/index.coffee", "#{appPath}/index.coffee", (err)->
+              fse.copyRecursive "/opt/Apps/.defaults/#{type}/resources", "#{appPath}/resources", (err)->
+                if err
+                  console.error err
+                  callback err
+                else
+                  chownr
+                    path : "#{appPath}/"
+                    uid  : uid
+                    gid  : gid
+                  , (err)->
+                    console.error err if err
+                    callback err
+    else
+      callback new AuthorizationError username
 
   publishApp:(options, callback)->
 
     {username, profile, version, appName, userAppPath} = options
+
+    if username not in dummyAdmins
+      callback? new AuthorizationError username
+      return no
+
+    # Put a check from api if user has the privilege
 
     appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
@@ -218,14 +277,10 @@ module.exports = new Kite 'sharedHosting'
     userAppPath = escapePath appPath
     backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
 
-    console.log kpmAppPath
-    console.log userAppPath
-    console.log backupPath
+    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
+      callback? new AuthorizationError username
+      return false
 
-    # mkdirp backupPath, (err)->
-    #   if err then cb err
-    #   else
-    #     cb null
     exec "test -d #{kpmAppPath}", (err, stdout, stderr)->
       if err or stderr.length
         cb "[ERROR] App files not found! Download cancelled."
@@ -247,6 +302,10 @@ module.exports = new Kite 'sharedHosting'
     kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
     appPath    = escapePath appPath
 
+    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, appPath
+      callback? new AuthorizationError username
+      return false
+
     createAppsDir username, (err)->
       makedirp appPath, username, (err)->
         if err then cb err
@@ -264,6 +323,10 @@ module.exports = new Kite 'sharedHosting'
   approveApp: (options, callback)->
 
     {username, authorNick, version, appName} = options
+
+    if username not in dummyAdmins
+      callback? new AuthorizationError username
+      return no
 
     appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
     latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
@@ -388,6 +451,7 @@ module.exports = new Kite 'sharedHosting'
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
     cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
+    cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown #{uid}:#{uid} /Users/#{username}/.bashrc"
     log.debug "executing CreateVhost:",cmd
 
     exec cmd,(err,stdout,stderr)->
@@ -503,4 +567,3 @@ module.exports = new Kite 'sharedHosting'
                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{username}"
                   res = "[OK] user #{username} was successfully unsuspended"
                   log.info res; callback? null, res
-

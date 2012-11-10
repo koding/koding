@@ -31,6 +31,7 @@ if (!$route || !$router->handle_route($route)) {
 
 function respondWith($res){
     global $query;
+    header('Content-type: text/javascript');
     echo  $query['callback']."(" . json_encode($res) . ")";
 }
 
@@ -44,7 +45,6 @@ function getFeed($collection,$limit,$sort,$skip){
     ) : array(
       '$ne' => -1,
     );
-    trace('isPublic', $isPublic, $query);
 
     $limit = $limit == "" ? 20    : $limit;
     $skip  = $skip  == "" ? 0     : $skip;
@@ -56,7 +56,6 @@ function getFeed($collection,$limit,$sort,$skip){
       "originId"  => $originId,
       "isPublic"  => $isPublic,
     );
-    trace($activityQuery);
 
     if (!isset($query['t'])) {
       $activityQuery['isLowQuality'] = array( '$ne' => true );

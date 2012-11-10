@@ -139,33 +139,33 @@ module.exports = class JDiscussion extends JPost
                         if err
                           callback err
                         else
-                              callback null, comment
-                              @fetchActivityId (err, id)->
+                          callback null, comment
+                          @fetchActivityId (err, id)->
 
-                                CActivity = require '../../activity'
+                            CActivity = require '../../activity'
 
-                                CActivity.update {_id: id}, {
-                                  $set:
-                                    'sorts.repliesCount'  : count
-                                }, log
-                              @fetchOrigin (err, origin)=>
-                                if err
-                                  log "Couldn't fetch the origin"
-                                else
-                                  unless exempt
-                                    @emit 'ReplyIsAdded', {
-                                      origin
-                                      subject       : ObjectRef(@).data
-                                      actorType     : 'replier'
-                                      actionType    : 'opinion'
-                                      replier       : ObjectRef(delegate).data
-                                      opinion       : ObjectRef(comment).data
-                                      repliesCount  : count
-                                      relationship  : docs[0]
-                                      # opinionData   : JSON.stringify comment
-                                    }
-                                  @follow client, emitActivity: no, (err)->
-                                  @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                            CActivity.update {_id: id}, {
+                              $set:
+                                'sorts.repliesCount'  : count
+                            }, log
+                          @fetchOrigin (err, origin)=>
+                            if err
+                              log "Couldn't fetch the origin"
+                            else
+                              unless exempt
+                                @emit 'ReplyIsAdded', {
+                                  origin
+                                  subject       : ObjectRef(@).data
+                                  actorType     : 'replier'
+                                  actionType    : 'opinion'
+                                  replier       : ObjectRef(delegate).data
+                                  opinion       : ObjectRef(comment).data
+                                  repliesCount  : count
+                                  relationship  : docs[0]
+                                  # opinionData   : JSON.stringify comment
+                                }
+                              @follow client, emitActivity: no, (err)->
+                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   updateTeaser:(callback)->
     activity = null
@@ -213,7 +213,7 @@ module.exports = class JDiscussion extends JPost
         sort          :
           timestamp   : 1
       .nodes()
-      .edges
+      .edgesOfEach
         query         :
           sourceName  : 'JOpinion'
           targetName  : 'JComment'
@@ -222,12 +222,49 @@ module.exports = class JDiscussion extends JPost
             $exists   : no
           'data.flags.isLowQuality':
             $ne       : yes
-        # limit         : 3
+        limit         : 3
         sort          :
           timestamp   : 1
       .nodes()
     .endGraphlet()
     .fetchRoot callback
+
+  # fetchTeaser:(callback)->
+  #   @beginGraphlet()
+  #     .edges
+  #       query         :
+  #         sourceName  : 'JDiscussion'
+  #         targetName  : 'JTag'
+  #         as          : 'tag'
+  #       limit         : 5
+  #     .and()
+  #     .edges
+  #       query         :
+  #         targetName  : 'JOpinion'
+  #         as          : 'opinion'
+  #         'data.deletedAt':
+  #           $exists   : no
+  #         'data.flags.isLowQuality':
+  #           $ne       : yes
+  #       limit         : 5
+  #       sort          :
+  #         timestamp   : 1
+  #     .nodes()
+  #     .edgesOfEach
+  #       query         :
+  #         sourceName  : 'JOpinion'
+  #         targetName  : 'JComment'
+  #         as          : 'reply'
+  #         'data.deletedAt':
+  #           $exists   : no
+  #         'data.flags.isLowQuality':
+  #           $ne       : yes
+  #       limit         : 3
+  #       sort          :
+  #         timestamp   : 1
+  #     .nodes()
+  #   .endGraphlet()
+  #   .fetchRoot callback
 
   fetchRelativeComments:({limit, before, after}, callback)->
     limit ?= 10
