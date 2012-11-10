@@ -288,7 +288,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
-        @embedBox.show()
+        @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
       ,@getData().link.link_cache
 
 

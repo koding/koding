@@ -34,10 +34,12 @@ class ActivityTutorialWidget extends KDFormView
       label         : @labelEmbedLink
       placeholder   : "Please enter a URL to a video..."
 
-      focus:=> @embedBox.show() if @embedBox.hasValidContent
+      focus:=>
+        if @embedBox.hasValidContent
+          @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
+          @embedBox.$().animate {top: "0px"}, 300
 
-      blur:=> @embedBox.hide()
-
+      blur:=>
 
       paste :=>
           @utils.wait =>
@@ -287,6 +289,13 @@ class ActivityTutorialWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
+  click:(event)->
+    if $(event.target).parents("div.link-embed-box").length > 0
+      #log "EMBED"
+    else
+      #log "not EMBED"
+      @embedBox.$().animate {top : "-400px"}, 300, =>
+        @embedBox.hide()
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
