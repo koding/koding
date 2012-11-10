@@ -144,22 +144,23 @@ class ActivityDiscussionWidget extends KDFormView
     @heartBox = new HelpBox
       subtitle : "About Discussions"
       tooltip  :
-        title  : "Click me for additional information"
-      click :->
-        modal = new KDModalView
-          title          : "Additional information on Discussions"
-          content        : "<div class='modalformline signature'><h3>Hi!</h3><p>My name is Arvid, i just recently started to work for Koding and I am responsible for the implementation of Discussions.</p><p>Should you run into bugs, experience strange and/or unexpected behavior or have questions on how to use this feature, please don't hesitate to drop me a mail here: "+@utils.applyTextExpansions("@arvidkahl")+"</p><p>--arvid</p></div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Okay       :
-              style      : "modal-clean-gray"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                modal.buttons.Okay.hideLoader()
-                modal.destroy()
+        title  : "This is a public wall, here you can discuss anything with the Koding community."
+      # click :->
+      #   modal = new KDModalView
+      #     title          : "Additional information on Discussions"
+      #     content        : "<div class='modalformline signature'><h3>Credits</h3><p>"+
+      #                      @utils.applyTextExpansions("@arvidkahl")+"</p><p>--arvid</p></div>"
+      #     height         : "auto"
+      #     overlay        : yes
+      #     buttons        :
+      #       Okay       :
+      #         style      : "modal-clean-gray"
+      #         loader     :
+      #           color    : "#ffffff"
+      #           diameter : 16
+      #         callback   : =>
+      #           modal.buttons.Okay.hideLoader()
+      #           modal.destroy()
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"

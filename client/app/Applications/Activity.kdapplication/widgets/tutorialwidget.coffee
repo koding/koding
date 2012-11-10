@@ -182,22 +182,22 @@ class ActivityTutorialWidget extends KDFormView
     @heartBox = new HelpBox
       subtitle : "About Tutorials"
       tooltip  :
-        title  : "Click me for additional information"
-      click :->
-        modal = new KDModalView
-          title          : "Additional information on Tutorials"
-          content        : "<div class='modalformline signature'><h3>Hi!</h3><p>Anything odd? Drop me a message.</p><p>--@arvidkahl</p></div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Okay       :
-              style      : "modal-clean-gray"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                modal.buttons.Okay.hideLoader()
-                modal.destroy()
+        title  : "This is a public wall, here you can share your tutorials with the Koding community."
+      # click :->
+      #   modal = new KDModalView
+      #     title          : "Additional information on Tutorials"
+      #     content        : "<div class='modalformline signature'><h3>Hi!</h3><p>Anything odd? Drop me a message.</p><p>--@arvidkahl</p></div>"
+      #     height         : "auto"
+      #     overlay        : yes
+      #     buttons        :
+      #       Okay       :
+      #         style      : "modal-clean-gray"
+      #         loader     :
+      #           color    : "#ffffff"
+      #           diameter : 16
+      #         callback   : =>
+      #           modal.buttons.Okay.hideLoader()
+      #           modal.destroy()
 
     @followupLink = new KDCustomHTMLView
       tagName : "a"
