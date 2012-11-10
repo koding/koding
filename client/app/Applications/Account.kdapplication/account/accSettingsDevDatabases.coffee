@@ -38,6 +38,14 @@ class AccountDatabaseListController extends KDListViewController
       iconClass : "plus"
       callback  : ()=> list.showAddModal()
 
+    @getView().parent.addSubView refreshButton = new KDButtonView
+      style     : "clean-gray account-header-second-button"
+      title     : ""
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "refresh"
+      callback  : => @loadItems()
+
     list.on "DeleteDatabaseSubmitted", (listItem)=> @deleteDatabase listItem
     list.on "UpdateDatabaseSubmitted", (listItem, formdata)=> @updateDatabase listItem, formdata
     list.on "AddDatabaseSubmitted", => @addDatabase()
@@ -64,8 +72,10 @@ class AccountDatabaseListController extends KDListViewController
 
   loadItems:(callback)->
 
+    @removeAllItems()
     dbTypes = ['mysql', 'mongo']
     @_loaderCount = dbTypes.length
+    @_timeout?.destroy?()
     @showLazyLoader no
 
     hideLoaderWhenFinished = =>
@@ -79,7 +89,7 @@ class AccountDatabaseListController extends KDListViewController
         @scrollView.addSubView @_timeout = new KDCustomHTMLView
           cssClass : "lazy-loader"
           partial  : "Fetching database list failed. <a href='#'>Retry</a>"
-          click    : (ins, event)=>
+          click    : (event)=>
             if $(event.target).is "a"
               @loadItems()
               @_timeout.destroy()
@@ -160,7 +170,7 @@ class AccountDatabaseListController extends KDListViewController
     # log "Run on kite:", options.method
     @getSingleton("kiteController").run
       kiteName  : "databases"
-      method      : options.method
+      method    : options.method
       withArgs  : options.withArgs
     , (err, response)=>
       if err then warn err
