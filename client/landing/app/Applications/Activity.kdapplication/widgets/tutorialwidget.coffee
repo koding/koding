@@ -336,7 +336,7 @@ class ActivityTutorialWidget extends KDFormView
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit Tutorial"
     @addCustomData "activity", activity
-    {title, body, tags} = activity
+    {title, body, tags, link} = activity
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -344,6 +344,7 @@ class ActivityTutorialWidget extends KDFormView
     fillForm = =>
       @inputDiscussionTitle.setValue Encoder.htmlDecode title
       @inputContent.setValue Encoder.htmlDecode body
+      @inputTutorialEmbedLink.setValue Encoder.htmlDecode link?.link_url
       @inputContent.generatePreview()
 
     fillForm()
