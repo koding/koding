@@ -93,6 +93,10 @@ class DiscussionActivityItemView extends ActivityItemChild
     @$("pre").addClass "prettyprint"
     @$("div.discussion-body-container span.data pre").each (i,element)=>
       hljs.highlightBlock element
+    # @$("code").each (i,element) =>
+    #   log language = $(element).attr("class")?.replace("lang-","")
+    #   # Interesting Idea: maybe add a badge linke in CodeSnips
+
 
   render:->
     super()
@@ -121,7 +125,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
       <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
-      <div class="discussion-body-container">
+      <div class="activity-content-container discussion-body-container">
       <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
       </div>
       <footer class='clearfix'>
