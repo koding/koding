@@ -28,6 +28,7 @@ module.exports = class JPost extends jraphical.Message
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
     slug          : String
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
     counts        :
       followers   :
         type      : Number
@@ -55,7 +56,7 @@ module.exports = class JPost extends jraphical.Message
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','one']
+      static          : ['create','one','updateAllSlugs']
       instance        : [
         'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
@@ -85,23 +86,6 @@ module.exports = class JPost extends jraphical.Message
   @getActivityType =-> CActivity
 
   @getFlagRole =-> ['sender', 'recipient']
-
-  # @slugifyAllPosts = secure (client, callback)->
-  #   queue = @encapsulatedSubclasses.map (subclass)->->
-  #     subclass.someData {slug:$exists:no}, fields, (err, cursor)->
-  #       if err then queue.fin err
-  #       else
-  #         smallQueue = []
-  #         cursor.each (err, doc)->
-  #           if err then queue.fin err
-  #           else
-  #             subclass::createSlug.call doc, (err, slug)->
-  #               if err then queue.fin err
-  #               else
-  #                 subclass.update {_id:doc._id}, $set:{slug}, (err)->
-  #                   if err then queue.fin err
-  #                   else queue.fin()
-
 
   createKodingError =(err)->
     if 'string' is typeof err

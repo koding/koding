@@ -155,8 +155,10 @@ module.exports = class JAccount extends jraphical.Module
 
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"]
-
+        targetType  : [
+          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
+          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
+        ]
       feed         :
         as          : "owner"
         targetType  : "JFeed"

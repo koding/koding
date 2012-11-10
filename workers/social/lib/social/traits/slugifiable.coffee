@@ -1,5 +1,7 @@
 module.exports = class Slugifiable
 
+  {dash} = require 'bongo'
+
   slugify =(str)->
     slug = str
       .toLowerCase()                # change everything to lowercase
@@ -18,7 +20,33 @@ module.exports = class Slugifiable
       else
         callback null, candidate
 
-  createSlug:(callback)->
+  @updateAllSlugs = (options, callback)->
+    [callback, options] = [options, callback] unless callback
+    options ?= {}
+    selector = if options.force then {} else {slug: $exists: no}
+    subclasses = @encapsulatedSubclasses ? [@]
+    contentTypeQueue = subclasses.map (subclass)->->
+      subclass.cursor selector, options, (err, cursor)->
+        if err then contentTypeQueue.fin err
+        else
+          postQueue = []
+          cursor.each (err, post)->
+            if err then postQueue.fin err
+            else if post?
+              postQueue.push -> post.updateSlug (err, slug)->
+                callback null, slug
+                postQueue.fin()
+            else
+              dash postQueue, -> contentTypeQueue.fin()
+    dash contentTypeQueue, callback
+
+  updateSlug:(callback)->
+    @createSlug (err, slug)=>
+      if err then callback err
+      else @update $set:{slug}, (err)->
+        callback err, unless err then slug
+
+  createSlug:(callback)-> 
     {constructor} = this
     {slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
