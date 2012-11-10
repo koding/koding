@@ -27,9 +27,9 @@ class TutorialFormView extends KDFormView
       preview         : @preview
       cssClass        : "tutorial-body"
       name            : "body"
-      title           : "your Discussion Topic"
+      title           : "your Tutorial"
       type            : "textarea"
-      placeholder     : "What do you want to contribute to the discussion?"
+      placeholder     : "What do you want to contribute to the tutorial?"
 
     @discussionEmbedLink = new KDInputView
       cssClass        : "tutorial-title"
@@ -59,7 +59,7 @@ class TutorialFormView extends KDFormView
     @discussionTitle = new KDInputView
       cssClass        : "tutorial-title"
       name            : "title"
-      title           : "your Opinion"
+      title           : "your Tutorial title"
       type            : "text"
       placeholder     : "What do you want to talk about?"
 
@@ -90,7 +90,7 @@ class TutorialFormView extends KDFormView
 
 
         modal = new KDModalView
-          title       : "What do you want to discuss?"
+          title       : "What do you want to show?"
           cssClass    : "modal-fullscreen"
           height      : $(window).height()-110
           width       : $(window).width()-110

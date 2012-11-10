@@ -234,11 +234,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
   opinionHeaderCountString:(count)=>
     if count is 0
-      countString = "No Answers yet"
+      countString = "No Opinions yet"
     else if count is 1
-      countString = "One Answer"
+      countString = "One Opinion"
     else
-      countString = count+ " Answers"
+      countString = count+ " Opinions"
 
     '<span class="opinion-count">'+countString+'</span>'
 

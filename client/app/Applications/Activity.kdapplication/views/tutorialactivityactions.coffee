@@ -8,7 +8,7 @@ class TutorialActivityActionsView extends ActivityActionsView
     @opinionCount?.destroy()
 
     @opinionCountLink  = new ActivityActionLink
-      partial     : "Answers"
+      partial     : "Opinions"
       click     : (pubInst, event)=>
         @emit "DiscussionActivityLinkClicked"
 
@@ -48,7 +48,7 @@ class TutorialActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}} ·
+    {{> @opinionCountLink}} {{> @opinionCount}}
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
