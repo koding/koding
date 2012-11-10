@@ -48,7 +48,7 @@ class TutorialActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}}
+    {{> @opinionCountLink}} {{> @opinionCount}} ·
     <span class='optional'>
     {{> @shareLink}} ·
     </span>
