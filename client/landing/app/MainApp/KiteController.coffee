@@ -118,6 +118,9 @@ class KiteController extends KDController
         @utils.wait 5000, =>
           _attempt++
           @run _tempOptions, _tempCallback
+      else if err.message?
+        callback? err
+        warn "An error occured:", err.message
       else
         callback? err
         warn "parsing kite response: we dont handle this yet", err
@@ -157,7 +160,7 @@ class KiteController extends KDController
       notify _notifications.creatingEnv
 
     @run
-      method       : "createSystemUser"
+      method     : "createSystemUser"
       withArgs   :
         fullName : "#{KD.whoami().getAt 'profile.firstName'} #{KD.whoami().getAt 'profile.lastName'}"
         password : __utils.getRandomHex().substr(1)
