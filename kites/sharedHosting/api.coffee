@@ -13,6 +13,7 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 coffee    = require 'coffee-script'
+bash      = require 'koding-bash-user-glue'
 
 createTmpDir = require './createtmpdir'
 
@@ -32,7 +33,8 @@ escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-z
                                                                  .replace(/\s/g, '\\ ')
 
 makedirp = (path, user, cb)->
-  exec "mkdir -p #{path} && chown #{user}: #{path}", cb
+  userInputs = [path, user, path]
+  exec bash("mkdir -p %s && chown %s: %s", userInputs), cb
 
 createAppsDir = (user, cb)->
   path = escapePath "/Users/#{user}/Applications"
@@ -246,17 +248,17 @@ module.exports = new Kite 'sharedHosting'
       makedirp appRootPath, username, (err)->
         if err then cb err
         else
-          exec "test -d #{versionedPath}", (err, stdout, stderr)->
+          exec bash("test -d %s", [versionedPath]), (err, stdout, stderr)->
             unless err or stderr.length then cb "[ERROR] Version is already published, change version and try again!"
             else
-              exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
+              exec bash("cp -r %s %s", [userAppPath, versionedPath]), (err, stdout, stderr)->
                 if err or stderr then cb err
                 else
                   manifestPath = "#{versionedPath}/.manifest"
-                  exec "cat #{manifestPath}", (err, stdout, stderr)->
+                  exec bash("cat %s", [manifestPath]), (err, stdout, stderr)->
                     if err or stderr then cb err
                     else
-                      exec "rm -f #{manifestPath}", ->
+                      exec bash("rm -f %s", [manifestPath]), ->
                         manifest = JSON.parse stdout
                         manifest.author = "#{profile.firstName} #{profile.lastName}"
                         manifest.authorNick = username
@@ -281,11 +283,13 @@ module.exports = new Kite 'sharedHosting'
       callback? new AuthorizationError username
       return false
 
-    exec "test -d #{kpmAppPath}", (err, stdout, stderr)->
+    exec bash("test -d %s", [kpmAppPath]), (err, stdout, stderr)->
       if err or stderr.length
         cb "[ERROR] App files not found! Download cancelled."
       else
-        exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
+        userInputs = [userAppPath, backupPath, kpmAppPath, userAppPath, userAppPath]
+        cmd = bash("mv %s %s && cp -r %s/ %s && chown -R #{username}: %s", userInputs)
+        exec cmd, (err, stdout, stderr)->
           if err or stderr then cb err
           else
             cb null
@@ -310,11 +314,14 @@ module.exports = new Kite 'sharedHosting'
       makedirp appPath, username, (err)->
         if err then cb err
         else
-          exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
+          userInputs = [kpmAppPath, appPath, kpmAppPath, appPath]
+          cmd1 = bash "cp %s/index.js %s && cp %s/.manifest %s", userInputs
+          exec cmd1, (err, stdout, stderr)->
             if err or stderr.length
               cb err or "[ERROR] #{stderr}"
             else
-              exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
+              cmd2 = bash "chown -R #{username}: %s", [appPath]
+              exec cmd2, (err, stdout, stderr)->
                 if err or stderr.length
                   cb err or "[ERROR] #{stderr}"
                 else
@@ -336,11 +343,13 @@ module.exports = new Kite 'sharedHosting'
       console.error err if err
       callback? err, null
 
-    exec "test -d #{versionedPath}", (err, stdout, stderr)->
+    exec bash("test -d %s", [versionedPath]), (err, stdout, stderr)->
       if err or stderr.length
         cb "[ERROR] Version is not exists!", version
       else
-        exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
+        userInputs = [latestPath, versionedPath, latestPath]
+        cmd = bash "rm -f %s && ln -s %s %s", userInputs
+        exec cmd, (err, stdout, stderr)->
           if err or stderr then cb err
           else cb null
 
@@ -450,11 +459,13 @@ module.exports = new Kite 'sharedHosting'
 
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
-    cmd        = "mkdir -p #{targetPath} && cp -r #{config.defaultVhostFiles}/website #{targetPath} && chown #{uid}:#{uid} -R #{targetPath}/*"
-    cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown #{uid}:#{uid} /Users/#{username}/.bashrc"
+
+    userInputs = [targetPath, targetPath, uid, uid, targetPath, uid, uid]
+    cmd        = "mkdir -p %s && cp -r #{config.defaultVhostFiles}/website %s && chown %s:%s -R %s/*"
+    cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown %s:%s /Users/#{username}/.bashrc"
     log.debug "executing CreateVhost:",cmd
 
-    exec cmd,(err,stdout,stderr)->
+    exec bash(cmd, userInputs), (err,stdout,stderr)->
       unless err
         callback null, "vhost created with default files:",domainName
       else
@@ -472,8 +483,9 @@ module.exports = new Kite 'sharedHosting'
     #
 
     {username,newPassword} = options
-
-    chpw = exec "echo '#{newPassword}' | /usr/bin/passwd --stdin #{username}", (err,stdout,stderr)=>
+    userInputs = [newPassword]
+    cmd = bash "echo %s | /usr/bin/passwd --stdin #{username}", userInputs
+    chpw = exec cmd, (err,stdout,stderr)=>
       if err?
         log.error "[ERROR] can't set password for #{username}: #{stderr}"
         callback? "[ERROR] can't set password for #{username}: #{stderr}"
@@ -492,39 +504,50 @@ module.exports = new Kite 'sharedHosting'
     #     * move compressed archive to config.suspendDir
     #
     # options =
-    #   username    : String #username of the unix user
+    #   userToSuspend    : String #userToSuspend of the unix user
     #
 
-    {username} = options
-    homeDir = nodePath.join config.usersPath,username
+    {username, userToSuspend} = options
+    homeDir = nodePath.join config.usersPath,userToSuspend
 
-    killProc = exec "/usr/bin/pkill -u #{username} -s9", (err,stdout,stderr)->
-      if stderr # cant use err there becasue pkill return 1 if no processes was running under #{username}
+    # did i really have to write a line like this? C.T.
+    return unless username in ['chris', 'devrim', 'gokmen']
+
+    userInputs = [userToSuspend]
+    cmd1 = bash "/usr/bin/pkill -u %s -s9", userInputs
+    killProc = exec cmd1, (err,stdout,stderr)->
+      if stderr # cant use err there becasue pkill return 1 if no processes was running under #{userToSuspend}
         # this should never happens...
-        log.error "[ERROR] can't kill processes for  #{username}: #{stderr}"
-        callback? "[ERROR] can't kill processes for  #{username}: #{stderr}"
+        log.error "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
+        callback? "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
       else
-        log.debug "[OK] func:suspendUser: /usr/bin/pkill -u #{username} -s9"
-        compress = exec "tar -v -C #{config.usersPath} -czf #{config.suspendDir}/#{username}.tar.gz #{username}",(err,stdout,stderr) ->
+        log.debug "[OK] func:suspendUser: /usr/bin/pkill -u #{userToSuspend} -s9"
+        userInputs = [userToSuspend, userToSuspend]
+        cmd2 = bash "tar -v -C #{config.usersPath} -czf #{config.suspendDir}/%s.tar.gz %s", userInputs
+        compress = exec cmd2,(err,stdout,stderr) ->
           if err?
-            log.error "[ERROR] can't creaate archive #{config.suspendDir}/#{username}.tar.gz: #{stderr}"
-            callback? "[ERROR] can't creaate archive #{config.suspendDir}/#{username}.tar.gz: #{stderr}"
+            log.error "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+            callback? "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
           else
-            log.debug "[OK] func:suspendUser: tar -v -C #{config.usersPath} -czf #{config.suspendDir}/#{username}.tar.gz #{username}"
-            lock = exec "/usr/sbin/usermod -L #{username}", (err,stdout,stderr) ->
+            log.debug "[OK] func:suspendUser: tar -v -C #{config.usersPath} -czf #{config.suspendDir}/#{userToSuspend}.tar.gz #{userToSuspend}"
+            userInputs = [userToSuspend]
+            cmd3 = bash "/usr/sbin/usermod -L %s", userInputs
+            lock = exec cmd3, (err,stdout,stderr) ->
               if err?
-                log.error "[ERROR] can't lock user #{username}: #{stderr}"
-                callback? "[ERROR] can't lock user #{username}: #{stderr}"
+                log.error "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
+                callback? "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
               else
                 # Measure thrice and cut once
                 if homeDir is config.usersPath
                   log.error "[ERROR] can't remove this dir #{homeDir}"
                   callback? "[ERROR] can't remove this dir #{homeDir}"
                 else
-                  rmHome = exec "/bin/rm -r #{homeDir}",(err,stdout,stderr)->
+                  userInputs = [homeDir]
+                  cmd4 = bash "/bin/rm -r %s", userInputs
+                  rmHome = exec cmd4,(err,stdout,stderr)->
                     if err?
-                      log.error "[ERROR] cant remove homedir #{homeDir} for user #{username}"
-                      callback? "[ERROR] cant remove homedir #{homeDir} for user #{username}"
+                      log.error "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
+                      callback? "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
                     else
                       log.debug "[OK] func:suspendUser: /bin/rm -r #{homeDir}"
                       log.info "[OK] user was sucsessfully suspended"
@@ -539,31 +562,42 @@ module.exports = new Kite 'sharedHosting'
     #     * remove archive from config.suspendDir
     #
     # options =
-    #   username    : String #username of the unix user
+    #   userToSuspend    : String #userToSuspend of the unix user
     #
-    {username} = options
-    homeDir = nodePath.join config.usersPath,username
-    unlock = exec "/usr/sbin/usermod -U #{username}", (err,stdout,stderr)->
+    {userToSuspend, username} = options
+
+    return unless username in ['chris', 'devrim', 'gokmen']
+
+    homeDir = nodePath.join config.usersPath,userToSuspend
+
+    cmd1 = bash "/usr/sbin/usermod -U %s", [userToSuspend]
+    unlock = exec cmd1, (err,stdout,stderr)->
       if err?
-        callback? "[ERROR] can't unlock user #{username}: #{stderr}"
+        callback? "[ERROR] can't unlock user #{userToSuspend}: #{stderr}"
       else
-        log.debug "[OK] func:unSuspendUser: /usr/sbin/usermod -U #{username}"
-        uncompress = exec "tar -C #{config.usersPath} -xzf #{config.suspendDir}/#{username}.tar.gz",(err,stdout,stderr)->
+        log.debug "[OK] func:unSuspendUser: /usr/sbin/usermod -U #{userToSuspend}"
+        userInputs = [userToSuspend]
+        cmd2 = bash "tar -C #{config.usersPath} -xzf #{config.suspendDir}/%s.tar.gz", userInputs
+        uncompress = exec cmd2,(err,stdout,stderr)->
           if err?
-            callback? "[ERROR] can't uncompress user's homedir #{config.suspendDir}/#{username}.tar.gz: #{stderr}"
+            callback? "[ERROR] can't uncompress user's homedir #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
           else
-            log.debug "[OK] func:unSuspendUser: tar -C #{config.usersPath} -xzf #{config.suspendDir}/#{username}.tar.gz"
-            rmarchive = exec "rm #{config.suspendDir}/#{username}.tar.gz",(err,stdout,stderr)->
-            if err?
-              e = "[ERROR] can't remove archive #{config.suspendDir}/#{username}.tar.gz: #{stderr}"
-              log.error e; callback? e
-            else
-              log.debug "[OK] func:unSuspendUser: rm #{config.suspendDir}/#{username}.tar.gz"
-              remount = exec "/usr/sbin/cagefsctl -w #{username}",(err,stdout,stderr)->
-                if err?
-                  e = "[ERROR] can't remount user #{username}: #{stderr}"
-                  log.error e; callback? e
-                else
-                  log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{username}"
-                  res = "[OK] user #{username} was successfully unsuspended"
-                  log.info res; callback? null, res
+            log.debug "[OK] func:unSuspendUser: tar -C #{config.usersPath} -xzf #{config.suspendDir}/#{userToSuspend}.tar.gz"
+            userInputs = [userToSuspend]
+            cmd3 = bash "rm #{config.suspendDir}/%s.tar.gz", userInputs
+            rmarchive = exec cmd3, (err,stdout,stderr)->
+              if err?
+                e = "[ERROR] can't remove archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+                log.error e; callback? e
+              else
+                log.debug "[OK] func:unSuspendUser: rm #{config.suspendDir}/#{userToSuspend}.tar.gz"
+                userInputs = [userToSuspend]
+                cmd4 = bash "/usr/sbin/cagefsctl -w %s", userInputs
+                remount = exec cmd4,(err,stdout,stderr)->
+                  if err?
+                    e = "[ERROR] can't remount user #{userToSuspend}: #{stderr}"
+                    log.error e; callback? e
+                  else
+                    log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
+                    res = "[OK] user #{userToSuspend} was successfully unsuspended"
+                    log.info res; callback? null, res
