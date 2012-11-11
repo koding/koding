@@ -42,6 +42,9 @@ class KodingRouter extends KDRouter
         else
           console.log 'no state object was provided.'
 
+      '/:name?/Activity/:activitySlug': ({name, activitySlug}, state)->
+        console.log 'activity', arguments
+
       '/recover/:recoveryToken': ({recoveryToken})->
         mainController.appReady ->
           # TODO: DRY this one
