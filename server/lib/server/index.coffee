@@ -16,7 +16,7 @@ nodePath = require 'path'
 app = express()
 
 # this is a hack so express won't write the multipart to /tmp
-delete express.bodyParser.parse['multipart/form-data']
+#delete express.bodyParser.parse['multipart/form-data']
 
 app.use express.bodyParser()
 app.use express.cookieParser()

@@ -43,7 +43,11 @@ class KodingRouter extends KDRouter
           console.log 'no state object was provided.'
 
       '/:name?/Activity/:activitySlug': ({name, activitySlug}, state)->
-        console.log 'activity', arguments
+        appManager.tell 'Activity', 'setGroup', name  if name?
+        if state?
+          appManager.tell 'Activity', 'createContentDisplay', state
+        else
+          console.log 'no state object was provided.'
 
       '/recover/:recoveryToken': ({recoveryToken})->
         mainController.appReady ->

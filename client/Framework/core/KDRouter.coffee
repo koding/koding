@@ -3,6 +3,7 @@ class KDRouter extends KDObject
   listenerKey = 'ಠ_ಠ'
 
   constructor:(routes)->
+    super()
     @tree   = {} # this is the tree for quick lookups
     @routes = {} # this is the flat namespace containing all routes
     @currentPath = location.pathname 
