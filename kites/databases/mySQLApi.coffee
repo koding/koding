@@ -2,7 +2,7 @@ mysql  = require "mysql"
 log4js = require 'log4js'
 fs     = require 'fs'
 path   = require 'path'
-{exec} = require 'child_process'
+# {exec} = require 'child_process'
 config = require("./config").mysql
 
 logFile = '/var/log/node/MySQLApi.log'
