@@ -483,9 +483,8 @@ module.exports = new Kite 'sharedHosting'
     #
 
     {username,newPassword} = options
-    console.log options
     userInputs = [newPassword]
-    cmd = "echo '#{newPassword}' | /usr/bin/passwd --stdin #{username}" #bash "echo %s | /usr/bin/passwd --stdin #{username}", userInputs
+    cmd = bash "echo %s | /usr/bin/passwd --stdin #{username}", userInputs
     chpw = exec cmd, (err,stdout,stderr)=>
       if err?
         log.error "[ERROR] can't set password for #{username}: #{stderr}"
