@@ -59,6 +59,8 @@ class ActivityDiscussionWidget extends KDFormView
       iconOnly        : yes
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
+      tooltip         :
+        title         : "Fullscreen Editing"
       callback: =>
         @textContainer = new KDView
           cssClass:"modal-fullscreen-text"

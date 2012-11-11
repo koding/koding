@@ -90,7 +90,7 @@ class TutorialFormView extends KDFormView
 
 
         modal = new KDModalView
-          title       : "What do you want to show?"
+          title       : "Please enter your Tutorial content."
           cssClass    : "modal-fullscreen"
           height      : $(window).height()-110
           width       : $(window).width()-110

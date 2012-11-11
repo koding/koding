@@ -96,6 +96,10 @@ class KDInputViewWithPreview extends KDInputView
     if @options.preview.mirrorScroll then @$().scroll (event)=>
       @setPreviewScrollPercentage @getEditScrollPercentage()
 
+  setValue:(value)->
+    super value
+    @generatePreview()
+
   generatePreview:=>
     if @showPreview
       if @options.preview.language is "markdown"
