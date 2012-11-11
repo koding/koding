@@ -12,12 +12,14 @@ gzippo = require 'gzippo'
 fs = require 'fs'
 hat = require 'hat'
 
-app = express.createServer()
+app = express()
 
 app.use express.bodyParser()
 app.use express.cookieParser()
 app.use express.session {"secret":"foo"}
-app.use gzippo.staticGzip "#{projectRoot}/website/"
+app.use express.compress()
+app.use express.static "#{projectRoot}/website/"
+#app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
