@@ -121,9 +121,9 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password is required."
             minLength : "Password should at least be 8 characters."
-        change        : (input, event)=>
+        change        : (event)=>
           if @kodingenUser
-            @passwordConfirm.input.setValue input.getValue()
+            @passwordConfirm.input.setValue @password.input.getValue()
 
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
@@ -140,9 +140,9 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
-        focus         : (input, event)=>
+        focus         : (event)=>
           if @kodingenUser
-            input.setValue @password.input.getValue()
+            @passwordConfirm.input.setValue @password.input.getValue()
             @invitationCode.input.$().focus()
 
 

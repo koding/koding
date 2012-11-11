@@ -416,6 +416,8 @@ class KodingAppsController extends KDController
         log app, "app approved"
         callback?()
 
+  # We will move that to Server-Side GG
+
   compileApp:(name, callback)->
 
     kallback = (app)=>
@@ -567,8 +569,12 @@ class KodingAppsController extends KDController
                   color           : "#444444"
                   diameter        : 12
                 callback          : =>
+                  unless newAppModal.modalTabs.forms.form.inputs.name.validate()
+                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                    return
                   name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
                   type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
+                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
                   manifestStr = defaultManifest type, name
                   manifest    = JSON.parse manifestStr
                   appPath     = getAppPath manifest
@@ -601,6 +607,11 @@ class KodingAppsController extends KDController
                 label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
+                validate          :
+                  rules           :
+                    regExp        : /^[a-z\d]+([-][a-z\d]+)*$/i
+                  messages        :
+                    regExp        : "For Application name only lowercase letters and numbers are allowed!"
 
     newAppModal.once "KDObjectWillBeDestroyed", ->
       newAppModal = null
@@ -610,6 +621,7 @@ class KodingAppsController extends KDController
 
     type        = if isBlank then "blank" else "sample"
     name        = if name is "" then null else name
+    name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
     manifestStr = defaultManifest type, name
     manifest    = JSON.parse manifestStr
     appPath     = getAppPath manifest
@@ -631,17 +643,17 @@ class KodingAppsController extends KDController
               contents  : manifestStr
           , cb
 
-        if isBlank
-          stack.push (cb)=>
-            @kiteController.run
-              method      : "uploadFile"
-              withArgs    :
-                path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-                contents  : """
-                              do->
+        # if isBlank
+        #   stack.push (cb)=>
+        #     @kiteController.run
+        #       method      : "uploadFile"
+        #       withArgs    :
+        #         path      : escapeFilePath "#{fsFolder.path}/index.coffee"
+        #         contents  : """
+        #                       do->
 
-                            """
-            , cb
+        #                     """
+        #     , cb
 
         stack.push (cb)=>
           @kiteController.run
