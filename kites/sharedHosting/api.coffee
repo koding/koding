@@ -11,10 +11,10 @@ fse       = require 'fs.extra'
 hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
-#Kite      = require 'kite-amqp'
+Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 coffee    = require 'coffee-script'
-#{bash}    = require 'koding-bash-user-glue'
+{bash}    = require 'koding-bash-user-glue'
 
 createTmpDir = require './createtmpdir'
 
@@ -70,8 +70,7 @@ getIds = (username, callback)->
     [tmp, uid, gid] = stdout.match /^[^\d]+(\d+)[^\d]+(\d+)/
     callback null, {uid:+uid, gid:+gid}
 
-#module.exports = new Kite 'sharedHosting'
-class sharedHosting
+module.exports = new Kite 'sharedHosting'
 
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -627,11 +626,3 @@ class sharedHosting
  #                   log.info res; callback? null, res
 
 
-s = new sharedHosting
-options =
-  username: 'aleksey-m'
-  uid: 5339
-
-s.createVhost options,(err,res)->
-  console.log err if err?
-  console.log res if res?
