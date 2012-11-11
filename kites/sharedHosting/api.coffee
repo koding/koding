@@ -480,10 +480,9 @@ module.exports = new Kite 'sharedHosting'
     targetPath = "/Users/#{username}/Sites/#{domainName}"
 
     createDirs = ['-v','-p',targetPath]
-    copyFiles  = ['-v','-r',config.defaultVhostFiles+'/website',targetPath]
-    changeOwner = ['-v','-R',username+':'+username,targetPath+'/website']
+    copyFiles  = ['-v','-r',"#{config.defaultVhostFiles}/website",targetPath]
+    changeOwner = ['-v','-R',"#{username}:#{username}","#{targetPath}/website"]
 
-    log.debug changeOwner
     spawnWrapper = (command, args , callback)->
       wrapper = spawn command,args
       wrapperErr = ""
@@ -625,4 +624,5 @@ module.exports = new Kite 'sharedHosting'
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
  #                   log.info res; callback? null, res
+
 
