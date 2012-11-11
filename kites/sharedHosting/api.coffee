@@ -5,6 +5,7 @@ log       = log4js.getLogger("[#{config.name}]")
 
 nodePath  = require 'path'
 {exec}    = require 'child_process'
+{spawn}    = require 'child_process'
 fs        = require 'fs'
 fse       = require 'fs.extra'
 hat       = require 'hat'
@@ -453,151 +454,175 @@ module.exports = new Kite 'sharedHosting'
                           else
                             callback null,"[OK] user and group #{username} has been added to LDAP"
 
-  createVhost : (options,callback)->
+  #createVhost : (options,callback)->
 
+  #  {username,uid,domainName} = options
+
+  #  domainName ?= "#{username}.#{config.defaultDomain}"
+  #  targetPath = "/Users/#{username}/Sites/#{domainName}"
+
+  #  userInputs = [targetPath, targetPath, uid, uid, targetPath, uid, uid]
+  #  cmd        = "mkdir -p %s && cp -r #{config.defaultVhostFiles}/website %s && chown %s:%s -R %s/*"
+  #  cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown %s:%s /Users/#{username}/.bashrc"
+  #  log.debug "executing CreateVhost:",cmd
+
+  #  exec bash(cmd, userInputs), (err,stdout,stderr)->
+  #    unless err
+  #      callback null, "vhost created with default files:",domainName
+  #    else
+  #      log.error stderr
+  #      callback stderr
+  #
+  createVhost : (options,callback)->
     {username,uid,domainName} = options
 
     domainName ?= "#{username}.#{config.defaultDomain}"
     targetPath = "/Users/#{username}/Sites/#{domainName}"
 
-    userInputs = [targetPath, targetPath, uid, uid, targetPath, uid, uid]
-    cmd        = "mkdir -p %s && cp -r #{config.defaultVhostFiles}/website %s && chown %s:%s -R %s/*"
-    cmd       += " && echo 'curl https://koding.com/koding-announcement.txt' > /Users/#{username}/.bashrc && chown %s:%s /Users/#{username}/.bashrc"
-    log.debug "executing CreateVhost:",cmd
+    createDirs = ['-v','-p',targetPath]
+    copyFiles  = ['-v','-r',config.defaultVhostFiles+'/website',targetPath]
+    changeOwner = ['-v','-R',username+':'+username,targetPath+'/website']
 
-    exec bash(cmd, userInputs), (err,stdout,stderr)->
-      unless err
-        callback null, "vhost created with default files:",domainName
-      else
-        log.error stderr
-        callback stderr
+    log.debug changeOwner
+    spawnWrapper = (command, args , callback)->
+      wrapper = spawn command,args
+      wrapperErr = ""
+      wrapper.stderr.on 'data',(data)->
+        wrapperErr += data
+      wrapperData = ""
+      wrapper.stdout.on 'data',(data)->
+        wrapperData += data
 
-  changePassword : (options,callback)->
-    #
-    # This method will change OS password for user
-    #
-    #
-    # options =
-    #   username    : String #username of the unix user
-    #   newPassword : String #fullName - real name for unux user
-    #
+      wrapper.on 'exit',(code)->
+        if code is not 0
+          log.error err = "execute command #{command} for createVhost: #{wrapperErr}"
+          callback err
+        else
+          log.debug wrapperData.toString("utf-8", 0, 12)
+          log.info info = "createVhost: #{command} done!"
+          callback null, info
 
-    {username,newPassword} = options
-    userInputs = [newPassword]
-    cmd = bash "echo %s | /usr/bin/passwd --stdin #{username}", userInputs
-    chpw = exec cmd, (err,stdout,stderr)=>
+
+    spawnWrapper '/bin/mkdir',createDirs, (err,res)=>
       if err?
-        log.error "[ERROR] can't set password for #{username}: #{stderr}"
-        callback? "[ERROR] can't set password for #{username}: #{stderr}"
+        callback "[ERROR] couldn't create vhost #{err}"
       else
-        log.info "[OK] password for #{username} was successfully changed"
-        callback? null,"[OK] password for #{username} was successfully changed"
-
-
-  suspendUser : (options,callback)->
-    #
-    # This method will suspend OS user:
-    #
-    #     * kill all user's processes
-    #     * lock OS account
-    #     * compress user's homedir
-    #     * move compressed archive to config.suspendDir
-    #
-    # options =
-    #   userToSuspend    : String #userToSuspend of the unix user
-    #
-
-    {username, userToSuspend} = options
-    homeDir = nodePath.join config.usersPath,userToSuspend
-
-    # did i really have to write a line like this? C.T.
-    return unless username in ['chris', 'devrim', 'gokmen']
-
-    userInputs = [userToSuspend]
-    cmd1 = bash "/usr/bin/pkill -u %s -s9", userInputs
-    killProc = exec cmd1, (err,stdout,stderr)->
-      if stderr # cant use err there becasue pkill return 1 if no processes was running under #{userToSuspend}
-        # this should never happens...
-        log.error "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
-        callback? "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
-      else
-        log.debug "[OK] func:suspendUser: /usr/bin/pkill -u #{userToSuspend} -s9"
-        userInputs = [userToSuspend, userToSuspend]
-        cmd2 = bash "tar -v -C #{config.usersPath} -czf #{config.suspendDir}/%s.tar.gz %s", userInputs
-        compress = exec cmd2,(err,stdout,stderr) ->
+        spawnWrapper '/bin/cp',copyFiles,(err,res)=>
           if err?
-            log.error "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
-            callback? "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+            callback "[ERROR] Culdn't create vhost: #{err}"
           else
-            log.debug "[OK] func:suspendUser: tar -v -C #{config.usersPath} -czf #{config.suspendDir}/#{userToSuspend}.tar.gz #{userToSuspend}"
-            userInputs = [userToSuspend]
-            cmd3 = bash "/usr/sbin/usermod -L %s", userInputs
-            lock = exec cmd3, (err,stdout,stderr) ->
+            spawnWrapper '/bin/chown',changeOwner,(err,res)->
               if err?
-                log.error "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
-                callback? "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
+                callback "[ERROR] Culdn't create vhost: #{err}"
               else
-                # Measure thrice and cut once
-                if homeDir is config.usersPath
-                  log.error "[ERROR] can't remove this dir #{homeDir}"
-                  callback? "[ERROR] can't remove this dir #{homeDir}"
-                else
-                  userInputs = [homeDir]
-                  cmd4 = bash "/bin/rm -r %s", userInputs
-                  rmHome = exec cmd4,(err,stdout,stderr)->
-                    if err?
-                      log.error "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
-                      callback? "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
-                    else
-                      log.debug "[OK] func:suspendUser: /bin/rm -r #{homeDir}"
-                      log.info "[OK] user was sucsessfully suspended"
-                      callback? null,"[OK] user was sucsessfully suspended"
+                log.info info = "[OK] vhost #{domainName} has been created"
+                callback null, info
 
-  unSuspendUser : (options,callback)->
-    #
-    # This method will unsuspend OS user:
-    #
-    #     * unlock OS account
-    #     * uncompress user's homedir
-    #     * remove archive from config.suspendDir
-    #
-    # options =
-    #   userToSuspend    : String #userToSuspend of the unix user
-    #
-    {userToSuspend, username} = options
+ # suspendUser : (options,callback)->
+ #   #
+ #   # This method will suspend OS user:
+ #   #
+ #   #     * kill all user's processes
+ #   #     * lock OS account
+ #   #     * compress user's homedir
+ #   #     * move compressed archive to config.suspendDir
+ #   #
+ #   # options =
+ #   #   userToSuspend    : String #userToSuspend of the unix user
+ #   #
 
-    return unless username in ['chris', 'devrim', 'gokmen']
+ #   {username, userToSuspend} = options
+ #   homeDir = nodePath.join config.usersPath,userToSuspend
 
-    homeDir = nodePath.join config.usersPath,userToSuspend
+ #   # did i really have to write a line like this? C.T.
+ #   return unless username in ['chris', 'devrim', 'gokmen']
 
-    cmd1 = bash "/usr/sbin/usermod -U %s", [userToSuspend]
-    unlock = exec cmd1, (err,stdout,stderr)->
-      if err?
-        callback? "[ERROR] can't unlock user #{userToSuspend}: #{stderr}"
-      else
-        log.debug "[OK] func:unSuspendUser: /usr/sbin/usermod -U #{userToSuspend}"
-        userInputs = [userToSuspend]
-        cmd2 = bash "tar -C #{config.usersPath} -xzf #{config.suspendDir}/%s.tar.gz", userInputs
-        uncompress = exec cmd2,(err,stdout,stderr)->
-          if err?
-            callback? "[ERROR] can't uncompress user's homedir #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
-          else
-            log.debug "[OK] func:unSuspendUser: tar -C #{config.usersPath} -xzf #{config.suspendDir}/#{userToSuspend}.tar.gz"
-            userInputs = [userToSuspend]
-            cmd3 = bash "rm #{config.suspendDir}/%s.tar.gz", userInputs
-            rmarchive = exec cmd3, (err,stdout,stderr)->
-              if err?
-                e = "[ERROR] can't remove archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
-                log.error e; callback? e
-              else
-                log.debug "[OK] func:unSuspendUser: rm #{config.suspendDir}/#{userToSuspend}.tar.gz"
-                userInputs = [userToSuspend]
-                cmd4 = bash "/usr/sbin/cagefsctl -w %s", userInputs
-                remount = exec cmd4,(err,stdout,stderr)->
-                  if err?
-                    e = "[ERROR] can't remount user #{userToSuspend}: #{stderr}"
-                    log.error e; callback? e
-                  else
-                    log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
-                    res = "[OK] user #{userToSuspend} was successfully unsuspended"
-                    log.info res; callback? null, res
+ #   userInputs = [userToSuspend]
+ #   cmd1 = bash "/usr/bin/pkill -u %s -s9", userInputs
+ #   killProc = exec cmd1, (err,stdout,stderr)->
+ #     if stderr # cant use err there becasue pkill return 1 if no processes was running under #{userToSuspend}
+ #       # this should never happens...
+ #       log.error "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
+ #       callback? "[ERROR] can't kill processes for  #{userToSuspend}: #{stderr}"
+ #     else
+ #       log.debug "[OK] func:suspendUser: /usr/bin/pkill -u #{userToSuspend} -s9"
+ #       userInputs = [userToSuspend, userToSuspend]
+ #       cmd2 = bash "tar -v -C #{config.usersPath} -czf #{config.suspendDir}/%s.tar.gz %s", userInputs
+ #       compress = exec cmd2,(err,stdout,stderr) ->
+ #         if err?
+ #           log.error "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+ #           callback? "[ERROR] can't creaate archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+ #         else
+ #           log.debug "[OK] func:suspendUser: tar -v -C #{config.usersPath} -czf #{config.suspendDir}/#{userToSuspend}.tar.gz #{userToSuspend}"
+ #           userInputs = [userToSuspend]
+ #           cmd3 = bash "/usr/sbin/usermod -L %s", userInputs
+ #           lock = exec cmd3, (err,stdout,stderr) ->
+ #             if err?
+ #               log.error "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
+ #               callback? "[ERROR] can't lock user #{userToSuspend}: #{stderr}"
+ #             else
+ #               # Measure thrice and cut once
+ #               if homeDir is config.usersPath
+ #                 log.error "[ERROR] can't remove this dir #{homeDir}"
+ #                 callback? "[ERROR] can't remove this dir #{homeDir}"
+ #               else
+ #                 userInputs = [homeDir]
+ #                 cmd4 = bash "/bin/rm -r %s", userInputs
+ #                 rmHome = exec cmd4,(err,stdout,stderr)->
+ #                   if err?
+ #                     log.error "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
+ #                     callback? "[ERROR] cant remove homedir #{homeDir} for user #{userToSuspend}"
+ #                   else
+ #                     log.debug "[OK] func:suspendUser: /bin/rm -r #{homeDir}"
+ #                     log.info "[OK] user was sucsessfully suspended"
+ #                     callback? null,"[OK] user was sucsessfully suspended"
+
+ # unSuspendUser : (options,callback)->
+ #   #
+ #   # This method will unsuspend OS user:
+ #   #
+ #   #     * unlock OS account
+ #   #     * uncompress user's homedir
+ #   #     * remove archive from config.suspendDir
+ #   #
+ #   # options =
+ #   #   userToSuspend    : String #userToSuspend of the unix user
+ #   #
+ #   {userToSuspend, username} = options
+
+ #   return unless username in ['chris', 'devrim', 'gokmen']
+
+ #   homeDir = nodePath.join config.usersPath,userToSuspend
+
+ #   cmd1 = bash "/usr/sbin/usermod -U %s", [userToSuspend]
+ #   unlock = exec cmd1, (err,stdout,stderr)->
+ #     if err?
+ #       callback? "[ERROR] can't unlock user #{userToSuspend}: #{stderr}"
+ #     else
+ #       log.debug "[OK] func:unSuspendUser: /usr/sbin/usermod -U #{userToSuspend}"
+ #       userInputs = [userToSuspend]
+ #       cmd2 = bash "tar -C #{config.usersPath} -xzf #{config.suspendDir}/%s.tar.gz", userInputs
+ #       uncompress = exec cmd2,(err,stdout,stderr)->
+ #         if err?
+ #           callback? "[ERROR] can't uncompress user's homedir #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+ #         else
+ #           log.debug "[OK] func:unSuspendUser: tar -C #{config.usersPath} -xzf #{config.suspendDir}/#{userToSuspend}.tar.gz"
+ #           userInputs = [userToSuspend]
+ #           cmd3 = bash "rm #{config.suspendDir}/%s.tar.gz", userInputs
+ #           rmarchive = exec cmd3, (err,stdout,stderr)->
+ #             if err?
+ #               e = "[ERROR] can't remove archive #{config.suspendDir}/#{userToSuspend}.tar.gz: #{stderr}"
+ #               log.error e; callback? e
+ #             else
+ #               log.debug "[OK] func:unSuspendUser: rm #{config.suspendDir}/#{userToSuspend}.tar.gz"
+ #               userInputs = [userToSuspend]
+ #               cmd4 = bash "/usr/sbin/cagefsctl -w %s", userInputs
+ #               remount = exec cmd4,(err,stdout,stderr)->
+ #                 if err?
+ #                   e = "[ERROR] can't remount user #{userToSuspend}: #{stderr}"
+ #                   log.error e; callback? e
+ #                 else
+ #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
+ #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
+ #                   log.info res; callback? null, res
+
