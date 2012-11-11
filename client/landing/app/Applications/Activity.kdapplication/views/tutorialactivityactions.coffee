@@ -38,6 +38,11 @@ class TutorialActivityActionsView extends ActivityActionsView
     @attachListeners()
     @loader.hide()
 
+  render:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+
   attachListeners:->
     activity    = @getData()
     opinionList = @getDelegate()
@@ -48,7 +53,7 @@ class TutorialActivityActionsView extends ActivityActionsView
   pistachio:->
     """
     {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}} ·
+    {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
     <span class='optional'>
     {{> @shareLink}} ·
     </span>

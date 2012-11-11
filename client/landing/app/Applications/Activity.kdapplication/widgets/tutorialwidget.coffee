@@ -70,7 +70,6 @@ class ActivityTutorialWidget extends KDFormView
 
     @embedBox = new EmbedBox embedOptions, data
 
-
     @inputContent = new KDInputViewWithPreview
       label       : @labelContent
       preview     : @preview
@@ -78,7 +77,7 @@ class ActivityTutorialWidget extends KDFormView
       cssClass    : "discussion-body"
       type        : "textarea"
       autogrow    : yes
-      placeholder : "What do you want to show? (You can use markdown here)"
+      placeholder : "Please enter your Tutorial content. (You can use markdown here)"
       validate    :
         rules     :
           required: yes
@@ -104,6 +103,8 @@ class ActivityTutorialWidget extends KDFormView
       iconOnly        : yes
       cssClass        : "fullscreen-button"
       title           : "Fullscreen Edit"
+      tooltip         :
+        title         : "Fullscreen Edit"
       callback: =>
         @textContainer = new KDView
           cssClass:"modal-fullscreen-text"
@@ -116,7 +117,7 @@ class ActivityTutorialWidget extends KDFormView
         @textContainer.addSubView @text
 
         modal = new KDModalView
-          title       : "What do you want to show?"
+          title       : "Please enter your Tutorial content."
           cssClass    : "modal-fullscreen"
           height      : $(window).height()-110
           width       : $(window).width()-110
@@ -228,49 +229,77 @@ class ActivityTutorialWidget extends KDFormView
               callback: =>
                 modal.destroy()
 
+        createFeed = (view)=>
+          appManager.tell 'Feeder', 'createContentFeedController', {
+            itemClass             : SelectableActivityListItemView
+            listControllerClass   : ActivityListController
+            listCssClass          : "activity-related"
+            noItemFoundText       : "You have not posted a Tutorial yet."
+            limitPerPage          : 8
+            delegate : @
+            filter                :
+              Tutorials          :
+                title             : "Tutorials"
+                optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
+                dataSource        : (selector, options, callback)=>
+                  if @_searchValue
 
+                    selector.originId = KD.whoami().getId()
+                    selector.type = $in: [
+                      'CTutorialActivity'
+                    ]
+                    selector.snapshot = {$regex : ".*#{@_searchValue}.*", $options : "i"}
+                    appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+                      callback null, data
+                    # # KD.remote.api.JTutorial.byRelevance @_searchValue, options, callback
+                  else
+                    selector.originId = KD.whoami().getId()
+                    selector.type = $in: [
+                      'CTutorialActivity'
+                    ]
+                    appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+                      callback null, data
+            sort                  :
+              'sorts.likesCount'  :
+                title             : "Most popular"
+                direction         : -1
+              'modifiedAt'        :
+                title             : "Latest activity"
+                direction         : -1
+              'sorts.repliesCount':
+                title             : "Most activity"
+                direction         : -1
+              # and more
+          }, (controller)=>
+            #put listeners here, look for the other feeder instances
 
-        appManager.tell 'Feeder', 'createContentFeedController', {
-          itemClass             : SelectableActivityListItemView
-          listControllerClass   : ActivityListController
-          listCssClass          : "activity-related"
-          limitPerPage          : 8
-          delegate : @
-          filter                :
-            Tutorials          :
-              title             : "Tutorials"
-              dataSource        : (selector, options, callback)=>
-                selector.originId = KD.whoami().getId()
-                selector.type = $in: [
-                  'CTutorialActivity'
-                ]
-                appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-                  callback null, data
-          sort                  :
-            'sorts.likesCount'  :
-              title             : "Most popular"
-              direction         : -1
-            'modifiedAt'        :
-              title             : "Latest activity"
-              direction         : -1
-            'sorts.repliesCount':
-              title             : "Most activity"
-              direction         : -1
-            # and more
-        }, (controller)=>
-          #put listeners here, look for the other feeder instances
+            # unless KD.isMine account
+            #   @listenTo
+            #     KDEventTypes       : "mouseenter"
+            #     listenedToInstance : controller.getView()
+            #     callback           : => @mouseEnterOnFeed()
+            # log controller
+           @_lastSubView = controller.getView()
 
-          # unless KD.isMine account
-          #   @listenTo
-          #     KDEventTypes       : "mouseenter"
-          #     listenedToInstance : controller.getView()
-          #     callback           : => @mouseEnterOnFeed()
-          # log controller
-         tutorialFeeder = controller.getView()
-         modal.addSubView tutorialFeeder
-         tutorialFeeder.on "setSelectedData", (selectedData)=>
-           @selectedData = selectedData
-           @followupLink.updatePartial "Linked with '"+selectedData.title+"'"
+           view.addSubView @_lastSubView
+           @_lastSubView.on "setSelectedData", (selectedData)=>
+             @selectedData = selectedData
+             @followupLink.updatePartial "Linked with '"+selectedData.title+"'"
+
+        loadView = (mainView, firstRun = yes)=>
+          if firstRun
+            mainView.on "searchFilterChanged", (value) =>
+              return if value is @_searchValue
+              @_searchValue = value
+              @_lastSubView.destroy?()
+              loadView mainView, no
+            mainView.addSubView header = new HeaderViewSection type : "small", title : "Tutorials"
+            header.setSearchInput()
+
+          createFeed mainView
+
+        loadView modal, yes
+
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"

@@ -104,6 +104,25 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
         commentController.removeAllItems()
         commentController.instantiateListItems comments
 
+  applyTextExpansions:(str = "")->
+    link = @getData().link?.link_url
+    if link
+
+      links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+      if links?
+        hasManyLinks = links.length > 1
+      else
+        hasManyLinks = no
+
+      isJustOneLink = str.trim() is link
+      endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
+      startsWithLink = str.trim().indexOf(link) is 0
+
+      if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
+        str = str.replace link, ""
+
+    str = @utils.applyTextExpansions str, yes
+
   render:=>
     super
 
@@ -137,7 +156,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       </span>
       <div class='activity-item-right-col'>
         <h3 class='hidden'></h3>
-        <p class="status-body">{{@utils.applyTextExpansions #(body)}}</p>
+        <p class="status-body">{{@applyTextExpansions #(body)}}</p>
         {{> @embedBox}}
         <footer class='clearfix'>
           <div class='type-and-time'>
