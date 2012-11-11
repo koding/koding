@@ -11,10 +11,10 @@ fse       = require 'fs.extra'
 hat       = require 'hat'
 os        = require 'os'
 ldap      = require 'ldapjs'
-Kite      = require 'kite-amqp'
+#Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 coffee    = require 'coffee-script'
-{bash}    = require 'koding-bash-user-glue'
+#{bash}    = require 'koding-bash-user-glue'
 
 createTmpDir = require './createtmpdir'
 
@@ -70,7 +70,8 @@ getIds = (username, callback)->
     [tmp, uid, gid] = stdout.match /^[^\d]+(\d+)[^\d]+(\d+)/
     callback null, {uid:+uid, gid:+gid}
 
-module.exports = new Kite 'sharedHosting'
+#module.exports = new Kite 'sharedHosting'
+class sharedHosting
 
   timeout:({timeout}, callback)->
     setTimeout (-> callback null, timeout), timeout
@@ -480,10 +481,9 @@ module.exports = new Kite 'sharedHosting'
     targetPath = "/Users/#{username}/Sites/#{domainName}"
 
     createDirs = ['-v','-p',targetPath]
-    copyFiles  = ['-v','-r',config.defaultVhostFiles+'/website',targetPath]
-    changeOwner = ['-v','-R',username+':'+username,targetPath+'/website']
+    copyFiles  = ['-v','-r',"#{config.defaultVhostFiles}/website",targetPath]
+    changeOwner = ['-v','-R',"#{username}:#{username}","#{targetPath}/website"]
 
-    log.debug changeOwner
     spawnWrapper = (command, args , callback)->
       wrapper = spawn command,args
       wrapperErr = ""
@@ -626,3 +626,12 @@ module.exports = new Kite 'sharedHosting'
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
  #                   log.info res; callback? null, res
 
+
+s = new sharedHosting
+options =
+  username: 'aleksey-m'
+  uid: 5339
+
+s.createVhost options,(err,res)->
+  console.log err if err?
+  console.log res if res?
