@@ -128,7 +128,8 @@ class StatusActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is("[data-paths~=body]")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:{}#@getData()
+      #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     link = @getData().link?.link_url
