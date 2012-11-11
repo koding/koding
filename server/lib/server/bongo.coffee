@@ -13,6 +13,7 @@ module.exports = new Bongo {
   mongo
   models: [
     'workers/social/lib/social/models/session.coffee'
+    'workers/social/lib/social/models/account.coffee'
     'workers/social/lib/social/models/guest.coffee'
   ].map (path)-> nodePath.join projectRoot, path
   mq: new Broker mqOptions
