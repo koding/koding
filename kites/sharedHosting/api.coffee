@@ -13,7 +13,7 @@ ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
 mkdirp    = require 'mkdirp'
 coffee    = require 'coffee-script'
-bash      = require 'koding-bash-user-glue'
+{bash}    = require 'koding-bash-user-glue'
 
 createTmpDir = require './createtmpdir'
 
