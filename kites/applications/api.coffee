@@ -10,6 +10,7 @@ log          = log4js.getLogger("[#{config.name}]")
 # Custom Libraries for this Kite
 {exec}       = require 'child_process'
 fs           = require 'fs'
+fse          = require 'fs.extra'
 mkdirp       = require 'mkdirp'
 createTmpDir = require './createtmpdir'
 
