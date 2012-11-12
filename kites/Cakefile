@@ -17,6 +17,13 @@ task 'cl3','runs dev kites',(options)->
     stderr  : process.stderr
     verbose : yes
 
+  processes.run
+    name    : "applications cake"
+    cmd     : "#{KODING_CAKE} ./applications -c config-dev run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
   processes.run
     name    : 'webterm kite'
@@ -35,7 +42,6 @@ task 'cl3','runs dev kites',(options)->
     verbose : yes
 
 
-
 task 'cl0', 'runs prod kites',(options)->
 
   processes.run
@@ -46,6 +52,13 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
 
+  processes.run
+    name    : "applications cake"
+    cmd     : "#{KODING_CAKE} ./applications -c config-prod run"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
   processes.run
     name    : 'webterm kite'
