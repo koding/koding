@@ -18,11 +18,13 @@ app = express()
 # this is a hack so express won't write the multipart to /tmp
 #delete express.bodyParser.parse['multipart/form-data']
 
-app.use express.bodyParser()
-app.use express.cookieParser()
-app.use express.session {"secret":"foo"}
-app.use express.compress()
-app.use express.static "#{projectRoot}/website/"
+app.configure ->
+  app.use express.cookieParser()
+  app.use express.session {"secret":"foo"}
+  app.use express.bodyParser()
+  app.use express.compress()
+  app.use express.static "#{projectRoot}/website/"
+
 #app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
@@ -55,9 +57,10 @@ app.get '/auth', (req, res)->
   {JSession} = koding.models
   channel = req.query?.channel
   return res.send 'user error', 400 unless channel?
-  clientId = req.cookies.clientid
+  clientId = req.cookies.clientId
   JSession.fetchSession clientId, (err, session)->
-    res.cookie 'clientId', session.clientId if session? and clientId isnt session?.clientId
+    if session? and clientId isnt session?.clientId
+      res.cookie 'clientId', session.clientId
     if err
       authenticationFailed(res, err)
     else
