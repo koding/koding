@@ -523,6 +523,7 @@ class KodingAppsController extends KDController
                 callback? err
               else
                 options =
+                  kiteName      : "applications"
                   method        : "installApp"
                   withArgs      :
                     owner       : acc.profile.nickname
