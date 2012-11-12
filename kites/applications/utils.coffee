@@ -21,6 +21,12 @@ safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
 escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
                                                                  .replace(/\s/g, '\\ ')
 
+makedirp = (path, username, callback)->
+  mkdirp path, (err)->
+    # It will just apply the chown for the latest dir
+    # Needs to FIX
+    chownr {path, username}, callback
+
 createAppsDir = (user, cb)->
   path = escapePath "/Users/#{user}/Applications"
   if not safeForUser user, path
@@ -61,4 +67,5 @@ module.exports.escapePath         = escapePath
 module.exports.createAppsDir      = createAppsDir
 module.exports.chownr             = chownr
 module.exports.getIds             = getIds
+module.exports.makedirp           = makedirp
 module.exports.AuthorizationError = AuthorizationError

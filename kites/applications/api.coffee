@@ -21,6 +21,7 @@ createTmpDir = require './createtmpdir'
  createAppsDir,
  chownr,
  getIds,
+ makedirp,
  AuthorizationError} = require './utils.coffee'
 
 # Dummy-Admins
