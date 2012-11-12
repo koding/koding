@@ -97,21 +97,27 @@ class StatusActivityItemView extends ActivityItemChild
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
-    link = @getData().link?.link_url
-    if link
 
-      links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      if links?
-        hasManyLinks = links.length > 1
-      else
-        hasManyLinks = no
+    # This code will remove single links from the text if they are located
+    # at the start or end of the line. However, since we defer the embed
+    # load, there is no way to be sure if the embed is there or not when
+    # shortening the link -> so i disabled it --arvid
 
-      isJustOneLink = str.trim() is link
-      endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
-      startsWithLink = str.trim().indexOf(link) is 0
+    # link = @getData().link?.link_url
+    # if link
 
-      if @embedBox.hasValidContent and not hasManyLinks and not isJustOneLink and (endsWithLink or startsWithLink)
-        str = str.replace link, ""
+    #   links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+    #   if links?
+    #     hasManyLinks = links.length > 1
+    #   else
+    #     hasManyLinks = no
+
+    #   isJustOneLink = str.trim() is link
+    #   endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
+    #   startsWithLink = str.trim().indexOf(link) is 0
+
+    #   if @embedBox.hasValidContent and not hasManyLinks and not isJustOneLink and (endsWithLink or startsWithLink)
+    #     str = str.replace link, ""
 
     str = @utils.applyTextExpansions str, yes
 
