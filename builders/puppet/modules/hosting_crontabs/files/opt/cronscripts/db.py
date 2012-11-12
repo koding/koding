@@ -87,7 +87,10 @@ class DbQuota(object):
                 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='%s'"""
        
        self.c.execute(sql % db)
-       return int(self.c.fetchone()[0])
+       dbSize = self.c.fetchone()[0]
+       if dbSize is None: # all tables has been removed by user (select returns NULL)
+           dbSize = 0
+       return int(dbSize)
        
 
     def killUsersSession(self,user):
