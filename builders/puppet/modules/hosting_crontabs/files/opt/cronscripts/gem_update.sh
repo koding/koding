@@ -12,5 +12,5 @@ done
 
 if [[ $rc -lt 2 ]]; then
     echo "updating gems"
-    cagefsctl --update
+    /usr/sbin/cagefsctl --update
 fi
