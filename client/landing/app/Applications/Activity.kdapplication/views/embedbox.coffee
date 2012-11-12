@@ -257,10 +257,11 @@ class EmbedBox extends KDView
     @setEmbedURL url
     @setEmbedCache cache unless cache is []
 
-    @hasValidContent = yes
 
     displayEmbedType=(embedType)=>
       # log "setting up", embedType, @getEmbedData()
+
+      @hasValidContent = yes
 
       embedOptions = _.extend {}, @options, {
         cssClass : "link-embed clearfix"

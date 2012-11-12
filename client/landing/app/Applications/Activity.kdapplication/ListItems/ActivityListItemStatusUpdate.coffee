@@ -30,14 +30,6 @@ class StatusActivityItemView extends ActivityItemChild
         $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
       element
 
-    # @$("a").hover (event)=>
-    #   originalUrl = $(event.target).attr "data-original-url"
-    #   if @embedBox.embedLinks.linkList.items.length > 1
-    #     for link,i in @embedBox.embedLinks.linkList.items
-    #       if link.getData().url is originalUrl
-    #         @embedBox.embedLinks.linkList.items[i].changeEmbed()
-    # , noop
-
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
@@ -52,11 +44,10 @@ class StatusActivityItemView extends ActivityItemChild
       if @getData().link?.link_url? and not (@getData().link.link_url is "")
 
         if not ("embed" in @getData()?.link?.link_embed_hidden_items)
-
           @embedBox.show()
           @embedBox.$().fadeIn 200
-
           firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+
           if firstUrl?
             @embedBox.embedLinks.setLinks firstUrl
 
@@ -64,23 +55,18 @@ class StatusActivityItemView extends ActivityItemChild
             maxWidth: 700
             maxHeight: 300
           }, =>
-
             @embedBox.setActiveLink @getData().link.link_url
-
+            unless @embedBox.hasValidContent
+              @embedBox.hide()
           , @getData().link.link_cache
 
-
           @embedBox.embedLinks.hide()
-
         else
           @embedBox.hide()
-
       else
         @embedBox.hide()
 
       @attachTooltipAndEmbedInteractivity()
-
-
 
   render:=>
     super
@@ -93,7 +79,7 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
       @embedBox.setEmbedImageIndex link.link_embed_image_index
       @embedBox.embedExistingData link.link_embed, {} ,=>
-        if "embed" in link.link_embed_hidden_items
+        if "embed" in link.link_embed_hidden_items or not @embedBox.hasValidContent
           @embedBox.hide()
       , link.link_cache
 
@@ -124,7 +110,7 @@ class StatusActivityItemView extends ActivityItemChild
       endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
       startsWithLink = str.trim().indexOf(link) is 0
 
-      if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
+      if @embedBox.hasValidContent and not hasManyLinks and not isJustOneLink and (endsWithLink or startsWithLink)
         str = str.replace link, ""
 
     str = @utils.applyTextExpansions str, yes
