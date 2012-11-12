@@ -2,9 +2,10 @@
 # Custom Libraries for this Util
 fs        = require 'fs'
 mkdirp    = require 'mkdirp'
-walk      = require 'walk'
+{walk}    = require 'walk'
 coffee    = require 'coffee-script'
 nodePath  = require 'path'
+{exec}    = require 'child_process'
 
 # Custom Auth Error
 class AuthorizationError extends Error
