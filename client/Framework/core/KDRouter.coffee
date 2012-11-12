@@ -29,6 +29,7 @@ class KDRouter extends KDObject
   stopListening:->
     return no  unless @isListening # make this action idempotent
     @isListening = no
+    # we need to remove the listener from the window's popstate event:
     window.removeEventListener 'popstate', @onpopstate
     return yes
 
