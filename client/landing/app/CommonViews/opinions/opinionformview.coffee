@@ -131,13 +131,13 @@ class OpinionFormView extends KDFormView
                 callback: -> modal.destroy()
 
     @heartBox = new HelpBox
-      subtitle : "About Discussions"
+      subtitle : "About Answers and Opinions"
       tooltip  :
         title  : "Click me for additional information"
       click :->
         modal = new KDModalView
           title          : "Additional information on Discussions"
-          content        : "<div class='modalformline signature'><h3>Hi!</h3><p>My name is Arvid, i just recently started to work for Koding and I am responsible for the implementation of Discussions.</p><p>Should you run into bugs, experience strange and/or unexpected behavior or have questions on how to use this feature, please don't hesitate to drop me a mail here: "+@utils.applyTextExpansions("@arvidkahl")+"</p><p>--arvid</p></div>"
+          content        : "<div class='modalformline signature'><p>Here you can edit your replies.</p></div>"
           height         : "auto"
           overlay        : yes
           buttons        :
