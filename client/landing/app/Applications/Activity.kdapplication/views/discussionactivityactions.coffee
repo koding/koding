@@ -47,12 +47,12 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
   pistachio:->
     """
-    {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}}
-    <span class='optional'>
-    {{> @shareLink}} ·
-    </span>
-    {{> @likeView}}
+      {{> @loader}}
+      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
+      <span class='optional'>
+      {{> @shareLink}} ·
+      </span>
+      {{> @likeView}}
     """
 
 
