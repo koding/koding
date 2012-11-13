@@ -122,16 +122,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable "JAccount", data.originId, (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
-        @listenTo
-          KDEventTypes        : "click"
-          listenedToInstance  : @editDiscussionLink
-          callback            : =>
+        @editDiscussionLink.on "click", =>
             if @editDiscussionForm?
               @editDiscussionForm?.destroy()
               delete @editDiscussionForm
@@ -162,10 +159,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               @$(".tutorial-body .data").hide()
               @embedBox.hide()
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteDiscussionLink
-          callback           : => @confirmDeleteDiscussion data
+        @deleteDiscussionLink.on "click", =>
+          @confirmDeleteTutorial data
 
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
@@ -242,7 +237,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     '<span class="opinion-count">'+countString+'</span>'
 
-  confirmDeleteDiscussion:(data)->
+  confirmDeleteTutorial:(data)->
 
     modal = new KDModalView
       title          : "Delete Tutorial"
@@ -261,7 +256,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               modal.destroy()
               unless err
                 @emit 'DiscussionIsDeleted'
-                @destroy()
+                @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
@@ -288,9 +284,9 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
-        @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
+        @embedBox.show() unless (("embed" in @embedBox.getEmbedHiddenItems()) or\
+                                 (@embedBox.hasValidContent is no))
       ,@getData().link.link_cache
-
 
   pistachio:->
     """
