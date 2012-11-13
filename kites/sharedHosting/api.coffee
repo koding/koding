@@ -5,70 +5,14 @@ log       = log4js.getLogger("[#{config.name}]")
 
 nodePath  = require 'path'
 {exec}    = require 'child_process'
-{spawn}    = require 'child_process'
+{spawn}   = require 'child_process'
 fs        = require 'fs'
-fse       = require 'fs.extra'
 hat       = require 'hat'
-os        = require 'os'
 ldap      = require 'ldapjs'
 Kite      = require 'kite-amqp'
-mkdirp    = require 'mkdirp'
-coffee    = require 'coffee-script'
 {bash}    = require 'koding-bash-user-glue'
 
 createTmpDir = require './createtmpdir'
-
-dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvid"]
-
-class AuthorizationError extends Error
-  constructor:(username, message)->
-    console.error "[AuthorizationError] User '#{username}' made something bad."
-    return new AuthorizationError(message) unless @ instanceof AuthorizationError
-    Error.call @
-    @message = message or "You are not authorized to do this."
-    @name = 'AuthorizationError'
-
-normalizeUserPath = (username, path)-> path?.replace(/\~/g, '/Users/#{username}')
-safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
-escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
-                                                                 .replace(/\s/g, '\\ ')
-
-makedirp = (path, user, cb)->
-  userInputs = [path, user, path]
-  exec bash("mkdir -p %s && chown %s: %s", userInputs), cb
-
-createAppsDir = (user, cb)->
-  path = escapePath "/Users/#{user}/Applications"
-  if not safeForUser user, path
-    cb new AuthorizationError user
-  else
-    makedirp path, user, cb
-
-chownr = (options, callback)->
-  {path, username, uid, gid} = options
-
-  letsWalk = (uid, gid)->
-    fs.chown path, uid, gid, (err)->
-      walker = fse.walk path
-      for type in ["file", "directory"]
-        walker.on type, (root, stat, next)->
-          filePath = nodePath.join root, stat.name
-          fs.chown filePath, uid, gid, (err)->
-            next() if not err
-      walker.on "end", callback
-
-  if not uid or not gid
-    getIds username, (err, {uid, gid})->
-      if not err then letsWalk uid, gid
-      else callback err
-  else
-    letsWalk uid, gid
-
-getIds = (username, callback)->
-  exec "/usr/bin/id #{username}", (err, stdout, stderr)->
-    callback err if err
-    [tmp, uid, gid] = stdout.match /^[^\d]+(\d+)[^\d]+(\d+)/
-    callback null, {uid:+uid, gid:+gid}
 
 module.exports = new Kite 'sharedHosting'
 
@@ -196,163 +140,6 @@ module.exports = new Kite 'sharedHosting'
               else
                 log.error error = "[ERROR] couldn't create default vhost for #{username}: #{err}"
                 callback? error
-
-  copyAppSkeleton:(options, callback)->
-    {username, appPath, type} = options
-
-    appPath = normalizeUserPath(username, escapePath "#{appPath}/")
-    type = "blank" if not type in ["blank", "sample"]
-
-    if safeForUser username, appPath
-      getIds options.username, (err, {uid, gid})->
-        if err
-          console.error err
-          callback err
-        else
-          fse.copy "/opt/Apps/.defaults/#{type}/README", "#{appPath}/README", (err)->
-            fse.copy "/opt/Apps/.defaults/#{type}/index.coffee", "#{appPath}/index.coffee", (err)->
-              fse.copyRecursive "/opt/Apps/.defaults/#{type}/resources", "#{appPath}/resources", (err)->
-                if err
-                  console.error err
-                  callback err
-                else
-                  chownr
-                    path : "#{appPath}/"
-                    uid  : uid
-                    gid  : gid
-                  , (err)->
-                    console.error err if err
-                    callback err
-    else
-      callback new AuthorizationError username
-
-  publishApp:(options, callback)->
-
-    {username, profile, version, appName, userAppPath} = options
-
-    if username not in dummyAdmins
-      callback? new AuthorizationError username
-      return no
-
-    # Put a check from api if user has the privilege
-
-    appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
-    latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
-    versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
-    userAppPath   = escapePath userAppPath
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    createAppsDir username, (err)->
-      makedirp appRootPath, username, (err)->
-        if err then cb err
-        else
-          exec bash("test -d %s", [versionedPath]), (err, stdout, stderr)->
-            unless err or stderr.length then cb "[ERROR] Version is already published, change version and try again!"
-            else
-              exec bash("cp -r %s %s", [userAppPath, versionedPath]), (err, stdout, stderr)->
-                if err or stderr then cb err
-                else
-                  manifestPath = "#{versionedPath}/.manifest"
-                  exec bash("cat %s", [manifestPath]), (err, stdout, stderr)->
-                    if err or stderr then cb err
-                    else
-                      exec bash("rm -f %s", [manifestPath]), ->
-                        manifest = JSON.parse stdout
-                        manifest.author = "#{profile.firstName} #{profile.lastName}"
-                        manifest.authorNick = username
-                        delete manifest.devMode if manifest.devMode
-                        unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
-                        fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
-
-  downloadApp: (options, callback)->
-
-    {username, owner, appName, version, appPath} = options
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    version   or= 'latest'
-    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
-    userAppPath = escapePath appPath
-    backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
-
-    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
-      callback? new AuthorizationError username
-      return false
-
-    exec bash("test -d %s", [kpmAppPath]), (err, stdout, stderr)->
-      if err or stderr.length
-        cb "[ERROR] App files not found! Download cancelled."
-      else
-        userInputs = [userAppPath, backupPath, kpmAppPath, userAppPath, userAppPath]
-        cmd = bash("mv %s %s && cp -r %s/ %s && chown -R #{username}: %s", userInputs)
-        exec cmd, (err, stdout, stderr)->
-          if err or stderr then cb err
-          else
-            cb null
-
-  installApp: (options, callback)->
-
-    {username, owner, appPath, appName, version} = options
-    version ?= 'latest'
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
-    appPath    = escapePath appPath
-
-    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, appPath
-      callback? new AuthorizationError username
-      return false
-
-    createAppsDir username, (err)->
-      makedirp appPath, username, (err)->
-        if err then cb err
-        else
-          userInputs = [kpmAppPath, appPath, kpmAppPath, appPath]
-          cmd1 = bash "cp %s/index.js %s && cp %s/.manifest %s", userInputs
-          exec cmd1, (err, stdout, stderr)->
-            if err or stderr.length
-              cb err or "[ERROR] #{stderr}"
-            else
-              cmd2 = bash "chown -R #{username}: %s", [appPath]
-              exec cmd2, (err, stdout, stderr)->
-                if err or stderr.length
-                  cb err or "[ERROR] #{stderr}"
-                else
-                  cb null
-
-  approveApp: (options, callback)->
-
-    {username, authorNick, version, appName} = options
-
-    if username not in dummyAdmins
-      callback? new AuthorizationError username
-      return no
-
-    appRootPath   = escapePath "/opt/Apps/#{authorNick}/#{appName}"
-    latestPath    = escapePath "/opt/Apps/#{authorNick}/#{appName}/latest"
-    versionedPath = escapePath "/opt/Apps/#{authorNick}/#{appName}/#{version}"
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    exec bash("test -d %s", [versionedPath]), (err, stdout, stderr)->
-      if err or stderr.length
-        cb "[ERROR] Version is not exists!", version
-      else
-        userInputs = [latestPath, versionedPath, latestPath]
-        cmd = bash "rm -f %s && ln -s %s %s", userInputs
-        exec cmd, (err, stdout, stderr)->
-          if err or stderr then cb err
-          else cb null
 
   createSystemUser : (options,callback)->
     #
@@ -624,6 +411,3 @@ module.exports = new Kite 'sharedHosting'
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
  #                   log.info res; callback? null, res
-
-
-
