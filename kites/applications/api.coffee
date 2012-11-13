@@ -25,7 +25,7 @@ createTmpDir = require './createtmpdir'
  AuthorizationError} = require './utils.coffee'
 
 # Dummy-Admins
-dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvid"]
+dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvidkahl"]
 
 module.exports = new Kite 'applications'
 
