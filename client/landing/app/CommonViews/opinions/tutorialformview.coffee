@@ -173,7 +173,7 @@ class TutorialFormView extends KDFormView
         value     : "markdown syntax is enabled"
       cssClass    : 'markdown-link'
       partial     : "What is Markdown?<span></span>"
-      click       : (pubInst, event)=>
+      click       : (event)=>
         if $(event.target).is 'span'
           link.hide()
         else
