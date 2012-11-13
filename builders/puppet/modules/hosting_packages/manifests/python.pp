@@ -11,6 +11,7 @@ class hosting_packages::python {
                         "python-virtualenv",
                         "python-setuptools",
                         "python-docutils",
+                        "python-pygments",
                       ]
     
     package { ["python","python27"]:
