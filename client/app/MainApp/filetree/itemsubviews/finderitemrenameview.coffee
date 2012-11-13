@@ -8,7 +8,7 @@ class NFinderItemRenameView extends JView
       defaultValue  : data.name
       type          : "text"
       callback      : (newValue)=> @emit "FinderRenameConfirmation", newValue
-      keyup         : (pubInst, event)=>
+      keyup         : (event)=>
         @emit "FinderRenameConfirmation", (data.name) if event.which is 27
 
     @getSingleton("windowController").addLayer @input
