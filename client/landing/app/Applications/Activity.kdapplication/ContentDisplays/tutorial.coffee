@@ -60,43 +60,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @newAnswers = 0
 
-    # Links to easily navigate to the bottom/top of the page
-    # These are useful since the opinions can be quite long, even when shortened
-    # visually, and the ease of access to the form at the bottom is
-    # paramount
-
-    # @jumpToReplyLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Reply Box"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
-
-    # @jumpToTopLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Top"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
-
-    ###
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
-    </div>
-    ###
-
-    # The static link box will be useful when we have implemented actual
-    # routing to the single ContentTypes
-
-    # @staticLinkBox = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Static Link"
-    #   attributes  :
-    #     href      : "/discussion/"+@utils.slugify data.title
-
     @actionLinks = new TutorialActivityActionsView
       delegate    : @opinionBox.opinionList
       cssClass    : "comment-header"
@@ -192,40 +155,42 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-    @listAnchorNext = new KDView
-      cssClass : "tutorial-anchor next"
-    @listAnchorPrevious = new KDView
-      cssClass : "tutorial-anchor previous"
-    @comingUpNextAnchor = new KDView
-      cssClass : "coming-up-next-anchor"
+    # Temporarily disabling Tutorial Lists
 
-    KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
-      if listData
-        for tutorial,i in listData.tutorials
-          if tutorial._id is @getData()._id
-            @position = i
-            @before = listData.tutorials[0...i]
-            @after = listData.tutorials[i+1..]
+    # @listAnchorNext = new KDView
+    #   cssClass : "tutorial-anchor next"
+    # @listAnchorPrevious = new KDView
+    #   cssClass : "tutorial-anchor previous"
+    # @comingUpNextAnchor = new KDView
+    #   cssClass : "coming-up-next-anchor"
 
-        # log @position,@before,@after
+    # KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
+    #   if listData
+    #     for tutorial,i in listData.tutorials
+    #       if tutorial._id is @getData()._id
+    #         @position = i
+    #         @before = listData.tutorials[0...i]
+    #         @after = listData.tutorials[i+1..]
 
-        if @after.length >0
-          @listAnchorNext.addSubView new TutorialListSwitchBox
-            direction:"next"
-            delegate:@
-          , @after[0]
+    #     # log @position,@before,@after
 
-          @comingUpNext = new KDCustomHTMLView
-            cssClass : "coming-up-next"
-            partial: "Coming up: "+@after[0].title
+    #     if @after.length >0
+    #       @listAnchorNext.addSubView new TutorialListSwitchBox
+    #         direction:"next"
+    #         delegate:@
+    #       , @after[0]
 
-          @comingUpNextAnchor.addSubView @comingUpNext
+    #       @comingUpNext = new KDCustomHTMLView
+    #         cssClass : "coming-up-next"
+    #         partial: "Coming up: "+@after[0].title
 
-        if @before.length >0
-          @listAnchorPrevious.addSubView new TutorialListSwitchBox
-            direction:"previous"
-            delegate:@
-          , @before[@before.length-1]
+    #       @comingUpNextAnchor.addSubView @comingUpNext
+
+    #     if @before.length >0
+    #       @listAnchorPrevious.addSubView new TutorialListSwitchBox
+    #         direction:"previous"
+    #         delegate:@
+    #       , @before[@before.length-1]
 
 
   opinionHeaderCountString:(count)=>
@@ -290,6 +255,12 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                                  (@embedBox.hasValidContent is no))
       ,@getData().link.link_cache
 
+            # <div class="tutorial-navigation-container clear clearfix">
+            #   {{> @listAnchorPrevious}}
+            #   {{> @comingUpNextAnchor}}
+            #   {{> @listAnchorNext}}
+            # </div>
+
   pistachio:->
     """
     {{> @header}}
@@ -314,11 +285,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
             {{> @embedBox}}
-            <div class="tutorial-navigation-container clear clearfix">
-              {{> @listAnchorPrevious}}
-              {{> @comingUpNextAnchor}}
-              {{> @listAnchorNext}}
-            </div>
             <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>

@@ -275,24 +275,24 @@ class ActivityUpdateWidgetController extends KDViewController
       {activity} = data
       delete data.activity
       activity.modify data, (err, tutorial)=>
-        if data.appendToList?
-          KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
-              unless existingList
-                KD.remote.api.JTutorialList.create
-                  title : "New List"
-                  body  : ""
-                , (err, list)=>
-                  if err then callback err
-                  else
-                    list.addItemById data.appendToList._id, (err)=>
-                      if err then log err
-                      list.addItemById tutorial._id, (err)=>
-                        if err then log err
-                        callback? err, tutorial, list
-              else
-                existingList.addItemById activity._id, (err,tutlist)=>
-                  if err then log err
-                  else callback? err, tutorial, tutlist
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById activity._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
         callback? err, tutorial
         unless err
           new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
@@ -303,28 +303,29 @@ class ActivityUpdateWidgetController extends KDViewController
         return notifySubmissionStopped()
       KD.remote.api.JTutorial.create data, (err, tutorial) =>
 
-        if data.appendToList?
-          KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
 
-              unless existingList
-                KD.remote.api.JTutorialList.create
-                  title : "New List"
-                  body  : ""
-                , (err, list)=>
-                  if err then callback err
-                  else
-                    list.addItemById data.appendToList._id, (err)=>
-                      if err then log err
-                      list.addItemById tutorial._id, (err)=>
-                        if err then log err
-                        callback? err, tutorial, list
-              else
-                existingList.addItemById tutorial._id, (err,tutlist)=>
-                  if err then log err
-                  else callback? err, tutorial, tutlist
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById tutorial._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
 
-        else
-            callback? err, tutorial
+        # else
+
+        callback? err, tutorial
         stopSubmission()
 
         if err

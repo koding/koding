@@ -207,98 +207,98 @@ class ActivityTutorialWidget extends KDFormView
       #           modal.buttons.Okay.hideLoader()
       #           modal.destroy()
 
-    @followupLink = new KDCustomHTMLView
-      tagName : "a"
-      attributes :
-        title : "If your tutorial is a followup, then select the previous video here."
-        href : "#"
-      cssClass : "followup-link"
-      partial : "Select a related Tutorial"
-      click:=>
+    # @followupLink = new KDCustomHTMLView
+    #   tagName : "a"
+    #   attributes :
+    #     title : "If your tutorial is a followup, then select the previous video here."
+    #     href : "#"
+    #   cssClass : "followup-link"
+    #   partial : "Select a related Tutorial"
+    #   click:=>
 
-        modal = new KDModalView
-          title : "Select the previous Tutorial"
-          content : ""
-          cssClass : "modal-select-tutorials"
-          height:400
-          width:600
-          overlay: yes
-          buttons :
-            Select :
-              style : "modal-clean-gray"
-              callback: =>
-                modal.destroy()
+    #     modal = new KDModalView
+    #       title : "Select the previous Tutorial"
+    #       content : ""
+    #       cssClass : "modal-select-tutorials"
+    #       height:400
+    #       width:600
+    #       overlay: yes
+    #       buttons :
+    #         Select :
+    #           style : "modal-clean-gray"
+    #           callback: =>
+    #             modal.destroy()
 
-        createFeed = (view)=>
-          appManager.tell 'Feeder', 'createContentFeedController', {
-            itemClass             : SelectableActivityListItemView
-            listControllerClass   : ActivityListController
-            listCssClass          : "activity-related"
-            noItemFoundText       : "You have not posted a Tutorial yet."
-            limitPerPage          : 8
-            delegate : @
-            filter                :
-              Tutorials          :
-                title             : "Tutorials"
-                optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
-                dataSource        : (selector, options, callback)=>
-                  if @_searchValue
+    #     createFeed = (view)=>
+    #       appManager.tell 'Feeder', 'createContentFeedController', {
+    #         itemClass             : SelectableActivityListItemView
+    #         listControllerClass   : ActivityListController
+    #         listCssClass          : "activity-related"
+    #         noItemFoundText       : "You have not posted a Tutorial yet."
+    #         limitPerPage          : 8
+    #         delegate : @
+    #         filter                :
+    #           Tutorials          :
+    #             title             : "Tutorials"
+    #             optional_title    : if @_searchValue then "<span class='optional_title'></span>" else null
+    #             dataSource        : (selector, options, callback)=>
+    #               if @_searchValue
 
-                    selector.originId = KD.whoami().getId()
-                    selector.type = $in: [
-                      'CTutorialActivity'
-                    ]
-                    selector.snapshot = {$regex : ".*#{@_searchValue}.*", $options : "i"}
-                    appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-                      callback null, data
-                    # # KD.remote.api.JTutorial.byRelevance @_searchValue, options, callback
-                  else
-                    selector.originId = KD.whoami().getId()
-                    selector.type = $in: [
-                      'CTutorialActivity'
-                    ]
-                    appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-                      callback null, data
-            sort                  :
-              'sorts.likesCount'  :
-                title             : "Most popular"
-                direction         : -1
-              'modifiedAt'        :
-                title             : "Latest activity"
-                direction         : -1
-              'sorts.repliesCount':
-                title             : "Most activity"
-                direction         : -1
-              # and more
-          }, (controller)=>
-            #put listeners here, look for the other feeder instances
+    #                 selector.originId = KD.whoami().getId()
+    #                 selector.type = $in: [
+    #                   'CTutorialActivity'
+    #                 ]
+    #                 selector.snapshot = {$regex : ".*#{@_searchValue}.*", $options : "i"}
+    #                 appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+    #                   callback null, data
+    #                 # # KD.remote.api.JTutorial.byRelevance @_searchValue, options, callback
+    #               else
+    #                 selector.originId = KD.whoami().getId()
+    #                 selector.type = $in: [
+    #                   'CTutorialActivity'
+    #                 ]
+    #                 appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
+    #                   callback null, data
+    #         sort                  :
+    #           'sorts.likesCount'  :
+    #             title             : "Most popular"
+    #             direction         : -1
+    #           'modifiedAt'        :
+    #             title             : "Latest activity"
+    #             direction         : -1
+    #           'sorts.repliesCount':
+    #             title             : "Most activity"
+    #             direction         : -1
+    #           # and more
+    #       }, (controller)=>
+    #         #put listeners here, look for the other feeder instances
 
-            # unless KD.isMine account
-            #   @listenTo
-            #     KDEventTypes       : "mouseenter"
-            #     listenedToInstance : controller.getView()
-            #     callback           : => @mouseEnterOnFeed()
-            # log controller
-           @_lastSubView = controller.getView()
+    #         # unless KD.isMine account
+    #         #   @listenTo
+    #         #     KDEventTypes       : "mouseenter"
+    #         #     listenedToInstance : controller.getView()
+    #         #     callback           : => @mouseEnterOnFeed()
+    #         # log controller
+    #        @_lastSubView = controller.getView()
 
-           view.addSubView @_lastSubView
-           @_lastSubView.on "setSelectedData", (selectedData)=>
-             @selectedData = selectedData
-             @followupLink.updatePartial "Linked with '"+selectedData.title+"'"
+    #        view.addSubView @_lastSubView
+    #        @_lastSubView.on "setSelectedData", (selectedData)=>
+    #          @selectedData = selectedData
+    #          @followupLink.updatePartial "Linked with '"+selectedData.title+"'"
 
-        loadView = (mainView, firstRun = yes)=>
-          if firstRun
-            mainView.on "searchFilterChanged", (value) =>
-              return if value is @_searchValue
-              @_searchValue = value
-              @_lastSubView.destroy?()
-              loadView mainView, no
-            mainView.addSubView header = new HeaderViewSection type : "small", title : "Tutorials"
-            header.setSearchInput()
+    #     loadView = (mainView, firstRun = yes)=>
+    #       if firstRun
+    #         mainView.on "searchFilterChanged", (value) =>
+    #           return if value is @_searchValue
+    #           @_searchValue = value
+    #           @_lastSubView.destroy?()
+    #           loadView mainView, no
+    #         mainView.addSubView header = new HeaderViewSection type : "small", title : "Tutorials"
+    #         header.setSearchInput()
 
-          createFeed mainView
+    #       createFeed mainView
 
-        loadView modal, yes
+    #     loadView modal, yes
 
 
     @selectedItemWrapper = new KDCustomHTMLView
@@ -359,8 +359,8 @@ class ActivityTutorialWidget extends KDFormView
         link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
 
-    if @selectedData?
-      @addCustomData "appendToList", @selectedData
+    # if @selectedData?
+    #   @addCustomData "appendToList", @selectedData
 
     super
 
@@ -392,6 +392,7 @@ class ActivityTutorialWidget extends KDFormView
 
     fillForm()
 
+            # {{> @followupLink}}
   pistachio:->
     """
     <div class="form-actions-mask">
@@ -415,7 +416,6 @@ class ActivityTutorialWidget extends KDFormView
           <div>
             {{> @inputContent}}
             <div class="discussion-widget-content">
-            {{> @followupLink}}
             {{> @markdownLink}}
             {{> @fullScreenBtn}}
             </div>
