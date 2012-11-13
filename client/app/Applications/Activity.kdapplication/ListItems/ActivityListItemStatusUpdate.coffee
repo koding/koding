@@ -78,10 +78,14 @@ class StatusActivityItemView extends ActivityItemChild
         @embedBox = new EmbedBox @embedOptions, link
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
       @embedBox.setEmbedImageIndex link.link_embed_image_index
-      @embedBox.embedExistingData link.link_embed, {} ,=>
-        if "embed" in link.link_embed_hidden_items or not @embedBox.hasValidContent
-          @embedBox.hide()
-      , link.link_cache
+
+      # render embedBox only when the embed changed, else there will be ugly
+      # re-rendering (particularly of the image)
+      unless @embedBox.getEmbedData() is link.link_embed
+        @embedBox.embedExistingData link.link_embed, {} ,=>
+          if "embed" in link.link_embed_hidden_items or not @embedBox.hasValidContent
+            @embedBox.hide()
+        , link.link_cache
 
       @embedBox.setActiveLink link.link_url
 
