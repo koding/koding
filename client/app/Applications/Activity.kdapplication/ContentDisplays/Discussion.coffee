@@ -138,7 +138,6 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                       title : "Your changes weren't saved."
                       type  : "mini"
                   else
-                    @emit "DiscussionWasEdited", discussion
                     @editDiscussionForm.setClass "hidden"
                     @$(".discussion-body .data").show()
             , data
@@ -241,8 +240,9 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'DiscussionIsDeleted'
                 @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                @utils.wait 2000, =>
+                  @destroy()
 
               else new KDNotificationView
                 type     : "mini"

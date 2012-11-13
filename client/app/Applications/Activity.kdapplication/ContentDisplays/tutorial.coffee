@@ -141,18 +141,17 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 cssClass      : "edit-tutorial-form"
                 delegate      : @
                 callback      : (data)=>
-                  @getData().modify data, (err, discussion) =>
+                  @getData().modify data, (err, tutorial) =>
                     callback? err, opinion
                     if err
                       new KDNotificationView
                         title : "Your changes weren't saved."
                         type  : "mini"
                     else
-                      @emit "DiscussionWasEdited", discussion
                       @editDiscussionForm.setClass "hidden"
                       @$(".tutorial-body .data").show()
                       @utils.wait =>
-                        @embedBox.show()
+                        @embedBox.show() if @embedBox.hasValidContent
               , data
 
               @addSubView @editDiscussionForm, "p.tutorial-body", yes
@@ -202,12 +201,14 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
       if listData
-        # @listInfo.updatePartial "In list '#{listData.title}'"
         for tutorial,i in listData.tutorials
           if tutorial._id is @getData()._id
             @position = i
             @before = listData.tutorials[0...i]
             @after = listData.tutorials[i+1..]
+
+        # log @position,@before,@after
+
         if @after.length >0
           @listAnchorNext.addSubView new TutorialListSwitchBox
             direction:"next"
@@ -255,8 +256,9 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'DiscussionIsDeleted'
                 @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                @utils.wait 2000, =>
+                  @destroy()
 
               else new KDNotificationView
                 type     : "mini"
@@ -365,11 +367,11 @@ class TutorialListSwitchBox extends KDView
         animate : no
         className : "tutorial-video"
       callback:=>
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
   click:->
     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
-    appManager.tell "Activity", "createContentDisplay", @getData()
+    unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended:->
     super()
