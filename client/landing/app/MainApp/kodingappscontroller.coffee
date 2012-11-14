@@ -215,7 +215,7 @@ class KodingAppsController extends KDController
 
   defineApp:(name, script)->
 
-    KDApps[name] = script
+    KDApps[name] = script if script
 
   getAppScript:(manifest, callback = noop)->
 
