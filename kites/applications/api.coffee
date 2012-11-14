@@ -118,23 +118,21 @@ module.exports = new Kite 'applications'
     if safeForUser username, appPath
       getIds options.username, (err, {uid, gid})->
         if err
-          console.error err
+          log.error err
           callback err
         else
+          # FIXME GG when you fix copy recursive
           fse.copy "/opt/Apps/.defaults/#{type}/README", "#{appPath}/README", (err)->
             fse.copy "/opt/Apps/.defaults/#{type}/index.coffee", "#{appPath}/index.coffee", (err)->
               fse.copyRecursive "/opt/Apps/.defaults/#{type}/resources", "#{appPath}/resources", (err)->
                 if err
-                  console.error err
+                  log.error err
                   callback err
                 else
-                  chownr
-                    path : "#{appPath}/"
-                    uid  : uid
-                    gid  : gid
-                  , (err)->
-                    console.error err if err
+                  chownr {uid, gid, path : "#{appPath}/"}, (err)->
                     callback err
+                    if not err then log.info "User : [#{username}] created a new app!"
+                    else log.error err
     else
       callback new AuthorizationError username
 
