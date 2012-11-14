@@ -26,7 +26,7 @@ class AuthorizationError extends Error
 # General Purpose Error
 class KodingError extends Error
   constructor:(message, details)->
-    # log.error details if details
+    log.error message, details
     return new KodingError(message) unless @ instanceof KodingError
     Error.call @
     @message = message
