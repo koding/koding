@@ -1,0 +1,2 @@
+#!/bin/sh
+umount /var/lib/lxc/{{.}}/rootfs
