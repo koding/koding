@@ -1,4 +1,11 @@
 
+# Config
+config    = require './config'
+
+# Logger
+log4js    = require 'log4js'
+log       = log4js.getLogger("[#{config.name}]")
+
 # Custom Libraries for this Util
 fs        = require 'fs'
 mkdirp    = require 'mkdirp'
@@ -16,7 +23,17 @@ class AuthorizationError extends Error
     @message = message or "You are not authorized to do this."
     @name = 'AuthorizationError'
 
-normalizeUserPath = (username, path)-> path?.replace(/\~/g, '/Users/#{username}')
+# General Purpose Error
+class KodingError extends Error
+  constructor:(message, details)->
+    # log.error details if details
+    return new KodingError(message) unless @ instanceof KodingError
+    Error.call @
+    @message = message
+    @details = details if details
+    @name = 'KodingError'
+
+normalizeUserPath = (username, path)-> path?.replace(/\~/g, "/Users/#{username}")
 safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
 escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
                                                                  .replace(/\s/g, '\\ ')
@@ -27,12 +44,12 @@ makedirp = (path, username, callback)->
     # Needs to FIX
     chownr {path, username}, callback
 
-createAppsDir = (user, cb)->
-  path = escapePath "/Users/#{user}/Applications"
-  if not safeForUser user, path
-    cb new AuthorizationError user
+createAppsDir = (username, cb)->
+  path = escapePath "/Users/#{username}/Applications"
+  if not safeForUser username, path
+    cb new AuthorizationError username
   else
-    makedirp path, user, cb
+    makedirp path, username, cb
 
 chownr = (options, callback)->
   {path, username, uid, gid} = options
