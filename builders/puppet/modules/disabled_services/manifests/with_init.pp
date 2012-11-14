@@ -6,7 +6,6 @@ class disabled_services::with_init {
         "auditd",
         "rhnsd",
         "smartd",
-        "cpuspeed",
         "acpid",
         "ip6tables",
         "kdump",
@@ -14,7 +13,9 @@ class disabled_services::with_init {
     ]
 
     service { $disabled:
-        ensure => "false",
+	    provider => 'redhat',
+        ensure => 'stopped',
+	    enable => 'false',
     }
     
 
