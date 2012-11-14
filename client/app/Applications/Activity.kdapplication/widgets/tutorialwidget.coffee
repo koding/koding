@@ -51,7 +51,7 @@ class ActivityTutorialWidget extends KDFormView
 
             @inputTutorialEmbedLink.setValue @sanitizeUrls @inputTutorialEmbedLink.getValue()
 
-            url = @inputTutorialEmbedLink.getValue()
+            url = @inputTutorialEmbedLink.getValue().trim()
 
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
@@ -170,6 +170,7 @@ class ActivityTutorialWidget extends KDFormView
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
     @inputContent.setValue ''
+    @inputTutorialEmbedShowLink.setValue off
     @embedBox.resetEmbedAndHide()
     super
 
