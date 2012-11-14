@@ -1726,14 +1726,47 @@ div.kdinputwithpreview.input_preview
     border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
     height            23px
     width             auto
+    min-width         auto
 
     &.content-hidden
       rounded         4px
       border          1px solid
       top             5px
       right           0px
-      height 24px
+      height          24px
       border-color    #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+      width           auto
+      min-width       auto
+      white-space     nowrap
+
+    a.markdown-link
+      noTextDeco()
+      font-weight     600
+      color           #ff9200
+      font-size       11px
+      margin-right    10px
+      margin-left     2px
+      vertical-align  baseline
+      line-height     19px
+
+    button.fullscreen-button
+      float           none
+      margin-top      2px
+      height          16px
+      padding         0px 3px
+      line-height     10px
+      margin-right    10px
+
+      span
+        font-size     9px
+        text-transform uppercase
+        padding       0
+        margin        0
+        color         #8c8c8c
+        vendor        transition, color 0.3s linear
+        &:hover
+          color       #5f5f5f
+
 
     label.preview_switch_label
       color           #ff9200
@@ -1828,7 +1861,7 @@ div.kdinputwithpreview.input_preview
     borderBox()
     border            1px solid
     border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
-    padding           10px
+    padding           20px 10px 10px 10px
     rounded           4px
     max-height        300px
     min-height        24px
