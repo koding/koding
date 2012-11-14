@@ -1,6 +1,17 @@
 class KodingRouter extends KDRouter
 
-  constructor:-> super getRoutes.call this
+  constructor:(defaultRoute)->
+    console.log 'default route', defaultRoute
+    @openRoutes = {}
+    @openRoutesById = {}
+    KD.getSingleton('contentDisplayController')
+      .on 'ContentDisplayIsDestroyed', @cleanupRoute.bind @
+    super getRoutes.call this
+
+    @on 'AlreadyHere', -> new KDNotificationView title: "You're already here!"
+
+  cleanupRoute:(contentDisplay)->
+    delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   handleRoute =(groupId, route)->
     console.log 'invoking a route by group id...'
@@ -13,15 +24,62 @@ class KodingRouter extends KDRouter
   handleRoot =->
     KD.getSingleton("contentDisplayController").hideAllContentDisplays()
     #appManager.openApplication null
-
+  
   go =(app, group, rest...)->
     unless group?
       appManager.openApplication app
     else
       appManager.tell app, 'setGroup', group
 
+  stripTemplate =(str, konstructor)->
+    {slugTemplate} = konstructor
+    slugRe = /^(.+)?(#\{slug\})(.+)?$/
+    re = RegExp slugTemplate.replace slugRe, (tmp, begin, slug, end)->
+      "^#{begin ? ''}(.*)#{end ? ''}$"
+    str.match(re)[1]
+
+  openContent:(name, section, state, route)->
+    appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
+      @openRoutes[route] = contentDisplay
+      @openRoutesById[contentDisplay.id] = route
+
+  loadContent:(name, section, slug, route)->
+    KD.remote.api.JName.one {name: route}, (err, name)=>
+      if err
+        new KDNotificationView title: err?.message or 'An unknown error has occured.'
+      else if name?
+        {constructorName, usedAsPath} = name
+        selector = {}
+        konstructor = KD.remote.api[constructorName]
+        slug = stripTemplate route, konstructor
+        selector[usedAsPath] = slug
+        konstructor?.one selector, (err, model)=>
+          console.log 'argz', arguments, selector
+          @openContent name, section, model, route
+      else
+        @handleNotFound route
+    #konstructor = KD.getContentConstructor section
+    # appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
+    #   @openRoutes[route] = contentDisplay
+    #   @openRoutesById[contentDisplay.id] = route
+
+  createContentDisplayHandler:(section)->
+    ({name, topicSlug}, state, route)->
+      contentDisplay = @openRoutes[route]
+      if contentDisplay?
+        KD.getSingleton("contentDisplayController")
+          .hideAllContentDisplays contentDisplay
+      else
+        appManager.tell section, 'setGroup', name  if name?
+        if state?
+          @openContent name, section, state, route
+        else
+          @loadContent name, section, topicSlug, route
+
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
+
+    {stayOpen} = KDRouter
     
     routes =
 
@@ -35,19 +93,9 @@ class KodingRouter extends KDRouter
       '/:name?/Develop'    : ({name})->  go 'StartTab'  , name
       '/:name?/Apps'       : ({name})->  go 'Apps'      , name
 
-      '/:name?/Topics/:topicSlug': ({name, topicSlug}, state)->
-        appManager.tell 'Topics', 'setGroup', name  if name?
-        if state?
-          appManager.tell 'Topics', 'createContentDisplay', state
-        else
-          console.log 'no state object was provided.'
+      '/:name?/Topics/:topicSlug': @createContentDisplayHandler 'Topics'
 
-      '/:name?/Activity/:activitySlug': ({name, activitySlug}, state)->
-        appManager.tell 'Activity', 'setGroup', name  if name?
-        if state?
-          appManager.tell 'Activity', 'createContentDisplay', state
-        else
-          console.log 'no state object was provided.'
+      '/:name?/Activity/:activitySlug': @createContentDisplayHandler 'Activity'
 
       '/recover/:recoveryToken': ({recoveryToken})->
         mainController.appReady ->

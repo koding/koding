@@ -53,7 +53,8 @@ class ApplicationManager extends KDObject
   openApplication:do->
     openAppHandler =(appInstance, path, doBringToFront, callback)->
       @emit "AppManagerOpensAnApplication", appInstance
-      @utils.defer -> callback? appInstance
+      if 'function' is typeof callback
+        @utils.defer -> callback appInstance
       if doBringToFront
         appManager.setFrontApp path
         appInstance.bringToFront()
@@ -171,13 +172,8 @@ class ApplicationManager extends KDObject
     appManager = @
     environment = @getEnvironment()
     [path, appInstance, callback, initFunctionName] = arguments unless callback?
-    @createAppInitializationQueue path
-
     initFunction = appInstance[initFunctionName] or -> arguments[1]()
-
-    initFunction.call appInstance, {environment}, ->
-      appManager.fireAppInitializationQueue.call appManager, path, appInstance
-      callback appInstance
+    initFunction.call appInstance, {environment}, -> callback appInstance
     appManager.passStorageToApp path, null, appInstance, ->
 
   addAppInstance:(path, instance)->
@@ -196,27 +192,11 @@ class ApplicationManager extends KDObject
     delete @openedInstances[path]
     delete @appInitializationQueue[path]
 
-  createAppInitializationQueue:(path)->
-    @appInitializationQueue[path] = []
-
-  getAppInitializationQueue:(path)->
-    @appInitializationQueue[path]
-
   waitForAppInitialization:(path, callback)->
-    if (callbackQueue = @getAppInitializationQueue path)?
-      callbackQueue.push (appInstance)->
-        callback appInstance
-      return yes
-    else if (appInstance = @getAppInstance path)?
+    if (appInstance = @getAppInstance path)?
       callback appInstance
       return yes
     return no
-
-  fireAppInitializationQueue:(path, appInstance)->
-    if (queue = @getAppInitializationQueue path)?
-      for callback in queue
-        callback appInstance
-      delete @appInitializationQueue[path]
 
   getAppViews:(path)->
 
