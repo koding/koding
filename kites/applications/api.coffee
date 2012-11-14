@@ -65,6 +65,27 @@ compileScript = (scriptPath, callback)->
 
 module.exports = new Kite 'applications'
 
+  installApp: (options, callback)->
+
+    {username, owner, appPath, appName, version} = options
+
+    version   or= 'latest'
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    userAppPath = escapePath appPath
+
+    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
+      callback? new AuthorizationError username
+      return false
+
+    fs.exists kpmAppPath, (exists)->
+      if not exists then callback? new KodingError "App files not found! Install cancelled."
+      else
+        executeCommand {username, command: "mkdir -p #{userAppPath}"}, (err)->
+          if err then new KodingError "Cannot create Application directory", userAppPath
+          else
+            fse.copy "#{kpmAppPath}/index.js", "#{userAppPath}/index.js", (err)->
+              fse.copy "#{kpmAppPath}/.manifest", "#{userAppPath}/.manifest", (err)->
+                chownr {username, path: userAppPath}, callback
   copyAppSkeleton:(options, callback)->
     {username, appPath, type} = options
 
@@ -161,36 +182,6 @@ module.exports = new Kite 'applications'
           else
             cb null
 
-  installApp: (options, callback)->
-
-    {username, owner, appPath, appName, version} = options
-    version ?= 'latest'
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    kpmAppPath = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
-    appPath    = escapePath appPath
-
-    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, appPath
-      callback? new AuthorizationError username
-      return false
-
-    createAppsDir username, (err)->
-      makedirp appPath, username, (err)->
-        if err then cb err
-        else
-          exec "cp #{kpmAppPath}/index.js #{appPath} && cp #{kpmAppPath}/.manifest #{appPath}", (err, stdout, stderr)->
-            if err or stderr.length
-              cb err or "[ERROR] #{stderr}"
-            else
-              exec "chown -R #{username}: #{appPath}", (err, stdout, stderr)->
-                if err or stderr.length
-                  cb err or "[ERROR] #{stderr}"
-                else
-                  cb null
-
   approveApp: (options, callback)->
 
     {username, authorNick, version, appName} = options
@@ -214,4 +205,3 @@ module.exports = new Kite 'applications'
         exec "rm -f #{latestPath} && ln -s #{versionedPath} #{latestPath}", (err, stdout, stderr)->
           if err or stderr then cb err
           else cb null
-
