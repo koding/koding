@@ -327,6 +327,7 @@ class KodingAppsController extends KDController
       manifest        = @constructor.manifests[appName]
       userAppPath     = getAppPath manifest
       options         =
+        kiteName      : "applications"
         method        : "publishApp"
         withArgs      :
           version     : manifest.version
@@ -367,6 +368,7 @@ class KodingAppsController extends KDController
       return no
 
     options         =
+      kiteName      : "applications"
       method        : "approveApp"
       withArgs      :
         version     : app.manifest.version
@@ -588,18 +590,6 @@ class KodingAppsController extends KDController
               contents  : manifestStr
           , cb
 
-        # if isBlank
-        #   stack.push (cb)=>
-        #     @kiteController.run
-        #       method      : "uploadFile"
-        #       withArgs    :
-        #         path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-        #         contents  : """
-        #                       do->
-
-        #                     """
-        #     , cb
-
         stack.push (cb)=>
           @kiteController.run
             method      : "uploadFile"
@@ -656,34 +646,34 @@ class KodingAppsController extends KDController
           callback? null
 
 
-  cloneApp:(path, callback)->
+  # cloneApp:(path, callback)->
 
-    @fetchApps (err, manifests = {})=>
-      if err
-        warn err
-        new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-        callback? err
-      else
-        manifest = getManifestFromPath path
+  #   @fetchApps (err, manifests = {})=>
+  #     if err
+  #       warn err
+  #       new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+  #       callback? err
+  #     else
+  #       manifest = getManifestFromPath path
 
-        {repo} = manifest
+  #       {repo} = manifest
 
-        if /^git/.test repo      then repoType = "git"
-        else if /^svn/.test repo then repoType = "svn"
-        else if /^hg/.test repo  then repoType = "hg"
-        else
-          err = "Unsupported repository specified, quitting!"
-          new KDNotificationView type : "mini", title : err
-          callback? err
-          return no
+  #       if /^git/.test repo      then repoType = "git"
+  #       else if /^svn/.test repo then repoType = "svn"
+  #       else if /^hg/.test repo  then repoType = "hg"
+  #       else
+  #         err = "Unsupported repository specified, quitting!"
+  #         new KDNotificationView type : "mini", title : err
+  #         callback? err
+  #         return no
 
-        appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
-        appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
+  #       appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
+  #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
 
-        @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
-          if err then warn err
-          @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
-            if err then warn err
-            else
-              log response, "App cloned!"
-            callback? err, response
+  #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
+  #         if err then warn err
+  #         @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
+  #           if err then warn err
+  #           else
+  #             log response, "App cloned!"
+  #           callback? err, response
