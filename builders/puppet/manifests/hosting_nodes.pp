@@ -29,6 +29,7 @@ node hosting inherits base {
     include traffcalc
     include rsyslog
     include nfs_server
+    include disabled_services
 
     
     if $nodeuser {
