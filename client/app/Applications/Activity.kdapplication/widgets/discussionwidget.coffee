@@ -89,6 +89,7 @@ class ActivityDiscussionWidget extends KDFormView
     @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
     super
 
   viewAppended:()->
