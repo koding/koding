@@ -233,12 +233,18 @@ module.exports = new Kite 'applications'
 
                   else if _has_code
                     compiledFilePath = nodePath.join appRootPath, 'index.js'
-                    _final = pistachioc _final
+                    _pistachio_compiled = yes
+                    try
+                      _final = pistachioc _final
+                    catch e
+                      _pistachio_compiled = no
+                      callback new KodingError "Template engine failed to compile app", e.message
 
-                    fs.writeFile compiledFilePath, _final, (err)->
-                      if err then callback new KodingError "App compiled successfully but writing compiled file failed.", err
-                      else
-                        chownr {username, path: compiledFilePath}, callback
+                    if _pistachio_compiled
+                      fs.writeFile compiledFilePath, _final, (err)->
+                        if err then callback new KodingError "App compiled successfully but writing compiled file failed.", err
+                        else
+                          chownr {username, path: compiledFilePath}, callback
                   else
                     callback null
 
