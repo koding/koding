@@ -316,35 +316,6 @@ class KodingAppsController extends KDController
         log "App to run:", name
         callback?()
 
-  addScript:(app, scriptInput, callback)->
-
-    scriptPath = "#{getAppPath(app)}/#{scriptInput}"
-    if /^\.\//.test scriptInput
-      @kiteController.run "cat #{escapeFilePath scriptPath}", (err, response)=>
-        if err then warn err
-
-        if /.coffee$/.test scriptInput
-          require ["coffee-script"], (coffee)->
-            js = coffee.compile response, { bare : yes }
-            callback err, js
-        else
-          callback err, response
-    else
-      callback null, scriptInput
-
-  saveCompiledApp:(app, script, callback)->
-
-    @getSingleton("kiteController").run
-      method        : "uploadFile"
-      withArgs    : {
-        path      : escapeFilePath "#{getAppPath app}/index.js"
-        contents  : script
-      }
-    , (err, response)=>
-      if err then warn err
-      # log response, "App saved!"
-      callback?()
-
   publishApp:(path, callback)->
 
     if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
