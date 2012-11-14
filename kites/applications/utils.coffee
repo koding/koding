@@ -77,12 +77,25 @@ getIds = (username, callback)->
     [tmp, uid, gid] = stdout.match /^[^\d]+(\d+)[^\d]+(\d+)/
     callback null, {uid:+uid, gid:+gid}
 
+slugify = (title = "")->
+  url = title
+    .toLowerCase()                # change everything to lowercase
+    .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
+    .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen
+    .replace(/[^a-z0-9-]+/g, "")  # remove all non-alphanumeric characters except the hyphen
+    .replace(/[-]+/g, "-")        # replace multiple instances of the hyphen with a single instance
+    .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
+
 # Export them'all
-module.exports.normalizeUserPath  = normalizeUserPath
-module.exports.safeForUser        = safeForUser
-module.exports.escapePath         = escapePath
-module.exports.createAppsDir      = createAppsDir
-module.exports.chownr             = chownr
-module.exports.getIds             = getIds
-module.exports.makedirp           = makedirp
-module.exports.AuthorizationError = AuthorizationError
+exports.normalizeUserPath  = normalizeUserPath
+exports.safeForUser        = safeForUser
+exports.escapePath         = escapePath
+exports.createAppsDir      = createAppsDir
+exports.chownr             = chownr
+exports.getIds             = getIds
+exports.makedirp           = makedirp
+exports.slugify            = slugify
+
+# Errors
+exports.KodingError        = KodingError
+exports.AuthorizationError = AuthorizationError
