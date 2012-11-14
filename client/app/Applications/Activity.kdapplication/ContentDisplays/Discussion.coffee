@@ -42,6 +42,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       callback        : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
+          @opinionForm.reset()
           @opinionForm.submitOpinionBtn.hideLoader()
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
