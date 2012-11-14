@@ -35,7 +35,9 @@ module.exports = class JName extends Model
     nameDoc = new @ {name, constructorName, usedAsPath}
     nameDoc.save (err)->
       if err?.code is 11000
-        callback new KodingError "The name #{name} is not available."
+        err = new KodingError "The name #{name} is not available."
+        err.code = 11000
+        callback err
       else if err
         callback err
       else

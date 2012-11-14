@@ -12,14 +12,43 @@ module.exports = class Slugifiable
       .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
       .substr 0, 256                # limit these to 256-chars (pre-suffix), for sanity
 
-  generateUniqueSlug =(constructor, slug, i, callback)->
-    candidate = "#{slug}#{i or ''}"
-    constructor.count slug: candidate, (err, count)->
+  generateUniqueSlug =(konstructor, slug, i, template, callback)->
+    [callback, template] = [template, callback]  unless callback
+    template or= '#{slug}'
+    JName = require '../models/name'
+    nameRE = RegExp "^#{template.replace '#\{slug\}', slug}(-\\d+)?$"
+    selector = {name:nameRE}
+    JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
-      else if count > 0
-        generateUniqueSlug constructor, slug, ++i, callback
-      else
-        callback null, candidate
+      else cursor.nextObject (err, doc)->
+        if err then callback err
+        else
+          nextCount =\
+            if doc?
+              {name} = doc
+              lastCount = (name.match(/\-(\d)*$/) ? [])[1] ? 0
+              "-#{++lastCount}"
+            else ''
+          nextName = "#{slug}#{nextCount}"
+          nextNameFull = template.replace '#{slug}', nextName
+          # selector = {name: nextName, constructorName, usedAsPath: 'slug'}
+          JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
+            if err?.code is 11000
+              # we lost the race; try again
+              console.log 'did i lose the race?'
+              generateUniqueSlug konstructor, slug, template, callback
+            else if err
+              callback err
+            else
+              callback null, nextName
+
+    # candidate = "#{slug}#{i or ''}"
+    # constructor.count slug: candidate, (err, count)->
+    #   if err then callback err
+    #   else if count > 0
+    #     generateUniqueSlug constructor, slug, ++i, callback
+    #   else
+    #     callback null, candidate
 
   @updateAllSlugs = (options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -34,9 +63,10 @@ module.exports = class Slugifiable
           cursor.each (err, post)->
             if err then postQueue.next err
             else if post?
-              postQueue.push -> post.updateSlug (err, slug)->
-                callback err, slug
-                postQueue.next()
+              postQueue.push ->
+                post.updateSlug subclass.slugTemplate, (err, slug)->
+                  callback err, slug
+                  postQueue.next()
             else
               daisy postQueue, -> contentTypeQueue.fin()
     dash contentTypeQueue, callback
@@ -47,8 +77,9 @@ module.exports = class Slugifiable
       else @update $set:{slug, slug_:slug}, (err)->
         callback err, unless err then slug
 
-  createSlug:(callback)-> 
+  createSlug:(callback)->
     {constructor} = this
+    {slugTemplate} = constructor
     {slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
-    generateUniqueSlug constructor, slug, 0, callback
+    generateUniqueSlug constructor, slug, 0, slugTemplate, callback
