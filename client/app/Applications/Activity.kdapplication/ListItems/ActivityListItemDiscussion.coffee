@@ -103,7 +103,8 @@ class DiscussionActivityItemView extends ActivityItemChild
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
       if not $(event.target).is("a.action-link, a.count, .like-view")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -118,22 +119,22 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   pistachio:->
     """
-  <div class="activity-discussion-container">
-    <span class="avatar">{{> @avatar}}</span>
-    <div class='activity-item-right-col'>
-      {{> @settingsButton}}
-      <h3 class='hidden'></h3>
-      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
-      <footer class='clearfix'>
-        <div class='type-and-time'>
-          <span class='type-icon'></span> by {{> @author}}
-          <time>{{$.timeago #(meta.createdAt)}}</time>
-          {{> @tags}}
-        </div>
-        {{> @actionLinks}}
-      </footer>
-      {{> @opinionBox}}
+    <div class="activity-discussion-container">
+      <span class="avatar">{{> @avatar}}</span>
+      <div class='activity-item-right-col'>
+        {{> @settingsButton}}
+        <h3 class='hidden'></h3>
+        <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+        <footer class='clearfix'>
+          <div class='type-and-time'>
+            <span class='type-icon'></span> by {{> @author}}
+            <time>{{$.timeago #(meta.createdAt)}}</time>
+            {{> @tags}}
+          </div>
+          {{> @actionLinks}}
+        </footer>
+        {{> @opinionBox}}
+      </div>
     </div>
-  </div>
     """
 

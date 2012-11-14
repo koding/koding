@@ -11,21 +11,24 @@ class ContentDisplayController extends KDController
     @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
     appManager.on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
-  showContentDisplay:(view)->
+  showContentDisplay:(view, callback=->)->
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper
     @slideWrapperIn wrapper
+    callback wrapper
 
-  hideContentDisplay:(view)->
-    history.back()
-    #console.log 'content display wants to be hidden', view
-    #@slideWrapperOut view
+  hideContentDisplay:(view)-> history.back()
 
-  hideAllContentDisplays:->
-    displayIds = (id for own id,display of @displays)
+  hideAllContentDisplays:(exceptFor)->
+    displayIds =\
+      if exceptFor?
+        (id for own id,display of @displays when exceptFor isnt display)
+      else
+        (id for own id,display of @displays)
+
     return if displayIds.length is 0
 
     lastId = displayIds.pop()
@@ -44,6 +47,7 @@ class ContentDisplayController extends KDController
 
   destroyView:(view)->
     wrapper = view.parent
+    @emit 'ContentDisplayIsDestroyed', view
     delete @displays[view.id]
     view.destroy()
     wrapper.destroy()

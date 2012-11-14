@@ -41,6 +41,7 @@ module.exports = class JPost extends jraphical.Message
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
     slugifyFrom : 'title'
+    slugTemplate: 'Activity/#{slug}'
     indexes     :
       slug      : 'unique' 
     permissions: [

@@ -1,23 +1,39 @@
 class KDRouter extends KDObject
 
+  @stayOpen = (fn)->
+
+
   listenerKey = 'ಠ_ಠ'
+
+  createObjectRef =(obj)->
+    return unless obj?.bongo_? and obj?.getId?
+    constructorName   : obj.bongo_?.constructorName
+    id                : obj.getId()
+
+  revive =(objRef, callback)->
+    unless objRef?.constructorName? and objRef.id? then callback null
+    else KD.remote.cacheable objRef.constructorName, objRef.id, callback
 
   constructor:(routes)->
     super()
     @tree   = {} # this is the tree for quick lookups
     @routes = {} # this is the flat namespace containing all routes
-    @currentPath = location.pathname 
     @addRoutes routes
     # this handles the case that the url is an "old-style" hash fragment hack.
     if location.hash.length
-      @handleRoute location.hash.substr(1), shouldPushState: yes
+      @utils.defer =>
+        hashFragment = location.hash.substr 1
+        @handleRoute hashFragment, shouldPushState: yes
     @startListening()
 
   onpopstate:(event)=> # fat-arrow binding makes this handler easier to remove.
-    @currentPath = location.pathname
-    @handleRoute location.pathname,
-      shouldPushState   : no
-      state             : KD.remote.revive(event.state)
+    revive event.state, (err, state)=>
+      if err?
+        new KDNotificationView title: 'An unknown error has occurred.'
+      else
+        @handleRoute location.pathname,
+          shouldPushState   : no
+          state             : state
 
   startListening:->
     return no  if @isListening # make this action idempotent
@@ -48,7 +64,6 @@ class KDRouter extends KDObject
         # recursively alias this route without this optional edge:
         routeWithoutThisEdge = "/#{
           route.slice(0, i).concat(route.slice i + 1).join '/'
-          # route.filter (_, k)-> k isnt i
         }"
         @addRoute routeWithoutThisEdge, listener
         edge = edge.substr 0, len # get rid of the "?" from the route
@@ -66,6 +81,7 @@ class KDRouter extends KDObject
 
   handleRoute:(frag, options={})->
     {shouldPushState, state} = options
+    objRef = createObjectRef state
     shouldPushState ?= yes
     node = @tree
     params = {}
@@ -76,9 +92,15 @@ class KDRouter extends KDObject
 
     path = frag.join '/'
 
+    if path is @currentPath
+      @emit 'AlreadyHere', path
+      return
+
+    @currentPath = path
+
     if shouldPushState
       method = if options.replaceState then 'replaceState' else 'pushState'
-      history[method] state, @getTitle(path), "/#{path}"
+      history[method] objRef, @getTitle(path), "/#{path}"
 
     for edge in frag
       if node[edge]
@@ -92,4 +114,4 @@ class KDRouter extends KDObject
 
     listeners = node[listenerKey]
     if listeners?.length
-      listener.call @, params, state for listener in listeners
+      listener.call @, params, state, path for listener in listeners

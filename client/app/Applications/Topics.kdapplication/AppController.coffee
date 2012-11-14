@@ -172,9 +172,6 @@ class Topics12345 extends AppController
   #     else
   #       log tag,"created topic #{tag.title}"
 
-  createContentDisplay:(tag,doShow = yes)->
-    @showContentDisplay tag
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
@@ -187,11 +184,12 @@ class Topics12345 extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

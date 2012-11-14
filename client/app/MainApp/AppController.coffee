@@ -12,3 +12,7 @@ class AppController extends KDViewController
   initAndBringToFront:(options, callback)->
     @bringToFront()
     callback()
+
+  createContentDisplay:(tag, doShow, callback)->
+    [callback, doShow] = [doShow, callback] unless callback
+    @showContentDisplay tag, callback

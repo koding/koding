@@ -267,9 +267,6 @@ class GroupsController extends AppController
   #     else
   #       log tag,"created topic #{tag.title}"
 
-  createContentDisplay:(group, doShow = yes)->
-    @showContentDisplay group
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".activityhead span.optional_title").html count
@@ -282,11 +279,12 @@ class GroupsController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerGroups null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 

@@ -9,7 +9,7 @@ class GroupsListItemView extends KDListItemView
       attributes  :
         href      : '#'
       pistachio   : '{{#(title)}}'
-      click       : (pubInst, event) => @titleReceivedClick()
+      click       : (event) => @titleReceivedClick event
     , data
 
     if options.editable
@@ -60,7 +60,10 @@ class GroupsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     group = @getData()
-    appManager.tell "Groups", "createContentDisplay", group
+    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
+    event.stopPropagation()
+    event.preventDefault()
+    #appManager.tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"
