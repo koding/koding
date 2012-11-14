@@ -35,7 +35,7 @@ module.exports = class Slugifiable
             if err then postQueue.next err
             else if post?
               postQueue.push -> post.updateSlug (err, slug)->
-                callback null, slug
+                callback err, slug
                 postQueue.next()
             else
               daisy postQueue, -> contentTypeQueue.fin()
