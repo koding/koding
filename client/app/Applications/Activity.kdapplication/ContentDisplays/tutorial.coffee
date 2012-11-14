@@ -106,6 +106,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               callback      : (data)=>
                 @getData().modify data, (err, tutorial) =>
                   callback? err, opinion
+                  @editDiscussionForm.reset()
                   if err
                     new KDNotificationView
                       title : "Your changes weren't saved."
