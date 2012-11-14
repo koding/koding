@@ -1,9 +1,3 @@
-proxifyUrl =(url="")->
-  if url is ""
-    "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-  else
-    "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
-
 class EmbedBoxLinksViewItem extends KDListItemView
 
   constructor:(options,data)->
@@ -41,7 +35,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
     #   tagName     : "img"
     #   cssClass    : "embed-favicon hidden"
     #   attributes  :
-    #     src       : proxifyUrl @favicon
+    #     src       : @utils.proxifyUrl @favicon
     #     alt       : data.title
 
     # @faviconImage.show() if @favicon isnt ""
@@ -64,7 +58,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
   #   if fav?
   #     @favicon = fav
 
-  #     @faviconImage.setDomAttributes src:proxifyUrl @favicon
+  #     @faviconImage.setDomAttributes src:@utils.proxifyUrl @favicon
   #     @faviconImage.show()
 
   viewAppended:->
@@ -261,7 +255,7 @@ class EmbedBoxLinkViewImageSwitch extends KDView
       if @getEmbedImageIndex() < @getData().link_embed?.images.length-1
         imgSrc = @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
         if imgSrc
-          @getDelegate().embedImage.setSrc proxifyUrl imgSrc
+          @getDelegate().embedImage.setSrc @utils.proxifyUrl imgSrc
         else
           # imgSrc is undefined - this would be the place for a default
           fallBackImgSrc="https://koding.com/images/service_icons/Koding.png"
@@ -333,9 +327,8 @@ class EmbedBoxImageView extends KDView
   pistachio:->
     """
     <div class="embed embed-image-view custom-image">
-
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="#{(proxifyUrl @getData().link_embed?.images?[0]?.url) or "https://koding.com/images/small-loader.gif"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
+    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="#{(@utils.proxifyUrl @getData().link_embed?.images?[0]?.url) or "https://koding.com/images/small-loader.gif"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
     </a>
     </div>
 
@@ -371,8 +364,8 @@ class EmbedBoxLinkViewImage extends KDView
 
   # this includes a fallback for when the embedimageindex is out of bounds
   # it will however still request a nonsensical image src
-    @imageLink  = proxifyUrl(@getData().link_embed?.images?[@getData().link_embed_image_index]?.url) or\
-                  proxifyUrl(@getData().link_embed?.images?[0]?.url) or\
+    @imageLink  = @utils.proxifyUrl(@getData().link_embed?.images?[@getData().link_embed_image_index]?.url) or\
+                  @utils.proxifyUrl(@getData().link_embed?.images?[0]?.url) or\
                   "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" # hardcode a default
 
     @imageAltText = (@getData().link_embed?.title + \
