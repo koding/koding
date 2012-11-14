@@ -28,7 +28,7 @@ class TutorialActivityItemView extends ActivityItemChild
       tagName : "img"
       cssClass : "tutorial-preview-image"
       attributes:
-        src: data.link?.link_embed.images[0].url or ""
+        src: data.link?.link_embed?.images?[0]?.url or ""
         title:"Show the Tutorial"
         alt:"Show the tutorial"
         "data-paths":"preview"
@@ -42,7 +42,7 @@ class TutorialActivityItemView extends ActivityItemChild
     @previewImageBox.addSubView @previewImageOverlay
 
 
-    @previewImageBox.hide() unless data.link?.link_embed.images[0]?.url
+    @previewImageBox.hide() unless data.link?.link_embed?.images?[0]?.url
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
