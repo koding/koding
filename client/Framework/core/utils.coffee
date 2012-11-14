@@ -165,7 +165,7 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)[\/\?][\S\/]*\b\/?/g, (url) ->
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?][\S\/]*)*\b\/?/g, (url) ->
       originalUrl = url
 
       # remove protocol and trailing path
