@@ -1,27 +1,38 @@
+## Gokmen Goksel ~ Koding Inc. 2012
 
 # Kite requirements
-Kite         = require 'kite-amqp'
-config       = require './config'
+Kite           = require 'kite-amqp'
+config         = require './config'
 
 # Logger
-log4js       = require 'log4js'
-log          = log4js.getLogger("[#{config.name}]")
+log4js         = require 'log4js'
+log            = log4js.getLogger("[#{config.name}]")
 
 # Custom Libraries for this Kite
-{exec}       = require 'child_process'
-fs           = require 'fs'
-fse          = require 'fs.extra'
-mkdirp       = require 'mkdirp'
-createTmpDir = require './createtmpdir'
+{exec}         = require 'child_process'
+fs             = require 'fs'
+fse            = require 'fs.extra'
+mkdirp         = require 'mkdirp'
+nodePath       = require 'path'
+async          = require 'async'
+pistachioc     = require 'pistachio-compiler'
+
+# Coffee-Script
+coffee         = require 'coffee-script'
+
+# Execute Command
+executeCommand = require '../sharedHosting/executecommand'
 
 # Utilities
 {normalizeUserPath,
+ createAppsDir,
  safeForUser,
  escapePath,
- createAppsDir,
+ makedirp,
+ slugify,
  chownr,
  getIds,
- makedirp,
+ KodingError,
  AuthorizationError} = require './utils.coffee'
 
 # Dummy-Admins
