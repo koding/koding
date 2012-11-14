@@ -70,7 +70,7 @@ module.exports = new Kite 'applications'
     {username, owner, appPath, appName, version} = options
 
     version   or= 'latest'
-    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}", yes
     userAppPath = escapePath appPath
 
     if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
@@ -78,7 +78,7 @@ module.exports = new Kite 'applications'
       return false
 
     fs.exists kpmAppPath, (exists)->
-      if not exists then callback? new KodingError "App files not found! Install cancelled."
+      if not exists then callback? new KodingError "App files not found! Install cancelled.", kpmAppPath
       else
         executeCommand {username, command: "mkdir -p #{userAppPath}"}, (err)->
           if err then new KodingError "Cannot create Application directory", userAppPath
@@ -159,7 +159,7 @@ module.exports = new Kite 'applications'
               manifestIsSafe = no
               callback new KodingError "Parsing manifest failed.", e
             if manifestIsSafe
-              if appRootPath isnt normalizeUserPath username, manifest.path
+              if appRootPath.replace(/^\/|\/$/g, '') isnt normalizeUserPath(username, manifest.path).replace(/^\/|\/$/g, '')
                 callback new KodingError "Paths are different in manifest, exiting."
                 log.error appRootPath, normalizeUserPath username, manifest.path
               else
@@ -229,16 +229,22 @@ module.exports = new Kite 'applications'
                   log.info "Compile finished for #{appRootPath}"
 
                   if _compile_errors.length > 0
-                    callback _compile_errors[0]
+                    callback new KodingError "Compile finished with errors", _compile_errors[0]
 
                   else if _has_code
                     compiledFilePath = nodePath.join appRootPath, 'index.js'
-                    _final = pistachioc _final
+                    _pistachio_compiled = yes
+                    try
+                      _final = pistachioc _final
+                    catch e
+                      _pistachio_compiled = no
+                      callback new KodingError "Template engine failed to compile app", e.message
 
-                    fs.writeFile compiledFilePath, _final, (err)->
-                      if err then callback new KodingError "App compiled successfully but writing compiled file failed.", err
-                      else
-                        chownr {username, path: compiledFilePath}, callback
+                    if _pistachio_compiled
+                      fs.writeFile compiledFilePath, _final, (err)->
+                        if err then callback new KodingError "App compiled successfully but writing compiled file failed.", err
+                        else
+                          chownr {username, path: compiledFilePath}, callback
                   else
                     callback null
 
@@ -252,36 +258,37 @@ module.exports = new Kite 'applications'
 
     # Put a check from api if user has the privilege
 
-    appRootPath   = escapePath "/opt/Apps/#{username}/#{appName}"
-    latestPath    = escapePath "/opt/Apps/#{username}/#{appName}/latest"
-    versionedPath = escapePath "/opt/Apps/#{username}/#{appName}/#{version}"
+    appRootPath   = "/opt/Apps/#{username}/#{appName}"
+    latestPath    = nodePath.join appRootPath, "latest"
+    versionedPath = nodePath.join appRootPath, version
     userAppPath   = escapePath userAppPath
+
+    log.info appRootPath, latestPath, versionedPath, userAppPath
 
     cb = (err)->
       console.error err if err
       callback? err, null
 
-    createAppsDir username, (err)->
-      makedirp appRootPath, username, (err)->
-        if err then cb err
-        else
-          exec "test -d #{versionedPath}", (err, stdout, stderr)->
-            unless err or stderr.length then cb "[ERROR] Version is already published, change version and try again!"
-            else
-              exec "cp -r #{userAppPath} #{versionedPath}", (err, stdout, stderr)->
-                if err or stderr then cb err
-                else
-                  manifestPath = "#{versionedPath}/.manifest"
-                  exec "cat #{manifestPath}", (err, stdout, stderr)->
-                    if err or stderr then cb err
-                    else
-                      exec "rm -f #{manifestPath}", ->
-                        manifest = JSON.parse stdout
-                        manifest.author = "#{profile.firstName} #{profile.lastName}"
-                        manifest.authorNick = username
-                        delete manifest.devMode if manifest.devMode
-                        unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
-                        fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
+    fs.exists versionedPath, (exists)->
+      if exists then cb "[ERROR] Version is already published, change version and try again!"
+      else
+        mkdirp appRootPath, (err)->
+          if err then cb err
+          else
+            fse.copyRecursive userAppPath, versionedPath, (err)->
+              if err then cb err
+              else
+                manifestPath = nodePath.join versionedPath, ".manifest"
+                exec "cat '#{manifestPath}'", (err, stdout, stderr)->
+                  if err or stderr then cb err
+                  else
+                    exec "rm -f #{manifestPath}", ->
+                      manifest = JSON.parse stdout
+                      manifest.author = "#{profile.firstName} #{profile.lastName}"
+                      manifest.authorNick = username
+                      delete manifest.devMode if manifest.devMode
+                      unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
+                      fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
 
   approveApp: (options, callback)->
 

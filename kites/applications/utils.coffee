@@ -26,7 +26,7 @@ class AuthorizationError extends Error
 # General Purpose Error
 class KodingError extends Error
   constructor:(message, details)->
-    # log.error details if details
+    log.error message, details
     return new KodingError(message) unless @ instanceof KodingError
     Error.call @
     @message = message
@@ -35,8 +35,12 @@ class KodingError extends Error
 
 normalizeUserPath = (username, path)-> path?.replace(/\~/g, "/Users/#{username}")
 safeForUser       = (username, path)-> path?.indexOf("/Users/#{username}/") is 0
-escapePath        = (path)-> if path then nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
-                                                                 .replace(/\s/g, '\\ ')
+escapePath        = (path, keepSpaces = no)->
+  if path
+    path = nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
+    if keepSpaces then return path
+    path.replace(/\\/g, '')
+        .replace(/\s/g, '\\ ')
 
 makedirp = (path, username, callback)->
   mkdirp path, (err)->
