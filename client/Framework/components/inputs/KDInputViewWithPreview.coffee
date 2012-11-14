@@ -31,6 +31,10 @@ class KDInputViewWithPreview extends KDInputView
       title         : "Preview"
       tooltip       :
         title       : "Show/hide the Text Preview Box"
+      click         :=>
+        @previewOnOffSwitch.setValue not @previewOnOffSwitch.getValue()
+        no
+
     @previewOnOffSwitch = new KDOnOffSwitch
       label         : @previewOnOffLabel
       size          : "tiny"
@@ -107,12 +111,14 @@ class KDInputViewWithPreview extends KDInputView
           modal = new KDModalView
             title       : "Please enter your content here."
             cssClass    : "modal-fullscreen"
-            width       : $(window).width()-110
-            height      : $(window).height()-120
+            width       : window.innerWidth-100
+            height      : window.innerHeight-100
+            # width       : $(window).width()-100
+            # height      : $(window).height()-100
             view        : @textContainer
             position:
-              top       : 30
-              left      : 50
+              top       : 35
+              left      : 35
             overlay     : yes
             buttons     :
               Cancel    :
@@ -128,25 +134,30 @@ class KDInputViewWithPreview extends KDInputView
                   @generatePreview()
                   modal.destroy()
 
-          modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
-          modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
-          modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
-          modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
-          modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-          contentWidth = modal.$(".kdmodal-content").width()-40
-          halfWidth  = contentWidth / 2
 
-          @text.on "PreviewHidden", =>
-            modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-            # modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+          @utils.wait =>
 
-          @text.on "PreviewShown", =>
+            modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()+10 # minus the margin, border pixels too..
+            modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
+            modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
+            modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
+            modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
+
+            contentWidth = modal.$(".kdmodal-content").width()-40
+            halfWidth  = contentWidth / 2
+
+            @text.on "PreviewHidden", =>
+              modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
+              # modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
+
+            @text.on "PreviewShown", =>
+              modal.$(".fullscreen-data").width contentWidth-halfWidth-5
+              # modal.$(".input_preview").width halfWidth-5
+
             modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-            # modal.$(".input_preview").width halfWidth-5
+            modal.$(".input_preview").width halfWidth-5
 
-          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-          modal.$(".input_preview").width halfWidth-5
-
+      # @addSubView @fullScreenBtn
       @previewOnOffContainer.addSubView @fullScreenBtn
 
     @previewOnOffContainer.addSubView @previewOnOffLabel
