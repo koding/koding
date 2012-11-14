@@ -36,7 +36,7 @@ class KodingRouter extends KDRouter
     slugRe = /^(.+)?(#\{slug\})(.+)?$/
     re = RegExp slugTemplate.replace slugRe, (tmp, begin, slug, end)->
       "^#{begin ? ''}(.*)#{end ? ''}$"
-    str.match(re)[1]
+    str.match(re)?[1]
 
   openContent:(name, section, state, route)->
     appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
