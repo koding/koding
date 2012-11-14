@@ -20,7 +20,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @author = new ProfileLinkView {origin:origin}
 
-    @opinionBox = new OpinionView null, data
+    @opinionBox = new OpinionView {}, data
 
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
