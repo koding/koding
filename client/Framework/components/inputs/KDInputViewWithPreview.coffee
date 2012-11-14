@@ -111,8 +111,8 @@ class KDInputViewWithPreview extends KDInputView
             height      : $(window).height()-120
             view        : @textContainer
             position:
-              top       : 55
-              left      : 55
+              top       : 30
+              left      : 50
             overlay     : yes
             buttons     :
               Cancel    :
