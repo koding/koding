@@ -46,9 +46,12 @@ class ActivityTutorialWidget extends KDFormView
       label         : @labelEmbedLink
       placeholder   : "Please enter a URL to a video..."
 
+      keyup :=>
+        if @inputTutorialEmbedLink.getValue() is ""
+          @embedBox.resetEmbedAndHide()
+
       paste :=>
           @utils.wait =>
-
             @inputTutorialEmbedLink.setValue @sanitizeUrls @inputTutorialEmbedLink.getValue()
 
             url = @inputTutorialEmbedLink.getValue().trim()
@@ -59,7 +62,7 @@ class ActivityTutorialWidget extends KDFormView
                 maxWidth: 540
                 maxHeight: 200
               }, =>
-                @embedBox.hide()
+                @embedBox.hide() if @inputTutorialEmbedShowLink.getValue() is off
 
     embedOptions = $.extend {}, options,
       delegate  : @
