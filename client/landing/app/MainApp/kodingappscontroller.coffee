@@ -697,6 +697,7 @@ class KodingAppsController extends KDController
         return
 
       @kiteController.run
+        kiteName    : "applications"
         method      : "downloadApp"
         withArgs    :
           owner     : manifest.authorNick
