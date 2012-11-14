@@ -229,7 +229,7 @@ module.exports = new Kite 'applications'
                   log.info "Compile finished for #{appRootPath}"
 
                   if _compile_errors.length > 0
-                    callback _compile_errors[0]
+                    callback new KodingError "Compile finished with errors", _compile_errors[0]
 
                   else if _has_code
                     compiledFilePath = nodePath.join appRootPath, 'index.js'
