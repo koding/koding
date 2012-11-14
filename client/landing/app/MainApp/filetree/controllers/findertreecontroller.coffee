@@ -389,14 +389,15 @@ class NFinderTreeController extends JTreeViewController
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
-    kodingAppsController.compileApp manifest.name, =>
+    kodingAppsController.compileApp manifest.name, (err)=>
       folder.emit "fs.compile.finished"
-      @notify "App compiled!", "success"
-      callback?()
-      @utils.wait 500, =>
-        @refreshFolder nodeView, =>
-          @utils.wait =>
-            @selectNode @nodes["#{folder.path}/index.js"]
+      if not err
+        @notify "App compiled!", "success"
+        @utils.wait 500, =>
+          @refreshFolder nodeView, =>
+            @utils.wait =>
+              @selectNode @nodes["#{folder.path}/index.js"]
+      callback? err
 
   runApp:(nodeView, callback)->
 
