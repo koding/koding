@@ -1,11 +1,12 @@
-log4js    = require 'log4js'
-log       = log4js.getLogger('[SharedHostingApi]')
 
 fs = require 'fs'
 hat = require 'hat'
 {exec} = require 'child_process'
 
-config = require './config'
+config    = require './config'
+
+log4js    = require 'log4js'
+log       = log4js.getLogger("[#{config.name}]")
 
 # HELPERS
 createTmpDir = require './createtmpdir'
@@ -46,7 +47,6 @@ execute = (options,callback)->
     respond {err,stdout,stderr},callback
     fs.unlink filename if unlink is yes
     log.debug "executed", truncateOutput execStr
-
 
 truncateOutput = (output)->
 
