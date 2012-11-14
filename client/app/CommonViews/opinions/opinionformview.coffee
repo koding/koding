@@ -75,7 +75,7 @@ class OpinionFormView extends KDFormView
     super
 
   submit:=>
-    @once "FormValidationPassed", => @reset()
+    # @once "FormValidationPassed", => @reset()
     super
 
   pistachio:->

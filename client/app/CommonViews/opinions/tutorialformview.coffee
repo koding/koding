@@ -122,7 +122,7 @@ class TutorialFormView extends KDFormView
     @template.update()
 
   submit:=>
-    @once "FormValidationPassed", => @reset()
+    # @once "FormValidationPassed", => @reset()
     @removeCustomData "link"
 
     if @getDelegate().embedBox.hasValidContent
