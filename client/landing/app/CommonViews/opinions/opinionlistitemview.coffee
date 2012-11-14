@@ -118,6 +118,7 @@ class OpinionListItemView extends KDListItemView
                 @getData().modify data, (err, opinion) =>
                   @$("p.opinion-body").show()
                   callback? err, opinion
+                  @editForm.reset()
                   @editForm.submitOpinionBtn.hideLoader()
                   if err
                     new KDNotificationView title : "Your changes weren't saved.", type :"mini"
