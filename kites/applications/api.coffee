@@ -86,6 +86,29 @@ module.exports = new Kite 'applications'
             fse.copy "#{kpmAppPath}/index.js", "#{userAppPath}/index.js", (err)->
               fse.copy "#{kpmAppPath}/.manifest", "#{userAppPath}/.manifest", (err)->
                 chownr {username, path: userAppPath}, callback
+
+  downloadApp: (options, callback)->
+
+    {username, owner, appName, version, appPath} = options
+
+    version   or= 'latest'
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    userAppPath = escapePath appPath
+    backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
+
+    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
+      callback? new AuthorizationError username
+      return false
+
+    fs.exists kpmAppPath, (exists)->
+      if not exists then callback? new KodingError "App files not found! Download cancelled."
+      else
+        executeCommand {username, command: "mv #{userAppPath} #{backupPath}"}, ->
+          fse.copyRecursive kpmAppPath, userAppPath, (err)->
+            if err then callback new KodingError "Downloading app source failed."
+            else
+              chownr {username, path: userAppPath}, callback
+
   copyAppSkeleton:(options, callback)->
     {username, appPath, type} = options
 
@@ -155,32 +178,6 @@ module.exports = new Kite 'applications'
                         delete manifest.devMode if manifest.devMode
                         unescapedManifestPath = "/opt/Apps/#{username}/#{appName}/#{version}/.manifest"
                         fs.writeFile unescapedManifestPath, JSON.stringify(manifest, null, 2), 'utf8', cb
-
-  downloadApp: (options, callback)->
-
-    {username, owner, appName, version, appPath} = options
-
-    cb = (err)->
-      console.error err if err
-      callback? err, null
-
-    version   or= 'latest'
-    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
-    userAppPath = escapePath appPath
-    backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
-
-    if kpmAppPath.indexOf("/opt/Apps/") isnt 0 or not safeForUser username, userAppPath
-      callback? new AuthorizationError username
-      return false
-
-    exec "test -d #{kpmAppPath}", (err, stdout, stderr)->
-      if err or stderr.length
-        cb "[ERROR] App files not found! Download cancelled."
-      else
-        exec "mv #{userAppPath} #{backupPath} && cp -r #{kpmAppPath}/ #{userAppPath} && chown -R #{username}: #{userAppPath}", (err, stdout, stderr)->
-          if err or stderr then cb err
-          else
-            cb null
 
   approveApp: (options, callback)->
 
