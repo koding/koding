@@ -113,43 +113,43 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable "JAccount", data.originId, (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if discussion owner
-         loggedInId is activity.originId or   # if activity owner
-         KD.checkFlag "super-admin", account  # if super-admin
 
-        @editDiscussionLink.on "click", =>
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if discussion owner
+       loggedInId is activity.originId or   # if activity owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
-          if @editDiscussionForm?
-            @editDiscussionForm?.destroy()
-            delete @editDiscussionForm
-            @$(".discussion-body .data").show()
+      @editDiscussionLink.on "click", =>
 
-          else
-            @editDiscussionForm = new DiscussionFormView
-              title         : "edit-discussion"
-              cssClass      : "edit-discussion-form"
-              callback      : (data)=>
-                @getData().modify data, (err, discussion) =>
-                  callback? err, opinion
-                  if err
-                    new KDNotificationView
-                      title : "Your changes weren't saved."
-                      type  : "mini"
-                  else
-                    @editDiscussionForm.setClass "hidden"
-                    @$(".discussion-body .data").show()
-            , data
+        if @editDiscussionForm?
+          @editDiscussionForm?.destroy()
+          delete @editDiscussionForm
+          @$(".discussion-body .data").show()
 
-            @addSubView @editDiscussionForm, "p.discussion-body", yes
-            @$(".discussion-body .data").hide()
+        else
+          @editDiscussionForm = new DiscussionFormView
+            title         : "edit-discussion"
+            cssClass      : "edit-discussion-form"
+            callback      : (data)=>
+              @getData().modify data, (err, discussion) =>
+                callback? err, opinion
+                if err
+                  new KDNotificationView
+                    title : "Your changes weren't saved."
+                    type  : "mini"
+                else
+                  @editDiscussionForm.setClass "hidden"
+                  @$(".discussion-body .data").show()
+          , data
 
-        @deleteDiscussionLink.on "click", =>
-          @confirmDeleteDiscussion data
+          @addSubView @editDiscussionForm, "p.discussion-body", yes
+          @$(".discussion-body .data").hide()
 
-        @editDiscussionLink.unsetClass "hidden"
-        @deleteDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.on "click", =>
+        @confirmDeleteDiscussion data
+
+      @editDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.unsetClass "hidden"
 
     activity.on 'ReplyIsAdded',(reply)=>
 
