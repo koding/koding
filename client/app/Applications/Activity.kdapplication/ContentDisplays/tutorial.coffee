@@ -85,47 +85,47 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable "JAccount", data.originId, (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         loggedInId is activity.originId or   # if activity owner
-         KD.checkFlag "super-admin", account  # if super-admin
 
-        @editDiscussionLink.on "click", =>
-            if @editDiscussionForm?
-              @editDiscussionForm?.destroy()
-              delete @editDiscussionForm
-              @$(".tutorial-body .data").show()
-              @utils.wait =>
-                @embedBox.show()
-            else
-              @editDiscussionForm = new TutorialFormView
-                title         : "edit-tutorial"
-                cssClass      : "edit-tutorial-form"
-                delegate      : @
-                callback      : (data)=>
-                  @getData().modify data, (err, tutorial) =>
-                    callback? err, opinion
-                    if err
-                      new KDNotificationView
-                        title : "Your changes weren't saved."
-                        type  : "mini"
-                    else
-                      @editDiscussionForm.setClass "hidden"
-                      @$(".tutorial-body .data").show()
-                      @utils.wait =>
-                        @embedBox.show() if @embedBox.hasValidContent
-              , data
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if comment owner
+       loggedInId is activity.originId or   # if activity owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
-              @addSubView @editDiscussionForm, "p.tutorial-body", yes
-              @$(".tutorial-body .data").hide()
-              @embedBox.hide()
+      @editDiscussionLink.on "click", =>
+          if @editDiscussionForm?
+            @editDiscussionForm?.destroy()
+            delete @editDiscussionForm
+            @$(".tutorial-body .data").show()
+            @utils.wait =>
+              @embedBox.show()
+          else
+            @editDiscussionForm = new TutorialFormView
+              title         : "edit-tutorial"
+              cssClass      : "edit-tutorial-form"
+              delegate      : @
+              callback      : (data)=>
+                @getData().modify data, (err, tutorial) =>
+                  callback? err, opinion
+                  if err
+                    new KDNotificationView
+                      title : "Your changes weren't saved."
+                      type  : "mini"
+                  else
+                    @editDiscussionForm.setClass "hidden"
+                    @$(".tutorial-body .data").show()
+                    @utils.wait =>
+                      @embedBox.show() if @embedBox.hasValidContent
+            , data
 
-        @deleteDiscussionLink.on "click", =>
-          @confirmDeleteTutorial data
+            @addSubView @editDiscussionForm, "p.tutorial-body", yes
+            @$(".tutorial-body .data").hide()
+            @embedBox.hide()
 
-        @editDiscussionLink.unsetClass "hidden"
-        @deleteDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.on "click", =>
+        @confirmDeleteTutorial data
+
+      @editDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.unsetClass "hidden"
 
     activity.on 'ReplyIsAdded',(reply)=>
 

@@ -94,48 +94,50 @@ class OpinionListItemView extends KDListItemView
 
     @textMaxHeight = 0
 
-    KD.remote.cacheable  "JAccount", data.originId, (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         KD.checkFlag "super-admin", account  # if super-admin
+    # activity = @getDelegate().getData()
 
-        @editLink.on "click", =>
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if comment owner
+       # loggedInId is activity.originId or     # activity owner can remove opinion
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
-            if @editForm?
-              @editForm?.destroy()
-              delete @editForm
-              @$("p.opinion-body").show()
-              @$(".opinion-size-links").show() if @needsToResize
+      @editLink.on "click", =>
 
-            else
-              @editForm = new OpinionFormView
-                submitButtonTitle : "Save your changes"
-                title             : "edit-opinion"
-                cssClass          : "edit-opinion-form opinion-container"
-                callback          : (data)=>
-                  @getData().modify data, (err, opinion) =>
+          if @editForm?
+            @editForm?.destroy()
+            delete @editForm
+            @$("p.opinion-body").show()
+            @$(".opinion-size-links").show() if @needsToResize
+
+          else
+            @editForm = new OpinionFormView
+              submitButtonTitle : "Save your changes"
+              title             : "edit-opinion"
+              cssClass          : "edit-opinion-form opinion-container"
+              callback          : (data)=>
+                @getData().modify data, (err, opinion) =>
+                  @$("p.opinion-body").show()
+                  callback? err, opinion
+                  @editForm.submitOpinionBtn.hideLoader()
+                  if err
+                    new KDNotificationView title : "Your changes weren't saved.", type :"mini"
+                  else
+                    @getDelegate().emit "RefreshTeaser", ->
+                    @emit "OwnOpinionWasAdded", opinion
+                    @editForm.setClass "hidden"
                     @$("p.opinion-body").show()
-                    callback? err, opinion
-                    @editForm.submitOpinionBtn.hideLoader()
-                    if err
-                      new KDNotificationView title : "Your changes weren't saved.", type :"mini"
-                    else
-                      @getDelegate().emit "RefreshTeaser", ->
-                      @emit "OwnOpinionWasAdded", opinion
-                      @editForm.setClass "hidden"
-                      @$("p.opinion-body").show()
-                      @$(".opinion-size-links").show() if @needsToResize
-              , data
+                    @$(".opinion-size-links").show() if @needsToResize
+            , data
 
-              @addSubView @editForm, "p.opinion-body-edit", yes
-              @$("p.opinion-body").hide()
-              @$(".opinion-size-links").hide() if @needsToResize
+            @addSubView @editForm, "p.opinion-body-edit", yes
+            @$("p.opinion-body").hide()
+            @$(".opinion-size-links").hide() if @needsToResize
 
-        @deleteLink.on "click", =>
-          @confirmDeleteOpinion data
+      @deleteLink.on "click", =>
+        @confirmDeleteOpinion data
 
-        @editLink.unsetClass "hidden"
-        @deleteLink.unsetClass "hidden"
+      @editLink.unsetClass "hidden"
+      @deleteLink.unsetClass "hidden"
 
   render:->
     super()
