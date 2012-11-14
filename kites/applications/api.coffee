@@ -136,6 +136,112 @@ module.exports = new Kite 'applications'
     else
       callback new AuthorizationError username
 
+  compileApp: (options, callback)->
+
+    {username, appPath} = options
+
+    appRootPath = escapePath normalizeUserPath username, appPath
+
+    if not safeForUser username, appRootPath
+      callback new AuthorizationError username
+      return no
+
+    fs.exists appRootPath, (exists)=>
+      if not exists then callback new KodingError "Application folder doesn't exists!", appRootPath
+      else
+        fs.readFile nodePath.join(appRootPath, '.manifest'), (err, manifestRaw)=>
+          if err then callback new KodingError "Failed to read Manifest file!", err
+          else
+            manifestIsSafe = yes
+            try
+              manifest = JSON.parse manifestRaw
+            catch e
+              manifestIsSafe = no
+              callback new KodingError "Parsing manifest failed.", e
+            if manifestIsSafe
+              if appRootPath isnt normalizeUserPath username, manifest.path
+                callback new KodingError "Paths are different in manifest, exiting."
+                log.error appRootPath, normalizeUserPath username, manifest.path
+              else
+                {source, name} = manifest
+                {blocks}       = source
+                orderedBlocks  = []
+                blockStrings   = []
+                asyncStack     = []
+
+                for blockName, blockOptions of blocks
+                  blockOptions.name = blockName
+                  if blockOptions.order? and not isNaN(order = parseInt(blockOptions.order, 10))
+                    orderedBlocks[order] = blockOptions
+                  else
+                    orderedBlocks.push blockOptions
+
+                if manifest.devMode
+                  appResourceRoot = "/Users/#{username}/Sites/#{username}.koding.com/website/.applications"
+                  appDevModePath  = escapePath nodePath.join appResourceRoot, slugify manifest.name
+
+                  if safeForUser username, appDevModePath
+                    asyncStack.push (cb)=>
+                      executeCommand {username, command:"rm -rf #{appDevModePath}"}, =>
+                        executeCommand {username, command:"mkdir -p #{appResourceRoot}"}, =>
+                          executeCommand {username, command:"ln -s #{appRootPath} #{appDevModePath}"}, -> cb()
+
+                orderedBlocks.forEach (block)=>
+
+                  if block.pre
+                    asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, block.pre), cb
+
+                  if block.files
+                    {files} = block
+                    files.forEach (file, index)=>
+                      if "object" is typeof file
+                        for fileName, fileExtras of file
+                          do =>
+                            if fileExtras.pre
+                              asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, fileExtras.pre), cb
+                            asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, fileName), cb
+                            if fileExtras.post
+                              asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, fileExtras.post), cb
+                      else
+                        asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, file), cb
+                  if block.post
+                    asyncStack.push (cb)=> compileScript nodePath.join(appRootPath, block.post), cb
+
+                async.parallel asyncStack, (error, result)=>
+
+                  _has_code = no
+                  _compile_errors = []
+                  _final  = "// Compiled by Koding Servers at #{Date()} in server time\n\n"
+                  _final += "(function() {\n\n/* KDAPP STARTS */"
+                  result.forEach (output)=>
+                    if output and output.file
+                      _final += "\n\n/* BLOCK STARTS /Source: #{output.file} */\n\n"
+                      if output.error? or not output.code?
+                        _final += "//couldn\'t compile the hunk! -- check console log"
+                        output.error.file = output.file
+                        _compile_errors.push output.error
+                      else
+                        _has_code = yes
+                        _final += output.code+''
+                      _final += "\n\n/* BLOCK ENDS */\n\n"
+                  _final += "/* KDAPP ENDS */\n\n}).call();"
+
+                  log.info "Compile finished for #{appRootPath}"
+
+                  if _compile_errors.length > 0
+                    callback _compile_errors[0]
+
+                  else if _has_code
+                    compiledFilePath = nodePath.join appRootPath, 'index.js'
+                    _final = pistachioc _final
+
+                    fs.writeFile compiledFilePath, _final, (err)->
+                      if err then callback new KodingError "App compiled successfully but writing compiled file failed.", err
+                      else
+                        chownr {username, path: compiledFilePath}, callback
+                  else
+                    callback null
+
   publishApp:(options, callback)->
 
     {username, profile, version, appName, userAppPath} = options
