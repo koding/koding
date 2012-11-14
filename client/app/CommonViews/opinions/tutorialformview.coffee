@@ -11,13 +11,13 @@ class TutorialFormView extends KDFormView
     @submitDiscussionBtn = new KDButtonView
       title           : "Save your changes"
       type            : "submit"
-      cssClass        : "clean-gray discussion-submit-button"
+      cssClass        : "clean-gray tutorial-submit-button"
       loader          :
         diameter      : 12
 
     @cancelDiscussionBtn = new KDButtonView
       title : "Cancel"
-      cssClass:"modal-cancel discussion-cancel"
+      cssClass:"modal-cancel tutorial-cancel"
       type : "button"
       style: "modal-cancel"
       callback :=>
@@ -25,14 +25,14 @@ class TutorialFormView extends KDFormView
 
     @discussionBody = new KDInputViewWithPreview
       preview         : @preview
-      cssClass        : "discussion-body"
+      cssClass        : "tutorial-body"
       name            : "body"
-      title           : "your Discussion Topic"
+      title           : "your Tutorial"
       type            : "textarea"
-      placeholder     : "What do you want to contribute to the discussion?"
+      placeholder     : "What do you want to contribute to the tutorial?"
 
     @discussionEmbedLink = new KDInputView
-      cssClass        : "discussion-title"
+      cssClass        : "tutorial-title"
       name            : "embed"
       title           : "your Video"
       type            : "text"
@@ -57,9 +57,9 @@ class TutorialFormView extends KDFormView
                 @getDelegate().embedBox.show()
 
     @discussionTitle = new KDInputView
-      cssClass        : "discussion-title"
+      cssClass        : "tutorial-title"
       name            : "title"
-      title           : "your Opinion"
+      title           : "your Tutorial title"
       type            : "text"
       placeholder     : "What do you want to talk about?"
 
@@ -69,142 +69,6 @@ class TutorialFormView extends KDFormView
     @selectedItemWrapper = new KDCustomHTMLView
       tagName         : "div"
       cssClass        : "tags-selected-item-wrapper clearfix"
-
-    @fullScreenBtn = new KDButtonView
-      style           : "clean-gray"
-      cssClass        : "fullscreen-button"
-      title           : "Fullscreen Edit"
-      icon            : yes
-      iconClass       : "fullscreen"
-      iconOnly        : yes
-      callback: =>
-        @textContainer = new KDView
-          cssClass:"modal-fullscreen-text"
-
-        @text = new KDInputViewWithPreview
-          type : "textarea"
-          cssClass : "fullscreen-data kdinput text"
-          defaultValue : @discussionBody.getValue()
-
-        @textContainer.addSubView @text
-
-
-        modal = new KDModalView
-          title       : "What do you want to discuss?"
-          cssClass    : "modal-fullscreen"
-          height      : $(window).height()-110
-          width       : $(window).width()-110
-          view        : @textContainer
-          position:
-            top       : 55
-            left      : 55
-          overlay     : yes
-          buttons     :
-            Cancel    :
-              title   : "Discard changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                modal.destroy()
-            Apply     :
-              title   : "Apply changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                @discussionBody.setValue @text.getValue()
-                @discussionBody.generatePreview()
-                modal.destroy()
-
-
-
-        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
-        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
-        contentWidth = modal.$(".kdmodal-content").width()-40
-        halfWidth  = contentWidth / 2
-
-        @text.on "PreviewHidden", =>
-          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
-
-        @text.on "PreviewShown", =>
-          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-          modal.$(".input_preview").width halfWidth-5
-
-        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-        modal.$(".input_preview").width halfWidth-5
-
-        # modal = new KDModalView
-        #   title       : "What do you want to discuss?"
-        #   cssClass    : "modal-fullscreen"
-
-        #   height      : $(window).height()-110
-        #   width       : $(window).width()-110
-        #   position:
-        #     top       : 55
-        #     left      : 55
-        #   overlay     : yes
-        #   content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' id='fullscreen-data'>"+@discussionBody.getValue()+"</textarea></div>"
-        #   buttons     :
-        #     Cancel    :
-        #       title   : "Discard changes"
-        #       style   : "modal-clean-gray"
-        #       callback:=>
-        #         modal.destroy()
-        #     Apply     :
-        #       title   : "Apply changes"
-        #       style   : "modal-clean-gray"
-        #       callback:=>
-        #         @discussionBody.setValue $("#fullscreen-data").val()
-        #         @discussionBody.generatePreview()
-        #         modal.destroy()
-
-        # modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        # modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
-        # modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
-
-    @markdownLink = new KDCustomHTMLView
-      tagName     : 'a'
-      name        : "markdownLink"
-      value       : "markdown is enabled"
-      attributes  :
-        title     : "markdown is enabled"
-        href      : '#'
-        value     : "markdown syntax is enabled"
-      cssClass    : 'markdown-link'
-      partial     : "What is Markdown?<span></span>"
-      click       : (pubInst, event)=>
-        if $(event.target).is 'span'
-          link.hide()
-        else
-          markdownText = new KDMarkdownModalText
-          modal = new KDModalView
-            title       : "How to use the <em>Markdown</em> syntax."
-            cssClass    : "what-you-should-know-modal markdown-cheatsheet"
-            height      : "auto"
-            width       : 500
-            content     : markdownText.markdownText()
-            buttons     :
-              Close     :
-                title   : 'Close'
-                style   : 'modal-clean-gray'
-                callback: -> modal.destroy()
-
-    @markdownSelect = new KDSelectBox
-      type          : "select"
-      name          : "markdown"
-      cssClass      : "select markdown-select hidden"
-      selectOptions :
-          [
-              title : "enable markdown syntax"
-              value : "markdown"
-            ,
-              title : "disable markdown syntax"
-              value : "nomarkdown"
-          ]
-      defaultValue  : "markdown"
-      callback      : (value) =>
-        @emit "opinion.changeMarkdown", value
 
     if data instanceof KD.remote.api.JTutorial
       @discussionBody.setValue Encoder.htmlDecode data.body
@@ -250,7 +114,7 @@ class TutorialFormView extends KDFormView
         url
 
   viewAppended:()->
-    @setClass "update-options discussion"
+    @setClass "update-options tutorial"
     @setTemplate @pistachio()
     @template.update()
 
@@ -270,16 +134,14 @@ class TutorialFormView extends KDFormView
 
   pistachio:->
       """
-      <div class="discussion-box">
-        <div class="discussion-form">
+      <div class="tutorial-box">
+        <div class="tutorial-form">
           {{> @discussionTitle}}
           {{> @discussionEmbedLink}}
           {{> @discussionBody}}
         </div>
-        <div class="discussion-buttons">
-          <div class="discussion-submit">
-            {{> @markdownLink}}
-            {{> @fullScreenBtn}}
+        <div class="tutorial-buttons">
+          <div class="tutorial-submit">
             {{> @submitDiscussionBtn}}
             {{> @cancelDiscussionBtn}}
           </div>

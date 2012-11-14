@@ -52,114 +52,11 @@ class ActivityDiscussionWidget extends KDFormView
       title : "Start your discussion"
       type  : 'submit'
 
-    @fullScreenBtn = new KDButtonView
-      style           : "clean-gray"
-      icon            : yes
-      iconClass       : "fullscreen"
-      iconOnly        : yes
-      cssClass        : "fullscreen-button"
-      title           : "Fullscreen Edit"
-      callback: =>
-        @textContainer = new KDView
-          cssClass:"modal-fullscreen-text"
-
-        @text = new KDInputViewWithPreview
-          type : "textarea"
-          cssClass : "fullscreen-data kdinput text"
-          defaultValue : @inputContent.getValue()
-
-        @textContainer.addSubView @text
-
-        modal = new KDModalView
-          title       : "What do you want to discuss?"
-          cssClass    : "modal-fullscreen"
-          height      : $(window).height()-110
-          width       : $(window).width()-110
-          view        : @textContainer
-          position:
-            top       : 55
-            left      : 55
-          overlay     : yes
-          buttons     :
-            Cancel    :
-              title   : "Discard changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                modal.destroy()
-            Apply     :
-              title   : "Apply changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                @inputContent.setValue @text.getValue()
-                @inputContent.generatePreview()
-                modal.destroy()
-
-        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
-        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
-        contentWidth = modal.$(".kdmodal-content").width()-40
-        halfWidth  = contentWidth / 2
-
-        @text.on "PreviewHidden", =>
-          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
-
-        @text.on "PreviewShown", =>
-          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-          modal.$(".input_preview").width halfWidth-5
-
-        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-        modal.$(".input_preview").width halfWidth-5
-
-    @markdownLink = new KDCustomHTMLView
-      tagName     : 'a'
-      name        : "markdownLink"
-      value       : "markdown is enabled"
-      attributes  :
-        title     : "markdown is enabled"
-        href      : '#'
-        value     : "markdown syntax is enabled"
-      cssClass    : 'markdown-link'
-      partial     : "What is Markdown?<span></span>"
-      click       : (pubInst, event)=>
-        if $(event.target).is 'span'
-          link.hide()
-        else
-          markdownText = new KDMarkdownModalText
-          modal = new KDModalView
-            title       : "How to use the <em>Markdown</em> syntax."
-            cssClass    : "what-you-should-know-modal markdown-cheatsheet"
-            height      : "auto"
-            width       : 500
-            content     : markdownText.markdownText()
-            buttons     :
-              Close     :
-                title   : 'Close'
-                style   : 'modal-clean-gray'
-                callback: -> modal.destroy()
-
 
     @heartBox = new HelpBox
       subtitle : "About Discussions"
       tooltip  :
-        title  : "Click me for additional information"
-      click :->
-        modal = new KDModalView
-          title          : "Additional information on Discussions"
-          content        : "<div class='modalformline signature'><h3>Hi!</h3><p>My name is Arvid, i just recently started to work for Koding and I am responsible for the implementation of Discussions.</p><p>Should you run into bugs, experience strange and/or unexpected behavior or have questions on how to use this feature, please don't hesitate to drop me a mail here: "+@utils.applyTextExpansions("@arvidkahl")+"</p><p>--arvid</p></div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Okay       :
-              style      : "modal-clean-gray"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                modal.buttons.Okay.hideLoader()
-                modal.destroy()
+        title  : "This is a public wall, here you can discuss anything with the Koding community."
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -227,10 +124,6 @@ class ActivityDiscussionWidget extends KDFormView
           {{> @labelContent}}
           <div>
             {{> @inputContent}}
-            <div class="discussion-widget-content">
-            {{> @markdownLink}}
-            {{> @fullScreenBtn}}
-            </div>
           </div>
         </div>
         <div class="formline">

@@ -94,23 +94,19 @@ class OpinionListItemView extends KDListItemView
 
     @textMaxHeight = 0
 
-    activity = @getDelegate().getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable  "JAccount", data.originId, (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
-         # loggedInId is activity.originId or   # if activity owner
-         # ! this will allow activity owners to edit all the answers..
          KD.checkFlag "super-admin", account  # if super-admin
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @editLink
-          callback           : =>
+        @editLink.on "click", =>
+
             if @editForm?
               @editForm?.destroy()
               delete @editForm
               @$("p.opinion-body").show()
               @$(".opinion-size-links").show() if @needsToResize
+
             else
               @editForm = new OpinionFormView
                 submitButtonTitle : "Save your changes"
@@ -124,7 +120,7 @@ class OpinionListItemView extends KDListItemView
                     if err
                       new KDNotificationView title : "Your changes weren't saved.", type :"mini"
                     else
-                      @getDelegate().emit "DiscussionTeaserShouldRefresh", ->
+                      @getDelegate().emit "RefreshTeaser", ->
                       @emit "OwnOpinionWasAdded", opinion
                       @editForm.setClass "hidden"
                       @$("p.opinion-body").show()
@@ -135,11 +131,8 @@ class OpinionListItemView extends KDListItemView
               @$("p.opinion-body").hide()
               @$(".opinion-size-links").hide() if @needsToResize
 
-
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteOpinion data
+        @deleteLink.on "click", =>
+          @confirmDeleteOpinion data
 
         @editLink.unsetClass "hidden"
         @deleteLink.unsetClass "hidden"
@@ -148,7 +141,8 @@ class OpinionListItemView extends KDListItemView
     super()
 
     @$("pre").addClass "prettyprint"
-    prettyPrint()
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   viewAppended:->
     @setTemplate @pistachio()

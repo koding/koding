@@ -20,7 +20,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @author = new ProfileLinkView {origin:origin}
 
-    @opinionBox = new OpinionView null, data
+    @opinionBox = new OpinionView {}, data
 
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
@@ -113,44 +113,40 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable "JAccount", data.originId, (err, account)=>
       loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
+      if loggedInId is data.originId or       # if discussion owner
          loggedInId is activity.originId or   # if activity owner
          KD.checkFlag "super-admin", account  # if super-admin
 
-        @listenTo
-          KDEventTypes        : "click"
-          listenedToInstance  : @editDiscussionLink
-          callback            : =>
-            if @editDiscussionForm?
-              @editDiscussionForm?.destroy()
-              delete @editDiscussionForm
-              @$(".discussion-body .data").show()
-            else
-              @editDiscussionForm = new DiscussionFormView
-                title         : "edit-discussion"
-                cssClass      : "edit-discussion-form"
-                callback      : (data)=>
-                  @getData().modify data, (err, discussion) =>
-                    callback? err, opinion
-                    if err
-                      new KDNotificationView
-                        title : "Your changes weren't saved."
-                        type  : "mini"
-                    else
-                      @emit "DiscussionWasEdited", discussion
-                      @editDiscussionForm.setClass "hidden"
-                      @$(".discussion-body .data").show()
-              , data
+        @editDiscussionLink.on "click", =>
 
-              @addSubView @editDiscussionForm, "p.discussion-body", yes
-              @$(".discussion-body .data").hide()
+          if @editDiscussionForm?
+            @editDiscussionForm?.destroy()
+            delete @editDiscussionForm
+            @$(".discussion-body .data").show()
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteDiscussionLink
-          callback           : => @confirmDeleteDiscussion data
+          else
+            @editDiscussionForm = new DiscussionFormView
+              title         : "edit-discussion"
+              cssClass      : "edit-discussion-form"
+              callback      : (data)=>
+                @getData().modify data, (err, discussion) =>
+                  callback? err, opinion
+                  if err
+                    new KDNotificationView
+                      title : "Your changes weren't saved."
+                      type  : "mini"
+                  else
+                    @editDiscussionForm.setClass "hidden"
+                    @$(".discussion-body .data").show()
+            , data
+
+            @addSubView @editDiscussionForm, "p.discussion-body", yes
+            @$(".discussion-body .data").hide()
+
+        @deleteDiscussionLink.on "click", =>
+          @confirmDeleteDiscussion data
 
         @editDiscussionLink.unsetClass "hidden"
         @deleteDiscussionLink.unsetClass "hidden"
@@ -244,21 +240,23 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'DiscussionIsDeleted'
-                @destroy()
+                @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                @utils.wait 2000, =>
+                  @destroy()
+
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  hightlightCode:=>
+  highlightCode:=>
     @$("pre").addClass "prettyprint"
     @$("p.discussion-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
   render:->
     super()
-    @hightlightCode()
+    @highlightCode()
 
   viewAppended:()->
     super()
@@ -266,7 +264,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    @hightlightCode()
+    @highlightCode()
 
     @$(".discussion-body .data").addClass "has-markdown"
 
