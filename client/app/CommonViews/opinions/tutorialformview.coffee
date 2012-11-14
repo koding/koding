@@ -37,10 +37,13 @@ class TutorialFormView extends KDFormView
       title           : "your Video"
       type            : "text"
       placeholder     : "The URL to your video"
+      keyup :=>
+        if @discussionEmbedLink.getValue() is ""
+          @getDelegate().embedBox.resetEmbedAndHide()
       focus:=>
-        @getDelegate().embedBox.show()
+        # @getDelegate().embedBox.show()
       blur:=>
-        @getDelegate().embedBox.hide()
+        # @getDelegate().embedBox.hide()
       paste:=>
           @utils.wait =>
 
@@ -50,10 +53,10 @@ class TutorialFormView extends KDFormView
 
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
-              @getDelegate().embedBox.embedUrl url, {
+              @getDelegate().embedBox.embedUrl url,
                 maxWidth: 540
                 maxHeight: 200
-              }, =>
+              , =>
                 @getDelegate().embedBox.show()
 
     @discussionTitle = new KDInputView
@@ -120,16 +123,15 @@ class TutorialFormView extends KDFormView
 
   submit:=>
     @once "FormValidationPassed", => @reset()
+    @removeCustomData "link"
 
     if @getDelegate().embedBox.hasValidContent
-      @addCustomData "link", {
+      @addCustomData "link",
         link_cache: @getDelegate().embedBox.getEmbedCache()
         link_url : @getDelegate().embedBox.getEmbedURL()
         link_embed : @getDelegate().embedBox.getEmbedDataForSubmit()
         link_embed_hidden_items:@getDelegate().embedBox.getEmbedHiddenItems()
         link_embed_image_index:@getDelegate().embedBox.getEmbedImageIndex()
-      }
-
     super
 
   pistachio:->
