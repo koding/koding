@@ -137,7 +137,7 @@ class KDInputViewWithPreview extends KDInputView
 
           @utils.wait =>
 
-            modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()+10 # minus the margin, border pixels too..
+            modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
             modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
             modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
             modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
