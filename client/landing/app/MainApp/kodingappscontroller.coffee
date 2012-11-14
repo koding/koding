@@ -224,15 +224,10 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
-
       @fetchCompiledApp manifest, (err, script)=>
         if err
-          @compileApp name, (err)=>
-            if err
-              new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-              callback err
-            else
-              callback err, KDApps[name]
+          @compileApp name, (err)->
+            callback err, KDApps[name]
         else
           @defineApp name, script
           callback err, KDApps[name]
@@ -392,19 +387,47 @@ class KodingAppsController extends KDController
     compileOnServer = (app)=>
       return warn "#{name}: No such application!" unless app
       appPath = getAppPath app
+
+      loader = new KDNotificationView
+        duration : 18000
+        title    : "Compiling #{name}..."
+        type     : "mini"
+
       @kiteController.run
         kiteName  : "applications"
         method    : "compileApp"
-        withArgs  :
-          appPath : appPath
+        withArgs  : {appPath}
       , (err)=>
         if not err
+          loader.notificationSetTitle "Fetching compiled app..."
           @fetchCompiledApp app, (err, res)=>
-            if not err then @defineApp name, res
-            callback?()
+            if not err
+              @defineApp name, res
+              loader.notificationSetTitle "App compiled successfully"
+              loader.notificationSetTimer 2000
+            callback? err
         else
-          warn "An error occured while compiling:", err
-          callback? yes
+          loader.destroy()
+
+          if err.details?.details?
+            details = """<pre>ERROR: #{err.details.details} <br/>
+                              FILE : #{err.details.file} <br/></pre>"""
+          else if err.details?
+            details = "<pre>#{err.details}</pre>"
+          else
+            details = ""
+
+          new KDModalView
+            title   : "An error occured while compiling the App!"
+            width   : 500
+            overlay : yes
+            content : """
+                      <div class='modalformline'>
+                        <p>#{err.message}</p>
+                        #{details}
+                      </div>
+                      """
+          callback? err
 
     unless @constructor.manifests[name]
       @fetchApps (err, apps)->
