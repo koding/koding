@@ -169,6 +169,8 @@ class ActivityTutorialWidget extends KDFormView
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
+    @embedBox.resetEmbedAndHide()
     super
 
   viewAppended:()->
