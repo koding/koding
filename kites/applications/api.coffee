@@ -38,6 +38,31 @@ executeCommand = require '../sharedHosting/executecommand'
 # Dummy-Admins
 dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvid"]
 
+compileScript = (scriptPath, callback)->
+
+  # log.info "Compiling this:", scriptPath
+
+  fs.exists scriptPath, (exists)->
+    if not exists
+      log.warn "Scriptfile '#{scriptPath}' is not exists, ignoring."
+      callback false
+    else
+      fs.readFile scriptPath, (err, scriptContent)->
+        if err then callback err, {file: scriptPath, error: new KodingError 'Parsing, file failed.'}
+        else if /.coffee$/.test scriptPath
+          compiledWell = yes
+          try
+            js = coffee.compile scriptContent+'', { bare : yes }
+          catch e
+            compiledWell = no
+            callback yes, {file: scriptPath, error: new KodingError('Compile failed', e.message)}
+          if compiledWell
+            callback err, {file: scriptPath, code: js}
+        else if /.js$/.test scriptPath
+          callback err, {file: scriptPath, code: scriptContent}
+        else
+          callback err, {file: scriptPath, error: new KodingError 'Nothing to do with that file.'}
+
 module.exports = new Kite 'applications'
 
   copyAppSkeleton:(options, callback)->
