@@ -159,7 +159,7 @@ module.exports = new Kite 'applications'
               manifestIsSafe = no
               callback new KodingError "Parsing manifest failed.", e
             if manifestIsSafe
-              if appRootPath isnt normalizeUserPath username, manifest.path
+              if appRootPath.replace(/^\/|\/$/g, '') isnt normalizeUserPath(username, manifest.path).replace(/^\/|\/$/g, '')
                 callback new KodingError "Paths are different in manifest, exiting."
                 log.error appRootPath, normalizeUserPath username, manifest.path
               else
