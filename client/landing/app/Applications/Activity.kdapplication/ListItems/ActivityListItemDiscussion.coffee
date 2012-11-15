@@ -126,7 +126,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
       <div class="activity-content-container discussion-body-container">
-      <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
+      <p class="has-markdown force-small-markdown">{{@utils.applyMarkdown #(body)}}</p>
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
