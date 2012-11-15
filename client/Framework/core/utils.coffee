@@ -308,7 +308,6 @@ __utils =
     fullname.split(' ')[0]
 
   getParentPath :(path)->
-
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
     parentPath = path.split('/')
     parentPath.pop()
@@ -326,6 +325,13 @@ __utils =
       (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
     else
       (fn) -> setTimeout fn, 1
+
+  removeBrokenSymlinksUnder:(path)->
+    kiteController = KD.getSingleton('kiteController')
+    escapeFilePath = FSHelper.escapeFilePath
+    kiteController.run "stat #{escapeFilePath path}", (err)->
+      if not err
+        kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
 
   wait: (duration, fn) ->
     if "function" is typeof duration

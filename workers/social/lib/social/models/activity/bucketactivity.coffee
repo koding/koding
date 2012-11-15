@@ -22,6 +22,8 @@ module.exports = class CBucketActivity extends CActivity
         'CLikeeBucket'
         'CReplierBucket'
         'CReplieeBucket'
+        'CInstallerBucket'
+        'CInstalleeBucket'
       ]
       as          : 'content'
 

@@ -64,8 +64,11 @@ class AceView extends JView
       callback  : =>
         manifest = KodingAppsController.getManifestFromPath @getData().path
         @ace.notify "Compiling...", null, yes
-        @getSingleton('kodingAppsController').compileApp manifest.name, =>
-          @ace.notify "App compiled!", "success"
+        @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
+          if not err
+            @ace.notify "App compiled!", "success"
+          else
+            @ace.notify "Trying to run old version..."
           @getSingleton('kodingAppsController').runApp manifest
           @compileAndRunButton.hideLoader()
 
