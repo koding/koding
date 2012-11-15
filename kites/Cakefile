@@ -7,11 +7,16 @@ http = require 'http'
 
 webhookDeadKite = (pid,name)->
   pid = config.crypto.encrypt pid
-  http.get e = "#{config.uri.address}/status/processIsDead/#{name}/#{pid}"
+  protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}/#{pid}"
 
 
 
 task 'cl3','runs dev kites',(options)->
+  config = require '../config/dev'
+  url = require('url').parse config.uri.address
+  protocol = try require url.protocol.substr 0, -1
+  throw new Error "Unsupported protocol: #{url.protocol}"  unless protocol?
+
   config = require '../config/dev'
   processes.run
     name    : "sharedHosting cake"
@@ -21,7 +26,7 @@ task 'cl3','runs dev kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "applications cake"
@@ -31,7 +36,7 @@ task 'cl3','runs dev kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm kite'
@@ -41,7 +46,7 @@ task 'cl3','runs dev kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -51,13 +56,13 @@ task 'cl3','runs dev kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
 
 task 'cl0', 'runs prod kites',(options)->
   config = require '../config/dev'
   url = require('url').parse config.uri.address
-  protocol = try require url.protocol.replace /[^\w]/g, ''
+  protocol = try require url.protocol.substr 0, -1
   throw new Error "Unsupported protocol: #{url.protocol}"  unless protocol?
 
   config = require '../config/prod'
@@ -69,7 +74,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
 
   processes.run
@@ -80,7 +85,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm'
@@ -90,7 +95,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -100,4 +105,4 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
