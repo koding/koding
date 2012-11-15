@@ -1,4 +1,4 @@
-package lxc
+package vm
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ type VM struct {
 	User string
 }
 
-func GetVM(a, b, c, d byte) *VM {
+func Get(a, b, c, d byte) *VM {
 	if a != 10 || b == 0 {
 		panic("Illegal VM address.")
 	}

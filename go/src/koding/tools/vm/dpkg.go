@@ -1,4 +1,4 @@
-package dpkg
+package vm
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ type Package struct {
 	Values map[string]string
 }
 
-func ReadStatusDB(fileName string) []*Package {
+func ReadDpkgStatusDB(fileName string) []*Package {
 	f, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
@@ -40,7 +40,7 @@ func ReadStatusDB(fileName string) []*Package {
 	return packages
 }
 
-func WriteStatusDB(packages []*Package, fileName string) {
+func WriteDpkgStatusDB(packages []*Package, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
