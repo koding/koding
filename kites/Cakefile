@@ -4,18 +4,11 @@ processes = new(require 'processes')
 require('fs').writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
 
 http = require 'http'
-
-webhookDeadKite = (pid,name)->
-  pid = config.crypto.encrypt pid
-  protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}/#{pid}"
+https = require 'https'
 
 
 
 task 'cl3','runs dev kites',(options)->
-  config = require '../config/dev'
-  url = require('url').parse config.uri.address
-  protocol = try require url.protocol.substr 0, -1
-  throw new Error "Unsupported protocol: #{url.protocol}"  unless protocol?
 
   config = require '../config/dev'
   processes.run
@@ -25,8 +18,6 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "applications cake"
@@ -35,8 +26,6 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm kite'
@@ -45,8 +34,6 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -55,17 +42,15 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-    onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
 
 task 'cl0', 'runs prod kites',(options)->
-  config = require '../config/dev'
-  url = require('url').parse config.uri.address
-  protocol = try require url.protocol.substr 0, -1
-  throw new Error "Unsupported protocol: #{url.protocol}"  unless protocol?
-
   config = require '../config/prod'
+  https.get e = "https://koding.com/status/processIsDead/sharedHosting"
+  https.get e = "https://koding.com/status/processIsDead/webterm"
+  https.get e = "https://koding.com/status/processIsDead/databases"
+  https.get e = "https://koding.com/status/processIsDead/applications"
+  
   processes.run
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
@@ -74,7 +59,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/status/processIsDead/#{name}"
 
 
   processes.run
@@ -85,7 +70,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm'
@@ -95,7 +80,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -105,4 +90,4 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      protocol.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/status/processIsDead/#{name}"
