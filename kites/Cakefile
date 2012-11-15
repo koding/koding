@@ -46,12 +46,13 @@ task 'cl3','runs dev kites',(options)->
 
 task 'cl0', 'runs prod kites',(options)->
   config = require '../config/prod'
-
-  https.get e = "https://koding.com/status/processIsDead/sharedHosting"
-  https.get e = "https://koding.com/status/processIsDead/webterm"
-  https.get e = "https://koding.com/status/processIsDead/databases"
-  https.get e = "https://koding.com/status/processIsDead/applications"
-
+  
+  setTimeout ->
+    https.get e = "https://koding.com/status/processIsDead/sharedHosting"
+    https.get e = "https://koding.com/status/processIsDead/webterm"
+    https.get e = "https://koding.com/status/processIsDead/databases"
+    https.get e = "https://koding.com/status/processIsDead/applications"
+  ,10*1000
   
   processes.run
     name    : "sharedHosting cake"
