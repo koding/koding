@@ -117,7 +117,11 @@ class ActivityCodeSnippetWidget extends KDFormView
   submit:=>
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
+
     super
+
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @submitBtn.setTitle "Share your Code Snippet"
