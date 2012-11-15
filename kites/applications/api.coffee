@@ -36,7 +36,7 @@ executeCommand = require '../sharedHosting/executecommand'
  AuthorizationError} = require './utils.coffee'
 
 # Dummy-Admins
-dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvid"]
+dummyAdmins = ["devrim", "sinan", "chris", "aleksey", "gokmen", "arvidkahl"]
 
 compileScript = (scriptPath, callback)->
 
@@ -92,7 +92,7 @@ module.exports = new Kite 'applications'
     {username, owner, appName, version, appPath} = options
 
     version   or= 'latest'
-    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}"
+    kpmAppPath  = escapePath "/opt/Apps/#{owner}/#{appName}/#{version}", yes
     userAppPath = escapePath appPath
     backupPath  = "#{appPath}.org.#{(Date.now()+'').substr(-4)}"
 
