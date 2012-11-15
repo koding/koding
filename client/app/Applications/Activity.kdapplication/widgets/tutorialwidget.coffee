@@ -29,22 +29,32 @@ class ActivityTutorialWidget extends KDFormView
         messages    :
           required  : "Tutorial title is required!"
 
+    @inputTutorialEmbedShowLink = new KDOnOffSwitch
+      cssClass:"show-tutorial-embed"
+      defaultState:off
+      callback:(state)=>
+        if state
+          if @embedBox.hasValidContent
+            @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
+            @embedBox.$().animate {top: "0px"}, 300
+        else
+          @embedBox.$().animate {top : "-400px"}, 300, =>
+            @embedBox.hide()
+
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
       label         : @labelEmbedLink
       placeholder   : "Please enter a URL to a video..."
 
-      focus:=> @embedBox.show() if @embedBox.hasValidContent
-
-      blur:=> @embedBox.hide()
-
+      keyup :=>
+        if @inputTutorialEmbedLink.getValue() is ""
+          @embedBox.resetEmbedAndHide()
 
       paste :=>
           @utils.wait =>
-
             @inputTutorialEmbedLink.setValue @sanitizeUrls @inputTutorialEmbedLink.getValue()
 
-            url = @inputTutorialEmbedLink.getValue()
+            url = @inputTutorialEmbedLink.getValue().trim()
 
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
@@ -52,7 +62,7 @@ class ActivityTutorialWidget extends KDFormView
                 maxWidth: 540
                 maxHeight: 200
               }, =>
-                @embedBox.show()
+                @embedBox.hide() if @inputTutorialEmbedShowLink.getValue() is off
 
     embedOptions = $.extend {}, options,
       delegate  : @
@@ -63,7 +73,6 @@ class ActivityTutorialWidget extends KDFormView
 
     @embedBox = new EmbedBox embedOptions, data
 
-
     @inputContent = new KDInputViewWithPreview
       label       : @labelContent
       preview     : @preview
@@ -71,7 +80,7 @@ class ActivityTutorialWidget extends KDFormView
       cssClass    : "discussion-body"
       type        : "textarea"
       autogrow    : yes
-      placeholder : "What do you want to show? (You can use markdown here)"
+      placeholder : "Please enter your Tutorial content. (You can use markdown here)"
       validate    :
         rules     :
           required: yes
@@ -90,181 +99,10 @@ class ActivityTutorialWidget extends KDFormView
       title : "Post your Tutorial"
       type  : 'submit'
 
-    @fullScreenBtn = new KDButtonView
-      style           : "clean-gray"
-      icon            : yes
-      iconClass       : "fullscreen"
-      iconOnly        : yes
-      cssClass        : "fullscreen-button"
-      title           : "Fullscreen Edit"
-      callback: =>
-        @textContainer = new KDView
-          cssClass:"modal-fullscreen-text"
-
-        @text = new KDInputViewWithPreview
-          type : "textarea"
-          cssClass : "fullscreen-data kdinput text"
-          defaultValue : @inputContent.getValue()
-
-        @textContainer.addSubView @text
-
-        modal = new KDModalView
-          title       : "What do you want to show?"
-          cssClass    : "modal-fullscreen"
-          height      : $(window).height()-110
-          width       : $(window).width()-110
-          view        : @textContainer
-          position:
-            top       : 55
-            left      : 55
-          overlay     : yes
-          buttons     :
-            Cancel    :
-              title   : "Discard changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                modal.destroy()
-            Apply     :
-              title   : "Apply changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                @inputContent.setValue @text.getValue()
-                @inputContent.generatePreview()
-                modal.destroy()
-
-        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23
-        modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-        modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21-10
-        contentWidth = modal.$(".kdmodal-content").width()-40
-        halfWidth  = contentWidth / 2
-
-        @text.on "PreviewHidden", =>
-          modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-          modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
-
-        @text.on "PreviewShown", =>
-          modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-          modal.$(".input_preview").width halfWidth-5
-
-        modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-        modal.$(".input_preview").width halfWidth-5
-
-    @markdownLink = new KDCustomHTMLView
-      tagName     : 'a'
-      name        : "markdownLink"
-      value       : "markdown is enabled"
-      attributes  :
-        title     : "markdown is enabled"
-        href      : '#'
-        value     : "markdown syntax is enabled"
-      cssClass    : 'markdown-link'
-      partial     : "What is Markdown?<span></span>"
-      click       : (pubInst, event)=>
-        if $(event.target).is 'span'
-          link.hide()
-        else
-          markdownText = new KDMarkdownModalText
-          modal = new KDModalView
-            title       : "How to use the <em>Markdown</em> syntax."
-            cssClass    : "what-you-should-know-modal markdown-cheatsheet"
-            height      : "auto"
-            width       : 500
-            content     : markdownText.markdownText()
-            buttons     :
-              Close     :
-                title   : 'Close'
-                style   : 'modal-clean-gray'
-                callback: -> modal.destroy()
-
-
     @heartBox = new HelpBox
       subtitle : "About Tutorials"
       tooltip  :
-        title  : "Click me for additional information"
-      click :->
-        modal = new KDModalView
-          title          : "Additional information on Tutorials"
-          content        : "<div class='modalformline signature'><h3>Hi!</h3><p>Anything odd? Drop me a message.</p><p>--@arvidkahl</p></div>"
-          height         : "auto"
-          overlay        : yes
-          buttons        :
-            Okay       :
-              style      : "modal-clean-gray"
-              loader     :
-                color    : "#ffffff"
-                diameter : 16
-              callback   : =>
-                modal.buttons.Okay.hideLoader()
-                modal.destroy()
-
-    @followupLink = new KDCustomHTMLView
-      tagName : "a"
-      attributes :
-        title : "Select related Tutorials"
-        href : "#"
-      cssClass : "followup-link"
-      partial : "This Tutorial is a Followup"
-      click:=>
-
-        modal = new KDModalView
-          title : "Select the previous Tutorial"
-          content : ""
-          cssClass : "modal-select-tutorials"
-          height:400
-          width:600
-          overlay: yes
-          buttons :
-            Select :
-              style : "modal-clean-gray"
-              callback: =>
-                modal.destroy()
-
-
-
-        appManager.tell 'Feeder', 'createContentFeedController', {
-          itemClass             : SelectableActivityListItemView
-          listControllerClass   : ActivityListController
-          listCssClass          : "activity-related"
-          limitPerPage          : 8
-          delegate : @
-          filter                :
-            Tutorials          :
-              title             : "Tutorials"
-              dataSource        : (selector, options, callback)=>
-                selector.originId = KD.whoami().getId()
-                selector.type = $in: [
-                  'CTutorialActivity'
-                ]
-                appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
-                  callback null, data
-          sort                  :
-            'sorts.likesCount'  :
-              title             : "Most popular"
-              direction         : -1
-            'modifiedAt'        :
-              title             : "Latest activity"
-              direction         : -1
-            'sorts.repliesCount':
-              title             : "Most activity"
-              direction         : -1
-            # and more
-        }, (controller)=>
-          #put listeners here, look for the other feeder instances
-
-          # unless KD.isMine account
-          #   @listenTo
-          #     KDEventTypes       : "mouseenter"
-          #     listenedToInstance : controller.getView()
-          #     callback           : => @mouseEnterOnFeed()
-          # log controller
-         tutorialFeeder = controller.getView()
-         modal.addSubView tutorialFeeder
-         tutorialFeeder.on "setSelectedData", (selectedData)=>
-           log "Setting data"
-           @selectedData = selectedData
-           log "Data set to",@selectedData
+        title  : "This is a public wall, here you can share your tutorials with the Koding community."
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -288,6 +126,13 @@ class ActivityTutorialWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
+  click:(event)->
+    # if $(event.target).parents("div.link-embed-box").length > 0
+    #   #log "EMBED"
+    # else
+    #   #log "not EMBED"
+    #   @embedBox.$().animate {top : "-400px"}, 300, =>
+    #     @embedBox.hide()
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
@@ -317,10 +162,8 @@ class ActivityTutorialWidget extends KDFormView
         link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
 
-    log "In Sbumit, checking for stuff", @selectedData
-
-    if @selectedData?
-      @addCustomData "startListWith", @selectedData
+    # if @selectedData?
+    #   @addCustomData "appendToList", @selectedData
 
     super
 
@@ -329,6 +172,9 @@ class ActivityTutorialWidget extends KDFormView
     @submitBtn.setTitle "Post your Tutorial"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
+    @inputTutorialEmbedShowLink.setValue off
+    @embedBox.resetEmbedAndHide()
     super
 
   viewAppended:()->
@@ -339,7 +185,7 @@ class ActivityTutorialWidget extends KDFormView
   switchToEditView:(activity)->
     @submitBtn.setTitle "Edit Tutorial"
     @addCustomData "activity", activity
-    {title, body, tags} = activity
+    {title, body, tags, link} = activity
 
     @tagController.reset()
     @tagController.setDefaultValue tags or []
@@ -347,10 +193,12 @@ class ActivityTutorialWidget extends KDFormView
     fillForm = =>
       @inputDiscussionTitle.setValue Encoder.htmlDecode title
       @inputContent.setValue Encoder.htmlDecode body
+      @inputTutorialEmbedLink.setValue Encoder.htmlDecode link?.link_url
       @inputContent.generatePreview()
 
     fillForm()
 
+            # {{> @followupLink}}
   pistachio:->
     """
     <div class="form-actions-mask">
@@ -365,6 +213,7 @@ class ActivityTutorialWidget extends KDFormView
           {{> @labelEmbedLink}}
           <div>
             {{> @inputTutorialEmbedLink}}
+            {{> @inputTutorialEmbedShowLink}}
             {{> @embedBox}}
           </div>
         </div>
@@ -372,11 +221,6 @@ class ActivityTutorialWidget extends KDFormView
           {{> @labelContent}}
           <div>
             {{> @inputContent}}
-            <div class="discussion-widget-content">
-            {{> @followupLink}}
-            {{> @markdownLink}}
-            {{> @fullScreenBtn}}
-            </div>
           </div>
         </div>
         <div class="formline">

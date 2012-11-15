@@ -237,7 +237,7 @@ app.contentdisplays.styl
   &.tutorial
     .header-view-section
       cite
-        bg(position,-748px -305px)
+        bg(position,-784px -305px)
 
   &.link
     .header-view-section
@@ -640,7 +640,7 @@ div.kdview.activity-item.discussion.content-display-main-section
                     font-weight 600
                     line-height 15px!important
                     font-size 11px
-                    margin-top 0px
+                    margin-top 11px
 
                   label.markdown-preview-label
                     font-size 11px
@@ -846,7 +846,7 @@ div.kdview.activity-item.discussion.content-display-main-section
                         font-weight 600
                         line-height 15px!important
                         font-size 11px
-                        margin-top 0px
+                        margin-top 11px
 
                       label.markdown-preview-label
                         font-size 11px
@@ -1063,7 +1063,7 @@ div.kdview.activity-item.discussion.content-display-main-section
               font-weight 600
               line-height 15px!important
               font-size 11px
-              margin-top 0px
+              margin-top 11px
 
             label.markdown-preview-label
               font-size 11px
@@ -1127,28 +1127,28 @@ div.kdview.activity-item.discussion.content-display-main-section
 .modal-fullscreen
   borderBox()
   .kdmodal-shadow
+    borderBox()
     width                             100%
     height                            100%
-    borderBox()
     .kdmodal-inner
-      width                           100%
-      height                          100%!important
       borderBox()
+      width                           100%
+      height                          100%
       .kdmodal-content
+        borderBox()
         width                         100%
         height                        100%
-        borderBox()
         .modal-fullscreen-text
+          borderBox()
           width                       100%
           height                      100%
-          borderBox()
           textarea
 
+            borderBox()
             width                     auto
             height                    auto
             padding                   10px
             margin                    10px
-            borderBox()
 
 .formline .fullscreen-button
   float                               right
@@ -1287,11 +1287,727 @@ div.tutorial
     margin-top 0
   .discussion-body
     margin-top 15px
+  .custom-object.custom-video
+    text-align center
+
+div.tutorial-navigation-container
+  clear:both
+  width:100%
+  display block
+  text-align center
+
+div.tutorial-anchor
+  width auto
+  vertical-align top
+  display inline-block
+  &.next
+    float right
+  &.previous
+    float left
 
 div.tutorial-navigation-box
+  cursor pointer
+  display inline-block
+  padding 5px 0px
+  width auto
+  max-width 200px
+
+  p.title-preview
+    text-overflow ellipsis
+    overflow hidden
+    white-space nowrap
+
   img.image-preview
     max-width 100px
     max-height 100px
 
+button.tutorial-video-button
+  span.button-content
+    white-space nowrap
+    overflow hidden
+    text-overflow ellipsis
+
+div.coming-up-next-anchor
+  max-width 500px
+  display inline-block
+  width auto
+  div.coming-up-next
+    margin 10px 10px 0px 10px
+    color #5f5f5f
+    white-space nowrap
+    overflow hidden
+    text-overflow ellipsis
 
 
+// Styles for the Tutorial ContentView
+
+div.kdview.activity-item.tutorial.content-display-main-section
+  margin                                          0
+  padding                                         0
+  borderBox()
+  max-width                                       100%
+
+  // Tutorial Item - 100%
+
+  div.tutorial-contents
+    borderBox()
+    width                                         100%
+    border-bottom                                 1px solid #e3e3e3
+    padding-bottom                                10px
+
+
+    // Tutorial Item - Sized to 800px
+
+    div.tutorial-content
+      max-width                                   800px
+      padding-left                                20px
+      padding-top                                 20px
+
+      &:hover a.delete-link
+        opacity                                   0.5
+
+      &:hover a.edit-link
+        opacity                                   0.5
+
+      // Avatar Picture and Text
+
+      > span
+        padding                                   1px
+        border                                    1px solid #E3E3E3
+        width                                     50px
+        display                                   block
+        float                                     left
+        size                                      50px,66px
+
+        span
+          background-size                         cover
+          width                                   50px
+          height                                  50px
+          display                                 block
+
+        .author
+          font-size                               9px
+          display                                 block
+          height                                  9px
+          color                                   white
+          background                              #0896BD
+          text-align                              center
+          line-height                             9px
+          padding                                 3px 0px
+          border-top                              1px solid white
+
+      // Tutorial Item - Edit form, Title and Text, time, share, like views
+
+      div.tutorial-main-opinion
+        margin-left                               72px
+
+        h3
+          font-size                               14px
+          font-weight                             500
+          color                                   #FF9200
+          margin-bottom                           15px
+
+        footer.tutorial-footer
+          padding-bottom                          0px
+
+          .type-and-time
+            font-weight                           400
+            font-size                             11px
+            color                                 #a5a5a5
+
+            .link-group
+              font-size                           11px
+
+          a
+            noTextDeco()
+            color                                 #FF9200
+            font-size                             11px
+
+          a.count
+            font-style                            normal
+            display                               inline-block
+            bg                                    color, #0A92BA
+            color                                 #fff
+            font-size                             10px
+            padding                               1px 4px
+            line-height                           10px
+            rounded                               3px
+            noTextDeco()
+
+          span.activity-text
+            margin                                0px 2px
+            color                                 #FF9200
+            font-size                             12px
+            font-weight                           bold
+
+        a.delete-link
+          display                                 block
+          size                                    20px, 20px
+          position                                absolute
+          top                                     2px
+          left                                    805px
+          bg                                      position, -80px -520px
+          opacity                                 0.1
+          vendor                                  transition, opacity .15s linear
+          sprite()
+
+          &:hover
+            opacity                               1
+
+        a.edit-link
+          display                                 block
+          size                                    20px, 20px
+          position                                absolute
+          top                                     2px
+          left                                    790px
+          bg                                      position, -120px -400px
+          opacity                                 0.1
+          vendor                                  transition, opacity .15s linear
+          sprite()
+
+          &:hover
+            opacity                               1
+
+        p.tutorial-body
+          margin-top                              15px
+
+          form.edit-tutorial-form.update-options.tutorial
+            width                                 auto
+            height                                auto
+
+            div.tutorial-box
+              width                               100%
+              height                              auto
+
+              div.tutorial-form
+                width                             auto
+                height                            auto
+                position                          relative
+
+                div.markdown_preview
+                  margin 5px 0px
+                  borderBox()
+                  border 1px dashed #D7D7D7
+                  padding 10px 10px 10px 10px
+
+                  > *:last-child
+                    margin-bottom 0
+
+                input.tutorial-title
+                  width                           100%
+                  margin-bottom                   10px
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
+
+                textarea.tutorial-body
+                  max-height                      800px
+                  outline                         none
+                  height                          auto
+                  min-height                      144px
+                  padding                         10px
+                  width                           100%
+                  box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
+                  borderBox()
+                  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                  font-size 12px
+
+              div.tutorial-buttons
+                height                            35px
+                margin-bottom                     25px
+
+                .tutorial-heart-box
+                  float                           left
+
+                  .help-box
+                    margin-top                    11px
+
+                .tutorial-submit
+                  float                           right
+                  display                         block
+
+                  .modal-cancel
+                    font-weight 600
+                    line-height 15px!important
+                    font-size 11px
+                    margin-top 11px
+
+                  label.markdown-preview-label
+                    font-size 11px
+                    color  #FF9200
+                    font-weight 600
+                    margin-right 0px
+
+                  input.checkbox.markdownPreviewCheckbox
+                    vertical-align middle
+                    margin-right 10px
+
+                  button
+                    margin-top                    12px
+
+                    &.fullscreen-button
+                      padding 0px 2px
+                      height 24px
+                      span
+                        &.fullscreen
+                          bg              position,-20px -360px
+
+                  a.markdown-link
+                    margin-top                    19px
+                    display                       inline-block
+                    margin-right                  9px
+                    line-height                   100%
+                    text-decoration               none
+                    font-size                     11px
+                    font-weight                   600
+
+
+  // Opinion List - 100%
+
+  div.opinion-content
+
+    // "x Answers"
+
+    div.opinion-box-header
+      border-bottom                               1px solid #e3e3e3
+      padding-left                                110px
+      background-color                            #F7F7F7
+      color                                       #FF9200
+      padding-top                                 5px
+      padding-bottom                              5px
+      font-size                                   11px
+      font-weight                                 500
+
+    // Populated Opinion List
+    div.opinion-container.opinion-container-box.no-opinion
+      display                                     none
+
+    div.opinion-container.opinion-container-box.opinionated
+
+      div.kdlistview-opinions
+        margin-left                               90px
+        borderBox()
+        border-left                               1px solid #e3e3e3
+
+        div.kdlistitemview-opinion
+          border-bottom                           1px solid #e3e3e3
+          borderBox()
+          padding                                 20px
+
+
+          div.item-content-opinion
+            max-width                             709px
+
+            > span.avatar
+              border                              1px solid #E3E3E3
+              padding                             1px
+              margin-right                        20px
+              width                               40px
+              height                              40px
+              bg(color,#fff)
+              fl()
+
+              a
+                display                           block
+                background-position               center
+                background-image                  url('../images/defaultavatar/default.avatar.50.png')
+                bg(size,cover)
+                bg(repeat,no-repeat)
+
+            footer.opinion-footer
+              margin-left                         65px
+              margin-top                          15px
+
+              .type-and-time
+                font-weight                       400
+                font-size                         12px
+                color                             #a5a5a5
+
+                .link-group
+                  font-size                       12px
+
+              a
+                noTextDeco()
+
+              a.count
+                font-style                        normal
+                display                           inline-block
+                bg                                color, #0A92BA
+                color                             #fff
+                font-size                         10px
+                padding                           1px 4px
+                line-height                       10px
+                rounded                           3px
+                noTextDeco()
+
+              span.activity-text
+                margin                            0px 2px
+                color                             #FF9200
+                font-size                         11px
+                font-weight                       bold
+
+            div.opinion-contents
+
+              &:hover a.delete-link
+                opacity                           0.5
+
+              &:hover a.edit-link
+                opacity                           0.5
+
+              a.delete-link
+                display                           block
+                size                              20px, 20px
+                position                          absolute
+                top                               2px
+                left                              715px
+                bg                                position, -80px -520px
+                opacity                           0.1
+                vendor                            transition, opacity .15s linear
+                sprite()
+
+                &:hover
+                  opacity                         1
+
+              a.edit-link
+                display                           block
+                size                              20px, 20px
+                position                          absolute
+                top                               2px
+                left                              700px
+                bg                                position, -120px -400px
+                opacity                           0.1
+                vendor                            transition, opacity .15s linear
+                sprite()
+
+                &:hover
+                  opacity                         1
+
+              p.opinion-body-edit
+                margin-left                       65px
+                width                             auto
+                height                            auto
+
+                div.opinion-box
+                  width                           100%
+                  height                          auto
+
+                  div.opinion-form
+                    width                         auto
+                    height                        auto
+                    position                      relative
+
+                    div.markdown_preview
+                      margin 5px 0px
+                      borderBox()
+                      border 1px dashed #D7D7D7
+                      padding 10px 10px 10px 10px
+
+                      > *:last-child
+                        margin-bottom 0
+
+                    textarea.opinion-body
+                      max-height                  800px
+                      outline                     none
+                      height                      auto
+                      min-height                  144px
+                      padding                     10px
+                      width                       100%
+                      box-shadow                  inset 0 1px 2px rgba(0,0,0,0.10)
+                      borderBox()
+                      font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+                      font-size 12px
+
+                  div.opinion-buttons
+                    height                        35px
+                    margin-bottom                 25px
+
+                    .opinion-heart-box
+                      float                       left
+
+                      .help-box
+                        margin-top                11px
+
+
+                    .opinion-submit
+                      float                       right
+                      display                     block
+
+                      .modal-cancel
+                        font-weight 600
+                        line-height 15px!important
+                        font-size 11px
+                        margin-top 11px
+
+                      label.markdown-preview-label
+                        font-size 11px
+                        color  #FF9200
+                        font-weight 600
+                        margin-right 0px
+
+                      input.checkbox.markdownPreviewCheckbox
+                        vertical-align middle
+                        margin-right 10px
+
+                      button
+                        margin-top                12px
+
+                        &.fullscreen-button
+                          padding 0px 2px
+                          height 24px
+                          span
+                            &.fullscreen
+                              bg              position,-20px -360px
+
+                      a.markdown-link
+                        margin-top                19px
+                        display                   inline-block
+                        margin-right              9px
+                        line-height               100%
+                        text-decoration           none
+                        font-size                 11px
+
+
+              p.opinion-body
+                margin-left                       65px
+                vendor                            transition, max-height .2s linear
+                overflow                          hidden
+
+              div.opinion-size-links
+                display                           block
+
+                a.opinion-size-link
+                  margin-top                      10px
+                  display                         inline-block
+                  background-color                #e8e9e9
+                  font-size                       11px
+                  font-weight                     600
+                  rounded(3px)
+                  padding                         4px 10px
+                  margin-left                     65px
+                  noTextDeco()
+                  width                           auto
+                  color                           #0896BD
+
+          // Opinion->Comments
+
+          div.item-content-opinion-comments
+            padding-top                           5px
+
+            div.opinion-comment
+              max-width                           644px
+              margin-left                         65px
+
+              div.comment-contents
+
+                p.comment-body
+
+                  span.data[data-paths=body]
+                    color                         #5F5F5F
+
+                    a
+                      color                       #FF9200
+
+                span.like-view
+
+                  // Comment Likes
+                  a.count
+                    font-style                    normal
+                    display                       inline-block
+                    bg                            color, #0A92BA
+                    color                         #fff
+                    font-size                     10px
+                    padding                       1px 4px
+                    line-height                   10px
+                    rounded                       3px
+                    noTextDeco()
+
+
+      div.show-more-opinions
+        border-left                               1px solid #E3E3E3
+        border-bottom                             1px solid #E3E3E3
+        margin-left                               90px
+        padding-left                              20px
+        padding-top                               5px
+        padding-bottom                            5px
+        background-color                          #f7f7f7
+        size                                      auto, 0
+        padding                                   0 10px
+        line-height                               27px
+        vendor                                    transition, height .15s linear
+        borderBox()
+
+        &.in
+          height                                  27px
+
+        &.has-new-items
+
+          a.new-count
+            display                               inline
+        a
+          line-height                             14px
+          color                                   #299FC6
+          font-weight                             400
+          noTextDeco()
+          &.new-count
+            font-weight                           600
+
+        span.small-loader
+          position                                absolute
+          right                                   15px
+          top                                     11px
+
+        .new-items
+          left                                    500px
+          opacity                                 0
+          padding-left                            2px
+          padding-right                           2px
+          font-weight                             600
+          color                                   white
+          position                                relative
+          bg                                      color, #FF9200
+          border                                  1px solid #FF9200
+          rounded(3px 3px 3px 3px)
+          vendor                                  transition, left .3s ease-in-out \, opacity .3s ease-in-out
+          line-height                             14px
+
+          &.in
+            opacity                               1
+            left                                  6px
+
+        .new-items:after, .new-items:before
+          right                                   100%
+          border                                  solid transparent
+          content                                 " "
+          height                                  0
+          width                                   0
+          position                                absolute
+          pointer-events                          none
+
+        .new-items:after
+          border-right-color                      #FF9200
+          border-width                            4px
+          top                                     50%
+          margin-top                              -4px
+
+        .new-items:before
+          border-right-color                      #FF9200
+          border-width                            5px
+          top                                     50%
+          margin-top                              -5px
+
+        a.all-count
+          noTextDeco()
+
+    div.content-display-main-section.opinion-form-footer
+      margin-left                                 90px
+      margin-top                                  20px
+      padding-right                               20px
+      width                                       auto
+      height                                      auto
+      max-width                                   730px
+
+      div.opinion-box
+        width                                     100%
+        height                                    auto
+
+        div.opinion-form
+          width                                   auto
+          height                                  auto
+          position                                relative
+
+          div.markdown_preview
+            margin 5px 0px
+            borderBox()
+            border 1px dashed #D7D7D7
+            padding 10px 10px 10px 10px
+
+            > *:last-child
+              margin-bottom 0
+
+          textarea.opinion-body
+            max-height                      800px
+            outline                         none
+            height                          auto
+            min-height                      144px
+            padding                         10px
+            width                           100%
+            box-shadow                      inset 0 1px 2px rgba(0,0,0,0.10)
+            borderBox()
+            font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+            font-size 12px
+
+        div.opinion-buttons
+          height                                  35px
+          margin-bottom                           25px
+
+          .opinion-heart-box
+            float                                 left
+
+            .help-box
+              margin-top                          11px
+
+          .opinion-submit
+            float                                 right
+            display                               block
+
+            .modal-cancel
+              font-weight 600
+              line-height 15px!important
+              font-size 11px
+              margin-top 11px
+
+            label.markdown-preview-label
+              font-size 11px
+              color  #FF9200
+              font-weight 600
+              margin-right 0px
+
+            input.checkbox.markdownPreviewCheckbox
+              vertical-align middle
+              margin-right 10px
+
+            button
+              margin-top                          12px
+
+              &.fullscreen-button
+                padding 0px 2px
+                height 24px
+                span
+                  &.fullscreen
+                    bg              position,-20px -360px
+
+            a.markdown-link
+              margin-top                          19px
+              display                             inline-block
+              margin-right                        9px
+              line-height                         100%
+              text-decoration                     none
+              font-size                           11px
+
+
+// Unused Scroll Buttons
+
+.tutorial-nav
+  z-index                             100
+  position                            fixed
+  top                                 55px
+  right                               18px
+  height                              30px
+  border                              1px solid #D1D1D1
+  background-color                    #fff
+  padding                             5px 10px
+  borderBox()
+  rounded(5px)
+  opacity                             0.5
+  vendor                              transition, opacity 0.2s linear
+  &:hover
+    opacity                           1
+  a
+    text-decoration                   none
+    margin-right                      3px
+    padding-right                     6px
+    border-right                      1px solid #ff9200
+
+    &:last-child
+      margin-right                    0
+      padding-right                   0
+      border-right

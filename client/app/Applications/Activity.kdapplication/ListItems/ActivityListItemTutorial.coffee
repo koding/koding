@@ -3,7 +3,7 @@ class TutorialActivityItemView extends ActivityItemChild
   constructor:(options, data)->
 
     options = $.extend
-      cssClass    : "activity-item discussion"
+      cssClass    : "activity-item tutorial"
       tooltip     :
         title     : "Tutorial"
         offset    : 3
@@ -21,16 +21,28 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
+    @previewImageBox = new KDView
+      cssClass : "tutorial-preview-image-box"
+
     @previewImage = new KDCustomHTMLView
       tagName : "img"
       cssClass : "tutorial-preview-image"
       attributes:
-        src: data.link?.link_embed.images[0].url or ""
+        src: data.link?.link_embed?.images?[0]?.url or ""
         title:"Show the Tutorial"
         alt:"Show the tutorial"
         "data-paths":"preview"
 
-    @previewImage.hide() unless data.link?
+    @previewImageOverlay = new KDCustomHTMLView
+      tagName : "i"
+      cssClass : "preview-image-overlay"
+      partial: ""
+
+    @previewImageBox.addSubView @previewImage
+    @previewImageBox.addSubView @previewImageOverlay
+
+
+    @previewImageBox.hide() unless data.link?.link_embed?.images?[0]?.url
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
@@ -139,10 +151,10 @@ class TutorialActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
-      <h3 class='hidden'></h3>
-      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
+      <p class="hidden comment-title"></p>
       <div class="preview_image">
-      {{> @previewImage}}
+      {{> @previewImageBox}}
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>

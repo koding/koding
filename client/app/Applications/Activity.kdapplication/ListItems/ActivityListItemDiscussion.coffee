@@ -87,18 +87,20 @@ class DiscussionActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    # Here, the maxheight-reliant "View full discussion"-bar is toggled.
-    # The shortened text is not sufficient since it can contain 500 line breaks
-    # or <code> with very high whitespace amount. This keeps the snapshot view
-    # clean.
+    @highlightCode()
 
-    if @$("p.comment-body").height() >= 250
-      @$("div.view-full-discussion").show()
-    else
-      @$("div.view-full-discussion").hide()
+  highlightCode:=>
+    @$("pre").addClass "prettyprint"
+    @$("div.discussion-body-container span.data pre").each (i,element)=>
+      hljs.highlightBlock element
+    # @$("code").each (i,element) =>
+    #   log language = $(element).attr("class")?.replace("lang-","")
+    #   # Interesting Idea: maybe add a badge linke in CodeSnips
+
 
   render:->
     super()
+    @highlightCode()
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
@@ -122,8 +124,10 @@ class DiscussionActivityItemView extends ActivityItemChild
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
-      <h3 class='hidden'></h3>
-      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
+      <div class="activity-content-container discussion-body-container">
+      <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
+      </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}

@@ -34,6 +34,12 @@ class OpinionView extends KDView
       for opinion, i in data.opinions when opinion? and 'object' is typeof opinion
         @opinionList.addItem opinion
 
+    if data.repliesCount and not data.opinions?
+      maxOpinions = (if data.repliesCount<=5 then data.repliesCount else 5)
+      @opinionController.fetchOpinionsByRange 0,maxOpinions, (err, opinions)=>
+        for opinion, i in opinions when (opinion? and 'object' is typeof opinion)
+          @opinionList.addItem opinion
+
     @opinionList.emit "BackgroundActivityFinished"
 
   attachListeners:->

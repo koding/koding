@@ -1,0 +1,17 @@
+# Applications Kite
+
+option '-c', '--config [CONFIG]', 'select a config file (default is prod)'
+
+processes = new(require 'processes')
+
+task 'run','run applications',(options)->
+
+  options.config ?= "config-dev"
+
+  processes.run
+    name    : "applications kite"
+    cmd     : "coffee index.coffee -c #{options.config} --applications"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    
