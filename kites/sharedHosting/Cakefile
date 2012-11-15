@@ -24,7 +24,7 @@ task 'run','run sharedHosting',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     onExit  : (pid,name)->
-      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/status/processIsDead/#{name}"
     
 
 
