@@ -52,6 +52,10 @@ koding.mq.connection.on 'ready', ->
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
+app.get "/Logout", (req, res)->
+  res.clearCookie 'clientId'
+  res.redirect 302, '/'
+
 app.get '/auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
