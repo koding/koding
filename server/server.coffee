@@ -142,15 +142,15 @@ app.get "/", (req, res)->
       throw err if err
       res.send data
 
-app.get "/status/:data",(req,res)->
+app.get "/status/:event/:kiteName",(req,res)->
   # req.params.data
   console.log req.params
   
   obj =
-    processName : req.params.name
+    processName : req.params.kiteName
     # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
   
-  koding.mq.emit 'public-status','processIsDead',obj
+  koding.mq.emit 'public-status', req.params.event, obj
   res.send "got it."
 
 
