@@ -1,8 +1,30 @@
 {argv} = require 'optimist'
-KONFIG = require argv.c
-{webserver, mongo, mq, projectRoot, kites, basicAuth} = KONFIG
 
+KONFIG = require argv.c.trim()
+{webserver, mongo, mq, projectRoot, kites, basicAuth} = KONFIG
 webPort = argv.p ? webserver.port
+
+
+processMonitor = (require 'processes-monitor').start
+  name : "webServer on port #{webPort}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : ->
+      console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+      process.exit()
+
+# if webPort is 3005
+#   foo = []
+#   do bar = ->
+#    process.nextTick ->
+#      foo.push Math.random()
+#      bar()
+
+#   setInterval ->
+#    a=foo.length
+#   , 1000
+
 
 {extend} = require 'underscore'
 express = require 'express'

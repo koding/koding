@@ -20,11 +20,14 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : 3000
+    port        : [3001..3010]
   mongo         : mongo
   runBroker     : no
   configureBroker: no
   buildClient   : no
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
   bitly :
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
@@ -45,7 +48,7 @@ module.exports = deepFreeze
     index       : "./website/index.html"
     includesFile: '../CakefileIncludes.coffee'
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3020'
+    staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
       suppressLogs: no
       version   : version
