@@ -55,6 +55,9 @@ class KDRouter extends KDObject
     console.trace()
     log "The route #{route} was not found!"
 
+  routeWithoutThisEdge =(route, edge)->
+    "/#{route.slice(0, i).concat(route.slice i + 1).join '/'}"
+
   addRoute:(route, listener)->
     @routes[route] = listener
     node = @tree
@@ -64,10 +67,7 @@ class KDRouter extends KDObject
       len = edge.length-1
       if '?' is edge.substr len # then this is an "optional edge".
         # recursively alias this route without this optional edge:
-        routeWithoutThisEdge = "/#{
-          route.slice(0, i).concat(route.slice i + 1).join '/'
-        }"
-        @addRoute routeWithoutThisEdge, listener
+        @addRoute routeWithoutThisEdge(route, edge), listener
         edge = edge.substr 0, len # get rid of the "?" from the route
       if /^:/.test edge
         node[':'] or= name: edge.substr 1

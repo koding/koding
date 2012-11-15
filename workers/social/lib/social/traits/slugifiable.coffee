@@ -35,20 +35,11 @@ module.exports = class Slugifiable
           JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
             if err?.code is 11000
               # we lost the race; try again
-              console.log 'did i lose the race?'
-              generateUniqueSlug konstructor, slug, template, callback
+              generateUniqueSlug konstructor, slug, 0, template, callback
             else if err
               callback err
             else
               callback null, nextName
-
-    # candidate = "#{slug}#{i or ''}"
-    # constructor.count slug: candidate, (err, count)->
-    #   if err then callback err
-    #   else if count > 0
-    #     generateUniqueSlug constructor, slug, ++i, callback
-    #   else
-    #     callback null, candidate
 
   @updateAllSlugs = (options, callback)->
     [callback, options] = [options, callback] unless callback
