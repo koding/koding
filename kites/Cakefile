@@ -3,6 +3,8 @@ D = __dirname
 processes = new(require 'processes')
 require('fs').writeFileSync '/var/run/node/kiteCake.pid', process.pid, 'utf-8'
 
+http = require 'http'
+
 webhookDeadKite = (pid,name)->
   pid = config.crypto.encrypt pid
   http.get e = "#{config.uri.address}/status/processIsDead/#{name}/#{pid}"
@@ -10,7 +12,7 @@ webhookDeadKite = (pid,name)->
 
 
 task 'cl3','runs dev kites',(options)->
-
+  config = require '../config/dev'
   processes.run
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
@@ -53,7 +55,12 @@ task 'cl3','runs dev kites',(options)->
 
 
 task 'cl0', 'runs prod kites',(options)->
+  config = require '../config/dev'
+  url = require('url').parse config.uri.address
+  protocol = try require url.protocol.replace /[^\w]/g, ''
+  throw new Error "Unsupported protocol: #{url.protocol}"  unless protocol?
 
+  config = require '../config/prod'
   processes.run
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-prod run"
