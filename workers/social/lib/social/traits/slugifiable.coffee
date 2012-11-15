@@ -63,7 +63,7 @@ module.exports = class Slugifiable
           cursor.each (err, post)->
             if err then postQueue.next err
             else if post?
-              postQueue.push -> post.updateSlug subclass.slugTemplate, (err, slug)->
+              postQueue.push -> post.updateSlug (err, slug)->
                 callback null, slug
                 postQueue.next()
             else
@@ -78,7 +78,6 @@ module.exports = class Slugifiable
 
   createSlug:(callback)->
     {constructor} = this
-    {slugTemplate} = constructor
-    {slugifyFrom} = constructor
+    {slugTemplate, slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
     generateUniqueSlug constructor, slug, 0, slugTemplate, callback

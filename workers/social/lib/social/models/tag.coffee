@@ -13,10 +13,13 @@ module.exports = class JTag extends jraphical.Module
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
+  @trait __dirname, '../traits/slugifiable'
 
   @share()
 
   @set
+    slugifyFrom     : 'title'
+    slugTemplate    : 'Topics/#{slug}'
     permissions     : [
       'create tags'
       'edit tags'
@@ -34,7 +37,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        "one","on","some","all","create",
+        "one","on","some","all","create","updateAllSlugs"
         'someWithRelationship','byRelevance'#,'markFollowing'
         ]
     schema          :

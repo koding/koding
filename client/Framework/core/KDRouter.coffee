@@ -51,7 +51,9 @@ class KDRouter extends KDObject
 
   getTitle:(path)-> path
   
-  handleNotFound:(route)-> log "The route #{route} was not found!"
+  handleNotFound:(route)->
+    console.trace()
+    log "The route #{route} was not found!"
 
   addRoute:(route, listener)->
     @routes[route] = listener

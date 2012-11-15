@@ -92,7 +92,6 @@ module.exports = class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
-
         lastName            :
           type              : String
           default           : ''
@@ -340,7 +339,7 @@ module.exports = class JAccount extends jraphical.Module
 
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests','reset groups','administer names'
+      when 'delete','flag','reset guests','reset groups','administer names', 'administer url aliases'
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
 
   fetchRoles: (group, callback)->

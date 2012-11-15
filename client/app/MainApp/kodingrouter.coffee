@@ -38,6 +38,18 @@ class KodingRouter extends KDRouter
       "^#{begin ? ''}(.*)#{end ? ''}$"
     str.match(re)[1]
 
+  handleNotFound:(route)->
+
+    status_404 = =>
+      KDRouter::handleNotFound.call @, route
+
+    status_301 = (redirectTarget)=>
+      @handleRoute "/#{redirectTarget}", replaceState: yes
+
+    KD.remote.api.JUrlAlias.resolve route, (err, target)->
+      if err or not target? then status_404()
+      else status_301 target
+
   openContent:(name, section, state, route)->
     appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
       @openRoutes[route] = contentDisplay
@@ -54,7 +66,6 @@ class KodingRouter extends KDRouter
         slug = stripTemplate route, konstructor
         selector[usedAsPath] = slug
         konstructor?.one selector, (err, model)=>
-          console.log 'argz', arguments, selector
           @openContent name, section, model, route
       else
         @handleNotFound route
@@ -167,6 +178,7 @@ class KodingRouter extends KDRouter
               appManager.tell "Members", "createContentDisplay", account 
 
       '/:name': (params)->
+        status_404 = => @handleNotFound params.name
         KD.remote.cacheable params.name, (err, model, name)->
           switch name?.constructorName
             when 'JAccount'
@@ -175,7 +187,7 @@ class KodingRouter extends KDRouter
               appManager.tell 'Groups', 'createContentDisplay', model
             when 'JTopic'
               appManager.tell 'Topics', 'createContentDisplay', model
-            else log "404 - /#{params.name}"
+            else status_404()
 
     sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
       route.replace /^\/Groups\/:group/, ''
