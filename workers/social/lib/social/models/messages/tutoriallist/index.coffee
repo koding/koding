@@ -28,7 +28,7 @@ module.exports = class JTutorialList extends jraphical.Module
       instance      : [
         'update', 'follow', 'unfollow', 'delete', 'review',
         'like', 'checkIfLikedBefore', 'fetchLikedByes',
-        'fetchFollowersWithRelationship', 'addItem'
+        'fetchFollowersWithRelationship', 'addItemById'
         'fetchFollowingWithRelationship', 'fetchCreator',
       ]
       static        : [
@@ -107,7 +107,7 @@ module.exports = class JTutorialList extends jraphical.Module
           else
             callback null, list
 
-  addItem : secure ({connection}, tutorialId, callback)->
+  addItemById : secure ({connection}, tutorialId, callback)->
     JTutorial.one
       _id: tutorialId
     , (err, tut)=>
@@ -122,7 +122,7 @@ module.exports = class JTutorialList extends jraphical.Module
               else
                 callback null
       else
-        log "Not found."
+        log tutorialId+" Not found."
 
   @fetchForTutorialId : (tutorialId, callback)->
     Relationship.one

@@ -29,9 +29,6 @@ class ActivityStatusUpdateWidget extends KDFormView
     # box is hidden (as it is when the widget is empty or reset)
     @initialRequest = yes
 
-    # will hide the link helper box once it's been closed once
-    @inputLinkInfoBoxPermaHide = off
-
     @largeInput = new KDInputView
       cssClass      : "status-update-input"
       type          : "textarea"
@@ -86,7 +83,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
       tooltip  :
-        title  : "This a public wall, here you can share anything with the Koding community."
+        title  : "This is a public wall, here you can share anything with the Koding community."
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -112,45 +109,34 @@ class ActivityStatusUpdateWidget extends KDFormView
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
 
-    @inputLinkInfoBoxCloseButton = new KDButtonView
-      name: "hide-info-box"
-      cssClass      : "hide-info-box"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "hide"
-      title     : "Close"
-      callback  : =>
-        @inputLinkInfoBox.hide()
-        @inputLinkInfoBoxPermaHide = on
+    @inputLinkInfoBox = new InfoBox
+      cssClass : "protocol-info-box"
+      delegate : @
 
-    @inputLinkInfoBox = new KDView
-      cssClass : "protocol-info-box hidden"
-      pistachio : """
-      <p>For links, please provide a protocol such as
-        <abbr title="Hypertext Transfer Protocol">http://</abbr>
-        <label for="stop-sanitizing" title="This will disable the automatic URL completion.">
-        Disable URL auto-complete.</label><input name="stop-sanitizing" class="stop-sanitizing" type="checkbox" />
-      </p>
-      """
-
-
-    @inputLinkInfoBox.addSubView @inputLinkInfoBoxCloseButton
+    @inputLinkInfoBox.hide()
 
     @tagAutoComplete = @tagController.getView()
 
+    # checkbox autocheck
+    @appStorage = new AppStorage 'Activity', '1.0'
+    @updateCheckboxFromStorage()
+
+  updateCheckboxFromStorage:->
+    @appStorage.fetchValue 'UrlSanitizerCheckboxIsChecked',(checked)=>
+      @inputLinkInfoBox.setSwitchValue checked
+
   # will automatically add // to any non-protocol urls
   sanitizeUrls:(text)->
-    text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
-
       if test is no
 
         # here is a warning/popup that explains how and why
         # we change the links in the edit
 
-        unless @inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
+        unless @inputLinkInfoBox.inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
 
-        unless @$("input.stop-sanitizing").prop "checked"
+        if @inputLinkInfoBox.getSwitchValue() is yes
           "http://"+url
         else
           url
@@ -158,7 +144,6 @@ class ActivityStatusUpdateWidget extends KDFormView
       else
 
         # if a protocol of any sort is found, no change
-
         url
 
   requestEmbed:=>
@@ -170,15 +155,14 @@ class ActivityStatusUpdateWidget extends KDFormView
       @requestEmbedLock = on
 
       setTimeout =>
-        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g)
         if firstUrl?
 
           if @initialRequest
-            # @embedBox.show()
-            # @embedBox.embedLoader.show()
             @initialRequest = no
 
           @embedBox.embedLinks.setLinks firstUrl
+          @embedBox.show()
 
           unless (@previousURL in firstUrl)
             @embedBox.embedUrl firstUrl?[0], {
@@ -279,6 +263,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @initialRequest = yes
     @inputLinkInfoBoxPermaHide = off
     @inputLinkInfoBox.hide()
+    @updateCheckboxFromStorage()
 
     super
 
@@ -290,6 +275,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     tabView.on "MainInputTabsReset", =>
       @reset()
       @switchToSmallView()
+
+
 
   pistachio:->
     """
@@ -315,3 +302,61 @@ class ActivityStatusUpdateWidget extends KDFormView
       </div>
     </div>
     """
+
+class InfoBox extends KDView
+  constructor:->
+    super
+    # will hide the link helper box once it's been closed once
+    @inputLinkInfoBoxPermaHide = off
+
+    stopSanitizingToolTip = {
+      title:"This feature automatically adds protocols to URLs detected in your message."
+      position: "below"
+      gravity : "s"
+    }
+
+    @stopSanitizingLabel = new KDLabelView
+      title : "URL auto-completion"
+      tooltip : stopSanitizingToolTip
+
+
+    @stopSanitizingOnOffSwitch = new KDOnOffSwitch
+      label : @stopSanitizingLabel
+      name :"stop-sanitizing"
+      cssClass : "stop-sanitizing"
+      tooltip : stopSanitizingToolTip
+
+      callback:(state)=>
+        @getDelegate().appStorage.setValue 'UrlSanitizerCheckboxIsChecked', state, =>
+
+    @inputLinkInfoBoxCloseButton = new KDButtonView
+      name: "hide-info-box"
+      cssClass      : "hide-info-box"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "hide"
+      title     : "Close"
+      callback  : =>
+        @hide()
+        @inputLinkInfoBoxPermaHide = on
+
+  getSwitchValue:->
+    @stopSanitizingOnOffSwitch.getValue()
+
+  setSwitchValue:(value)->
+    @stopSanitizingOnOffSwitch.setValue value
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+  pistachio:->"""
+      <p>For links, please provide a protocol such as
+        <abbr title="Hypertext Transfer Protocol">http://</abbr>
+      </p>
+      <div class="sanitizer-control">
+        {{> @stopSanitizingLabel}}
+        {{> @stopSanitizingOnOffSwitch}}
+      </div>
+      {{> @inputLinkInfoBoxCloseButton}}
+  """

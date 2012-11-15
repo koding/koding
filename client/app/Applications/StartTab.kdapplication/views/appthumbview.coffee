@@ -52,10 +52,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
         title  : "Click to compile"
       click    : =>
         @showLoader()
-        delete KDApps[manifest.name]
-        @getSingleton("kodingAppsController").getAppScript manifest, =>
+        @getSingleton("kodingAppsController").compileApp manifest.name, (err)=>
           @hideLoader()
-          new KDNotificationView type : "mini", title : "App Compiled"
         no
 
     @info = new KDCustomHTMLView

@@ -96,7 +96,6 @@ class ActivityUpdateWidgetController extends KDViewController
             return notifySubmissionStopped()
           else
             @tutorialWidgetSubmit data, stopSubmission, ->
-              log arguments
 
             mainView.resetWidgets()
 
@@ -275,8 +274,26 @@ class ActivityUpdateWidgetController extends KDViewController
     if data.activity
       {activity} = data
       delete data.activity
-      activity.modify data, (err, res)=>
-        callback? err, res
+      activity.modify data, (err, tutorial)=>
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById activity._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
+        callback? err, tutorial
         unless err
           new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
         else
@@ -285,25 +302,32 @@ class ActivityUpdateWidgetController extends KDViewController
       if submissionStopped
         return notifySubmissionStopped()
       KD.remote.api.JTutorial.create data, (err, tutorial) =>
-        log "Tutorial Created", tutorial, data
-        if data.startListWith?
-          log "Creating new TutorialList"
-          KD.remote.api.JTutorialList.create
-            title : "New List"
-            body  : ""
-          , (err, list)=>
-            if err then callback err
-            else
-              log "adding entries"
-              list.addItem data.startListWith._id, (err)=>
-                if err then log err
-                list.addItem tutorial._id, (err)=>
-                  if err then log err
-                  log "done adding entries"
-                  callback? err, tutorial, list
-        else
-          callback? err, tutorial
+
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById tutorial._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
+
+        # else
+
+        callback? err, tutorial
         stopSubmission()
+
         if err
           new KDNotificationView type : "mini", title : "There was an error, try again later!"
         else
