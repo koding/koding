@@ -2,7 +2,6 @@ package vm
 
 import (
 	"bufio"
-	"io"
 	"os"
 )
 
@@ -11,7 +10,7 @@ type Package struct {
 	Values map[string]string
 }
 
-func ReadDpkgStatusDB(fileName string) []*Package {
+func ReadDpkgStatus(fileName string) []*Package {
 	f, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
@@ -40,7 +39,7 @@ func ReadDpkgStatusDB(fileName string) []*Package {
 	return packages
 }
 
-func WriteDpkgStatusDB(packages []*Package, fileName string) {
+func WriteDpkgStatus(packages []*Package, fileName string) {
 	f, err := os.Create(fileName)
 	if err != nil {
 		panic(err)
@@ -53,36 +52,4 @@ func WriteDpkgStatusDB(packages []*Package, fileName string) {
 		}
 		f.Write([]byte{'\n'})
 	}
-}
-
-func atEndOfFile(r *bufio.Reader) bool {
-	_, err := r.ReadByte()
-	if err != nil {
-		if err == io.EOF {
-			return true
-		}
-		panic(err)
-	}
-	r.UnreadByte()
-	return false
-}
-
-func tryReadByte(r *bufio.Reader, b byte) bool {
-	c, err := r.ReadByte()
-	if err != nil {
-		panic(err)
-	}
-	if c == b {
-		return true
-	}
-	r.UnreadByte()
-	return false
-}
-
-func readUntil(r *bufio.Reader, delim byte) string {
-	line, err := r.ReadString(delim)
-	if err != nil {
-		panic(err)
-	}
-	return line[:len(line)-1]
 }

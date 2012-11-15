@@ -46,6 +46,7 @@ func (vm *VM) WriteConfig() {
 	vm.GenerateFile("config", false)
 	vm.GenerateFile("pre-start", true)
 	vm.GenerateFile("post-stop", true)
+	vm.GenerateFile("fstab", false)
 }
 
 func (vm *VM) GenerateFile(name string, executable bool) {
