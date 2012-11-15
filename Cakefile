@@ -288,7 +288,7 @@ run =(options)->
       restartInterval: 100
       stdout: process.stdout
       stderr: process.stderr
-      verbose: no
+      verbose: yes
 
   processes.run
     name    : 'social'
