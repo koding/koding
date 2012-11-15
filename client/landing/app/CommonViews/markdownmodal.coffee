@@ -7,7 +7,7 @@ class KDMarkdownModalText
   markdownTextHTML:->
     """
 
-<div class='modalformline'>This form supports <a href="http://daringfireball.net/projects/markdown/" target="_blank" title="Markdown project homepage">Markdown</a>. Here is how to use it:</div>
+<div class='modalformline'>This form supports <a href="http://daringfireball.net/projects/markdown/" target="_blank" title="Markdown project homepage">Markdown</a> and <a href="http://github.github.com/github-flavored-markdown/" target="_blank">GitHub-flavored Markdown</a>. Here is how to use it:</div>
 
 <div class="modalformline markdown-cheatsheet">
 <div class="modal-block">
