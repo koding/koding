@@ -15,13 +15,11 @@ task 'cl3','runs dev kites',(options)->
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
     restart : yes
-    onExit  : ->
-      # processes.run
-      #   name : "alerter"+Date.now()
-      #   cmd  : "coffee ../workers/alerter/ -c ../config/dev.coffee"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "applications cake"
@@ -30,6 +28,8 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm kite'
@@ -38,6 +38,8 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -46,6 +48,8 @@ task 'cl3','runs dev kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
 
 task 'cl0', 'runs prod kites',(options)->
@@ -57,6 +61,9 @@ task 'cl0', 'runs prod kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
+
 
   processes.run
     name    : "applications cake"
@@ -65,14 +72,18 @@ task 'cl0', 'runs prod kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
-    name    : 'webterm kite'
+    name    : 'webterm'
     cmd     : "#{__dirname}/webterm -c prod"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -81,3 +92,5 @@ task 'cl0', 'runs prod kites',(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"

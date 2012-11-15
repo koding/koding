@@ -148,7 +148,7 @@ app.get "/status/:data",(req,res)->
   
   obj =
     processName : req.params.name
-    processId   : KONFIG.crypto.decrypt req.params.encryptedPid
+    # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
   
   koding.mq.emit 'public-status','processIsDead',obj
   res.send "got it."
