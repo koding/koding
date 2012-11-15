@@ -228,6 +228,10 @@ app.activity.styl
       .type-icon
         bg(position,-706px -376px)
 
+    &.tutorial
+      .type-icon
+        bg(position,-782px -376px)
+
     &.discussion
       .type-icon
         bg(position,-475px -376px)
@@ -287,9 +291,10 @@ app.activity.styl
   overflow        visible
   margin-left     64px
   // margin-top      3px
+
   h3
     margin-bottom         10px
-    color                 #e80
+    color                 #ff9200
     font-size             13px
     font-weight           500
     cursor                pointer
@@ -1147,7 +1152,7 @@ div.kdview.link-embed-box
   padding 0px 0px
   margin-top 15px
 
-  min-height 75px
+  min-height 45px
 
   &.link-wigdet
     margin-top 0px
@@ -1427,8 +1432,7 @@ div.kdview.link-embed-box
 
         iframe
           max-width 100%
-
-
+          max-height 400px
 
         > div.preview_image
           borderBox()
@@ -1442,6 +1446,7 @@ div.kdview.link-embed-box
           min-width 50px
           overflow visible
           position relative
+          text-align center
           // width auto
 
           > iframe
@@ -1524,7 +1529,7 @@ div.kdview.link-embed-box
           display        block
           overflow       hidden
           width          auto
-          min-height     20px
+          // min-height     20px
           font-size      12px
           font-weight    400
           color          #797979
@@ -1676,23 +1681,23 @@ form.status-widget
       margin-left   153px
 
 div.modal-fullscreen-text
+
   textarea.fullscreen-data
     float           left
-    // vendor          transition, width 0.01s linear
+
   div.kdinputwithpreview.input_preview
     position        absolute
     top             5px
     right           8px
     borderBox()
-    // margin-top 5px
     z-index         500
+
     div.preview_content
-      // max-height inherit
       height        inherit
 
 textarea.kdinputwithpreview
-  font-family: 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
-
+  font-family 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
+  font-size 12px!important
 
 div.kdinputwithpreview.input_preview
   borderBox()
@@ -1722,15 +1727,47 @@ div.kdinputwithpreview.input_preview
     border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
     height            23px
     width             auto
-    // box-shadow -2px 2px 10px 0px rgba(0,0,0,0.29)
+    min-width         auto
 
     &.content-hidden
       rounded         4px
       border          1px solid
       top             5px
       right           0px
-      height 24px
+      height          24px
       border-color    #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+      width           auto
+      min-width       auto
+      white-space     nowrap
+
+    a.markdown-link
+      noTextDeco()
+      font-weight     600
+      color           #ff9200
+      font-size       11px
+      margin-right    10px
+      margin-left     2px
+      vertical-align  baseline
+      line-height     19px
+
+    button.fullscreen-button
+      float           none
+      margin-top      2px
+      height          16px
+      padding         0px 3px
+      line-height     10px
+      margin-right    10px
+
+      span
+        font-size     9px
+        text-transform uppercase
+        padding       0
+        margin        0
+        color         #8c8c8c
+        vendor        transition, color 0.3s linear
+        &:hover
+          color       #5f5f5f
+
 
     label.preview_switch_label
       color           #ff9200
@@ -1825,7 +1862,7 @@ div.kdinputwithpreview.input_preview
     borderBox()
     border            1px solid
     border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
-    padding           10px
+    padding           20px 10px 10px 10px
     rounded           4px
     max-height        300px
     min-height        24px
@@ -1874,9 +1911,21 @@ div.protocol-info-box
   border 1px solid #e8e8e8
   padding 6px 9px
 
+  p
+    float left
+    margin 3px
+
+  div.sanitizer-control
+    float right
+    display inline-block
+    margin-right 17px
+
   label
     opacity 0.75
     margin-left 15px
+
+  div.kdinput.on-off
+    display inline-block
 
   input.stop-sanitizing
     vertical-align top
@@ -1910,70 +1959,82 @@ div.protocol-info-box
 
 div.preview_image
   position relative
+  div.tutorial-preview-image-box
+    borderBox()
+    rounded 4px
+    border 1px solid black
+    background-color #f7f7f7
+    border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+    padding 15px 15px 12px 15px
+    width 100%
+    img.tutorial-preview-image
+      max-height 200px
+      cursor pointer
+      width auto
 
-  img.tutorial-preview-image
-    max-height 200px
-    cursor pointer
+
 
 div.activity-tutorial-container.small
   img.tutorial-preview-image
     max-width 100px
+
 div.activity-item.tutorial.selectable.selected
-    border: 2px solid black
+  background-color #eee
 
+playButton(distance=25px)
+  position absolute
+  bottom distance
+  left distance
+  width 40px
+  height 40px
+  margin 0
+  padding 0
+  sprite()
+  bg position, -580px 0px
+  cursor pointer
+  opacity 0.8
+  vendor transition opacity, 0.3s ease-in-out
+  &:hover
+    opacity 1
 
-// div.custom-video
-//   .preview_image
-//     text-align center
-//     vertical-align middle
-//     a::before
-//       cursor pointer
-//       color white
-//       content "\25B6"
-//       position absolute
-//       vendor text-shadow, 0 3px black
-//       // z-index 100
-//       font-size 15px
-//       line-height 15px
-//       padding 5px
-//       left 30%
-//       top 30%
-//       right 30%
-//       bottom 30%
-//       border 1px solid white
-//       background-color rgba(255,255,255,0.25)
-//       vendor transition, color 0.2s ease-in-out
-//     a:hover::before
-//       color #ff9200
+.preview-image-overlay
+  playButton()
 
-// div.activity-tutorial-container
-//   .preview_image::before
-//       cursor pointer
-//       color white
-//       content "\25B6"
-//       position absolute
-//       vendor text-shadow, 0 3px black
-//       // z-index 100
-//       font-size 20px
-//       line-height 20px
-//       padding 10px
-//       left 20px
-//       top 20px
-//       border 1px solid white
-//       background-color rgba(255,255,255,0.25)
-//       vendor transition, color 0.2s ease-in-out
-//   .preview_image:hover::before
-//       color #ff9200
+div.tutorial-badge
+  position absolute
+  left -20px
+  top -20px
+  size 40px 40px
+  background-color:#ff9200
+  opacity 0!important
+  vendor transform, rotate(-45deg)
 
-// div.tutorial-badge
-//   position absolute
-//   left -20px
-//   top -20px
-//   size 40px 40px
-//   background-color:#ff9200
-//   opacity 1!important
-//   vendor transform, rotate(-45deg)
+div.modal-select-tutorials
+  width:80%
+  height : 80%
 
-// div.modal-select-tutorials
-//   width:80%
-//   height : 80%
+a.followup-link
+  margin-top 10px
+  font-size 11px
+  noTextDeco()
+  color #ff9200
+  font-weight 600
+  float left
+
+div.show-tutorial-embed
+  margin-top -28px!important
+  margin-right 5px
+  display inline-block
+  z-index 10
+
+div.activity-content-container
+  overflow-y scroll
+  rounded 4px
+  border 1px solid black
+  background-color #f7f7f7
+  border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+  padding 10px 15px 0px 15px
+
+  &.discussion-body-container
+    max-height 200px
+    cursor pointer

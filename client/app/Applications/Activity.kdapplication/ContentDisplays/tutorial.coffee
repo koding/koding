@@ -51,6 +51,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       callback        : (data)=>
         @getData().reply data, (err, opinion) =>
           callback? err, opinion
+          @opinionForm.reset()
           @opinionForm.submitOpinionBtn.hideLoader()
           if err
             new KDNotificationView type : "mini", title : "There was an error, try again later!"
@@ -59,43 +60,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     , data
 
     @newAnswers = 0
-
-    # Links to easily navigate to the bottom/top of the page
-    # These are useful since the opinions can be quite long, even when shortened
-    # visually, and the ease of access to the form at the bottom is
-    # paramount
-
-    # @jumpToReplyLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Reply Box"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
-
-    # @jumpToTopLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Top"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
-
-    ###
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
-    </div>
-    ###
-
-    # The static link box will be useful when we have implemented actual
-    # routing to the single ContentTypes
-
-    # @staticLinkBox = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Static Link"
-    #   attributes  :
-    #     href      : "/discussion/"+@utils.slugify data.title
 
     @actionLinks = new TutorialActivityActionsView
       delegate    : @opinionBox.opinionList
@@ -110,65 +74,60 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @deleteDiscussionLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        title     : "Delete your discussion"
+        title     : "Delete your tutorial"
         href      : '#'
       cssClass    : 'delete-link hidden'
 
     @editDiscussionLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        title     : "Edit your discussion"
+        title     : "Edit your tutorial"
         href      : '#'
       cssClass    : 'edit-link hidden'
 
     activity = @getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         loggedInId is activity.originId or   # if activity owner
-         KD.checkFlag "super-admin", account  # if super-admin
 
-        @listenTo
-          KDEventTypes        : "click"
-          listenedToInstance  : @editDiscussionLink
-          callback            : =>
-            if @editDiscussionForm?
-              @editDiscussionForm?.destroy()
-              delete @editDiscussionForm
-              @$(".discussion-body .data").show()
-              @utils.wait =>
-                @embedBox.show()
-            else
-              @editDiscussionForm = new TutorialFormView
-                title         : "edit-discussion"
-                cssClass      : "edit-discussion-form"
-                delegate      : @
-                callback      : (data)=>
-                  @getData().modify data, (err, discussion) =>
-                    callback? err, opinion
-                    if err
-                      new KDNotificationView
-                        title : "Your changes weren't saved."
-                        type  : "mini"
-                    else
-                      @emit "DiscussionWasEdited", discussion
-                      @editDiscussionForm.setClass "hidden"
-                      @$(".discussion-body .data").show()
-                      @utils.wait =>
-                        @embedBox.show()
-              , data
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if comment owner
+       loggedInId is activity.originId or   # if activity owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
-              @addSubView @editDiscussionForm, "p.discussion-body", yes
-              @$(".discussion-body .data").hide()
-              @embedBox.hide()
+      @editDiscussionLink.on "click", =>
+          if @editDiscussionForm?
+            @editDiscussionForm?.destroy()
+            delete @editDiscussionForm
+            @$(".tutorial-body .data").show()
+            @utils.wait =>
+              @embedBox.show()
+          else
+            @editDiscussionForm = new TutorialFormView
+              title         : "edit-tutorial"
+              cssClass      : "edit-tutorial-form"
+              delegate      : @
+              callback      : (data)=>
+                @getData().modify data, (err, tutorial) =>
+                  callback? err, opinion
+                  @editDiscussionForm.reset()
+                  if err
+                    new KDNotificationView
+                      title : "Your changes weren't saved."
+                      type  : "mini"
+                  else
+                    @editDiscussionForm.setClass "hidden"
+                    @$(".tutorial-body .data").show()
+                    @utils.wait =>
+                      @embedBox.show() if @embedBox.hasValidContent
+            , data
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteDiscussionLink
-          callback           : => @confirmDeleteDiscussion data
+            @addSubView @editDiscussionForm, "p.tutorial-body", yes
+            @$(".tutorial-body .data").hide()
+            @embedBox.hide()
 
-        @editDiscussionLink.unsetClass "hidden"
-        @deleteDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.on "click", =>
+        @confirmDeleteTutorial data
+
+      @editDiscussionLink.unsetClass "hidden"
+      @deleteDiscussionLink.unsetClass "hidden"
 
     activity.on 'ReplyIsAdded',(reply)=>
 
@@ -198,42 +157,59 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-    @listAnchorNext = new KDView
-    @listAnchorPrevious = new KDView
+    # Temporarily disabling Tutorial Lists
 
-    KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
-      if listData
-        # @listInfo.updatePartial "In list '#{listData.title}'"
-        for tutorial,i in listData.tutorials
-          if tutorial._id is @getData()._id
-            @position = i
-            @before = listData.tutorials[0...i]
-            @after = listData.tutorials[i+1..]
-        if @after.length >0
-          @listAnchorNext.addSubView new TutorialListSwitchBox
-            direction:"next"
-          , @after[0]
-        if @before.length >0
-          @listAnchorPrevious.addSubView new TutorialListSwitchBox
-            direction:"previous"
-          , @before[0]
+    # @listAnchorNext = new KDView
+    #   cssClass : "tutorial-anchor next"
+    # @listAnchorPrevious = new KDView
+    #   cssClass : "tutorial-anchor previous"
+    # @comingUpNextAnchor = new KDView
+    #   cssClass : "coming-up-next-anchor"
+
+    # KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
+    #   if listData
+    #     for tutorial,i in listData.tutorials
+    #       if tutorial._id is @getData()._id
+    #         @position = i
+    #         @before = listData.tutorials[0...i]
+    #         @after = listData.tutorials[i+1..]
+
+    #     # log @position,@before,@after
+
+    #     if @after.length >0
+    #       @listAnchorNext.addSubView new TutorialListSwitchBox
+    #         direction:"next"
+    #         delegate:@
+    #       , @after[0]
+
+    #       @comingUpNext = new KDCustomHTMLView
+    #         cssClass : "coming-up-next"
+    #         partial: "Coming up: "+@after[0].title
+
+    #       @comingUpNextAnchor.addSubView @comingUpNext
+
+    #     if @before.length >0
+    #       @listAnchorPrevious.addSubView new TutorialListSwitchBox
+    #         direction:"previous"
+    #         delegate:@
+    #       , @before[@before.length-1]
 
 
   opinionHeaderCountString:(count)=>
     if count is 0
-      countString = "No Answers yet"
+      countString = "No Opinions yet"
     else if count is 1
-      countString = "One Answer"
+      countString = "One Opinion"
     else
-      countString = count+ " Answers"
+      countString = count+ " Opinions"
 
     '<span class="opinion-count">'+countString+'</span>'
 
-  confirmDeleteDiscussion:(data)->
+  confirmDeleteTutorial:(data)->
 
     modal = new KDModalView
       title          : "Delete Tutorial"
-      content        : "<div class='modalformline'>Are you sure you want to delete this discussion and all it's opinions and comments?</div>"
+      content        : "<div class='modalformline'>Are you sure you want to delete this tutorial and all it's opinions and comments?</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
@@ -247,21 +223,23 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @emit 'DiscussionIsDeleted'
-                @destroy()
+                @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                @utils.wait 2000, =>
+                  @destroy()
+
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
                 title    : "Error, please try again later!"
 
-  hightlightCode:=>
+  highlightCode:=>
     @$("pre").addClass "prettyprint"
-    @$("p.discussion-body span.data pre").each (i,element)=>
+    @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
   render:->
     super()
-    @hightlightCode()
+    @highlightCode()
 
   viewAppended:()->
     super()
@@ -269,30 +247,36 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @setTemplate @pistachio()
     @template.update()
 
-    @hightlightCode()
+    @highlightCode()
 
-    @$(".discussion-body .data").addClass "has-markdown"
+    @$(".tutorial-body .data").addClass "has-markdown"
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
-        @embedBox.show()
+        @embedBox.show() unless (("embed" in @embedBox.getEmbedHiddenItems()) or\
+                                 (@embedBox.hasValidContent is no))
       ,@getData().link.link_cache
 
+            # <div class="tutorial-navigation-container clear clearfix">
+            #   {{> @listAnchorPrevious}}
+            #   {{> @comingUpNextAnchor}}
+            #   {{> @listAnchorNext}}
+            # </div>
 
   pistachio:->
     """
     {{> @header}}
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class='kdview content-display-main-section activity-item discussion'>
-      <div class='discussion-contents'>
-        <div class="discussion-content">
+    <div class='kdview content-display-main-section activity-item tutorial'>
+      <div class='tutorial-contents'>
+        <div class="tutorial-content">
           <span>
             {{> @avatar}}
             <span class="author">AUTHOR</span>
           </span>
-          <div class='discussion-main-opinion'>
+          <div class='tutorial-main-opinion'>
             <h3>{{@utils.expandUsernames @utils.applyMarkdown #(title)}}</h3>
-            <footer class='discussion-footer clearfix'>
+            <footer class='tutorial-footer clearfix'>
               <div class='type-and-time'>
                 <span class='type-icon'></span> by {{> @author}} •
                 <time>{{$.timeago #(meta.createdAt)}}</time>
@@ -302,10 +286,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            {{> @listAnchorPrevious}}
             {{> @embedBox}}
-            {{> @listAnchorNext}}
-            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
@@ -328,29 +310,51 @@ class TutorialListSwitchBox extends KDView
     super options, data
 
     @setClass "tutorial-navigation-box"
+    @setClass @options.direction
 
-    @outgoingContainer = new KDView
     if data.link?
-      image = new KDCustomHTMLView
-        cssClass : "image-preview"
-        tagName : "img"
-        attributes :
-          src : @utils.proxifyUrl data.link.link_embed.images[0].url
-      @outgoingContainer.addSubView image
 
-    @outgoingLink = new KDButtonView
-      cssClass :"modal-clean-red"
-      pistachio: @options.direction
+      @tooltipSource = """
+      <div class="container-preview">
+        <p class="title-preview">#{data.title}</p>
+        <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
+      </div>
+      """
+    else
+      @tooltipSource = data.title or ""
+
+    @outgoingButton = new KDButtonView
+      cssClass : "clean-gray tutorial-video-button"
+      title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
+      tooltip:
+        title: if data.title then data.title else ""
+        placement : "above"
+        # offset : 3
+        delayIn : 300
+        html : no
+        animate : no
+        className : "tutorial-video"
       callback:=>
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+
+  click:->
+    @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+    unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended:->
     super()
 
     @setTemplate @pistachio()
     @template.update()
+
+    # @outgoingContainer.$().hover noop, =>
+    #   @outgoingContainer.hide()
+
+    # @outgoingButton.$().hover =>
+    #   @outgoingContainer.show()
+    # , noop
+
   pistachio:->
     """
-    {{> @outgoingContainer}}
-      {{> @outgoingLink}}
+    {{> @outgoingButton}}
     """

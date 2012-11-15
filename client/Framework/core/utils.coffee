@@ -103,21 +103,11 @@ __utils =
       gfm: true
       pedantic: false
       sanitize: true
-      highlight:(text)->
-        # log "highlight callback called"
-        # if hljs?
-        #   requirejs (['js/highlightjs/highlight.js']), ->
-        #     requirejs (["highlightjs/languages/javascript"]), ->
-        #       try
-        #         hljs.compileModes()
-        #         _text = hljs.highlightAuto text
-        #         log "hl",_text,text
-        #         return _text.value
-        #       catch err
-        #         log "Error applying highlightjs syntax", err
-        # else
-        #   log "hljs not found"
-          return text
+      highlight:(text,lang)->
+        if hljs.LANGUAGES[lang]?
+          hljs.highlight(lang,text).value
+        else
+          text
 
     text = Encoder.htmlDecode text
 
@@ -175,7 +165,7 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([A-Za-z]+:\/\/)+([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?][\S\/]*)*\b\/?/g, (url) ->
       originalUrl = url
 
       # remove protocol and trailing path
@@ -313,6 +303,13 @@ __utils =
     parentPath = path.split('/')
     parentPath.pop()
     return parentPath.join('/')
+
+  removeBrokenSymlinksUnder:(path)->
+    kiteController = KD.getSingleton('kiteController')
+    escapeFilePath = FSHelper.escapeFilePath
+    kiteController.run "stat #{escapeFilePath path}", (err)->
+      if not err
+        kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
 
   wait: (duration, fn) ->
     if "function" is typeof duration

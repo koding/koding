@@ -217,7 +217,7 @@ module.exports = class JTutorial extends JPost
         sort          :
           timestamp   : 1
       .nodes()
-      .edges
+      .edgesOfEach
         query         :
           sourceName  : 'JOpinion'
           targetName  : 'JComment'

@@ -37,7 +37,7 @@ class KDRouter
 
   @init =-> changeRoute location.hash.substr 1 if location.hash.length
 
-  @handleNotFound =-> log "The route #{route} was not found!"
+  @handleNotFound =(route)-> log "The route #{route} was not found!"
 
   @handleRoute =(route)-> changeRoute route
 

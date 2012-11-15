@@ -8,24 +8,19 @@ class TutorialActivityActionsView extends ActivityActionsView
     @opinionCount?.destroy()
 
     @opinionCountLink  = new ActivityActionLink
-      partial     : "Answers"
+      partial     : "Opinions"
       click     : (pubInst, event)=>
-        @emit "DiscussionActivityLinkClicked"
+        @emit "TutorialActivityLinkClicked"
 
     if activity.repliesCount is 0 then @opinionCountLink.hide()
 
-    @opinionCount = new ActivityCommentCount
-      tooltip     :
-        title     : "Take me there!"
-      click       : (pubInst, event)=>
-        @emit "DiscussionActivityLinkClicked"
-    , activity
+    @opinionCount = new ActivityCommentCount {}, activity
 
     @opinionCount.on "countChanged", (count) =>
       if count > 0 then @opinionCountLink.show()
       else @opinionCountLink.hide()
 
-    @on "DiscussionActivityLinkClicked", =>
+    @on "TutorialActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
         appManager.tell "Activity", "createContentDisplay", @getData()
       else
@@ -47,10 +42,10 @@ class TutorialActivityActionsView extends ActivityActionsView
 
   pistachio:->
     """
-    {{> @loader}}
-    {{> @opinionCountLink}} {{> @opinionCount}} ·
-    <span class='optional'>
-    {{> @shareLink}} ·
-    </span>
-    {{> @likeView}}
+      {{> @loader}}
+      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
+      <span class='optional'>
+      {{> @shareLink}} ·
+      </span>
+      {{> @likeView}}
     """

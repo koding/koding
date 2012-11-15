@@ -35,16 +35,16 @@ class CommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment/review owner
-         loggedInId is activity.originId or   # if activity/app owner
-         KD.checkFlag "super-admin", account  # if super-admin
-        @deleteLink.unsetClass "hidden"
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteComment data
+
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if comment/review owner
+       loggedInId is activity.originId or   # if activity/app owner
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
+      @deleteLink.unsetClass "hidden"
+      @listenTo
+        KDEventTypes       : "click"
+        listenedToInstance : @deleteLink
+        callback           : => @confirmDeleteComment data
 
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 
