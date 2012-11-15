@@ -1,8 +1,30 @@
 {argv} = require 'optimist'
 
-{webserver, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
-
+KONFIG = require argv.c.trim()
+{webserver, mongo, mq, projectRoot, kites, basicAuth} = KONFIG
 webPort = argv.p ? webserver.port
+
+
+processMonitor = (require 'processes-monitor').start
+  name : "webServer on port #{webPort}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : ->
+      console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+      process.exit()
+
+# if webPort is 3005
+#   foo = []
+#   do bar = ->
+#    process.nextTick ->
+#      foo.push Math.random()
+#      bar()
+
+#   setInterval ->
+#    a=foo.length
+#   , 1000
+
 
 {extend} = require 'underscore'
 express = require 'express'
@@ -120,14 +142,17 @@ app.get "/", (req, res)->
       throw err if err
       res.send data
 
-app.get "/status/:data",(req,res)->
+app.get "/status/:event/:kiteName",(req,res)->
   # req.params.data
+  console.log req.params
+  
+  obj =
+    processName : req.params.kiteName
+    # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
+  
+  koding.mq.emit 'public-status', req.params.event, obj
+  res.send "got it."
 
-  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
-  # exchange.publish 'exit','sharedhosting is dead'
-  # exchange.close()
-  koding.mq.emit 'public-status','exit',req.params.data
-  res.send "alright."
 
 app.get "/api/user/:username/flags/:flag", (req, res)->
   {username, flag} = req.params

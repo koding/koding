@@ -22,16 +22,17 @@ AccountMixin = do ->
 
     JAccount::fetchNonce = fetchNonce
 
-    JAccount::fetchKiteChannelName = (kiteId, callback)->
-      @_kiteChannels or= {}
-      kiteChannelId = @_kiteChannels[kiteId]
-      return callback null, kiteChannelId if kiteChannelId?
-      @fetchKiteChannelId kiteId, (err, kiteChannelId)=>
-        if err
-          callback err
-        else
-          @_kiteChannels[kiteId] = kiteChannelId
-          callback null, kiteChannelId
+    # JAccount::fetchKiteChannelName = (kiteId, callback)->
+    #   console.log 'kiteId', kiteId
+    #   @_kiteChannels or= {}
+    #   kiteChannelId = @_kiteChannels[kiteId]
+    #   return callback null, kiteChannelId if kiteChannelId?
+    #   @fetchKiteChannelId kiteId, (err, kiteChannelId)=>
+    #     if err
+    #       callback err
+    #     else
+    #       @_kiteChannels[kiteId] = kiteChannelId
+    #       callback null, kiteChannelId
 
     JAccount::tellKite = do->
       {Scrubber, Store} = Bongo.dnodeProtocol
@@ -42,6 +43,12 @@ AccountMixin = do ->
       listenerId = 0
 
       channels = {}
+
+      KD.remote.mq.subscribe('public-status').on 'processIsDead', (data = {})->
+        {processName} = data
+        kiteName = "private-kite-#{processName}"
+        delete KD.remote.mq.channels[kiteName]
+        delete channels[kiteName]
 
       scrub = (method, args, callback) ->
         scrubber = new Scrubber localStore

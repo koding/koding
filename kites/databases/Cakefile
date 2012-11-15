@@ -18,11 +18,13 @@ task 'run','run databases',(options)->
   options.config ?= "config-dev"
 
   processes.run
-    name    : "databases kite"
+    name    : "databases"
     cmd     : "coffee index.coffee -c #{options.config} --databases"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
+    onExit  : (pid,name)->
+      http.get e = "#{config.uri.address}/status/processIsDead/#{name}"
 
 
 
