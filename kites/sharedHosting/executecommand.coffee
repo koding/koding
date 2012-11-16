@@ -152,7 +152,7 @@ module.exports =(options, callback)->
   {username,command} = options
 
   # log.debug "func:executeCommand: executing command #{command}"
-  checkUid options, @createSystemUser, (error)->
+  checkUid options, @createSystemUser?.bind(@), (error)->
     if error?
       callback? error
     else
