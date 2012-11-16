@@ -166,21 +166,36 @@ __utils =
   expandUrls: (text) ->
     return null unless text
 
+    # urlGrabber = ///
+    #   (\s|^)                              # Start after a whitespace or string[0]
+    #   ([a-zA-Z]+\://)?                    # Captures any protocol (just not //)
+    #   (\w+:\w+@)?                         # Username:Password
+    #   ([a-zA-Z\d-]|[a-zA-Z\d-]\.)*        # Subdomains
+    #   [a-zA-Z\d-]{2,}                     # Domain name
+    #   \.                                  # THE DOT
+    #   ([a-zA-Z]{2,4}(:\d+)?)              # Domain Extension with Port
+    #   ([/\?\#][\S/]*)*                    # Some Request, greedy capture
+    #   \b                                  # Last word boundary
+    #   /?                                 # Optional trailing Slash
+    # ///g
+
     urlGrabber = ///
-      (\s|^)                              # Start after a whitespace or string[0]
-      ([a-zA-Z]+\://)?                    # Captures any protocol (just not //)
-      (\w+:\w+@)?                         # Username:Password
-      ([a-zA-Z\d-]|[a-zA-Z\d-]\.)*        # Subdomains
-      [a-zA-Z\d-]{2,}                     # Domain name
-      \.                                  # THE DOT
-      ([a-zA-Z]{2,4}(:\d+)?)              # Domain Extension with Port
-      ([/\?\#][\S/]*)*                    # Some Request, greedy capture
-      \b                                  # Last word boundary
-      /?                                  # Optional trailing Slash
+    (?!\s)                                                      # leading spaces
+    ([a-zA-Z]+://|)                                             # protocol
+    (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
+    ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
+    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d])      # domain
+    \.                                                          # dot
+    ([a-zA-Z]{2,4})                                             # top-level-domain
+    (:\d+|)                                                     # :port
+    (/\S*|)                                                     # rest of url
+    (?!\S)
     ///g
 
     # used to be /(\s|^)([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d-]|[a-zA-Z\d-]\.)*[a-zA-Z\d-]{2,}\.([a-zA-Z]{2,4}(:\d+)?)([\/\?#][\S\/]*)*\b\/?/g
     text.replace urlGrabber, (url) ->
+
+      url = url.trim()
       originalUrl = url
 
       # remove protocol and trailing path
