@@ -23,6 +23,9 @@ coffee         = require 'coffee-script'
 # Execute Command
 # executeCommand = require '../sharedHosting/executecommand'
 sharedHosting = require '../sharedHosting'
+
+console.log sharedHosting
+
 executeCommand = sharedHosting.executeCommand.bind sharedHosting
 
 # Utilities
