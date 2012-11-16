@@ -21,8 +21,8 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass : "reply-header"
     , data
 
-    @previewImageBox = new KDView
-      cssClass : "tutorial-preview-image-box"
+    # @previewImageBox = new KDView
+    #   cssClass : "tutorial-preview-image-box"
 
     @previewImage = new KDCustomHTMLView
       tagName : "img"
@@ -33,16 +33,16 @@ class TutorialActivityItemView extends ActivityItemChild
         alt:"Show the tutorial"
         "data-paths":"preview"
 
-    @previewImageOverlay = new KDCustomHTMLView
-      tagName : "i"
-      cssClass : "preview-image-overlay"
-      partial: ""
+    # @previewImageOverlay = new KDCustomHTMLView
+    #   tagName : "i"
+    #   cssClass : "preview-image-overlay"
+    #   partial: ""
 
-    @previewImageBox.addSubView @previewImage
-    @previewImageBox.addSubView @previewImageOverlay
+    # @previewImageBox.addSubView @previewImage
+    # @previewImageBox.addSubView @previewImageOverlay
 
 
-    @previewImageBox.hide() unless data.link?.link_embed?.images?[0]?.url
+    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
@@ -108,28 +108,35 @@ class TutorialActivityItemView extends ActivityItemChild
           item.hide()
           item.destroy()
 
+  highlightCode:=>
+    @$("pre").addClass "prettyprint"
+    @$("div.body span.data pre").each (i,element)=>
+      hljs.highlightBlock element
+    # @$("code").each (i,element) =>
+    #   log language = $(element).attr("class")?.replace("lang-","")
+    #   # Interesting Idea: maybe add a badge linke in CodeSnips
+
+  prepareExternalLinks:->
+    @$('div.body a[href^=http]').attr "target", "_blank"
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
+
     @setTemplate @pistachio()
     @template.update()
 
-    # Here, the maxheight-reliant "View full discussion"-bar is toggled.
-    # The shortened text is not sufficient since it can contain 500 line breaks
-    # or <code> with very high whitespace amount. This keeps the snapshot view
-    # clean.
-
-    if @$("p.comment-body").height() >= 250
-      @$("div.view-full-discussion").show()
-    else
-      @$("div.view-full-discussion").hide()
+    @highlightCode()
+    @prepareExternalLinks()
 
   render:->
     super()
+    @highlightCode()
+    @prepareExternalLinks()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
+    if $(event.target).closest("[data-paths~=title],[data-paths~=preview]")
+      if not $(event.target).is("a.action-link, a.count, .like-view, .body *")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
@@ -146,15 +153,17 @@ class TutorialActivityItemView extends ActivityItemChild
       # {{> @opinionBox}}
   pistachio:->
     """
-  <div class="tutorial-badge"></div>
-  <div class="activity-discussion-container activity-tutorial-container">
+  <div class="activity-tutorial-container">
     <span class="avatar">{{> @avatar}}</span>
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
       <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
       <p class="hidden comment-title"></p>
-      <div class="preview_image">
-      {{> @previewImageBox}}
+      <div class="activity-content-container tutorial-body-container">
+          {{> @previewImage}}
+        <div class="body has-markdown force-small-markdown">
+          {{@utils.applyMarkdown #(body)}}
+        </div>
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
