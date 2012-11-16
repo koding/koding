@@ -88,6 +88,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @template.update()
 
     @highlightCode()
+    @prepareExternalLinks()
 
   highlightCode:=>
     @$("pre").addClass "prettyprint"
@@ -97,14 +98,17 @@ class DiscussionActivityItemView extends ActivityItemChild
     #   log language = $(element).attr("class")?.replace("lang-","")
     #   # Interesting Idea: maybe add a badge linke in CodeSnips
 
+  prepareExternalLinks:->
+    @$('p.body a[href^=http]').attr "target", "_blank"
 
   render:->
     super()
     @highlightCode()
+    @prepareExternalLinks()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
+    if $(event.target).closest("[data-paths~=title]")
+      if not $(event.target).is("a.action-link, a.count, .like-view, .body *")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
@@ -126,7 +130,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
       <div class="activity-content-container discussion-body-container">
-      <p class="has-markdown force-small-markdown">{{@utils.applyMarkdown #(body)}}</p>
+      <p class="body has-markdown force-small-markdown">{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>

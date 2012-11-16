@@ -259,6 +259,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
   render:->
     super()
     @highlightCode()
+    @prepareExternalLinks()
 
   viewAppended:()->
     super()
@@ -267,8 +268,12 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @template.update()
 
     @highlightCode()
+    @prepareExternalLinks()
 
     @$(".discussion-body .data").addClass "has-markdown"
+
+  prepareExternalLinks:->
+    @$('p.discussion-body a[href^=http]').attr "target", "_blank"
 
   pistachio:->
     """

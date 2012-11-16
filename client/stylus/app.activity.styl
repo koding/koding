@@ -1957,22 +1957,28 @@ div.protocol-info-box
     &:hover
       opacity 1
 
-div.preview_image
-  position relative
-  div.tutorial-preview-image-box
-    borderBox()
-    rounded 4px
-    border 1px solid black
-    background-color #f7f7f7
-    border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-    padding 15px 15px 12px 15px
-    width 100%
-    img.tutorial-preview-image
-      max-height 200px
-      cursor pointer
-      width auto
+// div.preview_image
+//   position relative
+div.tutorial-preview-image-box
+  float left
+  width auto
+  display inline-block
+  // borderBox()
+  // rounded 4px
+  // border 1px solid black
+  // background-color #f7f7f7
+  // border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+  // padding 15px 15px 12px 15px
+  // width 100%
+  img.tutorial-preview-image
+    max-height 180px
+    cursor pointer
+    width auto
 
-
+div.tutorial-content
+  width auto
+  > span
+    padding-left 20px
 
 div.activity-tutorial-container.small
   img.tutorial-preview-image
@@ -2000,15 +2006,6 @@ playButton(distance=25px)
 .preview-image-overlay
   playButton()
 
-div.tutorial-badge
-  position absolute
-  left -20px
-  top -20px
-  size 40px 40px
-  background-color:#ff9200
-  opacity 0!important
-  vendor transform, rotate(-45deg)
-
 div.modal-select-tutorials
   width:80%
   height : 80%
@@ -2028,6 +2025,7 @@ div.show-tutorial-embed
   z-index 10
 
 div.activity-content-container
+  position relative
   overflow-y scroll
   rounded 4px
   border 1px solid black
@@ -2037,4 +2035,27 @@ div.activity-content-container
 
   &.discussion-body-container
     max-height 200px
-    cursor pointer
+
+  &.tutorial-body-container
+    vertical-align top
+    padding-top 15px
+    padding-bottom 10px
+    max-height 200px
+    overflow-y auto
+    position relative
+
+    .body
+      display block
+      vertical-align top
+      overflow-y scroll
+      max-height 185px
+
+    img.tutorial-preview-image
+      max-height 185px
+      height auto
+      width auto
+      margin-right 15px
+      margin-bottom 5px
+      display inline-block
+      float left
+      cursor pointer

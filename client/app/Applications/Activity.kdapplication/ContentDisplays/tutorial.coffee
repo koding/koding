@@ -237,9 +237,13 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
+  prepareExternalLinks:->
+    @$('p.tutorial-body a[href^=http]').attr "target", "_blank"
+
   render:->
     super()
     @highlightCode()
+    @prepareExternalLinks()
 
   viewAppended:()->
     super()
@@ -248,6 +252,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @template.update()
 
     @highlightCode()
+    @prepareExternalLinks()
 
     @$(".tutorial-body .data").addClass "has-markdown"
 
