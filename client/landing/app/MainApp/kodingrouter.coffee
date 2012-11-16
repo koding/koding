@@ -23,7 +23,10 @@ class KodingRouter extends KDRouter
 
   handleRoot =->
     KD.getSingleton("contentDisplayController").hideAllContentDisplays()
-    #appManager.openApplication null
+    if KD.isLoggedIn()
+      @handleRoute @getDefaultRoute(), replaceState: yes
+    else
+      KD.getSingleton('mainController').doGoHome()
   
   go =(app, group, rest...)->
     unless group?
@@ -49,6 +52,8 @@ class KodingRouter extends KDRouter
     KD.remote.api.JUrlAlias.resolve route, (err, target)->
       if err or not target? then status_404()
       else status_301 target
+
+  getDefaultRoute:-> '/Activity'
 
   openContent:(name, section, state, route)->
     appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
@@ -89,20 +94,26 @@ class KodingRouter extends KDRouter
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
-
-    {stayOpen} = KDRouter
     
     routes =
 
       '/' : handleRoot
       ''  : handleRoot
 
-      '/:name?/Groups'     : ({name})->  go 'Groups'    , name
-      '/:name?/Activity'   : ({name})->  go 'Activity'  , name
-      '/:name?/Members'    : ({name})->  go 'Members'   , name
-      '/:name?/Topics'     : ({name})->  go 'Topics'    , name
-      '/:name?/Develop'    : ({name})->  go 'StartTab'  , name
-      '/:name?/Apps'       : ({name})->  go 'Apps'      , name
+      # verbs
+      '/:name?/Login'     : ({name})-> mainController.doLogin name
+      '/:name?/Logout'    : ({name})-> mainController.doLogout name; @clear()
+      '/:name?/Register'  : ({name})-> mainController.doRegister name
+      '/:name?/Join'      : ({name})-> mainController.doJoin name
+      '/:name?/Recover'   : ({name})-> mainController.doRecover name
+
+      # nouns
+      '/:name?/Groups'    : ({name})-> go 'Groups'    , name
+      '/:name?/Activity'  : ({name})-> go 'Activity'  , name
+      '/:name?/Members'   : ({name})-> go 'Members'   , name
+      '/:name?/Topics'    : ({name})-> go 'Topics'    , name
+      '/:name?/Develop'   : ({name})-> go 'StartTab'  , name
+      '/:name?/Apps'      : ({name})-> go 'Apps'      , name
 
       '/:name?/Topics/:topicSlug': @createContentDisplayHandler 'Topics'
 

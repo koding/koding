@@ -60,6 +60,7 @@ class ApplicationManager extends KDObject
         appInstance.bringToFront()
 
     (path, doBringToFront, callback)->
+
       [callback, doBringToFront] = [doBringToFront, callback] unless callback
       doBringToFront ?= yes
 
@@ -85,7 +86,8 @@ class ApplicationManager extends KDObject
             appManager.initializeAppInstance(
               path, appInstance, 'initApplication', handler
             )
-          else appManager.initializeAppInstance path, appInstance, handler
+          else
+            appManager.initializeAppInstance path, appInstance, handler
 
   replaceStartTabWithApplication:(applicationPath, tab)->
     @openApplication applicationPath, no, (appInstance)->
@@ -199,14 +201,16 @@ class ApplicationManager extends KDObject
     return no
 
   getAppViews:(path)->
-
     index = @appInstanceArray.indexOf @getAppInstance path
     @appViewsArray[index]
 
   appShowedAView:(appInstance,{options,data})=>
-    index = @appInstanceArray.indexOf appInstance
-    @appViewsArray[index].push data
-    @emit 'ApplicationShowedAView', appInstance
+    if KD.isLoggedIn()
+      index = @appInstanceArray.indexOf appInstance
+      @appViewsArray[index].push data
+      @emit 'ApplicationShowedAView', appInstance
+    else
+      KD.getSingleton('router').handleRoute '/', replaceState: yes
 
   appClosedAView:(appInstance,{options,data}) =>
     index = @appInstanceArray.indexOf appInstance
