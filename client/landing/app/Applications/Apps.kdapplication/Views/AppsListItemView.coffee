@@ -20,11 +20,11 @@ class AppsListItemView extends KDListItemView
       attributes  :
         src       : thumb
 
-  click:(event)->
-    if $(event.target).is ".appdetails h3 a span"
-      list = @getDelegate()
-      app  = @getData()
-      list.propagateEvent KDEventType : "AppWantsToExpand", app
+  # click:(event)->
+  #   if $(event.target).is ".appdetails h3 a span"
+  #     list = @getDelegate()
+  #     app  = @getData()
+  #     list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
     opts =
@@ -32,13 +32,19 @@ class AppsListItemView extends KDListItemView
       attributes:
         href: '#'
       partial: @getData().title
+      click:(event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        list = @getDelegate()
+        app  = @getData()
+        list.propagateEvent KDEventType : "AppWantsToExpand", app
 
     for i in [0,1]
       titleView = new KDCustomHTMLView opts
       @["title#{i}"] = titleView
 
-    if not @getData().approved
-      @setClass "waits-approve"
+    @setClass "waits-approve"  if not @getData().approved
+
     @setTemplate @pistachio()
     @template.update()
 
