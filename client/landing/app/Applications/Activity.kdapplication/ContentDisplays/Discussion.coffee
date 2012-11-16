@@ -252,7 +252,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
                 title    : "Error, please try again later!"
 
   highlightCode:=>
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("p.discussion-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 

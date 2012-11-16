@@ -91,7 +91,7 @@ class DiscussionActivityItemView extends ActivityItemChild
     @prepareExternalLinks()
 
   highlightCode:=>
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("div.discussion-body-container span.data pre").each (i,element)=>
       hljs.highlightBlock element
     # @$("code").each (i,element) =>

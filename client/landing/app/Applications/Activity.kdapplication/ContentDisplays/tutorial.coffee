@@ -233,7 +233,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 title    : "Error, please try again later!"
 
   highlightCode:=>
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
 
