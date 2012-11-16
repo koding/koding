@@ -546,7 +546,7 @@ Includes =
         CommonInnerNavigation       : "./client/app/CommonViews/CommonInnerNavigation.coffee"
         CommonFeedMessage           : "./client/app/CommonViews/CommonFeedMessage.coffee"
         Headers                     : "./client/app/CommonViews/headers.coffee"
-        Logo                        : "./client/app/CommonViews/logo.coffee"
+        # Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"

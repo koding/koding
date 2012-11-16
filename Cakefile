@@ -75,21 +75,31 @@ mkdirp.sync "./.build/.cache"
 # else
 #   version = (fs.readFileSync ".revision").toString().replace("\r","").replace("\n","")
 
+compilePistachios = require 'pistachio-compiler'
+
 clientFileMiddleware  = (options, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
-  {libraries,kdjs} = code
-  {minify}         = options
+  {libraries,kdjs}      = code
+  {minify, pistachios}  = options
 
-
+  console.log 'does it get called', arguments
 
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
+  
+
+  if pistachios
+    kdjs = compilePistachios kdjs
+    console.log kdjs
+
+  js = "#{libraries}#{kdjs}"
+
   if minify
-    closureCompile (libraries+kdjs),(err,data)->
+    closureCompile js,(err,data)->
       unless err
         callback null,data
       else

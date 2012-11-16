@@ -81,7 +81,7 @@ class KDRouter extends KDObject
 
   handleRoute:(frag, options={})->
     frag ?= @getDefaultRoute?() ? '/'
-    {shouldPushState, state} = options
+    {shouldPushState, replaceState, state} = options
     objRef = createObjectRef state
     shouldPushState ?= yes
     node = @tree
@@ -93,14 +93,14 @@ class KDRouter extends KDObject
 
     path = frag.join '/'
 
-    if path is @currentPath
+    if path is @currentPath and shouldPushState and not replaceState
       @emit 'AlreadyHere', path
       return
 
     @currentPath = path
 
     if shouldPushState
-      method = if options.replaceState then 'replaceState' else 'pushState'
+      method = if replaceState then 'replaceState' else 'pushState'
       history[method] objRef, @getTitle(path), "/#{path}"
 
     for edge in frag
