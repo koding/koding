@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"koding/tools/virt"
+	"koding/virt"
 )
 
 func main() {
