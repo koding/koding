@@ -225,7 +225,15 @@ module.exports = new Kite 'sharedHosting'
   #    else
   #      log.error stderr
   #      callback stderr
-  createVhost :do->
+  createVhost : (options,callback)->
+    {username,uid,domainName} = options
+
+    domainName ?= "#{username}.#{config.defaultDomain}"
+    targetPath = "/Users/#{username}/Sites/#{domainName}"
+
+    createDirs = ['-v','-p',targetPath]
+    copyFiles  = ['-v','-r',"#{config.defaultVhostFiles}/website",targetPath]
+    changeOwner = ['-v','-R',"#{uid}:#{uid}","#{targetPath}/website"]
 
     spawnWrapper = (command, args , callback)->
       wrapper = spawn command,args
@@ -245,30 +253,21 @@ module.exports = new Kite 'sharedHosting'
           log.info info = "createVhost: #{command} done!"
           callback null, info
 
-    createVhost = (options,callback)->
-      {username,uid,domainName} = options
 
-      domainName ?= "#{username}.#{config.defaultDomain}"
-      targetPath = "/Users/#{username}/Sites/#{domainName}"
-
-      createDirs = ['-v','-p',targetPath]
-      copyFiles  = ['-v','-r',"#{config.defaultVhostFiles}/website",targetPath]
-      changeOwner = ['-v','-R',"#{uid}:#{uid}","#{targetPath}/website"]
-
-      spawnWrapper '/bin/mkdir',createDirs, (err,res)=>
-        if err?
-          callback "[ERROR] couldn't create vhost #{err}"
-        else
-          spawnWrapper '/bin/cp',copyFiles,(err,res)=>
-            if err?
-              callback "[ERROR] Culdn't create vhost: #{err}"
-            else
-              spawnWrapper '/bin/chown',changeOwner,(err,res)->
-                if err?
-                  callback "[ERROR] Culdn't create vhost: #{err}"
-                else
-                  log.info info = "[OK] vhost #{domainName} has been created"
-                  callback null, info
+    spawnWrapper '/bin/mkdir',createDirs, (err,res)=>
+      if err?
+        callback "[ERROR] couldn't create vhost #{err}"
+      else
+        spawnWrapper '/bin/cp',copyFiles,(err,res)=>
+          if err?
+            callback "[ERROR] Culdn't create vhost: #{err}"
+          else
+            spawnWrapper '/bin/chown',changeOwner,(err,res)->
+              if err?
+                callback "[ERROR] Culdn't create vhost: #{err}"
+              else
+                log.info info = "[OK] vhost #{domainName} has been created"
+                callback null, info
 
  # suspendUser : (options,callback)->
  #   #
@@ -376,3 +375,4 @@ module.exports = new Kite 'sharedHosting'
  #                 else
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
+
