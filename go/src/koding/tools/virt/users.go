@@ -1,4 +1,4 @@
-package vm
+package virt
 
 import (
 	"bufio"
