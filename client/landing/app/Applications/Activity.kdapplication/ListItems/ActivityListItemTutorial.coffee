@@ -108,6 +108,23 @@ class TutorialActivityItemView extends ActivityItemChild
           item.hide()
           item.destroy()
 
+    @scrollAreaOverlay = new KDView
+      cssClass : "enable-scroll-overlay"
+      partial  : ""
+
+    @scrollAreaList = new KDButtonGroupView
+      buttons:
+        "Allow Scrolling here":
+          # cssClass : ""
+          callback:=>
+            @$("div.tutorial-body-container div.body").addClass "scrollable-y"
+            @scrollAreaOverlay.hide()
+        "View the Full Tutorial":
+          callback:=>
+            appManager.tell "Activity", "createContentDisplay", @getData()
+
+    @scrollAreaOverlay.addSubView @scrollAreaList
+
   highlightCode:=>
     # @$("pre").addClass "prettyprint"
     @$("div.body span.data pre").each (i,element)=>
@@ -119,6 +136,39 @@ class TutorialActivityItemView extends ActivityItemChild
   prepareExternalLinks:->
     @$('div.body a[href^=http]').attr "target", "_blank"
 
+  prepareScrollOverlay:->
+    @utils.wait =>
+
+      body = @$("div.tutorial-body-container div.body")
+      container = @$("div.tutorial-body-container")
+      if body.height() < 185
+        @scrollAreaOverlay.hide()
+      else
+        container.addClass "scrolling-down"
+        cachedHeight = body.height()
+        body.scroll =>
+
+          percentageTop    = 100*body.scrollTop()/body[0].scrollHeight
+          percentageBottom = 100*(cachedHeight+body.scrollTop())/body[0].scrollHeight
+
+          if percentageTop < 0.5
+
+            container.addClass "scrolling-down"
+            container.removeClass "scrolling-both"
+            container.removeClass "scrolling-up"
+
+          if percentageBottom > 99.5
+
+            container.addClass "scrolling-up"
+            container.removeClass "scrolling-both"
+            container.removeClass "scrolling-down"
+
+          if percentageTop >= 0.5 and percentageBottom <= 99.5
+
+            container.addClass "scrolling-both"
+            container.removeClass "scrolling-up"
+            container.removeClass "scrolling-down"
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
@@ -128,15 +178,17 @@ class TutorialActivityItemView extends ActivityItemChild
 
     @highlightCode()
     @prepareExternalLinks()
+    @prepareScrollOverlay()
 
   render:->
     super()
     @highlightCode()
     @prepareExternalLinks()
+    @prepareScrollOverlay()
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .like-view, .body *")
+      if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay, .like-view, .body *")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
@@ -164,6 +216,7 @@ class TutorialActivityItemView extends ActivityItemChild
         <div class="body has-markdown force-small-markdown">
           {{@utils.applyMarkdown #(body)}}
         </div>
+      {{> @scrollAreaOverlay}}
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
