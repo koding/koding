@@ -12,9 +12,9 @@ processMonitor = (require 'processes-monitor').start
     memory   : 300
     callback : ->
       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
-      process.exit()
+      #process.exit()
 
-# if webPort is 3005
+# if webPort is 3002
 #   foo = []
 #   do bar = ->
 #    process.nextTick ->

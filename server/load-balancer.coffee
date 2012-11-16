@@ -18,6 +18,7 @@ index            = 0
 loadBalancerPort = KONFIG.loadBalancer.port
 heartbeat        = KONFIG.loadBalancer.heartbeat
 webserver        = KONFIG.webserver
+httpRedirectPort = KONFIG.loadBalancer.httpRedirect?.port
 
 process.on 'message',(msg)->
   markServerAsDead msg.port if msg.markAsDead
@@ -30,30 +31,43 @@ markServerAsDead = (port)->
       server.good = no
       console.log "webserver at port #{port} marked as dead."
 
-# getNextServer = do ->
-#   nextServer = 0
-#   ln = addresses.length
-#   (options, recurse, callback) ->
-#     [callback, recurse] = [recurse, callback]  unless callback
-#     recurse ?= 0
-#     # arr = _.min addresses,(server) -> server.ping
-#     srv = addresses[(nextServer++)%ln]
-#     if srv.good is no and recurse < ln
-#       # srv = addresses[(nextServer++)%ln]
-#       getNextServer options, recurse++, callback
-#     else if recurse is ln-1
-#       callback "all servers are dead"
-#     else
-#       callback null,srv
+getNextServer = do ->
+  nextServer = 0
+  ln = addresses.length
+  (options, recurse, callback) ->
+    [callback, recurse] = [recurse, callback]  unless callback
+    recurse ?= 0
+    # arr = _.min addresses,(server) -> server.ping
+    srv = addresses[(nextServer++)%ln]
+    # console.log 'r'+recurse
+    if srv.good is no and recurse < ln
+      # srv = addresses[(nextServer++)%ln]
 
-# bouncy((req, bounce) -> 
-#   getNextServer {},(err,srv)->
-#     if err
-#       console.log "all servers are dead"
-#     else
-#       bounce srv.port
+      getNextServer options, ++recurse, callback
+    else if recurse is ln-1
+      callback "all servers are dead"
+    else
+      callback null,srv
 
-# ).listen loadBalancerPort
+redirect = (to,bounce)->
+  res = bounce.respond()
+  res.statusCode = 302
+  res.setHeader('Location', to)
+  res.end('Redirecting to <a href="' + to + '">' + to + '</a>')
+
+if httpRedirectPort
+  bouncy((req, bounce) -> 
+    redirect "https://koding.com#{req.url}",bounce
+  ).listen 80
+
+bouncy((req, bounce) -> 
+  getNextServer {},(err,srv)->
+    if err
+      console.log "all servers are dead"
+    else
+      bounce srv.port
+      # console.log "[rq:#{i++}]served from #{srv.port}"
+).listen loadBalancerPort
 
 console.log "[HTTP-PROXY] Running load balancer on port #{loadBalancerPort}"
 console.log "[HTTP-PROXY] Proxying:",addresses
@@ -92,5 +106,5 @@ if heartbeat
     addresses.forEach (server,key)->
       ping server,key
     # console.log addresses
-    console.log "[HTTP-PROXY] best server:",getNextServer()
+    getNextServer {},(err,srv) -> # console.log "[HTTP-PROXY] best server:",srv
   ,heartbeat
