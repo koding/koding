@@ -84,17 +84,15 @@ clientFileMiddleware  = (options, code, callback)->
   {libraries,kdjs}      = code
   {minify, pistachios}  = options
 
-  console.log 'does it get called', arguments
 
   kdjs =  "var KD = {};\n" +
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
-  
+  console.log 'pistachio', pistachios
 
   if pistachios
     kdjs = compilePistachios kdjs
-    console.log kdjs
 
   js = "#{libraries}#{kdjs}"
 

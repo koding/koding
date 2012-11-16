@@ -90,8 +90,9 @@ class Apps12345 extends AppController
         listController.getListView().registerListener
           KDEventTypes  : 'AppWantsToExpand'
           listener      : @
-          callback      : (pubInst, app)=>
-            @createContentDisplay app
+          callback      : (pubInst, app)->
+            KD.getSingleton('router').handleRoute app.slug, state: app
+#            @createContentDisplay app
 
         listController.getListView().on "AppDeleted", =>
           log arguments, ">>>>>"
