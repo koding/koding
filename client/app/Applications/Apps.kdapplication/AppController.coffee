@@ -91,8 +91,7 @@ class Apps12345 extends AppController
           KDEventTypes  : 'AppWantsToExpand'
           listener      : @
           callback      : (pubInst, app)->
-            KD.getSingleton('router').handleRoute app.slug, state: app
-#            @createContentDisplay app
+            KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
         listController.getListView().on "AppDeleted", =>
           log arguments, ">>>>>"

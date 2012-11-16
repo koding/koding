@@ -117,9 +117,11 @@ class KodingRouter extends KDRouter
       '/:name?/Develop'   : ({name})-> go 'StartTab'  , name
       '/:name?/Apps'      : ({name})-> go 'Apps'      , name
 
-      '/:name?/Topics/:topicSlug': @createContentDisplayHandler 'Topics'
+      '/:name?/Topics/:topicSlug'       : @createContentDisplayHandler 'Topics'
 
-      '/:name?/Activity/:activitySlug': @createContentDisplayHandler 'Activity'
+      '/:name?/Activity/:activitySlug'  : @createContentDisplayHandler 'Activity'
+
+      '/:name?/Apps/:appSlug'           : @createContentDisplayHandler 'Apps'
 
       '/recover/:recoveryToken': ({recoveryToken})->
         mainController.appReady ->
