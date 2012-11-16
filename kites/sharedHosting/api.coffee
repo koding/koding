@@ -376,8 +376,3 @@ module.exports = new Kite 'sharedHosting'
  #                 else
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
-<<<<<<< HEAD
-
-=======
- #                   log.info res; callback? null, res
->>>>>>> parent of f582e60... fix createVhost
