@@ -141,7 +141,7 @@ class TutorialActivityItemView extends ActivityItemChild
 
       body = @$("div.tutorial-body-container div.body")
       container = @$("div.tutorial-body-container")
-      if body.height() < 185
+      if body.height() < 200
         @scrollAreaOverlay.hide()
       else
         container.addClass "scrolling-down"
@@ -188,7 +188,7 @@ class TutorialActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).closest("[data-paths~=title],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay, .like-view, .body *")
+      if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay *, .like-view, .body *")
         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
