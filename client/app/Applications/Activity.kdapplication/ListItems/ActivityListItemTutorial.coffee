@@ -109,7 +109,7 @@ class TutorialActivityItemView extends ActivityItemChild
           item.destroy()
 
   highlightCode:=>
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("div.body span.data pre").each (i,element)=>
       hljs.highlightBlock element
     # @$("code").each (i,element) =>
