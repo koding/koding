@@ -78,7 +78,7 @@ module.exports = new Kite 'sharedHosting'
         log.info "[OK] user #{username} was secured"
         callback? null,"[OK] user #{username} was secured"
 
-  buildHome = (options,callback)->
+  buildHome : (options,callback)->
     #
     # this methid will make home directory for user, set correct perms and copy all default files in it
     #
@@ -99,7 +99,7 @@ module.exports = new Kite 'sharedHosting'
             log.error error = "[ERROR] can't change owner of home directory to UID/GID #{uid} for user #{username}: #{err}"
             callback error
           else
-            createVhost username:username,uid:uid,(err,res)->
+            @createVhost username:username,uid:uid,(err,res)->
               unless err
                 log.info info = "[OK] default vhost and hosmedir for user #{username} is created"
                 callback? null,info
@@ -201,7 +201,7 @@ module.exports = new Kite 'sharedHosting'
                         # now we can build home for user
                         ldapClient.unbind (err)->
                           log.error err if err?
-                        buildHome username:username,uid:parseInt(id), (error,result)->
+                        @buildHome username:username,uid:parseInt(id), (error,result)->
                           if error?
                             callback error
                           else
@@ -376,4 +376,3 @@ module.exports = new Kite 'sharedHosting'
  #                 else
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
- #                   log.info res; callback? null, res
