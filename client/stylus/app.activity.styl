@@ -2024,22 +2024,41 @@ div.show-tutorial-embed
   display inline-block
   z-index 10
 
+.scrollable-y
+  overflow-y scroll!important
+
+.scrollable-x
+  overflow-x scroll!important
+
+.scrollable
+  overflow-x scroll
+  overflow-y scroll
+
 div.activity-content-container
   position relative
   overflow-y scroll
   rounded 4px
   border 1px solid black
-  background-color #f7f7f7
+  background-color #fff
   border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
   padding 10px 15px 0px 15px
+  vendor transition, box-shadow 0.15s ease-in
+
+  &.scrolling-both
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+  &.scrolling-up
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
+  &.scrolling-down
+    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
 
   &.discussion-body-container
     max-height 200px
+    overflow-y hidden
 
   &.tutorial-body-container
     vertical-align top
     padding-top 15px
-    padding-bottom 10px
+    // padding-bottom 10px
     max-height 200px
     overflow-y auto
     position relative
@@ -2047,7 +2066,7 @@ div.activity-content-container
     .body
       display block
       vertical-align top
-      overflow-y scroll
+      overflow-y hidden
       max-height 185px
 
     img.tutorial-preview-image
@@ -2059,3 +2078,30 @@ div.activity-content-container
       display inline-block
       float left
       cursor pointer
+
+  &:hover
+    div.enable-scroll-overlay
+      opacity 1
+      background-color rgba(0,0,0,0.25)
+      div.kdbuttongroup
+        left:0px
+
+  div.enable-scroll-overlay
+    background-color rgba(0,0,0,0.1)
+    width 100%
+    height 50px
+    position absolute
+    left 0px
+    right 0px
+    bottom 0px
+    opacity 1
+    vendor transition, 0.2s ease-in-out
+    text-align center
+
+    div.kdbuttongroup
+      vertical-align middle
+      vendor transition, left 0.5s linear
+      left 800px
+      font-size 16px
+      padding 5px
+      margin 5px
