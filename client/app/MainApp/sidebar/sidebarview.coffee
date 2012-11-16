@@ -342,8 +342,8 @@ class Sidebar extends JView
     items : [
       { title : "Invite Friends", loggedIn  : yes }
       { title : "Account",        loggedIn  : yes }
-      { title : "Logout",         loggedIn  : yes, action : "logout" }
-      { title : "Login",          loggedOut : yes, action : "login" }
+      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
+      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
     ]
 
   bottomControlsItems =

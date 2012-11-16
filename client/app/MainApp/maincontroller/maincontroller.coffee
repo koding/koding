@@ -116,6 +116,34 @@ class MainController extends KDController
       #appManager.openApplication @getOptions().startPage, yes
       @mainViewController.getView().decorateLoginState yes
 
+  doJoin:->
+    @loginScreen.animateToForm 'lr'
+
+  doRegister:->
+    @loginScreen.animateToForm 'register'
+
+  doGoHome:->
+    @loginScreen.animateToForm 'home'
+
+  doLogin:->
+    @loginScreen.animateToForm 'login'
+
+  doRecover:->
+    @loginScreen.animateToForm 'recover'    
+
+  doLogout:->
+    KD.logout()
+    KD.remote.api.JUser.logout (err, account, replacementToken)=>
+      $.cookie 'clientId', replacementToken if replacementToken
+      @accountChanged account
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Come back soon!"
+        duration  : 2000
+      # fixme: get rid of reload, clean up ui on account change
+      # tightly related to application manager refactoring
+      @utils.wait 2000, -> location.reload yes
+
   goToPage:(pageInfo)=>
 
     path = pageInfo.appPath
@@ -127,20 +155,7 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      if pageInfo.pageName is 'Logout'
-        KD.remote.api.JUser.logout (err, account, replacementToken)=>
-          $.cookie 'clientId', replacementToken if replacementToken
-          @accountChanged account
-          new KDNotificationView
-            cssClass  : "login"
-            title     : "<span></span>Come back soon!"
-            duration  : 2000
-          # fixme: get rid of reload, clean up ui on account change
-          # tightly related to application manager refactoring
-          @utils.wait 2000, -> location.reload yes
-      else
-        @router.handleRoute pageInfo.path
-        #@goToPage pageInfo
+      @router.handleRoute pageInfo.path
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
