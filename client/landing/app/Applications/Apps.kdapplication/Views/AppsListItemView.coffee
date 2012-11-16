@@ -27,10 +27,21 @@ class AppsListItemView extends KDListItemView
       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
+    opts =
+      tagName: 'a'
+      attributes:
+        href: '#'
+      partial: @getData().title
+
+    for i in [0,1]
+      titleView = new KDCustomHTMLView opts
+      @["title#{i}"] = titleView
+
     if not @getData().approved
       @setClass "waits-approve"
     @setTemplate @pistachio()
     @template.update()
+
 
     if @getData().installed
       @alreadyInstalledText()
@@ -65,7 +76,7 @@ class AppsListItemView extends KDListItemView
       {{> @thumbnail}}
     </figure>
     <div class="appmeta clearfix">
-      <h3>{a[href=#]{#(title)}}</h3>
+      <h3>{{> @title0 }}</h3>
       <div class="appstats">
         <p class="installs">
           <span class="icon"></span>
@@ -78,7 +89,7 @@ class AppsListItemView extends KDListItemView
       </div>
     </div>
     <div class="appdetails">
-      <h3><a href="#">{{#(title)}}</a></h3>
+      <h3>{{> @title1 }}</h3>
       <article>{{@utils.shortenText #(body)}}</article>
       <div class="button-container">
       </div>

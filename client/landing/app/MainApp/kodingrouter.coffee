@@ -8,7 +8,9 @@ class KodingRouter extends KDRouter
       .on 'ContentDisplayIsDestroyed', @cleanupRoute.bind @
     super getRoutes.call this
 
-    @on 'AlreadyHere', -> new KDNotificationView title: "You're already here!"
+    @on 'AlreadyHere', ->
+      new KDNotificationView title: "You're already here!"
+      console.trace()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
