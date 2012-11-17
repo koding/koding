@@ -174,8 +174,9 @@ class DiscussionActivityItemView extends ActivityItemChild
     if $(event.target).closest("[data-paths~=title]")
       if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay *, .like-view, .body *")
         appManager.tell "Activity", "createContentDisplay", @getData()
-      else
-        yes
+      # else
+      #   if $(event.target).is(".body *") and not @scrollAreaOverlay.$().hasClass "hidden"
+      #     appManager.tell "Activity", "createContentDisplay", @getData()
     else
       yes
 

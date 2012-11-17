@@ -204,9 +204,12 @@ class TutorialActivityItemView extends ActivityItemChild
     @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=preview]")
-      if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay *, .like-view, .body *")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+    # if $(event.target).closest("[data-paths~=title],[data-paths~=preview]")
+    #   if not $(event.target).is("a.action-link, a.count, .enable-scroll-overlay *, .like-view, .body *")
+    #     appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=title],[data-paths~=preview]") or\
+       $(event.target).is(".body *") and not @scrollAreaOverlay.$().hasClass "hidden"
+         appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str

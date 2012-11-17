@@ -2082,14 +2082,31 @@ div.activity-content-container
   &:hover
     div.enable-scroll-overlay
       opacity 1
-      background-color rgba(0,0,0,0.25)
+      vendor transition, 0.2s ease-in-out
+      background-color rgba(0,0,0,0.1)
+      // background-color transparent
       div.kdbuttongroup
         left:0px
+        button
+          // animation-duration 0.3s
+          // animation-name pulse
+          opacity 1
+          background-color rgba(0,0,0,0.5)
+          color white
+          top 0
+        // @keyframes pulse
+        //   from
+        //     opacity 1
+        //   // 50%
+        //   //   opacity 0.8
+        //   to
+        //     opacity 0.5
+
+
 
   div.enable-scroll-overlay
-    background-color rgba(0,0,0,0.1)
     width 100%
-    height 50px
+    height auto
     position absolute
     left 0px
     right 0px
@@ -2097,11 +2114,34 @@ div.activity-content-container
     opacity 1
     vendor transition, 0.2s ease-in-out
     text-align center
+    background-color rgba(0,0,0,0.0)
+    vertical-align middle
 
-    div.kdbuttongroup
+    > div.kdbuttongroup
       vertical-align middle
-      vendor transition, left 0.5s linear
-      left 800px
-      font-size 16px
       padding 5px
-      margin 10px 0px 5px 0px
+      margin 5px 0px 5px 0px
+
+      > button
+        rounded 3px
+        vendor transition, background-color 0.15s linear \, top 0.2s linear
+        top 50px
+        font-size 11px
+        font-weight 600
+        background-color rgba(0,0,0,0.6)
+        color transparent
+        border none
+        background-image none
+        vendor text-shadow, none
+        margin 0px 5px
+        opacity 0
+
+
+        &:first-child
+          rounded 3px
+        &:last-child
+          rounded 3px
+
+        &:hover
+          background-color rgba(0,0,0,0.7)
+          animation-name none
