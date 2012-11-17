@@ -119,7 +119,7 @@ class TutorialActivityItemView extends ActivityItemChild
           callback:=>
             @$("div.tutorial-body-container div.body").addClass "scrollable-y"
             @scrollAreaOverlay.hide()
-        "View the Full Tutorial":
+        "View the full Tutorial":
           callback:=>
             appManager.tell "Activity", "createContentDisplay", @getData()
 
@@ -141,7 +141,8 @@ class TutorialActivityItemView extends ActivityItemChild
 
       body = @$("div.tutorial-body-container div.body")
       container = @$("div.tutorial-body-container")
-      if body.height() < 200
+
+      if body.height() < parseInt container.css("max-height").replace(/\D/, ""), 10
         @scrollAreaOverlay.hide()
       else
         container.addClass "scrolling-down"
@@ -151,19 +152,35 @@ class TutorialActivityItemView extends ActivityItemChild
           percentageTop    = 100*body.scrollTop()/body[0].scrollHeight
           percentageBottom = 100*(cachedHeight+body.scrollTop())/body[0].scrollHeight
 
-          if percentageTop < 0.5
+          distanceTop      = body.scrollTop()
+          distanceBottom   = body[0].scrollHeight-(cachedHeight+body.scrollTop())
+
+          triggerValues    =
+            top            :
+              percentage   : 0.5
+              distance     : 15
+            bottom         :
+              percentage   : 99.5
+              distance     : 15
+
+          if percentageTop < triggerValues.top.percentage or\
+             distanceTop < triggerValues.top.distance
 
             container.addClass "scrolling-down"
             container.removeClass "scrolling-both"
             container.removeClass "scrolling-up"
 
-          if percentageBottom > 99.5
+          if percentageBottom > triggerValues.bottom.percentage or\
+             distanceBottom < triggerValues.bottom.distance
 
             container.addClass "scrolling-up"
             container.removeClass "scrolling-both"
             container.removeClass "scrolling-down"
 
-          if percentageTop >= 0.5 and percentageBottom <= 99.5
+          if percentageTop >= triggerValues.top.percentage and\
+             percentageBottom <= triggerValues.bottom.percentage and\
+             distanceBottom > triggerValues.bottom.distance and\
+             distanceTop > triggerValues.top.distance
 
             container.addClass "scrolling-both"
             container.removeClass "scrolling-up"
