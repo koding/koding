@@ -341,7 +341,7 @@ class Sidebar extends JView
     title : "acc-navigation"
     items : [
       { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes }
+      { title : "Account",        loggedIn  : yes, path   : '/Account' }
       { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
       { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
     ]

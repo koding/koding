@@ -116,6 +116,7 @@ class KodingRouter extends KDRouter
       '/:name?/Topics'    : ({name})-> go 'Topics'    , name
       '/:name?/Develop'   : ({name})-> go 'StartTab'  , name
       '/:name?/Apps'      : ({name})-> go 'Apps'      , name
+      '/:name?/Account'   : ({name})-> go 'Account'   , name
 
       '/:name?/Topics/:topicSlug'       : @createContentDisplayHandler 'Topics'
 

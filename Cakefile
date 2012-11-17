@@ -89,9 +89,8 @@ clientFileMiddleware  = (options, code, callback)->
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
-  console.log 'pistachio', pistachios
-
   if pistachios
+    console.log 'this will call'
     kdjs = compilePistachios kdjs
 
   js = "#{libraries}#{kdjs}"
@@ -99,12 +98,12 @@ clientFileMiddleware  = (options, code, callback)->
   if minify
     closureCompile js,(err,data)->
       unless err
-        callback null,data
+        callback null, data
       else
         # if error just provide the original file. so site isn't down until this is fixed.
-        callback null,(libraries+kdjs)
+        callback null, js
   else
-    callback null,(libraries+kdjs)
+    callback null, js
 
 pipeStd =(children...)->
   for child in children when child?
@@ -151,13 +150,13 @@ buildClient =(options, callback=->)->
   builder.watcher.on "changeDidHappen",(changes)->
     # log.info changes
     if changes.Client? and not changes.StylusFiles
-      builder.buildClient "",()->
-        builder.buildIndex "",()->
+      builder.buildClient options,()->
+        builder.buildIndex {},()->
           # log.debug "client build is complete"
 
     if changes.Client?.StylusFiles?
-      builder.buildCss "", ->
-        builder.buildIndex "", ->
+      builder.buildCss {}, ->
+        builder.buildIndex {}, ->
     if changes.Cake
       log.debug "Cakefile changed.."
       builder.watcher.reInitialize()
