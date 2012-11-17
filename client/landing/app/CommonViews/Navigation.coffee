@@ -112,7 +112,9 @@ class NavigationInviteLink extends KDCustomHTMLView
 
   # take this somewhere else
   # was a beta quick solution
-  mouseDown:(event)->
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
     limit = @count.getData()
     if !limit? or limit.getAt('quota') - limit.getAt('usage') <= 0
       new KDNotificationView
