@@ -92,7 +92,7 @@ class DiscussionActivityItemView extends ActivityItemChild
           callback:=>
             @$("div.discussion-body-container").addClass "scrollable-y"
             @scrollAreaOverlay.hide()
-        "View the Full Discussion":
+        "View the full Discussion":
           callback:=>
             appManager.tell "Activity", "createContentDisplay", @getData()
 
@@ -119,35 +119,50 @@ class DiscussionActivityItemView extends ActivityItemChild
     @utils.wait =>
 
       body = @$("div.discussion-body-container")
-      if body.height() < 200
+      if body.height() < parseInt body.css("max-height").replace(/\D/, ""), 10
         @scrollAreaOverlay.hide()
       else
         body.addClass "scrolling-down"
         cachedHeight = body.height()
+
         body.scroll =>
 
           percentageTop    = 100*body.scrollTop()/body[0].scrollHeight
           percentageBottom = 100*(cachedHeight+body.scrollTop())/body[0].scrollHeight
 
-          if percentageTop < 0.5
+          distanceTop      = body.scrollTop()
+          distanceBottom   = body[0].scrollHeight-(cachedHeight+body.scrollTop())
+
+          triggerValues    =
+            top            :
+              percentage   : 0.5
+              distance     : 15
+            bottom         :
+              percentage   : 99.5
+              distance     : 15
+
+          if percentageTop < triggerValues.top.percentage or\
+             distanceTop < triggerValues.top.distance
 
             body.addClass "scrolling-down"
             body.removeClass "scrolling-both"
             body.removeClass "scrolling-up"
 
-          if percentageBottom > 99.5
+          if percentageBottom > triggerValues.bottom.percentage or\
+             distanceBottom < triggerValues.bottom.distance
 
             body.addClass "scrolling-up"
             body.removeClass "scrolling-both"
             body.removeClass "scrolling-down"
 
-          if percentageTop >= 0.5 and percentageBottom <= 99.5
+          if percentageTop >= triggerValues.top.percentage and\
+             percentageBottom <= triggerValues.bottom.percentage and\
+             distanceBottom > triggerValues.bottom.distance and\
+             distanceTop > triggerValues.top.distance
 
             body.addClass "scrolling-both"
             body.removeClass "scrolling-up"
             body.removeClass "scrolling-down"
-
-
 
   render:->
     super()
