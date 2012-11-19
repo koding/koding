@@ -178,9 +178,11 @@ getAlias =(url)->
 
 app.get '*', (req,res)->
   {url} = req
-  alias = getAlias req.url
-  query = url.slice 
-  res.header 'Location', "/#!#{alias ? req.url}#{query}"
+  queryIndex = url.indexOf '?'
+  query = url.slice queryIndex
+  urlOnly = url.slice 0, queryIndex
+  alias = getAlias urlOnly
+  res.header 'Location', "/#!#{alias ? urlOnly}#{query}"
   res.send 302
 
 app.listen webPort
