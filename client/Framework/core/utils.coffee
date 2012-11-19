@@ -109,9 +109,25 @@ __utils =
         else
           text
 
-    text = Encoder.htmlDecode text
+    text = marked Encoder.htmlDecode text
 
-    text = marked text
+    sanitizeText = $(text)
+
+    # Proxify images
+
+    proxify = (str, p1, offset, s)=>
+      @proxifyUrl str
+
+    sanitizeText.find("img").each (i,element) =>
+      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+
+    # Give all outbound links a target blank
+    sanitizeText.find("a").each (i,element) =>
+      unless /^(#!)/.test $(element).attr("href")
+        $(element).attr("target", "_blank")
+
+    text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
+
 
   applyLineBreaks: (text)->
     return null unless text
