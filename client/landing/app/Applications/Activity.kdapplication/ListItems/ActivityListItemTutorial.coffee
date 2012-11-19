@@ -118,6 +118,8 @@ class TutorialActivityItemView extends ActivityItemChild
           # cssClass : ""
           callback:=>
             @$("div.tutorial-body-container div.body").addClass "scrollable-y"
+            @$("div.tutorial-body-container div.body").removeClass "no-scroll"
+
             @scrollAreaOverlay.hide()
         "View the full Tutorial":
           callback:=>
@@ -233,7 +235,7 @@ class TutorialActivityItemView extends ActivityItemChild
       <p class="hidden comment-title"></p>
       <div class="activity-content-container tutorial-body-container">
           {{> @previewImage}}
-        <div class="body has-markdown force-small-markdown">
+        <div class="body has-markdown force-small-markdown no-scroll">
           {{@utils.applyMarkdown #(body)}}
         </div>
       {{> @scrollAreaOverlay}}

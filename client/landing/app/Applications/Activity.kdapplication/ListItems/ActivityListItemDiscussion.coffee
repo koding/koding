@@ -91,6 +91,8 @@ class DiscussionActivityItemView extends ActivityItemChild
           # cssClass : ""
           callback:=>
             @$("div.discussion-body-container").addClass "scrollable-y"
+            @$("div.discussion-body-container").removeClass "no-scroll"
+
             @scrollAreaOverlay.hide()
         "View the full Discussion":
           callback:=>
@@ -199,7 +201,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       {{> @settingsButton}}
       <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
       <div class="activity-content-container discussion-body-container">
-      <p class="body has-markdown force-small-markdown">{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
+      <p class="body no-scroll has-markdown force-small-markdown">{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
       {{> @scrollAreaOverlay}}
       </div>
       <footer class='clearfix'>
