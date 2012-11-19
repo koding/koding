@@ -90,8 +90,12 @@ class KDWindowController extends KDController
       @redirectMouseMoveEvent e if @dragView
     , yes
 
+    document.body.addEventListener 'click', (e)->
+      internalLink = e.target?.nodeName is 'a' and e.target.target is '_blank'
+      e.preventDefault()  if internalLink
+
     # unless window.location.hostname is 'localhost'
-    window.onbeforeunload = (event) =>
+    window.addEventListener 'beforeunload', (event) =>
       # fixme: fix this with appmanager
       if @getSingleton('mainView')?.mainTabView?.panes
         for pane in @getSingleton('mainView').mainTabView.panes

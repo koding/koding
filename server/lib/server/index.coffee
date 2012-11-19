@@ -56,7 +56,7 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
-app.get '/auth', (req, res)->
+app.get '/Auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
   channel = req.query?.channel
@@ -132,10 +132,10 @@ if uploads?.enableStreamingUploads
           return true;
         }
       </script>
-      <form method=\"post\" action="/upload" enctype=\"multipart/form-data\" onsubmit="return submitForm(this)">
-        <p>Title: <input type=\"text\" name=\"title\" /></p>
-        <p>Image: <input type=\"file\" name=\"image\" id=\"image\" /></p>
-        <p><input type=\"submit\" value=\"Upload\" /></p>
+      <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+        <p>Title: <input type="text" name="title" /></p>
+        <p>Image: <input type="file" name="image" id="image" /></p>
+        <p><input type="submit" value="Upload" /></p>
       </form>
       """
 
@@ -169,8 +169,18 @@ app.get "/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+getAlias =(url)->
+
+  console.log 'url', url
+  # url = url.replace /^\/, ''
+  # if url in ['auth']
+
+
 app.get '*', (req,res)->
-  res.header 'Location', '/#!'+req.url
+  {url} = req
+  alias = getAlias req.url
+  query = url.slice 
+  res.header 'Location', "/#!#{alias ? req.url}#{query}"
   res.send 302
 
 app.listen webPort
