@@ -141,6 +141,14 @@ class CodeSnippetView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
+    @scrollEnableButton = new KDButtonView
+      title : "Allow Scrolling"
+      cssClass : "dark"
+      callback :=>
+        @codeView.setClass "scrollable-y"
+        @scrollEnableButton.destroy()
+
+
   render:->
 
     super()
@@ -166,6 +174,12 @@ class CodeSnippetView extends KDCustomHTMLView
 
     @setTemplate @pistachio()
     @template.update()
+
+    unless @codeView.getHeight() < @codeView.$()[0].scrollHeight
+      @scrollEnableButton?.hide()
+    else
+      @scrollEnableButton?.show()
+
     @applySyntaxColoring()
 
     twOptions = (title) ->
@@ -179,7 +193,7 @@ class CodeSnippetView extends KDCustomHTMLView
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @scrollEnableButton}}{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """
