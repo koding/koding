@@ -90,7 +90,6 @@ clientFileMiddleware  = (options, code, callback)->
           kdjs
 
   if pistachios
-    console.log 'this will call'
     kdjs = compilePistachios kdjs
 
   js = "#{libraries}#{kdjs}"
