@@ -100,7 +100,6 @@ class LoginView extends KDScrollView
     @loginForm = new LoginInlineForm
       cssClass : "login-form"
       callback : (formData)=>
-        log 'hey-o'
         formData.clientId = $.cookie('clientId')
         @doLogin formData
 
@@ -275,7 +274,7 @@ class LoginView extends KDScrollView
           duration: 1000
         @loginForm.resetDecoration()
       else
-        $.cookie 'clientId', replacementToken if replacementToken
+        $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"

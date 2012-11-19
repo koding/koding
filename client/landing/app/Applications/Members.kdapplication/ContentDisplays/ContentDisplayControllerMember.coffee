@@ -114,7 +114,7 @@ class ContentDisplayControllerMember extends KDViewController
             selector.type = $in: [
               'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
-              'CDiscussionActivity'
+              'CDiscussionActivity',"CTutorialActivity"
             ]
             appManager.tell 'Activity', 'fetchTeasers', selector, options, (data)->
               callback null, data

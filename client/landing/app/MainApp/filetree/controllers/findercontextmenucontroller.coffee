@@ -177,7 +177,7 @@ class NFinderContextMenuController extends KDController
       if KD.checkFlag('app-publisher') or KD.checkFlag('super-admin')
         items['Application menu'].children["Download source files"].separator = yes
         items['Application menu'].children["Publish to App Catalog"] =
-          action                : "publish"
+          action : "publish"
 
     return items
 

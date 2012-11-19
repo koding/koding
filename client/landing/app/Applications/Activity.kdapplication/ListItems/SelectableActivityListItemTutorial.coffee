@@ -1,21 +1,36 @@
-class DiscussionActivityItemView extends ActivityItemChild
+class SelectableTutorialActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
     options = $.extend
-      cssClass    : "activity-item discussion"
+      cssClass    : "activity-item discussion selectable tutorial"
       tooltip     :
-        title     : "Discussion"
+        title     : "Tutorial"
         offset    : 3
         selector  : "span.type-icon"
     ,options
 
     super options,data
 
-    @actionLinks = new DiscussionActivityActionsView
+    @embedOptions = $.extend {}, options,
+      hasDropdown : no
+      delegate : @
+
+    @actionLinks = new TutorialActivityActionsView
       delegate : @commentBox.opinionList
       cssClass : "reply-header"
     , data
+
+    @previewImage = new KDCustomHTMLView
+      tagName : "img"
+      cssClass : "tutorial-preview-image"
+      attributes:
+        src: data.link?.link_embed.images[0].url or ""
+        title:"Show the Tutorial"
+        alt:"Show the tutorial"
+        "data-paths":"preview"
+
+    @previewImage.hide() unless data.link?
 
     # the ReplyIsAdded event is emitted by the JDiscussion model in bongo
     # with the object references to author/origin and so on in the reply
@@ -25,7 +40,7 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     data.on 'ReplyIsAdded', (reply)=>
 
-      if data.bongo_.constructorName is "JDiscussion"
+      if data.bongo_.constructorName is "JTutorial"
 
         # This would add the actual items to the views once posted
         #
@@ -59,7 +74,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         # unless reply.replier.id is KD.whoami().getId()
         @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
-    @opinionBox = new DiscussionActivityOpinionView
+    @opinionBox = new TutorialActivityOpinionView
       cssClass    : "activity-opinion-list comment-container"
     , data
 
@@ -82,30 +97,19 @@ class DiscussionActivityItemView extends ActivityItemChild
           item.destroy()
 
   viewAppended:()->
-    return if @getData().constructor is KD.remote.api.CDiscussionActivity
+    return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
     @setTemplate @pistachio()
     @template.update()
 
-    @highlightCode()
-
-  highlightCode:=>
-    @$("pre").addClass "prettyprint"
-    @$("div.discussion-body-container span.data pre").each (i,element)=>
-      hljs.highlightBlock element
-    # @$("code").each (i,element) =>
-    #   log language = $(element).attr("class")?.replace("lang-","")
-    #   # Interesting Idea: maybe add a badge linke in CodeSnips
-
-
   render:->
     super()
-    @highlightCode()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title],[data-paths~=body]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+
+    @parent.parent.$("div.tutorial.selected").removeClass "selected"
+    @setClass "selected"
+    @parent.parent.parent.parent.parent.parent.parent.parent.emit "setSelectedData", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -118,25 +122,24 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     return str
 
+      # {{> @opinionBox}}
   pistachio:->
     """
-  <div class="activity-discussion-container">
-    <span class="avatar">{{> @avatar}}</span>
+  <div class="activity-discussion-container activity-tutorial-container small">
     <div class='activity-item-right-col'>
       {{> @settingsButton}}
-      <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
-      <div class="activity-content-container discussion-body-container">
-      <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
+      <h3 class='hidden'></h3>
+      <p class="comment-title">{{@applyTextExpansions #(title)}}</p>
+      <div class="preview_image">
+      {{> @previewImage}}
       </div>
       <footer class='clearfix'>
         <div class='type-and-time'>
           <span class='type-icon'></span> by {{> @author}}
           <time>{{$.timeago #(meta.createdAt)}}</time>
-          {{> @tags}}
         </div>
         {{> @actionLinks}}
       </footer>
-      {{> @opinionBox}}
     </div>
   </div>
     """
