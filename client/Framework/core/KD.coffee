@@ -43,6 +43,7 @@ KD.error = error = noop
   classes         : {}
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
+  utils           : __utils
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -165,6 +166,11 @@ KD.error = error = noop
     KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
     KD.error = error = if console?.error then console.error.bind(console) else noop
     return "Logs are enabled now."
+
+  exportKDFramework:->
+    (window[item] = KD.classes[item] for item of KD.classes)
+    KD.exportKDFramework = -> "Already exported."
+    "KDFramework loaded successfully."
 
 KD.enableLogs() if not KD.config?.suppressLogs
 

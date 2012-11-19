@@ -20,27 +20,15 @@ class StatusActivityItemView extends ActivityItemChild
       @embedBox = new KDView
 
   attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body a").each (i,element)=>
-      href = $(element).attr("data-original-url") or ""
+    @$("p.status-body > span.data > a").each (i,element)=>
+      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes
+         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
 
-      unless $(element).text().replace("/…","") is href.replace(/\/$/,"") or\
-             "http://"+$(element).text().replace("/…","") is href.replace(/\/$/,"")
-        $(element).twipsy twOptions(href)
-
-      if $(element).attr("target") is "_blank"
-       $(element).prepend """<span class="icon link hidden"></span>"""
+      unless /^(#!)/.test href
+        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
       element
-
-    # @$("a").hover (event)=>
-    #   originalUrl = $(event.target).attr "data-original-url"
-    #   if @embedBox.embedLinks.linkList.items.length > 1
-    #     for link,i in @embedBox.embedLinks.linkList.items
-    #       if link.getData().url is originalUrl
-    #         @embedBox.embedLinks.linkList.items[i].changeEmbed()
-    # , noop
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
@@ -48,48 +36,37 @@ class StatusActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
-    # If there is embed data in the model, use that!
-    if @getData().link?.link_url? and not (@getData().link.link_url is "")
-      if not ("embed" in @getData()?.link?.link_embed_hidden_items)
-        @embedBox.show()
+    # load embed on next callstack
 
-        firstUrl = @getData().body.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-        if firstUrl?
-          @embedBox.embedLinks.setLinks firstUrl
+    @utils.wait =>
 
-        @embedBox.embedExistingData @getData().link.link_embed, {
-          maxWidth: 700
-          maxHeight: 300
-        }, =>
+      # If there is embed data in the model, use that!
+      if @getData().link?.link_url? and not (@getData().link.link_url is "")
 
-          @embedBox.setLinkFavicon @getData().link.link_url
+        if not ("embed" in @getData()?.link?.link_embed_hidden_items)
+          @embedBox.show()
+          @embedBox.$().fadeIn 200
+          firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
 
-        , @getData().link.link_cache
+          if firstUrl?
+            @embedBox.embedLinks.setLinks firstUrl
 
+          @embedBox.embedExistingData @getData().link.link_embed, {
+            maxWidth: 700
+            maxHeight: 300
+          }, =>
+            @embedBox.setActiveLink @getData().link.link_url
+            unless @embedBox.hasValidContent
+              @embedBox.hide()
+          , @getData().link.link_cache
 
-        @embedBox.embedLinks.hide()
-
+          @embedBox.embedLinks.hide()
+        else
+          @embedBox.hide()
       else
-        # no need to show stuff if it should not be shown.
         @embedBox.hide()
-        # # not even in the code
-        # @embedBox.destroy()
 
-    # This will involve heavy load on the embedly servers - every client
-    # will need to make a request.
-    else
-      # urls = @$("span.data > a")
-      # for url in urls
-      #   if $(url).attr("href").match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      #     firstUrl = $(url).attr "href"
-
-      # if firstUrl and @embedBox? then @embedBox.embedUrl firstUrl, {}
-      # else
-      @embedBox.hide()
-
-    @attachTooltipAndEmbedInteractivity()
-
-
+      @attachTooltipAndEmbedInteractivity()
 
   render:=>
     super
@@ -101,14 +78,16 @@ class StatusActivityItemView extends ActivityItemChild
         @embedBox = new EmbedBox @embedOptions, link
       @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
       @embedBox.setEmbedImageIndex link.link_embed_image_index
-      @embedBox.embedExistingData link.link_embed, {} ,=>
-        if "embed" in link.link_embed_hidden_items
-          @embedBox.hide()
-        else
-          @embedBox.show()
-      , link.link_cache
 
-      @embedBox.setLinkFavicon link.link_url
+      # render embedBox only when the embed changed, else there will be ugly
+      # re-rendering (particularly of the image)
+      unless @embedBox.getEmbedData() is link.link_embed
+        @embedBox.embedExistingData link.link_embed, {} ,=>
+          if "embed" in link.link_embed_hidden_items or not @embedBox.hasValidContent
+            @embedBox.hide()
+        , link.link_cache
+
+      @embedBox.setActiveLink link.link_url
 
     else
       @embedBox = new KDView
@@ -122,23 +101,30 @@ class StatusActivityItemView extends ActivityItemChild
       appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
-    link = @getData().link?.link_url
-    if link
 
-      links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-      if links?
-        hasManyLinks = links.length > 1
-      else
-        hasManyLinks = no
+    # This code will remove single links from the text if they are located
+    # at the start or end of the line. However, since we defer the embed
+    # load, there is no way to be sure if the embed is there or not when
+    # shortening the link -> so i disabled it --arvid
 
-      isJustOneLink = str.trim() is link
-      endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
-      startsWithLink = str.trim().indexOf(link) is 0
+    # link = @getData().link?.link_url
+    # if link
 
-      if (not hasManyLinks) and (not isJustOneLink) and (endsWithLink or startsWithLink)
-        str = str.replace link, ""
+    #   links = str.match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+    #   if links?
+    #     hasManyLinks = links.length > 1
+    #   else
+    #     hasManyLinks = no
+
+    #   isJustOneLink = str.trim() is link
+    #   endsWithLink = str.trim().indexOf(link, str.trim().length - link.length) isnt -1
+    #   startsWithLink = str.trim().indexOf(link) is 0
+
+    #   if @embedBox.hasValidContent and not hasManyLinks and not isJustOneLink and (endsWithLink or startsWithLink)
+    #     str = str.replace link, ""
 
     str = @utils.applyTextExpansions str, yes
+
   pistachio:->
     """
     {{> @settingsButton}}

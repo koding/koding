@@ -1,8 +1,30 @@
 {argv} = require 'optimist'
 
-{webserver, mongo, mq, projectRoot, kites, basicAuth} = require argv.c
-
+KONFIG = require argv.c.trim()
+{webserver, mongo, mq, projectRoot, kites, basicAuth} = KONFIG
 webPort = argv.p ? webserver.port
+
+
+processMonitor = (require 'processes-monitor').start
+  name : "webServer on port #{webPort}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : ->
+      console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+      process.exit()
+
+# if webPort is 3005
+#   foo = []
+#   do bar = ->
+#    process.nextTick ->
+#      foo.push Math.random()
+#      bar()
+
+#   setInterval ->
+#    a=foo.length
+#   , 1000
+
 
 {extend} = require 'underscore'
 express = require 'express'
@@ -12,12 +34,15 @@ gzippo = require 'gzippo'
 fs = require 'fs'
 hat = require 'hat'
 
-app = express.createServer()
+app = express()
 
-app.use express.bodyParser()
-app.use express.cookieParser()
-app.use express.session {"secret":"foo"}
-app.use gzippo.staticGzip "#{projectRoot}/website/"
+app.configure ->
+  app.use express.cookieParser()
+  app.use express.session {"secret":"foo"}
+  app.use express.bodyParser()
+  app.use express.compress()
+  app.use express.static "#{projectRoot}/website/"
+#app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
   res.removeHeader("X-Powered-By")
   next()
@@ -38,6 +63,7 @@ koding = new Bongo {
   root: __dirname
   models: [
     '../workers/social/lib/social/models/session.coffee'
+    '../workers/social/lib/social/models/account.coffee'
     '../workers/social/lib/social/models/guest.coffee'
   ]
   mq: new Broker mqOptions
@@ -61,9 +87,10 @@ app.get '/auth', (req, res)->
   {JSession} = koding.models
   channel = req.query?.channel
   return res.send 'user error', 400 unless channel?
-  clientId = req.cookies.clientid
+  clientId = req.cookies.clientId
   JSession.fetchSession clientId, (err, session)->
-    res.cookie 'clientId', session.clientId if session? and clientId isnt session?.clientId
+    if session? and clientId isnt session?.clientId
+      res.cookie 'clientId', session.clientId
     if err
       authenticationFailed(res, err)
     else
@@ -71,7 +98,7 @@ app.get '/auth', (req, res)->
       if /^bongo\./.test type
         privName = 'secret-bongo-'+hat()+'.private'
         koding.mq.funnel privName, koding.queueName
-        res.send privName 
+        res.send privName
       else unless session?
         authenticationFailed(res)
       else if type is 'kite'
@@ -82,7 +109,7 @@ app.get '/auth', (req, res)->
         )
         privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
         privName += '.private'
-        
+
         bindKiteQueue = (binding, callback) ->
           kiteBroker.bindQueue(
             privName, privName, binding,
@@ -114,15 +141,29 @@ app.get "/", (req, res)->
     fs.readFile "#{projectRoot}/website/index.html", (err, data) ->
       throw err if err
       res.send data
-app.get "/status/:data",(req,res)->
+
+app.get "/status/:event/:kiteName",(req,res)->
   # req.params.data
+  console.log req.params
+  
+  obj =
+    processName : req.params.kiteName
+    # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
+  
+  koding.mq.emit 'public-status', req.params.event, obj
+  res.send "got it."
 
-  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
-  # exchange.publish 'exit','sharedhosting is dead'
-  # exchange.close()
-  koding.mq.emit 'public-status','exit',req.params.data
-  res.send "alright."
 
+app.get "/api/user/:username/flags/:flag", (req, res)->
+  {username, flag} = req.params
+  {JAccount}       = koding.models
+
+  JAccount.one "profile.nickname" : username, (err, account)->
+    if err or not account
+      state = false
+    else
+      state = account.checkFlag('super-admin') or account.checkFlag(flag)
+    res.end "#{state}"
 
 app.get '*', (req,res)->
   res.header 'Location', '/#!'+req.url

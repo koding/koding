@@ -2,7 +2,7 @@ mysql  = require "mysql"
 log4js = require 'log4js'
 fs     = require 'fs'
 path   = require 'path'
-{exec} = require 'child_process'
+# {exec} = require 'child_process'
 config = require("./config").mysql
 
 logFile = '/var/log/node/MySQLApi.log'
@@ -130,6 +130,9 @@ class MySQL
 
     {username,dbUser,dbName} = options
 
+    dbUser ?= uniqueId()
+    dbName ?= dbUser
+
     dbUser = escape dbUser
     dbName = escape dbName
 
@@ -138,12 +141,15 @@ class MySQL
     #
     dbName = appendKodingUsername username,dbName
     dbUser = appendKodingUsername username,dbUser
-    #
+
     # we only create aleksey_myDbName kind of databases (dot is not safe to use)
     # so we can count how many databases this user already has.
     # if user is granted permission to another database
     # we know how many he owns, how many he can access separately.
     # -------------------------------
+
+    options.dbName = dbName
+    options.dbUser = dbUser
 
     sendResult = (err,result)=>
       result.dbType = "mysql"

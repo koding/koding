@@ -36,8 +36,8 @@ else {
   $dbName = "beta_koding";
   $dbHost = "localhost";
   $dbPort = "27017";
-  $dbUser = "beta_koding_user";
-  $dbPass = "lkalkslakslaksla1230000";
+  $dbUser = "PROD-koding";
+  $dbPass = "34W4BXx595ib3J72k5Mh";
 }
 
 $headers = getallheaders();

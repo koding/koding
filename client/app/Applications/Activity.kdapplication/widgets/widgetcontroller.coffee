@@ -82,10 +82,22 @@ class ActivityUpdateWidgetController extends KDViewController
             # updateWidget.switchToSmallView()
             mainView.resetWidgets()
 
+    # mainView.addWidgetPane
+    #   paneName    : "tutorial"
+    #   mainContent : tutorialWidget = new ActivityTutorialWidget
+    #     callback  : @tutorialWidgetSubmit
+
     mainView.addWidgetPane
       paneName    : "tutorial"
       mainContent : tutorialWidget = new ActivityTutorialWidget
-        callback  : @tutorialWidgetSubmit
+        delegate  : mainView
+        callback  : (data)=>
+          if submissionStopped
+            return notifySubmissionStopped()
+          else
+            @tutorialWidgetSubmit data, stopSubmission, ->
+
+            mainView.resetWidgets()
 
     mainView.addWidgetPane
       paneName    : "discussion"
@@ -126,6 +138,9 @@ class ActivityUpdateWidgetController extends KDViewController
         when "JCodeSnip"
           mainView.showPane "codesnip"
           codeWidget.switchToEditView activity
+        when "JTutorial"
+          mainView.showPane "tutorial"
+          tutorialWidget.switchToEditView activity
         when "JDiscussion"
           mainView.showPane "discussion"
           discussionWidget.switchToEditView activity
@@ -250,10 +265,73 @@ class ActivityUpdateWidgetController extends KDViewController
   #   KD.remote.api.JActivity.create {type: 'link', activity: data}, (error) ->
   #     warn 'couldnt save link', error if error
 
-  tutorialWidgetSubmit:(data)->
-    log 'sharing tutorial', data
-    KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
-      warn 'couldnt save tutorial', error if error
+  # tutorialWidgetSubmit:(data)->
+  #   log 'sharing tutorial', data
+  #   KD.remote.api.JActivity.create {type: 'tutorial', activity: data}, (error) ->
+  #     warn 'couldnt save tutorial', error if error
+
+  tutorialWidgetSubmit:(data, callback)->
+    if data.activity
+      {activity} = data
+      delete data.activity
+      activity.modify data, (err, tutorial)=>
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById activity._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
+        callback? err, tutorial
+        unless err
+          new KDNotificationView type : "mini", title : "Updated the tutorial successfully"
+        else
+          new KDNotificationView type : "mini", title : err.message
+    else
+      if submissionStopped
+        return notifySubmissionStopped()
+      KD.remote.api.JTutorial.create data, (err, tutorial) =>
+
+        # if data.appendToList?
+        #   KD.remote.api.JTutorialList.fetchForTutorialId data.appendToList._id,(existingList)=>
+
+        #       unless existingList
+        #         KD.remote.api.JTutorialList.create
+        #           title : "New List"
+        #           body  : ""
+        #         , (err, list)=>
+        #           if err then callback err
+        #           else
+        #             list.addItemById data.appendToList._id, (err)=>
+        #               if err then log err
+        #               list.addItemById tutorial._id, (err)=>
+        #                 if err then log err
+        #                 callback? err, tutorial, list
+        #       else
+        #         existingList.addItemById tutorial._id, (err,tutlist)=>
+        #           if err then log err
+        #           else callback? err, tutorial, tutlist
+
+        # else
+
+        callback? err, tutorial
+        stopSubmission()
+
+        if err
+          new KDNotificationView type : "mini", title : "There was an error, try again later!"
+        else
+          @propagateEvent (KDEventType:"OwnActivityHasArrived"), tutorial
 
   discussionWidgetSubmit:(data, callback)->
     if data.activity

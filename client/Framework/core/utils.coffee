@@ -88,6 +88,12 @@ __utils =
   stripTags:(value)->
     value.replace /<(?:.|\n)*?>/gm, ''
 
+  proxifyUrl:(url="")->
+    if url is ""
+      "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    else
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+
   applyMarkdown: (text)->
     # problems with markdown so far:
     # - links are broken due to textexpansions (images too i guess)
@@ -97,21 +103,11 @@ __utils =
       gfm: true
       pedantic: false
       sanitize: true
-      highlight:(text)->
-        # log "highlight callback called"
-        # if hljs?
-        #   requirejs (['js/highlightjs/highlight.js']), ->
-        #     requirejs (["highlightjs/languages/javascript"]), ->
-        #       try
-        #         hljs.compileModes()
-        #         _text = hljs.highlightAuto text
-        #         log "hl",_text,text
-        #         return _text.value
-        #       catch err
-        #         log "Error applying highlightjs syntax", err
-        # else
-        #   log "hljs not found"
-          return text
+      highlight:(text,lang)->
+        if hljs.LANGUAGES[lang]?
+          hljs.highlight(lang,text).value
+        else
+          text
 
     text = Encoder.htmlDecode text
 
@@ -161,9 +157,6 @@ __utils =
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
 
-
-
-
   expandTags: (text) ->
     return null unless text
     text.replace /[#]+[A-Za-z0-9-_]+/g, (t) ->
@@ -172,31 +165,26 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([A-Za-z]+:\/\/)?([A-Za-z0-9-_]\.)?[A-Za-z0-9-_]+\.[A-Za-z][A-Za-z0-9-_:%&#\+\?\/.=]+/g, (url) ->
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?][\S\/]*)*\b\/?/g, (url) ->
       originalUrl = url
+
+      # remove protocol and trailing path
       visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
 
+      checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
+
       if not /[A-Za-z]+:\/\//.test url
+
         # url has no protocol
         url = '//'+url
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
-      # unless url in ["//more...","//less..."]
-      #   "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}/…</a>"
-      # else
-      #   originalUrl
 
-      # new KDView
-      #   partial :   "<a href='#{url}' target='_blank'>#{visibleUrl}</a>"
-      #   tooltip :
-      #     title : url
+      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
       suffix    : ' '
-
-
 
     text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"
@@ -315,6 +303,13 @@ __utils =
     parentPath = path.split('/')
     parentPath.pop()
     return parentPath.join('/')
+
+  removeBrokenSymlinksUnder:(path)->
+    kiteController = KD.getSingleton('kiteController')
+    escapeFilePath = FSHelper.escapeFilePath
+    kiteController.run "stat #{escapeFilePath path}", (err)->
+      if not err
+        kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
 
   wait: (duration, fn) ->
     if "function" is typeof duration

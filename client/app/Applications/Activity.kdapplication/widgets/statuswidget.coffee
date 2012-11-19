@@ -18,7 +18,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     # saves the URL of the previous request to avoid
     # multiple embed calls for one URL
-    @previousURL = []
+    @previousURL = ""
 
     # prevents multiple calls to embed.ly functionality
     # at the same time
@@ -83,7 +83,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
       tooltip  :
-        title  : "This a public wall, here you can share anything with the Koding community."
+        title  : "This is a public wall, here you can share anything with the Koding community."
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -108,35 +108,74 @@ class ActivityStatusUpdateWidget extends KDFormView
         blacklist = (data.getId() for data in @tagController.getSelectedItemData() when 'function' is typeof data.getId)
         appManager.tell "Topics", "fetchTopics", {inputValue, blacklist}, callback
 
+
+    @inputLinkInfoBox = new InfoBox
+      cssClass : "protocol-info-box"
+      delegate : @
+
+    @inputLinkInfoBox.hide()
+
     @tagAutoComplete = @tagController.getView()
 
+    # checkbox autocheck
+    @appStorage = new AppStorage 'Activity', '1.0'
+    @updateCheckboxFromStorage()
+
+  updateCheckboxFromStorage:->
+    @appStorage.fetchValue 'UrlSanitizerCheckboxIsChecked',(checked)=>
+      @inputLinkInfoBox.setSwitchValue checked
+
+  # will automatically add // to any non-protocol urls
+  sanitizeUrls:(text)->
+    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g, (url)=>
+      test = /^([a-zA-Z]+\:\/\/)/.test url
+      if test is no
+
+        # here is a warning/popup that explains how and why
+        # we change the links in the edit
+
+        unless @inputLinkInfoBox.inputLinkInfoBoxPermaHide is on then @inputLinkInfoBox.show()
+
+        if @inputLinkInfoBox.getSwitchValue() is yes
+          "http://"+url
+        else
+          url
+
+      else
+
+        # if a protocol of any sort is found, no change
+        url
+
   requestEmbed:=>
+
+    @largeInput.setValue @sanitizeUrls @largeInput.getValue()
+
     unless @requestEmbedLock is on
 
       @requestEmbedLock = on
 
       setTimeout =>
-        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-
+        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g)
         if firstUrl?
 
           if @initialRequest
-            # @embedBox.show()
-            # @embedBox.embedLoader.show()
             @initialRequest = no
 
           @embedBox.embedLinks.setLinks firstUrl
+          @embedBox.show()
 
-          unless @previousURL is firstUrl
+          unless (@previousURL in firstUrl)
             @embedBox.embedUrl firstUrl?[0], {
               maxWidth: 525
             }, (embedData)=>
 
               # add favicon to link list if possible
-              @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
+              # @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
 
               @requestEmbedLock = off
-              @previousURL = firstUrl
+              @previousURL = firstUrl?[0]
+          else
+            @requestEmbedLock = off
         else
           @requestEmbedLock = off
       ,50
@@ -222,6 +261,9 @@ class ActivityStatusUpdateWidget extends KDFormView
     @embedBox.resetEmbedAndHide()
     @previousURL = ""
     @initialRequest = yes
+    @inputLinkInfoBoxPermaHide = off
+    @inputLinkInfoBox.hide()
+    @updateCheckboxFromStorage()
 
     super
 
@@ -234,10 +276,12 @@ class ActivityStatusUpdateWidget extends KDFormView
       @reset()
       @switchToSmallView()
 
+
+
   pistachio:->
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}</div>
+    <div class="large-input">{{> @largeInput}}{{> @inputLinkInfoBox}}</div>
     <div class="formline">
     {{> @embedBox}}
     </div>
@@ -258,3 +302,61 @@ class ActivityStatusUpdateWidget extends KDFormView
       </div>
     </div>
     """
+
+class InfoBox extends KDView
+  constructor:->
+    super
+    # will hide the link helper box once it's been closed once
+    @inputLinkInfoBoxPermaHide = off
+
+    stopSanitizingToolTip = {
+      title:"This feature automatically adds protocols to URLs detected in your message."
+      position: "below"
+      gravity : "s"
+    }
+
+    @stopSanitizingLabel = new KDLabelView
+      title : "URL auto-completion"
+      tooltip : stopSanitizingToolTip
+
+
+    @stopSanitizingOnOffSwitch = new KDOnOffSwitch
+      label : @stopSanitizingLabel
+      name :"stop-sanitizing"
+      cssClass : "stop-sanitizing"
+      tooltip : stopSanitizingToolTip
+
+      callback:(state)=>
+        @getDelegate().appStorage.setValue 'UrlSanitizerCheckboxIsChecked', state, =>
+
+    @inputLinkInfoBoxCloseButton = new KDButtonView
+      name: "hide-info-box"
+      cssClass      : "hide-info-box"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "hide"
+      title     : "Close"
+      callback  : =>
+        @hide()
+        @inputLinkInfoBoxPermaHide = on
+
+  getSwitchValue:->
+    @stopSanitizingOnOffSwitch.getValue()
+
+  setSwitchValue:(value)->
+    @stopSanitizingOnOffSwitch.setValue value
+
+  viewAppended:->
+    super
+    @setTemplate @pistachio()
+    @template.update()
+  pistachio:->"""
+      <p>For links, please provide a protocol such as
+        <abbr title="Hypertext Transfer Protocol">http://</abbr>
+      </p>
+      <div class="sanitizer-control">
+        {{> @stopSanitizingLabel}}
+        {{> @stopSanitizingOnOffSwitch}}
+      </div>
+      {{> @inputLinkInfoBoxCloseButton}}
+  """

@@ -29,16 +29,16 @@ class EmbedBoxLinksViewItem extends KDListItemView
       callback :=>
         @changeEmbed()
 
-    @favicon = data.favicon_url or ""
+    # @favicon = (data.favicon_url) or ""
 
-    @faviconImage = new KDCustomHTMLView
-      tagName     : "img"
-      cssClass    : "embed-favicon hidden"
-      attributes  :
-        src       : @favicon
-        alt       : data.title
+    # @faviconImage = new KDCustomHTMLView
+    #   tagName     : "img"
+    #   cssClass    : "embed-favicon hidden"
+    #   attributes  :
+    #     src       : @utils.proxifyUrl @favicon
+    #     alt       : data.title
 
-    @faviconImage.show() if @favicon isnt ""
+    # @faviconImage.show() if @favicon isnt ""
 
   changeEmbed:=>
     @makeActive()
@@ -46,7 +46,7 @@ class EmbedBoxLinksViewItem extends KDListItemView
     # KDListView -> EmbedBoxLinksView -> EmbedBox .embedUrl
     @getDelegate().getDelegate().getDelegate().embedLoader.hide()
     @getDelegate().getDelegate().getDelegate().embedUrl @linkUrl, {}, (embedData)=>
-      if embedData.favicon_url? then @setFavicon embedData.favicon_url
+      # if embedData.favicon_url? then @setFavicon embedData.favicon_url
 
   makeActive:->
     for item in @getDelegate().items
@@ -54,11 +54,12 @@ class EmbedBoxLinksViewItem extends KDListItemView
 
     @setClass "active"
 
-  setFavicon:(fav="")->
-    @favicon = fav
+  # setFavicon:(fav)->
+  #   if fav?
+  #     @favicon = fav
 
-    @faviconImage.setDomAttributes src:@favicon
-    @faviconImage.show()
+  #     @faviconImage.setDomAttributes src:@utils.proxifyUrl @favicon
+  #     @faviconImage.show()
 
   viewAppended:->
     super()
@@ -68,7 +69,6 @@ class EmbedBoxLinksViewItem extends KDListItemView
   pistachio:->
     """
     <div class="embed-link-wrapper">
-      {{> @faviconImage}}
       {{> @linkButton}}
     </div>
     """
@@ -182,16 +182,35 @@ class EmbedBoxLinkView extends KDView
     @template.update()
     super()
 
+    @loadImages()
+
+
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
 
+    @loadImages()
+
+  loadImages:->
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
+
+
   pistachio:->
     """
+    <div class="embed embed-link-view custom-link">
+
     {{> @embedImageSwitch}}
     {{> @embedImage}}
     {{> @embedText}}
+
+    </div>
     """
 
 
@@ -236,10 +255,10 @@ class EmbedBoxLinkViewImageSwitch extends KDView
       if @getEmbedImageIndex() < @getData().link_embed?.images.length-1
         imgSrc = @getData().link_embed?.images?[@getEmbedImageIndex()]?.url
         if imgSrc
-          @getDelegate().embedImage.setSrc imgSrc
+          @getDelegate().embedImage.setSrc @utils.proxifyUrl imgSrc
         else
           # imgSrc is undefined - this would be the place for a default
-          fallBackImgSrc="http://koding.com/images/service_icons/Koding.png"
+          fallBackImgSrc="https://koding.com/images/service_icons/Koding.png"
           @getDelegate().embedImage.setSrc fallBackImgSrc
 
         # Either way, set the embedImageIndex to the appropriate nr
@@ -284,16 +303,35 @@ class EmbedBoxImageView extends KDView
     @options = data.link_options
     @viewAppended()
 
+  render:->
+    super()
+    @loadImages()
+
   viewAppended:->
     super()
     @setTemplate @pistachio()
     @template.update()
 
+    @loadImages()
+
+  loadImages:->
+    do =>
+      @utils.wait =>
+        @$("img").each (i,element)->
+          if $(element).attr "data-src"
+            $(element).attr "src" : $(element).attr("data-src")
+            $(element).removeAttr "data-src"
+          element
+
+
   pistachio:->
     """
+    <div class="embed embed-image-view custom-image">
     <a href="#{@getData().link_url or "#"}" target="_blank">
-    <img src="#{@getData().link_embed?.images?[0]?.url or "http://koding.com/images/service_icons/Koding.png"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
+    <img src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="#{(@utils.proxifyUrl @getData().link_embed?.images?[0]?.url) or "https://koding.com/images/small-loader.gif"}" style="max-width:#{if @options.maxWidth? then @options.maxWidth+"px" else "560px"};max-height:#{if @options.maxHeight? then @options.maxHeight+"px" else "300px"}" title="#{@getData().link_embed?.title or ""}" />
     </a>
+    </div>
+
     """
 
 
@@ -312,7 +350,9 @@ class EmbedBoxObjectView extends KDView
 
   pistachio:->
     """
+    <div class="embed embed-object-view custom-object">
     #{Encoder.htmlDecode @getData().link_embed?.object?.html}
+    </div>
     """
 
 
@@ -324,9 +364,9 @@ class EmbedBoxLinkViewImage extends KDView
 
   # this includes a fallback for when the embedimageindex is out of bounds
   # it will however still request a nonsensical image src
-    @imageLink  = @getData().link_embed?.images?[@getData().link_embed_image_index]?.url or\
-                  @getData().link_embed?.images?[0]?.url or\
-                  "http://koding.com/images/service_icons/Koding.png" # hardcode a default
+    @imageLink  = @utils.proxifyUrl(@getData().link_embed?.images?[@getData().link_embed_image_index]?.url) or\
+                  @utils.proxifyUrl(@getData().link_embed?.images?[0]?.url) or\
+                  "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" # hardcode a default
 
     @imageAltText = (@getData().link_embed?.title + \
                     (if @getData().link_embed?.author_name then " by "+ \
@@ -337,13 +377,14 @@ class EmbedBoxLinkViewImage extends KDView
       tagName    : "img"
       cssClass   : "thumb"
       attributes :
-        src      : @imageLink
+        "data-src" : @imageLink
+        src : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
         alt      : @imageAltText
         title    : @imageAltText
 
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
-  setSrc:(url="http://koding.com/images/service_icons/Koding.png")->
+  setSrc:(url="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==")->
     @imageView.setDomAttributes src : url
 
   viewAppended:->

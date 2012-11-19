@@ -124,7 +124,7 @@ class Ace extends KDView
     @appStorage.getValue('showInvisibles') or @editor.getShowInvisibles()
 
   getFontSize:->
-    @appStorage.getValue('fontSize') or parseInt(@$("#editor#{@getId()}").css("font-size"), 12)
+    @appStorage.getValue('fontSize') or parseInt @$("#editor#{@getId()}").css("font-size") ? 12, 10
 
   getTabSize:->
     @appStorage.getValue('tabSize') or @editor.getSession().getTabSize()
@@ -215,12 +215,8 @@ class Ace extends KDView
       @appStorage.setValue 'fontSize', value, =>
 
   setTabSize:(value)->
-
-    # FIXME: this causes ace to show weird 21s, 41s instead of tabs
-    # temporarily disabled
-
-    # @editor.getSession().setTabSize value
-    # @appStorage.setValue 'tabSize', value, =>
+    @editor.getSession().setTabSize +value
+    @appStorage.setValue 'tabSize', value, =>
 
   setUseWordWrap:(value)->
 
