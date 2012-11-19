@@ -57,6 +57,7 @@ app.get "/Logout", (req, res)->
   res.redirect 302, '/'
 
 app.get '/Auth', (req, res)->
+  console.log 'hehehehadadehehe'
   crypto = require 'crypto'
   {JSession} = koding.models
   channel = req.query?.channel
@@ -81,7 +82,7 @@ app.get '/Auth', (req, res)->
         cipher.update(
           ''+pubName+req.cookies.clientid+Date.now()+Math.random()
         )
-        privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
+        privName = ['secret', 'kite', "#{cipher.final('hex')}.#{username}"].join '-'
         privName += '.private'
 
         bindKiteQueue = (binding, callback) ->
@@ -117,6 +118,7 @@ if uploads?.enableStreamingUploads
     )
 
   app.get '/upload/test', (req, res)->
+    console.log 'jsflkjsfljsdflkj'
     res.send \
       """
       <script>
@@ -170,18 +172,21 @@ app.get "/api/user/:username/flags/:flag", (req, res)->
     res.end "#{state}"
 
 getAlias =(url)->
-
-  console.log 'url', url
-  # url = url.replace /^\/, ''
-  # if url in ['auth']
-
+  rooted = '/' is url.charAt 0
+  console.log {url}
+  url = url.slice 0  if rooted
+  console.log {url}
+  alias = "#{url.charAt(0).toUpperCase()}#{url.slice 0}"  if url in ['auth']
+  if rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
   {url} = req
   queryIndex = url.indexOf '?'
-  query = url.slice queryIndex
-  urlOnly = url.slice 0, queryIndex
+  [urlOnly, query] =\
+    if ~queryIndex then [url.slice(queryIndex), url.slice(0, queryIndex)]
+    else [url, '']
   alias = getAlias urlOnly
+  console.log 'alias', alias
   res.header 'Location', "/#!#{alias ? urlOnly}#{query}"
   res.send 302
 
