@@ -240,6 +240,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @switchToLargeView()
 
   submit:=>
+
+
     @addCustomData "link_cache", @embedBox.getEmbedCache() or []
     @addCustomData "link_url", @embedBox.getEmbedURL() or ""
     @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
@@ -247,7 +249,11 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
 
     @once 'FormValidationPassed', => @reset()
+
     super
+
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:->
     @tagController.reset()
