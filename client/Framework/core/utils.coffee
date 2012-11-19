@@ -181,7 +181,7 @@ __utils =
 
     urlGrabber = ///
     (?!\s)                                                      # leading spaces
-    ([a-zA-Z]+://|)                                             # protocol
+    ([a-zA-Z]+://)                                             # protocol
     (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
     ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
     ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d])      # domain
