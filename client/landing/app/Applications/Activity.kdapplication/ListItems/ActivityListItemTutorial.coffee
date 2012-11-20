@@ -174,11 +174,11 @@ class TutorialActivityItemView extends ActivityItemChild
         <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
         <p class="hidden comment-title"></p>
         <div class="activity-content-container tutorial-body-container">
-            {{> @previewImage}}
+          {{> @previewImage}}
           <div class="body has-markdown force-small-markdown no-scroll">
             {{@utils.applyMarkdown #(body)}}
           </div>
-        {{> @scrollAreaOverlay}}
+          {{> @scrollAreaOverlay}}
         </div>
         <footer class='clearfix'>
           <div class='type-and-time'>

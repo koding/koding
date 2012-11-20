@@ -157,8 +157,10 @@ class DiscussionActivityItemView extends ActivityItemChild
         {{> @settingsButton}}
         <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
         <div class="activity-content-container discussion-body-container">
-        <p class="body no-scroll has-markdown force-small-markdown">{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
-        {{> @scrollAreaOverlay}}
+          <p class="body no-scroll has-markdown force-small-markdown">
+            {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
+          </p>
+          {{> @scrollAreaOverlay}}
         </div>
         <footer class='clearfix'>
           <div class='type-and-time'>
