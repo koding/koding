@@ -118,7 +118,6 @@ if uploads?.enableStreamingUploads
     )
 
   app.get '/upload/test', (req, res)->
-    console.log 'jsflkjsfljsdflkj'
     res.send \
       """
       <script>
