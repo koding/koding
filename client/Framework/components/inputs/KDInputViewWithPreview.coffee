@@ -185,7 +185,7 @@ class KDInputViewWithPreview extends KDInputView
 
     @$().after """
       <div class='input_preview preview-#{@options.preview.language}'>
-        <div class="preview_content"></div>
+        <div class="preview_content"><span class="data"></span></div>
       </div>"""
 
   viewAppended:->
@@ -215,6 +215,6 @@ class KDInputViewWithPreview extends KDInputView
   generatePreview:=>
     if @showPreview
       if @options.preview.language is "markdown"
-        @$("div.preview_content").html @utils.applyMarkdown @getValue()
-        @$("div.preview_content pre").addClass("prettyprint").each (i,element)=>
+        @$("div.preview_content span.data").html @utils.applyMarkdown @getValue()
+        @$("div.preview_content span.data pre").each (i,element)=>
           hljs.highlightBlock element

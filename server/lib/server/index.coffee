@@ -1,14 +1,44 @@
 {argv} = require 'optimist'
 
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = require argv.c
+console.log argv
+
+KONFIG = require argv.c?.trim()
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
+
+# processMonitor = (require 'processes-monitor').start
+#   name : "webServer on port #{webPort}"
+#   interval : 1000
+#   limits  :
+#     memory   : 300
+#     callback : ->
+#       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+#       process.exit()
+processMonitor = (require 'processes-monitor').start
+  name : "webServer on port #{webPort}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : ->
+      console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
+      #process.exit()
+
+# if webPort is 3002
+#   foo = []
+#   do bar = ->
+#    process.nextTick ->
+#      foo.push Math.random()
+#      bar()
+
+#   setInterval ->
+#    a=foo.length
+#   , 1000
+
 
 {extend} = require 'underscore'
 express = require 'express'
 Broker = require 'broker'
-# Bongo = require 'bongo'
-gzippo = require 'gzippo'
 fs = require 'fs'
 hat = require 'hat'
 nodePath = require 'path'
@@ -19,6 +49,7 @@ app = express()
 #delete express.bodyParser.parse['multipart/form-data']
 
 app.configure ->
+  app.set 'case sensitive routing', on
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
@@ -46,8 +77,7 @@ kiteBroker =\
   else
     koding.mq
 
-koding.mq.connection.on 'ready', ->
-  console.log 'message broker is ready'
+koding.mq.connection.on 'ready', -> console.log 'message broker is ready'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -56,7 +86,7 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
-app.get '/auth', (req, res)->
+app.get '/Auth', (req, res)->
   crypto = require 'crypto'
   {JSession} = koding.models
   channel = req.query?.channel
@@ -81,7 +111,7 @@ app.get '/auth', (req, res)->
         cipher.update(
           ''+pubName+req.cookies.clientid+Date.now()+Math.random()
         )
-        privName = ['secret', 'kite', cipher.final('hex')+".#{username}"].join '-'
+        privName = ['secret', 'kite', "#{cipher.final('hex')}.#{username}"].join '-'
         privName += '.private'
 
         bindKiteQueue = (binding, callback) ->
@@ -110,13 +140,13 @@ if uploads?.enableStreamingUploads
   
   s3 = require('./s3') uploads.s3
 
-  app.post '/upload', s3..., (req, res)->
+  app.post '/Upload', s3..., (req, res)->
     res.send(for own key, file of req.files
       filename  : file.filename
       resource  : nodePath.join uploads.distribution, file.path
     )
 
-  app.get '/upload/test', (req, res)->
+  app.get '/Upload/test', (req, res)->
     res.send \
       """
       <script>
@@ -132,10 +162,10 @@ if uploads?.enableStreamingUploads
           return true;
         }
       </script>
-      <form method=\"post\" action="/upload" enctype=\"multipart/form-data\" onsubmit="return submitForm(this)">
-        <p>Title: <input type=\"text\" name=\"title\" /></p>
-        <p>Image: <input type=\"file\" name=\"image\" id=\"image\" /></p>
-        <p><input type=\"submit\" value=\"Upload\" /></p>
+      <form method="post" action="/upload" enctype="multipart/form-data" onsubmit="return submitForm(this)">
+        <p>Title: <input type="text" name="title" /></p>
+        <p>Image: <input type="file" name="image" id="image" /></p>
+        <p><input type="submit" value="Upload" /></p>
       </form>
       """
 
@@ -149,16 +179,18 @@ app.get "/", (req, res)->
       throw err if err
       res.send data
 
-app.get "/status/:data",(req,res)->
+app.get "/-/status/:event/:kiteName",(req,res)->
   # req.params.data
+  
+  obj =
+    processName : req.params.kiteName
+    # processId   : KONFIG.crypto.decrypt req.params.encryptedPid
+  
+  koding.mq.emit 'public-status', req.params.event, obj
+  res.send "got it."
 
-  # connection.exchange 'public-status',{autoDelete:no},(exchange)->
-  # exchange.publish 'exit','sharedhosting is dead'
-  # exchange.close()
-  koding.mq.emit 'public-status','exit',req.params.data
-  res.send "alright."
 
-app.get "/api/user/:username/flags/:flag", (req, res)->
+app.get "/-/api/user/:username/flags/:flag", (req, res)->
   {username, flag} = req.params
   {JAccount}       = koding.models
 
@@ -169,8 +201,24 @@ app.get "/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
+getAlias =do->
+  caseSensitiveAliases = ['auth']
+  (url)->
+    rooted = '/' is url.charAt 0
+    url = url.slice 1  if rooted
+    if url in caseSensitiveAliases
+      alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
+    if alias and rooted then "/#{alias}" else alias
+
 app.get '*', (req,res)->
-  res.header 'Location', '/#!'+req.url
+  {url} = req
+  queryIndex = url.indexOf '?'
+  [urlOnly, query] =\
+    if ~queryIndex then [url.slice(0, queryIndex), url.slice(queryIndex)]
+    else [url, '']
+  alias = getAlias urlOnly
+  redirectTo = if alias then "#{alias}#{query}" else "/#!#{urlOnly}#{query}"
+  res.header 'Location', redirectTo
   res.send 302
 
 app.listen webPort

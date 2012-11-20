@@ -1,7 +1,7 @@
 {
   "name": "koding-webserver",
   "version": "0.0.0",
-  "description": "webserver for the koding.com",
+  "description": "webserver for koding.com",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

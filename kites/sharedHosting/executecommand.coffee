@@ -92,7 +92,7 @@ createRegExp = do ->
       (char)-> char.replace special, (_, foundChar)-> '\\'+foundChar
     ).join('|')+')', flags
 
-checkUid = (options, callback)->
+checkUid = (options, createSystemUser, callback)->
   #
   # This methid will check user's uid
   #
@@ -112,10 +112,10 @@ checkUid = (options, callback)->
         if nrOfRecursion is 1
           callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
         else
-          @createSystemUser {username,fullName:username,password:hat()},(err,res)=>
+          createSystemUser? {username,fullName:username,password:hat()},(err,res)=>
             unless err
               log.info "User is just created, run the command again, it will work this time."
-              @checkUid {username,nrOfRecursion:1},callback
+              checkUid {username,nrOfRecursion:1},callback
             else
               log.error "CANT CREATE THIS USER"
               callback?  "[ERROR] unable to get user's UID, can't create user: #{stderr}"
@@ -152,7 +152,7 @@ module.exports =(options, callback)->
   {username,command} = options
 
   # log.debug "func:executeCommand: executing command #{command}"
-  checkUid options, (error)->
+  checkUid options, @createSystemUser?.bind(@), (error)->
     if error?
       callback? error
     else

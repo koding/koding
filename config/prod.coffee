@@ -3,10 +3,10 @@ nodePath = require 'path'
 
 deepFreeze = require 'koding-deep-freeze'
 
-version = "0.9.4d" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
+version = "0.9.6" # fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
 
 # PROD
-mongo = 'beta_koding_user:lkalkslakslaksla1230000@localhost:27017/beta_koding?auto_reconnect'
+mongo = 'PROD-koding:34W4BXx595ib3J72k5Mh@localhost:27017/beta_koding?auto_reconnect'
 
 module.exports = deepFreeze
 #  basicAuth     :
@@ -24,7 +24,7 @@ module.exports = deepFreeze
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : [3020..3021]
+    port        : [3021..3025]
   mongo         : mongo
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
@@ -36,6 +36,11 @@ module.exports = deepFreeze
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
+  loadBalancer  :
+    port        : 3020
+    heartbeat   : 5000
+    httpRedirect:
+      port      : 80 # requires sudo on macs
   social        :
     login       : 'prod-social'
     numberOfWorkers: 4
@@ -61,7 +66,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://koding.com/auth'
+        auth    : 'https://koding.com/Auth'
         vhost   : '/'
       apiUri    : 'https://api.koding.com'
       appsUri   : 'https://app.koding.com'

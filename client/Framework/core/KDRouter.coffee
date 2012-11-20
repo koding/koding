@@ -47,6 +47,8 @@ class KDRouter extends KDObject
     window.removeEventListener 'popstate', @onpopstate
     return yes
 
+  @handleNotFound =(route)-> log "The route #{route} was not found!"
+
   getTitle:(path)-> path
   
   handleNotFound:(route)->
