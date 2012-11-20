@@ -162,10 +162,10 @@ class ActivityTutorialWidget extends KDFormView
         link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
 
-    # if @selectedData?
-    #   @addCustomData "appendToList", @selectedData
-
     super
+
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @tagController.reset()

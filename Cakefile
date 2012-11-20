@@ -26,7 +26,7 @@ mkdirp      = require './builders/node_modules/mkdirp'
 commander     = require './builders/node_modules/commander'
 
 sourceCodeAnalyzer = new (require "./builders/SourceCodeAnalyzer.coffee")
-processes       = new (require "processes") main:true
+processes       = new (require "processes") main : true
 closureCompile  = require 'koding-closure-compiler'
 {daisy}         = require 'sinkrow'
 fs            = require "fs"
@@ -304,7 +304,7 @@ run =(options)->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
+        
   processes.run
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"

@@ -235,6 +235,8 @@ module.exports = new Kite 'sharedHosting'
       wrapperData = ""
       wrapper.stdout.on 'data',(data)->
         wrapperData += data
+      wrapper.once 'error', (err)->
+        callback err
 
       wrapper.on 'exit',(code)->
         if code is not 0
@@ -376,4 +378,3 @@ module.exports = new Kite 'sharedHosting'
  #                 else
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
- #                   log.info res; callback? null, res
