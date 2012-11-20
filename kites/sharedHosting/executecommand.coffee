@@ -65,7 +65,7 @@ respond = (options,callback)->
     {err,stdout,stderr} = options
 
   if err?
-    callback stderr,stdout
+    callback {code: err.code, message: err.message, stderr: stderr}, stdout
     if stdout
       log.warn "[WARNING]", err, truncateOutput(stderr), truncateOutput stdout
     else
@@ -152,7 +152,7 @@ module.exports =(options, callback)->
   {username,command} = options
 
   # log.debug "func:executeCommand: executing command #{command}"
-  checkUid options, @createSystemUser, (error)->
+  checkUid options, @createSystemUser?.bind(@), (error)->
     if error?
       callback? error
     else

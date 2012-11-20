@@ -109,9 +109,25 @@ __utils =
         else
           text
 
-    text = Encoder.htmlDecode text
+    text = marked Encoder.htmlDecode text
 
-    text = marked text
+    sanitizeText = $(text)
+
+    # Proxify images
+
+    proxify = (str, p1, offset, s)=>
+      @proxifyUrl str
+
+    sanitizeText.find("img").each (i,element) =>
+      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+
+    # Give all outbound links a target blank
+    sanitizeText.find("a").each (i,element) =>
+      unless /^(#!)/.test $(element).attr("href")
+        $(element).attr("target", "_blank")
+
+    text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
+
 
   applyLineBreaks: (text)->
     return null unless text
@@ -165,7 +181,37 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?][\S\/]*)*\b\/?/g, (url) ->
+
+    # urlGrabber = ///
+    #   (\s|^)                              # Start after a whitespace or string[0]
+    #   ([a-zA-Z]+\://)?                    # Captures any protocol (just not //)
+    #   (\w+:\w+@)?                         # Username:Password
+    #   ([a-zA-Z\d-]|[a-zA-Z\d-]\.)*        # Subdomains
+    #   [a-zA-Z\d-]{2,}                     # Domain name
+    #   \.                                  # THE DOT
+    #   ([a-zA-Z]{2,4}(:\d+)?)              # Domain Extension with Port
+    #   ([/\?\#][\S/]*)*                    # Some Request, greedy capture
+    #   \b                                  # Last word boundary
+    #   /?                                 # Optional trailing Slash
+    # ///g
+
+    urlGrabber = ///
+    (?!\s)                                                      # leading spaces
+    ([a-zA-Z]+://)                                             # protocol
+    (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
+    ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
+    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d])      # domain
+    \.                                                          # dot
+    ([a-zA-Z]{2,4})                                             # top-level-domain
+    (:\d+|)                                                     # :port
+    (/\S*|)                                                     # rest of url
+    (?!\S)
+    ///g
+
+    # used to be /(\s|^)([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d-]|[a-zA-Z\d-]\.)*[a-zA-Z\d-]{2,}\.([a-zA-Z]{2,4}(:\d+)?)([\/\?#][\S\/]*)*\b\/?/g
+    text.replace urlGrabber, (url) ->
+
+      url = url.trim()
       originalUrl = url
 
       # remove protocol and trailing path

@@ -225,7 +225,7 @@ module.exports = new Kite 'sharedHosting'
   #    else
   #      log.error stderr
   #      callback stderr
-  createVhost : do->
+  createVhost :do->
 
     spawnWrapper = (command, args , callback)->
       wrapper = spawn command,args
@@ -235,6 +235,8 @@ module.exports = new Kite 'sharedHosting'
       wrapperData = ""
       wrapper.stdout.on 'data',(data)->
         wrapperData += data
+      wrapper.once 'error', (err)->
+        callback err
 
       wrapper.on 'exit',(code)->
         if code is not 0
@@ -376,10 +378,3 @@ module.exports = new Kite 'sharedHosting'
  #                 else
  #                   log.debug "[OK] func:unSuspendUser: /usr/sbin/cagefsctl -w #{userToSuspend}"
  #                   res = "[OK] user #{userToSuspend} was successfully unsuspended"
- #                   log.info res; callback? null, res
- 
-#s = new sharedHosting
-#options =
-#  username:'aleksey-m000010'+hat()
-#  command: "ls -l"
-# s.executeCommand options,(err,res)->
