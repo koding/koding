@@ -1957,22 +1957,28 @@ div.protocol-info-box
     &:hover
       opacity 1
 
-div.preview_image
-  position relative
-  div.tutorial-preview-image-box
-    borderBox()
-    rounded 4px
-    border 1px solid black
-    background-color #f7f7f7
-    border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-    padding 15px 15px 12px 15px
-    width 100%
-    img.tutorial-preview-image
-      max-height 200px
-      cursor pointer
-      width auto
+// div.preview_image
+//   position relative
+div.tutorial-preview-image-box
+  float left
+  width auto
+  display inline-block
+  // borderBox()
+  // rounded 4px
+  // border 1px solid black
+  // background-color #f7f7f7
+  // border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+  // padding 15px 15px 12px 15px
+  // width 100%
+  img.tutorial-preview-image
+    max-height 180px
+    cursor pointer
+    width auto
 
-
+div.tutorial-content
+  width auto
+  > span
+    padding-left 20px
 
 div.activity-tutorial-container.small
   img.tutorial-preview-image
@@ -2000,15 +2006,6 @@ playButton(distance=25px)
 .preview-image-overlay
   playButton()
 
-div.tutorial-badge
-  position absolute
-  left -20px
-  top -20px
-  size 40px 40px
-  background-color:#ff9200
-  opacity 0!important
-  vendor transform, rotate(-45deg)
-
 div.modal-select-tutorials
   width:80%
   height : 80%
@@ -2027,14 +2024,128 @@ div.show-tutorial-embed
   display inline-block
   z-index 10
 
+.no-scroll
+  overflow-x hidden
+  overflow-y hidden
+
+.scrollable-y
+  overflow-y scroll!important
+
+.scrollable-x
+  overflow-x scroll!important
+
+.scrollable
+  overflow-x scroll
+  overflow-y scroll
+
 div.activity-content-container
+  position relative
   overflow-y scroll
   rounded 4px
   border 1px solid black
-  background-color #f7f7f7
+  background-color #fff
   border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
   padding 10px 15px 0px 15px
+  vendor transition, box-shadow 0.25s default
+
+  &.scrolling-both
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+  &.scrolling-up
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
+  &.scrolling-down
+    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
 
   &.discussion-body-container
     max-height 200px
-    cursor pointer
+    overflow-y hidden
+
+  &.tutorial-body-container
+    vertical-align top
+    padding-top 15px
+    // padding-bottom 10px
+    max-height 200px
+    overflow-y auto
+    position relative
+
+    .body
+      display block
+      vertical-align top
+      overflow-y hidden
+      max-height 200px
+
+    img.tutorial-preview-image
+      max-height 185px
+      height auto
+      width auto
+      margin-right 15px
+      margin-bottom 15px
+      display inline-block
+      float left
+      cursor pointer
+
+  &:hover
+    div.enable-scroll-overlay
+      opacity 1
+      vendor transition, 0.2s ease-in-out
+      background-color rgba(0,0,0,0.1)
+      // background-color transparent
+      div.kdbuttongroup
+        left:0px
+        button
+          // animation-duration 0.3s
+          // animation-name pulse
+          opacity 1
+          background-color rgba(0,0,0,0.5)
+          color white
+          top 0
+        // @keyframes pulse
+        //   from
+        //     opacity 1
+        //   // 50%
+        //   //   opacity 0.8
+        //   to
+        //     opacity 0.5
+
+
+
+  div.enable-scroll-overlay
+    width 100%
+    height auto
+    position absolute
+    left 0px
+    right 0px
+    bottom 0px
+    opacity 1
+    vendor transition, 0.2s ease-in-out
+    text-align center
+    background-color rgba(0,0,0,0.0)
+    vertical-align middle
+
+    > div.kdbuttongroup
+      vertical-align middle
+      padding 5px
+      margin 5px 0px 5px 0px
+
+      > button
+        rounded 3px
+        vendor transition, background-color 0.15s linear \, top 0.2s linear
+        top 50px
+        font-size 11px
+        font-weight 600
+        background-color rgba(0,0,0,0.6)
+        color transparent
+        border none
+        background-image none
+        vendor text-shadow, none
+        margin 0px 5px
+        opacity 0
+
+
+        &:first-child
+          rounded 3px
+        &:last-child
+          rounded 3px
+
+        &:hover
+          background-color rgba(0,0,0,0.7)
+          animation-name none
