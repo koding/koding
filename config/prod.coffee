@@ -24,12 +24,17 @@ module.exports = deepFreeze
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : [3020..3021]
+    port        : [3021..3025]
   mongo         : mongo
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
+  loadBalancer  :
+    port        : 3020
+    heartbeat   : 5000
+    httpRedirect:
+      port      : 80 # requires sudo on macs
   social        :
     login       : 'prod-social'
     numberOfWorkers: 6
