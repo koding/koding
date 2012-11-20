@@ -6,6 +6,12 @@ $mime_map = array(
 );
 
 $url = $_GET['url'];
+
+if (!preg_match('/^(http|https)/', $url)) {
+  header('HTTP/1.0 400 Bad Request');
+  die();
+}
+
 $extension = array_pop(explode('.', $url));
 
 //$headers = getallheaders();
