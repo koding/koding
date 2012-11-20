@@ -2,20 +2,17 @@ class FeederFacetsController extends KDViewController
   constructor:(options, data)->
     options.view or= new KDView cssClass: 'common-inner-nav'
     super
-    @facetTypes = ['sort', 'filter']
+    # the order of these facetTypes is the order they'll be displayed in
+    @facetTypes = ['filter', 'sort']
     @state = {}
 
-  onfacetchange:->
-    console.log 'onfacetchange'
-    KD.getSingleton('router').handleQuery @state
+  onfacetchange:-> KD.getSingleton('router').handleQuery @state
 
   loadView:(mainView)->
     options = @getOptions()
     view = @getView()
 
     @facetTypes.forEach (facet)=>
-      console.log facet
-      return  if facet is "everything"
 
       @["#{facet}Controller"] =
       controller = new CommonInnerNavigationListController {},
