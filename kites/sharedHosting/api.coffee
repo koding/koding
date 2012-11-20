@@ -261,11 +261,11 @@ module.exports = new Kite 'sharedHosting'
         else
           spawnWrapper '/bin/cp',copyFiles,(err,res)=>
             if err?
-              callback "[ERROR] Culdn't create vhost: #{err}"
+              callback "[ERROR] couldn't create vhost: #{err}"
             else
               spawnWrapper '/bin/chown',changeOwner,(err,res)->
                 if err?
-                  callback "[ERROR] Culdn't create vhost: #{err}"
+                  callback "[ERROR] couldn't create vhost: #{err}"
                 else
                   log.info info = "[OK] vhost #{domainName} has been created"
                   callback null, info
