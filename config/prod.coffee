@@ -43,7 +43,7 @@ module.exports = deepFreeze
       port      : 80 # requires sudo on macs
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
+    numberOfWorkers: 6
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
