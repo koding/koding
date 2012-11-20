@@ -181,7 +181,6 @@ app.get "/", (req, res)->
 
 app.get "/-/status/:event/:kiteName",(req,res)->
   # req.params.data
-  console.log req.params
   
   obj =
     processName : req.params.kiteName
