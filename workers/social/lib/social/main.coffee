@@ -9,9 +9,30 @@ process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
 
+processMonitor = (require 'processes-monitor').start
+  name : "Social Worker #{process.pid}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : (name,msg,details)->
+      console.log "[SOCIAL WORKER #{name}] I'm using too much memory, feeling suicidal."
+      process.exit()
+  die :
+    after: 1000*10
+    middleware : (name,callback) ->
+      koding.disconnect callback
+
+    middlewareTimeout : 5000
+
+
+
 
 Bongo = require 'bongo'
 Broker = require 'broker'
+
+
+
+
 
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email, social} = KONFIG
