@@ -63,11 +63,11 @@ runServer =(configPath, logger, port,silent)->
     #   interval : 60*1000
     # monitor : 
     #   interval : 1000
-    # onMessage : (msg)->
-    #   if msg.mem.rss > 300
-    #     processes.sendMessage 'load-balancer',{markAsDead:yes,port:port}
-    #     console.log "[WEBSERVER #{port}] high memory usage - time to commit suicide."
-    #     processes.kill 'server'+port
+    onMessage : (msg)->
+      if msg.mem.rss > 300
+        processes.sendMessage 'load-balancer',{markAsDead:yes,port:port}
+        console.log "[WEBSERVER #{port}] high memory usage - time to commit suicide."
+        processes.kill 'server'+port
       # console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
 
   console.log "im the child of server:"+processes.get("server"+port).pid
