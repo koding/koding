@@ -30,6 +30,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 1
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     watch       : yes

@@ -47,8 +47,7 @@ kiteBroker =\
   else
     koding.mq
 
-koding.mq.connection.on 'ready', ->
-  console.log 'message broker is ready'
+koding.mq.connection.on 'ready', -> console.log 'message broker is ready'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -111,13 +110,13 @@ if uploads?.enableStreamingUploads
   
   s3 = require('./s3') uploads.s3
 
-  app.post '/upload', s3..., (req, res)->
+  app.post '/Upload', s3..., (req, res)->
     res.send(for own key, file of req.files
       filename  : file.filename
       resource  : nodePath.join uploads.distribution, file.path
     )
 
-  app.get '/upload/test', (req, res)->
+  app.get '/Upload/test', (req, res)->
     res.send \
       """
       <script>

@@ -34,6 +34,7 @@ module.exports = deepFreeze
   social        :
     numberOfWorkers: 10
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     js          : "./website/js/kd.#{version}.js"
