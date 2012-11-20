@@ -50,7 +50,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://dev.koding.com/auth'
+        auth    : 'https://dev.koding.com/Auth'
         vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-app.koding.com'

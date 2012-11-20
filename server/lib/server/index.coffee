@@ -19,6 +19,7 @@ app = express()
 #delete express.bodyParser.parse['multipart/form-data']
 
 app.configure ->
+  app.set 'case sensitive routing', on
   app.use express.cookieParser()
   app.use express.session {"secret":"foo"}
   app.use express.bodyParser()
@@ -57,7 +58,6 @@ app.get "/Logout", (req, res)->
   res.redirect 302, '/'
 
 app.get '/Auth', (req, res)->
-  console.log 'hehehehadadehehe'
   crypto = require 'crypto'
   {JSession} = koding.models
   channel = req.query?.channel
@@ -151,7 +151,7 @@ app.get "/", (req, res)->
       throw err if err
       res.send data
 
-app.get "/status/:data",(req,res)->
+app.get "/-/status/:data",(req,res)->
   # req.params.data
 
   # connection.exchange 'public-status',{autoDelete:no},(exchange)->
@@ -160,7 +160,7 @@ app.get "/status/:data",(req,res)->
   koding.mq.emit 'public-status','exit',req.params.data
   res.send "alright."
 
-app.get "/api/user/:username/flags/:flag", (req, res)->
+app.get "/-/api/user/:username/flags/:flag", (req, res)->
   {username, flag} = req.params
   {JAccount}       = koding.models
 
@@ -171,23 +171,24 @@ app.get "/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-getAlias =(url)->
-  rooted = '/' is url.charAt 0
-  console.log {url}
-  url = url.slice 0  if rooted
-  console.log {url}
-  alias = "#{url.charAt(0).toUpperCase()}#{url.slice 0}"  if url in ['auth']
-  if rooted then "/#{alias}" else alias
+getAlias =do->
+  caseSensitiveAliases = ['auth']
+  (url)->
+    rooted = '/' is url.charAt 0
+    url = url.slice 1  if rooted
+    if url in caseSensitiveAliases
+      alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
+    if alias and rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
   {url} = req
   queryIndex = url.indexOf '?'
   [urlOnly, query] =\
-    if ~queryIndex then [url.slice(queryIndex), url.slice(0, queryIndex)]
+    if ~queryIndex then [url.slice(0, queryIndex), url.slice(queryIndex)]
     else [url, '']
   alias = getAlias urlOnly
-  console.log 'alias', alias
-  res.header 'Location', "/#!#{alias ? urlOnly}#{query}"
+  redirectTo = if alias then "#{alias}#{query}" else "/#!#{urlOnly}#{query}"
+  res.header 'Location', redirectTo
   res.send 302
 
 app.listen webPort
