@@ -16,3 +16,5 @@ class AppController extends KDViewController
   createContentDisplay:(tag, doShow, callback)->
     [callback, doShow] = [doShow, callback] unless callback
     @showContentDisplay tag, callback
+
+  handleQuery:(query)-> console.log 'handle query is called', query

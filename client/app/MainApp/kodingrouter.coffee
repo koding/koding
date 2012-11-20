@@ -30,11 +30,12 @@ class KodingRouter extends KDRouter
     else
       KD.getSingleton('mainController').doGoHome()
   
-  go =(app, group, rest...)->
+  go =(app, group, query, rest...)->
     unless group?
       appManager.openApplication app
     else
       appManager.tell app, 'setGroup', group
+    appManager.tell app, 'handleQuery', query  if query?
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -103,27 +104,27 @@ class KodingRouter extends KDRouter
       ''  : handleRoot
 
       # verbs
-      '/:name?/Login'     : ({name})-> mainController.doLogin name
-      '/:name?/Logout'    : ({name})-> mainController.doLogout name; @clear()
-      '/:name?/Register'  : ({name})-> mainController.doRegister name
-      '/:name?/Join'      : ({name})-> mainController.doJoin name
-      '/:name?/Recover'   : ({name})-> mainController.doRecover name
+      '/:name?/Login'     : ({params:{name}})-> mainController.doLogin name
+      '/:name?/Logout'    : ({params:{name}})-> mainController.doLogout name; @clear()
+      '/:name?/Register'  : ({params:{name}})-> mainController.doRegister name
+      '/:name?/Join'      : ({params:{name}})-> mainController.doJoin name
+      '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
 
       # nouns
-      '/:name?/Groups'    : ({name})-> go 'Groups'    , name
-      '/:name?/Activity'  : ({name})-> go 'Activity'  , name
-      '/:name?/Members'   : ({name})-> go 'Members'   , name
-      '/:name?/Topics'    : ({name})-> go 'Topics'    , name
-      '/:name?/Develop'   : ({name})-> go 'StartTab'  , name
-      '/:name?/Apps'      : ({name})-> go 'Apps'      , name
-      '/:name?/Account'   : ({name})-> go 'Account'   , name
+      '/:name?/Groups'    : ({params:{name}, query})-> go 'Groups'  , name, query
+      '/:name?/Activity'  : ({params:{name}, query})-> go 'Activity', name, query
+      '/:name?/Members'   : ({params:{name}, query})-> go 'Members' , name, query
+      '/:name?/Topics'    : ({params:{name}, query})-> go 'Topics'  , name, query
+      '/:name?/Develop'   : ({params:{name}, query})-> go 'StartTab', name, query
+      '/:name?/Apps'      : ({params:{name}, query})-> go 'Apps'    , name, query
+      '/:name?/Account'   : ({params:{name}, query})-> go 'Account' , name, query
 
       # content displays:
       '/:name?/Topics/:topicSlug'       : @createContentDisplayHandler 'Topics'
       '/:name?/Activity/:activitySlug'  : @createContentDisplayHandler 'Activity'
       '/:name?/Apps/:appSlug'           : @createContentDisplayHandler 'Apps'
 
-      '/recover/:recoveryToken': ({recoveryToken})->
+      '/recover/:recoveryToken': ({params:{recoveryToken}})->
         mainController.appReady ->
           # TODO: DRY this one
           $('body').addClass 'login'
@@ -145,7 +146,7 @@ class KodingRouter extends KDRouter
               loginScreen.animateToForm "reset"
             location.replace '#'
 
-      '/invitation/:inviteToken': ({inviteToken})->
+      '/invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
         if KD.isLoggedIn()
           new KDNotificationView
@@ -174,7 +175,7 @@ class KodingRouter extends KDRouter
             , 2000
           location.replace '#'
 
-      '/verify/:confirmationToken': ({confirmationToken})->
+      '/verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
           location.replace '#'
@@ -193,7 +194,7 @@ class KodingRouter extends KDRouter
               appManager.tell "Members", "createContentDisplay", account 
 
       # top level names:
-      '/:name': (params)->
+      '/:name': ({params})->
         status_404 = => @handleNotFound params.name
         KD.remote.cacheable params.name, (err, model, name)->
           switch name?.constructorName

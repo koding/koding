@@ -81,8 +81,15 @@ class KDRouter extends KDObject
   addRoutes:(routes)->
     @addRoute route, listener  for own route, listener of routes
 
+  handleQuery:(query)->
+    query = @utils.stringifyQuery query  unless 'string' is typeof query
+    return  unless query.length
+    nextRoute = "/#{@currentPath}?#{query}"
+    @handleRoute nextRoute
+
   handleRoute:(frag, options={})->
-    frag ?= @getDefaultRoute?() ? '/'
+    [frag, query...] = (frag ? @getDefaultRoute?() ? '/').split '?'
+    query = @utils.parseQuery query.join '&'
     {shouldPushState, replaceState, state} = options
     objRef = createObjectRef state
     shouldPushState ?= yes
@@ -95,7 +102,10 @@ class KDRouter extends KDObject
 
     path = frag.join '/'
 
-    if path is @currentPath and shouldPushState and not replaceState
+    qs = @utils.stringifyQuery query
+    path += "?#{qs}"  if qs.length
+
+    if shouldPushState and not replaceState and path is @currentPath
       @emit 'AlreadyHere', path
       return
 
@@ -115,6 +125,8 @@ class KDRouter extends KDObject
           node = param
         else @handleNotFound frag.join '/'
 
+    routeInfo = {params, query}
+    
     listeners = node[listenerKey]
     if listeners?.length
-      listener.call @, params, state, path for listener in listeners
+      listener.call @, routeInfo, state, path  for listener in listeners
