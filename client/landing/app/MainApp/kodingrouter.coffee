@@ -118,10 +118,9 @@ class KodingRouter extends KDRouter
       '/:name?/Apps'      : ({name})-> go 'Apps'      , name
       '/:name?/Account'   : ({name})-> go 'Account'   , name
 
+      # content displays:
       '/:name?/Topics/:topicSlug'       : @createContentDisplayHandler 'Topics'
-
       '/:name?/Activity/:activitySlug'  : @createContentDisplayHandler 'Activity'
-
       '/:name?/Apps/:appSlug'           : @createContentDisplayHandler 'Apps'
 
       '/recover/:recoveryToken': ({recoveryToken})->
@@ -182,10 +181,10 @@ class KodingRouter extends KDRouter
           if err
             throw err
             new KDNotificationView
-              title     : "Something went wrong, please try again later!"
+              title: "Something went wrong, please try again later!"
           else
             new KDNotificationView
-              title     : "Thanks for confirming your email address!"
+              title: "Thanks for confirming your email address!"
 
       '/member/:username': ({username})->
           KD.remote.api.JAccount.one "profile.nickname" : username, (err, account)->
@@ -193,6 +192,7 @@ class KodingRouter extends KDRouter
             else if account
               appManager.tell "Members", "createContentDisplay", account 
 
+      # top level names:
       '/:name': (params)->
         status_404 = => @handleNotFound params.name
         KD.remote.cacheable params.name, (err, model, name)->
