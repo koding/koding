@@ -1,13 +1,12 @@
 do ->
   mainController = KD.getSingleton 'mainController'
 
-
   handleRoute =(groupId, route)->
-    console.log 'invoking a route by group id...'
+    log 'invoking a route by group id...'
 
   notFound =(route)->
     KDRouter.addRoute route, ->
-      console.warn "Contract warning: shared route #{route} is not implemented."
+      warn "Contract warning: shared route #{route} is not implemented."
 
   routes =
 

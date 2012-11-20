@@ -65,7 +65,7 @@ respond = (options,callback)->
     {err,stdout,stderr} = options
 
   if err?
-    callback stderr,stdout
+    callback {code: err.code, message: err.message, stderr: stderr}, stdout
     if stdout
       log.warn "[WARNING]", err, truncateOutput(stderr), truncateOutput stdout
     else
