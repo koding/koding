@@ -83,6 +83,8 @@ class ActivityDiscussionWidget extends KDFormView
   submit:=>
     @once "FormValidationPassed", => @reset()
     super
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @tagController.reset()

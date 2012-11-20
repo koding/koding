@@ -439,6 +439,9 @@ app.contentdisplays.styl
     font-weight                                   300
     noTextDeco()
 
+  img
+    width                                         100%
+
   &.force-small-markdown
     *
       margin-top                                  0
@@ -895,7 +898,7 @@ div.kdview.activity-item.discussion.content-display-main-section
                   padding                         4px 10px
                   margin-left                     65px
                   noTextDeco()
-                  width                           auto
+                  width                           624px
                   color                           #0896BD
 
           // Opinion->Comments
@@ -1195,9 +1198,11 @@ pre .dec, code .dec
   color #3387CC
 
 pre.prettyprint, code.prettyprint
-  background-color #333
+  background-color #5f5f5f
+  // background-color #333
   rounded 3px
   padding 1px 4px
+  text-shadow rgba(0,0,0,0.25) 1px 1px 1px
 
 pre.prettyprint
   width auto
@@ -1206,7 +1211,8 @@ pre.prettyprint
   white-space pre-wrap
 
   code
-    background-color #333
+    background-color #5F5F5F
+    // background-color #333
 
 li > code.prettyprint,
 a > code.prettyprint,
@@ -1784,7 +1790,7 @@ div.kdview.activity-item.tutorial.content-display-main-section
                   padding                         4px 10px
                   margin-left                     65px
                   noTextDeco()
-                  width                           auto
+                  width                           624px
                   color                           #0896BD
 
           // Opinion->Comments
@@ -2011,3 +2017,55 @@ div.kdview.activity-item.tutorial.content-display-main-section
       margin-right                    0
       padding-right                   0
       border-right
+
+.has-markdown
+
+  > span.data
+    > pre
+      padding 5px
+      rounded 4px
+      border 1px solid #ccc
+      background-color transparent
+      // vendor box-shadow, inset 0px 0px 5px rgba(0,0,0,0.15)
+
+  .tomorrow-comment, pre .comment, pre .title {
+    color: #8e908c!important
+  }
+
+  .tomorrow-red, pre .variable, pre .attribute, pre .tag, pre .regexp, pre .ruby .constant, pre .xml .tag .title, pre .xml .pi, pre .xml .doctype, pre .html .doctype, pre .css .id, pre .css .class, pre .css .pseudo {
+    color: #c82829!important
+  }
+
+  .tomorrow-orange, pre .subst, pre .number, pre .preprocessor, pre .built_in, pre .literal, pre .params, pre .constant {
+    color: #f5871f!important
+  }
+
+  .tomorrow-yellow, pre .class, pre .ruby .class .title, pre .css .rules .attribute {
+    color: #eab700!important
+  }
+
+  .tomorrow-green, pre .string, pre .value, pre .inheritance, pre .header, pre .ruby .symbol, pre .xml .cdata {
+    color: #718c00!important
+  }
+
+  .tomorrow-aqua, pre .css .hexcolor {
+    color: #3e999f!important
+  }
+
+  .tomorrow-blue, pre .function, pre .python .decorator, pre .python .title, pre .ruby .function .title, pre .ruby .title .keyword, pre .perl .sub, pre .javascript .title, pre .coffeescript .title {
+    color: #4271ae!important
+  }
+
+  .tomorrow-purple, pre .keyword, pre .javascript .function {
+    color: #8959a8!important
+  }
+
+  pre code {
+    display: block;
+    background: transparent;
+    color: #4d4d4c!important
+    font-family: Menlo, Monaco, Consolas, monospace;
+    line-height: 1.5;
+    // border: 1px solid #ccc;
+    padding: 10px;
+  }

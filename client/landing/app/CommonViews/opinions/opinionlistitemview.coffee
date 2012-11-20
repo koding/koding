@@ -143,7 +143,7 @@ class OpinionListItemView extends KDListItemView
   render:->
     super()
 
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("p.opinion-body span.data pre").each (i,element)=>
       element = hljs.highlightBlock element
 
@@ -160,7 +160,7 @@ class OpinionListItemView extends KDListItemView
       @markup.css {maxHeight}
       @larger.show()
 
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     # prettyPrint()
 
     @$("p.opinion-body span.data pre").each (i,element)=>
