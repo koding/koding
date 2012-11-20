@@ -1,5 +1,3 @@
-console.log 'afafafa'
-
 {argv} = require 'optimist'
 
 console.log argv
@@ -8,8 +6,6 @@ KONFIG = require argv.c?.trim()
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 webPort = argv.p ? webserver.port
-
-console.log 'sfsfsfsfsfs', webPort
 
 # processMonitor = (require 'processes-monitor').start
 #   name : "webServer on port #{webPort}"
