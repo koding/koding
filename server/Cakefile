@@ -10,6 +10,7 @@ option '-c', '--configPath [CONFIG]', 'Which config file to use'
 option '-s', '--silent', 'Set this flag to suppress stdout'
 
 task 'run', ({configPath, silent})->
+
   configPath ?= '../config/dev'
   {webserver, logger,loadBalancer} = require configPath
 
@@ -17,6 +18,7 @@ task 'run', ({configPath, silent})->
     webPort = webserver.port
     webPort = [webPort] unless Array.isArray webPort
     webPort.forEach (port)->
+      console.log 'port', port
       runServer configPath, logger, port,silent
 
   if loadBalancer
@@ -44,10 +46,11 @@ runLoadBalancer = (configPath,logger,silent)->
 
 
 runServer =(configPath, logger, port,silent)->
+  console.log ["-c #{configPath}","-p #{port}"]
   #loggerWS = new KodingLogger 'webserver', os.hostname(), logger.mq
   #loggerWS.tailTo process.stdout unless silent
   process.stdout.setMaxListeners 0
-  process.stderr.setMaxListeners 0  
+  process.stderr.setMaxListeners 0
   processes.run
     name          : 'server'+port
     modulePath    : "./index.js"
