@@ -15,6 +15,9 @@ class Members12345 extends AppController
     @bringToFront()
     callback()
 
+  handleQuery:(query)->
+    
+
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
