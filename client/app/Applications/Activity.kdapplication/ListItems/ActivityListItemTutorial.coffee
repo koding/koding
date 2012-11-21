@@ -153,42 +153,13 @@ class TutorialActivityItemView extends ActivityItemChild
   click:(event)->
     if $(event.target).is("[data-paths~=title]") # or\
          appManager.tell "Activity", "createContentDisplay", @getData()
-    if $(event.target).is("[data-paths~=title],[data-paths~=preview]")
-      log "pop",screen, window
-      h=@previewImage.getHeight()
-      w=@previewImage.getWidth()
-      t=@previewImage.$().offset()
-      videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,resizable=yes,scrollbars=no,status=no,height=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
-      @utils.wait 1500, =>
-        window.onfocus = =>
-          @utils.wait 500, =>
-            if videoPopup.length isnt 0
-              window.onfocus = noop
-              userChoice = no
-              modal           = new KDModalView
-                title         : "Do you want to keep the video running?"
-                content       : "<p>Your video will automatically end in 5 seconds unless you click the 'Yes'-Button below.</p>"
-                buttons       :
-                  "Yes, keep it running" :
-                    title     : "Yes, keep it running"
-                    cssClass  : "modal-clean-gray"
-                    callback  : =>
-                      modal.destroy()
-                      userChoice = yes
+    if $(event.target).is("[data-paths~=preview]")
 
-                  "No, close it" :
-                    title     : "No, close it"
-                    cssClass  : "modal-clean-red"
-                    callback  : =>
-                      videoPopup?.close()
-                      modal.destroy()
+      @videoPopup = new VideoPopup
+        delegate : @previewImage
+      ,@getData().link?.link_embed?.object?.html
 
-              @utils.wait 5000, =>
-                unless userChoice
-                  videoPopup?.close()
-                  modal.destroy()
-
-        videoPopup.postMessage @getData().link?.link_embed?.object?.html, "*"
+      @videoPopup.openVideoPopup()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
