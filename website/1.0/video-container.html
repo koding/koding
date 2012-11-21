@@ -7,25 +7,44 @@
       iframe {width:100%;height: 100%;}
     </style>
 <script type="text/javascript">
+
 window.addEventListener("message", receiveMessage, false);
+
+var oldData;
 
 function receiveMessage(event)
 {
-  var targetDiv = document.getElementById("placeholder");
-  var sourceDiv = document.createElement('div');
-  sourceDiv.innerHTML = event.data
-  targetDiv.innerHTML = sourceDiv.firstChild.nodeValue;
-}
 
-window.onload = function(){
-  window.setTimeout(function(){
-    var topOffset = this.outerHeight-this.innerHeight;
+  // any message received is supposed to be a html embed, urlencoded
+
+  if(event.data!=oldData){
+    moveWindowTowardsTop();
+    oldData = event.data
+    var targetDiv = document.getElementById("placeholder");
+    var sourceDiv = document.createElement('div');
+    sourceDiv.innerHTML = event.data
+    targetDiv.innerHTML = sourceDiv.firstChild.nodeValue;
+  }}
+
+function moveWindowTowardsTop () {
+  // Calculates the height of the Windows Title/Address Bar
+  var topOffset = this.outerHeight-this.innerHeight;
+
+  // Unless the Popup is touching the screen bottom
+  if(screenTop+this.outerHeight < screen.availHeight){
+    // Move the window up so its content is at the same x/y as the
+    // content in the main view
     this.moveTo(screenLeft,screenTop-topOffset-22);
-  },250);
-
+  }
 }
+
+// window.onload = function(){
+//   window.setTimeout(function(){
+//    },250);
+
+// }
 </script>
-  </head>
+    </head>
   <body>
     <div id="placeholder" />
   </body>
