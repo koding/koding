@@ -64,6 +64,7 @@ class OpinionFormView extends KDFormView
 
     if data instanceof KD.remote.api.JOpinion
       @opinionBody.setValue Encoder.htmlDecode data.body
+      @opinionBody.generatePreview()
 
   viewAppended:()->
     @setClass "update-options opinion"

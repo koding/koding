@@ -19,7 +19,12 @@ module.exports = class JTutorial extends JPost
 
   @share()
 
-  schema = extend {}, JPost.schema, { link : Object }
+  schema = extend {}, JPost.schema, {
+    link : Object
+    opinionCount :
+      type      : Number
+      default   : 0
+  }
 
   @getActivityType =-> require './tutorialactivity'
 
@@ -75,16 +80,21 @@ module.exports = class JTutorial extends JPost
       link        : data.link
     JPost::modify.call @, client, discussion, callback
 
+  removeOpinion:(rel, callback)->
+    log "removeReply called soon"
+    @removeReply rel, callback
+
   removeReply:(rel, callback)->
+    log "removeReply called."
     id = @getId()
     teaser = null
     activityId = null
-    repliesCount = @getAt 'repliesCount'
+    opinionCount = @getAt 'opinionCount'
     queue = [
       ->
         rel.update $set: 'data.deletedAt': new Date, -> queue.next()
       =>
-        @update $inc: repliesCount: -1, -> queue.next()
+        @update $inc: opinionCount: -1, -> queue.next()
       =>
         @flushSnapshot rel.getAt('targetId'), -> queue.next()
       =>
@@ -139,7 +149,7 @@ module.exports = class JTutorial extends JPost
                     if err
                       callback err
                     else
-                      @update $set: repliesCount: count, (err)=>
+                      @update $set: opinionCount: count, (err)=>
                         if err
                           callback err
                         else
@@ -150,7 +160,7 @@ module.exports = class JTutorial extends JPost
 
                                 CActivity.update {_id: id}, {
                                   $set:
-                                    'sorts.repliesCount'  : count
+                                    'sorts.opinionCount'  : count
                                 }, log
                               @fetchOrigin (err, origin)=>
                                 if err
@@ -164,7 +174,7 @@ module.exports = class JTutorial extends JPost
                                       actionType    : 'opinion'
                                       replier       : ObjectRef(delegate).data
                                       opinion       : ObjectRef(comment).data
-                                      repliesCount  : count
+                                      opinionCount  : count
                                       relationship  : docs[0]
                                       # opinionData   : JSON.stringify comment
                                     }

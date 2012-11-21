@@ -1,0 +1,19 @@
+<html>
+<head>
+  <title>Sup!</title>
+<script type="text/javascript">
+console.log("Stuff");
+window.addEventListener("message", receiveMessage, false);
+ 
+function receiveMessage(event)
+{
+  console.log("Stuff!",event);
+  var div = document.getElementById("placeholder");
+  div.innerHTML = "Message received: "+event.data;
+}
+</script>
+</head>
+<body>
+  <div id="placeholder" />
+</body>
+</html>

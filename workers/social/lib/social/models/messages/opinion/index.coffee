@@ -84,7 +84,7 @@ module.exports = class JOpinion extends JPost
               message = message_
               queue.next(err)
         ->
-          message.removeReply rel, (err)-> queue.next(err)
+          message.removeOpinion rel, (err)-> queue.next(err)
 
         getDeleteHelper {
           targetId    : id
