@@ -10,24 +10,24 @@ class OpinionViewHeader extends JView
     data = @getData()
 
     @maxCommentToShow = 5
-    @oldCount         = data.repliesCount
+    @oldCount         = data.opinionCount
     @newCount         = 0
-    @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
+    @onListCount      = if data.opinionCount > @maxCommentToShow then @maxCommentToShow else data.opinionCount
 
     # The snapshot view should always have a visible Header
 
     if @parent?.constructor is not DiscussionActivityOpinionView
-      unless data.repliesCount? and data.repliesCount > @maxCommentToShow
-        @onListCount = data.repliesCount
+      unless data.opinionCount? and data.opinionCount > @maxCommentToShow
+        @onListCount = data.opinionCount
         @hide()
-      @hide() if data.repliesCount < @maxCommentToShow
+      @hide() if data.opinionCount < @maxCommentToShow
 
     list = @getDelegate()
 
     list.on "AllOpinionsWereAdded", =>
       @show()
       @newCount = 0
-      @onListCount = @getData().repliesCount
+      @onListCount = @getData().opinionCount
       @updateNewCount()
       @allItemsLink.unsetClass "in"
       @newItemsLink.unsetClass "in"
@@ -47,7 +47,7 @@ class OpinionViewHeader extends JView
     list.on "RelativeOpinionsWereAdded",  =>
       @updateRemainingText()
 
-      if @getDelegate().items.length<@getData().repliesCount
+      if @getDelegate().items.length<@getData().opinionCount
         @loader.hide()
       else
         @loader.hide()
@@ -108,18 +108,18 @@ class OpinionViewHeader extends JView
     # content pops up, the event handling it will show the bar again
 
     if @parent?.constructor is OpinionView
-      @hide() if @getData().repliesCount is 0
+      @hide() if @getData().opinionCount is 0
 
   updateRemainingText:=>
     if not @parent? or  @parent.constructor is DiscussionActivityOpinionView
-      if @getData().repliesCount > 1
+      if @getData().opinionCount > 1
         @allItemsLink.updatePartial "View all Answers"
-      else if @getData().repliesCount is 1
+      else if @getData().opinionCount is 1
         @allItemsLink.updatePartial "View first Answer"
       else
         @allItemsLink.updatePartial "No Answers yet"
     else
-      remainingOpinions = @getData().repliesCount-@getDelegate().items.length
+      remainingOpinions = @getData().opinionCount-@getDelegate().items.length
       if (remainingOpinions)<@maxCommentToShow
           if remainingOpinions is 1
             @allItemsLink.updatePartial "View remaining answer"

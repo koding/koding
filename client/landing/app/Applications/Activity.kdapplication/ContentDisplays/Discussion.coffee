@@ -20,18 +20,20 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @author = new ProfileLinkView {origin:origin}
 
+    @commentBox = new CommentView {}, data
+
     @opinionBox = new OpinionView {}, data
 
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "opinion-box-header"
-      partial  : @opinionHeaderCountString data.repliesCount
+      partial  : @opinionHeaderCountString data.opinionCount
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionForm = new OpinionFormView
       preview         :
@@ -40,7 +42,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
         showInitially : no
       cssClass        : "opinion-container"
       callback        : (data)=>
-        @getData().reply data, (err, opinion) =>
+        @getData().replyOpinion data, (err, opinion) =>
           callback? err, opinion
           @opinionForm.reset()
           @opinionForm.submitOpinionBtn.hideLoader()
@@ -129,6 +131,10 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
         else
           @editDiscussionForm = new DiscussionFormView
+            preview       :
+              language      : "markdown"
+              autoUpdate    : yes
+              showInitially : yes
             title         : "edit-discussion"
             cssClass      : "edit-discussion-form"
             callback      : (data)=>
@@ -195,24 +201,25 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
-        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.opinionCount
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
     activity.on "OpinionWasRemoved",(args)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
     activity.on "ReplyIsRemoved", (replyId)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
       for item,i in @opinionBox.opinionList.items
         if item.getData()._id is replyId
           item.hide()
           item.destroy()
+
 
   opinionHeaderCountString:(count)=>
     if count is 0
@@ -270,7 +277,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @highlightCode()
     @prepareExternalLinks()
 
-    @$(".discussion-body .data").addClass "has-markdown"
+    # @$(".discussion-body .data").addClass "has-markdown"
 
   prepareExternalLinks:->
     @$('p.discussion-body a[href^=http]').attr "target", "_blank"
@@ -298,7 +305,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            <p class='context discussion-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context discussion-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            {{> @commentBox}}
           </div>
         </div>
       </div>

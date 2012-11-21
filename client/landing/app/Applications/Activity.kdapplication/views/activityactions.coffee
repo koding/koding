@@ -110,3 +110,11 @@ class ActivityCommentCount extends ActivityCountLink
     @emit "countChanged", activity.repliesCount
 
   pistachio:-> "{{ #(repliesCount)}}"
+
+class ActivityOpinionCount extends ActivityCountLink
+
+  setCount:(activity)->
+    if activity.opinionCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.opinionCount
+
+  pistachio:-> "{{ #(opinionCount)}}"

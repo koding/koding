@@ -27,7 +27,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "opinion-box-header"
-      partial  : @opinionHeaderCountString data.repliesCount
+      partial  : @opinionHeaderCountString data.opinionCount
 
     @embedOptions = $.extend {}, options,
       delegate  : @
@@ -37,10 +37,10 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @embedBox = new EmbedBox @embedOptions, data
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionForm = new OpinionFormView
       preview         :
@@ -137,20 +137,20 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           @newAnswers++
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
-        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.opinionCount
 
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
     activity.on "OpinionWasRemoved",(args)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
     activity.on "ReplyIsRemoved", (replyId)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
       for item,i in @opinionBox.opinionList.items
         if item.getData()._id is replyId
@@ -254,8 +254,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @highlightCode()
     @prepareExternalLinks()
 
-    @$(".tutorial-body .data").addClass "has-markdown"
-
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
         @embedBox.show() unless (("embed" in @embedBox.getEmbedHiddenItems()) or\
@@ -292,7 +290,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
             {{> @embedBox}}
-            <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            <p class='context tutorial-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>

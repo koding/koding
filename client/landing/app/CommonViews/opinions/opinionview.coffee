@@ -34,8 +34,8 @@ class OpinionView extends KDView
       for opinion, i in data.opinions when opinion? and 'object' is typeof opinion
         @opinionList.addItem opinion
 
-    if data.repliesCount and not data.opinions?
-      maxOpinions = (if data.repliesCount<=5 then data.repliesCount else 5)
+    if data.opinionCount and not data.opinions?
+      maxOpinions = (if data.opinionCount<=5 then data.opinionCount else 5)
       @opinionController.fetchOpinionsByRange 0,maxOpinions, (err, opinions)=>
         for opinion, i in opinions when (opinion? and 'object' is typeof opinion)
           @opinionList.addItem opinion
@@ -49,6 +49,10 @@ class OpinionView extends KDView
     @opinionList.on "OpinionLinkReceivedClick", =>
       @parent?.opinionForm?.opinionBody?.setFocus()
 
+    @opinionList.on "CommentLinkReceivedClick", =>
+      log @parent
+      @parent?.commentBox?.commentForm?.commentInput?.setFocus()
+
 
     @opinionList.on "OpinionCountClicked", =>
       @opinionList.emit "AllOpinionsLinkWasClicked"
@@ -60,7 +64,7 @@ class OpinionView extends KDView
 
   resetDecoration:->
     post = @getData()
-    if post.repliesCount is 0
+    if post.opinionCount is 0
       @decorateNoCommentState()
     else
       @decorateCommentedState()

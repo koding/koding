@@ -151,8 +151,17 @@ class TutorialActivityItemView extends ActivityItemChild
     @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).is("[data-paths~=title],[data-paths~=preview]") # or\
+    if $(event.target).is("[data-paths~=title]") # or\
          appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=title],[data-paths~=preview]")
+      log "pop",screen, window
+      h=@previewImage.getHeight()
+      w=@previewImage.getWidth()
+      t=@previewImage.$().offset()
+      videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,resizable=yes,scrollbars=no,status=no,height=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
+      @utils.wait 2000, =>
+        log "Sending PM",videoPopup
+        videoPopup.postMessage @getData().link?.link_embed?.object?.html, "*"
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str

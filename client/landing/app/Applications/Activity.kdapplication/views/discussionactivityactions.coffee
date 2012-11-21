@@ -5,31 +5,58 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     activity = @getData()
 
-    @opinionCount?.destroy()
+    # @opinionCount?.destroy()
+
+    log "this is the data",activity.repliesCount, activity.opinionCount
 
     @opinionCountLink  = new ActivityActionLink
-      partial     : "Answers"
+      partial     : "Answer"
       click     : (pubInst, event)=>
         @emit "DiscussionActivityLinkClicked"
 
-    if activity.repliesCount is 0 then @opinionCountLink.hide()
+    @commentCountLink  = new ActivityActionLink
+      partial     : "Comment"
+      click     : (pubInst, event)=>
+        @emit "DiscussionActivityCommentLinkClicked"
 
-    @opinionCount = new ActivityCommentCount
+    if activity.opinionCount is 0
+      @opinionCountLink.hide()
+    # if activity.repliesCount is 0
+    #   @commentCountLink.hide()
+
+    @opinionCount = new ActivityOpinionCount
       tooltip     :
         title     : "Take me there!"
       click       : (pubInst, event)=>
         @emit "DiscussionActivityLinkClicked"
     , activity
 
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Take me there!"
+      click       : (pubInst, event)=>
+        @emit "DiscussionActivityCommentLinkClicked"
+    , activity
+
     @opinionCount.on "countChanged", (count) =>
       if count > 0 then @opinionCountLink.show()
       else @opinionCountLink.hide()
+
+    # @commentCount.on "countChanged", (count) =>
+    #   if count > 0 then @commentCountLink.show()
+    #   else @commentCountLink.hide()
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
         appManager.tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
+
+    @on "DiscussionActivityCommentLinkClicked", =>
+      unless @parent instanceof ContentDisplayDiscussion
+        appManager.tell "Activity", "createContentDisplay", @getData()
+      else
+        @getDelegate().emit "CommentLinkReceivedClick"
 
   viewAppended:->
     @setClass "activity-actions"
@@ -48,7 +75,8 @@ class DiscussionActivityActionsView extends ActivityActionsView
   pistachio:->
     """
       {{> @loader}}
-      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
+      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.opinionCount > 0 then " ·" else "" }
+      {{> @commentCountLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
       <span class='optional'>
       {{> @shareLink}} ·
       </span>
