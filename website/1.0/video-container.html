@@ -1,19 +1,32 @@
 <html>
-<head>
-  <title>Sup!</title>
+  <head>
+    <title>Koding Video</title>
+    <style type="text/css">
+      body {margin:0px;padding:0px;}
+      div {margin:0px;padding:0px;}
+      iframe {width:100%;height: 100%;}
+    </style>
 <script type="text/javascript">
-console.log("Stuff");
 window.addEventListener("message", receiveMessage, false);
- 
+
 function receiveMessage(event)
 {
-  console.log("Stuff!",event);
-  var div = document.getElementById("placeholder");
-  div.innerHTML = "Message received: "+event.data;
+  var targetDiv = document.getElementById("placeholder");
+  var sourceDiv = document.createElement('div');
+  sourceDiv.innerHTML = event.data
+  targetDiv.innerHTML = sourceDiv.firstChild.nodeValue;
+}
+
+window.onload = function(){
+  window.setTimeout(function(){
+    var topOffset = this.outerHeight-this.innerHeight;
+    this.moveTo(screenLeft,screenTop-topOffset-22);
+  },250);
+
 }
 </script>
-</head>
-<body>
-  <div id="placeholder" />
-</body>
+  </head>
+  <body>
+    <div id="placeholder" />
+  </body>
 </html>

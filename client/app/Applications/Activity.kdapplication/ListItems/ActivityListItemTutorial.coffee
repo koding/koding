@@ -159,8 +159,35 @@ class TutorialActivityItemView extends ActivityItemChild
       w=@previewImage.getWidth()
       t=@previewImage.$().offset()
       videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,resizable=yes,scrollbars=no,status=no,height=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
-      @utils.wait 2000, =>
-        log "Sending PM",videoPopup
+      @utils.wait 1500, =>
+        window.onfocus = =>
+          @utils.wait 500, =>
+            if videoPopup.length isnt 0
+              window.onfocus = noop
+              userChoice = no
+              modal           = new KDModalView
+                title         : "Do you want to keep the video running?"
+                content       : "<p>Your video will automatically end in 5 seconds unless you click the 'Yes'-Button below.</p>"
+                buttons       :
+                  "Yes, keep it running" :
+                    title     : "Yes, keep it running"
+                    cssClass  : "modal-clean-gray"
+                    callback  : =>
+                      modal.destroy()
+                      userChoice = yes
+
+                  "No, close it" :
+                    title     : "No, close it"
+                    cssClass  : "modal-clean-red"
+                    callback  : =>
+                      videoPopup?.close()
+                      modal.destroy()
+
+              @utils.wait 5000, =>
+                unless userChoice
+                  videoPopup?.close()
+                  modal.destroy()
+
         videoPopup.postMessage @getData().link?.link_embed?.object?.html, "*"
 
   applyTextExpansions:(str = "")->
