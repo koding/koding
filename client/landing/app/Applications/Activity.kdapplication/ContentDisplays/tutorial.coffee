@@ -36,6 +36,18 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @embedBox = new EmbedBox @embedOptions, data
 
+    @previewImage = new KDCustomHTMLView
+      tagName : "img"
+      cssClass : "tutorial-preview-image"
+      attributes:
+        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title:"View the full Tutorial"
+        alt:"View the full tutorial"
+        "data-paths":"preview"
+
+    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
+
+
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
       @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
@@ -266,6 +278,15 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             #   {{> @listAnchorNext}}
             # </div>
 
+  click:(event)->
+    if $(event.target).is("[data-paths~=preview]")
+
+      @videoPopup = new VideoPopup
+        delegate : @previewImage
+      ,@getData().link?.link_embed?.object?.html
+
+      @videoPopup.openVideoPopup()
+
   pistachio:->
     """
     {{> @header}}
@@ -289,7 +310,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            {{> @embedBox}}
+            {{> @previewImage}}
             <p class='context tutorial-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
