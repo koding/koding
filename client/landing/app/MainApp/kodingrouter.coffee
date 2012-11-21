@@ -12,9 +12,6 @@ class KodingRouter extends KDRouter
       new KDNotificationView title: "You're already here!"
       console.trace()
 
-  cleanupRoute:(contentDisplay)->
-    delete @openRoutes[@openRoutesById[contentDisplay.id]]
-
   handleRoute =(groupId, route)->
     console.log 'invoking a route by group id...'
 
@@ -29,8 +26,20 @@ class KodingRouter extends KDRouter
       @handleRoute @getDefaultRoute(), replaceState: yes
     else
       KD.getSingleton('mainController').doGoHome()
+
+  getContentTitle =(model)->
+    {JAccount, JStatusUpdate} = KD.remote.api
+    @utils.shortenText (switch model.constructor
+      when JAccount then "#{model.profile.firstName} #{model.profile.lastName}"
+      when JStatusUpdate then model.body
+      else title
+    ), 100
+
+  cleanupRoute:(contentDisplay)->
+    delete @openRoutes[@openRoutesById[contentDisplay.id]]
   
-  go =(app, group, query, rest...)->
+  go:(app, group, query, rest...)->
+    @setPageTitle app
     unless group?
       appManager.openApplication app
     else
@@ -58,7 +67,11 @@ class KodingRouter extends KDRouter
 
   getDefaultRoute:-> '/Activity'
 
+  setPageTitle:(title="Koding")->
+    document.title = title
+
   openContent:(name, section, state, route)->
+    @setPageTitle getContentTitle state
     appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
       @openRoutes[route] = contentDisplay
       @openRoutesById[contentDisplay.id] = route
@@ -97,6 +110,12 @@ class KodingRouter extends KDRouter
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
+
+    openApp       = @createContentDisplayHandler 'Apps'
+    openActivity  = @createContentDisplayHandler 'Activity'
+    openMember    = @createContentDisplayHandler 'Members'
+    openGroup     = @createContentDisplayHandler 'Groups'
+    openTopic     = @createContentDisplayHandler 'Topics'
     
     routes =
 
@@ -111,18 +130,18 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
 
       # nouns
-      '/:name?/Groups'    : ({params:{name}, query})-> go 'Groups'  , name, query
-      '/:name?/Activity'  : ({params:{name}, query})-> go 'Activity', name, query
-      '/:name?/Members'   : ({params:{name}, query})-> go 'Members' , name, query
-      '/:name?/Topics'    : ({params:{name}, query})-> go 'Topics'  , name, query
-      '/:name?/Develop'   : ({params:{name}, query})-> go 'StartTab', name, query
-      '/:name?/Apps'      : ({params:{name}, query})-> go 'Apps'    , name, query
-      '/:name?/Account'   : ({params:{name}, query})-> go 'Account' , name, query
+      '/:name?/Groups'    : ({params:{name}, query})-> @go 'Groups'  , name, query
+      '/:name?/Activity'  : ({params:{name}, query})-> @go 'Activity', name, query
+      '/:name?/Members'   : ({params:{name}, query})-> @go 'Members' , name, query
+      '/:name?/Topics'    : ({params:{name}, query})-> @go 'Topics'  , name, query
+      '/:name?/Develop'   : ({params:{name}, query})-> @go 'StartTab', name, query
+      '/:name?/Apps'      : ({params:{name}, query})-> @go 'Apps'    , name, query
+      '/:name?/Account'   : ({params:{name}, query})-> @go 'Account' , name, query
 
       # content displays:
-      '/:name?/Topics/:topicSlug'       : @createContentDisplayHandler 'Topics'
-      '/:name?/Activity/:activitySlug'  : @createContentDisplayHandler 'Activity'
-      '/:name?/Apps/:appSlug'           : @createContentDisplayHandler 'Apps'
+      '/:name?/Topics/:topicSlug'       : openTopic
+      '/:name?/Activity/:activitySlug'  : openActivity
+      '/:name?/Apps/:appSlug'           : openApp
 
       '/recover/:recoveryToken': ({params:{recoveryToken}})->
         mainController.appReady ->
@@ -194,16 +213,14 @@ class KodingRouter extends KDRouter
               appManager.tell "Members", "createContentDisplay", account 
 
       # top level names:
-      '/:name': ({params})->
+      '/:name':({params})->
         status_404 = => @handleNotFound params.name
         KD.remote.cacheable params.name, (err, model, name)->
+          console.log arguments
           switch name?.constructorName
-            when 'JAccount'
-              appManager.tell 'Members', 'createContentDisplay', model
-            when 'JGroup'
-              appManager.tell 'Groups', 'createContentDisplay', model
-            when 'JTopic'
-              appManager.tell 'Topics', 'createContentDisplay', model
+            when 'JAccount' then openMember   model
+            when 'JGroup'   then openGroup    model
+            when 'JTopic'   then openTopic    model
             else status_404()
 
     sharedRoutes = KODING_ROUTES.concat KODING_ROUTES.map (route)->
