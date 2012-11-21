@@ -27,7 +27,7 @@ class KDRouter extends KDObject
       if err?
         new KDNotificationView title: 'An unknown error has occurred.'
       else
-        @handleRoute location.pathname,
+        @handleRoute "#{location.pathname}#{location.search}",
           shouldPushState   : no
           state             : state
 

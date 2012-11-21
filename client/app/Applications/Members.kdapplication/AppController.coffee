@@ -15,8 +15,7 @@ class Members12345 extends AppController
     @bringToFront()
     callback()
 
-  handleQuery:(query)->
-    
+  handleQuery:(query)-> @feedController?.handleQuery? query
 
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
@@ -64,6 +63,7 @@ class Members12345 extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
+      @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'
