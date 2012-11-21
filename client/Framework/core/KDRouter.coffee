@@ -87,8 +87,8 @@ class KDRouter extends KDObject
     nextRoute = "/#{@currentPath}?#{query}"
     @handleRoute nextRoute
 
-  handleRoute:(frag, options={})->
-    [frag, query...] = (frag ? @getDefaultRoute?() ? '/').split '?'
+  handleRoute:(userRoute, options={})->
+    [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
     query = @utils.parseQuery query.join '&'
     {shouldPushState, replaceState, state} = options
     objRef = createObjectRef state
