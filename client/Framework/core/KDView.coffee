@@ -123,8 +123,9 @@ class KDView extends KDObject
             child.emit 'viewAppended', child
 
 
-  setTemplate:(tmpl)->
-    @template = new Pistachio(@, tmpl)
+  setTemplate:(tmpl, params=@pistachioParams)->
+    options = if params? then {params}
+    @template = new Pistachio @, tmpl, options
     @updatePartial @template.html
     @template.embedSubViews()
 
@@ -177,7 +178,7 @@ class KDView extends KDObject
     @addEventHandlers options
 
     if options.pistachio
-      @setTemplate options.pistachio
+      @setTemplate options.pistachio, options.pistachioParams
       @template.update()
 
     @setLazyLoader options.lazyLoadThreshold      if options.lazyLoadThreshold
