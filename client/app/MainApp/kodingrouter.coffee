@@ -41,10 +41,8 @@ class KodingRouter extends KDRouter
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     unless group?
-      log 'AAAAAA'
       appManager.openApplication app
     else
-      log 'BBBBB'
       appManager.tell app, 'setGroup', group
     if Object.keys(query).length
       appManager.tell app, 'handleQuery', query
