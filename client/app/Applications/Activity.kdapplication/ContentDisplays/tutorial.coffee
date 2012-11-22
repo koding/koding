@@ -2,6 +2,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
   constructor:(options = {}, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options.tooltip or=
       title     : "Tutorial"
       offset    : 3
