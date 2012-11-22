@@ -73,7 +73,7 @@ class MainController extends KDController
       oldRouter.stopListening()  if oldRouter?                  # disable the old router 
       @router = new KodingRouter location.pathname              # instantiate the new router
       shouldOverride = oldRouter?                               # we need to "override" if the old router exists
-      KD.registerSingleton 'router', @router, shouldOverride    # reregister the singleton
+      KD.registerSingleton 'router', @router, shouldOverride    # (re)register the singleton
 
     unless @mainViewController
       @loginScreen = new LoginView
