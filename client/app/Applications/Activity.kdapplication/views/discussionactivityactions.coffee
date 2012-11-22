@@ -5,10 +5,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     activity = @getData()
 
-    # @opinionCount?.destroy()
-
-    log "this is the data",activity.repliesCount, activity.opinionCount
-
     @opinionCountLink  = new ActivityActionLink
       partial     : "Answer"
       click     : (pubInst, event)=>
@@ -76,7 +72,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
     """
       {{> @loader}}
       {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.opinionCount > 0 then " ·" else "" }
-      {{> @commentCountLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
+      {{> @commentCountLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else " ·" }
       <span class='optional'>
       {{> @shareLink}} ·
       </span>
