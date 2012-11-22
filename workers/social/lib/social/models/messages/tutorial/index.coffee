@@ -38,7 +38,8 @@ module.exports = class JTutorial extends JPost
     sharedMethods     :
       static          : ['create','one']
       instance        : [
-        'on','reply','restComments','commentsByRange'
+        'on','reply','restComments','commentsByRange',
+        'opinionsByRange','restOpinions'
         'like','checkIfLikedBefore','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments'
         'updateTeaser', 'fetchList'
@@ -80,12 +81,16 @@ module.exports = class JTutorial extends JPost
       link        : data.link
     JPost::modify.call @, client, discussion, callback
 
+  opinionsByRange:(options, callback)->
+    @commentsByRange options, callback
+
+  restOpinions:(skipCount, callback)->
+    @restComments skipCount,callback
+
   removeOpinion:(rel, callback)->
-    log "removeReply called soon"
     @removeReply rel, callback
 
   removeReply:(rel, callback)->
-    log "removeReply called."
     id = @getId()
     teaser = null
     activityId = null
