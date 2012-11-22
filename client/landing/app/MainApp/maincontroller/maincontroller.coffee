@@ -146,13 +146,13 @@ class MainController extends KDController
       # tightly related to application manager refactoring
       @utils.wait 2000, -> location.reload yes
 
-  goToPage:(pageInfo)=>
-
-    path = pageInfo.appPath
-    if path is "Login"
-      @loginScreen.slideDown()
-    else
-      appManager.openApplication path, yes
+  # goToPage:(pageInfo)=>
+  #   console.log 'go to page'
+  #   path = pageInfo.appPath
+  #   if path is "Login"
+  #     @loginScreen.slideDown()
+  #   else
+  #     appManager.openApplication path, yes
 
   putGlobalEventListeners:()->
 

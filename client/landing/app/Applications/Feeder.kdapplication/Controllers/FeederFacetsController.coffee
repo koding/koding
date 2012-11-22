@@ -31,10 +31,13 @@ class FeederFacetsController extends KDViewController
 
     view.addSubView new HelpBox @getOptions().help
 
-  highlight:(facet, sortName)->
+  highlight:(filterName, sortName)->
     @facetTypes.forEach (facetType)=>
       controller = @["#{facetType}Controller"]
       for item in controller.itemsOrdered
-        isSelectedItem = item.getData().type is facet and\
-                         controller.itemsOrdered.length > 1
+        {type, action} = item.getData()
+        typeMatches = switch action
+          when 'filter' then filterName is type
+          when 'sort'   then sortName is type
+        isSelectedItem = typeMatches and controller.itemsOrdered.length > 1
         controller.selectItem item  if isSelectedItem

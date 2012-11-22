@@ -52,14 +52,16 @@ class ApplicationManager extends KDObject
 
   openApplication:do->
     openAppHandler =(appInstance, path, doBringToFront, callback)->
-      @emit "AppManagerOpensAnApplication", appInstance
+      # @emit "AppManagerOpensAnApplication", appInstance
       if 'function' is typeof callback
         @utils.defer -> callback appInstance
       if doBringToFront
         appManager.setFrontApp path
         appInstance.bringToFront()
 
-    (path, doBringToFront, callback)->
+    openApplication =(path, doBringToFront, callback)->
+      console.log 'opening an application', path
+      console.trace()
 
       [callback, doBringToFront] = [doBringToFront, callback] unless callback
       doBringToFront ?= yes
@@ -70,24 +72,18 @@ class ApplicationManager extends KDObject
       # TODO: this isOpenOrInitializing crap is completely botched C.T.
       #application already open or initialization in process
       isOpenOrInitializing = @waitForAppInitialization path, (appInstance)=>
+        console.log 'this is the antipattern one'
         openAppHandler.call @, appInstance, path, doBringToFront, callback
       #application needs opening
       unless isOpenOrInitializing
-        @createAppInstance path, (appInstance)=>
-          handler = openAppHandler.bind(
-            @, appInstance, path, doBringToFront, callback
-          )
-          if doBringToFront and\
-             "function" is typeof appInstance.initAndBringToFront
-            appManager.initializeAppInstance(
-              path, appInstance, 'initAndBringToFront', handler
-            )
-          else if "function" is typeof appInstance.initApplication
-            appManager.initializeAppInstance(
-              path, appInstance, 'initApplication', handler
-            )
+        @createAppInstance path, (app)=>
+          handler = openAppHandler.bind @, app, path, doBringToFront, callback
+          if doBringToFront and app.initAndBringToFront?
+            @initializeAppInstance path, app, 'initAndBringToFront', handler
+          else if app.initApplication?
+            @initializeAppInstance path, app, 'initApplication', handler
           else
-            appManager.initializeAppInstance path, appInstance, handler
+            @initializeAppInstance path, app, handler
 
   replaceStartTabWithApplication:(applicationPath, tab)->
     @openApplication applicationPath, no, (appInstance)->
@@ -162,7 +158,8 @@ class ApplicationManager extends KDObject
       #   else
       #     requirejs [appUrl], (appInstance)->
       #       callback appInstance
-      requirejs ["js/KDApplications/#{path}/AppController.js?#{KD.version}"], (appInstance)->
+      appSrc = "js/KDApplications/#{path}/AppController.js?#{KD.version}"
+      requirejs [appSrc], (appInstance)->
         if appInstance
           appManager.addAppInstance path, appInstance
           callback appInstance
@@ -171,12 +168,16 @@ class ApplicationManager extends KDObject
             title : "Application does not exists!"
 
   initializeAppInstance:(path, appInstance, initFunctionName, callback)->
-    appManager = @
-    environment = @getEnvironment()
-    [path, appInstance, callback, initFunctionName] = arguments unless callback?
-    initFunction = appInstance[initFunctionName] or -> arguments[1]()
-    initFunction.call appInstance, {environment}, -> callback appInstance
-    appManager.passStorageToApp path, null, appInstance, ->
+    [callback, initFunctionName] = [initFunctionName, callback]  unless callback?
+
+    initFunction = appInstance[initFunctionName]
+
+    if initFunction?
+      initFunction.call appInstance, {}, -> callback appInstance
+    else
+      callback appInstance
+
+    @passStorageToApp path, null, appInstance, ->
 
   addAppInstance:(path, instance)->
     @appInstanceArray.push instance
@@ -196,6 +197,7 @@ class ApplicationManager extends KDObject
 
   waitForAppInitialization:(path, callback)->
     if (appInstance = @getAppInstance path)?
+      console.log 'is it open or initializing?', yes
       callback appInstance
       return yes
     return no
