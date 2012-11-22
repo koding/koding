@@ -19,6 +19,7 @@ class ActivityDiscussionWidget extends KDFormView
     @inputDiscussionTitle = new KDInputView
       name          : "title"
       label         : @labelTitle
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to what you want to start discussing..."
       validate      :
         rules       :
