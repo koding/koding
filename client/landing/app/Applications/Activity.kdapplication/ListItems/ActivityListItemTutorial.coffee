@@ -2,6 +2,11 @@ class TutorialActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options = $.extend
       cssClass    : "activity-item tutorial"
       tooltip     :
