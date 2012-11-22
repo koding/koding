@@ -39,8 +39,7 @@ class ApplicationManager extends KDObject
     else
       @forceQuit path
 
-  setFrontApp:(app)->
-    @frontApp = app
+  setFrontApp:(app)-> @frontApp = app
 
   getFrontApp:-> @frontApp
 
