@@ -14,14 +14,6 @@ class Inbox12345 extends AppController
         name : 'Inbox'
       data : @mainView
 
-  initAndBringToFront:(options,callback)->
-    initApplication options, ->
-      @bringToFront()
-      callback()
-
-  initApplication:(options, callback)->
-    callback()
-
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 

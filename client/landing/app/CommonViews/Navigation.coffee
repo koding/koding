@@ -38,7 +38,7 @@ class NavigationLink extends KDListItemView
     @name = data.title
     @setClass 'navigation-item clearfix'
 
-  mouseDown:(event)->
+  click:(event)->
     {appPath, title, path} = @getData()
 
     # This check is for Invite Friends link which has no app at all
@@ -57,7 +57,7 @@ class NavigationLink extends KDListItemView
 
 class AdminNavigationLink extends NavigationLink
 
-  mouseDown:(event)->
+  click:(event)->
 
     cb = @getData().callback
     cb.call @ if cb
