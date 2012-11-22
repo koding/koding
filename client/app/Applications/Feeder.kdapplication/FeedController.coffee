@@ -73,7 +73,7 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-    console.log 'feed controller #handle feed'
+    console.log 'handle query', {filter, sort}
     @selectFilter filter      if filter?
     @changeActiveSort sort    if sort?
     @highlightFacets()

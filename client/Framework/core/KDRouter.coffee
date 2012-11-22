@@ -19,7 +19,9 @@ class KDRouter extends KDObject
     # this handles the case that the url is an "old-style" hash fragment hack.
     if location.hash.length
       hashFragment = location.hash.substr 1
-      @utils.defer => @handleRoute hashFragment, shouldPushState: yes
+      @utils.defer => @handleRoute hashFragment,
+        shouldPushState   : yes
+        replaceState      : yes
     @startListening()
 
   onpopstate:(event)=> # fat-arrow binding makes this handler easier to remove.

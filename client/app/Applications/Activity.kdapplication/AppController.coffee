@@ -49,10 +49,6 @@ class Activity12345 extends AppController
   bringToFront:()->
     super name : 'Activity'
 
-  initAndBringToFront:(options,callback)->
-    @environment = options.environment
-    super
-
   loadView:(mainView)->
 
     mainController = @getSingleton('mainController')

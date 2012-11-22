@@ -8,7 +8,6 @@ class KodingRouter extends KDRouter
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
-      console.trace()
 
   nicenames = {
     JTag      : 'Topics'
@@ -42,10 +41,13 @@ class KodingRouter extends KDRouter
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
     unless group?
+      log 'AAAAAA'
       appManager.openApplication app
     else
+      log 'BBBBB'
       appManager.tell app, 'setGroup', group
-    appManager.tell app, 'handleQuery', query  if query?
+    if Object.keys(query).length
+      appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor

@@ -16,10 +16,6 @@ class Topics12345 extends AppController
         name : 'Topics'
       data : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
