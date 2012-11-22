@@ -50,8 +50,8 @@ class ApplicationManager extends KDObject
     else "./client/app/Applications/#{path}.kdapplication"
 
   openApplication:do->
+
     openAppHandler =(app, path, doBringToFront, callback)->
-      console.log 'open app handler', "#{callback}"
       if 'function' is typeof callback then @utils.defer -> callback app
       if doBringToFront
         appManager.setFrontApp path
@@ -62,17 +62,13 @@ class ApplicationManager extends KDObject
       doBringToFront ?= yes
 
       path = expandApplicationPath path
-
       app = @getAppInstance path
 
       if app? then openAppHandler.call @, app, path, doBringToFront, callback
       else # this is the first time the app is opened.
         @createAppInstance path, (app)=>
           handler = openAppHandler.bind @, app, path, doBringToFront, callback
-          if doBringToFront and app.initAndBringToFront?
-            @initApp path, app, 'initAndBringToFront', handler
-          else
-            @initApp path, app, 'initApplication', handler
+          @initApp path, app, handler
 
   replaceStartTabWithApplication:(appPath, tab)->
     @openApplication appPath, no, (app)->
@@ -152,10 +148,8 @@ class ApplicationManager extends KDObject
           callback new Error "Application does not exist!"
           new KDNotificationView title : "Application does not exist!"
 
-  initApp:(path, app, initFunctionName, callback)->
-
-    initFunction = app[initFunctionName]
-    if initFunction? then initFunction.call app, {}, -> callback()
+  initApp:(path, app, callback)->
+    if app.initApp? then app.initApp {}, callback
     else callback()
 
     @passStorageToApp path, null, app
