@@ -7,22 +7,16 @@ class VideoPopup extends KDView
     @setClass "hidden invisible"
     @videoPopup = @getSingleton("windowController").videoPopup
     @embedData = data
+    @options = options
 
 
   openVideoPopup:->
     h=@getDelegate().getHeight()
     w=@getDelegate().getWidth()
     t=@getDelegate().$().offset()
-    unless @videoPopup? and @videoPopup?.top isnt null
-
-      @videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,resizable=yes,scrollbars=no,status=no,height=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
-      @getSingleton("windowController").videoPopup = @videoPopup
-
-    else
-
-      @videoPopup.resizeTo w,(h+@videoPopup.outerHeight-@videoPopup.innerHeight)
-      @videoPopup.moveTo t.left+window.screenX, window.screenY+t.top+(window.outerHeight - window.innerHeight)
-      @videoPopup.focus()
+    @videoPopup?.close()
+    @videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
+    @getSingleton("windowController").videoPopup = @videoPopup
 
     @utils.wait 1500, =>          # give the popup some time to open
 
@@ -42,18 +36,18 @@ class VideoPopup extends KDView
               content       : "<p class='modal-video-close'>Your video will automatically end in <span class='countdown'>#{secondsToAutoClose}</span> seconds unless you click the 'Yes'-Button below.</p>"
               overlay       : yes
               buttons       :
-                "Yes, keep it running" :
-                  title     : "Yes, keep it running"
-                  cssClass  : "modal-clean-gray"
-                  callback  : =>
-                    modal.destroy()
-                    userChoice = yes
                 "No, close it" :
                   title     : "No, close it"
-                  cssClass  : "modal-clean-red"
+                  cssClass  : "modal-clean-gray"
                   callback  : =>
                     @videoPopup?.close()
                     modal.destroy()
+                "Yes, keep it running" :
+                  title     : "Yes, keep it running"
+                  cssClass  : "modal-clean-green"
+                  callback  : =>
+                    modal.destroy()
+                    userChoice = yes
 
             currentSeconds = secondsToAutoClose-1
             countdownInterval = window.setInterval =>
@@ -68,7 +62,13 @@ class VideoPopup extends KDView
                 @videoPopup?.close()
                 modal.destroy()
 
-      embed = @embedData
+      embed =
+        embed : @embedData
+        coordinates :
+          left : @options.popup?.left or t.left+window.screenX or 100
+          top : @options.popup?.top or window.screenY+t.top+(window.outerHeight - window.innerHeight) or 100
+          # height : @options.popup?.height or h or 100
+          # width : @options.popup?.width or w or 100
 
       if embed and @videoPopup
         @videoPopup.postMessage embed, "*"
