@@ -12,10 +12,6 @@ class Apps12345 extends AppController
         name  : 'Apps'
       data    : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed()

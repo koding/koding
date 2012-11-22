@@ -22,7 +22,7 @@ class MainViewController extends KDViewController
         @mainTabPaneChanged mainView, data.pane
 
   mainTabPaneChanged:(mainView, pane)->
-
+    console.log 'does this happens again?'
     {sidebarController} = @
     sidebar             = sidebarController.getView()
     paneType            = pane.options.type

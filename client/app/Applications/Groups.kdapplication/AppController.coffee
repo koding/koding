@@ -19,10 +19,6 @@ class GroupsController extends AppController
         name : 'Groups'
       data : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass

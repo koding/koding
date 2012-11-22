@@ -11,10 +11,6 @@ class Members12345 extends AppController
         name : 'Members'
       data : @getView()
 
-  initAndBringToFront:(options, callback)->
-    @bringToFront()
-    callback()
-
   handleQuery:(query)-> @feedController?.handleQuery? query
 
   createFeed:(view)->

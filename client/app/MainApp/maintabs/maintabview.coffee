@@ -5,9 +5,12 @@ class MainTabView extends KDTabView
     @paneViewIndex  = {}
     super options,data
 
+    @on 'ApplicationWantsToBeShown', log
+    
     @listenTo
       KDEventTypes : 'ApplicationWantsToBeShown'
       callback     :(app, {options, data})->
+        log 'twice???'
         @showPaneByView options, data
 
     @listenTo
