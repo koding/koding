@@ -120,22 +120,24 @@ class KodingRouter extends KDRouter
         else
           @loadContent name, section, topicSlug, route
 
-  collectionToMap =(acc, sec)->
-    acc[sec[0]] = sec[1]
-    acc
-
   getRoutes =->
+    # Abbreviations used below:
+    # "acc" is short for "accumulator"
+    # "kv" is short for "key-value pair"
+    # "sec" is short for "section"
     mainController = KD.getSingleton 'mainController'
+
+    kv =(acc, sec)-> acc[sec[0]] = sec[1]; acc
 
     goToContent = 'Activity Apps Groups Members Topics'
       .split(' ')
       .map((sec)=> [sec, @createContentDisplayHandler sec])
-      .reduce collectionToMap, {}
+      .reduce kv, {}
 
     goToSection = 'Account Activity Apps Groups Members StartTab Topics'
       .split(' ')
       .map((sec)-> [sec, ({params:{name}, query})-> @go sec, name, query])
-      .reduce collectionToMap, {}
+      .reduce kv, {}
 
     routes =
 
@@ -237,7 +239,7 @@ class KodingRouter extends KDRouter
             when 'JGroup'   then goToContent.Groups  routeInfo, model
             when 'JTopic'   then goToContent.Topics  routeInfo, model
             else status_404()
-        handler =(routeInfo, state, route)->
+        nameHandler =(routeInfo, state, route)->
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
           if state?
