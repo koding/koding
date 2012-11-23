@@ -58,7 +58,7 @@ app.configure ->
 
 #app.use gzippo.staticGzip "#{projectRoot}/website/"
 app.use (req, res, next)->
-  res.removeHeader("X-Powered-By")
+  res.removeHeader "X-Powered-By"
   next()
 
 if basicAuth
@@ -66,8 +66,11 @@ if basicAuth
 
 process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
-  throw err
-  console.trace()
+  console.error err
+  stack = err?.stack
+  console.log stack  if stack?
+  # throw err
+  # console.trace()
 
 koding = require './bongo'
 
