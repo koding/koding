@@ -120,24 +120,43 @@ class KodingRouter extends KDRouter
         else
           @loadContent name, section, topicSlug, route
 
-  getRoutes =->
+  createGoTos =do->
     # Abbreviations used below:
     # "acc" is short for "accumulator"
     # "kv" is short for "key-value pair"
     # "sec" is short for "section"
+    {isArray}   = Array
+    kvMap       = (sec)-> [sec, fn sec]
+    kvReduce    = (acc, sec)-> acc[sec[0]] = sec[1]; acc
+    createGoTos = (names, fn)->
+      names = names.split ' '  unless isArray names
+      names.map(kvMap).reduce kvReduce, {}
+
+  getRoutes =->
+
     mainController = KD.getSingleton 'mainController'
 
-    kv =(acc, sec)-> acc[sec[0]] = sec[1]; acc
+    # kv =(acc, sec)-> acc[sec[0]] = sec[1]; acc
 
-    goToContent = 'Activity Apps Groups Members Topics'
-      .split(' ')
-      .map((sec)=> [sec, @createContentDisplayHandler sec])
-      .reduce kv, {}
+    # goToContent = 'Activity Apps Groups Members Topics'
+    #   .split(' ')
+    #   .map((sec)=> [sec, @createContentDisplayHandler sec])
+    #   .reduce kv, {}
 
-    goToSection = 'Account Activity Apps Groups Members StartTab Topics'
-      .split(' ')
-      .map((sec)-> [sec, ({params:{name}, query})-> @go sec, name, query])
-      .reduce kv, {}
+    # goToSection = 'Account Activity Apps Groups Members StartTab Topics'
+    #   .split(' ')
+    #   .map((sec)-> [sec, ({params:{name}, query})-> @go sec, name, query])
+    #   .reduce kv, {}
+
+    goToContent = createGoTos(
+      'Activity Apps Groups Members Topics'
+      (sec)=> @createContentDisplayHandler sec
+    )
+
+    goToSection = createGoTos(
+      'Account Activity Apps Groups Members StartTab Topics'
+      (sec)-> ({params:{name}, query})-> @go sec, name, query
+    )
 
     routes =
 
