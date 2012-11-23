@@ -70,11 +70,10 @@ class MainView extends KDView
       # cssClass  : "hidden"
       attributes:
         href    : "#"
-      click     : (pubInst,event)=>
-        if KD.isLoggedIn()
-          appManager.openApplication "Activity"
-        else
-          appManager.openApplication "Home"
+      click     : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute null
 
     @addLoginButtons()
 

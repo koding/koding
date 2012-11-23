@@ -1,15 +1,31 @@
 class LoginView extends KDScrollView
 
+  stop =(event)->
+    event.preventDefault()
+    event.stopPropagation()
+
   constructor:->
 
     super
     @hidden = no
 
+    router = @getSingleton 'router'
+
+    handler =(route, event)-> stop event; @handleRoute route
+
+    homeHandler       = handler.bind router, '/'
+    learnMoreHandler  = handler.bind router, '/Join'
+    loginHandler      = handler.bind router, '/Login'
+    registerHandler   = handler.bind router, '/Register'
+    joinHandler       = handler.bind router, '/Join'
+    recoverHandler    = handler.bind router, '/Recover'
+    
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
       partial     : "Koding"
-      click       : => @animateToForm "home"
+      click       : homeHandler
+      # @animateToForm "home"
       # click       : =>
       #   @slideUp ->
       #     appManager.openApplication "Home"
@@ -18,6 +34,7 @@ class LoginView extends KDScrollView
     @backToHomeLink = new KDCustomHTMLView
       tagName     : "a"
       cssClass    : "back-to-home"
+      click       : homeHandler
       # partial     : "<span></span> Koding Homepage <span></span>"
       # click       : =>
       #   @slideUp ->
@@ -27,7 +44,7 @@ class LoginView extends KDScrollView
       tagName     : "a"
       cssClass    : "video-link"
       partial     : "video again?"
-      click       : => @animateToForm "home"
+      click       : homeHandler
       # click       : =>
       #   @slideUp ->
       #     appManager.openApplication "Home"
@@ -37,49 +54,51 @@ class LoginView extends KDScrollView
       # cssClass  : "back-to-login"
       partial   : "Go ahead and login"
       # partial   : "« back to login"
-      click     : => @animateToForm "login"
+      click     : loginHandler
+        # @animateToForm "login"
 
     @goToRequestLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an invite"
       # partial     : "Want to get in? Request an invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
+        # @animateToForm "lr"
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register an account"
       # partial     : "Have an invite? Register an account"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReg = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReg1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Register"
-      click       : => @animateToForm "register"
+      click       : registerHandler
 
     @bigLinkReq = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
 
     @bigLinkReq1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Request an Invite"
-      click       : => @animateToForm "lr"
+      click       : joinHandler
 
     @bigLinkLog = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Login"
-      click       : => @animateToForm "login"
+      click       : loginHandler
 
     @bigLinkLog1 = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Login"
-      click       : => @animateToForm "login"
+      click       : loginHandler
 
     @bigLinkLearn = new KDCustomHTMLView
       tagName     : "a"
@@ -89,7 +108,7 @@ class LoginView extends KDScrollView
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
       partial     : "Recover password."
-      click       : => @animateToForm "recover"
+      click       : recoverHandler
 
     @loginOptions = new LoginOptions
       cssClass : "login-options-holder log"
@@ -276,6 +295,7 @@ class LoginView extends KDScrollView
       else
         $.cookie 'clientId', replacementToken  if replacementToken
         @getSingleton('mainController').accountChanged account
+        @getSingleton('router').handleRoute null, replaceState: yes
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"

@@ -49,10 +49,6 @@ class Activity12345 extends AppController
   bringToFront:()->
     super name : 'Activity'
 
-  initAndBringToFront:(options,callback)->
-    @environment = options.environment
-    super
-
   loadView:(mainView)->
 
     mainController = @getSingleton('mainController')
@@ -199,7 +195,7 @@ class Activity12345 extends AppController
             callback null, data
 
   fetchTeasers:(selector,options,callback)->
-    type = @activityListController._state
+    type = @activityListController?._state
     @performFetchingTeasers type, selector, options, (err, data) ->
       KD.remote.reviveFromSnapshots data, (err, instances)->
         callback instances
