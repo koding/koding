@@ -67,14 +67,6 @@ class MainController extends KDController
     @userAccount = account
     @resetUserArea()
 
-    
-    do => # router nonsense:
-      oldRouter = @router ? KD.getSingleton 'router'            # take note of the old router
-      oldRouter.stopListening()  if oldRouter?                  # disable the old router 
-      @router = new KodingRouter location.pathname              # instantiate the new router
-      shouldOverride = oldRouter?                               # we need to "override" if the old router exists
-      KD.registerSingleton 'router', @router, shouldOverride    # (re)register the singleton
-
     unless @mainViewController
       @loginScreen = new LoginView
       KDView.appendToDOMBody @loginScreen
@@ -82,6 +74,13 @@ class MainController extends KDController
         view    : mainView = new MainView
           domId : "kdmaincontainer"
       @appReady()
+    
+    do => # router nonsense:
+      oldRouter = @router ? KD.getSingleton 'router'            # take note of the old router
+      oldRouter.stopListening()  if oldRouter?                  # disable the old router 
+      @router = new KodingRouter location.pathname              # instantiate the new router
+      shouldOverride = oldRouter?                               # we need to "override" if the old router exists
+      KD.registerSingleton 'router', @router, shouldOverride    # (re)register the singleton
 
     if KD.checkFlag 'super-admin'
       $('body').addClass 'super'
