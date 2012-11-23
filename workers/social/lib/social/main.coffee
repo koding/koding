@@ -18,21 +18,22 @@ processMonitor = (require 'processes-monitor').start
       console.log "[SOCIAL WORKER #{name}] I'm using too much memory, feeling suicidal."
       process.exit()
   die :
-    after: 1000*10
-    middleware : (name,callback) ->
-      koding.disconnect callback
+    after: "non-overlapping, random, 3 digits prime-number of minutes"
 
-    middlewareTimeout : 5000
+    middleware : (name,callback) -> koding.disconnect callback
 
+    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+    # middleware : (name,callback) ->
+    #   koding.disconnect ->
+    #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+    #     setTimeout ->
+    #       callback null
+    #     ,10*1000
 
-
+    middlewareTimeout : 15000
 
 Bongo = require 'bongo'
 Broker = require 'broker'
-
-
-
-
 
 Object.defineProperty global, 'KONFIG', value: require './config'
 {mq, mongo, email, social} = KONFIG

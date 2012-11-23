@@ -13,7 +13,10 @@ processMonitor = (require 'processes-monitor').start
     callback : ->
       console.log "[WEBSERVER #{webPort}] I'm using too much memory, feeling suicidal."
       process.exit()
-
+  die :
+    after: "non-overlapping, random, 3 digits prime-number of minutes"
+    middleware : (name,callback) -> koding.disconnect callback
+    middlewareTimeout : 5000
 # if webPort is 3002
 #   foo = []
 #   do bar = ->
@@ -24,6 +27,12 @@ processMonitor = (require 'processes-monitor').start
 #   setInterval ->
 #    a=foo.length
 #   , 1000
+# aaa=Math.floor(Math.random() * (50000 - 15000 + 1))+15000
+# console.log "i will die in #{aaa/1000}secs [#{webPort} #{process.pid}]"
+# setTimeout ->
+#   console.log "oh no! [#{webPort} #{process.pid}]"
+#   process.exit()
+# ,aaa
 
 
 {extend} = require 'underscore'
@@ -171,4 +180,4 @@ app.get '*', (req,res)->
 
 app.listen webPort
 
-console.log 'Koding Webserver running ', "http://localhost:#{webPort}"
+console.log 'Koding Webserver running ', "http://localhost:#{webPort} pid:#{process.pid}"

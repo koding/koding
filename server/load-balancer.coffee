@@ -21,7 +21,9 @@ webserver        = KONFIG.webserver
 httpRedirectPort = KONFIG.loadBalancer.httpRedirect?.port
 
 process.on 'message',(msg)->
+  console.log "got msg",msg
   markServerAsDead msg.port if msg.markAsDead
+  
     
 
 markServerAsDead = (port)->
@@ -58,7 +60,7 @@ redirect = (to,bounce)->
 if httpRedirectPort
   bouncy((req, bounce) -> 
     redirect "https://koding.com#{req.url}",bounce
-  ).listen 80
+  ).listen httpRedirectPort
 
 bouncy((req, bounce) -> 
   getNextServer {},(err,srv)->
@@ -69,8 +71,8 @@ bouncy((req, bounce) ->
       # console.log "[rq:#{i++}]served from #{srv.port}"
 ).listen loadBalancerPort
 
-console.log "[HTTP-PROXY] Running load balancer on port #{loadBalancerPort}"
-console.log "[HTTP-PROXY] Proxying:",addresses
+console.log "[HTTP-PROXY] Running load balancer on port #{loadBalancerPort} pid:#{process.pid}"
+# console.log "[HTTP-PROXY] Proxying:",addresses
 
 # if webserver
 #   ports.forEach (port)->
