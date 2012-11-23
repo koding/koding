@@ -151,8 +151,8 @@ class TutorialActivityItemView extends ActivityItemChild
             # log "END FOUND"
             @scrollAreaOverlay.hide()
             # @scrollAreaHint.$().css opacity:"0"
-            @$("div.tutorial-body-container div.body").addClass "scrollable-y"
-            @$("div.tutorial-body-container div.body").removeClass "no-scroll"
+            @$("div.tutorial div.body").addClass "scrollable-y"
+            @$("div.tutorial div.body").removeClass "no-scroll"
             window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         ,50
     , (event)=>
@@ -208,7 +208,7 @@ class TutorialActivityItemView extends ActivityItemChild
         {{> @settingsButton}}
         <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
         <p class="hidden comment-title"></p>
-        <div class="activity-content-container tutorial-body-container">
+        <div class="activity-content-container tutorial">
           {{> @previewImage}}
           <div class="body has-markdown force-small-markdown no-scroll">
             {{@utils.applyMarkdown #(body)}}

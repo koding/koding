@@ -144,20 +144,20 @@ class DiscussionActivityItemView extends ActivityItemChild
         @scrollAreaOverlay.$().css top:"100%"
       , 500
       unless @scrollAreaOverlay.$().hasClass "hidden"
-        @checkForCompleteAnimationInterval = window.setInterval =>
+        @checkForCompleteAnimationInterval = setInterval =>
           # log "INTERVAL RUNNING"
           if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
             # log "END FOUND"
             @scrollAreaOverlay.hide()
             # @scrollAreaHint.$().css opacity:"0"
-            @$("div.discussion-body-container").addClass "scrollable-y"
-            @$("div.discussion-body-container").removeClass "no-scroll"
-            window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+            @$("div.discussion").addClass "scrollable-y"
+            @$("div.discussion").removeClass "no-scroll"
+            clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         ,50
     , (event)=>
       unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
-        window.clearTimeout @transitionStart if @transitionStart?
-        window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        clearTimeout @transitionStart if @transitionStart?
+        clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         # @scrollAreaHint.$().css opacity:"0"
         @scrollAreaOverlay.$().css top:"0px"
   render:->
@@ -188,7 +188,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       <div class='activity-item-right-col'>
         {{> @settingsButton}}
         <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
-        <div class="activity-content-container discussion-body-container">
+        <div class="activity-content-container discussion">
           <p class="body no-scroll has-markdown force-small-markdown">
             {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
           </p>

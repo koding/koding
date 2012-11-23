@@ -2061,12 +2061,12 @@ div.activity-content-container
   &.scrolling-down
     vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
 
-  &.discussion-body-container
+  &.discussion
     max-height 200px
     overflow-y hidden
     padding-right 15px
 
-  &.tutorial-body-container
+  &.tutorial
     vertical-align top
     padding-top 15px
     // padding-bottom 10px
@@ -2091,9 +2091,10 @@ div.activity-content-container
       float left
       cursor pointer
 
-  &:hover
-    div.enable-scroll-overlay
-      opacity 1
+  // &:hover
+  //   div.enable-scroll-overlay
+  //     opacity 1
+  //     border-top 1px solid rgba(0,0,0,.2)
 
   // div.enable-scroll-hint
   //   position absolute
@@ -2121,7 +2122,7 @@ div.activity-content-container
     // opacity 1
     vendor transition, top .5s ease-out
     text-align center
-    background-color rgba(0,0,0,0.05)
+    background-color transparent
     vertical-align middle
 
 .modal-video-close
