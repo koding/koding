@@ -37,11 +37,10 @@ processMonitor = (require 'processes-monitor').start
 
 {extend} = require 'underscore'
 express = require 'express'
-Broker = require 'broker'
-Bongo = require 'bongo'
-gzippo = require 'gzippo'
-fs = require 'fs'
-hat = require 'hat'
+Broker  = require 'broker'
+Bongo   = require 'bongo'
+fs      = require 'fs'
+hat     = require 'hat'
 
 app = express()
 

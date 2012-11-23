@@ -4,7 +4,6 @@ nodePath  = require 'path'
 {spawn}   = require 'child_process'
 KodingLogger = require 'koding-logger'
 processes   = new (require "processes")
-httpProxy = require("http-proxy")
 
 option '-c', '--configPath [CONFIG]', 'Which config file to use'
 option '-s', '--silent', 'Set this flag to suppress stdout'
