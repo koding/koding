@@ -31,7 +31,7 @@ class ActivityDiscussionWidget extends KDFormView
       label       : @labelContent
       preview     : @preview
       name        : "body"
-      cssClass    : "discussion-body"
+      cssClass    : "discussion-body warn-on-unsaved-data"
       type        : "textarea"
       autogrow    : yes
       placeholder : "What do you want to talk about? (You can use markdown here)"
