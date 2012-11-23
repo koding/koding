@@ -119,7 +119,7 @@ class KDWindowController extends KDController
                 # further than the .val(). For ACE and others, we call
                 # the checkForUnsavedData function above
                 if ($(element).hasClass("kdinput") and $(element).val() or checkForUnsavedData(element))
-                  msg = "You have non-empty input fields in your Activity message form."
+                  msg = "You may lose some input that you filled in."
 
           # For open Tabs (apps, editors)
           else if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
