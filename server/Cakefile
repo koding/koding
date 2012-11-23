@@ -4,7 +4,6 @@ nodePath  = require 'path'
 {spawn}   = require 'child_process'
 KodingLogger = require 'koding-logger'
 processes   = new (require "processes")
-httpProxy = require("http-proxy")
 
 option '-c', '--configPath [CONFIG]', 'Which config file to use'
 option '-s', '--silent', 'Set this flag to suppress stdout'
@@ -29,14 +28,12 @@ runLoadBalancer = (configPath,logger,silent)->
   # loggerLB = new KodingLogger 'load-balancer', os.hostname(), logger.mq
   # loggerLB.tailTo process.stdout unless silent
   
-  lb = processes.run
+  lb = processes.fork
     name        : 'load-balancer'
     modulePath  : "./load-balancer"
     args        : ["-c", "#{configPath}"]
     restart     : yes
     restartInterval : 1
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : no
     # onMessage : (msg)->
     #   console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
@@ -57,7 +54,7 @@ runServer =(configPath, logger, port,silent)->
     opts : silent : no
     restart : yes
     restartInterval : 1
-    verbose : yes
+    verbose : no
     # die : 
     #   interval : 60*1000
     # monitor : 
@@ -68,8 +65,6 @@ runServer =(configPath, logger, port,silent)->
     #     console.log "[WEBSERVER #{port}] high memory usage - time to commit suicide."
     #     processes.kill 'server'+port
       # console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
-
-  console.log "im the child of server:"+processes.get("server"+port).pid
 
 # runServer =(configPath, logger, port,silent)->
 #   #loggerWS = new KodingLogger 'webserver', os.hostname(), logger.mq

@@ -11,21 +11,21 @@ task 'run', ({numberOfWorkers, configPath, silent})->
   configPath ?= '../../config/dev'
   {logger, configNumberOfWorkers} = require configPath
   numberOfWorkers ?= configNumberOfWorkers ? 1
-  logger = new KodingLogger 'social', os.hostname(), logger.mq
-  logger.tailTo process.stdout unless silent
+  # logger = new KodingLogger 'social', os.hostname(), logger.mq
+  # logger.tailTo process.stdout unless silent
   i = 0
-  logger.logAll process, 'supervisor'
+  # logger.logAll process, 'supervisor'
   while i < numberOfWorkers
     # child = fork './index', ['-c', configPath], silent: yes
     processes.fork
       name  : "socialWorker-#{i}"
       modulePath : "./index"
       args  : ['-c', configPath]
-      opts  : silent : yes
+      opts  : silent : no
       restart : yes
       restartInterval : 1000
       verbose : yes
 
-    logger.logAll processes.get("socialWorker-#{i}"), "worker#{i}"
+    # logger.logAll processes.get("socialWorker-#{i}"), "worker#{i}"
     i++
   return
