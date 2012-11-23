@@ -18,8 +18,9 @@ module.exports = class JStatusUpdate extends JPost
   }
 
   @set
+    slugifyFrom       : 'body'
     sharedMethods     :
-      static          : ['create','one','fetchDataFromEmbedly']
+      static          : ['create','one','fetchDataFromEmbedly','updateAllSlugs']
       instance        : [
         'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
@@ -32,10 +33,10 @@ module.exports = class JStatusUpdate extends JPost
 
   @fetchDataFromEmbedly = (url, options, callback)->
 
-    {log}      = require 'console'
+    {log}      = console
     util       = require "util"
 
-    {Api}    = require "embedly"
+    {Api}      = require "embedly"
 
     embedly = new Api
       user_agent : 'Mozilla/5.0 (compatible; koding/1.0; arvid@koding.com)'

@@ -6,12 +6,11 @@ class TopicsListItemView extends KDListItemView
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
-      attributes  :
-        href      : '#'
       pistachio   : '{{#(title)}}'
-      click       : (pubInst, event) =>
-        @titleReceivedClick()
+      click       : (event) =>
         event?.stopPropagation()
+        event?.preventDefault()
+        @titleReceivedClick()
         no
     , data
 
@@ -20,7 +19,7 @@ class TopicsListItemView extends KDListItemView
         tagName     : 'a'
         cssClass    : 'edit-topic'
         pistachio   : '<span class="icon"></span>Edit'
-        click       : (pubInst, event) =>
+        click       : (event) =>
           @getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
       , null
     else
@@ -55,7 +54,12 @@ class TopicsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     tag = @getData()
-    appManager.tell "Topics", "createContentDisplay", tag
+    KD.getSingleton('router').handleRoute(
+      "/Topics/#{tag.slug}"
+      state: tag
+    )
+    #tag = @getData()
+    #appManager.tell "Topics", "createContentDisplay", tag
 
   viewAppended:->
     @setClass "topic-item"

@@ -125,7 +125,6 @@ class ActivityItemChild extends KDView
                 title     : "Error, please try again later!"
 
   click:(event)->
-
     $trg = $(event.target)
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"

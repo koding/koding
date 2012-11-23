@@ -29,6 +29,7 @@ module.exports = class JGuest extends jraphical.Module
         default     : 'pristine'
       clientId      : String
       leaseId       : String
+      leasedAt      : Date
       profile       :
         nickname    :
           type      : String

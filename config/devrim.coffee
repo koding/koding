@@ -36,6 +36,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 2
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     watch       : yes
@@ -53,7 +54,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://zb.koding.com:8008/subscribe'
-        auth    : 'http://localhost:3000/auth'
+        auth    : 'http://localhost:3000/Auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?

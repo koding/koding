@@ -15,7 +15,9 @@ class ContentDisplayControllerApps extends KDViewController
       partial     : "<span>&laquo;</span> Back"
       attributes  :
         href      : "#"
-      click       : ->
+      click       : (event)->
+        event.stopPropagation()
+        event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     contentDisplayController = @getSingleton "contentDisplayController"

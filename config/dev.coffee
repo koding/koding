@@ -25,9 +25,17 @@ module.exports = deepFreeze
   runBroker     : no
   configureBroker: no
   buildClient   : no
-  loadBalancer  :
-    port        : 3000
-    heartbeat   : 5000
+  uploads       :
+    enableStreamingUploads: no
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccountId        : '616271189586'
+      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
+  # loadBalancer  :
+  #   port        : 3000
+  #   heartbeat   : 5000
     # httpRedirect:
     #   port      : 80 # don't forget port 80 requires sudo 
   bitly :
@@ -41,6 +49,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 2
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     watch       : yes
@@ -58,7 +67,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://zb.koding.com:8008/subscribe'
-        auth    : 'http://localhost:3000/auth'
+        auth    : 'http://localhost:3000/Auth'
         vhost   : rabbitVhost
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?

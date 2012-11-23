@@ -12,10 +12,6 @@ class Apps12345 extends AppController
         name  : 'Apps'
       data    : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   loadView:(mainView)->
     mainView.createCommons()
     @createFeed()
@@ -90,8 +86,8 @@ class Apps12345 extends AppController
         listController.getListView().registerListener
           KDEventTypes  : 'AppWantsToExpand'
           listener      : @
-          callback      : (pubInst, app)=>
-            @createContentDisplay app
+          callback      : (pubInst, app)->
+            KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
         listController.getListView().on "AppDeleted", =>
           log arguments, ">>>>>"
@@ -110,11 +106,12 @@ class Apps12345 extends AppController
   createContentDisplay:(app, doShow = yes)->
     @showContentDisplay app
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   putAddAnAppButton:->
     {facetsController} = @feedController

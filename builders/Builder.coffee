@@ -65,10 +65,6 @@ module.exports = class Builder
     cclient += @watcher.getSubSectionConcatenated "Client","ApplicationPageViews"
     cclient = kdjs = @wrapWithJSClosure cclient
 
-    if options.pistachios
-      compilePistachios = require 'pistachio-compiler'
-      kdjs = cclient = compilePistachios(cclient)
-
     libraries  = clibraries
 
     @middleware @options, {libraries, kdjs}, (err,finalCode)=>

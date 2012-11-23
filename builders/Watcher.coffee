@@ -142,7 +142,7 @@ class Watcher extends EventEmitter
               file["subSection"]  = subSection
               file["cache"] = "./.build/.cache/"+mtime+path.replace(/\//g,"_")+".txt" # .txt for easy error checking using mac finder.
             
-              @getFile file,(passedFile,newFile)=>
+              @getFile file, options, (passedFile,newFile)=>
                 bar.tick() if @watcher.isInitializing
                 build.totalCount--
                 if newFile?
@@ -193,13 +193,13 @@ class Watcher extends EventEmitter
       else
         write file,callback
     
-  getFile:(file,callback)->
+  getFile:(file, options, callback)->
     if (file.mtime - file.lastCompile) > 0
       # fs.readFile file.cache,'utf8',(err,data)=>
       #   unless err
       #     callback file,JSON.parse data
       #   else
-      @compileFile file, (newFile)->      
+      @compileFile file, options, (newFile)->      
         newFile.lastCompile = Math.round(Date.now()/1000)            
         # @writeCache newFile,(err)->              
         callback file, newFile
@@ -207,7 +207,9 @@ class Watcher extends EventEmitter
       callback file,null
 
 
-  compileFile: (file,callback)->
+  compilePistachios = require 'pistachio-compiler'
+
+  compileFile: (file, options, callback)->
     ext = file.path.split(".").pop()    
     newContent = fs.readFileSync file.path, 'utf-8' #,(err,newContent)=>
     # if err
@@ -232,6 +234,8 @@ class Watcher extends EventEmitter
           #   # log.debug file.contents
           # else          
           file.contents = cs.compile newContent,bare:yes
+
+
           #file.contents = @uglify js:file.contents,mangle:no,noMangleFunctions:yes,squeeze:no #,beautify:beautify
         catch error
           errd = yes

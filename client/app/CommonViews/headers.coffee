@@ -4,8 +4,9 @@ class HeaderViewWithLogo extends KDHeaderView
     @setClass "header-view-with-logo"
 
   setTitle:(title)->
-    @$().append "<b class='koding-logo-bg'><span class='koding-logo'></span></b>"
-    @$().append "<span class='section-title'>#{title}</span>"
+    console.log 'does this happen?'
+    @$().append "<b class='koding-logo-bg'><span class='koding-logo chrisrulez'></span></b>",
+                "<span class='section-title'>#{title}</span>"
 
 class HeaderViewSection extends KDHeaderView
   constructor:->
