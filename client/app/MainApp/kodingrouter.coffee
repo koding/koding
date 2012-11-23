@@ -1,5 +1,5 @@
 class KodingRouter extends KDRouter
-  constructor:(defaultRoute)->
+  constructor:(@defaultRoute)->
     @openRoutes = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
@@ -8,6 +8,8 @@ class KodingRouter extends KDRouter
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
+
+    @handleRoute defaultRoute
 
   nicenames = {
     JTag      : 'Topics'
