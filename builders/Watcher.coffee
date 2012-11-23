@@ -138,14 +138,14 @@ class Watcher extends EventEmitter
                 cacheP = cacheFilePath(path)
                 fs.stat cacheP,(err,stat)=>              
                   cacheMtime = unless err then Date.parse(stat.mtime) else 0
-                  file["path"]        = path
-                  file["mtime"]       = mtime
-                  file["lastCompile"] ?= 0 
-                  file["contents"]    ?= ""
-                  file["section"]     = section
-                  file["subSection"]  = subSection
-                  file["cacheMtime"]  = cacheMtime
-                  file["cachePath"]   = cacheP
+                  file.path        = path
+                  file.mtime       = mtime
+                  file.lastCompile ?= 0 
+                  file.contents    ?= ""
+                  file.section     = section
+                  file.subSection  = subSection
+                  file.cacheMtime  = cacheMtime
+                  file.cachePath   = cacheP
                   # file["cache"] = "./.build/.cache/"+mtime+path.replace(/\//g,"_")+".txt" # .txt for easy error checking using mac finder.
                 
                   @getFile file, options, (passedFile,newFile)=>
@@ -169,39 +169,10 @@ class Watcher extends EventEmitter
                           @emit "changeDidHappen",changes
                           callback? null
                           break
-  
-  # cacheFolderExists = false
-  # writeCache: do ->
-  #   write = (file,cb)->
-  #     e = null
-  #     try
-  #       fs.writeFile file.cache,JSON.stringify file,'utf8',(err)->
-  #         if err
-  #           log.debug "couldn't cache: #{file.path} #{file.cache}",err
-  #     catch e
-  #       log.debug "couldn't cache: #{file.path} #{file.cache}"
-  #       log.debug e
-  #     finally        
-  #       cb e
-        
-  #   (file,callback)->
-  #     unless cacheFolderExists
-  #       fs.stat "./.build/.cache",(err,stat)->
-  #         if stat and stat.isDirectory()
-  #           cacheFolderExists = yes
-  #           write file,callback
-  #         else
-  #           fs.mkdir "./.build",(err1)->
-  #             fs.mkdir "./.build/.cache",(err2)->
-  #               unless err1 and err2
-  #                 cacheFolderExists = yes
-  #                 write file,callback
-  #     else
-  #       write file,callback
     
   getFile:(file, options, callback)->
     if (file.mtime - file.lastCompile) > 0
-      console.log file.cacheMtime,file.mtime,file.lastCompile, file.cacheMtime - file.mtime
+      # DEBUG # console.log file.cacheMtime,file.mtime,file.lastCompile, file.cacheMtime - file.mtime
       if not file.cacheMtime or (file.cacheMtime - file.mtime) < 0
         @compileFile file, options, (newFile)->     
           newFile.lastCompile = Date.now()            

@@ -1,7 +1,5 @@
 {argv} = require 'optimist'
 
-console.log argv
-
 KONFIG = require argv.c?.trim()
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
