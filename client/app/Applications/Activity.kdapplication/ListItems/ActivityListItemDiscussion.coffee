@@ -52,20 +52,24 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
-    @scrollAreaList = new KDButtonGroupView
-      buttons:
-        "Allow Scrolling here":
-          # cssClass : ""
-          callback:=>
-            @$("div.discussion-body-container").addClass "scrollable-y"
-            @$("div.discussion-body-container").removeClass "no-scroll"
+    # @scrollAreaHint = new KDView
+    #   cssClass : "enable-scroll-hint"
+    #   partial : "Don't move your mouse to scroll"
 
-            @scrollAreaOverlay.hide()
-        "View the full Discussion":
-          callback:=>
-            appManager.tell "Activity", "createContentDisplay", @getData()
+    # @scrollAreaList = new KDButtonGroupView
+    #   buttons:
+    #     "Allow Scrolling here":
+    #       # cssClass : ""
+    #       callback:=>
+    #         @$("div.discussion-body-container").addClass "scrollable-y"
+    #         @$("div.discussion-body-container").removeClass "no-scroll"
 
-    @scrollAreaOverlay.addSubView @scrollAreaList
+    #         @scrollAreaOverlay.hide()
+    #     "View the full Discussion":
+    #       callback:=>
+    #         appManager.tell "Activity", "createContentDisplay", @getData()
+
+    # @scrollAreaOverlay.addSubView @scrollAreaList
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CDiscussionActivity
@@ -133,6 +137,29 @@ class DiscussionActivityItemView extends ActivityItemChild
             body.removeClass "scrolling-up"
             body.removeClass "scrolling-down"
 
+    @$("div.activity-content-container").hover (event)=>
+
+      # @scrollAreaHint.$().css opacity:"1"
+      @transitionStart = setTimeout =>
+        @scrollAreaOverlay.$().css top:"100%"
+      , 500
+      unless @scrollAreaOverlay.$().hasClass "hidden"
+        @checkForCompleteAnimationInterval = window.setInterval =>
+          # log "INTERVAL RUNNING"
+          if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+            # log "END FOUND"
+            @scrollAreaOverlay.hide()
+            # @scrollAreaHint.$().css opacity:"0"
+            @$("div.discussion-body-container").addClass "scrollable-y"
+            @$("div.discussion-body-container").removeClass "no-scroll"
+            window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        ,50
+    , (event)=>
+      unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+        window.clearTimeout @transitionStart if @transitionStart?
+        window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        # @scrollAreaHint.$().css opacity:"0"
+        @scrollAreaOverlay.$().css top:"0px"
   render:->
     super()
     @highlightCode()
