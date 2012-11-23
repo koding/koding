@@ -2046,12 +2046,12 @@ div.show-tutorial-embed
 
 div.activity-content-container
   position relative
-  overflow-y scroll
+  overflow-y hidden
   rounded 4px
   border 1px solid black
   background-color #fff
   border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-  padding 10px 15px 0px 15px
+  padding 10px 0px 0px 15px
   vendor transition, box-shadow 0.25s default
 
   &.scrolling-both
@@ -2064,13 +2064,14 @@ div.activity-content-container
   &.discussion-body-container
     max-height 200px
     overflow-y hidden
+    padding-right 15px
 
   &.tutorial-body-container
     vertical-align top
     padding-top 15px
     // padding-bottom 10px
     max-height 200px
-    overflow-y auto
+    overflow-y hidden
     position relative
 
     .body
@@ -2078,6 +2079,7 @@ div.activity-content-container
       vertical-align top
       overflow-y hidden
       max-height 200px
+      padding-right 15px
 
     img.tutorial-preview-image
       max-height 185px
@@ -2092,69 +2094,35 @@ div.activity-content-container
   &:hover
     div.enable-scroll-overlay
       opacity 1
-      vendor transition, 0.2s ease-in-out
-      background-color rgba(0,0,0,0.1)
-      // background-color transparent
-      div.kdbuttongroup
-        left:0px
-        button
-          // animation-duration 0.3s
-          // animation-name pulse
-          opacity 1
-          background-color rgba(0,0,0,0.5)
-          color white
-          top 0
-        // @keyframes pulse
-        //   from
-        //     opacity 1
-        //   // 50%
-        //   //   opacity 0.8
-        //   to
-        //     opacity 0.5
 
-
+  // div.enable-scroll-hint
+  //   position absolute
+  //   bottom 0px
+  //   left 0px
+  //   right 0px
+  //   text-align center
+  //   font-size 14px
+  //   color black
+  //   font-weight 400
+  //   vertical-align bottom
+  //   height 100%
+  //   width 100%
+  //   opacity 0
+  //   vendor transition, opacity 0.3s linear
 
   div.enable-scroll-overlay
     width 100%
-    height auto
+    height 100%
     position absolute
     left 0px
     right 0px
     bottom 0px
-    opacity 1
-    vendor transition, 0.2s ease-in-out
+    top 0px
+    // opacity 1
+    vendor transition, top .5s ease-out
     text-align center
-    background-color rgba(0,0,0,0.0)
+    background-color rgba(0,0,0,0.05)
     vertical-align middle
-
-    > div.kdbuttongroup
-      vertical-align middle
-      padding 5px
-      margin 5px 0px 5px 0px
-
-      > button
-        rounded 3px
-        vendor transition, background-color 0.15s linear \, top 0.2s linear
-        top 50px
-        font-size 11px
-        font-weight 600
-        background-color rgba(0,0,0,0.6)
-        color transparent
-        border none
-        background-image none
-        vendor text-shadow, none
-        margin 0px 5px
-        opacity 0
-
-
-        &:first-child
-          rounded 3px
-        &:last-child
-          rounded 3px
-
-        &:hover
-          background-color rgba(0,0,0,0.7)
-          animation-name none
 
 .modal-video-close
   borderBox()
