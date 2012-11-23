@@ -49,6 +49,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 2  
   client        :
+    pistachios  : yes
     version     : version
     minify      : yes
     js          : "./website/js/kd.#{version}.js"

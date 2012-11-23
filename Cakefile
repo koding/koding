@@ -37,7 +37,6 @@ Watcher       = require "koding-watcher"
 
 KODING_CAKE = './node_modules/koding-cake/bin/cake'
 
-
 # announcement section, don't delete it. comment out old announcements, make important announcements from here.
 console.log "###############################################################"
 console.log "#    ANNOUNCEMENT: CODEBASE FOLDER STRUCTURE HAS CHANGED      #"
@@ -77,7 +76,7 @@ mkdirp.sync "./.build/.cache"
 
 compilePistachios = require 'pistachio-compiler'
 
-clientFileMiddleware  = (options, code, callback)->
+clientFileMiddleware  = (options, commandLineOptions, code, callback)->
   # console.log 'args', options
   # here you can change the content of kd.js before it's written to it's final file.
   # options is the cakefile options, opt is where file is passed in.
@@ -89,7 +88,7 @@ clientFileMiddleware  = (options, code, callback)->
           "KD.config = "+JSON.stringify(options.runtimeOptions)+";\n"+
           kdjs
 
-  if pistachios
+  if commandLineOptions.pistachios or pistachios
     console.log "[PISTACHIO] compiler started."
     kdjs = compilePistachios kdjs
     console.log "[PISTACHIO] compiler finished."
@@ -132,7 +131,12 @@ buildClient =(options, callback=->)->
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
   console.log config
-  builder = new Builder config.client,clientFileMiddleware,""
+
+  builderOptions =
+    config      : config.client
+    commandLine : options
+
+  builder = new Builder builderOptions,clientFileMiddleware,""
 
 
   builder.watcher.initialize()
