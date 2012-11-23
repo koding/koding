@@ -44,7 +44,7 @@ class NavigationLink extends KDListItemView
     # This check is for Invite Friends link which has no app at all
     return if @child?
 
-    mc = @getSingleton('mainController')
+    mc = @getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
       orgEvent  : event
       pageName  : title
