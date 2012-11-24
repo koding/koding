@@ -62,9 +62,11 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
+      @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
+      @emit 'ready'
 
   loadView:(mainView, firstRun = yes)->
 

@@ -32,6 +32,7 @@ class FeedController extends KDViewController
     options             = @getOptions()
     @filters            = {}
     @sorts              = {}
+    @defaultQuery       = options.defaultQuery ? {}
 
     # @facetsController.registerListener
     #   KDEventTypes  : 'FilterDidChange'
@@ -68,6 +69,7 @@ class FeedController extends KDViewController
 #      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
 
   highlightFacets:->
+    console.log 'highlight facets', arguments, this
     filterName  = @selection.name
     sortName    = @selection.activeSort or @defaultSort.name
     @facetsController.highlight filterName, sortName

@@ -46,8 +46,7 @@ class KodingRouter extends KDRouter
       appManager.openApplication app
     else
       appManager.tell app, 'setGroup', group
-    if Object.keys(query).length
-      appManager.tell app, 'handleQuery', query
+    appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
@@ -102,10 +101,6 @@ class KodingRouter extends KDRouter
           @openContent name, section, model, route
       else
         @handleNotFound route
-    #konstructor = KD.getContentConstructor section
-    # appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
-    #   @openRoutes[route] = contentDisplay
-    #   @openRoutesById[contentDisplay.id] = route
 
   createContentDisplayHandler:(section)->
     ({name, topicSlug}, state, route)=>
@@ -121,29 +116,17 @@ class KodingRouter extends KDRouter
           @loadContent name, section, topicSlug, route
 
   createGoTos =(names, fn)->
-      names = names.split ' '  unless isArray names
-      names
-        .map (sec)-> [sec, fn sec]
-        .reduce (acc, sec)->
-          acc[sec[0]] = sec[1]
-          acc
-        , {}
+    names = names.split ' '  unless Array.isArray names
+    names
+      .map (sec)->
+        [sec, fn sec]
+      .reduce (acc, sec)->
+        acc[sec[0]] = sec[1]
+        acc
+      , {}
 
   getRoutes =->
-
     mainController = KD.getSingleton 'mainController'
-
-    # kv =(acc, sec)-> acc[sec[0]] = sec[1]; acc
-
-    # goToContent = 'Activity Apps Groups Members Topics'
-    #   .split(' ')
-    #   .map((sec)=> [sec, @createContentDisplayHandler sec])
-    #   .reduce kv, {}
-
-    # goToSection = 'Account Activity Apps Groups Members StartTab Topics'
-    #   .split(' ')
-    #   .map((sec)-> [sec, ({params:{name}, query})-> @go sec, name, query])
-    #   .reduce kv, {}
 
     goToContent = createGoTos(
       'Activity Apps Groups Members Topics'

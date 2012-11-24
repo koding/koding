@@ -10,4 +10,5 @@ exports.error = error = (message)->
 
 exports.execute =(cmd, callback)->
   exec cmd, (err, stdout, stderr)->
-    callback stdout unless error err?.message or stderr
+    console.log 'args', arguments
+    callback stdout #unless error err?.message or stderr
