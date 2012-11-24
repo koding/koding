@@ -35,6 +35,7 @@ app.get '/deleteVhost', (req, res)->
 app.get '/resetVhost', (req, res)->
   {vhost} = req.query
   deleteVhost vhost, config, (err)->
+    console.log 'yoyooyoyooyoyoyo'
     if err?
       res.send
         type: 'error'

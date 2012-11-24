@@ -174,44 +174,6 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
-    # Temporarily disabling Tutorial Lists
-
-    # @listAnchorNext = new KDView
-    #   cssClass : "tutorial-anchor next"
-    # @listAnchorPrevious = new KDView
-    #   cssClass : "tutorial-anchor previous"
-    # @comingUpNextAnchor = new KDView
-    #   cssClass : "coming-up-next-anchor"
-
-    # KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
-    #   if listData
-    #     for tutorial,i in listData.tutorials
-    #       if tutorial._id is @getData()._id
-    #         @position = i
-    #         @before = listData.tutorials[0...i]
-    #         @after = listData.tutorials[i+1..]
-
-    #     # log @position,@before,@after
-
-    #     if @after.length >0
-    #       @listAnchorNext.addSubView new TutorialListSwitchBox
-    #         direction:"next"
-    #         delegate:@
-    #       , @after[0]
-
-    #       @comingUpNext = new KDCustomHTMLView
-    #         cssClass : "coming-up-next"
-    #         partial: "Coming up: "+@after[0].title
-
-    #       @comingUpNextAnchor.addSubView @comingUpNext
-
-    #     if @before.length >0
-    #       @listAnchorPrevious.addSubView new TutorialListSwitchBox
-    #         direction:"previous"
-    #         delegate:@
-    #       , @before[@before.length-1]
-
-
   opinionHeaderCountString:(count)=>
     if count is 0
       countString = "No Opinions yet"
@@ -330,60 +292,60 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     </div>
     """
 
-class TutorialListSwitchBox extends KDView
-  constructor:(options, data)->
+# class TutorialListSwitchBox extends KDView
+#   constructor:(options, data)->
 
-    @options = options
-    @options.direction or= "next"
+#     @options = options
+#     @options.direction or= "next"
 
-    super options, data
+#     super options, data
 
-    @setClass "tutorial-navigation-box"
-    @setClass @options.direction
+#     @setClass "tutorial-navigation-box"
+#     @setClass @options.direction
 
-    if data.link?
+#     if data.link?
 
-      @tooltipSource = """
-      <div class="container-preview">
-        <p class="title-preview">#{data.title}</p>
-        <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
-      </div>
-      """
-    else
-      @tooltipSource = data.title or ""
+#       @tooltipSource = """
+#       <div class="container-preview">
+#         <p class="title-preview">#{data.title}</p>
+#         <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
+#       </div>
+#       """
+#     else
+#       @tooltipSource = data.title or ""
 
-    @outgoingButton = new KDButtonView
-      cssClass : "clean-gray tutorial-video-button"
-      title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
-      tooltip:
-        title: if data.title then data.title else ""
-        placement : "above"
-        # offset : 3
-        delayIn : 300
-        html : no
-        animate : no
-        className : "tutorial-video"
-      callback:=>
-        unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#     @outgoingButton = new KDButtonView
+#       cssClass : "clean-gray tutorial-video-button"
+#       title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
+#       tooltip:
+#         title: if data.title then data.title else ""
+#         placement : "above"
+#         # offset : 3
+#         delayIn : 300
+#         html : no
+#         animate : no
+#         className : "tutorial-video"
+#       callback:=>
+#         unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
-  click:->
-    @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
-    unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#   click:->
+#     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+#     unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
-  viewAppended:->
-    super()
+#   viewAppended:->
+#     super()
 
-    @setTemplate @pistachio()
-    @template.update()
+#     @setTemplate @pistachio()
+#     @template.update()
 
-    # @outgoingContainer.$().hover noop, =>
-    #   @outgoingContainer.hide()
+#     # @outgoingContainer.$().hover noop, =>
+#     #   @outgoingContainer.hide()
 
-    # @outgoingButton.$().hover =>
-    #   @outgoingContainer.show()
-    # , noop
+#     # @outgoingButton.$().hover =>
+#     #   @outgoingContainer.show()
+#     # , noop
 
-  pistachio:->
-    """
-    {{> @outgoingButton}}
-    """
+#   pistachio:->
+#     """
+#     {{> @outgoingButton}}
+#     """

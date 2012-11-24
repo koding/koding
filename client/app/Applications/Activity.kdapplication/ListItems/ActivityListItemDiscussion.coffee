@@ -91,8 +91,8 @@ class DiscussionActivityItemView extends ActivityItemChild
   prepareScrollOverlay:->
     @utils.wait =>
 
-      body = @$("div.discussion-body-container")
-      if body.height() < parseInt body.css("max-height").replace(/\D/, ""), 10
+      body = @$("div.activity-content-container.discussion")
+      if body.height() < parseInt body.css("max-height"), 10
         @scrollAreaOverlay.hide()
       else
         body.addClass "scrolling-down"
@@ -168,7 +168,9 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+      # if not $(event.target).is("a.action-link, a.count, .like-view")
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str

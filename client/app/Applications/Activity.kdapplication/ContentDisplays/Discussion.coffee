@@ -59,43 +59,6 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
     @newAnswers = 0
 
-    # Links to easily navigate to the bottom/top of the page
-    # These are useful since the opinions can be quite long, even when shortened
-    # visually, and the ease of access to the form at the bottom is
-    # paramount
-
-    # @jumpToReplyLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Reply Box"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $("#opinion-form-box").position().top}, "slow")
-
-    # @jumpToTopLink = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Scroll to Top"
-    #   attributes  :
-    #     href      : "#"
-    #   click:->
-    #     $('div.kdscrollview.discussion').animate({scrollTop: $(".section-title").position().top}, "slow")
-
-    ###
-    <div class="discussion-nav">
-      {{> @jumpToTopLink}}
-      {{> @jumpToReplyLink}}
-    </div>
-    ###
-
-    # The static link box will be useful when we have implemented actual
-    # routing to the single ContentTypes
-
-    # @staticLinkBox = new KDCustomHTMLView
-    #   tagName     : "a"
-    #   partial     : "Static Link"
-    #   attributes  :
-    #     href      : "/discussion/"+@utils.slugify data.title
-
     @actionLinks = new DiscussionActivityActionsView
       delegate    : @opinionBox.opinionList
       cssClass    : "comment-header"
@@ -165,7 +128,6 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @deleteDiscussionLink.unsetClass "hidden"
 
     activity.on 'ReplyIsAdded',(reply)=>
-
       if data.bongo_.constructorName is "JDiscussion"
 
         # Why this workaround, you ask?

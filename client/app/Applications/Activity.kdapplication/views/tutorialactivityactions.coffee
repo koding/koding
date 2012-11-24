@@ -7,20 +7,24 @@ class TutorialActivityActionsView extends ActivityActionsView
 
     @opinionCountLink  = new ActivityActionLink
       partial     : "Opinions"
-      click     : (pubInst, event)=>
+      click     : (event)=>
+        event.preventDefault()
         @emit "TutorialActivityLinkClicked"
 
     if activity.opinionCount is 0 then @opinionCountLink.hide()
 
-    @opinionCount = new ActivityOpinionCount {}, activity
+    @opinionCount = new ActivityOpinionCount
+      click:(event)->
+        event.preventDefault()
+    , activity
 
     @opinionCount.on "countChanged", (count) =>
       if count > 0 then @opinionCountLink.show()
       else @opinionCountLink.hide()
 
     @on "TutorialActivityLinkClicked", =>
-      unless @parent instanceof ContentDisplayDiscussion
-        appManager.tell "Activity", "createContentDisplay", @getData()
+      unless @parent instanceof ContentDisplayTutorial
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 

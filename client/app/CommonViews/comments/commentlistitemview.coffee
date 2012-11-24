@@ -35,10 +35,9 @@ class CommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
-
     loggedInId = KD.whoami().getId()
-    if loggedInId is data.originId or       # if comment/review owner
-       loggedInId is activity.originId or   # if activity/app owner
+    if loggedInId is data.originId or           # if comment/review owner
+       loggedInId is activity.originId or       # if activity/app owner
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
       @deleteLink.unsetClass "hidden"
       @listenTo

@@ -12,7 +12,8 @@ class ActivityActionsView extends KDView
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
-      click       : =>
+      click       : (event)=>
+        # event.preventDefault()
         @getDelegate().emit "CommentCountClicked"
     , activity
 
@@ -21,6 +22,9 @@ class ActivityActionsView extends KDView
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
+      click:(event)=>
+        event.preventDefault()
+        super
 
     @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14

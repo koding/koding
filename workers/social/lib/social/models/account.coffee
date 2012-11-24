@@ -92,7 +92,6 @@ module.exports = class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
-
         lastName            :
           type              : String
           default           : ''
@@ -149,10 +148,16 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
+      group         :
+        targetType  : require './group'
+        as          : require('./group').memberRoles
+
       content       :
         as          : 'creator'
-        targetType  : ["CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview", "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"]
-
+        targetType  : [
+          "CActivity", "JStatusUpdate", "JCodeSnip", "JComment", "JReview"
+          "JDiscussion", "JOpinion", "JCodeShare", "JLink", "JTutorial"
+        ]
       feed         :
         as          : "owner"
         targetType  : "JFeed"
@@ -334,8 +339,24 @@ module.exports = class JAccount extends jraphical.Module
 
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests'
+      when 'delete','flag','reset guests','reset groups','administer names', 'administer url aliases'
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
+
+  fetchRoles: (group, callback)->
+    Relationship.someData {
+      targetId: group.getId()
+      sourceId: @getId()
+    }, {as:1}, (err, cursor)->
+      if err
+        callback err
+      else
+        cursor.toArray (err, roles)->
+          if err
+            callback err
+          else
+            roles = (roles ? []).map (role)-> role.as
+            roles.push 'guest' unless roles.length
+            callback null, roles
 
   fetchRole: secure ({connection}, callback)->
 

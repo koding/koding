@@ -47,6 +47,10 @@ KD.error = error = noop
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
+  logout:->
+    mainController = KD.getSingleton('mainController')
+    delete mainController?.userAccount
+
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
 
   isMine:(account)-> @whoami().profile.nickname is account.profile.nickname

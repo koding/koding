@@ -91,10 +91,10 @@ class TutorialActivityItemView extends ActivityItemChild
   prepareScrollOverlay:->
     @utils.wait =>
 
-      body = @$("div.tutorial-body-container div.body")
-      container = @$("div.tutorial-body-container")
+      body = @$("div.activity-content-container.tutorial div.body")
+      container = @$("div.activity-content-container.tutorial")
 
-      if body.height() < parseInt container.css("max-height").replace(/\D/, ""), 10
+      if body.height() < parseInt container.css("max-height"), 10
         @scrollAreaOverlay.hide()
       else
         container.addClass "scrolling-down"

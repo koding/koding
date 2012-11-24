@@ -90,8 +90,16 @@ class KDWindowController extends KDController
       @redirectMouseMoveEvent e if @dragView
     , yes
 
+    # internal links (including "#") should prevent default, so we don't end
+    # up with duplicate entries in history: e.g. /Activity and /Activity#
+    # also so that we don't redirect the browser
+    document.body.addEventListener 'click', (e)->
+      isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\   # html nodenames are uppercase, so lowercase this.
+                       e.target.target isnt '_blank'                  # target _blank links should work as normal.
+      e.preventDefault()  if isInternalLink
+
     # unless window.location.hostname is 'localhost'
-    window.onbeforeunload = (event) =>
+    window.addEventListener 'beforeunload', (event) =>
       # fixme: fix this with appmanager
 
       if @getSingleton('mainView')?.mainTabView?.panes

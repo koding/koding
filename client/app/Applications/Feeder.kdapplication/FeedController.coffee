@@ -33,22 +33,23 @@ class FeedController extends KDViewController
     @filters            = {}
     @sorts              = {}
 
-    @facetsController.registerListener
-      KDEventTypes  : 'FilterDidChange'
-      listener      : @
-      callback      : (pubInst, item)=>
-        @selectFilter item.type
+    # @facetsController.registerListener
+    #   KDEventTypes  : 'FilterDidChange'
+    #   listener      : @
+    #   callback      : (pubInst, item)=>
+    #     console.log 'filter did change'
+    #     @selectFilter item.type
+    #     @highlightFacets()
 
-    @facetsController.registerListener
-      KDEventTypes  : 'SortDidChange'
-      listener      : @
-      callback      : (pubInst, item)=>
-        @changeActiveSort item.type
+    # @facetsController.registerListener
+    #   KDEventTypes  : 'SortDidChange'
+    #   listener      : @
+    #   callback      : (pubInst, item)=>
+    #     console.log 'sort did change'
+    #     @changeActiveSort item.type
+    #     @highlightFacets()
 
-    @resultsController.getView().on 'PaneDidShow', (pane)=>
-      filterName  = @selection.name
-      sortName    = @selection.activeSort or @defaultSort.name
-      @facetsController.highlight filterName, sortName
+    # @resultsController.getView().on 'PaneDidShow', (pane)=>
 
     @resultsController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
@@ -65,6 +66,18 @@ class FeedController extends KDViewController
 #    {dynamicDataType} = @getOptions()
 #    dynamicDataType.on 'feed.new', (items) =>
 #      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
+
+  highlightFacets:->
+    filterName  = @selection.name
+    sortName    = @selection.activeSort or @defaultSort.name
+    @facetsController.highlight filterName, sortName
+
+  handleQuery:({filter, sort})->
+    console.log 'handle query', {filter, sort}
+    @selectFilter filter      if filter?
+    @changeActiveSort sort    if sort?
+    @highlightFacets()
+    # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
     filter.name     = name

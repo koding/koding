@@ -42,7 +42,8 @@ __utils =
     if prefix? then "#{prefix}#{id}" else id
 
   getRandomRGB :()->
-    "rgb(#{@getRandomNumber(255)},#{@getRandomNumber(255)},#{@getRandomNumber(255)})"
+    {getRandomNumber} = @
+    "rgb(#{getRandomNumber(255)},#{getRandomNumber(255)},#{getRandomNumber(255)})"
 
   getRandomHex : ->
     # hex = (Math.random()*0xFFFFFF<<0).toString(16)
@@ -55,21 +56,20 @@ __utils =
 
   curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
 
+  parseQuery:do->
+    params  = /([^&=]+)=?([^&]*)/g    # for chunking the key-val pairs
+    plusses = /\+/g                   # for converting plus signs to spaces
+    decode  = (str)-> decodeURIComponent str.replace plusses, " "
+    parseQuery = (queryString = location.search.substring 1)->
+      result = {}
+      result[decode m[1]] = decode m[2]  while m = params.exec queryString
+      result
 
-  getUrlParams:(tag)->
-    tag ?= window.location.search
-    hashParams = {};
-
-    a = /\+/g  # Regex for replacing addition symbol with a space
-    r = /([^&;=]+)=?([^&;]*)/g
-    d = (s)->
-      decodeURIComponent s.replace a, " "
-    q = tag.substring 1
-
-    while e = r.exec q
-      hashParams[d e[1] ] = d e[2]
-
-    hashParams
+  stringifyQuery:do->
+    spaces = /\s/g
+    encode =(str)-> encodeURIComponent str.replace spaces, "+"
+    stringifyQuery = (obj)->
+      Object.keys(obj).map((key)-> "#{encode key}=#{encode obj[key]}").join('&').trim()
 
   capAndRemovePeriods:(path)->
     newPath = for arg in path.split "."
@@ -246,7 +246,7 @@ __utils =
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
-        longText.split(optimalBreak).slice(0, -1).join(optimalBreak) + (suffix ? optimalBreak)
+        "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
@@ -344,11 +344,23 @@ __utils =
     fullname.split(' ')[0]
 
   getParentPath :(path)->
-
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
     parentPath = path.split('/')
     parentPath.pop()
     return parentPath.join('/')
+
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    if window?.postMessage and window.addEventListener
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          do queue.shift()  if queue.length > 0
+      ), yes
+      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 1
 
   removeBrokenSymlinksUnder:(path)->
     kiteController = KD.getSingleton('kiteController')
@@ -367,8 +379,7 @@ __utils =
 
   getCancellableCallback:(callback)->
     cancelled = no
-    kallback = (rest...)->
-      callback rest... unless cancelled
+    kallback = (rest...)-> callback rest...  unless cancelled
     kallback.cancel = -> cancelled = yes
     kallback
 
