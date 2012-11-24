@@ -33,15 +33,21 @@ class OpinionViewHeader extends JView
       @newItemsLink.unsetClass "in"
       @loader.hide()
       @newAnswers = 0
+      @updateRemainingText()
+
 
     @allItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "all-count"
       partial   : "View #{@maxCommentToShow} more #{@getOptions().itemTypeString}"
-      click     : =>
-        @loader.show()
+      click     : (event)=>
+        event.preventDefault()
         @newItemsLink.unsetClass "in"
-        list.emit "AllOpinionsLinkWasClicked", @
+        if @parent?.constructor isnt DiscussionActivityOpinionView
+          @loader.show()
+          list.emit "AllOpinionsLinkWasClicked", @
+        else
+          KD.getSingleton('router').handleRoute "/Activity/#{@getDelegate().getData().slug}", state:@getDelegate().getData()
     , data
 
     list.on "RelativeOpinionsWereAdded",  =>
@@ -73,8 +79,12 @@ class OpinionViewHeader extends JView
     @newItemsLink = new KDCustomHTMLView
       tagName   : "a"
       cssClass  : "new-items"
-      click     : =>
-        list.emit "AllOpinionsLinkWasClicked", @
+      click     : (event)=>
+        event.preventDefault()
+        if @parent?.constructor is not DiscussionActivityOpinionView
+          list.emit "AllOpinionsLinkWasClicked", @
+        else
+          KD.getSingleton('router').handleRoute "/Activity/#{@getDelegate().getData().slug}", state:@getDelegate().getData()
 
     @newAnswers = 0
 
@@ -109,6 +119,16 @@ class OpinionViewHeader extends JView
 
     if @parent?.constructor is OpinionView
       @hide() if @getData().opinionCount is 0
+
+  render:=>
+    @updateRemainingText()
+
+    # This will hide the bar in the CD when there is nothing there yet. Once
+    # content pops up, the event handling it will show the bar again
+
+    if @parent?.constructor is OpinionView
+      @hide() if @getData().opinionCount is 0
+
 
   updateRemainingText:=>
     if not @parent? or  @parent.constructor is DiscussionActivityOpinionView

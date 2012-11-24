@@ -7,12 +7,12 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     @opinionCountLink  = new ActivityActionLink
       partial     : "Answer"
-      click     : (pubInst, event)=>
+      click       : (event)=>
         @emit "DiscussionActivityLinkClicked"
 
     @commentCountLink  = new ActivityActionLink
       partial     : "Comment"
-      click     : (pubInst, event)=>
+      click       : (event)=>
         @emit "DiscussionActivityCommentLinkClicked"
 
     if activity.opinionCount is 0
@@ -23,14 +23,16 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @opinionCount = new ActivityOpinionCount
       tooltip     :
         title     : "Take me there!"
-      click       : (pubInst, event)=>
+      click       : (event)=>
+        event.preventDefault()
         @emit "DiscussionActivityLinkClicked"
     , activity
 
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Take me there!"
-      click       : (pubInst, event)=>
+      click       : (event)=>
+        event.preventDefault()
         @emit "DiscussionActivityCommentLinkClicked"
     , activity
 
@@ -38,19 +40,16 @@ class DiscussionActivityActionsView extends ActivityActionsView
       if count > 0 then @opinionCountLink.show()
       else @opinionCountLink.hide()
 
-    # @commentCount.on "countChanged", (count) =>
-    #   if count > 0 then @commentCountLink.show()
-    #   else @commentCountLink.hide()
-
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 
     @on "DiscussionActivityCommentLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        # appManager.tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "CommentLinkReceivedClick"
 
@@ -95,14 +94,16 @@ class OpinionActivityActionsView extends ActivityActionsView
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Take me there!"
-      click       : (pubInst, event)=>
+      click       : (event)=>
+        event.preventDefault()
         @emit "DiscussionActivityLinkClicked"
 
     , activity
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        appManager.tell "Activity", "createContentDisplay", @getData()
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        # appManager.tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 

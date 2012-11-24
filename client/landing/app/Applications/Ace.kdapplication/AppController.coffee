@@ -28,11 +28,6 @@ class Ace12345 extends KDController
       globalEvent  : yes
     , {options, data}
 
-  initAndBringToFront:(options,callback)->
-
-    @bringToFront()
-    callback()
-
   isFileOpen:(file)-> @aceViews[file.path]?
 
   openFile:(file)->

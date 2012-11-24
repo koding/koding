@@ -24,7 +24,9 @@ class OpinionView extends KDView
     @addSubView @opinionList
     @addSubView @opinionHeader
 
-    @opinionList.on "OwnOpinionHasArrived", ->
+    @opinionList.on "OwnOpinionHasArrived", =>
+      @opinionHeader.updateRemainingText()
+
     @opinionList.on "OpinionIsDeleted", (data)->
 
     @opinionList.on "RefreshTeaser", =>
@@ -39,6 +41,7 @@ class OpinionView extends KDView
       @opinionController.fetchOpinionsByRange 0,maxOpinions, (err, opinions)=>
         for opinion, i in opinions when (opinion? and 'object' is typeof opinion)
           @opinionList.addItem opinion
+        @opinionHeader.updateRemainingText()
 
     @opinionList.emit "BackgroundActivityFinished"
 
@@ -50,9 +53,7 @@ class OpinionView extends KDView
       @parent?.opinionForm?.opinionBody?.setFocus()
 
     @opinionList.on "CommentLinkReceivedClick", =>
-      log @parent
       @parent?.commentBox?.commentForm?.commentInput?.setFocus()
-
 
     @opinionList.on "OpinionCountClicked", =>
       @opinionList.emit "AllOpinionsLinkWasClicked"
