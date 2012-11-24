@@ -57,7 +57,7 @@ class ApplicationManager extends KDObject
         app.bringToFront()
 
     openApplication =(path, doBringToFront, callback)->
-      [callback, doBringToFront] = [doBringToFront, callback] unless callback
+      [callback, doBringToFront] = [doBringToFront, callback]  unless callback
       doBringToFront ?= yes
 
       path = expandApplicationPath path

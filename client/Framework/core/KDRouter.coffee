@@ -66,7 +66,7 @@ class KDRouter extends KDObject
     route = route.split '/'
     route.shift() # first edge is garbage like '' or '#!'
     for edge, i in route
-      len = edge.length-1
+      len = edge.length - 1
       if '?' is edge.charAt len # then this is an "optional edge".
         # recursively alias this route without this optional edge:
         @addRoute routeWithoutEdgeAtIndex(route, i), listener
@@ -92,11 +92,15 @@ class KDRouter extends KDObject
   handleRoute:(userRoute, options={})->
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
     query = @utils.parseQuery query.join '&'
+
     {shouldPushState, replaceState, state} = options
-    objRef = createObjectRef state
     shouldPushState ?= yes
+    
+    objRef = createObjectRef state
+    
     node = @tree
     params = {}
+    
     isRooted = '/' is frag[0]
 
     frag = frag.split '/'
