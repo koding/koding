@@ -66,6 +66,7 @@ class GroupsController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @putAddAGroupButton()
+      @emit 'ready'
 
   putAddAGroupButton:->
     {facetsController} = @feedController
