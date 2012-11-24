@@ -70,17 +70,17 @@ class KodingRouter extends KDRouter
 
   getDefaultRoute:-> '/Activity'
 
-  setPageTitle:(title="Koding")->
-    document.title = title
+  setPageTitle:(title="Koding")-> document.title = title
 
   getContentTitle:(model)->
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
-    @utils.shortenText (switch model.constructor
-      when JAccount then "#{model.profile.firstName} #{model.profile.lastName}"
-      when JStatusUpdate then model.body
-      when JGroup then model.title
-      else "#{model.title}#{getSectionName model}"
-    ), 100
+    @utils.shortenText(
+      switch model.constructor
+        when JAccount       then "#{model.profile.firstName} #{model.profile.lastName}"
+        when JStatusUpdate  then  model.body
+        when JGroup         then  model.title
+        else                      "#{model.title}#{getSectionName model}"
+    , 100) # max char length of the title
 
   openContent:(name, section, state, route)->
     @setPageTitle @getContentTitle state
@@ -120,17 +120,14 @@ class KodingRouter extends KDRouter
         else
           @loadContent name, section, topicSlug, route
 
-  createGoTos =do->
-    # Abbreviations used below:
-    # "acc" is short for "accumulator"
-    # "kv" is short for "key-value pair"
-    # "sec" is short for "section"
-    {isArray}   = Array
-    kvMap       = (sec)-> [sec, fn sec]
-    kvReduce    = (acc, sec)-> acc[sec[0]] = sec[1]; acc
-    createGoTos = (names, fn)->
+  createGoTos =(names, fn)->
       names = names.split ' '  unless isArray names
-      names.map(kvMap).reduce kvReduce, {}
+      names
+        .map (sec)-> [sec, fn sec]
+        .reduce (acc, sec)->
+          acc[sec[0]] = sec[1]
+          acc
+        , {}
 
   getRoutes =->
 
@@ -250,14 +247,16 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      # top level names:
+      # top level names
       '/:name':do->
+
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then goToContent.Members routeInfo, model
             when 'JGroup'   then goToContent.Groups  routeInfo, model
             when 'JTopic'   then goToContent.Topics  routeInfo, model
             else status_404()
+
         nameHandler =(routeInfo, state, route)->
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
