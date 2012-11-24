@@ -46,8 +46,7 @@ class KodingRouter extends KDRouter
       appManager.openApplication app
     else
       appManager.tell app, 'setGroup', group
-    if Object.keys(query).length
-      appManager.tell app, 'handleQuery', query
+    appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
