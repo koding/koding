@@ -217,7 +217,6 @@ class KDListViewController extends KDViewController
   # bad naming because of backwards compatibility i didn't
   # change the method name during refactoring - Sinan 10 May 2012
   selectItem:(item, event = {})->
-
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
 

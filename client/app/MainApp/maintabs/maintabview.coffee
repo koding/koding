@@ -4,7 +4,7 @@ class MainTabView extends KDTabView
     @totalSize      = 0
     @paneViewIndex  = {}
     super options,data
-
+    
     @listenTo
       KDEventTypes : 'ApplicationWantsToBeShown'
       callback     :(app, {options, data})->

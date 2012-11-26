@@ -24,18 +24,27 @@ message "guest cleanup worker is started."
 
 job = new CronJob guests.cleanupCron, ->
   {JGuest} = worker.models
-  JGuest.someData {status: 'needs cleanup'}, {guestId:1}, {limit: guests?.batchSize}, (err, cursor)->
-    cursor.each (err, guest)->
-      if err
-        error err
-      else unless guest?
-        #message 'no guests to clean up after...'
-      else
-        message 'need to cleanup after guest', guest.guestId
-        JGuest.update guest, {$set: status: 'pristine'}, (err)->
-          if err
-            error err
-          else
-            message 'guest', guest.guestId, 'has been reset.'
+  JGuest.update(
+    {leasedAt: $lt: new Date new Date - 1000*60*6}
+    {$set: {status: 'pristine'}, $unset: {leasedAt: 1}}
+    {multi:yes}
+  )
+  JGuest.someData(
+    {status: 'needs cleanup'}, {guestId:1}, {limit: guests?.batchSize}
+    (err, cursor)->
+      console.error err  if err
+      cursor.each (err, guest)->
+        if err
+          error err
+        else unless guest?
+          #message 'no guests to clean up after...'
+        else
+          message 'need to cleanup after guest', guest.guestId
+          JGuest.update guest, {$set: status: 'pristine'}, (err)->
+            if err
+              error err
+            else
+              message 'guest', guest.guestId, 'has been reset.'
+  )
 
 job.start()

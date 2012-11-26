@@ -284,6 +284,11 @@ Includes =
         # chatter
         Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
 
+        # groups
+        GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
+        # termlib shell
+        # AppRequirements :  './client/app/Applications/Shell.kdapplication/AppRequirements.coffee'
+        # term            :  './client/app/Applications/Shell.kdapplication/termlib/src/termlib.js'
         # viewer
         Viewer          : './client/app/Applications/Viewer.kdapplication/AppController.coffee'
 
@@ -363,6 +368,14 @@ Includes =
         TopicSplitViewController      : "./client/app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee"
         topicsInnerNavigation         : "./client/app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee"
         topicsListItemView            : "./client/app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee"
+
+        # GROUPS VIEWS
+        groupsAppView                 : "./client/app/Applications/Groups.kdapplication/AppView.coffee"
+        groupsInnerNavigation         : "./client/app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee"
+        groupsListItemView            : "./client/app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee"
+        permissionsGrid               : "./client/app/Applications/Groups.kdapplication/Views/PermissionsGrid.coffee"
+        groupView                     : "./client/app/Applications/Groups.kdapplication/Views/groupview.coffee"
+        groupsDisplay                 : "./client/app/Applications/Groups.kdapplication/ContentDisplays/controller.coffee"
 
         # APPS VIEWS
         appsAppView                   : "./client/app/Applications/Apps.kdapplication/AppView.coffee"
@@ -486,12 +499,12 @@ Includes =
         # ircTabs               : "./client/app/MainApp/oldPages/irc/tabs.coffee"
         accountMixins             : "./client/app/MainApp/account-mixins.coffee"
         main                      : "./client/app/MainApp/main.coffee"
-        routes                    : "./client/app/MainApp/routes.coffee"
 
       Application :
         sharedRoutes                : "./routes/index.coffee"
+        kodingrouter                : "./client/app/MainApp/kodingrouter.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
-        sockjs                      : "./client/libs/sockjs-0.3-patched.js"
+        sockjs                      : "./client/libs/sockjs-0.3.js"
         broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
@@ -533,7 +546,7 @@ Includes =
         CommonInnerNavigation       : "./client/app/CommonViews/CommonInnerNavigation.coffee"
         CommonFeedMessage           : "./client/app/CommonViews/CommonFeedMessage.coffee"
         Headers                     : "./client/app/CommonViews/headers.coffee"
-        Logo                        : "./client/app/CommonViews/logo.coffee"
+        # Logo                        : "./client/app/CommonViews/logo.coffee"
         HelpBox                     : "./client/app/CommonViews/HelpBox.coffee"
         KeyboardHelperView          : "./client/app/CommonViews/KeyboardHelper.coffee"
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
@@ -686,6 +699,7 @@ Includes =
 
       Libraries :
         #pusher            : "./client/libs/pusher.min.js"
+        sharedRoutes      : "./routes/index.coffee"
         html_encoder      : "./client/libs/encode.js"
         docwriteNoop      : "./client/libs/docwritenoop.js"
         sha1              : "./client/libs/sha1.encapsulated.coffee"

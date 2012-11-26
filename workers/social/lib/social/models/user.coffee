@@ -11,8 +11,11 @@ module.exports = class JUser extends jraphical.Module
   JGuest    = require './guest'
   JInvitation = require './invitation'
   JFeed     = require './feed'
+  JName     = require './name'
 
   createId = require 'hat'
+
+  {Relationship} = jraphical
 
   createKodingError =(err)->
     if 'string' is typeof err
@@ -100,6 +103,9 @@ module.exports = class JUser extends jraphical.Module
       ownAccount        :
         targetType      : JAccount
         as              : 'owner'
+      leasedAccount     :
+        targetType      : JAccount
+        as              : 'leasor'
       emailConfirmation :
         targetType      : 'JEmailConfirmation'
         as              : 'confirmation'
@@ -123,7 +129,7 @@ module.exports = class JUser extends jraphical.Module
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
-  @authenticateClient:(clientId, callback=->)->
+  @authenticateClient:(clientId, context, callback)->
     JSession.one {clientId}, (err, session)->
       if err
         callback createKodingError err
@@ -144,7 +150,7 @@ module.exports = class JUser extends jraphical.Module
             if err
               callback? err
             else
-              user.fetchOwnAccount (err, account)->
+              user.fetchAccount context, (err, account)->
                 if err
                   callback createKodingError err
                 else
@@ -222,7 +228,6 @@ module.exports = class JUser extends jraphical.Module
             callback createKodingError 'Could not restore your session!'
           else
             replacementToken = createId()
-            console.log 'replacement token', replacementToken
             JGuest.recycle session.guestId
             session.update {
               $set            :
@@ -351,65 +356,68 @@ module.exports = class JUser extends jraphical.Module
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    salt = createSalt()
-                    user = new JUser {
-                      username
-                      email
-                      salt
-                      password: hashPassword(password, salt)
-                    }
-                    user.save (err)->
-                      if err
-                        if err.code is 11000
-                          callback createKodingError "Sorry, \"#{email}\" is already in use!"
-                        else callback err
+                    JName.claim username, 'JUser', 'username', (err)->
+                      if err then callback err
                       else
-                        hash = getHash email
-                        account = new JAccount
-                          profile: {
-                            nickname
-                            firstName
-                            lastName
-                            hash
-                          }
-                        account.save (err)->
+                        salt = createSalt()
+                        user = new JUser {
+                          username
+                          email
+                          salt
+                          password: hashPassword(password, salt)
+                        }
+                        user.save (err)->
                           if err
-                            callback err
+                            if err.code is 11000
+                              callback createKodingError "Sorry, \"#{email}\" is already in use!"
+                            else callback err
                           else
-                            user.addOwnAccount account, (err)->
+                            hash = getHash email
+                            account = new JAccount
+                              profile: {
+                                nickname
+                                firstName
+                                lastName
+                                hash
+                              }
+                            account.save (err)->
                               if err
                                 callback err
                               else
-                                feedData = {title:"followed", description: "Followed Feed"}
-                                JFeed.createFeed account, feedData, (err, feed) ->
+                                user.addOwnAccount account, (err)->
                                   if err
                                     callback err
                                   else
-                                    if silence
-                                      JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                        console.log 'An error granting invitations', err if err
-                                      createNewMemberActivity account
-                                      callback null, account
-                                    else
-                                      replacementToken = createId()
-                                      session.update {
-                                        $set:
-                                          username      : user.username
-                                          lastLoginDate : new Date
-                                          clientId      : replacementToken
-                                        $unset          :
-                                          guestId       : 1
-                                      }, (err, docs)->
-                                        if err
-                                          callback err
-                                        else
-                                          user.sendEmailConfirmation()
+                                    feedData = {title:"followed", description: "Followed Feed"}
+                                    JFeed.createFeed account, feedData, (err, feed) ->
+                                      if err
+                                        callback err
+                                      else
+                                        if silence
                                           JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
                                             console.log 'An error granting invitations', err if err
                                           createNewMemberActivity account
-                                          console.log replacementToken
-                                          JAccount.emit "AccountAuthenticated", account
-                                          callback null, account, replacementToken
+                                          callback null, account
+                                        else
+                                          replacementToken = createId()
+                                          session.update {
+                                            $set:
+                                              username      : user.username
+                                              lastLoginDate : new Date
+                                              clientId      : replacementToken
+                                            $unset          :
+                                              guestId       : 1
+                                          }, (err, docs)->
+                                            if err
+                                              callback err
+                                            else
+                                              user.sendEmailConfirmation()
+                                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                                console.log 'An error granting invitations', err if err
+                                              createNewMemberActivity account
+                                              console.log replacementToken
+                                              JAccount.emit "AccountAuthenticated", account
+                                              callback null, account, replacementToken
 
   @fetchUser = secure (client, callback)->
     JSession.one {clientId: client.sessionToken}, (err, session)->
@@ -469,6 +477,24 @@ module.exports = class JUser extends jraphical.Module
             r.kodingenUser = if !+chunk then no else yes
             callback null, r
           res.on 'error', (err)-> callback err, r
+
+  fetchContextualAccount:(context, rest..., callback)->
+    Relationship.one {
+      as          : 'owner'
+      sourceId    : @getId()
+      targetName  : 'JAccount'
+      'data.context': context
+    }, (err, account)=>
+      if err
+        callback err
+      else if account?
+        callback null, account
+      else
+        @fetchOwnAccount rest..., callback
+
+  fetchAccount:(context, rest...)->
+    if context is 'koding' then @fetchOwnAccount rest...
+    else @fetchContextualAccount context, rest...
 
   changePassword:(newPassword, callback)->
     salt = createSalt()

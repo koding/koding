@@ -7,15 +7,26 @@ module.exports = class JTag extends jraphical.Module
 
   {Relationship} = jraphical
 
+  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+
   @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
-
-  {ObjectId, ObjectRef, Inflector, secure, daisy, race} = require 'bongo'
+  @trait __dirname, '../traits/protected'
+  @trait __dirname, '../traits/slugifiable'
 
   @share()
 
   @set
+    slugifyFrom     : 'title'
+    slugTemplate    : 'Topics/#{slug}'
+    permissions     : [
+      'create tags'
+      'edit tags'
+      'delete tags'
+      'edit own tags'
+      'delete own tags'
+    ]
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       slug          : 'unique'
@@ -26,7 +37,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        "one","on","some","all","create",
+        "one","on","some","all","create","updateAllSlugs"
         'someWithRelationship','byRelevance'#,'markFollowing'
         ]
     schema          :

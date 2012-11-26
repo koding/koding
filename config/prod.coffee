@@ -26,6 +26,12 @@ module.exports = deepFreeze
     login       : 'prod-webserver'
     port        : [3021..3025]
   mongo         : mongo
+  uploads       :
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccessKeyId      : 'AKIAIBHGXKRDSOQZESGQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
   runBroker     : no
   runGoBroker   : yes
   configureBroker: no
@@ -60,7 +66,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://koding.com/auth'
+        auth    : 'https://koding.com/Auth'
         vhost   : '/'
       apiUri    : 'https://api.koding.com'
       appsUri   : 'https://app.koding.com'
