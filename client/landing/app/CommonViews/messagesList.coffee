@@ -156,7 +156,9 @@ class NotificationListItem extends KDListItemView
     showPost = (err, post)->
       if post
         internalApp = if post.constructor.name is "JApp" then "Apps" else "Activity"
-        appManager.tell internalApp, "createContentDisplay", post
+        # appManager.tell internalApp, "createContentDisplay", post
+        KD.getSingleton('router').handleRoute "/#{internalApp}/#{post.slug}", state:post
+
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -165,7 +167,7 @@ class NotificationListItem extends KDListItemView
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       appManager.openApplication "Inbox"
       appManager.tell 'Inbox', "goToMessages"
-    else if @snapshot.anchor.constructorName in ["JComment", "JReview"]
+    else if @snapshot.anchor.constructorName in ["JComment", "JReview", "JOpinion"]
       KD.remote.api[@snapshot.anchor.constructorName].fetchRelated @snapshot.anchor.id, showPost
     else
       KD.remote.api[@snapshot.anchor.constructorName].one _id : @snapshot.anchor.id, showPost
