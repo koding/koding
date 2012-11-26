@@ -340,10 +340,14 @@ module.exports = class JAccount extends jraphical.Module
 
   @getFlagRole =-> 'owner'
 
+  # WARNING! Be sure everything is safe when you change anything in this function
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests'
+      when 'delete'
+        # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
+      when 'flag', 'reset guests'
+        @profile.nickname in dummyAdmins
 
   fetchRole: secure ({connection}, callback)->
 
