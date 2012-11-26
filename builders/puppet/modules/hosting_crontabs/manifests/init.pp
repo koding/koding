@@ -10,5 +10,6 @@ class hosting_crontabs {
     include hosting_crontabs::gem_update
     include hosting_crontabs::ebs_snapshots
     include hosting_crontabs::mail_queue
+    include hosting_crontabs::check_account
 
 }
