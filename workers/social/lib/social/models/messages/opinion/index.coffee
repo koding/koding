@@ -24,7 +24,13 @@ module.exports = class JOpinion extends JPost
     emitFollowingActivities: yes
     taggedContentRole : 'content'
     tagRole           : 'tag'
-    sharedMethods : JPost.sharedMethods
+    sharedMethods     :
+      static          : ['create','one','updateAllSlugs',"fetchRelated"]
+      instance        : [
+        'reply','restComments','commentsByRange'
+        'like','fetchLikedByes','mark','unmark','fetchTags'
+        'delete','modify','fetchRelativeComments','checkIfLikedBefore'
+      ]
     schema        : JPost.schema
     relationships : JPost.relationships
 
@@ -47,9 +53,14 @@ module.exports = class JOpinion extends JPost
       meta        : data.meta
     JPost.create.call @, client, codeSnip, callback
 
-
-  # TODO : comments only get added to snapshot when a new opinion is posted
-
+  @fetchRelated = (targetId, callback)->
+    {Relationship} = require 'jraphical'
+    Relationship.one
+      as         : "opinion"
+      targetId   : targetId
+    , (err, rel)->
+      if not err and rel then rel.fetchSource callback
+      else callback err, null
 
   reply: secure (client, comment, callback)->
     JComment = require '../comment'
