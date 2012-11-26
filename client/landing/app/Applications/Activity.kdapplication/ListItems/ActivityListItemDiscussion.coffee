@@ -135,8 +135,10 @@ class DiscussionActivityItemView extends ActivityItemChild
     @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).is("[data-paths~=title]")
-        appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).closest("[data-paths~=title]")
+      if not $(event.target).is("a.action-link, a.count, .like-view")
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -157,8 +159,11 @@ class DiscussionActivityItemView extends ActivityItemChild
         {{> @settingsButton}}
         <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
         <div class="activity-content-container discussion-body-container">
-        <p class="body no-scroll has-markdown force-small-markdown">{{@utils.expandUsernames @utils.applyMarkdown #(body)}}</p>
-        {{> @scrollAreaOverlay}}
+          <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
+          <p class="body no-scroll has-markdown force-small-markdown">
+            {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
+          </p>
+          {{> @scrollAreaOverlay}}
         </div>
         <footer class='clearfix'>
           <div class='type-and-time'>

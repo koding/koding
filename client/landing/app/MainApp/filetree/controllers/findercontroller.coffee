@@ -32,14 +32,16 @@ class NFinderController extends KDViewController
     @treeController.on "folder.collapsed", (folder)=> @unsetRecentFolder folder.path
 
   loadView:(mainView)->
-
     mainView.addSubView @treeController.getView()
     @reset()
 
+#    if @treeController.getOptions().useStorage
+#      appManager.on "AppManagerOpensAnApplication", (appInst)=>
+#        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
+#          @loadDefaultStructure()
+
     if @treeController.getOptions().useStorage
-      appManager.on "AppManagerOpensAnApplication", (appInst)=>
-        if appInst instanceof StartTab12345 and not @defaultStructureLoaded
-          @loadDefaultStructure()
+      @loadDefaultStructure()
 
   reset:->
 

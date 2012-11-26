@@ -33,31 +33,31 @@ class NavigationList extends KDListView
 class NavigationLink extends KDListItemView
 
   constructor:(options,data)->
-
     super options,data
 
     @name = data.title
     @setClass 'navigation-item clearfix'
 
-  mouseDown:(event)->
+  click:(event)->
+    {appPath, title, path} = @getData()
 
     # This check is for Invite Friends link which has no app at all
-    return if @.child?
+    return if @child?
 
     mc = @getSingleton('mainController')
-    mc.emit "NavigationLinkTitleClick"
-      orgEvent : event
-      pageName : @getData().title
-      appPath  : @getData().path or @getData().title
-      navItem  : @
+    mc.emit "NavigationLinkTitleClick",
+      orgEvent  : event
+      pageName  : title
+      appPath   : appPath or title
+      path      : path
+      navItem   : @
 
   partial:(data)->
-
-    "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+    "<span class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</span>"
 
 class AdminNavigationLink extends NavigationLink
 
-  mouseDown:(event)->
+  click:(event)->
 
     cb = @getData().callback
     cb.call @ if cb
@@ -112,7 +112,9 @@ class NavigationInviteLink extends KDCustomHTMLView
 
   # take this somewhere else
   # was a beta quick solution
-  mouseDown:(event)->
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
     limit = @count.getData()
     if !limit? or limit.getAt('quota') - limit.getAt('usage') <= 0
       new KDNotificationView

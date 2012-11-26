@@ -1,50 +1,56 @@
-class TopicsListItemView extends KDListItemView
+class GroupsListItemView extends KDListItemView
 
   constructor:(options = {}, data)->
-    options.type = "topics"
+    options.type = "groups"
     super options,data
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
+      attributes  :
+        href      : '#'
       pistachio   : '{{#(title)}}'
-      click       : (event) =>
-        event?.stopPropagation()
-        event?.preventDefault()
-        @titleReceivedClick()
-        no
+      click       : (event) => @titleReceivedClick event
     , data
 
     if options.editable
-      @editButton = new KDCustomHTMLView
+      @editGroupButton = new KDCustomHTMLView
         tagName     : 'a'
-        cssClass    : 'edit-topic'
-        pistachio   : '<span class="icon"></span>Edit'
-        click       : (event) =>
-          @getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
+        cssClass    : 'edit-group'
+        partial     : '<span class="icon"></span>Group settings'
+        click       : (pubInst, event) =>
+          @getSingleton('mainController').emit 'EditGroupButtonClicked', @
+      , null
+
+      @grantPermissionsButton = new KDCustomHTMLView
+        tagName     : 'a'
+        cssClass    : 'edit-group'
+        partial     : '<span class="icon"></span>Permissions'
+        click       : (pubInst, event) =>
+          @getSingleton('mainController').emit 'EditPermissionsButtonClicked', @
       , null
     else
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    @followButton = new KDToggleButton
-      style           : if data.followee then "follow-btn following-topic" else "follow-btn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : if data.followee then "Following" else "Follow"
+    @joinButton = new KDToggleButton
+      style           : if data.member then "follow-btn following-topic" else "follow-btn"
+      title           : "Join"
+      dataPath        : "member"
+      defaultState    : if data.member then "Leave" else "Join"
       loader          :
         color         : "#333333"
         diameter      : 18
         top           : 11
       states          : [
-        "Follow", (callback)->
-          data.follow (err, response)=>
-            data.followee = yes
+        "Join", (callback)->
+          data.join (err, response)=>
+            console.log arguments
             @hideLoader()
             unless err
               @setClass 'following-btn following-topic'
               callback? null
-        "Following", (callback)->
-          data.unfollow (err, response)=>
-            data.followee = no
+        "Leave", (callback)->
+          data.leave (err, response)=>
+            console.log arguments
             @hideLoader()
             unless err
               @unsetClass 'following-btn following-topic'
@@ -53,13 +59,11 @@ class TopicsListItemView extends KDListItemView
     , data
 
   titleReceivedClick:(event)->
-    tag = @getData()
-    KD.getSingleton('router').handleRoute(
-      "/Topics/#{tag.slug}"
-      state: tag
-    )
-    #tag = @getData()
-    #appManager.tell "Topics", "createContentDisplay", tag
+    group = @getData()
+    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
+    event.stopPropagation()
+    event.preventDefault()
+    #appManager.tell "Groups", "createContentDisplay", group
 
   viewAppended:->
     @setClass "topic-item"
@@ -94,7 +98,6 @@ class TopicsListItemView extends KDListItemView
   pistachio:->
     """
     <div class="topictext">
-      {{> @editButton}}
       {h3{> @titleLink}}
       {article{#(body)}}
       <div class="topicmeta clearfix">
@@ -108,13 +111,19 @@ class TopicsListItemView extends KDListItemView
             <a href="#">{{#(counts.followers) or 0}}</a> Followers
           </p>
         </div>
-        <div class="button-container">{{> @followButton}}</div>
+          <div class="edit-actions">
+          <h4>Edit:</h4>
+          <ul>
+            {li{> @editGroupButton}}
+            {li{> @grantPermissionsButton}}
+          </ul>
+        </div>
+        <div class="button-container">{{> @joinButton}}</div>
       </div>
     </div>
     """
 
   refreshPartial: ->
-
     @skillList?.destroy()
     @locationList?.destroy()
     super
@@ -131,7 +140,7 @@ class TopicsListItemView extends KDListItemView
     @locationList = new TopicsLocationView {}, @getData().locations
     @addSubView @locationList, '.personal'
 
-class ModalTopicsListItem extends TopicsListItemView
+class ModalGroupsListItem extends TopicsListItemView
 
   constructor:(options,data)->
 
@@ -149,7 +158,7 @@ class ModalTopicsListItem extends TopicsListItemView
     """
     <div class="topictext">
       <div class="topicmeta">
-        <div class="button-container">{{> @followButton}}</div>
+        <div class="button-container">{{> @joinButton}}</div>
         {{> @titleLink}}
         <div class="stats">
           <p class="posts">
@@ -163,7 +172,7 @@ class ModalTopicsListItem extends TopicsListItemView
     </div>
     """
 
-class TopicsListItemViewEditable extends TopicsListItemView
+class GroupsListItemViewEditable extends GroupsListItemView
 
   constructor:(options = {}, data)->
 
