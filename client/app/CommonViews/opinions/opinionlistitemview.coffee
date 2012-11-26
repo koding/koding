@@ -21,12 +21,14 @@ class OpinionListItemView extends KDListItemView
         from : 0
         to : 5
       , (err, comments)=>
-                                # set the data in the appropriate places
-        comments = comments.reverse()             # take care of sorting
-        data.replies = comments
-        @commentBox.setData comments
-        for comment in comments         # and add them to the commentBox
-          @commentBox.commentList.addItem comment
+        if err
+         log err
+        else                    # set the data in the appropriate places
+          comments = comments.reverse()           # take care of sorting
+          data.replies = comments
+          @commentBox.setData comments
+          for comment in comments       # and add them to the commentBox
+            @commentBox.commentList.addItem comment
 
     @commentBox.on "RefreshTeaser",=>
       @parent.emit "RefreshTeaser"
