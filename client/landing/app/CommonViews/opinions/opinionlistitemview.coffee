@@ -10,6 +10,27 @@ class OpinionListItemView extends KDListItemView
 
     data = @getData()
 
+    @commentBox = new CommentView null, data
+
+    # FIXME
+    # this is really lazy loading. opinionsByRange should yield
+    # the comments by default
+
+    if data.repliesCount and not data.replies? # comments are not in data
+      data.commentsByRange                   # so we fetch them manually
+        from : 0
+        to : 5
+      , (err, comments)=>
+                                # set the data in the appropriate places
+        comments = comments.reverse()             # take care of sorting
+        data.replies = comments
+        @commentBox.setData comments
+        for comment in comments         # and add them to the commentBox
+          @commentBox.commentList.addItem comment
+
+    @commentBox.on "RefreshTeaser",=>
+      @parent.emit "RefreshTeaser"
+
     # listener for when this gets deleted by the creator JAccount
     data.on "OpinionIsDeleted", (things)=>
       @hide()
@@ -52,11 +73,6 @@ class OpinionListItemView extends KDListItemView
         title     : "Edit your opinion"
         href      : '#'
       cssClass    : 'edit-link hidden'
-
-    @commentBox = new CommentView null, data
-
-    @commentBox.on "RefreshTeaser",=>
-      @parent.emit "RefreshTeaser"
 
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
