@@ -346,7 +346,7 @@ module.exports = class JAccount extends jraphical.Module
       when 'delete'
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
-      when 'flag', 'reset guests'
+      when 'flag', 'reset guests', 'migrate-kodingen-users'
         @profile.nickname in dummyAdmins
 
   fetchRole: secure ({connection}, callback)->
