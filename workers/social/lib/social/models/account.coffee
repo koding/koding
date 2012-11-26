@@ -54,7 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle'
+        'fetchFeedByTitle', 'updateFlags'
       ]
     schema                  :
       skillTags             : [String]
@@ -321,6 +321,14 @@ module.exports = class JAccount extends jraphical.Module
         @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
+    else
+      callback new KodingError 'Access denied'
+
+  updateFlags: secure (client, flags, callback)->
+    {delegate} = client.connection
+    JAccount.taint @getId()
+    if delegate.can 'flag', this
+      @update {$set: globalFlags: flags}, callback
     else
       callback new KodingError 'Access denied'
 
