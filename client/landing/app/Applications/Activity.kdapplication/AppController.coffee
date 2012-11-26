@@ -135,7 +135,7 @@ class Activity12345 extends AppController
     @activityListController = activityListController = new ActivityListController
       delegate          : @
       lazyLoadThreshold : .75
-      itemClass      : ActivityListItemView
+      itemClass         : ActivityListItemView
 
     allTab.addSubView activityListScrollView = activityListController.getView()
 
@@ -400,6 +400,15 @@ class ActivityListController extends KDListViewController
     super
 
     @_state = 'public'
+
+    @scrollView.setClass "scrollable"
+
+    @scrollView.$().scroll =>
+      if @scrollView.$().scrollTop() > 10
+        @scrollView.setClass "scrolling-up"
+      else
+        @scrollView.unsetClass "scrolling-up"
+
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity from your followings."
