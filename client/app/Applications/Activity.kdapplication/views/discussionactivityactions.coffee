@@ -17,8 +17,6 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     if activity.opinionCount is 0
       @opinionCountLink.hide()
-    # if activity.repliesCount is 0
-    #   @commentCountLink.hide()
 
     @opinionCount = new ActivityOpinionCount
       tooltip     :
