@@ -14,7 +14,7 @@ class OpinionListItemView extends KDListItemView
 
     # FIXME
     # this is really lazy loading. opinionsByRange should yield
-    # the comments by default
+    # the comments by default. fetchOpinion is not capable of doing that.
 
     if data.repliesCount and not data.replies? # comments are not in data
       data.commentsByRange                   # so we fetch them manually
@@ -30,6 +30,7 @@ class OpinionListItemView extends KDListItemView
           for comment in comments       # and add them to the commentBox
             @commentBox.commentList.addItem comment
 
+    # bounce the RefreshTeaser event
     @commentBox.on "RefreshTeaser",=>
       @parent.emit "RefreshTeaser"
 
