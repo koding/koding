@@ -30,11 +30,9 @@ runLoadBalancer = (configPath,logger,silent)->
   
   lb = processes.fork
     name        : 'load-balancer'
-    modulePath  : "./load-balancer"
-    args        : ["-c", "#{configPath}"]
+    cmd         : "./load-balancer -c #{configPath}"
     restart     : yes
     restartInterval : 1
-    verbose : no
     # onMessage : (msg)->
     #   console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
 
@@ -47,13 +45,11 @@ runServer =(configPath, logger, port,silent)->
   #loggerWS.tailTo process.stdout unless silent
   process.stdout.setMaxListeners 0
   process.stderr.setMaxListeners 0
-  processes.run
+  processes.fork
     name          : 'server'+port
-    modulePath    : "./index.js"
-    args          : ["-c","#{configPath}","-p","#{port}"]
-    opts : silent : no
+    cmd           : "./index.js -c #{configPath} -p #{port}"
     restart : yes
-    restartInterval : 1
+    restartInterval : 100
     verbose : no
     # die : 
     #   interval : 60*1000
@@ -65,24 +61,6 @@ runServer =(configPath, logger, port,silent)->
     #     console.log "[WEBSERVER #{port}] high memory usage - time to commit suicide."
     #     processes.kill 'server'+port
       # console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
-
-# runServer =(configPath, logger, port,silent)->
-#   #loggerWS = new KodingLogger 'webserver', os.hostname(), logger.mq
-#   #loggerWS.tailTo process.stdout unless silent
-
-  # processes.run
-  #   name    : 'server'+port
-  #   cmd     : "node ./index.js -c #{configPath} -p #{port}"
-  #   restart : no
-  #   restartInterval : 1
-  #   stdout  : process.stdout
-  #   stderr  : process.stderr
-  #   verbose : yes
-  #   die : 60*1000*Math.random() 
-
-#   console.log "im the child of server:"+processes.get("server"+port).pid
-  # loggerWS.logAll processes.get("server"+port), "webserver#{port}"
-  # setTimeout (-> process.exit()),5000
 
 
 
