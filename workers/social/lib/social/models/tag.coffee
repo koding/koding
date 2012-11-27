@@ -37,8 +37,9 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        "one","on","some","all","create","updateAllSlugs"
+        'one','on','some','create','updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
+        'cursor','cursorWithRelationship','fetchMyFollowees'
         ]
     schema          :
       title         :

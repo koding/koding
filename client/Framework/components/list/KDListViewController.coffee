@@ -98,6 +98,13 @@ class KDListViewController extends KDViewController
 
     @listView
 
+  forEachItemByIndex:(ids, callback)->
+    [callback, ids] = [ids, callback]  unless callback
+    ids = [ids]  unless Array.isArray ids
+    ids.forEach (id)=>
+      item = @itemsIndexed[id]
+      callback item  if item?
+
   ###
   ITEM OPERATIONS
   ###
@@ -109,6 +116,7 @@ class KDListViewController extends KDViewController
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
+    dataId = itemData.getId?()
 
   registerItem:(view, index)->
 
@@ -154,8 +162,8 @@ class KDListViewController extends KDViewController
 
   removeAllItems:->
 
-    itemsOrdered  = @itemsOrdered
-    @itemsOrdered = []
+    {itemsOrdered}  = @
+    @itemsOrdered.length = 0
     @itemsIndexed = {}
 
     listView = @getListView()
