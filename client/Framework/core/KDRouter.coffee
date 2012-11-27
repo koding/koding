@@ -1,9 +1,11 @@
 class KDRouter extends KDObject
 
+  {history} = window
+
   listenerKey = 'ಠ_ಠ'
 
   createObjectRef =(obj)->
-    return unless obj?.bongo_? and obj?.getId?
+    return unless obj?.bongo_? and obj.getId?
     constructorName   : obj.bongo_?.constructorName
     id                : obj.getId()
 
@@ -84,21 +86,16 @@ class KDRouter extends KDObject
   addRoutes:(routes)->
     @addRoute route, listener  for own route, listener of routes
 
-  handleQuery:(query)->
-    query = @utils.stringifyQuery query  unless 'string' is typeof query
-    return  unless query.length
-    nextRoute = "/#{@currentPath}?#{query}"
-    @handleRoute nextRoute
-
   handleRoute:(userRoute, options={})->
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
+
     query = @utils.parseQuery query.join '&'
 
     {shouldPushState, replaceState, state} = options
     shouldPushState ?= yes
     
     objRef = createObjectRef state
-    
+
     node = @tree
     params = {}
     
@@ -137,3 +134,9 @@ class KDRouter extends KDObject
     listeners = node[listenerKey]
     if listeners?.length
       listener.call @, routeInfo, state, path  for listener in listeners
+
+  handleQuery:(query)->
+    query = @utils.stringifyQuery query  unless 'string' is typeof query
+    return  unless query.length
+    nextRoute = "/#{@currentPath}?#{query}"
+    @handleRoute nextRoute
