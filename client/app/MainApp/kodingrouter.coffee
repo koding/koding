@@ -130,12 +130,12 @@ class KodingRouter extends KDRouter
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    nouns = createLinks(
+    content = createLinks(
       'Activity Apps Groups Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
-    content = createLinks(
+    nouns = createLinks(
       'Account Activity Apps Groups Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
@@ -237,9 +237,9 @@ class KodingRouter extends KDRouter
 
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
-            when 'JAccount' then goToContent.Members routeInfo, model
-            when 'JGroup'   then goToContent.Groups  routeInfo, model
-            when 'JTopic'   then goToContent.Topics  routeInfo, model
+            when 'JAccount' then content.Members routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
         nameHandler =(routeInfo, state, route)->
