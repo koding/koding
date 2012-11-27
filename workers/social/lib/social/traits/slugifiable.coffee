@@ -21,15 +21,22 @@ module.exports = class Slugifiable
     selector = {name:nameRE}
     JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
-      else cursortoArray (err, doc)->
+      else cursor.toArray (err, names)->
         if err then callback err
         else
+          nextCount = names
+            .map((nm)->
+              [d] = (/\d+$/.exec nm) ? [0]
+              [+d, nm])
+            .sort ([a], [b])->
+              a > b
+            .pop()
+            .shift()
+
           nextCount =\
-            if doc?
-              {name} = doc
-              lastCount = (name.match(/\-(\d)*$/) ? [])[1] ? 0
-              "-#{++lastCount}"
-            else ''
+            if isNaN nextCount then ''
+            else nextCount + 1
+
           nextName = "#{slug}#{nextCount}"
           nextNameFull = template.replace '#{slug}', nextName
           # selector = {name: nextName, constructorName, usedAsPath: 'slug'}
