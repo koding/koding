@@ -117,25 +117,25 @@ class KodingRouter extends KDRouter
         else
           @loadContent name, section, topicSlug, route
 
-  createGoTos =(names, fn)->
-    names = names.split ' '  unless Array.isArray names
+  createLinks =(names, fn)->
+    names = names.split ' '  if names.split?
     names
-      .map (sec)->
-        [sec, fn sec]
-      .reduce (acc, sec)->
-        acc[sec[0]] = sec[1]
+      .map (name)->
+        [name, fn name]
+      .reduce (acc, [name, link])->
+        acc[name] = link
         acc
       , {}
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    goToContent = createGoTos(
+    goToContent = createLinks(
       'Activity Apps Groups Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
-    goToSection = createGoTos(
+    goToSection = createLinks(
       'Account Activity Apps Groups Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
