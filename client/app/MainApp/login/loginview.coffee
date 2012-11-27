@@ -10,7 +10,8 @@ class LoginView extends KDScrollView
     @hidden = no
 
     handler =(route, event)=>
-      stop event; @getSingleton('router').handleRoute route
+      stop event
+      @getSingleton('router').handleRoute route
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -106,7 +107,7 @@ class LoginView extends KDScrollView
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Recover password."
+      partial     : "Recover password"
       click       : recoverHandler
 
     @loginOptions = new LoginOptions

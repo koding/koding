@@ -71,7 +71,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     else
       JUser.one {username}, (err, user)=>
         unless user then callback new KodingError "Unknown username"
-        else @create client, user.getAt('email'), callback
+        else @create client, {email: user.getAt('email')}, callback
 
   @recoverPasswordByEmail = secure (client, email, callback)->
     JUser = require './user'
@@ -82,12 +82,23 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     else
       JUser.count {email}, (err, num)=>
         unless num then callback null # pretend like everything went fine.
-        else @create client, email, callback
+        else @create client, {email}, callback
 
-
-  @create = secure ({connection:{delegate}}, email, callback)->
+  @create = secure ({connection:{delegate}}, options, callback)->
     JUser = require './user'
     token = createId()
+    {email} = options
+
+    defaultSubject   = @getPasswordRecoverySubject
+    defaultTextBody  = @getPasswordRecoveryMessage
+    defaultExpiresAt = new Date Date.now() + 1000 * 60 * 30 # 30 minutes
+
+    if delegate.can? 'migrate-kodingen-users'
+      {subject, textbody, expiresAt} = options
+      defaultSubject   = subject if subject
+      defaultTextBody  = textbody if textbody
+      defaultExpiresAt = expiresAt if expiresAt
+
     JUser.one {email}, (err, user)=>
       if err
         callback err
@@ -95,6 +106,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
         certificate = new JPasswordRecovery {
           email
           token
+          expiresAt : defaultExpiresAt
           username  : user.getAt('username')
           status    : 'active'
         }
@@ -110,8 +122,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             Emailer.send
               From      : @getPasswordRecoveryEmail()
               To        : email
-              Subject   : @getPasswordRecoverySubject()
-              TextBody  : @getPasswordRecoveryMessage(messageOptions)
+              Subject   : defaultSubject()
+              TextBody  : defaultTextBody messageOptions
             , (err)-> callback err
 
   @validate = secure ({connection:{delegate}}, token, callback)->

@@ -81,6 +81,6 @@ do ->
     __utils.wait 500, showModal
 
   KD.remote.connect()
-  
+
   # Its required for apps
   KD.exportKDFramework()

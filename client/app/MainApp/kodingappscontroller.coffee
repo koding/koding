@@ -245,18 +245,17 @@ class KodingAppsController extends KDController
       "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
 
     if stylesheets
+      $("head .app-#{__utils.slugify name}").remove()
       stylesheets.forEach (sheet)->
         if devMode
-          $("head #app-#{__utils.slugify name}").remove()
           urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
-          $('head').append "<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
+          $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head #app-#{__utils.slugify name}").remove()
-            $('head').append("<link id='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
 
     showError = (error)->
       new KDModalView
