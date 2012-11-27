@@ -67,10 +67,10 @@ class MainController extends KDController
     @userAccount = account
     @resetUserArea()
 
-    
+
     do => # router nonsense:
       oldRouter = @router ? KD.getSingleton 'router'            # take note of the old router
-      oldRouter.stopListening()  if oldRouter?                  # disable the old router 
+      oldRouter.stopListening()  if oldRouter?                  # disable the old router
       @router = new KodingRouter location.pathname              # instantiate the new router
       shouldOverride = oldRouter?                               # we need to "override" if the old router exists
       KD.registerSingleton 'router', @router, shouldOverride    # (re)register the singleton
@@ -131,7 +131,7 @@ class MainController extends KDController
     @loginScreen.animateToForm 'login'
 
   doRecover:->
-    @loginScreen.animateToForm 'recover'    
+    @loginScreen.animateToForm 'recover'
 
   doLogout:->
     KD.logout()

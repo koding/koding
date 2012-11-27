@@ -18,7 +18,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
         email   : yes
       salt      : String
       token     : String
-      name      : String
+      username  : String
       status    :
         type    : String
         enum    : [

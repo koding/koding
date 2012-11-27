@@ -54,7 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
         'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
         'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle'
+        'fetchFeedByTitle', 'updateFlags'
       ]
     schema                  :
       skillTags             : [String]
@@ -329,6 +329,14 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
+  updateFlags: secure (client, flags, callback)->
+    {delegate} = client.connection
+    JAccount.taint @getId()
+    if delegate.can 'flag', this
+      @update {$set: globalFlags: flags}, callback
+    else
+      callback new KodingError 'Access denied'
+
   checkFlag:(flag)->
     flags = @getAt('globalFlags')
     flags and (flag in flags)
@@ -337,10 +345,14 @@ module.exports = class JAccount extends jraphical.Module
 
   @getFlagRole =-> 'owner'
 
+  # WARNING! Be sure everything is safe when you change anything in this function
   can:(action, target)->
     switch action
-      when 'delete','flag','reset guests','reset groups','administer names', 'administer url aliases'
+      when 'delete'
+        # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
+      when 'delete', 'flag', 'reset guests', 'reset groups', 'administer names', 'administer url aliases', 'migrate-kodingen-users'
+        @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
     Relationship.someData {

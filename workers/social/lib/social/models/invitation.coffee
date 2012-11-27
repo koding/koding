@@ -89,11 +89,11 @@ module.exports = class JInvitation extends jraphical.Module
     else
       JInvitationRequest = require "./invitationrequest"
       options.sort ?= 1
-      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->      
+      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->
         arr.forEach (invitation)->
           invitation.update $set:sent:true,(err)->
           callback null,"#{invitation.email} is marked as sent."
-        
+
 
 
   @sendBetaInviteFromClient = secure (client, options,callback)->
@@ -110,13 +110,13 @@ module.exports = class JInvitation extends jraphical.Module
             ->
               continueLooping = ->
                 setTimeout (-> queue.next()), 50
-              
+
               JInvitation.sendBetaInvite email:item.email,(err,res)->
                 if err
                   callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
                   continueLooping()
                 else
-                  item.update $set:sent:yes, (err)->                  
+                  item.update $set:sent:yes, (err)->
                     if err
                       callback 'err',"#{item.email}something went wrong saving the item as sent."
                     else
@@ -132,7 +132,7 @@ module.exports = class JInvitation extends jraphical.Module
     bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
     protocol = 'http://'
     email   = options.email ? "devrim+#{Date.now()}@koding.com"
-    
+
     JInvitation.one {inviteeEmail: email}, (err, invite)=>
       if err
         console.log err

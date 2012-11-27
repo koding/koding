@@ -311,6 +311,14 @@ module.exports = class JUser extends jraphical.Module
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
      agree, inviteCode, kodingenUser, clientId} = userFormData
+
+    # The silence option provides silence registers,
+    # means no welcome e-mail for new users.
+    # We're using it for migrating Kodingen users to Koding
+    silence  = no
+    if client.connection.delegate?.can? 'migrate-kodingen-users'
+      {silence} = userFormData
+
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
 
@@ -382,29 +390,34 @@ module.exports = class JUser extends jraphical.Module
                                   else
                                     feedData = {title:"followed", description: "Followed Feed"}
                                     JFeed.createFeed account, feedData, (err, feed) ->
-                                      if err 
-                                        callback err 
-                                      else  
-                                        replacementToken = createId()
-                                        session.update {
-                                          $set:
-                                            username      : user.username
-                                            lastLoginDate : new Date
-                                            clientId      : replacementToken
-                                          $unset          :
-                                            guestId       : 1
-                                        }, (err, docs)->
-                                          if err
-                                            callback err
-                                          else
-                                            user.sendEmailConfirmation()
-                                            JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                              console.log 'An error granting invitations', err if err
-                                            createNewMemberActivity account
-                                            console.log replacementToken
-                                            JAccount.emit "AccountAuthenticated", account
-                                            callback null, account, replacementToken
-
+                                      if err
+                                        callback err
+                                      else
+                                        if silence
+                                          JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                            console.log 'An error granting invitations', err if err
+                                          createNewMemberActivity account
+                                          callback null, account
+                                        else
+                                          replacementToken = createId()
+                                          session.update {
+                                            $set:
+                                              username      : user.username
+                                              lastLoginDate : new Date
+                                              clientId      : replacementToken
+                                            $unset          :
+                                              guestId       : 1
+                                          }, (err, docs)->
+                                            if err
+                                              callback err
+                                            else
+                                              user.sendEmailConfirmation()
+                                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
+                                                console.log 'An error granting invitations', err if err
+                                              createNewMemberActivity account
+                                              console.log replacementToken
+                                              JAccount.emit "AccountAuthenticated", account
+                                              callback null, account, replacementToken
 
   @fetchUser = secure (client, callback)->
     JSession.one {clientId: client.sessionToken}, (err, session)->
