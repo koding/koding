@@ -163,7 +163,8 @@ class KodingRouter extends KDRouter
       '/:name?/Activity/:activitySlug'  : goToContent.Activity
       '/:name?/Apps/:appSlug'           : goToContent.Apps
 
-      '/recover/:recoveryToken': ({params:{recoveryToken}})->
+      '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
+        return if recoveryToken is 'Password'
         mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'
@@ -181,9 +182,8 @@ class KodingRouter extends KDRouter
                   """
             else
               {loginScreen} = mainController
-              loginScreen.resetForm.addCustomData {recoveryToken}
-              loginScreen.animateToForm "reset"
-            # @utils.defer => @clear()
+              loginScreen.headBannerShowRecovery recoveryToken
+            @clear()
 
       '/invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
