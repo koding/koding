@@ -81,6 +81,8 @@ class OpinionListItemView extends KDListItemView
       cssClass : "opinion-comment-header"
     , data
 
+    @bodyView = new OpinionBodyView {}, data
+
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
       itemClass  : TagLinkView
@@ -142,6 +144,7 @@ class OpinionListItemView extends KDListItemView
                   if err
                     new KDNotificationView title : "Your changes weren't saved.", type :"mini"
                   else
+                    @bodyView.render yes
                     @getDelegate().emit "RefreshTeaser", ->
                     @emit "OwnOpinionWasAdded", opinion
                     @editForm.setClass "hidden"
@@ -240,7 +243,7 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body has-markdown'>
-          {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
+          {{> @bodyView}}
         </p>
         <div class="opinion-size-links">
           {{> @larger}}
@@ -261,4 +264,23 @@ class OpinionListItemView extends KDListItemView
         {{> @commentBox}}
       </div>
     </div>
+    """
+
+class OpinionBodyView extends KDView
+  constructor:(options,data)->
+    super options, data
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  render:(force=no)->
+    if force
+      super
+    else
+      no
+
+  pistachio:->
+    """
+      {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
     """
