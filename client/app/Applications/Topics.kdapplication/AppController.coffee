@@ -170,7 +170,7 @@ class Topics12345 extends AppController
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
     else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
+      KD.remote.api.JTag.some {}, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"

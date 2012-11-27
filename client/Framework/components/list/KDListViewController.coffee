@@ -225,17 +225,20 @@ class KDListViewController extends KDViewController
   # bad naming because of backwards compatibility i didn't
   # change the method name during refactoring - Sinan 10 May 2012
   selectItem:(item, event = {})->
+    return unless item?
+  
+    console.trace()
+  
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
 
-    if item?
-      if event.shiftKey and @selectedItems.length > 0
-        @selectItemsByRange @selectedItems[0], item
+    if event.shiftKey and @selectedItems.length > 0
+      @selectItemsByRange @selectedItems[0], item
+    else
+      unless item in @selectedItems
+        @selectSingleItem item
       else
-        unless item in @selectedItems
-          @selectSingleItem item
-        else
-          @deselectSingleItem item
+        @deselectSingleItem item
 
     return @selectedItems
 
