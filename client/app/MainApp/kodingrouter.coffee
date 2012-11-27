@@ -36,7 +36,7 @@ class KodingRouter extends KDRouter
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
-  
+
   go:(app, group, query, rest...)->
     pageTitle = nicenames[app] ? app
     @setPageTitle pageTitle
@@ -164,7 +164,7 @@ class KodingRouter extends KDRouter
       '/:name?/Apps/:appSlug'           : goToContent.Apps
 
       '/recover/:recoveryToken': ({params:{recoveryToken}})->
-        mainController.appReady ->
+        mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'
           mainController.loginScreen.show()
@@ -172,7 +172,7 @@ class KodingRouter extends KDRouter
           mainController.loginScreen.hidden = no
 
           recoveryToken = decodeURIComponent recoveryToken
-          KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)->
+          KD.remote.api.JPasswordRecovery.validate recoveryToken, (err, isValid)=>
             if err or !isValid
               new KDNotificationView
                 title   : 'Something went wrong.'
@@ -183,7 +183,7 @@ class KodingRouter extends KDRouter
               {loginScreen} = mainController
               loginScreen.resetForm.addCustomData {recoveryToken}
               loginScreen.animateToForm "reset"
-            location.replace '#'
+            # @utils.defer => @clear()
 
       '/invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
