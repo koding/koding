@@ -8,11 +8,13 @@ class DiscussionActivityActionsView extends ActivityActionsView
     @opinionCountLink  = new ActivityActionLink
       partial     : "Answer"
       click       : (event)=>
+        event.preventDefault()
         @emit "DiscussionActivityLinkClicked"
 
     @commentCountLink  = new ActivityActionLink
       partial     : "Comment"
       click       : (event)=>
+        event.preventDefault()
         @emit "DiscussionActivityCommentLinkClicked"
 
     if activity.opinionCount is 0
