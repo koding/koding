@@ -6,9 +6,7 @@ node ldap inherits base {
     package { ["389-ds"]:
         ensure => "installed",
     }
-    yumrepos { 'koding':
-        repo => 'koding',
-    }
+
     hosts_file {"$fqdn": ipaddr=> $ipaddress_eth0, aliases=>$hostname}
     hosts_file {"localhost.localdomain": ipaddr=>"127.0.0.1",aliases=>"localhost"}
 
