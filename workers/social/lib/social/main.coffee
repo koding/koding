@@ -69,13 +69,10 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect ->
-  # if KONFIG.misc?.updateAllSlugs
-  console.log "im in updateAllSlugs"
-  JTag = require './models/tag'
-  # jtag = new JTag
-  JTag.updateAllSlugs (err,slug)->
-    console.log "2 3 4 "
-    console.log slug
+  if KONFIG.misc?.updateAllSlugs
+    JTag = require './models/tag'
+    JTag.updateAllSlugs (err,slug)->
+      console.log slug
 
 
 
