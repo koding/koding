@@ -20,7 +20,9 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : [3001...3004]
+    port        : [3001..3004]
+  misc          :
+    updateAllSlugs : yes
   mongo         : mongo
   runBroker     : no
   configureBroker: no
@@ -112,6 +114,8 @@ module.exports = deepFreeze
     uri         : 'http://zb.koding.com:3008/resetVhost'
     webPort     : 3008
   pidFile       : '/tmp/koding.server.pid'
+  mixpanel :
+    key : "bb9dd21f58e3440e048a2c907422deed"
   crypto :
     encrypt: (str,key=Math.floor(Date.now()/1000/60))->
       crypto = require "crypto"

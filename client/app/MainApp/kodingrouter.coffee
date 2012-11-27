@@ -30,11 +30,13 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoot =->
-    KD.getSingleton("contentDisplayController").hideAllContentDisplays()
-    if KD.isLoggedIn()
-      @handleRoute @getDefaultRoute(), replaceState: yes
-    else
-      KD.getSingleton('mainController').doGoHome()
+    # don't load the root content when we're just consuming a hash fragment
+    unless location.hash.length or @userRoute
+      KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+      if KD.isLoggedIn()
+        @handleRoute @getDefaultRoute(), replaceState: yes
+      else
+        KD.getSingleton('mainController').doGoHome()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]

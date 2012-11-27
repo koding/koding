@@ -26,6 +26,8 @@ module.exports = deepFreeze
     login       : 'prod-webserver'
     port        : [3021..3025]
   mongo         : mongo
+  misc          :
+    updateAllSlugs : yes
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
@@ -90,6 +92,8 @@ module.exports = deepFreeze
     batchSize   : undefined
     cleanupCron : '*/10 * * * * *'
     poolSize    : 1e4
+  mixpanel :
+    key : "bb9dd21f58e3440e048a2c907422deed"
   logger        :
     mq          :
       host      : 'localhost'

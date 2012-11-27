@@ -34,22 +34,63 @@ module.exports = class Followable
       else
         @constructor.count {}, callback
 
+  @fetchMyFollowees = secure (client, ids, callback)->
+    Relationship.someData {
+      sourceId  :
+        $in     : ids
+      targetId  : client.connection.delegate.getId()
+      as        : 'follower'
+    }, {sourceId:1}, (err, cursor)->
+      if err then callback err
+      else
+        cursor.toArray (err, docs)->
+          if err
+            callback err
+          else
+            callback null, (doc.sourceId for doc in docs)
+
+  @cursorWithRelationship =do->
+    wrapNextModelMethod = (nextObject, delegate, callback)->
+      nextObject (err, model)->
+        if err then callback err
+        else unless model?
+          callback err, null
+        else
+          Relationship.count {
+            targetId  : delegate.getId()
+            sourceId  : model.getId()
+            as        : 'follower'
+          }, (err, count)->
+            if err then callback err
+            else 
+              model.followee = count > 0
+              callback null, model
+
+    cursorWithRelationship = secure (client, selector, options, callback)->
+      {delegate} = client.connection
+      @cursor selector, options, (err, cursor)->
+        if err then callback err
+        else
+          nextModel = wrapNextModelMethod.bind null, cursor.nextModel, delegate
+          cursor.nextModel = nextModel
+          callback null, cursor
+
   @someWithRelationship = secure (client, selector, options, callback)->
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
 
   @markFollowing = secure (client, followables, callback)->
     Relationship.all
+      sourceId  :
+        $in     : (followable.getId() for followable in followables)
       targetId  : client.connection.delegate.getId()
       as        : 'follower'
     , (err, relationships)->
-      for followable in followables
+      followables.forEach (followable)->
         followable.followee = no
-        for relationship, index in relationships
-          if followable.getId().equals relationship.sourceId
+        relationships.forEach (relationship)->
+          if relationship.sourceId.equals followable.getId()
             followable.followee = yes
-            relationships.splice index,1
-            break
       callback err, followables
 
   follow: secure (client, options, callback)->
