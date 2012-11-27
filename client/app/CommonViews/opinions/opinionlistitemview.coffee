@@ -182,25 +182,16 @@ class OpinionListItemView extends KDListItemView
       @markup.css {maxHeight}
       @larger.show()
 
-    # @$("pre").addClass "prettyprint"
-    # prettyPrint()
-
     @$("p.opinion-body span.data pre").each (i,element)=>
       element = hljs.highlightBlock element
 
   click:(event)->
-
     event.preventDefault() unless $(event.target).attr("target") is "_blank"
-
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          log origin
-          # KD.getSingleton('router').handleRoute "/Member/#{@getData().slug}", state:@getData()
-
-          appManager.tell "Members", "createContentDisplay", origin
-
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
 
   confirmDeleteOpinion:(data)->
     modal = new KDModalView

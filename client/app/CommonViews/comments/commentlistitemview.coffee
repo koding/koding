@@ -84,7 +84,8 @@ class CommentListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
+          # appManager.tell "Members", "createContentDisplay", origin
 
   confirmDeleteComment:(data)->
     {type} = @getOptions()
