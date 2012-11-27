@@ -52,9 +52,9 @@ class KodingRouter extends KDRouter
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
-    slugRe = /^(.+)?(#\{slug\})(.+)?$/
-    re = RegExp slugTemplate.replace slugRe, (tmp, begin, slug, end)->
-      "^#{begin ? ''}(.*)#{end ? ''}$"
+    slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
+    re = RegExp slugTemplate.replace slugStripPattern,
+      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
     str.match(re)?[1]
 
   handleNotFound:(route)->
@@ -130,12 +130,12 @@ class KodingRouter extends KDRouter
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    goToContent = createLinks(
+    nouns = createLinks(
       'Activity Apps Groups Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
-    goToSection = createLinks(
+    content = createLinks(
       'Account Activity Apps Groups Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
@@ -153,18 +153,18 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
 
       # nouns
-      '/:name?/Groups'                  : goToSection.Groups
-      '/:name?/Activity'                : goToSection.Activity
-      '/:name?/Members'                 : goToSection.Members
-      '/:name?/Topics'                  : goToSection.Topics
-      '/:name?/Develop'                 : goToSection.StartTab
-      '/:name?/Apps'                    : goToSection.Apps
-      '/:name?/Account'                 : goToSection.Account
+      '/:name?/Groups'                  : nouns.Groups
+      '/:name?/Activity'                : nouns.Activity
+      '/:name?/Members'                 : nouns.Members
+      '/:name?/Topics'                  : nouns.Topics
+      '/:name?/Develop'                 : nouns.StartTab
+      '/:name?/Apps'                    : nouns.Apps
+      '/:name?/Account'                 : nouns.Account
 
       # content displays:
-      '/:name?/Topics/:topicSlug'       : goToContent.Topics
-      '/:name?/Activity/:activitySlug'  : goToContent.Activity
-      '/:name?/Apps/:appSlug'           : goToContent.Apps
+      '/:name?/Topics/:topicSlug'       : content.Topics
+      '/:name?/Activity/:activitySlug'  : content.Activity
+      '/:name?/Apps/:appSlug'           : content.Apps
 
       '/recover/:recoveryToken': ({params:{recoveryToken}})->
         mainController.appReady =>
