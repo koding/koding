@@ -9,29 +9,6 @@ process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
 
-processMonitor = (require 'processes-monitor').start
-  name : "Social Worker #{process.pid}"
-  interval : 1000
-  limits  :
-    memory   : 300
-    callback : (name,msg,details)->
-      console.log "[SOCIAL WORKER #{name}] I'm using too much memory, feeling suicidal."
-      process.exit()
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-
-    middleware : (name,callback) -> koding.disconnect callback
-
-    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
-    # middleware : (name,callback) ->
-    #   koding.disconnect ->
-    #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
-    #     setTimeout ->
-    #       callback null
-    #     ,10*1000
-
-    middlewareTimeout : 15000
-
 Bongo = require 'bongo'
 Broker = require 'broker'
 
@@ -42,6 +19,29 @@ mqOptions = extend {}, mq
 mqOptions.login = social.login if social?.login?
 
 broker = new Broker mqOptions
+
+processMonitor = (require 'processes-monitor').start
+  name : "Social Worker #{process.pid}"
+  interval : 1000
+  limits  :
+    memory   : 300
+    callback : (name,msg,details)->
+      console.log "[SOCIAL WORKER #{name}] I'm using too much memory, feeling suicidal."
+      process.exit()
+  die :
+    after: "non-overlapping, random, 3 digits prime-number of minutes"
+    middleware : (name,callback) -> koding.disconnect callback
+    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+    # middleware : (name,callback) ->
+    #   koding.disconnect ->
+    #     console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+    #     setTimeout ->
+    #       callback null
+    #     ,10*1000
+    middlewareTimeout : 15000
+  mixpanel:
+    key : KONFIG.mixpanel.key
+
 
 koding = new Bongo
   root        : __dirname

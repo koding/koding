@@ -8,9 +8,9 @@ option '-s', '--silent', 'Set this flag to suppress stdout'
 option '-D', '--debug', 'Start the node project with the debugger'
 
 task 'run', ({numberOfWorkers, configPath, silent})->
-  configPath ?= '../../../config/dev'
-  {logger, configNumberOfWorkers} = require configPath
-  numberOfWorkers ?= configNumberOfWorkers ? 1
+  configPath ?= '../../config/dev'
+  {logger, {feeder:{numberOfWorkers}}} = require configPath
+  numberOfWorkers ?= 1
   #logger = new KodingLogger 'feeder', os.hostname(), logger.mq
   #logger.tailTo process.stdout unless silent
   i = 0
@@ -18,9 +18,7 @@ task 'run', ({numberOfWorkers, configPath, silent})->
 
   processes.fork
     name            : "feeder"
-    modulePath      : "./index"
-    args            : ['-c', configPath]
-    opts            : silent : yes
+    cmd             : "./index -c #{configPath}"
     restart         : yes
     restartInterval : 1000
     verbose         : yes
@@ -29,9 +27,7 @@ task 'run', ({numberOfWorkers, configPath, silent})->
     # child = fork './index', ['-c', configPath], silent: yes
     processes.fork
       name            : "feedWorker-#{i}"
-      modulePath      : "./worker"
-      args            : ['-c', configPath]
-      opts            : silent : yes
+      cmd             : "./worker -c #{configPath}"      
       restart         : yes
       restartInterval : 1000
       verbose         : yes
@@ -44,11 +40,7 @@ task 'e2e', ({configPath, silent}) ->
   configPath ?= '../../../config/dev'
   processes.fork
     name      : "e2e-migrator"
-    modulePath: "./e2e_migrator"
-    args      : ['-c', configPath]
-    opts      : silent : yes
+    cmd       : "./e2e_migrator -c #{configPath}"
     restart   : no
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose   : yes
   return

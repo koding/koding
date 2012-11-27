@@ -11,36 +11,28 @@ https = require 'https'
 task 'cl3','runs dev kites',(options)->
 
   config = require '../config/dev'
-  processes.run
+  processes.fork
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.fork
     name    : "applications cake"
     cmd     : "#{KODING_CAKE} ./applications -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.spawn
     name    : 'webterm kite'
     cmd     : "#{__dirname}/webterm -c dev"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.fork
     name    : "databases cake"
     cmd     : "#{KODING_CAKE} ./databases -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
 

@@ -179,6 +179,7 @@ class Watcher extends EventEmitter
           # @writeCache newFile,(err)->              
           callback file, newFile
       else
+        # console.log "reading"+file.path
         fs.readFile file.cachePath,'utf8',(err,data)->
           # console.log 'serving from cache',file.cachePath            
           file.lastCompile = Date.now()
