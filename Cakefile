@@ -117,21 +117,10 @@ normalizeConfigPath =(path)->
   nodePath.join __dirname, path
 
 buildClient =(options, callback=->)->
-  # try
-  #   config = require configFile
-  # catch e
-  #   console.log 'hello', e
-  # builder = new Builder config.client, clientFileMiddleware, ""
-  # builder.watcher.initialize()
-  # builder.watcher.on 'initDidComplete', ->
-  #   builder.buildClient "", ->
-  #     builder.buildCss "", ->
-  #       builder.buildIndex "", ->
-  #         callback null
 
   configFile = normalizeConfigPath expandConfigFile options.configFile
   config = require configFile
-  console.log config
+  # console.log config
   builder = new Builder config.client,clientFileMiddleware,""
 
 
@@ -262,6 +251,10 @@ task 'buildForProduction','set correct flags, and get ready to run in production
     else
       process.exit()
 
+task 'deleteCache',(options)->
+  exec "rm -rf #{__dirname}/.build/.cache",->
+    console.log "Cache is pruned."
+
 task 'configureBroker',(options)->
   configureBroker options
 
@@ -279,7 +272,7 @@ run =(options)->
   pipeStd(spawn './broker/start.sh') if options.runBroker
 
   if config.runGoBroker
-    processes.run
+    processes.spawn
       name  : 'goBroker'
       cmd   : "./go/bin/broker -c #{options.configFile}"
       restart: yes
@@ -289,35 +282,37 @@ run =(options)->
       verbose : yes
 
   if config.guests
-    processes.run
+    processes.fork
       name  : 'guestCleanup'
-      cmd   : "coffee ./workers/guestcleanup/guestcleanup -c #{configFile}"
+      cmd   : "./workers/guestcleanup/index -c #{configFile}"
       restart: yes
       restartInterval: 100
       stdout: process.stdout
       stderr: process.stderr
       verbose: yes
 
-  processes.run
+  # processes.run
+  #   name    : 'social'
+  #   cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
+  #   restart : yes
+  #   restartInterval : 1000
+  #   stdout  : process.stdout
+  #   stderr  : process.stderr
+  #   verbose : yes
+
+  processes.fork
     name    : 'social'
     cmd     : "#{KODING_CAKE} ./workers/social -c #{configFile} -n #{config.social.numberOfWorkers} run"
     restart : yes
     restartInterval : 1000
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
         
-  processes.run
+  processes.fork
     name    : 'server'
     cmd     : "#{KODING_CAKE} ./server -c #{configFile} run"
     restart : yes
     restartInterval : 1000
-    log     : no
 
-  pipeStd(
-    processes.get "server"
-    processes.get "social"
-  )
+
   if config.social.watch?
     watcher = new Watcher
       groups        :
