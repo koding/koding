@@ -17,6 +17,7 @@ class Topics12345 extends AppController
       data : @getView()
 
   createFeed:(view)->
+    {JTag} = KD.remote.api
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
@@ -36,9 +37,18 @@ class Topics12345 extends AppController
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              KD.remote.api.JTag.byRelevance @_searchValue, options, callback
+              JTag.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JTag.someWithRelationship selector, options, callback
+              JTag.streamModels selector, options, callback
+          dataEnd           : ({resultsController}, ids)->
+            JTag.fetchMyFollowees ids, (err, followees)->
+              if err then error err
+              else
+                {everything} = resultsController.listControllers
+                everything.forEachItemByIndex followees, ({followButton})->
+                  followButton.setState 'Following'
+                  followButton.redecorateState()
+
         following           :
           title             : "Following"
           noItemFoundText   : "There is no topics that you follow."
@@ -160,7 +170,7 @@ class Topics12345 extends AppController
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
     else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
+      KD.remote.api.JTag.some {}, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
