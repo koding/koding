@@ -405,9 +405,9 @@ class ActivityListController extends KDListViewController
 
     @scrollView.$().scroll =>
       if @scrollView.$().scrollTop() > 10
-        @scrollView.setClass "scrolling-up"
+        @activityHeader.setClass "scrolling-up-outset"
       else
-        @scrollView.unsetClass "scrolling-up"
+        @activityHeader.unsetClass "scrolling-up-outset"
 
     @scrollView.addSubView @noActivityItem = new KDCustomHTMLView
       cssClass : "lazy-loader"
