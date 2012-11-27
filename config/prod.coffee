@@ -90,6 +90,8 @@ module.exports = deepFreeze
     batchSize   : undefined
     cleanupCron : '*/10 * * * * *'
     poolSize    : 1e4
+  mixpanel :
+    key : "bb9dd21f58e3440e048a2c907422deed"
   logger        :
     mq          :
       host      : 'localhost'
