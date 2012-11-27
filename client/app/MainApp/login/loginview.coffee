@@ -140,6 +140,10 @@ class LoginView extends KDScrollView
       cssClass : "login-form"
       callback : (formData)=> @doRequest formData
 
+    @headBanner = new KDCustomHTMLView
+      cssClass : "head-banner hidden"
+      partial  : "..."
+
     @video = new KDView
       cssClass : "video-wrapper"
 
@@ -166,9 +170,9 @@ class LoginView extends KDScrollView
     @template.update()
     # @hide()
 
-
   pistachio:->
     """
+    {{> @headBanner}}
     <div class="flex-wrapper">
       <div class="login-box-header">
         <a class="betatag">beta</a>
@@ -225,13 +229,12 @@ class LoginView extends KDScrollView
       <div class="screenshots">
         {{> @slideShow}}
       </div>
-      <hr>
+      <hr/>
       <div class="footer-links">
         <p class='bigLink'>{{> @bigLinkReq1}}</p>
         <p class='bigLink'>{{> @bigLinkReg1}}</p>
         <p class='bigLink'>{{> @bigLinkLog1}}</p>
       </div>
-      <hr/>
       <footer class='copy'>&copy;#{(new Date).getFullYear()} All rights reserved Koding, Inc.</footer>
     </section>
     {{> @backToHomeLink}}
@@ -241,7 +244,7 @@ class LoginView extends KDScrollView
     KD.remote.api.JPasswordRecovery.resetPassword recoveryToken, password, (err, username)=>
       @resetForm.button.hideLoader()
       @resetForm.reset()
-      @animateToForm 'login'
+      @headBanner.hide()
       @doLogin {username, password, clientId}
 
   doRecover:(formData)->
@@ -320,6 +323,21 @@ class LoginView extends KDScrollView
         @$('.flex-wrapper').addClass 'expanded'
       @requestForm.button.hideLoader()
 
+  headBannerShowRecovery:(recoveryToken)->
+
+    @$('.login-footer').hide()
+    @$('.footer-links').hide()
+    @headBannerMsg = "Hi, it seems you have a recovery token for your account. <span>Just click here when you ready!</span>"
+    @headBanner.updatePartial @headBannerMsg
+    @headBanner.unsetClass 'hidden'
+    @headBanner.setClass 'show'
+    $('body').addClass 'recovery'
+    @headBanner.click = =>
+      @getSingleton('router').clear '/Recover/Password'
+      @headBanner.updatePartial "You can now create a new password for your account"
+      @resetForm.addCustomData {recoveryToken}
+      @animateToForm "reset"
+
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
     @$().css marginTop : -winHeight
@@ -346,15 +364,20 @@ class LoginView extends KDScrollView
     @$().css marginTop : -winHeight if @hidden
 
   animateToForm: (name)->
-    if name is "register"
-      KD.remote.api.JUser.isRegistrationEnabled (status)=>
-        if status is no
-          @registerForm.$('div').hide()
-          @registerForm.$('section').show()
-          log "Registrations are disabled!!!"
-        else
-          @registerForm.$('section').hide()
-          @registerForm.$('div').show()
+    switch name
+      when "register"
+        KD.remote.api.JUser.isRegistrationEnabled (status)=>
+          if status is no
+            @registerForm.$('div').hide()
+            @registerForm.$('section').show()
+            log "Registrations are disabled!!!"
+          else
+            @registerForm.$('section').hide()
+            @registerForm.$('div').show()
+      when "home"
+        parent.notification?.destroy()
+        if @headBannerMsg?
+          @headBanner.updatePartial @headBannerMsg
 
     @unsetClass "register recover login reset home lr"
     @emit "LoginViewAnimated", name
