@@ -26,6 +26,8 @@ module.exports = deepFreeze
     login       : 'prod-webserver'
     port        : [3021..3025]
   mongo         : mongo
+  misc          :
+    updateAllSlugs : yes
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
