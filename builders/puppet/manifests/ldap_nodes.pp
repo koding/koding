@@ -3,7 +3,7 @@ node ldap inherits base {
     
     include ssh
 
-    package { ["389-ds"]:
+    package { ["389-ds","perl-LDAP"]:
         ensure => "installed",
     }
 
