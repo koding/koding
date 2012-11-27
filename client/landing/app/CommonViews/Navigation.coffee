@@ -53,7 +53,7 @@ class NavigationLink extends KDListItemView
       navItem   : @
 
   partial:(data)->
-    "<span class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</span>"
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
 class AdminNavigationLink extends NavigationLink
 
