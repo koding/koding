@@ -227,8 +227,6 @@ class KDListViewController extends KDViewController
   selectItem:(item, event = {})->
     return unless item?
   
-    console.trace()
-  
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
 
