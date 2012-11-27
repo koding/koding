@@ -21,7 +21,7 @@ module.exports = class Slugifiable
     selector = {name:nameRE}
     JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
-      else cursor.nextObject (err, doc)->
+      else cursortoArray (err, doc)->
         if err then callback err
         else
           nextCount =\
@@ -35,6 +35,7 @@ module.exports = class Slugifiable
           # selector = {name: nextName, constructorName, usedAsPath: 'slug'}
           JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
             if err?.code is 11000
+              console.log 'doh!', nextNameFull
               # we lost the race; try again
               generateUniqueSlug konstructor, slug, 0, template, callback
             else if err
@@ -89,20 +90,23 @@ module.exports = class Slugifiable
     subclasses = @encapsulatedSubclasses ? [@]
     contentTypeQueue = subclasses.map (subclass)->->
       subclass.cursor selector, options, (err, cursor)->
-        if err then contentTypeQueue.next err
+        if err then console.error err #contentTypeQueue.next err
         else
           postQueue = []
           cursor.each (err, post)->
-            if err then postQueue.next err
+            if err then console.error err#postQueue.next err
             else if post?
-              postQueue.push -> post.updateSlug (err, slug)->
-                callback null, slug
-                postQueue.next()
+              postQueue.push ->
+                post.updateSlug (err, slug)->
+                  callback null, slug
+                  postQueue.next()
             else
+              console.log postQueue.length
               daisy postQueue, -> contentTypeQueue.fin()
     dash contentTypeQueue, callback
 
   updateSlug:(callback)->
+    console.log 'body', @body
     @createSlug (err, slug)=>
       if err then callback err
       else @update $set:{slug, slug_:slug}, (err)->

@@ -69,10 +69,15 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect ->
-  if KONFIG.misc?.updateAllSlugs
-    JTag = require './models/tag'
-    JTag.updateAllSlugs (err,slug)->
-      console.log slug
+  console.log "in update"
+  updateBatchOfTags 100, require './models/messages/statusupdate'
+
+updateBatchOfTags =(limit, konstructor)->
+  counter = 0
+  konstructor.updateAllSlugs {limit}, (err,slug)->
+    if ++counter is limit
+      process.nextTick -> updateBatchOfTags limit, konstructor
+    console.log slug
 
 
 
