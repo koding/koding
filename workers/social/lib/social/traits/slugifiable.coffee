@@ -25,9 +25,9 @@ module.exports = class Slugifiable
         if err then callback err
         else
           nextCount = names
-            .map((nm)->
+            .map (nm)->
               [d] = (/\d+$/.exec nm) ? [0]
-              [+d, nm])
+              [+d, nm]
             .sort ([a], [b])->
               a > b
             .pop()
