@@ -187,6 +187,20 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
           item.hide()
           item.destroy()
 
+    if activity.repliesCount > 0 and not activity.replies?
+      activity.commentsByRange                   # so we fetch them manually
+        from : 0
+        to : 5
+      , (err, comments)=>
+        if err
+         log err
+        else                    # set the data in the appropriate places
+          comments = comments.reverse()           # take care of sorting
+          activity.replies = comments
+          @commentBox.setData comments
+          for comment in comments       # and add them to the commentBox
+            @commentBox.commentList.addItem comment
+
 
   opinionHeaderCountString:(count)=>
     if count is 0
