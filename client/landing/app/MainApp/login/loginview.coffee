@@ -19,7 +19,7 @@ class LoginView extends KDScrollView
     registerHandler   = handler.bind router, '/Register'
     joinHandler       = handler.bind router, '/Join'
     recoverHandler    = handler.bind router, '/Recover'
-    
+
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
@@ -107,7 +107,7 @@ class LoginView extends KDScrollView
 
     @goToRecoverLink = new KDCustomHTMLView
       tagName     : "a"
-      partial     : "Recover password."
+      partial     : "Recover password"
       click       : recoverHandler
 
     @loginOptions = new LoginOptions
