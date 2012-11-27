@@ -63,9 +63,9 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
     else
-      appManager.tell "Activity", "createContentDisplay", @parent.getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@parent.getData().slug}", state:@parent.getData()
 
   pistachio:->
     """

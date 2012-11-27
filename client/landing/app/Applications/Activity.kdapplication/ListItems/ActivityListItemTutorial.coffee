@@ -180,7 +180,8 @@ class TutorialActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]") # or\
-         appManager.tell "Activity", "createContentDisplay", @getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+         # appManager.tell "Activity", "createContentDisplay", @getData()
     if $(event.target).is("[data-paths~=preview]")
 
       @videoPopup = new VideoPopup
