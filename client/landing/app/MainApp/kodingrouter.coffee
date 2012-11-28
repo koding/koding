@@ -9,7 +9,11 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
-    @handleRoute defaultRoute
+    # @utils.defer => 
+    unless @userRoute
+      @handleRoute defaultRoute,
+        shouldPushState: yes
+        replaceState: yes
 
   nicenames = {
     JTag      : 'Topics'
@@ -31,10 +35,11 @@ class KodingRouter extends KDRouter
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
-    unless location.hash.length or @userRoute
+    unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+
       if KD.isLoggedIn()
-        @handleRoute @getDefaultRoute(), replaceState: yes
+        @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
       else
         KD.getSingleton('mainController').doGoHome()
 
@@ -201,9 +206,6 @@ class KodingRouter extends KDRouter
           else
             {loginScreen} = mainController
             loginScreen.headBannerShowInvitation invite
-            # mainController.loginScreen.slideDown =>
-            #   mainController.loginScreen.animateToForm "register"
-            #   mainController.propagateEvent KDEventType: 'InvitationReceived', invite
           @clear()
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
