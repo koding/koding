@@ -1,3 +1,112 @@
+class VideoPopupController extends KDController
+  constructor:(options,data)->
+    super options,data
+    # if not @getSingleton("windowController").videoPopups?
+    #   @getSingleton("windowController").videoPopups = []
+
+    @videoPopups = []
+    # log "VideoPopupController initialized"
+
+  newPopup:(url, windowTitle, optionString, imageTitle, imageThumb)->
+    # log "Arguments in newPopup",arguments
+    newWindow = window.open url, windowTitle, optionString
+    newWindow.onbeforeunload = (newWindowEvent)=>
+      # log "VideoPopupController newPopup Window received onbeforeunload",newWindow
+      newWindow.onbeforeunload = noop
+      @closePopup newWindow
+      undefined
+    @videoPopups.push newWindow
+    # log "VideoPopupController added window to stack"
+    @emit "PopupOpened",newWindow,
+      title : imageTitle
+      thumb : imageThumb
+    return newWindow
+
+  listPopups:()->
+    @videoPopups
+
+  countPopups:()->
+    @videoPopups.length
+
+  focusWindowByName:(windowName)->
+    for video in @videoPopups
+      if video.name is windowName
+        video.focus()
+
+  closeWindowByName:(windowName)->
+    for video in @videoPopups
+      if video.name is windowName
+        @closePopup video
+
+  closePopup:(popupWindow)->
+    # log "VideoPopupController closePopup called"
+    for videoPopup,i in @videoPopups
+      if popupWindow is videoPopup
+        @videoPopups.splice i,1
+        @emit "PopupClosed",popupWindow.name,i
+    popupWindow?.close()
+    # log "VideoPopup Controller closed a window"
+
+
+class VideoPopupList extends KDListView
+  constructor:(options,data)->
+    super options,data
+    @controller = @getSingleton("mainController").popupController
+
+    @controller.on "PopupOpened", (popup,data) =>
+      # log "VideoPopupList adding item",popup
+      @addItem
+        delegate : @
+        name : popup.name or "New Window"
+        title : data.title
+        thumb : data.thumb
+
+    @controller.on "PopupClosed", (popupName,index) =>
+      # log "VideoPopupList removing item",popupName,index
+      @removeItem {},{},index
+      # @utils.wait => log "VideoPopupList items are",@items
+
+    @on "FocusWindow", (windowName)->
+      @controller.focusWindowByName windowName
+    @on "CloseWindow", (windowName)->
+      @controller.closeWindowByName windowName
+
+class VideoPopupListItem extends KDListItemView
+  constructor:(options,data)->
+    super options,data
+    @setData data
+
+    @focusWindowBar = new KDView
+      cssClass : "overlay-bar"
+      partial : "Focus it"
+      click : =>
+        @getDelegate().emit "FocusWindow", @getData().name
+
+    @closeWindowBar = new KDView
+      cssClass : "overlay-bar"
+      partial : "Close it"
+      click : =>
+        @getDelegate().emit "CloseWindow", @getData().name
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  # click:()->
+  #   @getDelegate().emit "FocusWindow", @getData().name
+
+  pistachio:->
+    """
+    <div class="video-popup-list">
+    {{#(title)}} ({{#(name)}})
+    {{> @focusWindowBar}}
+    {{> @closeWindowBar}}
+    <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
+    </div>
+    """
+
+
+
 class VideoPopup extends KDView
 
 # THIS NEEDS A DELEGATE
@@ -5,18 +114,19 @@ class VideoPopup extends KDView
   constructor:(options,data)->
     super options,data
     @setClass "hidden invisible"
-    @videoPopup = @getSingleton("windowController").videoPopup
+
     @embedData = data
     @options = options
+    @controller = @getSingleton("mainController").popupController
 
+    # log "New VideoPopup", options, data
 
   openVideoPopup:->
     h=@getDelegate().getHeight()
     w=@getDelegate().getWidth()
     t=@getDelegate().$().offset()
     @videoPopup?.close()
-    @videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
-    @getSingleton("windowController").videoPopup = @videoPopup
+    @videoPopup = @controller.newPopup "http://localhost:3000/1.0/video-container.html", "KodingVideo_"+Math.random().toString(36).substring(7), "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
 
     @utils.wait 1500, =>          # give the popup some time to open
 
@@ -59,17 +169,15 @@ class VideoPopup extends KDView
               window.clearInterval countdownInterval
 
               unless userChoice
-                @videoPopup?.close()
+                @controller.closePopup @videoPopup
                 modal.destroy()
 
-      embed =
-        embed : @embedData
+      command =
+        type   : "embed"
+        embed  : @embedData
         coordinates :
           left : @options.popup?.left or t.left+window.screenX or 100
-          top : @options.popup?.top or window.screenY+t.top+(window.outerHeight - window.innerHeight) or 100
-          # height : @options.popup?.height or h or 100
-          # width : @options.popup?.width or w or 100
+          top  : @options.popup?.top or window.screenY+t.top+(window.outerHeight - window.innerHeight) or 100
 
-      if embed and @videoPopup
-        @videoPopup.postMessage embed, "*"
-      else @videoPopup?.close()
+      if command and @videoPopup
+        @videoPopup.postMessage command, "*"
