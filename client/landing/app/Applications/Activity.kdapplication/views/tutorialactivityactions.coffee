@@ -5,24 +5,26 @@ class TutorialActivityActionsView extends ActivityActionsView
 
     activity = @getData()
 
-    @opinionCount?.destroy()
-
     @opinionCountLink  = new ActivityActionLink
       partial     : "Opinions"
-      click     : (pubInst, event)=>
+      click     : (event)=>
+        event.preventDefault()
         @emit "TutorialActivityLinkClicked"
 
-    if activity.repliesCount is 0 then @opinionCountLink.hide()
+    if activity.opinionCount is 0 then @opinionCountLink.hide()
 
-    @opinionCount = new ActivityCommentCount {}, activity
+    @opinionCount = new ActivityOpinionCount
+      click:(event)->
+        event.preventDefault()
+    , activity
 
     @opinionCount.on "countChanged", (count) =>
       if count > 0 then @opinionCountLink.show()
       else @opinionCountLink.hide()
 
     @on "TutorialActivityLinkClicked", =>
-      unless @parent instanceof ContentDisplayDiscussion
-        appManager.tell "Activity", "createContentDisplay", @getData()
+      unless @parent instanceof ContentDisplayTutorial
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 
@@ -43,7 +45,7 @@ class TutorialActivityActionsView extends ActivityActionsView
   pistachio:->
     """
       {{> @loader}}
-      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.repliesCount > 0 then " ·" else "" }
+      {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.opinionCount > 0 then " ·" else "" }
       <span class='optional'>
       {{> @shareLink}} ·
       </span>
