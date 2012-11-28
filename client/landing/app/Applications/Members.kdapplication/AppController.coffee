@@ -11,8 +11,6 @@ class Members12345 extends AppController
         name : 'Members'
       data : @getView()
 
-  handleQuery:(query)-> @feedController?.handleQuery? query
-
   createFeed:(view)->
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView

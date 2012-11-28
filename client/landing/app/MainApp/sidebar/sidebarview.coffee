@@ -321,7 +321,7 @@ class Sidebar extends JView
           { title : "Activity",   path: "/Activity" }
           { title : "Topics",     path: "/Topics" }
           { title : "Members",    path: "/Members" }
-          { title : "Develop",    path: "/Develop", loggedIn: yes, appPath: "StartTab"}
+          { title : "Develop",    path: "/Develop", loggedIn: yes }
           { title : "Apps",       path: "/Apps" }
         ]
       else
@@ -331,8 +331,8 @@ class Sidebar extends JView
           { title : "Activity",   path: "/Activity" }
           { title : "Topics",     path: "/Topics" }
           { title : "Members",    path: "/Members" }
-          { title : "Groups",     path: "/Groups",   appPath: "Groups" }
-          { title : "Develop",    path: "/Develop",  loggedIn: yes,  appPath: "StartTab" }
+          { title : "Groups",     path: "/Groups" }
+          { title : "Develop",    path: "/Develop",  loggedIn: yes }
           { title : "Apps",       path: "/Apps" }
         ]
 
@@ -349,7 +349,7 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",    appPath : "WebTerm" }
+      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }

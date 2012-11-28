@@ -14,7 +14,6 @@ class FeederFacetsController extends KDViewController
 
     @facetTypes.forEach (facet)=>
 
-      @["#{facet}Controller"] =
       controller = new CommonInnerNavigationListController {},
         title     : options["#{facet}Title"] or facet.toUpperCase()
         items     : (
@@ -22,6 +21,8 @@ class FeederFacetsController extends KDViewController
           type    : type
           action  : facet
         )  for own type, item of options["#{facet}s"]
+
+      @["#{facet}Controller"] = controller
 
       if controller.getData().items.length > 1
         controller.on 'NavItemReceivedClick', (item)=>

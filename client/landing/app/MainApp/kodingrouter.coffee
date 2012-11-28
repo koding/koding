@@ -1,5 +1,5 @@
 class KodingRouter extends KDRouter
-  constructor:(defaultRoute)->
+  constructor:(@defaultRoute)->
     @openRoutes = {}
     @openRoutesById = {}
     KD.getSingleton('contentDisplayController')
@@ -8,6 +8,12 @@ class KodingRouter extends KDRouter
 
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
+
+    # @utils.defer => 
+    unless @userRoute
+      @handleRoute defaultRoute,
+        shouldPushState: yes
+        replaceState: yes
 
   nicenames = {
     JTag      : 'Topics'
@@ -28,11 +34,14 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoot =->
-    KD.getSingleton("contentDisplayController").hideAllContentDisplays()
-    if KD.isLoggedIn()
-      @handleRoute @getDefaultRoute(), replaceState: yes
-    else
-      KD.getSingleton('mainController').doGoHome()
+    # don't load the root content when we're just consuming a hash fragment
+    unless location.hash.length
+      KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+
+      if KD.isLoggedIn()
+        @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
+      else
+        KD.getSingleton('mainController').doGoHome()
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -44,14 +53,13 @@ class KodingRouter extends KDRouter
       appManager.openApplication app
     else
       appManager.tell app, 'setGroup', group
-    if Object.keys(query).length
-      appManager.tell app, 'handleQuery', query
+    appManager.tell app, 'handleQuery', query
 
   stripTemplate =(str, konstructor)->
     {slugTemplate} = konstructor
-    slugRe = /^(.+)?(#\{slug\})(.+)?$/
-    re = RegExp slugTemplate.replace slugRe, (tmp, begin, slug, end)->
-      "^#{begin ? ''}(.*)#{end ? ''}$"
+    slugStripPattern = /^(.+)?(#\{slug\})(.+)?$/
+    re = RegExp slugTemplate.replace slugStripPattern,
+      (tmp, begin, slug, end)-> "^#{begin ? ''}(.*)#{end ? ''}$"
     str.match(re)?[1]
 
   handleNotFound:(route)->
@@ -68,17 +76,17 @@ class KodingRouter extends KDRouter
 
   getDefaultRoute:-> '/Activity'
 
-  setPageTitle:(title="Koding")->
-    document.title = title
+  setPageTitle:(title="Koding")-> document.title = title
 
   getContentTitle:(model)->
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
-    @utils.shortenText (switch model.constructor
-      when JAccount then "#{model.profile.firstName} #{model.profile.lastName}"
-      when JStatusUpdate then model.body
-      when JGroup then model.title
-      else "#{model.title}#{getSectionName model}"
-    ), 100
+    @utils.shortenText(
+      switch model.constructor
+        when JAccount       then "#{model.profile.firstName} #{model.profile.lastName}"
+        when JStatusUpdate  then  model.body
+        when JGroup         then  model.title
+        else                      "#{model.title}#{getSectionName model}"
+    , maxLength: 100) # max char length of the title
 
   openContent:(name, section, state, route)->
     @setPageTitle @getContentTitle state
@@ -100,10 +108,6 @@ class KodingRouter extends KDRouter
           @openContent name, section, model, route
       else
         @handleNotFound route
-    #konstructor = KD.getContentConstructor section
-    # appManager.tell section, 'createContentDisplay', state, (contentDisplay)=>
-    #   @openRoutes[route] = contentDisplay
-    #   @openRoutesById[contentDisplay.id] = route
 
   createContentDisplayHandler:(section)->
     ({name, topicSlug}, state, route)=>
@@ -118,24 +122,28 @@ class KodingRouter extends KDRouter
         else
           @loadContent name, section, topicSlug, route
 
+  createLinks =(names, fn)->
+    names = names.split ' '  if names.split?
+    names
+      .map (name)->
+        [name, fn name]
+      .reduce (acc, [name, link])->
+        acc[name] = link
+        acc
+      , {}
+
   getRoutes =->
-    # Abbreviations used below:
-    # "acc" is short for "accumulator"
-    # "kv" is short for "key-value pair"
-    # "sec" is short for "section"
     mainController = KD.getSingleton 'mainController'
 
-    kv =(acc, sec)-> acc[sec[0]] = sec[1]; acc
+    content = createLinks(
+      'Activity Apps Groups Members Topics'
+      (sec)=> @createContentDisplayHandler sec
+    )
 
-    goToContent = 'Activity Apps Groups Members Topics'
-      .split(' ')
-      .map((sec)=> [sec, @createContentDisplayHandler sec])
-      .reduce kv, {}
-
-    goToSection = 'Account Activity Apps Groups Members StartTab Topics'
-      .split(' ')
-      .map((sec)-> [sec, ({params:{name}, query})-> @go sec, name, query])
-      .reduce kv, {}
+    nouns = createLinks(
+      'Account Activity Apps Groups Members StartTab Topics'
+      (sec)-> ({params:{name}, query})-> @go sec, name, query
+    )
 
     routes =
 
@@ -150,18 +158,18 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
 
       # nouns
-      '/:name?/Groups'                  : goToSection.Groups
-      '/:name?/Activity'                : goToSection.Activity
-      '/:name?/Members'                 : goToSection.Members
-      '/:name?/Topics'                  : goToSection.Topics
-      '/:name?/Develop'                 : goToSection.StartTab
-      '/:name?/Apps'                    : goToSection.Apps
-      '/:name?/Account'                 : goToSection.Account
+      '/:name?/Groups'                  : nouns.Groups
+      '/:name?/Activity'                : nouns.Activity
+      '/:name?/Members'                 : nouns.Members
+      '/:name?/Topics'                  : nouns.Topics
+      '/:name?/Develop'                 : nouns.StartTab
+      '/:name?/Apps'                    : nouns.Apps
+      '/:name?/Account'                 : nouns.Account
 
       # content displays:
-      '/:name?/Topics/:topicSlug'       : goToContent.Topics
-      '/:name?/Activity/:activitySlug'  : goToContent.Activity
-      '/:name?/Apps/:appSlug'           : goToContent.Apps
+      '/:name?/Topics/:topicSlug'       : content.Topics
+      '/:name?/Activity/:activitySlug'  : content.Activity
+      '/:name?/Apps/:appSlug'           : content.Apps
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return if recoveryToken is 'Password'
@@ -198,9 +206,6 @@ class KodingRouter extends KDRouter
           else
             {loginScreen} = mainController
             loginScreen.headBannerShowInvitation invite
-            # mainController.loginScreen.slideDown =>
-            #   mainController.loginScreen.animateToForm "register"
-            #   mainController.propagateEvent KDEventType: 'InvitationReceived', invite
           @clear()
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
@@ -219,14 +224,16 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      # top level names:
+      # top level names
       '/:name':do->
+
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
-            when 'JAccount' then goToContent.Members routeInfo, model
-            when 'JGroup'   then goToContent.Groups  routeInfo, model
-            when 'JTopic'   then goToContent.Topics  routeInfo, model
+            when 'JAccount' then content.Members routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
+
         nameHandler =(routeInfo, state, route)->
           {params} = routeInfo
           status_404 = @handleNotFound.bind this, params.name
