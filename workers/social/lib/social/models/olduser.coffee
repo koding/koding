@@ -160,14 +160,61 @@ module.exports = class JOldUser extends jraphical.Module
 
   @getTextBody = ({requestedAt, url, firstName, lastName, nickname})->
     """
+    Hello,
+    
+    TL;DR: Your KODINGEN account is now a brand new KODING account - and it is ready for you!
 
-    Hi #{firstName} #{lastName} (aka #{nickname}),
 
-    At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'} we've created a Koding account for you!
+    You've signed up for Kodingen.com maybe a loooong time ago. Sorry it took so long for us to send you this email. Finally the wait is over (YAY!). We have reached to the scariest moment of a startup where we say "here is our product!".
 
-    There is a one-time token which allow you to reset your password. This token will self-destruct 7 days after it is created.
+    Thank you for signing up to Kodingen, thanks for giving us a chance. It means so much to us.
 
+    If you have a moment, I want to tell you 'why Koding' - "Welcome to Koding, the next little thing." it’s here: http://d.pr/SGu7
+
+    We had a nice write-up on TechCrunch when we first launched our new version back in July: http://techcrunch.com/2012/07/24/koding-launch/
+
+    Alright, here is your new account, we hope you will like what you see.
+
+    Your username: #{nickname} (you've registered this to Kodingen)
     #{url}
 
-    Have fun!
+    
+    Now, go, code, share and have fun! 
+    (Please take a look at http://wiki.koding.com for the things you can do)
+
+    Whole Koding Team welcomes you,
+    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson (yeah we're just 8*)
+
+
+    notes:
+    - of course you can mail me back if you like... (says Devrim)
+    - this is still beta, expect bugs, please don’t be surprised if you spot one.
+    - no matter how you signed up, you will not receive any mailings, newsletters and other crap.
+    - if you’ve never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
+    - if you want to change your username, just send yourself an invite from the platform, and register a new account.
+
+    - IMPORTANT: We did NOT migrate your files or databases at Kodingen just yet, we will provide an app for that soon, or you can do it yourself (ftp, ftps, curl, wget etc.)
+    
+    *if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
+
+
+
     """
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
