@@ -81,6 +81,9 @@ class OpinionViewHeader extends JView
       cssClass  : "new-items"
       click     : (event)=>
         event.preventDefault()
+
+        @newItemsLink.unsetClass "in"
+
         if @parent?.constructor is not DiscussionActivityOpinionView
           list.emit "AllOpinionsLinkWasClicked", @
         else
