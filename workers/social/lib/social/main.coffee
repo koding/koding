@@ -70,7 +70,7 @@ koding.on 'auth', (exchange, sessionToken)->
 
 koding.connect ->
   console.log "in update"
-  updateBatchOfTags 100, require './models/messages/statusupdate'
+  updateBatchOfTags 100, require './models/messages/tutorial'
 
 updateBatchOfTags =(limit, konstructor)->
   counter = 0
