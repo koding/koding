@@ -91,7 +91,7 @@ class NotificationController extends KDObject
             view.destroy()
         else
           # ask chris if KD.remote.cacheable is good for this
-          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
+          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
             # appManager.tell "Activity", "createContentDisplay", post
             KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
             view.destroy()
