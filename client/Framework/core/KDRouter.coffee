@@ -1,9 +1,11 @@
 class KDRouter extends KDObject
 
+  {history} = window
+
   listenerKey = 'ಠ_ಠ'
 
   createObjectRef =(obj)->
-    return unless obj?.bongo_? and obj?.getId?
+    return unless obj?.bongo_? and obj.getId?
     constructorName   : obj.bongo_?.constructorName
     id                : obj.getId()
 
@@ -19,12 +21,13 @@ class KDRouter extends KDObject
     # this handles the case that the url is an "old-style" hash fragment hack.
     if location.hash.length
       hashFragment = location.hash.substr 1
+      @userRoute = hashFragment
       @utils.defer => @handleRoute hashFragment,
         shouldPushState   : yes
         replaceState      : yes
     @startListening()
 
-  onpopstate:(event)=> # fat-arrow binding makes this handler easier to remove.
+  popState:(event)=> # fat-arrow binding makes this handler easier to remove.
     revive event.state, (err, state)=>
       if err?
         new KDNotificationView title: 'An unknown error has occurred.'
@@ -39,19 +42,19 @@ class KDRouter extends KDObject
     return no  if @isListening # make this action idempotent
     @isListening = yes
     # we need to add a listener to the window's popstate event:
-    window.addEventListener 'popstate', @onpopstate
+    window.addEventListener 'popstate', @popState
     return yes
 
   stopListening:->
     return no  unless @isListening # make this action idempotent
     @isListening = no
     # we need to remove the listener from the window's popstate event:
-    window.removeEventListener 'popstate', @onpopstate
+    window.removeEventListener 'popstate', @popState
     return yes
 
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
-  getTitle:(path)-> path
+  getCurrentPath:-> @currentPath
 
   handleNotFound:(route)->
     console.trace()
@@ -66,7 +69,7 @@ class KDRouter extends KDObject
     route = route.split '/'
     route.shift() # first edge is garbage like '' or '#!'
     for edge, i in route
-      len = edge.length-1
+      len = edge.length - 1
       if '?' is edge.charAt len # then this is an "optional edge".
         # recursively alias this route without this optional edge:
         @addRoute routeWithoutEdgeAtIndex(route, i), listener
@@ -83,20 +86,19 @@ class KDRouter extends KDObject
   addRoutes:(routes)->
     @addRoute route, listener  for own route, listener of routes
 
-  handleQuery:(query)->
-    query = @utils.stringifyQuery query  unless 'string' is typeof query
-    return  unless query.length
-    nextRoute = "/#{@currentPath}?#{query}"
-    @handleRoute nextRoute
-
   handleRoute:(userRoute, options={})->
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
+
     query = @utils.parseQuery query.join '&'
+
     {shouldPushState, replaceState, state} = options
-    objRef = createObjectRef state
     shouldPushState ?= yes
+
+    objRef = createObjectRef state
+
     node = @tree
     params = {}
+
     isRooted = '/' is frag[0]
 
     frag = frag.split '/'
@@ -115,7 +117,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, @getTitle(path), "/#{path}"
+      history[method] objRef, path, "/#{path}"
 
     for edge in frag
       if node[edge]
@@ -132,3 +134,9 @@ class KDRouter extends KDObject
     listeners = node[listenerKey]
     if listeners?.length
       listener.call @, routeInfo, state, path  for listener in listeners
+
+  handleQuery:(query)->
+    query = @utils.stringifyQuery query  unless 'string' is typeof query
+    return  unless query.length
+    nextRoute = "/#{@currentPath}?#{query}"
+    @handleRoute nextRoute

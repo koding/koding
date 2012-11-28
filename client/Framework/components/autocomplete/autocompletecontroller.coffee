@@ -328,7 +328,6 @@ class KDAutoCompleteController extends KDViewController
 
     @addSelectedItemData data
     @addSelectedItem itemName, data
-    # debugger
     @getView().setValue @dropdownPrefix = ""
 
   removeFromSubmitQueue:(item, data)->

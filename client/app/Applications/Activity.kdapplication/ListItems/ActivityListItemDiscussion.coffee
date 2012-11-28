@@ -2,6 +2,11 @@ class DiscussionActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options = $.extend
       cssClass    : "activity-item discussion"
       tooltip     :
@@ -47,20 +52,24 @@ class DiscussionActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
-    @scrollAreaList = new KDButtonGroupView
-      buttons:
-        "Allow Scrolling here":
-          # cssClass : ""
-          callback:=>
-            @$("div.discussion-body-container").addClass "scrollable-y"
-            @$("div.discussion-body-container").removeClass "no-scroll"
+    # @scrollAreaHint = new KDView
+    #   cssClass : "enable-scroll-hint"
+    #   partial : "Don't move your mouse to scroll"
 
-            @scrollAreaOverlay.hide()
-        "View the full Discussion":
-          callback:=>
-            appManager.tell "Activity", "createContentDisplay", @getData()
+    # @scrollAreaList = new KDButtonGroupView
+    #   buttons:
+    #     "Allow Scrolling here":
+    #       # cssClass : ""
+    #       callback:=>
+    #         @$("div.discussion-body-container").addClass "scrollable-y"
+    #         @$("div.discussion-body-container").removeClass "no-scroll"
 
-    @scrollAreaOverlay.addSubView @scrollAreaList
+    #         @scrollAreaOverlay.hide()
+    #     "View the full Discussion":
+    #       callback:=>
+    #         appManager.tell "Activity", "createContentDisplay", @getData()
+
+    # @scrollAreaOverlay.addSubView @scrollAreaList
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CDiscussionActivity
@@ -82,8 +91,8 @@ class DiscussionActivityItemView extends ActivityItemChild
   prepareScrollOverlay:->
     @utils.wait =>
 
-      body = @$("div.discussion-body-container")
-      if body.height() < parseInt body.css("max-height").replace(/\D/, ""), 10
+      body = @$("div.activity-content-container.discussion")
+      if body.height() < parseInt body.css("max-height"), 10
         @scrollAreaOverlay.hide()
       else
         body.addClass "scrolling-down"
@@ -128,6 +137,29 @@ class DiscussionActivityItemView extends ActivityItemChild
             body.removeClass "scrolling-up"
             body.removeClass "scrolling-down"
 
+    @$("div.activity-content-container").hover (event)=>
+
+      # @scrollAreaHint.$().css opacity:"1"
+      @transitionStart = setTimeout =>
+        @scrollAreaOverlay.$().css top:"100%"
+      , 500
+      unless @scrollAreaOverlay.$().hasClass "hidden"
+        @checkForCompleteAnimationInterval = setInterval =>
+          # log "INTERVAL RUNNING"
+          if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+            # log "END FOUND"
+            @scrollAreaOverlay.hide()
+            # @scrollAreaHint.$().css opacity:"0"
+            @$("div.discussion").addClass "scrollable-y"
+            @$("div.discussion").removeClass "no-scroll"
+            clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        ,50
+    , (event)=>
+      unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+        clearTimeout @transitionStart if @transitionStart?
+        clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        # @scrollAreaHint.$().css opacity:"0"
+        @scrollAreaOverlay.$().css top:"0px"
   render:->
     super()
     @highlightCode()
@@ -135,8 +167,8 @@ class DiscussionActivityItemView extends ActivityItemChild
     @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).closest("[data-paths~=title]")
-      if not $(event.target).is("a.action-link, a.count, .like-view")
+    if $(event.target).is("[data-paths~=title]")
+      # if not $(event.target).is("a.action-link, a.count, .like-view")
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
         #appManager.tell "Activity", "createContentDisplay", @getData()
 
@@ -158,8 +190,7 @@ class DiscussionActivityItemView extends ActivityItemChild
       <div class='activity-item-right-col'>
         {{> @settingsButton}}
         <h3 class='comment-title'>{{@applyTextExpansions #(title)}}</h3>
-        <div class="activity-content-container discussion-body-container">
-          <p class="has-markdown">{{@utils.applyMarkdown #(body)}}</p>
+        <div class="activity-content-container discussion">
           <p class="body no-scroll has-markdown force-small-markdown">
             {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
           </p>

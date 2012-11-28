@@ -32,24 +32,7 @@ class FeedController extends KDViewController
     options             = @getOptions()
     @filters            = {}
     @sorts              = {}
-
-    # @facetsController.registerListener
-    #   KDEventTypes  : 'FilterDidChange'
-    #   listener      : @
-    #   callback      : (pubInst, item)=>
-    #     console.log 'filter did change'
-    #     @selectFilter item.type
-    #     @highlightFacets()
-
-    # @facetsController.registerListener
-    #   KDEventTypes  : 'SortDidChange'
-    #   listener      : @
-    #   callback      : (pubInst, item)=>
-    #     console.log 'sort did change'
-    #     @changeActiveSort item.type
-    #     @highlightFacets()
-
-    # @resultsController.getView().on 'PaneDidShow', (pane)=>
+    @defaultQuery       = options.defaultQuery ? {}
 
     @resultsController.registerListener
       KDEventTypes  : 'LazyLoadThresholdReached'
@@ -68,6 +51,7 @@ class FeedController extends KDViewController
 #      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items
 
   highlightFacets:->
+    console.log 'highlight facets', arguments, this
     filterName  = @selection.name
     sortName    = @selection.activeSort or @defaultSort.name
     @facetsController.highlight filterName, sortName
@@ -153,14 +137,17 @@ class FeedController extends KDViewController
     if options.skip isnt 0 and options.skip < options.limit # Dont load forever
       @emitLoadCompleted filter
     else
-      filter.dataSource selector, options, (err, items)=>
-        listController = @emitLoadCompleted filter
-        unless err
-          if items.length is 0 and listController.getItemCount() is 0
-            @noItemFound.show()
-          listController.instantiateListItems items
-          @emitCountChanged listController.itemsOrdered.length, filter.name
-          if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
-            @loadFeed filter
+      filter.dataSource selector, options, (err, items, rest...)=>
+        if items?
+          listController = @emitLoadCompleted filter
+          unless err
+            if items.length is 0 and listController.getItemCount() is 0
+              @noItemFound.show()
+            listController.instantiateListItems items
+            @emitCountChanged listController.itemsOrdered.length, filter.name
+            if items.length is options.limit and listController.scrollView.getScrollHeight() <= listController.scrollView.getHeight()
+              @loadFeed filter
+          else
+            warn err
         else
-          warn err
+          filter.dataEnd? @, rest...

@@ -534,6 +534,7 @@ Includes =
         autoCompleteAvatarView      : "./client/app/CommonViews/avatarviews/autocompleteavatarview.coffee"
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
+        VideoPopup                  : "./client/app/CommonViews/VideoPopup.coffee"
 
         LikeView                    : "./client/app/CommonViews/LikeView.coffee"
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
@@ -552,6 +553,8 @@ Includes =
         Navigation                  : "./client/app/CommonViews/Navigation.coffee"
         TagAutoCompleteController   : "./client/app/CommonViews/Tags/TagAutoCompleteController.coffee"
         VerifyPINModal              : "./client/app/CommonViews/VerifyPINModal.coffee"
+
+        FollowButton                : "./client/app/CommonViews/followbutton.coffee"
 
         CommentView                 : "./client/app/CommonViews/comments/commentview.coffee"
         CommentListViewController   : "./client/app/CommonViews/comments/commentlistviewcontroller.coffee"
@@ -580,6 +583,7 @@ Includes =
         TutorialFormView              : "./client/app/CommonViews/opinions/tutorialformview.coffee"
 
         MarkdownText                  : "./client/app/CommonViews/markdownmodal.coffee"
+
 
         # foreign_auth                : "./client/app/MainApp/foreign_auth.coffee"
         sidebarController           : "./client/app/MainApp/sidebar/sidebarcontroller.coffee"

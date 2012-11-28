@@ -583,6 +583,10 @@ div.kdview.activity-item.discussion.content-display-main-section
           &:hover
             opacity                               1
 
+        div.comment-container
+          a.delete-link
+            left                                700px
+
         p.discussion-body
 
           form.edit-discussion-form.update-options.discussion
@@ -920,19 +924,19 @@ div.kdview.activity-item.discussion.content-display-main-section
                     a
                       color                       #FF9200
 
-                span.like-view
+                // span.like-view
 
-                  // Comment Likes
-                  a.count
-                    font-style                    normal
-                    display                       inline-block
-                    bg                            color, #0A92BA
-                    color                         #fff
-                    font-size                     10px
-                    padding                       1px 4px
-                    line-height                   10px
-                    rounded                       3px
-                    noTextDeco()
+                //   // Comment Likes
+                //   a.count
+                //     font-style                    normal
+                //     display                       inline-block
+                //     bg                            color, #0A92BA
+                //     color                         #fff
+                //     font-size                     10px
+                //     padding                       1px 4px
+                //     line-height                   10px
+                //     rounded                       3px
+                //     noTextDeco()
 
 
       div.show-more-opinions
@@ -1009,6 +1013,10 @@ div.kdview.activity-item.discussion.content-display-main-section
 
         a.all-count
           noTextDeco()
+
+        .opinion-loader
+          height 100%
+          vertical-align middle
 
     div.content-display-main-section.opinion-form-footer
       margin-left                                 90px
@@ -1406,6 +1414,10 @@ div.kdview.activity-item.tutorial.content-display-main-section
 
       div.tutorial-main-opinion
         margin-left                               72px
+
+        img.tutorial-preview-image
+          cursor                                  pointer
+          max-width                               725px
 
         h3
           font-size                               14px
@@ -1812,19 +1824,19 @@ div.kdview.activity-item.tutorial.content-display-main-section
                     a
                       color                       #FF9200
 
-                span.like-view
+                // span.like-view
 
-                  // Comment Likes
-                  a.count
-                    font-style                    normal
-                    display                       inline-block
-                    bg                            color, #0A92BA
-                    color                         #fff
-                    font-size                     10px
-                    padding                       1px 4px
-                    line-height                   10px
-                    rounded                       3px
-                    noTextDeco()
+                //   // Comment Likes
+                //   a.count
+                //     font-style                    normal
+                //     display                       inline-block
+                //     bg                            color, #0A92BA
+                //     color                         #fff
+                //     font-size                     10px
+                //     padding                       1px 4px
+                //     line-height                   10px
+                //     rounded                       3px
+                //     noTextDeco()
 
 
       div.show-more-opinions
@@ -2019,7 +2031,6 @@ div.kdview.activity-item.tutorial.content-display-main-section
       border-right
 
 .has-markdown
-
   > span.data
     > pre
       padding 5px
