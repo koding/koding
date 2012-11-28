@@ -53,9 +53,8 @@ module.exports = class JInvitation extends jraphical.Module
         targetType  : JAccount
         as          : 'redeemer'
 
-
-  createBetaInvite = (options,callback)->
-    {inviterUsername,inviteeEmail,inviteType} = options
+  createBetaInvite = (options, callback)->
+    {inviterUsername, inviteeEmail, inviteType} = options
     inviterUsername ?= "devrim"
     inviteeEmail    ?= "pleaseChangeThisEmailWithYourOwn+"+Date.now()+"@koding.com"
     inviteType      ?= "koding.com"
@@ -65,7 +64,6 @@ module.exports = class JInvitation extends jraphical.Module
         .createHmac('sha1', 'kodingsecret')
         .update(inviteeEmail)
         .digest('hex')
-
 
       invite = new JInvitation
         code          : code
@@ -279,7 +277,7 @@ module.exports = class JInvitation extends jraphical.Module
                     subject   : customMessage.subject
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
-                    url       : "#{protocol}//#{host}/invitation/#{encodeURIComponent code}"
+                    url       : "#{protocol}//#{host}/Invitation/#{encodeURIComponent code}"
 
                   JUser = require './user'
                   JUser.fetchUser client,(err,user)=>
