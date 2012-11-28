@@ -42,7 +42,6 @@ processMonitor = (require 'processes-monitor').start
   mixpanel:
     key : KONFIG.mixpanel.key
 
-
 koding = new Bongo
   root        : __dirname
   mongo       : mongo
@@ -70,17 +69,12 @@ koding.on 'auth', (exchange, sessionToken)->
 
 koding.connect ->
   if KONFIG.misc?.updateAllSlugs
-    JTag = require './models/tag'
-    JTag.updateAllSlugs (err,slug)->
-      console.log slug
-
-
-
-
-
-
-
-
-
+    require('./traits/slugifiable').updateSlugsByBatch 100, [
+      require './models/messages/tag'
+      require './models/messages/statusupdate'
+      require './models/messages/codesnip'
+      require './models/messages/discussion'
+      require './models/messages/tutorial'
+    ]
 
 console.log 'Koding Social Worker has started.'
