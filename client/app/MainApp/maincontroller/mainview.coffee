@@ -129,7 +129,7 @@ class MainView extends KDView
     if isLoggedIn
       $('body').addClass "loggedIn"
       @mainTabView.showHandleContainer()
-      @contentPanel.setClass "social"
+      @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router").getCurrentPath()
       # @logo.show()
       # @buttonHolder.hide()
     else

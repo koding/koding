@@ -14,34 +14,29 @@ module.exports = class Slugifiable
       .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
       .substr 0, 256                # limit these to 256-chars (pre-suffix), for sanity
 
-  getNextCount =(name)->
+  getNextCount =(name)->            # the name is something like `name: "foo-bar-42"`
     count = name
       .map ({name})->
-        [d] = (/\d+$/.exec name) ? [0]
-        +d
+        [d] = (/\d+$/.exec name) ? [0]; +d # take the digit part, cast it to a number.
       .sort (a, b)->
         a - b
-      .pop()
-    if isNaN count then ''
-    else count + 1
+      .pop()                        # the last item is the highest, pop from the tmp array
+    if isNaN count then ''          # show empty string instead of zero...
+    else "-#{count + 1}"            # otherwise, try the next integer.
 
   generateUniqueSlug =(konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback
     template or= '#{slug}'
     JName = require '../models/name'
-    nameRE = RegExp "^#{template.replace '#\{slug\}', slug}(-\\d+)?$"
-    selector = {name:nameRE}
+    selector = name: RegExp "^#{template.replace '#\{slug\}', slug}(-\\d+)?$"
     JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
       else cursor.toArray (err, names)->
         if err then callback err
         else
           nextCount = getNextCount names
-          nextName = "#{slug}#{
-            if nextCount is '' then '' else "-#{nextCount}"
-          }"
+          nextName = "#{slug}#{nextCount}"
           nextNameFull = template.replace '#{slug}', nextName
-          # selector = {name: nextName, constructorName, usedAsPath: 'slug'}
           JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
             if err?.code is 11000
               console.log err
