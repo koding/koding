@@ -7,7 +7,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     {profile} = KD.whoami()
 
     @smallInput = new KDInputView
-      cssClass      : "status-update-input"
+      cssClass      : "status-update-input warn-on-unsaved-data"
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'dummy'
       style         : 'input-with-extras'
@@ -30,7 +30,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @initialRequest = yes
 
     @largeInput = new KDInputView
-      cssClass      : "status-update-input"
+      cssClass      : "status-update-input warn-on-unsaved-data"
       type          : "textarea"
       placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
       name          : 'body'

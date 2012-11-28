@@ -38,6 +38,13 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       constructorName  : originType
       id               : originId
 
+    @commentCount = new ActivityCommentCount
+      tooltip     :
+        title     : "Comments"
+      click       : (pubInst, event)=>
+        # @emit "DiscussionActivityLinkClicked"
+    , data
+
     @author = new ProfileLinkView {
       origin
     }
@@ -56,9 +63,9 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
     else
-      appManager.tell "Activity", "createContentDisplay", @parent.getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@parent.getData().slug}", state:@parent.getData()
 
   pistachio:->
     """
@@ -67,6 +74,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
         <footer class="activity-opinion-item-footer">
            {{> @author}} posted an answer
          <time>{{$.timeago #(meta.createdAt)}}</time>
+         <span class="comment-count">#{if @getData().repliesCount > 0 then @utils.formatPlural(@getData().repliesCount, "Comment") else ""}</span>
         </footer>
     </div>
     """

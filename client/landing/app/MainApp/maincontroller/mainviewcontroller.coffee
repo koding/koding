@@ -43,7 +43,7 @@ class MainViewController extends KDViewController
       mainView.setViewState 'default'
 
     if sidebar.navController.selectItemByName navItemName
-      sidebar.accNavController.selectItem()
+      # sidebar.accNavController.selectItem()
     else
-      sidebar.navController.selectItem()
+      # sidebar.navController.selectItem()
       sidebar.accNavController.selectItemByName navItemName

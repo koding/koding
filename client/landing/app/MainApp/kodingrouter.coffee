@@ -9,7 +9,11 @@ class KodingRouter extends KDRouter
     @on 'AlreadyHere', ->
       new KDNotificationView title: "You're already here!"
 
-    @handleRoute defaultRoute
+    # @utils.defer => 
+    unless @userRoute
+      @handleRoute defaultRoute,
+        shouldPushState: yes
+        replaceState: yes
 
   nicenames = {
     JTag      : 'Topics'
@@ -31,10 +35,11 @@ class KodingRouter extends KDRouter
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
-    unless location.hash.length or @userRoute
+    unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
+
       if KD.isLoggedIn()
-        @handleRoute @getDefaultRoute(), replaceState: yes
+        @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
       else
         KD.getSingleton('mainController').doGoHome()
 
@@ -130,12 +135,12 @@ class KodingRouter extends KDRouter
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
 
-    nouns = createLinks(
+    content = createLinks(
       'Activity Apps Groups Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
-    content = createLinks(
+    nouns = createLinks(
       'Account Activity Apps Groups Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
@@ -166,7 +171,8 @@ class KodingRouter extends KDRouter
       '/:name?/Activity/:activitySlug'  : content.Activity
       '/:name?/Apps/:appSlug'           : content.Apps
 
-      '/recover/:recoveryToken': ({params:{recoveryToken}})->
+      '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
+        return if recoveryToken is 'Password'
         mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'
@@ -184,40 +190,25 @@ class KodingRouter extends KDRouter
                   """
             else
               {loginScreen} = mainController
-              loginScreen.resetForm.addCustomData {recoveryToken}
-              loginScreen.animateToForm "reset"
-            # @utils.defer => @clear()
+              loginScreen.headBannerShowRecovery recoveryToken
+            @clear()
 
-      '/invitation/:inviteToken': ({params:{inviteToken}})->
+      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
         if KD.isLoggedIn()
           new KDNotificationView
             title: 'Could not redeem invitation because you are already logged in.'
-        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)->
+        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err
-            log invite
             new KDNotificationView
               title: 'Invalid invitation code!'
           else
-            # TODO: DRY this one
-            # $('body').addClass 'login'
-            setTimeout ->
-              new KDNotificationView
-                cssClass  : "login"
-                # type      : "mini"
-                title     : "Great, you received an invite, taking you to the register form."
-                # content   : "You received an invite, taking you to the register form!"
-                duration  : 3000
-              setTimeout ->
-                mainController.loginScreen.slideDown =>
-                  mainController.loginScreen.animateToForm "register"
-                  mainController.propagateEvent KDEventType: 'InvitationReceived', invite
-              , 3000
-            , 2000
-          location.replace '#'
+            {loginScreen} = mainController
+            loginScreen.headBannerShowInvitation invite
+          @clear()
 
-      '/verify/:confirmationToken': ({params:{confirmationToken}})->
+      '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
           location.replace '#'
@@ -228,6 +219,7 @@ class KodingRouter extends KDRouter
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
+          @clear()
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
@@ -237,9 +229,9 @@ class KodingRouter extends KDRouter
 
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
-            when 'JAccount' then goToContent.Members routeInfo, model
-            when 'JGroup'   then goToContent.Groups  routeInfo, model
-            when 'JTopic'   then goToContent.Topics  routeInfo, model
+            when 'JAccount' then content.Members routeInfo, model
+            when 'JGroup'   then content.Groups  routeInfo, model
+            when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
         nameHandler =(routeInfo, state, route)->

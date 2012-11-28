@@ -16,10 +16,11 @@ class AvatarView extends LinkView
     @bgImg = null
 
   click:(event)->
-
     event.stopPropagation()
+    event.preventDefault()
     account = @getData()
-    appManager.tell "Members", "createContentDisplay", account
+    @utils.wait =>
+      KD.getSingleton('router').handleRoute "/#{account.profile.nickname}", state:account
     return no
 
   render:->

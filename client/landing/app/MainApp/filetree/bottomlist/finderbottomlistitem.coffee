@@ -7,9 +7,10 @@ class FinderBottomControlsListItem extends KDListItemView
     super options, data
 
   click:(event)->
-
-    if @getData().path?
-      appManager.openApplication @getData().path if @getData().path?
+    {appPath} = @getData()
+    event.preventDefault()
+    if appPath?
+      appManager.openApplication appPath  if appPath?
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else

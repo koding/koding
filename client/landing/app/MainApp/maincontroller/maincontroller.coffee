@@ -7,7 +7,6 @@ class MainController extends KDController
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
-    options.startPage = "Demos"         # start page path
 
     super options, data
 
@@ -59,6 +58,7 @@ class MainController extends KDController
     }
 
   accountChanged:(account)->
+
     connectedState.connected = yes
 
     @emit "RemoveFailModal"
@@ -66,13 +66,6 @@ class MainController extends KDController
 
     @userAccount = account
     @resetUserArea()
-
-    do => # router nonsense:
-      oldRouter = @router ? KD.getSingleton 'router'            # take note of the old router
-      oldRouter.stopListening()  if oldRouter?                  # disable the old router
-      @router = new KodingRouter location.pathname              # instantiate the new router
-      shouldOverride = oldRouter?                               # we need to "override" if the old router exists
-      KD.registerSingleton 'router', @router, shouldOverride    # (re)register the singleton
 
     unless @mainViewController
       @loginScreen = new LoginView
@@ -82,14 +75,18 @@ class MainController extends KDController
           domId : "kdmaincontainer"
       @appReady()
 
+    unless @router? then do =>
+      @router = new KodingRouter location.pathname
+      KD.registerSingleton 'router', @router
+
     if KD.checkFlag 'super-admin'
       $('body').addClass 'super'
     else
       $('body').removeClass 'super'
 
     if @isUserLoggedIn()
-      appManager.quitAll =>
-        @createLoggedInState account
+      # appManager.quitAll =>
+      @createLoggedInState account
     else
       @createLoggedOutState account
 
@@ -109,7 +106,6 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
-
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
@@ -156,7 +152,11 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      @router.handleRoute pageInfo.path
+      console.log pageInfo
+      if pageInfo.path
+        @router.handleRoute pageInfo.path
+      else if pageInfo.isWebTerm
+        appManager.openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
@@ -208,7 +208,6 @@ class MainController extends KDController
             color    : "#ffffff"
             diameter : 16
           callback   : =>
-            # debugger
             kallback = (acc)=>
               acc.flagAccount "exempt", (err, res)->
                 if err then warn err
