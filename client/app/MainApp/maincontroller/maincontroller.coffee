@@ -152,7 +152,6 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      console.log pageInfo
       if pageInfo.path
         @router.handleRoute pageInfo.path
       else if pageInfo.isWebTerm
