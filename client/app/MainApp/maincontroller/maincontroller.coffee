@@ -7,7 +7,6 @@ class MainController extends KDController
   constructor:(options = {}, data)->
 
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
-    options.startPage = "Demos"         # start page path
 
     super options, data
 
@@ -59,6 +58,7 @@ class MainController extends KDController
     }
 
   accountChanged:(account)->
+
     connectedState.connected = yes
 
     @emit "RemoveFailModal"
@@ -85,8 +85,8 @@ class MainController extends KDController
       $('body').removeClass 'super'
 
     if @isUserLoggedIn()
-      appManager.quitAll =>
-        @createLoggedInState account
+      # appManager.quitAll =>
+      @createLoggedInState account
     else
       @createLoggedOutState account
 
@@ -106,7 +106,6 @@ class MainController extends KDController
 
 
   createLoggedInState:(account)->
-
     connectedState.wasLoggedIn = yes
     mainView = @mainViewController.getView()
     @loginScreen.slideUp =>
@@ -205,7 +204,6 @@ class MainController extends KDController
             color    : "#ffffff"
             diameter : 16
           callback   : =>
-            # debugger
             kallback = (acc)=>
               acc.flagAccount "exempt", (err, res)->
                 if err then warn err

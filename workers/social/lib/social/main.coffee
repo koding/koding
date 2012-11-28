@@ -70,7 +70,7 @@ koding.on 'auth', (exchange, sessionToken)->
 koding.connect ->
   if KONFIG.misc?.updateAllSlugs
     require('./traits/slugifiable').updateSlugsByBatch 100, [
-      require './models/messages/tag'
+      require './models/tag'
       require './models/messages/statusupdate'
       require './models/messages/codesnip'
       require './models/messages/discussion'

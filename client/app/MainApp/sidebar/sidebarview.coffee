@@ -183,7 +183,7 @@ class Sidebar extends JView
     @finderHeader.setData account
     @finderHeader.render()
 
-    @navController.reset()
+    # @navController.reset()
     @accNavController.reset()
     @footerMenuController.reset()
     @resetAdminNavController()
