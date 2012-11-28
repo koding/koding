@@ -120,7 +120,10 @@ class MainView extends KDView
       cssClass : "video-popup-button"
       title : "Video"
       callback :=>
-        @popupList.show()
+        unless @popupList.$().hasClass "hidden"
+          @popupList.hide()
+        else
+          @popupList.show()
 
     @popupList = new VideoPopupList
       cssClass      : "hidden"
