@@ -323,20 +323,32 @@ class LoginView extends KDScrollView
         @$('.flex-wrapper').addClass 'expanded'
       @requestForm.button.hideLoader()
 
-  headBannerShowRecovery:(recoveryToken)->
-
+  showHeadBanner:(message, callback)->
     @$('.login-footer').hide()
     @$('.footer-links').hide()
-    @headBannerMsg = "Hi, it seems you have a recovery token for your account. <span>Just click here when you ready!</span>"
+    @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
     @headBanner.unsetClass 'hidden'
     @headBanner.setClass 'show'
     $('body').addClass 'recovery'
-    @headBanner.click = =>
+    @headBanner.click = callback
+
+  headBannerShowRecovery:(recoveryToken)->
+
+    @showHeadBanner "Hi, it seems you have a recovery token for your account. <span>Just click here when you ready!</span>", =>
       @getSingleton('router').clear '/Recover/Password'
       @headBanner.updatePartial "You can now create a new password for your account"
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
+
+  headBannerShowInvitation:(invite)->
+    @showHeadBanner "Great, you received an invite! <span>Just click here when you ready</span>", =>
+      @headBanner.hide()
+      @getSingleton('router').clear '/Register'
+      $('body').removeClass 'recovery'
+      @slideDown =>
+        @animateToForm "register"
+        @getSingleton('mainController').emit 'InvitationReceived', invite
 
   slideUp:(callback)->
     {winWidth,winHeight} = @windowController
@@ -378,6 +390,7 @@ class LoginView extends KDScrollView
         parent.notification?.destroy()
         if @headBannerMsg?
           @headBanner.updatePartial @headBannerMsg
+          @headBanner.show()
 
     @unsetClass "register recover login reset home lr"
     @emit "LoginViewAnimated", name
