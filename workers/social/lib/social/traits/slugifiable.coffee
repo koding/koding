@@ -19,12 +19,16 @@ module.exports = class Slugifiable
     JName = require '../models/name'
     nameRE = RegExp "^#{template.replace '#\{slug\}', slug}(-\\d+)?$"
     selector = {name:nameRE}
+    console.log selector
+    return
     JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
       if err then callback err
       else cursor.toArray (err, names)->
         if err then callback err
         else
           nextCount = names
+            .map (nm)->
+              nm.name
             .map (nm)->
               [d] = (/\d+$/.exec nm) ? [0]
               [+d, nm]
@@ -37,7 +41,7 @@ module.exports = class Slugifiable
             if isNaN nextCount then ''
             else nextCount + 1
 
-          nextName = "#{slug}#{nextCount}"
+          nextName = "#{slug}-#{nextCount}"
           nextNameFull = template.replace '#{slug}', nextName
           # selector = {name: nextName, constructorName, usedAsPath: 'slug'}
           JName.claim nextNameFull, konstructor, 'slug', (err, nameDoc)->
