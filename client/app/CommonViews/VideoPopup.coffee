@@ -51,6 +51,9 @@ class VideoPopupController extends KDController
 class VideoPopupList extends KDListView
   constructor:(options,data)->
     super options,data
+
+    @setClass "video-popups"
+
     @controller = @getSingleton("mainController").popupController
 
     @controller.on "PopupOpened", (popup,data) =>
@@ -98,10 +101,9 @@ class VideoPopupListItem extends KDListItemView
   pistachio:->
     """
     <div class="video-popup-list">
-    {{#(title)}} ({{#(name)}})
+    <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
     {{> @focusWindowBar}}
     {{> @closeWindowBar}}
-    <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
     </div>
     """
 
