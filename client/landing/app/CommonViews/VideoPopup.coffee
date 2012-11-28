@@ -15,7 +15,10 @@ class VideoPopup extends KDView
     w=@getDelegate().getWidth()
     t=@getDelegate().$().offset()
     @videoPopup?.close()
-    @videoPopup = window.open "http://localhost:3000/1.0/video-container.html", "KodingVideo", "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
+
+    popupUrl = "/1.0/video-container.html"
+
+    @videoPopup = window.open popupUrl, "KodingVideo", "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
     @getSingleton("windowController").videoPopup = @videoPopup
 
     @utils.wait 1500, =>          # give the popup some time to open
