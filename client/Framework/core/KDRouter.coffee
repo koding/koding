@@ -58,6 +58,8 @@ class KDRouter extends KDObject
 
   getTitle:(path)-> path
 
+  getCurrentPath:-> @currentPath
+
   handleNotFound:(route)->
     console.trace()
     log "The route #{route} was not found!"
@@ -95,12 +97,12 @@ class KDRouter extends KDObject
 
     {shouldPushState, replaceState, state} = options
     shouldPushState ?= yes
-    
+
     objRef = createObjectRef state
 
     node = @tree
     params = {}
-    
+
     isRooted = '/' is frag[0]
 
     frag = frag.split '/'
