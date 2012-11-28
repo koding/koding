@@ -163,7 +163,8 @@ class KodingRouter extends KDRouter
       '/:name?/Activity/:activitySlug'  : goToContent.Activity
       '/:name?/Apps/:appSlug'           : goToContent.Apps
 
-      '/recover/:recoveryToken': ({params:{recoveryToken}})->
+      '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
+        return if recoveryToken is 'Password'
         mainController.appReady =>
           # TODO: DRY this one
           $('body').addClass 'login'
@@ -181,40 +182,28 @@ class KodingRouter extends KDRouter
                   """
             else
               {loginScreen} = mainController
-              loginScreen.resetForm.addCustomData {recoveryToken}
-              loginScreen.animateToForm "reset"
-            # @utils.defer => @clear()
+              loginScreen.headBannerShowRecovery recoveryToken
+            @clear()
 
-      '/invitation/:inviteToken': ({params:{inviteToken}})->
+      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
         if KD.isLoggedIn()
           new KDNotificationView
             title: 'Could not redeem invitation because you are already logged in.'
-        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)->
+        else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err
-            log invite
             new KDNotificationView
               title: 'Invalid invitation code!'
           else
-            # TODO: DRY this one
-            # $('body').addClass 'login'
-            setTimeout ->
-              new KDNotificationView
-                cssClass  : "login"
-                # type      : "mini"
-                title     : "Great, you received an invite, taking you to the register form."
-                # content   : "You received an invite, taking you to the register form!"
-                duration  : 3000
-              setTimeout ->
-                mainController.loginScreen.slideDown =>
-                  mainController.loginScreen.animateToForm "register"
-                  mainController.propagateEvent KDEventType: 'InvitationReceived', invite
-              , 3000
-            , 2000
-          location.replace '#'
+            {loginScreen} = mainController
+            loginScreen.headBannerShowInvitation invite
+            # mainController.loginScreen.slideDown =>
+            #   mainController.loginScreen.animateToForm "register"
+            #   mainController.propagateEvent KDEventType: 'InvitationReceived', invite
+          @clear()
 
-      '/verify/:confirmationToken': ({params:{confirmationToken}})->
+      '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
         confirmationToken = decodeURIComponent confirmationToken
         KD.remote.api.JEmailConfirmation.confirmByToken confirmationToken, (err)->
           location.replace '#'
@@ -225,6 +214,7 @@ class KodingRouter extends KDRouter
           else
             new KDNotificationView
               title: "Thanks for confirming your email address!"
+          @clear()
 
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
