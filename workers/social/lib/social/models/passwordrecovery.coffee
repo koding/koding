@@ -93,11 +93,18 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     defaultTextBody  = @getPasswordRecoveryMessage
     defaultExpiresAt = new Date Date.now() + 1000 * 60 * 30 # 30 minutes
 
+    {host, protocol} = require '../config.email'
+    messageOptions =
+      url : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
+
     if delegate.can? 'migrate-kodingen-users'
-      {subject, textbody, expiresAt} = options
+      {subject, textbody, expiresAt, firstName, lastName, nickname} = options
       defaultSubject   = subject if subject
       defaultTextBody  = textbody if textbody
       defaultExpiresAt = expiresAt if expiresAt
+      messageOptions.lastName  = lastName if lastName
+      messageOptions.nickname  = nickname if nickname
+      messageOptions.firstName = firstName if firstName
 
     JUser.one {email}, (err, user)=>
       if err
@@ -114,11 +121,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           if err
             callback err
           else
-            {host, protocol} = require '../config.email'
-            messageOptions =
-              # url         : "#{protocol}#{host}:#{port}/recover/#{encodeURIComponent token}"
-              url         : "#{protocol}//#{host}/recover/#{encodeURIComponent token}"
-              requestedAt : certificate.getAt('requestedAt')
+            messageOptions.requestedAt = certificate.getAt('requestedAt')
             Emailer.send
               From      : @getPasswordRecoveryEmail()
               To        : email

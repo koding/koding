@@ -1,8 +1,13 @@
 "no use strict";
 
 var console = {
-    log: function(msg) {
-        postMessage({type: "log", data: msg});
+    log: function() {
+        var msgs = Array.prototype.slice.call(arguments, 0);
+        postMessage({type: "log", data: msgs});
+    },
+    error: function() {
+        var msgs = Array.prototype.slice.call(arguments, 0);
+        postMessage({type: "log", data: msgs});
     }
 };
 var window = {
@@ -30,6 +35,9 @@ var normalizeModule = function(parentId, moduleName) {
 };
 
 var require = function(parentId, id) {
+    if (!id.charAt)
+        throw new Error("worker.js require() accepts only (parentId, id) as arguments");
+
     var id = normalizeModule(parentId, id);
     
     var module = require.modules[id];
@@ -127,7 +135,10 @@ var sender;
 onmessage = function(e) {
     var msg = e.data;
     if (msg.command) {
-        main[msg.command].apply(main, msg.args);
+        if (main[msg.command])
+            main[msg.command].apply(main, msg.args);
+        else
+            throw new Error("Unknown command:" + msg.command);
     }
     else if (msg.init) {        
         initBaseUrls(msg.tlns);

@@ -362,7 +362,6 @@ class KDView extends KDObject
 # #
 
   destroy:()->
-
     # instance destroys own subviews
     @destroySubViews() if @getSubViews().length > 0
 

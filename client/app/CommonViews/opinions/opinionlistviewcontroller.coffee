@@ -73,7 +73,7 @@ class OpinionListViewController extends KDListViewController
     query = {from,to}
     message = @getListView().getData()
 
-    message.commentsByRange query,(err,opinions)=>
+    message.opinionsByRange query,(err,opinions)=>
       @getListView().emit "BackgroundActivityFinished"
       callback err, opinions
 
@@ -82,7 +82,7 @@ class OpinionListViewController extends KDListViewController
     listView.emit "BackgroundActivityStarted"
     message = @getListView().getData()
 
-    message.restComments skipCount, (err, opinions)=>
+    message.restOpinions skipCount, (err, opinions)=>
       listView.emit "BackgroundActivityFinished"
       listView.emit "AllOpinionsWereAdded"
       callback err, opinions
@@ -91,7 +91,7 @@ class OpinionListViewController extends KDListViewController
     listView = @getListView()
     message = @getListView().getData()
 
-    message.commentsByRange to:_limit+_from, from:_from, (err, opinions)=>
+    message.opinionsByRange to:_limit+_from, from:_from, (err, opinions)=>
       listView = @getListView()
       listView.emit "BackgroundActivityFinished"
       @_hasBackgrounActivity = no

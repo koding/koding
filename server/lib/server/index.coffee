@@ -25,6 +25,9 @@ processMonitor = (require 'processes-monitor').start
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
+  mixpanel:
+    key : KONFIG.mixpanel.key
+
 # if webPort is 3002
 #   foo = []
 #   do bar = ->
@@ -233,4 +236,4 @@ app.get '*', (req,res)->
 
 app.listen webPort
 
-console.log 'Koding Webserver running ', "http://localhost:#{webPort} pid:#{process.pid}"
+console.log '[WEBSERVER] running ', "http://localhost:#{webPort} pid:#{process.pid}"

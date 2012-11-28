@@ -197,10 +197,10 @@ __utils =
 
     urlGrabber = ///
     (?!\s)                                                      # leading spaces
-    ([a-zA-Z]+://)                                             # protocol
+    ([a-zA-Z]+://)                                              # protocol
     (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
     ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
-    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d])      # domain
+    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d]?)     # domain
     \.                                                          # dot
     ([a-zA-Z]{2,4})                                             # top-level-domain
     (:\d+|)                                                     # :port

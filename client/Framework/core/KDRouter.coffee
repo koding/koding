@@ -27,35 +27,37 @@ class KDRouter extends KDObject
         replaceState      : yes
     @startListening()
 
-  onpopstate:(event)=> # fat-arrow binding makes this handler easier to remove.
-    revive event.state, (err, state)=>
-      if err?
-        new KDNotificationView title: 'An unknown error has occurred.'
-      else
-        @handleRoute "#{location.pathname}#{location.search}",
-          shouldPushState   : no
-          state             : state
+  popState:do->
+    # TODO: don't think this will work in FF: (C.T.)
+    (event)=> # fat-arrow binding makes this handler easier to remove.
+      revive event.state, (err, state)=>
+        if err?
+          new KDNotificationView title: 'An unknown error has occurred.'
+        else
+          @handleRoute "#{location.pathname}#{location.search}",
+            shouldPushState   : no
+            state             : state
 
-  clear:(replaceState=yes)-> @handleRoute '/', {replaceState}
+  clear:(route = '/', replaceState = yes)-> @handleRoute route, {replaceState}
 
   startListening:->
     return no  if @isListening # make this action idempotent
     @isListening = yes
     # we need to add a listener to the window's popstate event:
-    window.addEventListener 'popstate', @onpopstate
+    window.addEventListener 'popstate', @popState
     return yes
 
   stopListening:->
     return no  unless @isListening # make this action idempotent
     @isListening = no
     # we need to remove the listener from the window's popstate event:
-    window.removeEventListener 'popstate', @onpopstate
+    window.removeEventListener 'popstate', @popState
     return yes
 
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
   getTitle:(path)-> path
-  
+
   handleNotFound:(route)->
     console.trace()
     log "The route #{route} was not found!"
@@ -130,7 +132,7 @@ class KDRouter extends KDObject
         else @handleNotFound frag.join '/'
 
     routeInfo = {params, query}
-    
+
     listeners = node[listenerKey]
     if listeners?.length
       listener.call @, routeInfo, state, path  for listener in listeners

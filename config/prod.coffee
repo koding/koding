@@ -23,11 +23,10 @@ module.exports = deepFreeze
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
   webserver     :
-    login       : 'prod-webserver'
-    port        : [3021..3025]
+    port        : [3050..3052]
   mongo         : mongo
   misc          :
-    updateAllSlugs : yes
+    updateAllSlugs : no
   uploads       :
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
     s3          :
@@ -38,14 +37,13 @@ module.exports = deepFreeze
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
-  loadBalancer  :
-    port        : 3020
-    heartbeat   : 5000
-    httpRedirect:
-      port      : 80 # requires sudo on macs
+  # loadBalancer  :
+  #  port        : 3020
+  #  heartbeat   : 5000
+  #  httpRedirect:
+  #    port      : 80 # requires sudo on macs
   social        :
-    login       : 'prod-social'
-    numberOfWorkers: 6
+    numberOfWorkers: 1
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
@@ -78,7 +76,7 @@ module.exports = deepFreeze
     host        : 'localhost'
     login       : 'PROD-k5it50s4676pO9O'
     password    : 'Dtxym6fRJXx4GJz'
-    vhost       : '/'
+    vhost       : 'slugs'
     pidFile     : '/var/run/broker.pid'
   kites:
     disconnectTimeout: 3e3

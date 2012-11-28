@@ -1,40 +1,30 @@
-/* vim:ts=4:sts=4:sw=4:
- * ***** BEGIN LICENSE BLOCK *****
- * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+/* ***** BEGIN LICENSE BLOCK *****
+ * Distributed under the BSD license:
  *
- * The contents of this file are subject to the Mozilla Public License Version
- * 1.1 (the "License"); you may not use this file except in compliance with
- * the License. You may obtain a copy of the License at
- * http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
- * for the specific language governing rights and limitations under the
- * License.
- *
- * The Original Code is Ajax.org Code Editor (ACE).
- *
- * The Initial Developer of the Original Code is
- * Ajax.org B.V.
- * Portions created by the Initial Developer are Copyright (C) 2010
- * the Initial Developer. All Rights Reserved.
- *
- * Contributor(s):
- *      Fabian Jakobs <fabian AT ajax DOT org>
- *      Irakli Gozalishvili <rfobic@gmail.com> (http://jeditoolkit.com)
- *      Julian Viereck <julian.viereck@gmail.com>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either the GNU General Public License Version 2 or later (the "GPL"), or
- * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the MPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the MPL, the GPL or the LGPL.
+ * Copyright (c) 2010, Ajax.org B.V.
+ * All rights reserved.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ajax.org B.V. nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL AJAX.ORG B.V. BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * ***** END LICENSE BLOCK ***** */
 
@@ -49,7 +39,6 @@ var useragent = require("./lib/useragent");
 var TextInput = require("./keyboard/textinput").TextInput;
 var MouseHandler = require("./mouse/mouse_handler").MouseHandler;
 var FoldHandler = require("./mouse/fold_handler").FoldHandler;
-//var TouchHandler = require("./touch_handler").TouchHandler;
 var KeyBinding = require("./keyboard/keybinding").KeyBinding;
 var EditSession = require("./edit_session").EditSession;
 var Search = require("./search").Search;
@@ -84,12 +73,8 @@ var Editor = function(renderer, session) {
     this.keyBinding = new KeyBinding(this);
 
     // TODO detect touch event support
-    if (useragent.isIPad) {
-        //this.$mouseHandler = new TouchHandler(this);
-    } else {
-        this.$mouseHandler = new MouseHandler(this);
-        new FoldHandler(this);
-    }
+    this.$mouseHandler = new MouseHandler(this);
+    new FoldHandler(this);
 
     this.$blockScrolling = 0;
     this.$search = new Search().set({
@@ -126,6 +111,12 @@ var Editor = function(renderer, session) {
      * - session (EditSession): The new session to use
      *
      * Sets a new editsession to use. This method also emits the `'changeSession'` event.
+     **/
+    /**
+     * Editor@changeSession(e) 
+     * - e (Object): An object with two properties, `oldSession` and `session`, that represent the old and new [[EditSession]]s.
+     *
+     * Emitted whenever the [[EditSession]] changes.
      **/
     this.setSession = function(session) {
         if (this.session == session)
@@ -236,9 +227,9 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: Document.setValue
-     * Editor.setValue(val [,dontSelect]) -> String
+     * Editor.setValue(val [,cursorPos]) -> String
      * - val (String): The new value to set for the document
-     * - cursorPos (number): 0: selectAll, -1 document start, 1 end
+     * - cursorPos (Number): Where to set the new value. `undefined` or 0 is selectAll, -1 is at the document start, and 1 is at the end
      *
      * Sets the current document to `val`.
      **/
@@ -274,8 +265,9 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: VirtualRenderer.onResize
-     * Editor.resize() 
-     * 
+     * Editor.resize(force) 
+     * - force (Boolean): If `true`, recomputes the size, even if the height and width haven't changed
+     *
      * {:VirtualRenderer.onResize}
      **/
     this.resize = function(force) {
@@ -284,7 +276,8 @@ var Editor = function(renderer, session) {
 
     /**
      * Editor.setTheme(theme) 
-     * 
+     * - theme (String): The path to a theme
+     *
      * {:VirtualRenderer.setTheme}
      **/
     this.setTheme = function(theme) {
@@ -302,7 +295,8 @@ var Editor = function(renderer, session) {
 
     /** related to: VirtualRenderer.setStyle
      * Editor.setStyle(style) 
-     * 
+     * - style (String): A class name
+     *
      * {:VirtualRenderer.setStyle}
      **/
     this.setStyle = function(style) {
@@ -354,7 +348,7 @@ var Editor = function(renderer, session) {
                 var range = new Range(pos.row, pos.column, pos.row, pos.column+1);
                 self.session.$bracketHighlight = self.session.addMarker(range, "ace_bracket", "text");
             }
-        }, 10);
+        }, 50);
     };
 
     /**
@@ -392,7 +386,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@onFocus()
+     * Editor@focus()
      * 
      * Emitted once the editor comes into focus.
      **/
@@ -406,7 +400,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@onBlur()
+     * Editor@blur()
      * 
      * Emitted once the editor has been blurred.
      **/
@@ -424,7 +418,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor@onDocumentChange(e) 
+     * Editor@change(e) 
      * - e (Object): Contains a single property, `data`, which has the delta of changes
      *
      * Emitted whenever the document is changed. 
@@ -447,39 +441,25 @@ var Editor = function(renderer, session) {
         this.$cursorChange();
     };
 
-    /**
-     * Editor@onTokenizerUpdate(e)
-     * - e (Object): Contains a single property, `data`, which indicates the changed rows
-     * 
-     * Emitted when the a tokenizer is updated.
-     **/
     this.onTokenizerUpdate = function(e) {
         var rows = e.data;
         this.renderer.updateLines(rows.first, rows.last);
     };
 
-    /**
-     * Editor@onScrollTopChange() 
-     * 
-     * Emitted when the scroll top changes.
-     **/
+
     this.onScrollTopChange = function() {
         this.renderer.scrollToY(this.session.getScrollTop());
     };
-
-    /**
-     * Editor@onScrollLeftChange() 
-     * 
-     * Emitted when the scroll left changes.
-     **/
+    
     this.onScrollLeftChange = function() {
         this.renderer.scrollToX(this.session.getScrollLeft());
     };
 
     /**
-     * Editor@onCursorChange() 
+     * Editor@changeSelection() 
+     *
+     * Emitted when the selection changes.
      * 
-     * Emitted when the cursor changes.
      **/
     this.onCursorChange = function() {
         this.$cursorChange();
@@ -490,6 +470,7 @@ var Editor = function(renderer, session) {
 
         this.$highlightBrackets();
         this.$updateHighlightActiveLine();
+        this._emit("changeSelection");
     };
 
     /** internal, hide
@@ -500,34 +481,24 @@ var Editor = function(renderer, session) {
     this.$updateHighlightActiveLine = function() {
         var session = this.getSession();
 
-        if (session.$highlightLineMarker)
-            session.removeMarker(session.$highlightLineMarker);
-
-        session.$highlightLineMarker = null;
-
+        var highlight;
         if (this.$highlightActiveLine) {
-            var cursor = this.getCursorPosition();
-            var foldLine = this.session.getFoldLine(cursor.row);
+            if ((this.$selectionStyle != "line" || !this.selection.isMultiLine()))
+                highlight = this.getCursorPosition();
+        }
 
-            if ((this.getSelectionStyle() != "line" || !this.selection.isMultiLine())) {
-                var range;
-                if (foldLine) {
-                    range = new Range(foldLine.start.row, 0, foldLine.end.row + 1, 0);
-                } else {
-                    range = new Range(cursor.row, 0, cursor.row+1, 0);
-                }
-                session.$highlightLineMarker = session.addMarker(range, "ace_active_line", "background");
-            }
+        if (session.$highlightLineMarker && !highlight) {
+            session.removeMarker(session.$highlightLineMarker.id);
+            session.$highlightLineMarker = null;
+        } else if (!session.$highlightLineMarker && highlight) {
+            session.$highlightLineMarker = session.highlightLines(highlight.row, highlight.row, "ace_active-line");
+        } else if (highlight) {
+            session.$highlightLineMarker.start.row = highlight.row;
+            session.$highlightLineMarker.end.row = highlight.row;
+            session._emit("changeBackMarker");
         }
     };
 
-
-    /**
-     * Editor@onSelectionChange(e) 
-     * - e (Object): Contains a single property, `data`, which has the delta of changes
-     * 
-     * Emitted when a selection has changed.
-     **/
     this.onSelectionChange = function(e) {
         var session = this.session;
 
@@ -546,6 +517,8 @@ var Editor = function(renderer, session) {
 
         var re = this.$highlightSelectedWord && this.$getSelectionHighLightRegexp()
         this.session.highlight(re);
+        
+        this._emit("changeSelection");
     };
 
     this.$getSelectionHighLightRegexp = function() {
@@ -580,74 +553,39 @@ var Editor = function(renderer, session) {
         return re;
     };
 
-    /**
-     * Editor@onChangeFrontMarker() 
-     * 
-     * Emitted when a front marker changes.
-     **/
+
     this.onChangeFrontMarker = function() {
         this.renderer.updateFrontMarkers();
     };
 
-    /**
-     * Editor@onChangeBackMarker() 
-     * 
-     * Emitted when a back marker changes.
-     **/
     this.onChangeBackMarker = function() {
         this.renderer.updateBackMarkers();
     };
 
-    /**
-     * Editor@onChangeBreakpoint() 
-     * 
-     * Emitted when a breakpoint changes.
-     **/
+
     this.onChangeBreakpoint = function() {
         this.renderer.updateBreakpoints();
     };
 
-    /**
-     * Editor@onChangeAnnotation() 
-     * 
-     * Emitted when an annotation changes.
-     **/
     this.onChangeAnnotation = function() {
         this.renderer.setAnnotations(this.session.getAnnotations());
     };
 
-    /**
-     * Editor@onChangeMode() 
-     * 
-     * Emitted when the mode changes.
-     **/
+
     this.onChangeMode = function() {
         this.renderer.updateText();
     };
 
-    /**
-     * Editor@onChangeWrapLimit() 
-     * 
-     * Emitted when the wrap limit changes.
-     **/
+
     this.onChangeWrapLimit = function() {
         this.renderer.updateFull();
     };
 
-    /**
-     * Editor@onChangeWrapMode() 
-     * 
-     * Emitted when the wrap mode changes.
-     **/
     this.onChangeWrapMode = function() {
         this.renderer.onResize(true);
     };
 
-    /**
-     * Editor@onChangeFold() 
-     * 
-     * Emitted when the code folds change.
-     **/
+
     this.onChangeFold = function() {
         // Update the active line marker as due to folding changes the current
         // line range on the screen might have changed.
@@ -660,6 +598,12 @@ var Editor = function(renderer, session) {
      * Editor.getCopyText() -> String
      * 
      * Returns the string of text currently highlighted.
+     **/
+    /**
+     * Editor@copy(text)
+     * - text (String): The copied text
+     *
+     * Emitted when text is copied.
      **/
     this.getCopyText = function() {
         var text = "";
@@ -689,9 +633,16 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.onPaste() 
-     * 
-     * called whenever a text "paste" happens.
+     * Editor.onPaste(text) 
+     * - text (String): The pasted text
+     *
+     * Called whenever a text "paste" happens.
+     **/
+    /**
+     * Editor@paste(text)
+     * - text (String): The pasted text
+     *
+     * Emitted when text is pasted.
      **/
     this.onPaste = function(text) {
         // todo this should change when paste becomes a command
@@ -699,6 +650,11 @@ var Editor = function(renderer, session) {
             return;
         this._emit("paste", text);
         this.insert(text);
+    };
+
+
+    this.execCommand = function(command, args) {
+        this.commands.exec(command, this, args);
     };
 
     /**
@@ -710,7 +666,6 @@ var Editor = function(renderer, session) {
     this.insert = function(text) {
         var session = this.session;
         var mode = session.getMode();
-
         var cursor = this.getCursorPosition();
 
         if (this.getBehavioursEnabled()) {
@@ -737,9 +692,8 @@ var Editor = function(renderer, session) {
 
         var start = cursor.column;
         var lineState = session.getState(cursor.row);
-        var shouldOutdent = mode.checkOutdent(lineState, session.getLine(cursor.row), text);
         var line = session.getLine(cursor.row);
-        var lineIndent = mode.getNextLineIndent(lineState, line.slice(0, cursor.column), session.getTabString());
+        var shouldOutdent = mode.checkOutdent(lineState, line, text);
         var end = session.insert(cursor, text);
 
         if (transform && transform.selection) {
@@ -756,12 +710,12 @@ var Editor = function(renderer, session) {
             }
         }
 
-        var lineState = session.getState(cursor.row);
-
         // TODO disabled multiline auto indent
         // possibly doing the indent before inserting the text
         // if (cursor.row !== end.row) {
         if (session.getDocument().isNewLine(text)) {
+            var lineIndent = mode.getNextLineIndent(lineState, line.slice(0, cursor.column), session.getTabString());
+
             this.moveCursorTo(cursor.row+1, 0);
 
             var size = session.getTabSize();
@@ -799,22 +753,10 @@ var Editor = function(renderer, session) {
             mode.autoOutdent(lineState, session, cursor.row);
     };
 
-    /**
-     * Editor@onTextInput(text, pasted) 
-     * - text (String): The text entered
-     * - pasted (Boolean): Identifies whether the text was pasted (`true`) or not
-     *
-     * Emitted when text is entered.
-     **/
     this.onTextInput = function(text) {
         this.keyBinding.onTextInput(text);
     };
 
-    /**
-     * Editor@onCommandKey(e, hashId, keyCode) 
-     * 
-     * Emitted when the command-key is pressed.
-     **/
     this.onCommandKey = function(e, hashId, keyCode) {
         this.keyBinding.onCommandKey(e, hashId, keyCode);
     };
@@ -894,6 +836,13 @@ var Editor = function(renderer, session) {
      * - style (String): The new selection style
      *
      * Indicates how selections should occur. By default, selections are set to "line". This function also emits the `'changeSelectionStyle'` event.
+     * 
+     **/
+    /**
+     * Editor@changeSelectionStyle(data) 
+     * - data (Object): Contains one property, `data`, which indicates the new selection style
+     *
+     * Emitted when the selection style changes, via [[Editor.setSelectionStyle]].
      * 
      **/
     this.setSelectionStyle = function(style) {
@@ -1073,10 +1022,12 @@ var Editor = function(renderer, session) {
     this.$modeBehaviours = true;
 
     /**
-     * Editor.setBehavioursEnabled() 
+     * Editor.setBehavioursEnabled(enabled) 
      * - enabled (Boolean): Enables or disables behaviors
      * 
-     * Specifies whether to use behaviors or not. ["Behaviors" in this case is the auto-pairing of special characters, like quotation marks, parenthesis, or brackets.]{: #BehaviorsDef}
+     * Specifies whether to use behaviors or not.
+     * See [[Editor.setWrapBehavioursEnabled]].
+     * ["Behaviors" in this case is the auto-pairing of special characters, like quotation marks, parenthesis, or brackets.]{: #BehaviorsDef}
      **/
     this.setBehavioursEnabled = function (enabled) {
         this.$modeBehaviours = enabled;
@@ -1089,6 +1040,28 @@ var Editor = function(renderer, session) {
      **/
     this.getBehavioursEnabled = function () {
         return this.$modeBehaviours;
+    };
+
+    this.$modeWrapBehaviours = true;
+
+    /**
+     * Editor.setWrapBehavioursEnabled(enabled) 
+     * - enabled (Boolean): Enables or disables wrapping behaviors
+     * 
+     * Specifies whether to use wrapping behaviors or not, i.e. automatically wrapping the selection with characters such as brackets
+     * when such a character is typed in.
+     **/
+    this.setWrapBehavioursEnabled = function (enabled) {
+        this.$modeWrapBehaviours = enabled;
+    };
+
+    /**
+     * Editor.getWrapBehavioursEnabled() -> Boolean
+     * 
+     * Returns `true` if the wrapping behaviors are currently enabled.
+     **/
+    this.getWrapBehavioursEnabled = function () {
+        return this.$modeWrapBehaviours;
     };
 
     /**
@@ -1326,15 +1299,112 @@ var Editor = function(renderer, session) {
         this.session.outdentRows(selection.getRange());
     };
 
+    // TODO: move out of core when we have good mechanism for managing extensions
+    this.sortLines = function() {
+        var rows = this.$getSelectedRows();
+        var session = this.session;
+
+        var lines = [];
+        for (i = rows.first; i <= rows.last; i++)
+            lines.push(session.getLine(i));
+
+        lines.sort(function(a, b) {
+            if (a.toLowerCase() < b.toLowerCase()) return -1;
+            if (a.toLowerCase() > b.toLowerCase()) return 1;
+            return 0;
+        });
+
+        var deleteRange = new Range(0, 0, 0, 0);
+        for (var i = rows.first; i <= rows.last; i++) {
+            var line = session.getLine(i);
+            deleteRange.start.row = i;
+            deleteRange.end.row = i;
+            deleteRange.end.column = line.length;
+            session.replace(deleteRange, lines[i-rows.first]);
+        }
+    };
+
     /**
      * Editor.toggleCommentLines() 
      * 
-     * Given the currently selected range, this function either comments all lines or uncomments all lines (depending on whether it's commented or not).
+     * Given the currently selected range, this function either comments all the lines, or uncomments all of them.
      **/
     this.toggleCommentLines = function() {
         var state = this.session.getState(this.getCursorPosition().row);
         var rows = this.$getSelectedRows();
         this.session.getMode().toggleCommentLines(state, this.session, rows.first, rows.last);
+    };
+
+    /**
+     * Editor.getNumberAt() -> Number
+     * 
+     * Works like [[Editor.getTokenAt]], except it returns a number.
+     **/
+    this.getNumberAt = function( row, column ) {
+        var _numberRx = /[\-]?[0-9]+(?:\.[0-9]+)?/g
+        _numberRx.lastIndex = 0
+
+        var s = this.session.getLine(row)
+        while(_numberRx.lastIndex < column - 1 ){
+            var m = _numberRx.exec(s)
+            if(m.index <= column && m.index+m[0].length >= column){
+                var number = {
+                    value: m[0],
+                    start: m.index,
+                    end: m.index+m[0].length
+
+                }
+                return number
+            }
+        }
+        return null;
+    };
+    /**
+     * Editor.modifyNumber(amount) 
+     * - amount (Number): The value to change the numeral by (can be negative to decrease value)
+     *
+     * If the character before the cursor is a number, this functions changes its value by `amount`.
+     **/
+    this.modifyNumber = function(amount) {
+        var row = this.selection.getCursor().row;
+        var column = this.selection.getCursor().column;
+
+        // get the char before the cursor
+        var charRange = new Range(row, column-1, row, column);
+
+        var c = this.session.getTextRange(charRange);
+        // if the char is a digit
+        if (!isNaN(parseFloat(c)) && isFinite(c)) {
+            // get the whole number the digit is part of
+            var nr = this.getNumberAt(row, column);
+            // if number found
+            if (nr) {
+                var fp = nr.value.indexOf(".") >= 0 ? nr.start + nr.value.indexOf(".") + 1 : nr.end;
+                var decimals = nr.start + nr.value.length - fp;
+
+                var t = parseFloat(nr.value);
+                t *= Math.pow(10, decimals);
+                
+
+                if(fp !== nr.end && column < fp){
+                    amount *= Math.pow(10, nr.end - column - 1);
+                } else {
+                    amount *= Math.pow(10, nr.end - column);
+                }
+                
+                t += amount;
+                t /= Math.pow(10, decimals);
+                var nnr = t.toFixed(decimals);
+
+                //update number
+                var replaceRange = new Range(row, nr.start, row, nr.end);
+                this.session.replace(replaceRange, nnr);
+
+                //reposition the cursor
+                this.moveCursorTo(row, Math.max(nr.start +1, column + nnr.length - nr.value.length));
+
+            }
+        }
     };
 
     /** related to: EditSession.remove
@@ -1358,20 +1428,20 @@ var Editor = function(renderer, session) {
 
     this.duplicateSelection = function() {
         var sel = this.selection;
-		var doc = this.session;
-		var range = sel.getRange();
-		if (range.isEmpty()) {
-			var row = range.start.row;
-			doc.duplicateLines(row, row);
-		} else {
-			var reverse = sel.isBackwards()
-			var point = sel.isBackwards() ? range.start : range.end;
-			var endPoint = doc.insert(point, doc.getTextRange(range), false);
-			range.start = point;
-			range.end = endPoint;
-			
-			sel.setSelectionRange(range, reverse)
-		}
+        var doc = this.session;
+        var range = sel.getRange();
+        if (range.isEmpty()) {
+            var row = range.start.row;
+            doc.duplicateLines(row, row);
+        } else {
+            var reverse = sel.isBackwards()
+            var point = sel.isBackwards() ? range.start : range.end;
+            var endPoint = doc.insert(point, doc.getTextRange(range), false);
+            range.start = point;
+            range.end = endPoint;
+            
+            sel.setSelectionRange(range, reverse)
+        }
     };
     
     /** related to: EditSession.moveLinesDown
@@ -1500,31 +1570,14 @@ var Editor = function(renderer, session) {
         };
     };
 
-    /** internal, hide
-     * Editor@onCompositionStart(text) 
-     * - text (String): The text being written
-     * 
-     * 
-     **/
     this.onCompositionStart = function(text) {
         this.renderer.showComposition(this.getCursorPosition());
     };
 
-    /** internal, hide
-     * Editor@onCompositionUpdate(text) 
-     * - text (String): The text being written
-     * 
-     * 
-     **/
     this.onCompositionUpdate = function(text) {
         this.renderer.setCompositionText(text);
     };
 
-    /** internal, hide
-     * Editor@onCompositionEnd() 
-     * 
-     * 
-     **/
     this.onCompositionEnd = function() {
         this.renderer.hideComposition();
     };
@@ -1667,7 +1720,7 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: VirtualRenderer.scrollToLine
-     * Editor.scrollToLine(line, center) 
+     * Editor.scrollToLine(line, center, animate, callback()) 
      * - line (Number): The line to scroll to
      * - center (Boolean): If `true` 
      * - animate (Boolean): If `true` animates scrolling
@@ -1807,7 +1860,7 @@ var Editor = function(renderer, session) {
     };
 
     /**
-     * Editor.gotoLine(lineNumber, column) 
+     * Editor.gotoLine(lineNumber, column, animate) 
      * - lineNumber (Number): The line number to go to
      * - column (Number): A column number to go to
      * - animate (Boolean): If `true` animates scolling
@@ -2051,7 +2104,7 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: Search.find
-     * Editor.find(needle, options)
+     * Editor.find(needle, options, animate)
      * - needle (String): The text to search for (optional)
      * - options (Object): An object defining various search properties
      * - animate (Boolean): If `true` animate scrolling
@@ -2098,7 +2151,7 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: Editor.find
-     * Editor.findNext(options)
+     * Editor.findNext(options, animate)
      * - options (Object): search options
      * - animate (Boolean): If `true` animate scrolling
      *
@@ -2109,7 +2162,7 @@ var Editor = function(renderer, session) {
     };
 
     /** related to: Editor.find
-     * Editor.findPrevious(options)
+     * Editor.findPrevious(options, animate)
      * - options (Object): search options
      * - animate (Boolean): If `true` animate scrolling
      *

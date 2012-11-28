@@ -22,7 +22,7 @@ module.exports = deepFreeze
   webserver     :
     port        : [3001..3004]
   misc          :
-    updateAllSlugs : yes
+    updateAllSlugs : no
   mongo         : mongo
   runBroker     : no
   configureBroker: no

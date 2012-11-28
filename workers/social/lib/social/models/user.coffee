@@ -394,8 +394,7 @@ module.exports = class JUser extends jraphical.Module
                                         callback err
                                       else
                                         if silence
-                                          JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                            console.log 'An error granting invitations', err if err
+                                          JUser.grantInitialInvitations user.username
                                           createNewMemberActivity account
                                           callback null, account
                                         else
@@ -412,12 +411,15 @@ module.exports = class JUser extends jraphical.Module
                                               callback err
                                             else
                                               user.sendEmailConfirmation()
-                                              JInvitation.grant {'profile.nickname': user.username}, 3, (err)->
-                                                console.log 'An error granting invitations', err if err
+                                              JUser.grantInitialInvitations user.username
                                               createNewMemberActivity account
                                               console.log replacementToken
                                               JAccount.emit "AccountAuthenticated", account
                                               callback null, account, replacementToken
+
+  @grantInitialInvitations = (username)->
+    JInvitation.grant {'profile.nickname': username}, 3, (err)->
+      console.log 'An error granting invitations', err if err
 
   @fetchUser = secure (client, callback)->
     JSession.one {clientId: client.sessionToken}, (err, session)->

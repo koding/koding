@@ -1,8 +1,11 @@
 class NavigationController extends KDListViewController
 
   reset:->
+    previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
+    console.log previousSelection
+    @selectItemByName name  for {name} in previousSelection
 
   selectItemByName:(name)->
     item = no
@@ -95,9 +98,10 @@ class NavigationInviteLink extends KDCustomHTMLView
     , (err)=>
       modal.modalTabs.forms["Invite Friends"].buttons.Send.hideLoader()
       if err
+        message = 'This e-mail is already invited!' if err.code is 11000
         new KDNotificationView
-          title: err.message or 'Sorry, something bad happened.'
-          content: 'Please try again later!'
+          title: message or err.message or 'Sorry, something bad happened.'
+          content: 'Please try again later!' unless message
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()

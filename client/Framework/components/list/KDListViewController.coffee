@@ -225,6 +225,7 @@ class KDListViewController extends KDViewController
   # bad naming because of backwards compatibility i didn't
   # change the method name during refactoring - Sinan 10 May 2012
   selectItem:(item, event = {})->
+
     return unless item?
   
     @lastEvent = event
@@ -277,7 +278,6 @@ class KDListViewController extends KDViewController
 
 
   deselectAllItems:()->
-
     for selectedItem in @selectedItems
       selectedItem.removeHighlight()
       deselectedItems = @selectedItems.concat []
@@ -286,7 +286,6 @@ class KDListViewController extends KDViewController
       @itemDeselectionPerformed deselectedItems
 
   deselectSingleItem:(item)->
-
     item.removeHighlight()
     @selectedItems.splice @selectedItems.indexOf(item), 1
     if item is @itemsOrdered[@itemsOrdered.length-1]
