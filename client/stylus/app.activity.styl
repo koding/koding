@@ -125,7 +125,7 @@ app.activity.styl
     border-bottom         1px solid rgba(0, 0, 0, 0.075)
     width                 auto
     vendor                transition, left .6s ease-in-out\, background-color .6s ease-in-out .6s
-    background-color      #ffffff
+    background-color      transparent
     left                  0
     borderBox()
     &.hidden-item
@@ -1004,6 +1004,9 @@ div.activity-opinion.item-content-comment
     a
       noTextDeco()
 
+  span.comment-count
+    float right
+
 
 div.show-more-opinions
   border none
@@ -1791,7 +1794,7 @@ div.kdinputwithpreview.input_preview
     //   vertical-align  middle
 
     div.kdinput.on-off
-      margin-top            2px
+      // margin-top            2px
       float                 right
       font-family           sans
       width                 auto
@@ -1869,6 +1872,9 @@ div.kdinputwithpreview.input_preview
     overflow          auto
     vendor            transition, all 0.1s linear
 
+    span.data
+      display         block
+
     > *:last-child
       margin-bottom   0
 
@@ -1889,7 +1895,8 @@ div.kdinputwithpreview.input_preview
     border-top          3px solid #fff!important
 
 p.status-body
-
+  > span.data
+    cursor text
   // a
   //   > span.icon, span
 
@@ -2037,34 +2044,39 @@ div.show-tutorial-embed
 .scrollable
   overflow-x scroll
   overflow-y scroll
+.scrolling-both
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+.scrolling-up
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
+.scrolling-down
+    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+
+.scrolling-up-outset
+    vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
 
 div.activity-content-container
   position relative
-  overflow-y scroll
+  overflow-y hidden
   rounded 4px
   border 1px solid black
   background-color #fff
   border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-  padding 10px 15px 0px 15px
+  padding 10px 0px 0px 15px
   vendor transition, box-shadow 0.25s default
 
-  &.scrolling-both
-    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
-  &.scrolling-up
-    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
-  &.scrolling-down
-    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
 
-  &.discussion-body-container
+
+  &.discussion
     max-height 200px
     overflow-y hidden
+    padding-right 15px
 
-  &.tutorial-body-container
+  &.tutorial
     vertical-align top
     padding-top 15px
     // padding-bottom 10px
     max-height 200px
-    overflow-y auto
+    overflow-y hidden
     position relative
 
     .body
@@ -2072,6 +2084,7 @@ div.activity-content-container
       vertical-align top
       overflow-y hidden
       max-height 200px
+      padding-right 15px
 
     img.tutorial-preview-image
       max-height 185px
@@ -2083,69 +2096,42 @@ div.activity-content-container
       float left
       cursor pointer
 
-  &:hover
-    div.enable-scroll-overlay
-      opacity 1
-      vendor transition, 0.2s ease-in-out
-      background-color rgba(0,0,0,0.1)
-      // background-color transparent
-      div.kdbuttongroup
-        left:0px
-        button
-          // animation-duration 0.3s
-          // animation-name pulse
-          opacity 1
-          background-color rgba(0,0,0,0.5)
-          color white
-          top 0
-        // @keyframes pulse
-        //   from
-        //     opacity 1
-        //   // 50%
-        //   //   opacity 0.8
-        //   to
-        //     opacity 0.5
+  // &:hover
+  //   div.enable-scroll-overlay
+  //     opacity 1
+  //     border-top 1px solid rgba(0,0,0,.2)
 
-
+  // div.enable-scroll-hint
+  //   position absolute
+  //   bottom 0px
+  //   left 0px
+  //   right 0px
+  //   text-align center
+  //   font-size 14px
+  //   color black
+  //   font-weight 400
+  //   vertical-align bottom
+  //   height 100%
+  //   width 100%
+  //   opacity 0
+  //   vendor transition, opacity 0.3s linear
 
   div.enable-scroll-overlay
     width 100%
-    height auto
+    height 100%
     position absolute
     left 0px
     right 0px
     bottom 0px
-    opacity 1
-    vendor transition, 0.2s ease-in-out
+    top 0px
+    // opacity 1
+    vendor transition, top .5s ease-out
     text-align center
-    background-color rgba(0,0,0,0.0)
+    background-color transparent
     vertical-align middle
 
-    > div.kdbuttongroup
-      vertical-align middle
-      padding 5px
-      margin 5px 0px 5px 0px
-
-      > button
-        rounded 3px
-        vendor transition, background-color 0.15s linear \, top 0.2s linear
-        top 50px
-        font-size 11px
-        font-weight 600
-        background-color rgba(0,0,0,0.6)
-        color transparent
-        border none
-        background-image none
-        vendor text-shadow, none
-        margin 0px 5px
-        opacity 0
-
-
-        &:first-child
-          rounded 3px
-        &:last-child
-          rounded 3px
-
-        &:hover
-          background-color rgba(0,0,0,0.7)
-          animation-name none
+.modal-video-close
+  borderBox()
+  padding 15px
+  margin 10px
+  line-height 150%

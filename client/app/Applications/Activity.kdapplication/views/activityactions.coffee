@@ -12,7 +12,8 @@ class ActivityActionsView extends KDView
     @commentCount = new ActivityCommentCount
       tooltip     :
         title     : "Show all"
-      click       : =>
+      click       : (event)=>
+        # event.preventDefault()
         @getDelegate().emit "CommentCountClicked"
     , activity
 
@@ -21,6 +22,9 @@ class ActivityActionsView extends KDView
       tooltip     :
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "above"
+      click:(event)=>
+        event.preventDefault()
+        super
 
     @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
@@ -110,3 +114,11 @@ class ActivityCommentCount extends ActivityCountLink
     @emit "countChanged", activity.repliesCount
 
   pistachio:-> "{{ #(repliesCount)}}"
+
+class ActivityOpinionCount extends ActivityCountLink
+
+  setCount:(activity)->
+    if activity.opinionCount is 0 then @hide() else @show()
+    @emit "countChanged", activity.opinionCount
+
+  pistachio:-> "{{ #(opinionCount)}}"

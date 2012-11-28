@@ -127,6 +127,9 @@ module.exports = class JOldUser extends jraphical.Module
                     expiresAt : new Date Date.now() + 1000 * 60 * 60 * 24 * 7 # 7 days
                     subject   : JOldUser.getSubject
                     textbody  : JOldUser.getTextBody
+                    nickname  : user.nickname
+                    firstName : user.firstName
+                    lastName  : user.lastName
                   , (err)-> console.error if err
               else
                 errors.push {error, user}
@@ -155,8 +158,11 @@ module.exports = class JOldUser extends jraphical.Module
 
   @getSubject = -> '[Koding] A new Koding account created for an old friend!'
 
-  @getTextBody = ({requestedAt, url})->
+  @getTextBody = ({requestedAt, url, firstName, lastName, nickname})->
     """
+
+    Hi #{firstName} #{lastName} (aka #{nickname}),
+
     At #{dateFormat requestedAt, 'shortTime'} on #{dateFormat requestedAt, 'shortDate'} we've created a Koding account for you!
 
     There is a one-time token which allow you to reset your password. This token will self-destruct 7 days after it is created.

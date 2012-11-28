@@ -534,6 +534,7 @@ Includes =
         autoCompleteAvatarView      : "./client/app/CommonViews/avatarviews/autocompleteavatarview.coffee"
 
         LinkViews                   : "./client/app/CommonViews/LinkViews.coffee"
+        VideoPopup                  : "./client/app/CommonViews/VideoPopup.coffee"
 
         LikeView                    : "./client/app/CommonViews/LikeView.coffee"
         TagGroups                   : "./client/app/CommonViews/Tags/TagViews.coffee"
