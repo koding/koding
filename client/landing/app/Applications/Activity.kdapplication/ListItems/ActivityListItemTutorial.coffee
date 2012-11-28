@@ -140,27 +140,26 @@ class TutorialActivityItemView extends ActivityItemChild
 
     @$("div.activity-content-container").hover (event)=>
 
-      # @scrollAreaHint.$().css opacity:"1"
       @transitionStart = setTimeout =>
         @scrollAreaOverlay.$().css top:"100%"
       , 500
       unless @scrollAreaOverlay.$().hasClass "hidden"
         @checkForCompleteAnimationInterval = window.setInterval =>
-          # log "INTERVAL RUNNING"
-          if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
-            # log "END FOUND"
+          if (parseInt(@scrollAreaOverlay.$().css("top"),10)+@$("div.tutorial div.body").scrollTop()) >= @scrollAreaOverlay.$().height()
             @scrollAreaOverlay.hide()
-            # @scrollAreaHint.$().css opacity:"0"
             @$("div.tutorial div.body").addClass "scrollable-y"
             @$("div.tutorial div.body").removeClass "no-scroll"
-            window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+            clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         ,50
     , (event)=>
       unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
-        window.clearTimeout @transitionStart if @transitionStart?
-        window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
-        # @scrollAreaHint.$().css opacity:"0"
+        clearTimeout @transitionStart if @transitionStart?
+        clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         @scrollAreaOverlay.$().css top:"0px"
+        @$("div.tutorial div.body").removeClass "scrollable-y"
+        @$("div.tutorial div.body").addClass "no-scroll"
+        @scrollAreaOverlay.show()
+
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
