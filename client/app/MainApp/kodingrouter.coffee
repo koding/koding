@@ -81,7 +81,7 @@ class KodingRouter extends KDRouter
         when JStatusUpdate  then  model.body
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
-    , 100) # max char length of the title
+    , maxLength: 100) # max char length of the title
 
   openContent:(name, section, state, route)->
     @setPageTitle @getContentTitle state
