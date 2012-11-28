@@ -28,14 +28,14 @@ class VideoPopupController extends KDController
   countPopups:()->
     @videoPopups.length
 
-  focusWindowByName:(windowName)->
+  focusWindowByName:(windowName,callback=noop)->
     for video in @videoPopups
       if video.name is windowName
         video.focus()
 
-  closeWindowByName:(windowName)->
+  closeWindowByName:(windowName,callback=noop)->
     for video in @videoPopups
-      if video.name is windowName
+      if video?.name is windowName
         @closePopup video
 
   closePopup:(popupWindow)->
@@ -51,8 +51,7 @@ class VideoPopupController extends KDController
 class VideoPopupList extends KDListView
   constructor:(options,data)->
     super options,data
-
-    @setClass "video-popups"
+    @setClass "video-popup-list"
 
     @controller = @getSingleton("mainController").popupController
 
@@ -63,30 +62,65 @@ class VideoPopupList extends KDListView
         name : popup.name or "New Window"
         title : data.title
         thumb : data.thumb
+      @resizeView()
 
     @controller.on "PopupClosed", (popupName,index) =>
       # log "VideoPopupList removing item",popupName,index
       @removeItem {},{},index
       # @utils.wait => log "VideoPopupList items are",@items
+      @resizeView()
 
-    @on "FocusWindow", (windowName)->
-      @controller.focusWindowByName windowName
-    @on "CloseWindow", (windowName)->
-      @controller.closeWindowByName windowName
+    @on "FocusWindow", (windowName)=>
+      @controller.focusWindowByName windowName, =>
+        @resizeView()
+    @on "CloseWindow", (windowName)=>
+      @controller.closeWindowByName windowName, =>
+        @resizeView()
+
+    @hasNoItems = new KDView
+      cssClass : "has-no-video"
+      partial : "There are no open Videos"
+
+    @addSubView @hasNoItems
+
+
+  resizeView:->
+    switch @controller.countPopups()
+      when 0
+        @hasNoItems.show()
+        @unsetClass "layout1x1"
+        @unsetClass "layout2x2"
+        @unsetClass "layout3x3"
+      when 1
+        @hasNoItems.hide()
+        @setClass "layout1x1"
+        @unsetClass "layout2x2"
+        @unsetClass "layout3x3"
+      when 2,3,4
+        @hasNoItems.hide()
+        @unsetClass "layout1x1"
+        @setClass "layout2x2"
+        @unsetClass "layout3x3"
+      else
+        @hasNoItems.hide()
+        @unsetClass "layout1x1"
+        @unsetClass "layout2x2"
+        @setClass "layout3x3"
+
 
 class VideoPopupListItem extends KDListItemView
   constructor:(options,data)->
     super options,data
-    @setData data
+    @setClass "video-popup-list-item"
 
     @focusWindowBar = new KDView
-      cssClass : "overlay-bar"
+      cssClass : "overlay-bar focus"
       partial : "Focus it"
       click : =>
         @getDelegate().emit "FocusWindow", @getData().name
 
     @closeWindowBar = new KDView
-      cssClass : "overlay-bar"
+      cssClass : "overlay-bar close"
       partial : "Close it"
       click : =>
         @getDelegate().emit "CloseWindow", @getData().name
@@ -100,11 +134,9 @@ class VideoPopupListItem extends KDListItemView
 
   pistachio:->
     """
-    <div class="video-popup-list">
     <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
     {{> @focusWindowBar}}
     {{> @closeWindowBar}}
-    </div>
     """
 
 
@@ -128,7 +160,10 @@ class VideoPopup extends KDView
     w=@getDelegate().getWidth()
     t=@getDelegate().$().offset()
     @videoPopup?.close()
-    @videoPopup = @controller.newPopup "http://localhost:3000/1.0/video-container.html", "KodingVideo_"+Math.random().toString(36).substring(7), "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
+
+    popupUrl = "/1.0/video-container.html"
+
+    @videoPopup = @controller.newPopup popupUrl, "KodingVideo_"+Math.random().toString(36).substring(7), "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
 
     @utils.wait 1500, =>          # give the popup some time to open
 

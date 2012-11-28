@@ -54,15 +54,7 @@ class Activity12345 extends AppController
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
 
-    mainController.popupController = new VideoPopupController
-
-    @popupList = new VideoPopupList
-      type          : "comments"
-      itemClass     : VideoPopupListItem
-      delegate      : @
-    , {}
-
-    mainView.addSubView @popupList
+    # mainController.popupController = new VideoPopupController
 
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
