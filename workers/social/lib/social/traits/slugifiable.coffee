@@ -14,6 +14,17 @@ module.exports = class Slugifiable
       .replace(/^-+|-+$/g, "")      # trim leading and trailing hyphens
       .substr 0, 256                # limit these to 256-chars (pre-suffix), for sanity
 
+  getNextCount =(name)->
+    count = name
+      .map ({name})->
+        [d] = (/\d+$/.exec name) ? [0]
+        +d
+      .sort (a, b)->
+        a - b
+      .pop()
+    if isNaN count then ''
+    else count + 1
+
   generateUniqueSlug =(konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback
     template or= '#{slug}'
@@ -25,18 +36,7 @@ module.exports = class Slugifiable
       else cursor.toArray (err, names)->
         if err then callback err
         else
-          nextCount = names
-            .map ({name})->
-              [d] = (/\d+$/.exec name) ? [0]
-              +d
-            .sort (a, b)->
-              a - b
-            .pop()
-
-          nextCount =\
-            if isNaN nextCount then ''
-            else nextCount + 1
-
+          nextCount = getNextCount names
           nextName = "#{slug}#{
             if nextCount is '' then '' else "-#{nextCount}"
           }"
@@ -52,45 +52,40 @@ module.exports = class Slugifiable
             else
               callback null, nextName
     
-  @updateAllSlugsResourceIntensively = (options, callback)->
-    [callback, options] = [options, callback] unless callback
-    options ?= {}
-    selector = if options.force then {} else {slug_: $exists: no}
-    subclasses = @encapsulatedSubclasses ? [@]
-    JName = require '../models/name'
-    JName.someData {},{name:1,_id:1,constructorName:1},{},(err,names)->
-      console.log "namesArr in"
-      names.toArray (err,namesArr)->
-        contentTypeQueue = subclasses.map (subclass)->->
-          console.log "2"  
-          subclass.someData {},{title:1,_id:1},{limit:1000},(err,cursor)->
-            console.log "3"
-            if err
-              callback err
-            else
-              cursor.toArray (err,arr)->
-                if err
-                  callback err
-                else
-                  a.contructorName = subclass.name for a in arr
-                  console.log "4"
-                  console.log "arr ->",arr,"namesArr -> ",namesArr
-                  callback null #,arr,namesArr
-          
-        dash contentTypeQueue, callback
-      # subclass.cursor selector, options, (err, cursor)->
-      #   if err then contentTypeQueue.next err
-      #   else
-      #     postQueue = []
-      #     cursor.each (err, post)->
-      #       if err then postQueue.next err
-      #       else if post?
-      #         postQueue.push -> post.updateSlug (err, slug)->
-      #           callback null, slug
-      #           postQueue.next()
-      #       else
-      #         daisy postQueue, -> contentTypeQueue.fin()
-        
+  # @updateAllSlugsResourceIntensively = (options, callback)->
+  #   [callback, options] = [options, callback] unless callback
+  #   options ?= {}
+  #   selector = if options.force then {} else {slug_: $exists: no}
+  #   subclasses = @encapsulatedSubclasses ? [@]
+  #   JName = require '../models/name'
+  #   JName.someData {},{name:1,_id:1,constructorName:1},{},(err,names)->
+  #     console.log "namesArr in"
+  #     names.toArray (err,namesArr)->
+  #       contentTypeQueue = subclasses.map (subclass)->->
+  #         console.log "2"  
+  #         subclass.someData {},{title:1,_id:1},{limit:1000},(err,cursor)->
+  #           console.log "3"
+  #           if err
+  #             callback err
+  #           else
+  #             cursor.toArray (err,arr)->
+  #               if err
+  #                 callback err
+  #               else
+  #                 a.contructorName = subclass.name for a in arr
+  #                 console.log "4"
+  #                 console.log "arr ->",arr,"namesArr -> ",namesArr
+  #                 callback null #,arr,namesArr
+  #         
+  #       dash contentTypeQueue, callback
+
+  @updateSlugsByBatch =(batchSize, konstructors)->
+    konstructors = [konstructors]  unless Array.isArray konstructors
+    counter = 0
+    konstructors.forEach (konstructor)->
+      konstructor.updateAllSlugs {batchSize}, (err,slug)->
+        if ++counter is batchSize
+          process.nextTick -> updateSlugsByBatch batchSize, konstructor
 
   @updateAllSlugs = (options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -110,12 +105,10 @@ module.exports = class Slugifiable
                   callback null, slug
                   postQueue.next()
             else
-              console.log postQueue.length
               daisy postQueue, -> contentTypeQueue.fin()
     dash contentTypeQueue, callback
 
   updateSlug:(callback)->
-    console.log 'body', @body
     @createSlug (err, slug)=>
       if err then callback err
       else @update $set:{slug, slug_:slug}, (err)->
@@ -125,5 +118,4 @@ module.exports = class Slugifiable
     {constructor} = this
     {slugTemplate, slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
-    console.log 'slug', slug
     generateUniqueSlug constructor, slug, 0, slugTemplate, callback
