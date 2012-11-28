@@ -172,6 +172,7 @@ class TutorialActivityItemView extends ActivityItemChild
     @prepareExternalLinks()
     @prepareScrollOverlay()
 
+
   render:->
     super()
     @highlightCode()
@@ -186,6 +187,8 @@ class TutorialActivityItemView extends ActivityItemChild
 
       @videoPopup = new VideoPopup
         delegate : @previewImage
+        title : @getData().link?.link_embed?.title or "Untitled Video"
+        thumb : @getData().link?.link_embed?.images?[0]?.url
       ,@getData().link?.link_embed?.object?.html
 
       @videoPopup.openVideoPopup()
