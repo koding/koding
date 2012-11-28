@@ -1,8 +1,10 @@
 class NavigationController extends KDListViewController
 
   reset:->
+    previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
+    @selectItemByName name  for {name} in previousSelection
 
   selectItemByName:(name)->
     item = no
@@ -44,7 +46,7 @@ class NavigationLink extends KDListItemView
     # This check is for Invite Friends link which has no app at all
     return if @child?
 
-    mc = @getSingleton('mainController')
+    mc = @getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
       orgEvent  : event
       pageName  : title
@@ -53,7 +55,7 @@ class NavigationLink extends KDListItemView
       navItem   : @
 
   partial:(data)->
-    "<span class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</span>"
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
 class AdminNavigationLink extends NavigationLink
 

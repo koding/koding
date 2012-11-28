@@ -50,7 +50,6 @@ class ActivityItemChild extends KDView
       KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
-        # debugger
         @tags.render()
 
     data.on 'PostIsDeleted', =>

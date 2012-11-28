@@ -20,7 +20,9 @@ module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    port        : [3001..3005]
+    port        : [3001..3004]
+  misc          :
+    updateAllSlugs : no
   mongo         : mongo
   runBroker     : no
   configureBroker: no
@@ -42,14 +44,14 @@ module.exports = deepFreeze
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   social        :
-    numberOfWorkers: 2
+    numberOfWorkers: 1
     watch       : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
     numberOfWorkers: 2
   client        :
-    pistachios  : yes
+    pistachios  : no
     version     : version
     minify      : no
     watch       : yes

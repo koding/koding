@@ -254,7 +254,6 @@ __utils =
       suffix    = options.suffix     ? '...'
 
       longTextLength  = Encoder.htmlDecode(longText).length
-      # longTextLength  = longText.length
 
       return longText if longTextLength < minLength or longTextLength < maxLength
 
@@ -265,12 +264,9 @@ __utils =
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
 
-      if candidate?.length > minLength
-        Encoder.htmlEncode candidate
-        # candidate
-      else
-        Encoder.htmlEncode longText
-        # longText
+      Encoder.htmlEncode \
+        if candidate?.length > minLength then candidate
+        else longText
 
   getMonthOptions : ()->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
@@ -349,19 +345,6 @@ __utils =
     parentPath.pop()
     return parentPath.join('/')
 
-  defer:do ->
-    # this was ported from browserify's implementation of "process.nextTick"
-    queue = []
-    if window?.postMessage and window.addEventListener
-      window.addEventListener "message", ((ev) ->
-        if ev.source is window and ev.data is "kd-tick"
-          ev.stopPropagation()
-          do queue.shift()  if queue.length > 0
-      ), yes
-      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
-    else
-      (fn) -> setTimeout fn, 1
-
   removeBrokenSymlinksUnder:(path)->
     kiteController = KD.getSingleton('kiteController')
     escapeFilePath = FSHelper.escapeFilePath
@@ -374,6 +357,19 @@ __utils =
       fn = duration
       duration = 0
     setTimeout fn, duration
+
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    if window?.postMessage and window.addEventListener
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          do queue.shift()  if queue.length > 0
+      ), yes
+      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 1
 
   killWait:(id)-> clearTimeout id
 

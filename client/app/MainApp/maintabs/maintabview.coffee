@@ -85,10 +85,11 @@ class MainTabView extends KDTabView
 
   showPaneByView:(options,view)->
     viewId = view
-    unless (@getPaneByView view)?
-      @createTabPane options,view
+    pane = @getPaneByView view
+    if pane?
+      @showPane pane
     else
-      @showPane @getPaneByView view
+      @createTabPane options, view
 
   removePaneByView:(view)->
     return unless (pane = @getPaneByView view)
@@ -113,7 +114,6 @@ class MainTabView extends KDTabView
       class        : KDView
     ,options
     paneInstance = new MainTabPane options,mainView
-    # debugger
     # log 'options', options
     paneInstance.on "viewAppended", =>
       # if options.controller  #dont need that anymore as tabHandle could be controlled by application

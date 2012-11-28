@@ -12,4 +12,5 @@ class AppController extends KDViewController
     [callback, doShow] = [doShow, callback] unless callback
     @showContentDisplay tag, callback
 
-  handleQuery:(query)-> console.log 'handle query is called', query
+  handleQuery:(query)->
+    @feedController?.handleQuery? query

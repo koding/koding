@@ -199,9 +199,7 @@ class KDWindowController extends KDController
   setKeyView:(newKeyView)->
 
     return if newKeyView is @keyView
-    # debugger
     # unless newKeyView
-    #   debugger
     # log newKeyView, "newKeyView" if newKeyView
 
     @unregisterKeyCombos()

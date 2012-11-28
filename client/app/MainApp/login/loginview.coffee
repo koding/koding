@@ -9,17 +9,17 @@ class LoginView extends KDScrollView
     super
     @hidden = no
 
-    router = @getSingleton 'router'
+    handler =(route, event)=>
+      stop event
+      @getSingleton('router').handleRoute route
 
-    handler =(route, event)-> stop event; @handleRoute route
-
-    homeHandler       = handler.bind router, '/'
-    learnMoreHandler  = handler.bind router, '/Join'
-    loginHandler      = handler.bind router, '/Login'
-    registerHandler   = handler.bind router, '/Register'
-    joinHandler       = handler.bind router, '/Join'
-    recoverHandler    = handler.bind router, '/Recover'
-
+    homeHandler       = handler.bind null, '/'
+    learnMoreHandler  = handler.bind null, '/Join'
+    loginHandler      = handler.bind null, '/Login'
+    registerHandler   = handler.bind null, '/Register'
+    joinHandler       = handler.bind null, '/Join'
+    recoverHandler    = handler.bind null, '/Recover'
+    
     @logo = new KDCustomHTMLView
       tagName     : "div"
       cssClass    : "logo"
@@ -335,14 +335,14 @@ class LoginView extends KDScrollView
 
   headBannerShowRecovery:(recoveryToken)->
 
-    @showHeadBanner "Hi, it seems you have a recovery token for your account. <span>Just click here when you ready!</span>", =>
+    @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
       @getSingleton('router').clear '/Recover/Password'
       @headBanner.updatePartial "You can now create a new password for your account"
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
   headBannerShowInvitation:(invite)->
-    @showHeadBanner "Great, you received an invite! <span>Just click here when you ready</span>", =>
+    @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
       @getSingleton('router').clear '/Register'
       $('body').removeClass 'recovery'
