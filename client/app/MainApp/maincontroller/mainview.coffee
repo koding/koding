@@ -113,8 +113,26 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
+    mainController = @getSingleton('mainController')
+    mainController.popupController = new VideoPopupController
+
+    @videoButton = new KDButtonView
+      cssClass : "video-popup-button"
+      title : "Video"
+      callback :=>
+        @popupList.show()
+
+    @popupList = new VideoPopupList
+      cssClass      : "hidden"
+      type          : "videos"
+      itemClass     : VideoPopupListItem
+      delegate      : @
+    , {}
+
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
+    @contentPanel.addSubView @videoButton
+    @contentPanel.addSubView @popupList
 
   createSideBar:->
 

@@ -2044,15 +2044,15 @@ div.show-tutorial-embed
 .scrollable
   overflow-x scroll
   overflow-y scroll
-  &.scrolling-both
+.scrolling-both
     vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
-  &.scrolling-up
+.scrolling-up
     vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
-  &.scrolling-down
+.scrolling-down
     vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
 
 .scrolling-up-outset
-      vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
+    vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
 
 div.activity-content-container
   position relative
@@ -2135,16 +2135,62 @@ div.activity-content-container
   padding 15px
   margin 10px
   line-height 150%
-.video-popups
-  width 100%
-  .kdlistitemview
+
+.video-popup-button
+  position absolute
+  top -25px
+  right 0px
+  z-index: 10
+
+.video-popup-list
+  borderBox()
+  padding 10px 5px
+  border 1px solid black
+  background-color white
+  position: absolute
+  top 0px
+  right 0px
+  z-index 10
+  width auto
+  max-width 550px
+  vendor transition, all 0.5s linear
+
+  &.layout1x1
+    max-width 230px
+    .video-popup-list-item
+
+      img
+        width 210px
+        max-width 210px
+        max-height 210px
+
+  &.layout2x2
+    max-width 230px
+    .video-popup-list-item
+
+      img
+        width 99px
+        max-width 99px
+        max-height 100px
+
+  &.layout3x3
+    max-width 340px
+    .video-popup-list-item
+
+      img
+        width 99px
+        max-width 99px
+        max-height 100px
+
+  .video-popup-list-item
+    padding 0px 5px
     width auto
     display inline-block
-    .video-popup-list
-      width auto
-      display inline-block
-      img
-        height 25px
-        width 40px
-      .overlay-bar
-        display inline
+    vendor transition, all 0.2s linear
+    img
+      vendor transition, all 0.1s linear
+      max-height 100px
+      max-width 100px
+      display block
+    .overlay-bar
+      display inline
