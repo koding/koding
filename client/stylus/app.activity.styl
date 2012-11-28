@@ -2154,6 +2154,7 @@ div.activity-content-container
   width auto
   max-width 550px
   vendor transition, all 0.5s linear
+  vendor box-shadow, 3px 3px black
 
   &.layout1x1
     max-width 230px
@@ -2183,7 +2184,8 @@ div.activity-content-container
         max-height 100px
 
   .video-popup-list-item
-    padding 0px 5px
+    position: relative
+    margin 0px 5px
     width auto
     display inline-block
     vendor transition, all 0.2s linear
@@ -2193,4 +2195,25 @@ div.activity-content-container
       max-width 100px
       display block
     .overlay-bar
+      vertical-align middle
+      cursor pointer
+      position absolute
+      top 0px
+      bottom 0px
       display inline
+      text-align center
+      color #eee
+      font-size 14px
+      background-color rgba(0,0,0,0.1)
+      width 50%
+      vendor text-shadow, 1px 1px rgba(0,0,0,0.2)
+      &:hover
+        color white
+        background-color rgba(0,0,0,0.3)
+
+      &.focus
+        left 0px
+        right 50%
+      &.close
+        left 50%
+        right 0px
