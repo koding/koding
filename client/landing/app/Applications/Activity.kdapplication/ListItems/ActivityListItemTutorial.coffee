@@ -2,6 +2,11 @@ class TutorialActivityItemView extends ActivityItemChild
 
   constructor:(options, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options = $.extend
       cssClass    : "activity-item tutorial"
       tooltip     :
@@ -62,19 +67,19 @@ class TutorialActivityItemView extends ActivityItemChild
       cssClass : "enable-scroll-overlay"
       partial  : ""
 
-    @scrollAreaList = new KDButtonGroupView
-      buttons:
-        "Allow Scrolling here":
-          callback:=>
-            @$("div.tutorial-body-container div.body").addClass "scrollable-y"
-            @$("div.tutorial-body-container div.body").removeClass "no-scroll"
+    # @scrollAreaList = new KDButtonGroupView
+    #   buttons:
+    #     "Allow Scrolling here":
+    #       callback:=>
+    #         @$("div.tutorial-body-container div.body").addClass "scrollable-y"
+    #         @$("div.tutorial-body-container div.body").removeClass "no-scroll"
 
-            @scrollAreaOverlay.hide()
-        "View the full Tutorial":
-          callback:=>
-            appManager.tell "Activity", "createContentDisplay", @getData()
+    #         @scrollAreaOverlay.hide()
+    #     "View the full Tutorial":
+    #       callback:=>
+    #         appManager.tell "Activity", "createContentDisplay", @getData()
 
-    @scrollAreaOverlay.addSubView @scrollAreaList
+    # @scrollAreaOverlay.addSubView @scrollAreaList
 
   highlightCode:=>
     @$("div.body span.data pre").each (i,element)=>
@@ -86,10 +91,10 @@ class TutorialActivityItemView extends ActivityItemChild
   prepareScrollOverlay:->
     @utils.wait =>
 
-      body = @$("div.tutorial-body-container div.body")
-      container = @$("div.tutorial-body-container")
+      body = @$("div.activity-content-container.tutorial div.body")
+      container = @$("div.activity-content-container.tutorial")
 
-      if body.height() < parseInt container.css("max-height").replace(/\D/, ""), 10
+      if body.height() < parseInt container.css("max-height"), 10
         @scrollAreaOverlay.hide()
       else
         container.addClass "scrolling-down"
@@ -133,6 +138,29 @@ class TutorialActivityItemView extends ActivityItemChild
             container.removeClass "scrolling-up"
             container.removeClass "scrolling-down"
 
+    @$("div.activity-content-container").hover (event)=>
+
+      # @scrollAreaHint.$().css opacity:"1"
+      @transitionStart = setTimeout =>
+        @scrollAreaOverlay.$().css top:"100%"
+      , 500
+      unless @scrollAreaOverlay.$().hasClass "hidden"
+        @checkForCompleteAnimationInterval = window.setInterval =>
+          # log "INTERVAL RUNNING"
+          if parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+            # log "END FOUND"
+            @scrollAreaOverlay.hide()
+            # @scrollAreaHint.$().css opacity:"0"
+            @$("div.tutorial div.body").addClass "scrollable-y"
+            @$("div.tutorial div.body").removeClass "no-scroll"
+            window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        ,50
+    , (event)=>
+      unless parseInt(@scrollAreaOverlay.$().css("top"),10) >= @scrollAreaOverlay.$().height()
+        window.clearTimeout @transitionStart if @transitionStart?
+        window.clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
+        # @scrollAreaHint.$().css opacity:"0"
+        @scrollAreaOverlay.$().css top:"0px"
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
@@ -151,8 +179,16 @@ class TutorialActivityItemView extends ActivityItemChild
     @prepareScrollOverlay()
 
   click:(event)->
-    if $(event.target).is("[data-paths~=title],[data-paths~=preview]") # or\
-         appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=title]") # or\
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+         # appManager.tell "Activity", "createContentDisplay", @getData()
+    if $(event.target).is("[data-paths~=preview]")
+
+      @videoPopup = new VideoPopup
+        delegate : @previewImage
+      ,@getData().link?.link_embed?.object?.html
+
+      @videoPopup.openVideoPopup()
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
@@ -173,12 +209,12 @@ class TutorialActivityItemView extends ActivityItemChild
         {{> @settingsButton}}
         <h3 class="comment-title">{{@applyTextExpansions #(title)}}</h3>
         <p class="hidden comment-title"></p>
-        <div class="activity-content-container tutorial-body-container">
-            {{> @previewImage}}
+        <div class="activity-content-container tutorial">
+          {{> @previewImage}}
           <div class="body has-markdown force-small-markdown no-scroll">
             {{@utils.applyMarkdown #(body)}}
           </div>
-        {{> @scrollAreaOverlay}}
+          {{> @scrollAreaOverlay}}
         </div>
         <footer class='clearfix'>
           <div class='type-and-time'>

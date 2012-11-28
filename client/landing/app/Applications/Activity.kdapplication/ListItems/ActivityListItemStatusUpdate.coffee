@@ -97,8 +97,9 @@ class StatusActivityItemView extends ActivityItemChild
 
     super
 
-    if $(event.target).is("[data-paths~=body]")
-      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+    # if $(event.target).is("[data-paths~=body]")
+    # if $(event.target).is("span.type-icon")
+    #   KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
       #appManager.tell "Activity", "createContentDisplay", @getData()
 
   applyTextExpansions:(str = "")->

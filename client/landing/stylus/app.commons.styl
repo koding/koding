@@ -595,7 +595,7 @@ button.following-btn
 /* following-topics
 *******************************************************************************/
 
-button.following-topic
+button.follow-btn.topic.following-btn
   border            1px solid #ddd
   color             #7f7f7f
   font-size         11px
@@ -748,7 +748,7 @@ button.cancel-edit-button
   font-size         12px
   font-weight       normal
   line-height       1
-  padding           5px 12px
+  padding           5px 12px!important
   text-align        center
   text-shadow       0 1px 0 #f1f1f0
   width             150px
@@ -776,7 +776,7 @@ button.cancel-edit-button
     line-height       1
     padding           5px 12px !important
     text-align        center
-    text-shadow       0px -1px 0 rgba(0, 0, 0, .3)
+    text-shadow       0px -1px 0 rgba(0,0,0,0.3)
     width             150px
     background        linear-gradient(top, #ee432e 0%,#c63929 100%)
     rounded           3px
@@ -790,6 +790,32 @@ button.cancel-edit-button
       border          1px solid #b51700
       border-bottom   1px solid #951700
       shadow(inset 0 0 5px 2px #b51700)
+
+.modal-clean-green
+  border            1px solid #63a62f
+  border-color      #63a62f #63a62f #5b992b #63a62f
+  color             #fff
+  font-size         12px
+  font-weight       normal
+  line-height       1
+  padding           5px 12px
+  text-align        center
+  text-shadow       0px -1px 0 rgba(0, 0, 0, .3)
+  width             150px
+  background        linear-gradient(top, #7fbf4d 0%,#63a62f 100%)
+  rounded           3px
+  &.w-loader
+    padding         5px 20px!important
+  &:hover
+    border          1px solid #5b992b
+    border-color    #5b992b #5b992b #999 #5b992b
+    // background      linear-gradient(top, lighten(#7fbf4d,25%) 0%,lighten(#63a62f,25%) 100%)
+    cursor          pointer
+    shadow(inset 0 0 5px 2px #8dbf67)
+  &:active
+    border          1px solid #5b992b
+    border-bottom   1px solid #999
+    shadow(inset 0 0 5px 2px #5b992b)
 
 .modal-cancel
   border            none
@@ -914,7 +940,7 @@ button.cancel-edit-button
     height              43px
     width               auto
     borderBox()
-    .modal-clean-gray,.modal-clean-red,.modal-cancel
+    .modal-clean-gray,.modal-clean-red,.modal-clean-green,.modal-cancel
       margin            10px 10px 7px -2px
   .kdmodal.with-buttons
     position            relative !important

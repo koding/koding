@@ -22,6 +22,7 @@ class ActivityTutorialWidget extends KDFormView
     @inputDiscussionTitle = new KDInputView
       name          : "title"
       label         : @labelTitle
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to your Tutorial..."
       validate      :
         rules       :
@@ -44,6 +45,7 @@ class ActivityTutorialWidget extends KDFormView
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
       label         : @labelEmbedLink
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Please enter a URL to a video..."
 
       keyup :=>
@@ -77,7 +79,7 @@ class ActivityTutorialWidget extends KDFormView
       label       : @labelContent
       preview     : @preview
       name        : "body"
-      cssClass    : "discussion-body"
+      cssClass    : "discussion-body warn-on-unsaved-data"
       type        : "textarea"
       autogrow    : yes
       placeholder : "Please enter your Tutorial content. (You can use markdown here)"
