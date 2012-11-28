@@ -1,8 +1,11 @@
 class NavigationController extends KDListViewController
 
   reset:->
+    previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
+    console.log previousSelection
+    @selectItemByName name  for {name} in previousSelection
 
   selectItemByName:(name)->
     item = no

@@ -152,7 +152,11 @@ class MainController extends KDController
   putGlobalEventListeners:()->
 
     @on "NavigationLinkTitleClick", (pageInfo) =>
-      @router.handleRoute pageInfo.path
+      console.log pageInfo
+      if pageInfo.path
+        @router.handleRoute pageInfo.path
+      else if pageInfo.isWebTerm
+        appManager.openApplication 'WebTerm'
 
     @on "ShowInstructionsBook", (index)=>
       book = @mainViewController.getView().addBook()
