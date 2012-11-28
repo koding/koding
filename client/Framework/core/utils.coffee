@@ -159,7 +159,7 @@ __utils =
     if not sensitiveTo
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
-        u.link "#!/member/#{username}"
+        u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
@@ -168,7 +168,7 @@ __utils =
           if $(element).html()?
             replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
-              u.link "#!/member/#{username}"
+              u.link "/#{username}"
             $(element).html replacedText
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
