@@ -31,7 +31,9 @@ module.exports = class JName extends Model
       ], callback
 
   @claim =(name, konstructor, usedAsPath, callback)->
-    constructorName = konstructor.name
+    constructorName =\
+      if 'string' is typeof konstructor then konstructor
+      else konstructor.name
     nameDoc = new @ {name, constructorName, usedAsPath}
     nameDoc.save (err)->
       if err?.code is 11000
