@@ -54,8 +54,6 @@ class KDRouter extends KDObject
 
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
-  getTitle:(path)-> path
-
   getCurrentPath:-> @currentPath
 
   handleNotFound:(route)->
@@ -119,7 +117,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, @getTitle(path), "/#{path}"
+      history[method] objRef, path, "/#{path}"
 
     for edge in frag
       if node[edge]
