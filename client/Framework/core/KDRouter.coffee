@@ -25,16 +25,14 @@ class KDRouter extends KDObject
         replaceState      : yes
     @startListening()
 
-  popState:do->
-    # TODO: don't think this will work in FF: (C.T.)
-    (event)=> # fat-arrow binding makes this handler easier to remove.
-      revive event.state, (err, state)=>
-        if err?
-          new KDNotificationView title: 'An unknown error has occurred.'
-        else
-          @handleRoute "#{location.pathname}#{location.search}",
-            shouldPushState   : no
-            state             : state
+  popState:(event)=> # fat-arrow binding makes this handler easier to remove.
+    revive event.state, (err, state)=>
+      if err?
+        new KDNotificationView title: 'An unknown error has occurred.'
+      else
+        @handleRoute "#{location.pathname}#{location.search}",
+          shouldPushState   : no
+          state             : state
 
   clear:(route = '/', replaceState = yes)-> @handleRoute route, {replaceState}
 
