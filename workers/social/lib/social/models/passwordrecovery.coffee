@@ -117,7 +117,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             {host, protocol} = require '../config.email'
             messageOptions =
               # url         : "#{protocol}#{host}:#{port}/recover/#{encodeURIComponent token}"
-              url         : "#{protocol}//#{host}/recover/#{encodeURIComponent token}"
+              url         : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
               requestedAt : certificate.getAt('requestedAt')
             Emailer.send
               From      : @getPasswordRecoveryEmail()

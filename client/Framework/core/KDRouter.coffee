@@ -34,7 +34,7 @@ class KDRouter extends KDObject
           shouldPushState   : no
           state             : state
 
-  clear:(replaceState=yes)-> @handleRoute '/', {replaceState}
+  clear:(route = '/', replaceState = yes)-> @handleRoute route, {replaceState}
 
   startListening:->
     return no  if @isListening # make this action idempotent
@@ -53,7 +53,7 @@ class KDRouter extends KDObject
   @handleNotFound =(route)-> log "The route #{route} was not found!"
 
   getTitle:(path)-> path
-  
+
   handleNotFound:(route)->
     console.trace()
     log "The route #{route} was not found!"
@@ -133,7 +133,7 @@ class KDRouter extends KDObject
         else @handleNotFound frag.join '/'
 
     routeInfo = {params, query}
-    
+
     listeners = node[listenerKey]
     if listeners?.length
       listener.call @, routeInfo, state, path  for listener in listeners
