@@ -39,7 +39,7 @@ module.exports =
   ldap                  :
     ldapUrl             : 'ldap://ldap0.prod.system.aws.koding.com'
     rootUser            : "uid=kdl,ou=Special Users,dc=koding,dc=com"
-    rootPass            : '\%L/75tIr|J^wB'
+    rootPass            : 'dkslkd94slxDDD01x'
     groupDN             : 'ou=Beta,ou=Groups,dc=koding,dc=com'
     userDN              : 'ou=Beta,ou=People,dc=koding,dc=com'
     freeUID             : 'uid=betaUsersIDs,dc=koding,dc=com' # special record for next free uid, increments each time when create new user
