@@ -53,7 +53,7 @@ class KiteController extends KDController
     options.kiteId   or= @kiteIds.sharedHosting?[0]
     options.method   or= "executeCommand"
     if command
-      options.withArgs = command
+      options.withArgs = {command}
     # else if options.withArgs?.command
       # options.withArgs = options.withArgs.command
     else
