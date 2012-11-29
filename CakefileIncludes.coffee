@@ -268,7 +268,7 @@ Includes =
         Activity12345         : "./client/app/Applications/Activity.kdapplication/AppController.coffee"
         Topics12345           : "./client/app/Applications/Topics.kdapplication/AppController.coffee"
         Feeder12345           : "./client/app/Applications/Feeder.kdapplication/AppController.coffee"
-        Environment12345      : "./client/app/Applications/Environment.kdapplication/AppController.coffee"
+        # Environment12345      : "./client/app/Applications/Environment.kdapplication/AppController.coffee"
         Apps12345             : "./client/app/Applications/Apps.kdapplication/AppController.coffee"
         Inbox12345            : "./client/app/Applications/Inbox.kdapplication/AppController.coffee"
         Demos12345            : "./client/app/Applications/Demos.kdapplication/AppController.coffee"
@@ -280,9 +280,6 @@ Includes =
         Ace                   : "./client/app/Applications/Ace.kdapplication/ace.coffee"
         AceSettingsView       : "./client/app/Applications/Ace.kdapplication/acesettingsview.coffee"
         AceSettings           : "./client/app/Applications/Ace.kdapplication/acesettings.coffee"
-
-        # chatter
-        Chat                  : "./client/app/Applications/Chat.kdapplication/AppController.coffee"
 
         # groups
         GroupsController      : "./client/app/Applications/Groups.kdapplication/AppController.coffee"
@@ -445,7 +442,7 @@ Includes =
         # DEMO VIEWS
         demoAppView                   : "./client/app/Applications/Demos.kdapplication/AppView.coffee"
 
-        GroupsFakeController          : "./client/app/Applications/GroupsFake.kdapplication/AppController.coffee"
+        # GroupsFakeController          : "./client/app/Applications/GroupsFake.kdapplication/AppController.coffee"
 
         # ACCOUNT SETTINGS
 
@@ -649,13 +646,13 @@ Includes =
         requestform               : "./client/app/MainApp/login/requestform.coffee"
 
         # BOTTOM PANEL
-        bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
-        bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
-        bottomChatPanel           : "./client/app/MainApp/bottompanels/chat/chatpanel.coffee"
-        bottomChatRoom            : "./client/app/MainApp/bottompanels/chat/chatroom.coffee"
-        bottomChatSidebar         : "./client/app/MainApp/bottompanels/chat/chatsidebar.coffee"
-        bottomChatUserItem        : "./client/app/MainApp/bottompanels/chat/chatuseritem.coffee"
-        bottomTerminalPanel       : "./client/app/MainApp/bottompanels/terminal/terminalpanel.coffee"
+        # bottomPanelController     : "./client/app/MainApp/bottompanels/bottompanelcontroller.coffee"
+        # bottomPanel               : "./client/app/MainApp/bottompanels/bottompanel.coffee"
+        # bottomChatPanel           : "./client/app/MainApp/bottompanels/chat/chatpanel.coffee"
+        # bottomChatRoom            : "./client/app/MainApp/bottompanels/chat/chatroom.coffee"
+        # bottomChatSidebar         : "./client/app/MainApp/bottompanels/chat/chatsidebar.coffee"
+        # bottomChatUserItem        : "./client/app/MainApp/bottompanels/chat/chatuseritem.coffee"
+        # bottomTerminalPanel       : "./client/app/MainApp/bottompanels/terminal/terminalpanel.coffee"
 
         KodingMainView            : "./client/app/MainApp/maincontroller/mainview.coffee"
         KodingMainViewController  : "./client/app/MainApp/maincontroller/mainviewcontroller.coffee"

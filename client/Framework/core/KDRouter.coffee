@@ -94,7 +94,7 @@ class KDRouter extends KDObject
 
     query = @utils.parseQuery query.join '&'
 
-    {shouldPushState, replaceState, state} = options
+    {shouldPushState, replaceState, state, suppressListeners} = options
     shouldPushState ?= yes
 
     objRef = createObjectRef state
@@ -112,7 +112,7 @@ class KDRouter extends KDObject
     qs = @utils.stringifyQuery query
     path += "?#{qs}"  if qs.length
 
-    if shouldPushState and not replaceState and path is @currentPath
+    if not suppressListeners and shouldPushState and not replaceState and path is @currentPath
       @emit 'AlreadyHere', path
       return
 
@@ -134,9 +134,10 @@ class KDRouter extends KDObject
 
     routeInfo = {params, query}
 
-    listeners = node[listenerKey]
-    if listeners?.length
-      listener.call @, routeInfo, state, path  for listener in listeners
+    unless suppressListeners
+      listeners = node[listenerKey]
+      if listeners?.length
+        listener.call @, routeInfo, state, path  for listener in listeners
 
   handleQuery:(query)->
     query = @utils.stringifyQuery query  unless 'string' is typeof query
