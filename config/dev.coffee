@@ -27,6 +27,8 @@ module.exports = deepFreeze
   runBroker     : no
   configureBroker: no
   buildClient   : no
+  misc          :
+    claimGlobalNamesForUsers: no
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
