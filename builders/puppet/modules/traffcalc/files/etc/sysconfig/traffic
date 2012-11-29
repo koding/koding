@@ -1,0 +1,5 @@
+mongo_host = mongo1.db.koding.com
+mongo_user = aleksey-m_kevuha
+mongo_pass = 9nh1icni
+database   = aleksey-m_kevuha
+log_file   = /var/log/traffic.log

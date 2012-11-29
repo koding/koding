@@ -135,7 +135,7 @@ module.exports = class JInvitation extends jraphical.Module
       if err
         console.log err
       else if invite?
-        url = "#{KONFIG.uri.address}/invitation/#{invite.code}"
+        url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
         personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
         emailerObj =

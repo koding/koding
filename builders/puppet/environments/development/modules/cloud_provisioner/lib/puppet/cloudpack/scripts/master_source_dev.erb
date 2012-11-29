@@ -1,0 +1,140 @@
+#!/bin/bash
+# This script is used to install a puppetmaster
+# into ec2.
+# It assumes that your current host should
+# be authenticated as a client and that it should also
+# be authorized to sign certificates of other clients
+# of puppet-cloudpack
+set -u
+set -e
+if [ -f /etc/redhat-release ]; then
+  cat >/etc/yum.repos.d/epel.repo <<EOF
+[prosvc]
+name=Puppet Labs PS (Unofficial)
+baseurl=http://yum.puppetlabs.com/el/\$releasever/dependencies/\$basearch
+enabled=1
+gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+gpgcheck=1
+EOF
+  yum install -y ruby rubygems git
+elif [ -f /etc/debian_version ]; then
+  # install all of the packages required for puppet and dashbaord
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get -y -q install build-essential libmysql-ruby libopenssl-ruby libreadline-ruby mysql-server rake ruby rubygems git
+fi
+gem install facter <% if options[:facter_version] %>-v<%= options[:facter_version] %><% end %> --no-ri --no-rdoc
+export PATH="$PATH:/var/lib/gems/1.8/bin"
+mkdir -p /usr/local/dev
+cd /usr/local/dev
+git clone git://github.com/puppetlabs/puppet.git
+git clone git://github.com/puppetlabs/puppet-dashboard.git
+cd puppet
+<% if options[:puppet_version] %>
+git checkout option[:puppet_version]
+<% end %>
+./install.rb
+mkdir -p /etc/puppet /var/lib /var/log /var/run
+cat >/etc/puppet/puppet.conf <<EOF
+[main]
+  logdir = /var/log/puppet
+  rundir = /var/run/puppet
+  ssldir = \$vardir/ssl
+  vardir = /var/lib/puppet
+
+  pluginsync = true
+
+  reports = store,http
+  node_terminus = exec
+  external_nodes = /usr/bin/env PUPPET_DASHBOARD_URL=http://localhost:3000 /usr/local/dev/puppet-dashboard/bin/external_node
+  environment = <%= options[:environment] %>
+  certname = <%= options[:puppetagent_certname] %>
+  certdnsnames = <%= options[:public_dns_name] %>:$(facter fqdn)
+  report = true
+  autosign = /etc/puppet/autosign.conf
+EOF
+
+# automatically sign cert requests coming from this host
+echo 'Setting up <%= `hostname`.chomp %> to be auto-signed'
+cat >/etc/puppet/autosign.conf <<EOF
+<%= `hostname`.chomp %>
+EOF
+
+cat >/etc/puppet/auth.conf <<EOF
+# allow nodes to retrieve their own catalog (ie their configuration)
+path ~ ^/catalog/([^/]+)\$
+method find
+allow \$1
+
+# allow nodes to retrieve their own node definition
+path ~ ^/node/([^/]+)\$
+method find
+allow \$1
+
+# allow all nodes to access the certificates services
+path /certificate_revocation_list/ca
+method find
+allow *
+
+# allow all nodes to store their reports
+path /report
+method save
+allow *
+
+path /file
+allow *
+
+path /certificate/ca
+auth no
+method find
+allow *
+
+path /certificate/
+auth any
+method find
+allow *
+
+path /certificate_request
+auth any
+method find, save
+allow *
+
+path /certificate_status
+method save
+auth yes
+allow <%= `hostname`.chomp %>
+
+# this one is not stricly necessary, but it has the merit
+# to show the default policy which is deny everything else
+path /
+auth any
+EOF
+echo 'Authorized <%= `hostname`.chomp %> to be remotely sign certificates'
+
+puppet master --mkuser
+
+# install a module
+mkdir /etc/puppet/modules
+cd /etc/puppet/modules
+git clone git://github.com/puppetlabs/puppetlabs-rabbitmq.git
+mv puppetlabs-rabbitmq rabbitmq
+
+# install dashboard
+
+cd /usr/local/dev/puppet-dashboard
+cat > config/database.yml <<EOF
+production:
+  database: dashboard_development
+  username: root
+  password:
+  encoding: utf8
+  adapter: mysql
+EOF
+rake RAILS_ENV=production db:create
+rake RAILS_ENV=production db:migrate
+mkdir tmp
+#env CPUS=4 RAILS_ENV=production ./script/delayed_job -p dashboard -n 1 -m start
+# set up a class and nodegroup in dashboard
+rake RAILS_ENV=production nodeclass:add name=rabbitmq::server
+rake RAILS_ENV=production nodegroup:add name=rabbit_server classes=rabbitmq::server
+sleep 5
+nohup ./script/server -e production &
