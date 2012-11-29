@@ -78,10 +78,11 @@ func (vm *VM) File(path string) string {
 
 func (vm *VM) Prepare() {
 	// create directories
-	vm.MkdirAll("", false)
-	vm.MkdirAll("overlayfs-upperdir/etc", true)
-	vm.MkdirAll("overlayfs-upperdir/home/"+vm.Username(), true)
-	vm.MkdirAll("rootfs", true)
+	vm.Mkdir("", false)
+	vm.Mkdir("overlayfs-upperdir", true)
+	vm.Mkdir("overlayfs-upperdir/etc", true)
+	vm.Mkdir("overlayfs-upperdir/home/"+vm.Username(), true)
+	vm.Mkdir("rootfs", true)
 
 	// write LXC files
 	vm.GenerateFile("config", false)
@@ -146,9 +147,9 @@ func (vm *VM) Prepare() {
 	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
 }
 
-func (vm *VM) MkdirAll(path string, chown bool) {
+func (vm *VM) Mkdir(path string, chown bool) {
 	fullPath := fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
-	os.MkdirAll(fullPath, 0755)
+	os.Mkdir(fullPath, 0755)
 	if chown {
 		os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
 	}
