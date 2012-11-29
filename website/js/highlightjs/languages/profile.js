@@ -4,8 +4,8 @@ Description: Python profiler results
 Author: Brian Beck <exogen@gmail.com>
 */
 
-hljs.LANGUAGES.profile = {
-  defaultMode: {
+function(hljs) {
+  return {
     contains: [
       hljs.C_NUMBER_MODE,
       {
@@ -17,13 +17,13 @@ hljs.LANGUAGES.profile = {
       },
       {
         className: 'filename',
-        begin: '(/\w|[a-zA-Z_][\da-zA-Z_]+\\.[\da-zA-Z_]{1,3})', end: ':',
+        begin: '[a-zA-Z_][\\da-zA-Z_]+\\.[\\da-zA-Z_]{1,3}', end: ':',
         excludeEnd: true
       },
       {
         className: 'header',
         begin: '(ncalls|tottime|cumtime)', end: '$',
-        keywords: {'ncalls': 1, 'tottime': 10, 'cumtime': 10, 'filename': 1},
+        keywords: 'ncalls tottime|10 cumtime|10 filename',
         relevance: 10
       },
       {
@@ -45,5 +45,5 @@ hljs.LANGUAGES.profile = {
         relevance: 0
       }
     ]
-  }
-};
+  };
+}

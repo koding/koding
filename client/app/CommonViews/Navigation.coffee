@@ -1,8 +1,10 @@
 class NavigationController extends KDListViewController
 
   reset:->
+    previousSelection = @selectedItems.slice()
     @removeAllItems()
     @instantiateListItems @getData().items
+    @selectItemByName name  for {name} in previousSelection
 
   selectItemByName:(name)->
     item = no
@@ -33,28 +35,31 @@ class NavigationList extends KDListView
 class NavigationLink extends KDListItemView
 
   constructor:(options,data)->
-
     super options,data
 
     @name = data.title
     @setClass 'navigation-item clearfix'
 
-  mouseDown:(event)->
+  click:(event)->
+    {appPath, title, path} = @getData()
 
-    mc = @getSingleton('mainController')
-    mc.emit "NavigationLinkTitleClick"
-      orgEvent : event
-      pageName : @getData().title
-      appPath  : @getData().path or @getData().title
-      navItem  : @
+    # This check is for Invite Friends link which has no app at all
+    return if @child?
+
+    mc = @getSingleton 'mainController'
+    mc.emit "NavigationLinkTitleClick",
+      orgEvent  : event
+      pageName  : title
+      appPath   : appPath or title
+      path      : path
+      navItem   : @
 
   partial:(data)->
-
-    "<a class='title' href='#'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
+    "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
 
 class AdminNavigationLink extends NavigationLink
 
-  mouseDown:(event)->
+  click:(event)->
 
     cb = @getData().callback
     cb.call @ if cb
@@ -92,9 +97,10 @@ class NavigationInviteLink extends KDCustomHTMLView
     , (err)=>
       modal.modalTabs.forms["Invite Friends"].buttons.Send.hideLoader()
       if err
+        message = 'This e-mail is already invited!' if err.code is 11000
         new KDNotificationView
-          title: err.message or 'Sorry, something bad happened.'
-          content: 'Please try again later!'
+          title: message or err.message or 'Sorry, something bad happened.'
+          content: 'Please try again later!' unless message
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()
@@ -109,7 +115,9 @@ class NavigationInviteLink extends KDCustomHTMLView
 
   # take this somewhere else
   # was a beta quick solution
-  mouseDown:(event)->
+  click:(event)->
+    event.stopPropagation()
+    event.preventDefault()
     limit = @count.getData()
     if !limit? or limit.getAt('quota') - limit.getAt('usage') <= 0
       new KDNotificationView

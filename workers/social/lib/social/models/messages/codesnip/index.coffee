@@ -12,6 +12,7 @@ class JCodeAttachment extends jraphical.Attachment
 module.exports = class JCodeSnip extends JPost
 
   {secure} = require 'bongo'
+  {extend} = require 'underscore'
 
   @share()
 
@@ -19,9 +20,15 @@ module.exports = class JCodeSnip extends JPost
 
   @getAuthorType =-> require '../../account'
 
+  schema = extend {}, JPost.schema, {
+    attachments   : [JCodeAttachment]
+  }
+
   @set
+    indexes       :
+      slug        : 'unique'
     sharedMethods : JPost.sharedMethods
-    schema        : JPost.schema
+    schema        : schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
 

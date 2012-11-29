@@ -10,6 +10,30 @@ class OpinionListItemView extends KDListItemView
 
     data = @getData()
 
+    @commentBox = new CommentView null, data
+
+    # FIXME
+    # this is really lazy loading. opinionsByRange should yield
+    # the comments by default. fetchOpinion is not capable of doing that.
+
+    if data.repliesCount and not data.replies? # comments are not in data
+      data.commentsByRange                   # so we fetch them manually
+        from : 0
+        to : 5
+      , (err, comments)=>
+        if err
+         log err
+        else                    # set the data in the appropriate places
+          comments = comments.reverse()           # take care of sorting
+          data.replies = comments
+          @commentBox.setData comments
+          for comment in comments       # and add them to the commentBox
+            @commentBox.commentList.addItem comment
+
+    # bounce the RefreshTeaser event
+    @commentBox.on "RefreshTeaser",=>
+      @parent.emit "RefreshTeaser"
+
     # listener for when this gets deleted by the creator JAccount
     data.on "OpinionIsDeleted", (things)=>
       @hide()
@@ -53,19 +77,12 @@ class OpinionListItemView extends KDListItemView
         href      : '#'
       cssClass    : 'edit-link hidden'
 
-    @commentBox = new CommentView null, data
-    # @commentBox = new OpinionCommentView null, data
-
-    @commentBox.on "DiscussionTeaserShouldRefresh",=>
-      @parent.emit "DiscussionTeaserShouldRefresh"
-
-    @on "DiscussionTeaserShouldRefresh",=>
-      @getDelegate().emit "DiscussionTeaserShouldRefresh"
-
     @actionLinks = new ActivityActionsView
       delegate : @commentBox.commentList
       cssClass : "opinion-comment-header"
     , data
+
+    @bodyView = new OpinionBodyView {}, data
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
@@ -79,7 +96,8 @@ class OpinionListItemView extends KDListItemView
           href     : "#"
           title    : "Show less"
         partial    :  "See less…"
-        click      :=>
+        click      :(event)=>
+          event.preventDefault()
           @markup.css "max-height":"300px"
           @larger.show()
           @smaller.hide()
@@ -98,61 +116,59 @@ class OpinionListItemView extends KDListItemView
 
     @textMaxHeight = 0
 
-    activity = @getDelegate().getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
-      loggedInId = KD.whoami().getId()
-      if loggedInId is data.originId or       # if comment owner
-         # loggedInId is activity.originId or   # if activity owner
-         # ! this will allow activity owners to edit all the answers..
-         KD.checkFlag "super-admin", account  # if super-admin
+    # activity = @getDelegate().getData()
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @editLink
-          callback           : =>
-            if @editForm?
-              @editForm?.destroy()
-              delete @editForm
-              @$("p.opinion-body").show()
-              @$(".opinion-size-links").show() if @needsToResize
-            else
-              @editForm = new OpinionFormView
-                submitButtonTitle : "Save your changes"
-                title             : "edit-opinion"
-                cssClass          : "edit-opinion-form opinion-container"
-                callback          : (data)=>
-                  @getData().modify data, (err, opinion) =>
+    loggedInId = KD.whoami().getId()
+    if loggedInId is data.originId or       # if comment owner
+       # loggedInId is activity.originId or     # activity owner can remove opinion
+       KD.checkFlag "super-admin", KD.whoami()  # if super-admin
+
+      @editLink.on "click", =>
+
+          if @editForm?
+            @editForm?.destroy()
+            delete @editForm
+            @$("p.opinion-body").show()
+            @$(".opinion-size-links").show() if @needsToResize
+
+          else
+            @editForm = new OpinionFormView
+              submitButtonTitle : "Save your changes"
+              title             : "edit-opinion"
+              cssClass          : "edit-opinion-form opinion-container"
+              callback          : (data)=>
+                @getData().modify data, (err, opinion) =>
+                  @$("p.opinion-body").show()
+                  callback? err, opinion
+                  @editForm.reset()
+                  @editForm.submitOpinionBtn.hideLoader()
+                  if err
+                    new KDNotificationView title : "Your changes weren't saved.", type :"mini"
+                  else
+                    @bodyView.render yes
+                    @getDelegate().emit "RefreshTeaser", ->
+                    @emit "OwnOpinionWasAdded", opinion
+                    @editForm.setClass "hidden"
                     @$("p.opinion-body").show()
-                    callback? err, opinion
-                    @editForm.submitOpinionBtn.hideLoader()
-                    if err
-                      new KDNotificationView title : "Your changes weren't saved.", type :"mini"
-                    else
-                      @getDelegate().emit "DiscussionTeaserShouldRefresh", ->
-                      @emit "OwnOpinionWasAdded", opinion
-                      @editForm.setClass "hidden"
-                      @$("p.opinion-body").show()
-                      @$(".opinion-size-links").show() if @needsToResize
-              , data
+                    @$(".opinion-size-links").show() if @needsToResize
+            , data
 
-              @addSubView @editForm, "p.opinion-body-edit", yes
-              @$("p.opinion-body").hide()
-              @$(".opinion-size-links").hide() if @needsToResize
+            @addSubView @editForm, "p.opinion-body-edit", yes
+            @$("p.opinion-body").hide()
+            @$(".opinion-size-links").hide() if @needsToResize
 
+      @deleteLink.on "click", =>
+        @confirmDeleteOpinion data
 
-        @listenTo
-          KDEventTypes       : "click"
-          listenedToInstance : @deleteLink
-          callback           : => @confirmDeleteOpinion data
-
-        @editLink.unsetClass "hidden"
-        @deleteLink.unsetClass "hidden"
+      @editLink.unsetClass "hidden"
+      @deleteLink.unsetClass "hidden"
 
   render:->
     super()
 
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    # @$("pre").addClass "prettyprint"
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -167,16 +183,16 @@ class OpinionListItemView extends KDListItemView
       @markup.css {maxHeight}
       @larger.show()
 
-    @$("pre").addClass "prettyprint"
-    prettyPrint()
+    @$("p.opinion-body span.data pre").each (i,element)=>
+      element = hljs.highlightBlock element
 
   click:(event)->
+    event.preventDefault() unless $(event.target).attr("target") is "_blank"
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()
       KD.remote.cacheable originType, originId, (err, origin)->
         unless err
-          appManager.tell "Members", "createContentDisplay", origin
-
+          KD.getSingleton('router').handleRoute "/#{origin.profile.nickname}", state:origin
 
   confirmDeleteOpinion:(data)->
     modal = new KDModalView
@@ -219,11 +235,11 @@ class OpinionListItemView extends KDListItemView
         {{> @editLink}}
         <p class="opinion-body-edit"></p>
         <p class='opinion-body has-markdown'>
-          {{@utils.expandUsernames @utils.applyMarkdown #(body)}}
+          {{> @bodyView}}
         </p>
         <div class="opinion-size-links">
-          {{>@larger}}
-          {{>@smaller}}
+          {{> @larger}}
+          {{> @smaller}}
         </div>
     </div>
         <footer class='opinion-footer clearfix'>
@@ -240,4 +256,23 @@ class OpinionListItemView extends KDListItemView
         {{> @commentBox}}
       </div>
     </div>
+    """
+
+class OpinionBodyView extends KDView
+  constructor:(options,data)->
+    super options, data
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  render:(force=no)->
+    if force
+      super
+    else
+      no
+
+  pistachio:->
+    """
+      {{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}
     """

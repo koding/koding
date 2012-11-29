@@ -15,8 +15,16 @@ projectRoot = nodePath.join __dirname, '..'
 module.exports = deepFreeze
   projectRoot   : projectRoot
   version       : version
-  webPort       : 3000
+  webserver     :
+    port        : 3000
   mongo         : mongo
+  uploads       :
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccountId        : '616271189586'
+      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
   buildClient   : yes
   social        :
     numberOfWorkers: 1
@@ -26,6 +34,7 @@ module.exports = deepFreeze
     exchangePrefix: "followable-"
     numberOfWorkers: 2
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     watch       : yes
@@ -43,7 +52,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a19c8bf6d2cad6c7a006'
         sockJS  : 'http://localhost:8008/subscribe'
-        auth    : 'http://localhost:3000/auth'
+        auth    : 'http://localhost:3000/Auth'
         vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'http://dev-app.koding.com'

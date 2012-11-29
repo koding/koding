@@ -5,6 +5,7 @@ module.exports = class CDiscussionActivity extends CActivity
   @share()
 
   @set
+    slugifyFrom     : 'title'
     encapsulatedBy  : CActivity
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema

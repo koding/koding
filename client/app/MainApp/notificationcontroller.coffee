@@ -5,10 +5,11 @@ class NotificationController extends KDObject
     JStatusUpdate       : "<a href='#'>status</a>"
     JCodeSnip           : "<a href='#'>code snippet</a>"
     JQuestionActivity   : "<a href='#'>question</a>"
-    JDiscussionActivity : "<a href='#'>discussion</a>"
+    JDiscussion         : "<a href='#'>discussion</a>"
     JLinkActivity       : "<a href='#'>link</a>"
     JPrivateMessage     : "<a href='#'>private message</a>"
-    JOpinionActivity    : "<a href='#'>opinion</a>"
+    JOpinion            : "<a href='#'>opinion</a>"
+    JTutorial           : "<a href='#'>tutorial</a>"
     JComment            : "<a href='#'>comment</a>"
     JReview             : "<a href='#'>review</a>"
 
@@ -27,7 +28,7 @@ class NotificationController extends KDObject
       # channelName = 'private-'+nickname+'-private'
       # KD.remote.fetchChannel channelName, (channel)=>
       #  channel.on 'notificationArrived', (notification)=>
-      account.addGlobalListener 'notificationArrived', (notification) =>
+      account.on 'notificationArrived', (notification) =>
         @emit "NotificationHasArrived", notification
         @prepareNotification notification if notification.contents
 
@@ -53,7 +54,7 @@ class NotificationController extends KDObject
       actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
 
       options.title = switch actionType
-        when "reply"
+        when "reply", "opinion"
           if isMine
             switch subject.constructorName
               when "JPrivateMessage"
@@ -83,14 +84,16 @@ class NotificationController extends KDObject
         view = @
         if subject.constructorName is "JPrivateMessage"
           appManager.openApplication "Inbox"
-        else if subject.constructorName is "JComment"
+        else if subject.constructorName in ["JComment", "JOpinion"]
           KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
-            appManager.tell "Activity", "createContentDisplay", post
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+            # appManager.tell "Activity", "createContentDisplay", post
             view.destroy()
         else
           # ask chris if KD.remote.cacheable is good for this
-          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post)->
-            appManager.tell "Activity", "createContentDisplay", post
+          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
+            # appManager.tell "Activity", "createContentDisplay", post
+            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
             view.destroy()
       options.type  = actionType or ''
 

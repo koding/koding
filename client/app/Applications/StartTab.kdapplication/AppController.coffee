@@ -1,5 +1,9 @@
 class StartTab12345 extends AppController
 
+  constructor:->
+    super
+    @openTabs = []
+
   bringToFront:->
     frontTab = if !@openTabs.length then @createNewTab() else @openTabs[@openTabs.length - 1]
 
@@ -14,21 +18,6 @@ class StartTab12345 extends AppController
       data : frontTab
 
     @setViewListeners frontTab
-
-  initAndBringToFront:(options,callback)->
-    @initApplication options, =>
-      @bringToFront()
-      callback()
-
-  initApplication:(options, callback)=>
-    @openTabs       = []
-    @_storage       = no
-    # console.log 'init application called'
-    notification    = no
-
-    callback()
-
-    @setViewListeners()
 
   setViewListeners:(view)->
     @listenTo

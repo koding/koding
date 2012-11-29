@@ -5,37 +5,62 @@ nodePath  = require 'path'
 KodingLogger = require 'koding-logger'
 processes   = new (require "processes")
 
-
 option '-c', '--configPath [CONFIG]', 'Which config file to use'
 option '-s', '--silent', 'Set this flag to suppress stdout'
 
 task 'run', ({configPath, silent})->
+
   configPath ?= '../config/dev'
-  {webPort, logger} = require configPath
-  logger = new KodingLogger 'webserver', os.hostname(), logger.mq
-  logger.tailTo process.stdout unless silent
-  webPort = [webPort] unless Array.isArray webPort
-  webPort.forEach (port)->
-    runServer configPath, logger, port
+  {webserver, logger,loadBalancer} = require configPath
 
-runServer =(configPath, logger, port)->
-  # child = spawn 'node', ['./index.js'
-  #   '-c', configPath
-  #   '-p', port
-  # ]
+  if webserver
+    webPort = webserver.port
+    webPort = [webPort] unless Array.isArray webPort
+    webPort.forEach (port)->
+      runServer configPath, logger, port,silent
 
-  processes.run
-    name    : 'server'
-    cmd     : "node ./index.js -c #{configPath} -p #{port}"
+  if loadBalancer
+    runLoadBalancer configPath,logger,silent
+
+runLoadBalancer = (configPath,logger,silent)->
+  configPath ?= '../config/dev'
+
+  # loggerLB = new KodingLogger 'load-balancer', os.hostname(), logger.mq
+  # loggerLB.tailTo process.stdout unless silent
+  
+  lb = processes.fork
+    name        : 'load-balancer'
+    cmd         : "./load-balancer -c #{configPath}"
+    restart     : yes
+    restartInterval : 1
+    # onMessage : (msg)->
+    #   console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
+
+  # loggerLB.logAll processes.get("load-balancer"), "load-balancer"
+
+
+
+runServer =(configPath, logger, port,silent)->
+  #loggerWS = new KodingLogger 'webserver', os.hostname(), logger.mq
+  #loggerWS.tailTo process.stdout unless silent
+  process.stdout.setMaxListeners 0
+  process.stderr.setMaxListeners 0
+  processes.fork
+    name          : 'server'+port
+    cmd           : "./index.js -c #{configPath} -p #{port}"
     restart : yes
-    restartInterval : 1000
-    # stdout  : process.stdout
-    # stderr  : process.stderr
-    verbose : yes 
-
-  console.log "im the child of server: #{processes.get("server").pid}"
-  logger.logAll processes.get("server"), "webserver#{port}"
-  # setTimeout (-> process.exit()),5000
+    restartInterval : 100
+    verbose : no
+    # die : 
+    #   interval : 60*1000
+    # monitor : 
+    #   interval : 1000
+    # onMessage : (msg)->
+    #   if msg.mem.rss > 300
+    #     processes.sendMessage 'load-balancer',{markAsDead:yes,port:port}
+    #     console.log "[WEBSERVER #{port}] high memory usage - time to commit suicide."
+    #     processes.kill 'server'+port
+      # console.log msg.name,msg.mem.rss,msg.mem.heapTotal,msg.mem.heapUsed
 
 
 

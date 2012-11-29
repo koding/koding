@@ -28,11 +28,8 @@ class KodingAppsController extends KDController
       options       :
         type        : "tab"
       icns          :
-        "64"        : "./resources/icon.64.png"
         "128"       : "./resources/icon.128.png"
-        "160"       : "./resources/icon.160.png"
-        "256"       : "./resources/icon.256.png"
-        "512"       : "./resources/icon.512.png"
+
     json = JSON.stringify raw, null, 2
 
   @manifests = {}
@@ -50,8 +47,10 @@ class KodingAppsController extends KDController
 
   @getManifestFromPath = getManifestFromPath = (path)->
 
-    folderName = (arr = path.split("/"))[arr.length-1]
+    folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
     app        = null
+
+    return app unless folderName
 
     for own name, manifest of KodingAppsController.manifests
       do ->
@@ -90,7 +89,6 @@ class KodingAppsController extends KDController
 
     path = "/Users/#{KD.whoami().profile.nickname}/Applications"
 
-    # require ["coffee-script"], (coffee)=>
     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
       if err
         @putAppsToAppStorage {}
@@ -111,29 +109,16 @@ class KodingAppsController extends KDController
             manifestFile.fetchContents (err, response)->
               cb null, response # shadowing the error is intentional here to not to break the results of the stack
 
-            # @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-
-            # FSItem.doesExist "#{app.path}/.manifest", (err, result)=>
-            #   if result
-            #     manifestFile = if app.type is "folder" then FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-            #     @kiteController.run "ls #{escapeFilePath path} -lpva", (err, response)=>
-            #       manifestFile.fetchContents cb
-            #   else
-            #     cb null, "no manifest"
-
         manifests = @constructor.manifests
         async.parallel stack, (err, results)=>
           warn err if err
           results.forEach (rawManifest)->
-            # if rawManifest.substr(0,1) is '{'
-            #   manifest = JSON.parse rawManifest
-            # else
-            #   manifest = eval coffee.compile rawManifest, { bare : yes }
-            #   # debugger
             if rawManifest
-              manifest = JSON.parse rawManifest
-              manifests["#{manifest.name}"] = manifest
-
+              try
+                manifest = JSON.parse rawManifest
+                manifests["#{manifest.name}"] = manifest
+              catch e
+                console.warn "Manifest file is broken", e
           @putAppsToAppStorage manifests
           callback? null, manifests
 
@@ -230,7 +215,7 @@ class KodingAppsController extends KDController
 
   defineApp:(name, script)->
 
-    KDApps[name] = script
+    KDApps[name] = script if script
 
   getAppScript:(manifest, callback = noop)->
 
@@ -239,15 +224,10 @@ class KodingAppsController extends KDController
     if KDApps[name]
       callback null, KDApps[name]
     else
-
       @fetchCompiledApp manifest, (err, script)=>
         if err
-          @compileApp name, (err)=>
-            if err
-              new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-              callback err
-            else
-              callback err, KDApps[name]
+          @compileApp name, (err)->
+            callback err, KDApps[name]
         else
           @defineApp name, script
           callback err, KDApps[name]
@@ -261,18 +241,41 @@ class KodingAppsController extends KDController
     {options, name, devMode} = manifest
     {stylesheets} = manifest.source if manifest.source
 
+    proxifyUrl=(url)->
+      "https://api.koding.com/1.0/image.php?url="+ encodeURIComponent(url)
+
     if stylesheets
+      $("head .app-#{__utils.slugify name}").remove()
       stylesheets.forEach (sheet)->
         if devMode
-          $("head ##{__utils.slugify name}").remove()
-          $('head').append "<link id='#{__utils.slugify name}' rel='stylesheet' href='http://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}'>"
+          urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}"
+          $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
         else
           if /(http)|(:\/\/)/.test sheet
             warn "external sheets cannot be used"
           else
             sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-            $("head ##{__utils.slugify name}").remove()
-            $('head').append("<link id='#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+            $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+
+    showError = (error)->
+      new KDModalView
+        title   : "An error occured while running the App!"
+        width   : 500
+        overlay : yes
+        content : """
+                  <div class='modalformline'>
+                    <h3>#{error.constructor.name}</h3><br/>
+                    <pre>#{error.message}</pre>
+                  </div>
+                  <p class='modalformline'>
+                    <cite>Check Console for more details.</cite>
+                  </p>
+                  """
+                  # We may after put a full stck to the output
+                  # It looks weird for now.
+                  # <pre>#{error.stack}</pre>
+
+      console.warn error.message, error
 
     @getAppScript manifest, (err, appScript)=>
       if err then warn err
@@ -287,9 +290,11 @@ class KodingAppsController extends KDController
           try
             # security please!
             do (appView)->
+              appScript = "var appView = KD.instances[\"#{appView.getId()}\"];\n\n"+appScript
               eval appScript
-          catch e
-            warn "App caused some problems:", e
+          catch error
+            # if not manifest.ignoreWarnings? # GG FIXME
+            showError error
           callback?()
           return appView
         else
@@ -297,48 +302,19 @@ class KodingAppsController extends KDController
             # security please!
             do ->
               eval appScript
-          catch e
-            warn "App caused some problems:", e
+          catch error
+            showError error
           callback?()
           return null
 
         log "App to run:", name
         callback?()
 
-  addScript:(app, scriptInput, callback)->
-
-    scriptPath = "#{getAppPath(app)}/#{scriptInput}"
-    if /^\.\//.test scriptInput
-      @kiteController.run "cat #{escapeFilePath scriptPath}", (err, response)=>
-        if err then warn err
-
-        if /.coffee$/.test scriptInput
-          require ["coffee-script"], (coffee)->
-            js = coffee.compile response, { bare : yes }
-            callback err, js
-        else
-          callback err, response
-    else
-      callback null, scriptInput
-
-  saveCompiledApp:(app, script, callback)->
-
-    @getSingleton("kiteController").run
-      method        : "uploadFile"
-      withArgs    : {
-        path      : escapeFilePath "#{getAppPath app}/index.js"
-        contents  : script
-      }
-    , (err, response)=>
-      if err then warn err
-      # log response, "App saved!"
-      callback?()
-
   publishApp:(path, callback)->
 
     if not (KD.checkFlag('app-publisher') or KD.checkFlag('super-admin'))
       err = "You are not authorized to publish apps."
-      console.log err
+      log err
       callback? err
       return no
 
@@ -350,6 +326,7 @@ class KodingAppsController extends KDController
       manifest        = @constructor.manifests[appName]
       userAppPath     = getAppPath manifest
       options         =
+        kiteName      : "applications"
         method        : "publishApp"
         withArgs      :
           version     : manifest.version
@@ -385,11 +362,12 @@ class KodingAppsController extends KDController
 
     if not KD.checkFlag('super-admin')
       err = "You are not authorized to approve apps."
-      console.log err
+      log err
       callback? err
       return no
 
     options         =
+      kiteName      : "applications"
       method        : "approveApp"
       withArgs      :
         version     : app.manifest.version
@@ -407,83 +385,63 @@ class KodingAppsController extends KDController
 
   compileApp:(name, callback)->
 
-    kallback = (app)=>
+    compileOnServer = (app)=>
+      return warn "#{name}: No such application!" unless app
+      appPath = getAppPath app
 
-      return warn "#{name}: No such app!" unless app
+      loader = new KDNotificationView
+        duration : 18000
+        title    : "Compiling #{name}..."
+        type     : "mini"
 
-      {source}      = app
-      {blocks}      = source
-      {nickname}    = KD.whoami().profile
-      orderedBlocks = []
-      blockStrings  = []
-      asyncStack    = []
-
-      for blockName, blockOptions of blocks
-        blockOptions.name = blockName
-        if blockOptions.order? and not isNaN(order = parseInt(blockOptions.order, 10))
-          orderedBlocks[order] = blockOptions
+      @kiteController.run
+        kiteName  : "applications"
+        method    : "compileApp"
+        withArgs  : {appPath}
+      , (err)=>
+        if not err
+          loader.notificationSetTitle "Fetching compiled app..."
+          @fetchCompiledApp app, (err, res)=>
+            if not err
+              @defineApp name, res
+              loader.notificationSetTitle "App compiled successfully"
+              loader.notificationSetTimer 2000
+            callback? err
         else
-          orderedBlocks.push blockOptions
+          loader.destroy()
 
-      if source.stylesheets
-        appDevModePath = "/Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications/#{__utils.slugify name}"
+          if err.details?.details?
+            details = """<pre>ERROR: #{err.details.details} <br/>
+                              FILE : #{err.details.file} <br/></pre>"""
+          else if err.details?
+            details = "<pre>#{err.details}</pre>"
+          else
+            details = ""
 
-        asyncStack.push (cb)=>
-          @kiteController.run "rm -rf #{escapeFilePath appDevModePath}", =>
-            @kiteController.run "mkdir /Users/#{nickname}/Sites/#{nickname}.koding.com/website/.applications", =>
-              @kiteController.run "ln -s #{escapeFilePath getAppPath app} #{escapeFilePath appDevModePath}", -> cb()
-
-      orderedBlocks.forEach (block)=>
-
-        if block.pre
-          asyncStack.push (cb)=> @addScript app, block.pre, cb
-
-        if block.files
-          {files} = block
-          files.forEach (file, index)=>
-            if "object" is typeof file
-              for fileName, fileExtras of file
-                do =>
-                  # log fileExtras.pre  if fileExtras.pre
-                  if fileExtras.pre
-                    asyncStack.push (cb)=> @addScript app, fileExtras.pre, cb
-                  # log fileName
-                  asyncStack.push (cb)=> @addScript app, fileName, cb
-                  # log fileExtras.post if fileExtras.post
-                  if fileExtras.post
-                    asyncStack.push (cb)=> @addScript app, fileExtras.post, cb
-            else
-              # log file
-              asyncStack.push (cb)=> @addScript app, file, cb
-        # log block.post if block.post
-        if block.post
-          asyncStack.push (cb)=> @addScript app, block.post, cb
-
-      async.parallel asyncStack, (error, result)=>
-
-        _final = "(function() {\n\n/* KDAPP STARTS */"
-        result.forEach (output)=>
-          _final += "\n\n/* BLOCK STARTS */\n\n"
-          _final += "#{if output then output else '//couldn\'t compile the hunk!'}"
-          _final += "\n\n/* BLOCK ENDS */\n\n"
-        _final += "/* KDAPP ENDS */\n\n}).call();"
-
-
-        _final = @defineApp app.name, _final
-        @saveCompiledApp app, _final, =>
-          callback?()
+          new KDModalView
+            title   : "An error occured while compiling the App!"
+            width   : 500
+            overlay : yes
+            content : """
+                      <div class='modalformline'>
+                        <p>#{err.message}</p>
+                        #{details}
+                      </div>
+                      """
+          callback? err
 
     unless @constructor.manifests[name]
-      @fetchApps (err, apps)=> kallback apps[name]
+      @fetchApps (err, apps)->
+        compileOnServer apps[name]
     else
-      @kiteController.run "stat #{getAppPath @constructor.manifests[name]}", (err)=>
+      @kiteController.run "test -d #{escapeFilePath getAppPath @constructor.manifests[name]}", (err)=>
         if err
           new KDNotificationView
             title    : "App list is out-dated, refreshing apps..."
             duration : 2000
           @refreshApps noop
         else
-          kallback @constructor.manifests[name]
+          compileOnServer @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
@@ -510,6 +468,7 @@ class KodingAppsController extends KDController
                 callback? err
               else
                 options =
+                  kiteName      : "applications"
                   method        : "installApp"
                   withArgs      :
                     owner       : acc.profile.nickname
@@ -537,11 +496,11 @@ class KodingAppsController extends KDController
 
   makeNewApp:(callback)->
 
-    return callback?() if newAppModal
+    return callback? yes if newAppModal
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      # content                   : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      content                     : "<div class='modalformline'>Please select the application type you want to start with.</div>"
       overlay                     : yes
       width                       : 400
       height                      : "auto"
@@ -550,39 +509,65 @@ class KodingAppsController extends KDController
         forms                     :
           form                    :
             buttons               :
-              "Blank Application" :
+              Create              :
                 cssClass          : "modal-clean-gray"
+                loader            :
+                  color           : "#444444"
+                  diameter        : 12
                 callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : yes, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
-              "Sample Application":
-                cssClass          : "modal-clean-gray"
-                callback          : =>
-                  name = newAppModal.modalTabs.forms.form.inputs.name.getValue()
-                  @prepareApplication {isBlank : no, name}, (err, response)->
-                    callback? err
-                  newAppModal.destroy()
+                  unless newAppModal.modalTabs.forms.form.inputs.name.validate()
+                    newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                    return
+                  name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
+                  type        = newAppModal.modalTabs.forms.form.inputs.type.getValue()
+                  name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
+                  manifestStr = defaultManifest type, name
+                  manifest    = JSON.parse manifestStr
+                  appPath     = getAppPath manifest
+
+                  FSItem.doesExist appPath, (err, exists)=>
+                    if exists
+                      newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                      new KDNotificationView
+                        type      : "mini"
+                        cssClass  : "error"
+                        title     : "App folder with that name is already exists, please choose a new name."
+                        duration  : 3000
+                    else
+                      @prepareApplication {isBlank : type is "blank", name}, (err, response)=>
+                        callback? err
+                        newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
+                        newAppModal.destroy()
             fields                :
+              type                :
+                label             : "Type"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "type"
+                defaultValue      : "sample"
+                selectOptions     : [
+                  { title : "Sample Application", value : "sample" }
+                  { title : "Blank Application",  value : "blank"  }
+                ]
               name                :
                 label             : "Name:"
                 name              : "name"
                 placeholder       : "name your application..."
                 validate          :
                   rules           :
-                    required      : yes
+                    regExp        : /^[a-z\d]+([-][a-z\d]+)*$/i
                   messages        :
-                    required      : "application name is required!"
+                    regExp        : "For Application name only lowercase letters and numbers are allowed!"
 
     newAppModal.once "KDObjectWillBeDestroyed", ->
       newAppModal = null
-      callback? null
+      callback? yes
 
   prepareApplication:({isBlank, name}, callback)->
 
     type        = if isBlank then "blank" else "sample"
     name        = if name is "" then null else name
+    name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
     manifestStr = defaultManifest type, name
     manifest    = JSON.parse manifestStr
     appPath     = getAppPath manifest
@@ -608,14 +593,6 @@ class KodingAppsController extends KDController
           @kiteController.run
             method      : "uploadFile"
             withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/index.coffee"
-              contents  : "do ->"
-          , cb
-
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
               path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
               contents  : """
                               #{today} #{fullName} <@#{profile.nickname}>
@@ -624,23 +601,19 @@ class KodingAppsController extends KDController
                           """
           , cb
 
-        # Uncomment followings when we have reachable files for skel of Apps
-        #
-        # stack.push (cb)=>
-        #   @kiteController.run
-        #     withArgs  :
-        #       command : "cp -f /opt/Apps/.default/README #{escapeFilePath fsFolder.path}"
-        #   , cb
-
-        # if not isBlank
-        #   stack.push (cb)=>
-        #     @kiteController.run
-        #       withArgs  :
-        #         command : "cp -rf /opt/Apps/.default/resources #{escapeFilePath fsFolder.path}"
-        #     , cb
+        # Copy default app files (app Skeleton)
+        stack.push (cb)=>
+          @kiteController.run
+            kiteName  : "applications"
+            method    : "copyAppSkeleton"
+            withArgs  :
+              type    : if isBlank then "blank" else "sample"
+              appPath : appPath
+            , cb
 
         async.parallel stack, (error, result) =>
           if err then warn err
+          @emit "aNewAppCreated" if not err
           callback? err, result
 
   # #
@@ -657,6 +630,7 @@ class KodingAppsController extends KDController
         return
 
       @kiteController.run
+        kiteName    : "applications"
         method      : "downloadApp"
         withArgs    :
           owner     : manifest.authorNick
@@ -671,34 +645,34 @@ class KodingAppsController extends KDController
           callback? null
 
 
-  cloneApp:(path, callback)->
+  # cloneApp:(path, callback)->
 
-    @fetchApps (err, manifests = {})=>
-      if err
-        warn err
-        new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-        callback? err
-      else
-        manifest = getManifestFromPath path
+  #   @fetchApps (err, manifests = {})=>
+  #     if err
+  #       warn err
+  #       new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+  #       callback? err
+  #     else
+  #       manifest = getManifestFromPath path
 
-        {repo} = manifest
+  #       {repo} = manifest
 
-        if /^git/.test repo      then repoType = "git"
-        else if /^svn/.test repo then repoType = "svn"
-        else if /^hg/.test repo  then repoType = "hg"
-        else
-          err = "Unsupported repository specified, quitting!"
-          new KDNotificationView type : "mini", title : err
-          callback? err
-          return no
+  #       if /^git/.test repo      then repoType = "git"
+  #       else if /^svn/.test repo then repoType = "svn"
+  #       else if /^hg/.test repo  then repoType = "hg"
+  #       else
+  #         err = "Unsupported repository specified, quitting!"
+  #         new KDNotificationView type : "mini", title : err
+  #         callback? err
+  #         return no
 
-        appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
-        appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
+  #       appPath = "/Users/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
+  #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
 
-        @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
-          if err then warn err
-          @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
-            if err then warn err
-            else
-              log response, "App cloned!"
-            callback? err, response
+  #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
+  #         if err then warn err
+  #         @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
+  #           if err then warn err
+  #           else
+  #             log response, "App cloned!"
+  #           callback? err, response

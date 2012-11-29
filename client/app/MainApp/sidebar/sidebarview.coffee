@@ -30,7 +30,7 @@ class Sidebar extends JView
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
-        itemClass : NavigationLink
+        itemClass    : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -44,7 +44,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account"
-        itemClass : NavigationLink
+        itemClass    : NavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -58,7 +58,7 @@ class Sidebar extends JView
       view           : new NavigationList
         type         : "navigation"
         cssClass     : "account admin"
-        itemClass : AdminNavigationLink
+        itemClass    : AdminNavigationLink
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -70,7 +70,7 @@ class Sidebar extends JView
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
-        itemClass : FooterMenuItem
+        itemClass    : FooterMenuItem
         bind         : "mouseenter mouseleave"
         mouseenter   : => @animateLeftNavIn()
         mouseleave   : => @animateLeftNavOut()
@@ -318,22 +318,22 @@ class Sidebar extends JView
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity" }
-          { title : "Topics" }
-          { title : "Members" }
-          { title : "Develop", loggedIn : yes,  path : "StartTab" }
-          { title : "Apps" }
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Develop",    path: "/Develop", loggedIn: yes }
+          { title : "Apps",       path: "/Apps" }
         ]
       else
         id    : "navigation"
         title : "navigation"
         items : [
-          { title : "Activity" }
-          { title : "Topics" }
-          { title : "Members" }
-          { title : "Groups",  path : "GroupsFake" }
-          { title : "Develop", loggedIn : yes,  path : "StartTab" }
-          { title : "Apps" }
+          { title : "Activity",   path: "/Activity" }
+          { title : "Topics",     path: "/Topics" }
+          { title : "Members",    path: "/Members" }
+          { title : "Groups",     path: "/Groups" }
+          { title : "Develop",    path: "/Develop",  loggedIn: yes }
+          { title : "Apps",       path: "/Apps" }
         ]
 
   accNavItems =
@@ -341,15 +341,15 @@ class Sidebar extends JView
     title : "acc-navigation"
     items : [
       { title : "Invite Friends", loggedIn  : yes }
-      { title : "Account",        loggedIn  : yes }
-      { title : "Logout",         loggedIn  : yes, action : "logout" }
-      { title : "Login",          loggedOut : yes, action : "login" }
+      { title : "Account",        loggedIn  : yes, path   : '/Account' }
+      { title : "Logout",         loggedIn  : yes, action : "logout", path: "/Logout" }
+      { title : "Login",          loggedOut : yes, action : "login",  path: "/Login" }
     ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      { title : "Launch Terminal",    icon : "terminal",    path : "WebTerm" }
+      { title : "Launch Terminal",    icon : "terminal", appPath: 'WebTerm', isWebTerm : yes }
       { title : "Add Resources",      icon : "resources" }
       { title : "Settings",           icon : "cog" }
       { title : "Keyboard Shortcuts", icon : "shortcuts",   action: "showShortcuts" }

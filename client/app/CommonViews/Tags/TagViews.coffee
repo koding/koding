@@ -40,7 +40,7 @@ class SkillTagGroup extends TagGroup
 
     controller = new KDListViewController
       view            : new KDListView
-        itemClass  : TagCloudListItemView
+        itemClass     : TagCloudListItemView
         cssClass      : "skilltag-cloud"
 
     @listViewWrapper = controller.getView()
@@ -78,6 +78,11 @@ class TagCloudListItemView extends KDListItemView
   pistachio:->
     super "{{#(title)}}"
 
-  click:->
+  click:(event)->
+    event?.stopPropagation()
+    event?.preventDefault()
     tag = @getData()
-    appManager.tell "Topics", "createContentDisplay", tag
+    KD.getSingleton('router').handleRoute(
+      "/Topics/#{tag.slug}"
+      state: tag
+    )

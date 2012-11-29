@@ -121,9 +121,9 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password is required."
             minLength : "Password should at least be 8 characters."
-        change        : (input, event)=>
+        change        : (event)=>
           if @kodingenUser
-            @passwordConfirm.input.setValue input.getValue()
+            @passwordConfirm.input.setValue @password.input.getValue()
 
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
@@ -140,9 +140,9 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
-        focus         : (input, event)=>
+        focus         : (event)=>
           if @kodingenUser
-            input.setValue @password.input.getValue()
+            @passwordConfirm.input.setValue @password.input.getValue()
             @invitationCode.input.$().focus()
 
 
@@ -289,20 +289,19 @@ class RegisterInlineForm extends LoginViewInlineForm
   viewAppended:()->
 
     super
-    KD.getSingleton('mainController').registerListener
-      KDEventTypes  : 'InvitationReceived'
-      listener      : @
-      callback      : (pubInst, invite)=>
-        @$('.invitation-field').addClass('hidden')
-        @$('.invited-by').removeClass('hidden')
-        {origin} = invite
-        @invitationCode.input.setValue invite.code
-        @email.input.setValue invite.inviteeEmail
-        if origin instanceof KD.remote.api.JAccount
-          @addSubView new AvatarStaticView({size: width : 30, height : 30}, origin), '.invited-by .wrapper'
-          @addSubView new ProfileTextView({}, origin), '.invited-by .wrapper'
-        else
-          @$('.invited-by').addClass('hidden')
+
+    KD.getSingleton('mainController').on 'InvitationReceived', (invite)=>
+      @$('.invitation-field').addClass('hidden')
+      @$('.invited-by').removeClass('hidden')
+      {origin} = invite
+      @invitationCode.input.setValue invite.code
+      @email.input.setValue invite.inviteeEmail
+      if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
+        KD.remote.cacheable [origin], (err, [account])=>
+          @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'
+          @addSubView new ProfileTextView({}, account), '.invited-by .wrapper'
+      else
+        @$('.invited-by').addClass('hidden')
 
   pistachio:->
 

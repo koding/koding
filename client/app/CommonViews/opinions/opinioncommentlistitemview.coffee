@@ -36,7 +36,7 @@ class OpinionCommentListItemView extends KDListItemView
       cssClass    : 'delete-link hidden'
 
     activity = @getDelegate().getData()
-    KD.remote.cacheable data.originId, "JAccount", (err, account)=>
+    KD.remote.cacheable "JAccount", data.originId, (err, account)=>
       loggedInId = KD.whoami().getId()
       if loggedInId is data.originId or       # if comment owner
          loggedInId is activity.originId or   # if activity owner

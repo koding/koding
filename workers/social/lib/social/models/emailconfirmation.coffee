@@ -18,7 +18,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
         email   : yes
       salt      : String
       token     : String
-      name      : String
+      username  : String
       status    :
         type    : String
         enum    : [
@@ -67,7 +67,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
 
   getTextBody:->
     {host, protocol} = require('../config.email')
-    url = "#{protocol}//#{host}/verify/#{encodeURIComponent @getAt('token')}"
+    url = "#{protocol}//#{host}/Verify/#{encodeURIComponent @getAt('token')}"
 
     #
     # chris: you can do this at some point, i did setup kd.io/ domain.

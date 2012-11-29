@@ -26,6 +26,12 @@ String.prototype.trim         = ()-> this.replace(/^\s+|\s+$/g,"")
 # KD Global
 KD = @KD or {}
 
+noop  = ->
+
+KD.log   = log   = noop
+KD.warn  = warn  = noop
+KD.error = error = noop
+
 @KD = $.extend (KD), do ->
 
   # private member for tracking z-indexes
@@ -37,8 +43,13 @@ KD = @KD or {}
   classes         : {}
   apiUri          : KD.config.apiUri
   appsUri         : KD.config.appsUri
+  utils           : __utils
 
   whoami:-> KD.getSingleton('mainController').userAccount
+
+  logout:->
+    mainController = KD.getSingleton('mainController')
+    delete mainController?.userAccount
 
   isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
 
@@ -89,7 +100,7 @@ KD = @KD or {}
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
-    @classes[anInstance.constructor.name] ?= anInstance.constructor
+    # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->
     # warn "Instance being unregistered doesn't exist in registry!!", anInstance unless @instances[anInstance.id]
@@ -151,17 +162,26 @@ KD = @KD or {}
       dataType : 'jsonp'
       success : (data)->
         inflated = JSONH.unpack data
-        console.log 'success', inflated
-        console.log Date.now()-start
+        KD.log 'success', inflated
+        KD.log Date.now()-start
 
-noop  = ->
+  enableLogs:do->
+    oldConsole = window.console
+    window.console = {}
+    console[method] = noop  for method in ['log','warn','error','trace']
+    
+    enableLogs =->
+      window.console = oldConsole
+      KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+      KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+      KD.error = error = if console?.error then console.error.bind(console) else noop
+      return "Logs are enabled now."
 
-if KD.config?.suppressLogs
-  # assign all these to noop:
-  console.log = console.error = console.warn = console.trace = noop
+  exportKDFramework:->
+    (window[item] = KD.classes[item] for item of KD.classes)
+    KD.exportKDFramework = -> "Already exported."
+    "KDFramework loaded successfully."
 
-KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-KD.error = error = if console?.error then console.error.bind(console) else noop
+KD.enableLogs() if not KD.config?.suppressLogs
 
 prettyPrint = noop

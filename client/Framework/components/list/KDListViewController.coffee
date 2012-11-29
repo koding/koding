@@ -98,6 +98,13 @@ class KDListViewController extends KDViewController
 
     @listView
 
+  forEachItemByIndex:(ids, callback)->
+    [callback, ids] = [ids, callback]  unless callback
+    ids = [ids]  unless Array.isArray ids
+    ids.forEach (id)=>
+      item = @itemsIndexed[id]
+      callback item  if item?
+
   ###
   ITEM OPERATIONS
   ###
@@ -109,6 +116,7 @@ class KDListViewController extends KDViewController
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
+    dataId = itemData.getId?()
 
   registerItem:(view, index)->
 
@@ -154,8 +162,8 @@ class KDListViewController extends KDViewController
 
   removeAllItems:->
 
-    itemsOrdered  = @itemsOrdered
-    @itemsOrdered = []
+    {itemsOrdered}  = @
+    @itemsOrdered.length = 0
     @itemsIndexed = {}
 
     listView = @getListView()
@@ -218,17 +226,18 @@ class KDListViewController extends KDViewController
   # change the method name during refactoring - Sinan 10 May 2012
   selectItem:(item, event = {})->
 
+    return unless item?
+  
     @lastEvent = event
     @deselectAllItems() unless event.metaKey or event.ctrlKey or event.shiftKey
 
-    if item?
-      if event.shiftKey and @selectedItems.length > 0
-        @selectItemsByRange @selectedItems[0], item
+    if event.shiftKey and @selectedItems.length > 0
+      @selectItemsByRange @selectedItems[0], item
+    else
+      unless item in @selectedItems
+        @selectSingleItem item
       else
-        unless item in @selectedItems
-          @selectSingleItem item
-        else
-          @deselectSingleItem item
+        @deselectSingleItem item
 
     return @selectedItems
 
@@ -269,7 +278,6 @@ class KDListViewController extends KDViewController
 
 
   deselectAllItems:()->
-
     for selectedItem in @selectedItems
       selectedItem.removeHighlight()
       deselectedItems = @selectedItems.concat []
@@ -278,7 +286,6 @@ class KDListViewController extends KDViewController
       @itemDeselectionPerformed deselectedItems
 
   deselectSingleItem:(item)->
-
     item.removeHighlight()
     @selectedItems.splice @selectedItems.indexOf(item), 1
     if item is @itemsOrdered[@itemsOrdered.length-1]

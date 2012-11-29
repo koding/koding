@@ -21,16 +21,24 @@ class AppsListItemView extends KDListItemView
         src       : thumb
 
   click:(event)->
-    if $(event.target).is ".appdetails h3 a span"
+    if $(event.target).is ".appdetails h3 a"
+      event.stopPropagation()
+      event.preventDefault()
       list = @getDelegate()
       app  = @getData()
       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
-    if not @getData().approved
-      @setClass "waits-approve"
+
+    # for i in [0,1]
+    #   titleView = new KDCustomHTMLView opts
+    #   @["title#{i}"] = titleView
+
+    @setClass "waits-approve"  if not @getData().approved
+
     @setTemplate @pistachio()
     @template.update()
+
 
     if @getData().installed
       @alreadyInstalledText()
@@ -65,20 +73,20 @@ class AppsListItemView extends KDListItemView
       {{> @thumbnail}}
     </figure>
     <div class="appmeta clearfix">
-      <h3>{a[href=#]{#(title)}}</h3>
+      <h3>{a[href="#"]{#(title)}}</h3>
       <div class="appstats">
         <p class="installs">
           <span class="icon"></span>
-          <a href="#">{{#(counts.installed) or 0}}</a> Installs
+          <a href="#">{{#(counts.installed) || 0}}</a> Installs
         </p>
         <p class="followers">
           <span class="icon"></span>
-          <a href="#">{{#(counts.followers) or 0}}</a> Followers
+          <a href="#">{{#(counts.followers) || 0}}</a> Followers
         </p>
       </div>
     </div>
     <div class="appdetails">
-      <h3><a href="#">{{#(title)}}</a></h3>
+      <h3>{a[href="#"]{#(title)}}</h3>
       <article>{{@utils.shortenText #(body)}}</article>
       <div class="button-container">
       </div>

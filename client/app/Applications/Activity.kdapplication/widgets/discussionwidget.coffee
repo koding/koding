@@ -1,8 +1,10 @@
 class ActivityDiscussionWidget extends KDFormView
 
-  constructor :->
+  constructor :(options,data)->
 
-    super
+    super options,data
+
+    @preview = options.preview or {}
 
     @labelTitle = new KDLabelView
       title     : "New Discussion"
@@ -17,6 +19,7 @@ class ActivityDiscussionWidget extends KDFormView
     @inputDiscussionTitle = new KDInputView
       name          : "title"
       label         : @labelTitle
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to what you want to start discussing..."
       validate      :
         rules       :
@@ -24,10 +27,11 @@ class ActivityDiscussionWidget extends KDFormView
         messages    :
           required  : "Discussion title is required!"
 
-    @inputContent = new KDInputView
+    @inputContent = new KDInputViewWithPreview
       label       : @labelContent
+      preview     : @preview
       name        : "body"
-      cssClass    : "discussion-body"
+      cssClass    : "discussion-body warn-on-unsaved-data"
       type        : "textarea"
       autogrow    : yes
       placeholder : "What do you want to talk about? (You can use markdown here)"
@@ -49,42 +53,11 @@ class ActivityDiscussionWidget extends KDFormView
       title : "Start your discussion"
       type  : 'submit'
 
-    @fullScreenBtn = new KDButtonView
-      style           : "clean-gray"
-      cssClass        : "fullscreen-button"
-      title           : "Fullscreen Edit"
-      callback: =>
-        modal = new KDModalView
-          title       : "What do you want to discuss?"
-          cssClass    : "modal-fullscreen"
-          height      : $(window).height()-110
-          width       : $(window).width()-110
-          position:
-            top       : 55
-            left      : 55
-          overlay     : yes
-          content     : "<div class='modal-fullscreen-text'><textarea class='kdinput text' placeholder='What do you want to talk about? (You can use markdown here)' id='fullscreen-data'>"+@inputContent.getValue()+"</textarea></div>"
-          buttons     :
-            Cancel    :
-              title   : "Discard changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                modal.destroy()
-            Apply     :
-              title   : "Apply changes"
-              style   : "modal-clean-gray"
-              callback:=>
-                @inputContent.setValue $("#fullscreen-data").val()
-                modal.destroy()
-
-        modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height()-12 # minus the margin, border pixels too..
-        modal.$("#fullscreen-data").height modal.$(".kdmodal-content").height()-30
-        modal.$("#fullscreen-data").width modal.$(".kdmodal-content").width()-40
 
     @heartBox = new HelpBox
-      subtitle    : "About Code Sharing"
-      tooltip     :
-        title     : "Easily share your code with other members of the Koding community. Once you share, user can easily open or save your code to their own environment."
+      subtitle : "About Discussions"
+      tooltip  :
+        title  : "This is a public wall, here you can discuss anything with the Koding community."
 
     @selectedItemWrapper = new KDCustomHTMLView
       tagName  : "div"
@@ -111,12 +84,15 @@ class ActivityDiscussionWidget extends KDFormView
   submit:=>
     @once "FormValidationPassed", => @reset()
     super
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @tagController.reset()
     @submitBtn.setTitle "Start your discussion"
     @removeCustomData "activity"
     @inputDiscussionTitle.setValue ''
+    @inputContent.setValue ''
     super
 
   viewAppended:()->
@@ -152,7 +128,6 @@ class ActivityDiscussionWidget extends KDFormView
           {{> @labelContent}}
           <div>
             {{> @inputContent}}
-            {{> @fullScreenBtn}}
           </div>
         </div>
         <div class="formline">

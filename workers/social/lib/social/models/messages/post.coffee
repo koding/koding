@@ -16,6 +16,8 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
   @trait __dirname, '../../traits/likeable'
+  @trait __dirname, '../../traits/protected'
+  @trait __dirname, '../../traits/slugifiable'
 
   {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -25,6 +27,8 @@ module.exports = class JPost extends jraphical.Message
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
+    slug          : String
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index. 
     counts        :
       followers   :
         type      : Number
@@ -36,11 +40,24 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    slugifyFrom : 'title'
+    slugTemplate: 'Activity/#{slug}'
+    indexes     :
+      slug      : 'unique' 
+    permissions: [
+      'read posts'
+      'create posts'
+      'edit posts'
+      'delete posts'
+      'edit own posts'
+      'delete own posts'
+      'reply to posts'
+    ]
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
     sharedMethods     :
-      static          : ['create','one']
+      static          : ['create','one','updateAllSlugs']
       instance        : [
         'reply','restComments','commentsByRange'
         'like','fetchLikedByes','mark','unmark','fetchTags'
@@ -99,6 +116,13 @@ module.exports = class JPost extends jraphical.Message
       activity.originType = delegate.constructor.name
       teaser = null
       daisy queue = [
+        ->
+          status.createSlug (err, slug)->
+            if err
+              callback err
+            else
+              status.slug = slug
+              queue.next()
         ->
           status
             .sign(delegate)
@@ -306,7 +330,7 @@ module.exports = class JPost extends jraphical.Message
                           @fetchActivityId (err, id)->
                             CActivity.update {_id: id}, {
                               $set: 'sorts.repliesCount': count
-                            }, log
+                            }, (err)-> log err if err
                           @fetchOrigin (err, origin)=>
                             if err
                               console.log "Couldn't fetch the origin"

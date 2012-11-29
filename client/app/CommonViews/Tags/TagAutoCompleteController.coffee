@@ -36,5 +36,9 @@ class TagAutoCompletedItemView extends KDAutoCompletedItem
 
 class SuggestNewTagItem extends KDAutoCompleteListItemView
 
+  constructor:(options, data)->
+    options.cssClass = "suggest clearfix"
+    super options, data
+
   partial:->
     "Suggest <span class='ttag'>#{@getOptions().userInput}</span> as a new topic?"

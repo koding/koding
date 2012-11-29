@@ -20,10 +20,10 @@ class ActivityItemChild extends KDView
 
 
     # for discussion, switch to the View that supports nested structures
-    # JDiscussion
+    # JDiscussion,JTutorial
     # -> JOpinion
     #    -> JComment
-    if data.bongo_.constructorName is "JDiscussion"
+    if data.bongo_.constructorName in ["JDiscussion","JTutorial"]
       @commentBox = new OpinionView null, data
     else
       @commentBox = new CommentView null, data
@@ -50,7 +50,6 @@ class ActivityItemChild extends KDView
       KD.remote.cacheable tagRefs, (err, tags)=>
         @getData().setAt 'tags', tags
         @tags.setData tags
-        # debugger
         @tags.render()
 
     data.on 'PostIsDeleted', =>
@@ -125,7 +124,6 @@ class ActivityItemChild extends KDView
                 title     : "Error, please try again later!"
 
   click:(event)->
-
     $trg = $(event.target)
     more = "span.collapsedtext a.more-link"
     less = "span.collapsedtext a.less-link"

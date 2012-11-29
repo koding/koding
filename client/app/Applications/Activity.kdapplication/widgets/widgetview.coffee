@@ -90,18 +90,18 @@ class ActivityUpdateWidget extends KDView
         callback      : (treeItem, event)=> @changeTab "codesnip", treeItem.getData().title
       # "Code Share"    :
       #   type          : "codeshare"
-      #   disabled      : yes
+      #   disabled      : no
       #   callback      : (treeItem, event)=> @changeTab "codeshare", treeItem.getData().title
       "Discussion"    :
         type          : "discussion"
-        disabled      : yes
+        disabled      : no
         callback      : (treeItem, event)=> @changeTab "discussion", treeItem.getData().title
-      "Link"          :
-        disabled      : yes
-        type          : "link"
-        callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
+      # "Link"          :
+      #   disabled      : no
+      #   type          : "link"
+      #   callback      : (treeItem, event)=> @changeTab "link", treeItem.getData().title
       "Tutorial"      :
         type          : "tutorial"
-        disabled      : yes
+        disabled      : no
         callback      : (treeItem, event)=> @changeTab "tutorial", treeItem.getData().title
     callback          : =>

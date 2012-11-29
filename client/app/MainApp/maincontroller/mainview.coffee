@@ -70,11 +70,10 @@ class MainView extends KDView
       # cssClass  : "hidden"
       attributes:
         href    : "#"
-      click     : (pubInst,event)=>
-        if KD.isLoggedIn()
-          appManager.openApplication "Activity"
-        else
-          appManager.openApplication "Home"
+      click     : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
+        KD.getSingleton('router').handleRoute null
 
     @addLoginButtons()
 
@@ -114,6 +113,9 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
+    @mainTabView.on "AllPanesClosed", ->
+      @getSingleton('router').handleRoute "/Activity"
+
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
 
@@ -130,7 +132,7 @@ class MainView extends KDView
     if isLoggedIn
       $('body').addClass "loggedIn"
       @mainTabView.showHandleContainer()
-      @contentPanel.setClass "social"
+      @contentPanel.setClass "social"  if "Develop" isnt @getSingleton("router").getCurrentPath()
       # @logo.show()
       # @buttonHolder.hide()
     else
@@ -156,7 +158,7 @@ class MainView extends KDView
       attributes  :
         href      : "#"
       partial     : "What you should know about this beta...<span></span>"
-      click       : (pubInst, event)=>
+      click       : (event)=>
         if $(event.target).is 'span'
           link.hide()
         else

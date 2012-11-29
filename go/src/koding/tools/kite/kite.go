@@ -22,7 +22,7 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 	sigtermChannel := make(chan os.Signal)
 	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
-	utils.AmqpAutoReconnect(name, func(consumeConn, publishConn *amqp.Connection) {
+	utils.AmqpAutoReconnect(name+"-kite", func(consumeConn, publishConn *amqp.Connection) {
 		joinChannel := utils.CreateAmqpChannel(consumeConn)
 		joinStream := utils.DeclareBindConsumeAmqpQueue(joinChannel, "kite-"+name, "join", "private-kite-"+name, false)
 		for {
@@ -52,31 +52,33 @@ func Run(name string, onRootMethod func(session *Session, method string, args *d
 					d := dnode.New()
 					defer d.Close()
 					d.OnRootMethod = func(method string, args *dnode.Partial) {
-						defer log.RecoverAndLog()
+						go func() {
+							defer log.RecoverAndLog()
 
-						var partials []*dnode.Partial
-						err := args.Unmarshal(&partials)
-						if err != nil {
-							panic(err)
-						}
+							var partials []*dnode.Partial
+							err := args.Unmarshal(&partials)
+							if err != nil {
+								panic(err)
+							}
 
-						var options map[string]*dnode.Partial
-						err = partials[0].Unmarshal(&options)
-						if err != nil {
-							panic(err)
-						}
-						var callback dnode.Callback
-						err = partials[1].Unmarshal(&callback)
-						if err != nil {
-							panic(err)
-						}
+							var options map[string]*dnode.Partial
+							err = partials[0].Unmarshal(&options)
+							if err != nil {
+								panic(err)
+							}
+							var callback dnode.Callback
+							err = partials[1].Unmarshal(&callback)
+							if err != nil {
+								panic(err)
+							}
 
-						result, err := onRootMethod(session, method, options["withArgs"])
-						if err != nil {
-							callback(err.Error(), result)
-						} else if result != nil {
-							callback(nil, result)
-						}
+							result, err := onRootMethod(session, method, options["withArgs"])
+							if err != nil {
+								callback(err.Error(), result)
+							} else if result != nil {
+								callback(nil, result)
+							}
+						}()
 					}
 
 					go func() {

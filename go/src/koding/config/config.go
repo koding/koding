@@ -33,7 +33,7 @@ var configs = map[string]Config{
 
 	"prod": {
 		AmqpHost:     "web0.beta.system.aws.koding.com",
-		AmqpUser:     "PROD-k5it50s4676pO9O",
+		AmqpUser:     "prod-<component>",
 		AmqpPassword: "Dtxym6fRJXx4GJz",
 		HomePrefix:   "/Users/",
 		UseLVE:       true,
@@ -71,8 +71,6 @@ type Config struct {
 	UseWebsockets bool
 	User          string
 }
-
-const COMPONENT_SPECIFIC = "component-specific"
 
 var Profile string
 var Current Config
