@@ -40,7 +40,7 @@ module.exports = class JFeed extends jraphical.Module
     feed = new JFeed {
       title
       description
-      owner: account._id
+      owner: account.getId()
     }
     saveFeedToAccount feed, account, callback
 
@@ -52,7 +52,7 @@ module.exports = class JFeed extends jraphical.Module
     selectorOrInitializer =
       title: title
       description: description
-      owner: account._id
+      owner: account.getId()
     @assure selectorOrInitializer, (err, feed) ->
       if err then callback err
       else saveFeedToAccount feed, account, callback
@@ -62,7 +62,7 @@ module.exports = class JFeed extends jraphical.Module
     options or= {}
 
     {connection:{delegate}} = client
-    unless delegate._id.toString() is @owner.toString()
+    unless delegate.getId().equal @owner
       callback new KodingError 'Access denined.'
     else
       CActivity = require "./activity/index"

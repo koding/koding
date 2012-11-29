@@ -2,6 +2,11 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
   constructor:(options = {}, data)->
 
+    unless data.opinionCount?
+      # log "This is legacy data. Updating Counts."
+      data.opinionCount = data.repliesCount or 0
+      data.repliesCount = 0
+
     options.tooltip or=
       title     : "Tutorial"
       offset    : 3
@@ -27,7 +32,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @opinionBoxHeader = new KDCustomHTMLView
       tagName  : "div"
       cssClass : "opinion-box-header"
-      partial  : @opinionHeaderCountString data.repliesCount
+      partial  : @opinionHeaderCountString data.opinionCount
 
     @embedOptions = $.extend {}, options,
       delegate  : @
@@ -36,11 +41,23 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     @embedBox = new EmbedBox @embedOptions, data
 
+    @previewImage = new KDCustomHTMLView
+      tagName : "img"
+      cssClass : "tutorial-preview-image"
+      attributes:
+        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title:"View the full Tutorial"
+        alt:"View the full tutorial"
+        "data-paths":"preview"
+
+    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
+
+
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     @opinionForm = new OpinionFormView
       preview         :
@@ -137,63 +154,25 @@ class ContentDisplayTutorial extends ActivityContentDisplay
           @newAnswers++
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
-        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.repliesCount
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.opinionCount
 
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
 
     activity.on "OpinionWasRemoved",(args)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
     # in any case, the JDiscussion emits this event as a failsafe. if the deleted
     # item can still be found in the list, it needs to be removed
 
     activity.on "ReplyIsRemoved", (replyId)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().repliesCount
+      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
 
       for item,i in @opinionBox.opinionList.items
         if item.getData()._id is replyId
           item.hide()
           item.destroy()
-
-    # Temporarily disabling Tutorial Lists
-
-    # @listAnchorNext = new KDView
-    #   cssClass : "tutorial-anchor next"
-    # @listAnchorPrevious = new KDView
-    #   cssClass : "tutorial-anchor previous"
-    # @comingUpNextAnchor = new KDView
-    #   cssClass : "coming-up-next-anchor"
-
-    # KD.remote.api.JTutorialList.fetchForTutorialId @getData().getId(), (listData)=>
-    #   if listData
-    #     for tutorial,i in listData.tutorials
-    #       if tutorial._id is @getData()._id
-    #         @position = i
-    #         @before = listData.tutorials[0...i]
-    #         @after = listData.tutorials[i+1..]
-
-    #     # log @position,@before,@after
-
-    #     if @after.length >0
-    #       @listAnchorNext.addSubView new TutorialListSwitchBox
-    #         direction:"next"
-    #         delegate:@
-    #       , @after[0]
-
-    #       @comingUpNext = new KDCustomHTMLView
-    #         cssClass : "coming-up-next"
-    #         partial: "Coming up: "+@after[0].title
-
-    #       @comingUpNextAnchor.addSubView @comingUpNext
-
-    #     if @before.length >0
-    #       @listAnchorPrevious.addSubView new TutorialListSwitchBox
-    #         direction:"previous"
-    #         delegate:@
-    #       , @before[@before.length-1]
-
 
   opinionHeaderCountString:(count)=>
     if count is 0
@@ -233,13 +212,17 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                 title    : "Error, please try again later!"
 
   highlightCode:=>
-    @$("pre").addClass "prettyprint"
+    # @$("pre").addClass "prettyprint"
     @$("p.tutorial-body span.data pre").each (i,element)=>
       hljs.highlightBlock element
+
+  prepareExternalLinks:->
+    @$('p.tutorial-body a[href^=http]').attr "target", "_blank"
 
   render:->
     super()
     @highlightCode()
+    @prepareExternalLinks()
 
   viewAppended:()->
     super()
@@ -248,8 +231,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     @template.update()
 
     @highlightCode()
-
-    @$(".tutorial-body .data").addClass "has-markdown"
+    @prepareExternalLinks()
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
@@ -262,6 +244,15 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             #   {{> @comingUpNextAnchor}}
             #   {{> @listAnchorNext}}
             # </div>
+
+  click:(event)->
+    if $(event.target).is("[data-paths~=preview]")
+
+      @videoPopup = new VideoPopup
+        delegate : @previewImage
+      ,@getData().link?.link_embed?.object?.html
+
+      @videoPopup.openVideoPopup()
 
   pistachio:->
     """
@@ -286,8 +277,8 @@ class ContentDisplayTutorial extends ActivityContentDisplay
             </footer>
             {{> @editDiscussionLink}}
             {{> @deleteDiscussionLink}}
-            {{> @embedBox}}
-            <p class='context tutorial-body'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
+            {{> @previewImage}}
+            <p class='context tutorial-body has-markdown'>{{@utils.expandUsernames(@utils.applyMarkdown(#(body)),"pre")}}</p>
           </div>
         </div>
       </div>
@@ -301,60 +292,60 @@ class ContentDisplayTutorial extends ActivityContentDisplay
     </div>
     """
 
-class TutorialListSwitchBox extends KDView
-  constructor:(options, data)->
+# class TutorialListSwitchBox extends KDView
+#   constructor:(options, data)->
 
-    @options = options
-    @options.direction or= "next"
+#     @options = options
+#     @options.direction or= "next"
 
-    super options, data
+#     super options, data
 
-    @setClass "tutorial-navigation-box"
-    @setClass @options.direction
+#     @setClass "tutorial-navigation-box"
+#     @setClass @options.direction
 
-    if data.link?
+#     if data.link?
 
-      @tooltipSource = """
-      <div class="container-preview">
-        <p class="title-preview">#{data.title}</p>
-        <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
-      </div>
-      """
-    else
-      @tooltipSource = data.title or ""
+#       @tooltipSource = """
+#       <div class="container-preview">
+#         <p class="title-preview">#{data.title}</p>
+#         <img class="image-preview" src="#{@utils.proxifyUrl data.link.link_embed.images[0].url}" alt="#{@options.direction}"/>
+#       </div>
+#       """
+#     else
+#       @tooltipSource = data.title or ""
 
-    @outgoingButton = new KDButtonView
-      cssClass : "clean-gray tutorial-video-button"
-      title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
-      tooltip:
-        title: if data.title then data.title else ""
-        placement : "above"
-        # offset : 3
-        delayIn : 300
-        html : no
-        animate : no
-        className : "tutorial-video"
-      callback:=>
-        unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#     @outgoingButton = new KDButtonView
+#       cssClass : "clean-gray tutorial-video-button"
+#       title:"#{if @options.direction is "next" then "Next " else "Previous "}Tutorial"
+#       tooltip:
+#         title: if data.title then data.title else ""
+#         placement : "above"
+#         # offset : 3
+#         delayIn : 300
+#         html : no
+#         animate : no
+#         className : "tutorial-video"
+#       callback:=>
+#         unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
-  click:->
-    @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
-    unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
+#   click:->
+#     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+#     unless @getData().lazyNode is true then appManager.tell "Activity", "createContentDisplay", @getData()
 
-  viewAppended:->
-    super()
+#   viewAppended:->
+#     super()
 
-    @setTemplate @pistachio()
-    @template.update()
+#     @setTemplate @pistachio()
+#     @template.update()
 
-    # @outgoingContainer.$().hover noop, =>
-    #   @outgoingContainer.hide()
+#     # @outgoingContainer.$().hover noop, =>
+#     #   @outgoingContainer.hide()
 
-    # @outgoingButton.$().hover =>
-    #   @outgoingContainer.show()
-    # , noop
+#     # @outgoingButton.$().hover =>
+#     #   @outgoingContainer.show()
+#     # , noop
 
-  pistachio:->
-    """
-    {{> @outgoingButton}}
-    """
+#   pistachio:->
+#     """
+#     {{> @outgoingButton}}
+#     """

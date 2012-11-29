@@ -181,15 +181,15 @@ class KDInputViewWithPreview extends KDInputView
   setDomElement:(CssClass="")->
     super CssClass
 
-    # basically, here we can add aynthing like modals, overlays and the liek
-
     @$().after """
       <div class='input_preview preview-#{@options.preview.language}'>
-        <div class="preview_content"></div>
+        <div class="preview_content"><span class="data"></span></div>
       </div>"""
 
   viewAppended:->
     super
+
+    @$("div.preview_content").addClass("has-"+@options.preview.language)
 
     unless @showPreview
       @$("div.preview_content").addClass "hidden"
@@ -203,7 +203,10 @@ class KDInputViewWithPreview extends KDInputView
     @$("label").on "click",=>
       @$("input.checkbox").get(0).click()
 
-    @$("div.preview_content").addClass("has-"+@options.preview.language)
+
+    # hotfix for random display:none that can sometimes come up
+    @utils.wait  =>
+      @$("span.data").css display:"block"
 
     if @options.preview.mirrorScroll then @$().scroll (event)=>
       @setPreviewScrollPercentage @getEditScrollPercentage()
@@ -215,6 +218,6 @@ class KDInputViewWithPreview extends KDInputView
   generatePreview:=>
     if @showPreview
       if @options.preview.language is "markdown"
-        @$("div.preview_content").html @utils.applyMarkdown @getValue()
-        @$("div.preview_content pre").addClass("prettyprint").each (i,element)=>
+        @$("div.preview_content span.data").html @utils.applyMarkdown @getValue()
+        @$("div.preview_content span.data pre").each (i,element)=>
           hljs.highlightBlock element

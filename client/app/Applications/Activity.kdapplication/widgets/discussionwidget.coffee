@@ -19,6 +19,7 @@ class ActivityDiscussionWidget extends KDFormView
     @inputDiscussionTitle = new KDInputView
       name          : "title"
       label         : @labelTitle
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to what you want to start discussing..."
       validate      :
         rules       :
@@ -30,7 +31,7 @@ class ActivityDiscussionWidget extends KDFormView
       label       : @labelContent
       preview     : @preview
       name        : "body"
-      cssClass    : "discussion-body"
+      cssClass    : "discussion-body warn-on-unsaved-data"
       type        : "textarea"
       autogrow    : yes
       placeholder : "What do you want to talk about? (You can use markdown here)"
@@ -83,6 +84,8 @@ class ActivityDiscussionWidget extends KDFormView
   submit:=>
     @once "FormValidationPassed", => @reset()
     super
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @tagController.reset()

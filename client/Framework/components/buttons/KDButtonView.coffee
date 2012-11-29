@@ -155,7 +155,7 @@ class KDToggleButton extends KDButtonView
     @state      = states[index]
     @decorateState name
 
-    @setCallback states[@stateIndex + 1].bind @, @toggleState.bind @
+    @setCallback states[index + 1].bind @, @toggleState.bind @
 
   toggleState:(err)->
 

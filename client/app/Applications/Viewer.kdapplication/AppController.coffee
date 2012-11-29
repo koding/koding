@@ -1,16 +1,11 @@
 class Viewer12345 extends KDViewController
-  initApplication:(options,callback)=>
+  initApp:(options,callback)=>
     @openDocuments = []
     # log 'init application called'
     # @applyStyleSheet ()=>
     @propagateEvent
       KDEventType : 'ApplicationInitialized', globalEvent : yes
     callback()
-
-  initAndBringToFront:(options,callback)=>
-    # log 'initAndBringToFront'
-    @initApplication options, =>
-      @bringToFront null, callback
 
   bringToFront:(frontDocument, path, callback)=>
     unless frontDocument

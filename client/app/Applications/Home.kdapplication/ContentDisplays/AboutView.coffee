@@ -134,7 +134,7 @@ class AboutMemberView extends KDCustomHTMLView
     """
       <img src="#{image}" />
       <p>
-        <a href='#!/member/#{nickname}'><strong>#{name}</strong></a>
+        <a href='/#{nickname}'><strong>#{name}</strong></a>
         #{job}
       </p>
     """

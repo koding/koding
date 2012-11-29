@@ -10,6 +10,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @title = new KDInputView
       name          : "title"
+      cssClass      : "warn-on-unsaved-data"
       placeholder   : "Give a title to your code snippet..."
       validate      :
         rules       :
@@ -23,6 +24,7 @@ class ActivityCodeSnippetWidget extends KDFormView
 
     @description = new KDInputView
       label         : @labelDescription
+      cssClass      : "warn-on-unsaved-data"
       name          : "body"
       placeholder   : "What is your code about?"
       validate      :
@@ -33,6 +35,7 @@ class ActivityCodeSnippetWidget extends KDFormView
       title : "Code Snip:"
 
     @aceWrapper = new KDView
+      cssClass  : "warn-on-unsaved-data"
 
     @labelAddTags = new KDLabelView
       title : "Add Tags:"
@@ -117,7 +120,11 @@ class ActivityCodeSnippetWidget extends KDFormView
   submit:=>
     @addCustomData "code", @ace.getContents()
     @once "FormValidationPassed", => @reset()
+
     super
+
+    @submitBtn.disable()
+    @utils.wait 8000, => @submitBtn.enable()
 
   reset:=>
     @submitBtn.setTitle "Share your Code Snippet"

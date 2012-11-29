@@ -42,7 +42,8 @@ __utils =
     if prefix? then "#{prefix}#{id}" else id
 
   getRandomRGB :()->
-    "rgb(#{@getRandomNumber(255)},#{@getRandomNumber(255)},#{@getRandomNumber(255)})"
+    {getRandomNumber} = @
+    "rgb(#{getRandomNumber(255)},#{getRandomNumber(255)},#{getRandomNumber(255)})"
 
   getRandomHex : ->
     # hex = (Math.random()*0xFFFFFF<<0).toString(16)
@@ -55,21 +56,20 @@ __utils =
 
   curryCssClass:(obligatoryClass, optionalClass)-> obligatoryClass + if optionalClass then ' ' + optionalClass else ''
 
+  parseQuery:do->
+    params  = /([^&=]+)=?([^&]*)/g    # for chunking the key-val pairs
+    plusses = /\+/g                   # for converting plus signs to spaces
+    decode  = (str)-> decodeURIComponent str.replace plusses, " "
+    parseQuery = (queryString = location.search.substring 1)->
+      result = {}
+      result[decode m[1]] = decode m[2]  while m = params.exec queryString
+      result
 
-  getUrlParams:(tag)->
-    tag ?= window.location.search
-    hashParams = {};
-
-    a = /\+/g  # Regex for replacing addition symbol with a space
-    r = /([^&;=]+)=?([^&;]*)/g
-    d = (s)->
-      decodeURIComponent s.replace a, " "
-    q = tag.substring 1
-
-    while e = r.exec q
-      hashParams[d e[1] ] = d e[2]
-
-    hashParams
+  stringifyQuery:do->
+    spaces = /\s/g
+    encode =(str)-> encodeURIComponent str.replace spaces, "+"
+    stringifyQuery = (obj)->
+      Object.keys(obj).map((key)-> "#{encode key}=#{encode obj[key]}").join('&').trim()
 
   capAndRemovePeriods:(path)->
     newPath = for arg in path.split "."
@@ -109,9 +109,25 @@ __utils =
         else
           text
 
-    text = Encoder.htmlDecode text
+    text = marked Encoder.htmlDecode text
 
-    text = marked text
+    sanitizeText = $(text)
+
+    # Proxify images
+
+    proxify = (str, p1, offset, s)=>
+      @proxifyUrl str
+
+    sanitizeText.find("img").each (i,element) =>
+      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+
+    # Give all outbound links a target blank
+    sanitizeText.find("a").each (i,element) =>
+      unless /^(#!)/.test $(element).attr("href")
+        $(element).attr("target", "_blank")
+
+    text = $("<div />").append(sanitizeText.clone()).remove().html() # workaround for .html()
+
 
   applyLineBreaks: (text)->
     return null unless text
@@ -143,7 +159,7 @@ __utils =
     if not sensitiveTo
       text.replace /\B\@([\w\-]+)/gim, (u) ->
         username = u.replace "@", ""
-        u.link "#!/member/#{username}"
+        u.link "/#{username}"
     # context-sensitive expansion
     else
       result = ""
@@ -152,7 +168,7 @@ __utils =
           if $(element).html()?
             replacedText =  $(element).html().replace /\B\@([\w\-]+)/gim, (u) ->
               username = u.replace "@", ""
-              u.link "#!/member/#{username}"
+              u.link "/#{username}"
             $(element).html replacedText
         result += $(element).get(0).outerHTML or "" # in case there is a text-only element
       result
@@ -165,7 +181,37 @@ __utils =
 
   expandUrls: (text) ->
     return null unless text
-    text.replace /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?][\S\/]*)*\b\/?/g, (url) ->
+
+    # urlGrabber = ///
+    #   (\s|^)                              # Start after a whitespace or string[0]
+    #   ([a-zA-Z]+\://)?                    # Captures any protocol (just not //)
+    #   (\w+:\w+@)?                         # Username:Password
+    #   ([a-zA-Z\d-]|[a-zA-Z\d-]\.)*        # Subdomains
+    #   [a-zA-Z\d-]{2,}                     # Domain name
+    #   \.                                  # THE DOT
+    #   ([a-zA-Z]{2,4}(:\d+)?)              # Domain Extension with Port
+    #   ([/\?\#][\S/]*)*                    # Some Request, greedy capture
+    #   \b                                  # Last word boundary
+    #   /?                                 # Optional trailing Slash
+    # ///g
+
+    urlGrabber = ///
+    (?!\s)                                                      # leading spaces
+    ([a-zA-Z]+://)                                              # protocol
+    (\w+:\w+@|[\w|\d]+@|)                                       # username:password@
+    ((?:[a-zA-Z\d]+(?:-[a-zA-Z\d]+)*\.)*)                       # subdomains
+    ([a-zA-Z\d]+(?:[a-zA-Z\d]|-(?=[a-zA-Z\d]))*[a-zA-Z\d]?)     # domain
+    \.                                                          # dot
+    ([a-zA-Z]{2,4})                                             # top-level-domain
+    (:\d+|)                                                     # :port
+    (/\S*|)                                                     # rest of url
+    (?!\S)
+    ///g
+
+    # used to be /(\s|^)([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d-]|[a-zA-Z\d-]\.)*[a-zA-Z\d-]{2,}\.([a-zA-Z]{2,4}(:\d+)?)([\/\?#][\S\/]*)*\b\/?/g
+    text.replace urlGrabber, (url) ->
+
+      url = url.trim()
       originalUrl = url
 
       # remove protocol and trailing path
@@ -200,7 +246,7 @@ __utils =
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
       unless ~ longText.indexOf optimalBreak then no
       else
-        longText.split(optimalBreak).slice(0, -1).join(optimalBreak) + (suffix ? optimalBreak)
+        "#{longText.split(optimalBreak).slice(0, -1).join optimalBreak}#{suffix ? optimalBreak}"
     (longText, options={})->
       return unless longText
       minLength = options.minLength or 450
@@ -208,7 +254,6 @@ __utils =
       suffix    = options.suffix     ? '...'
 
       longTextLength  = Encoder.htmlDecode(longText).length
-      # longTextLength  = longText.length
 
       return longText if longTextLength < minLength or longTextLength < maxLength
 
@@ -219,12 +264,9 @@ __utils =
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
 
-      if candidate?.length > minLength
-        Encoder.htmlEncode candidate
-        # candidate
-      else
-        Encoder.htmlEncode longText
-        # longText
+      Encoder.htmlEncode \
+        if candidate?.length > minLength then candidate
+        else longText
 
   getMonthOptions : ()->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
@@ -298,7 +340,6 @@ __utils =
     fullname.split(' ')[0]
 
   getParentPath :(path)->
-
     path = path.substr(0, path.length-1) if path.substr(-1) is "/"
     parentPath = path.split('/')
     parentPath.pop()
@@ -317,12 +358,24 @@ __utils =
       duration = 0
     setTimeout fn, duration
 
+  defer:do ->
+    # this was ported from browserify's implementation of "process.nextTick"
+    queue = []
+    if window?.postMessage and window.addEventListener
+      window.addEventListener "message", ((ev) ->
+        if ev.source is window and ev.data is "kd-tick"
+          ev.stopPropagation()
+          do queue.shift()  if queue.length > 0
+      ), yes
+      (fn) -> queue.push fn; window.postMessage "kd-tick", "*"
+    else
+      (fn) -> setTimeout fn, 1
+
   killWait:(id)-> clearTimeout id
 
   getCancellableCallback:(callback)->
     cancelled = no
-    kallback = (rest...)->
-      callback rest... unless cancelled
+    kallback = (rest...)-> callback rest...  unless cancelled
     kallback.cancel = -> cancelled = yes
     kallback
 

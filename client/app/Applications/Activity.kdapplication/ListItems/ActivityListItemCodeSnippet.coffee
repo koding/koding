@@ -43,7 +43,8 @@ class CodesnipActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is(".activity-item-right-col h3")
-      appManager.tell "Activity", "createContentDisplay", @getData()
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      #appManager.tell "Activity", "createContentDisplay", @getData()
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity
@@ -141,6 +142,14 @@ class CodeSnippetView extends KDCustomHTMLView
       callback  : =>
         @utils.selectText @codeView.$()[0]
 
+    @scrollEnableButton = new KDButtonView
+      title : "Allow Scrolling"
+      cssClass : "dark"
+      callback :=>
+        @codeView.setClass "scrollable-y"
+        @scrollEnableButton.destroy()
+
+
   render:->
 
     super()
@@ -166,6 +175,12 @@ class CodeSnippetView extends KDCustomHTMLView
 
     @setTemplate @pistachio()
     @template.update()
+
+    unless @codeView.getHeight() < @codeView.$()[0].scrollHeight
+      @scrollEnableButton?.hide()
+    else
+      @scrollEnableButton?.show()
+
     @applySyntaxColoring()
 
     twOptions = (title) ->
@@ -179,7 +194,7 @@ class CodeSnippetView extends KDCustomHTMLView
     """
     <div class='kdview'>
       {pre{> @codeView}}
-      <div class='button-bar'>{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
+      <div class='button-bar'>{{> @scrollEnableButton}}{{> @saveButton}}{{> @openButton}}{{> @copyButton}}</div>
     </div>
     {{> @syntaxMode}}
     """

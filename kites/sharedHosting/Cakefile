@@ -25,4 +25,4 @@ task 'run','run sharedHosting',(options)->
     stderr  : process.stderr
     onExit  : (pid,name)->
       if options.config is "config-prod"
-        https.get e = "https://koding.com/status/processIsDead/#{name}"
+        https.get e = "https://koding.com/-/status/processIsDead/#{name}"

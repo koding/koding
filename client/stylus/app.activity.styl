@@ -125,7 +125,7 @@ app.activity.styl
     border-bottom         1px solid rgba(0, 0, 0, 0.075)
     width                 auto
     vendor                transition, left .6s ease-in-out\, background-color .6s ease-in-out .6s
-    background-color      #ffffff
+    background-color      transparent
     left                  0
     borderBox()
     &.hidden-item
@@ -1004,6 +1004,9 @@ div.activity-opinion.item-content-comment
     a
       noTextDeco()
 
+  span.comment-count
+    float right
+
 
 div.show-more-opinions
   border none
@@ -1791,7 +1794,7 @@ div.kdinputwithpreview.input_preview
     //   vertical-align  middle
 
     div.kdinput.on-off
-      margin-top            2px
+      // margin-top            2px
       float                 right
       font-family           sans
       width                 auto
@@ -1869,6 +1872,9 @@ div.kdinputwithpreview.input_preview
     overflow          auto
     vendor            transition, all 0.1s linear
 
+    span.data
+      display         block
+
     > *:last-child
       margin-bottom   0
 
@@ -1889,7 +1895,8 @@ div.kdinputwithpreview.input_preview
     border-top          3px solid #fff!important
 
 p.status-body
-
+  > span.data
+    cursor text
   // a
   //   > span.icon, span
 
@@ -1957,22 +1964,28 @@ div.protocol-info-box
     &:hover
       opacity 1
 
-div.preview_image
-  position relative
-  div.tutorial-preview-image-box
-    borderBox()
-    rounded 4px
-    border 1px solid black
-    background-color #f7f7f7
-    border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-    padding 15px 15px 12px 15px
-    width 100%
-    img.tutorial-preview-image
-      max-height 200px
-      cursor pointer
-      width auto
+// div.preview_image
+//   position relative
+div.tutorial-preview-image-box
+  float left
+  width auto
+  display inline-block
+  // borderBox()
+  // rounded 4px
+  // border 1px solid black
+  // background-color #f7f7f7
+  // border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
+  // padding 15px 15px 12px 15px
+  // width 100%
+  img.tutorial-preview-image
+    max-height 180px
+    cursor pointer
+    width auto
 
-
+div.tutorial-content
+  width auto
+  > span
+    padding-left 20px
 
 div.activity-tutorial-container.small
   img.tutorial-preview-image
@@ -2000,15 +2013,6 @@ playButton(distance=25px)
 .preview-image-overlay
   playButton()
 
-div.tutorial-badge
-  position absolute
-  left -20px
-  top -20px
-  size 40px 40px
-  background-color:#ff9200
-  opacity 0!important
-  vendor transform, rotate(-45deg)
-
 div.modal-select-tutorials
   width:80%
   height : 80%
@@ -2027,14 +2031,107 @@ div.show-tutorial-embed
   display inline-block
   z-index 10
 
-div.activity-content-container
+.no-scroll
+  overflow-x hidden
+  overflow-y hidden
+
+.scrollable-y
+  overflow-y scroll!important
+
+.scrollable-x
+  overflow-x scroll!important
+
+.scrollable
+  overflow-x scroll
   overflow-y scroll
+.scrolling-both
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+.scrolling-up
+    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
+.scrolling-down
+    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+
+.scrolling-up-outset
+    vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
+
+div.activity-content-container
+  position relative
+  overflow-y hidden
   rounded 4px
   border 1px solid black
-  background-color #f7f7f7
+  background-color #fff
   border-color #e8e8e8 #e8e8e8 #e0e0e0 #e0e0e0
-  padding 10px 15px 0px 15px
+  padding 10px 0px 0px 15px
+  vendor transition, box-shadow 0.25s default
 
-  &.discussion-body-container
+
+
+  &.discussion
     max-height 200px
-    cursor pointer
+    overflow-y hidden
+    padding-right 15px
+
+  &.tutorial
+    vertical-align top
+    padding-top 15px
+    // padding-bottom 10px
+    max-height 200px
+    overflow-y hidden
+    position relative
+
+    .body
+      display block
+      vertical-align top
+      overflow-y hidden
+      max-height 200px
+      padding-right 15px
+
+    img.tutorial-preview-image
+      max-height 185px
+      height auto
+      width auto
+      margin-right 15px
+      margin-bottom 15px
+      display inline-block
+      float left
+      cursor pointer
+
+  // &:hover
+  //   div.enable-scroll-overlay
+  //     opacity 1
+  //     border-top 1px solid rgba(0,0,0,.2)
+
+  // div.enable-scroll-hint
+  //   position absolute
+  //   bottom 0px
+  //   left 0px
+  //   right 0px
+  //   text-align center
+  //   font-size 14px
+  //   color black
+  //   font-weight 400
+  //   vertical-align bottom
+  //   height 100%
+  //   width 100%
+  //   opacity 0
+  //   vendor transition, opacity 0.3s linear
+
+  div.enable-scroll-overlay
+    width 100%
+    height 100%
+    position absolute
+    left 0px
+    right 0px
+    bottom 0px
+    top 0px
+    // opacity 1
+    vendor transition, top .5s ease-out
+    text-align center
+    background-color transparent
+    vertical-align middle
+
+.modal-video-close
+  borderBox()
+  padding 15px
+  margin 10px
+  line-height 150%

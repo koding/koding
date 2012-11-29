@@ -53,9 +53,8 @@ module.exports = class JInvitation extends jraphical.Module
         targetType  : JAccount
         as          : 'redeemer'
 
-
-  createBetaInvite = (options,callback)->
-    {inviterUsername,inviteeEmail,inviteType} = options
+  createBetaInvite = (options, callback)->
+    {inviterUsername, inviteeEmail, inviteType} = options
     inviterUsername ?= "devrim"
     inviteeEmail    ?= "pleaseChangeThisEmailWithYourOwn+"+Date.now()+"@koding.com"
     inviteType      ?= "koding.com"
@@ -65,7 +64,6 @@ module.exports = class JInvitation extends jraphical.Module
         .createHmac('sha1', 'kodingsecret')
         .update(inviteeEmail)
         .digest('hex')
-
 
       invite = new JInvitation
         code          : code
@@ -89,11 +87,11 @@ module.exports = class JInvitation extends jraphical.Module
     else
       JInvitationRequest = require "./invitationrequest"
       options.sort ?= 1
-      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->      
+      JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort},(err,arr)->
         arr.forEach (invitation)->
           invitation.update $set:sent:true,(err)->
           callback null,"#{invitation.email} is marked as sent."
-        
+
 
 
   @sendBetaInviteFromClient = secure (client, options,callback)->
@@ -110,13 +108,13 @@ module.exports = class JInvitation extends jraphical.Module
             ->
               continueLooping = ->
                 setTimeout (-> queue.next()), 50
-              
+
               JInvitation.sendBetaInvite email:item.email,(err,res)->
                 if err
                   callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
                   continueLooping()
                 else
-                  item.update $set:sent:yes, (err)->                  
+                  item.update $set:sent:yes, (err)->
                     if err
                       callback 'err',"#{item.email}something went wrong saving the item as sent."
                     else
@@ -132,12 +130,12 @@ module.exports = class JInvitation extends jraphical.Module
     bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
     protocol = 'http://'
     email   = options.email ? "devrim+#{Date.now()}@koding.com"
-    
+
     JInvitation.one {inviteeEmail: email}, (err, invite)=>
       if err
         console.log err
       else if invite?
-        url = "#{KONFIG.uri.address}/invitation/#{invite.code}"
+        url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
         personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
         emailerObj =
@@ -279,7 +277,7 @@ module.exports = class JInvitation extends jraphical.Module
                     subject   : customMessage.subject
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
-                    url       : "#{protocol}//#{host}/invitation/#{encodeURIComponent code}"
+                    url       : "#{protocol}//#{host}/Invitation/#{encodeURIComponent code}"
 
                   JUser = require './user'
                   JUser.fetchUser client,(err,user)=>

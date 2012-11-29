@@ -11,36 +11,28 @@ https = require 'https'
 task 'cl3','runs dev kites',(options)->
 
   config = require '../config/dev'
-  processes.run
+  processes.fork
     name    : "sharedHosting cake"
     cmd     : "#{KODING_CAKE} ./sharedHosting -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.fork
     name    : "applications cake"
     cmd     : "#{KODING_CAKE} ./applications -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.spawn
     name    : 'webterm kite'
     cmd     : "#{__dirname}/webterm -c dev"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
-  processes.run
+  processes.fork
     name    : "databases cake"
     cmd     : "#{KODING_CAKE} ./databases -c config-dev run"
     restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
     verbose : yes
 
 
@@ -48,10 +40,10 @@ task 'cl0', 'runs prod kites',(options)->
   config = require '../config/prod'
   
   setTimeout ->
-    https.get e = "https://koding.com/status/processIsDead/sharedHosting"
-    https.get e = "https://koding.com/status/processIsDead/webterm"
-    https.get e = "https://koding.com/status/processIsDead/databases"
-    https.get e = "https://koding.com/status/processIsDead/applications"
+    https.get e = "https://koding.com/-/status/processIsDead/sharedHosting"
+    https.get e = "https://koding.com/-/status/processIsDead/webterm"
+    https.get e = "https://koding.com/-/status/processIsDead/databases"
+    https.get e = "https://koding.com/-/status/processIsDead/applications"
   ,10*1000
   
   processes.run
@@ -62,7 +54,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      https.get e = "https://koding.com/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
 
   processes.run
@@ -73,7 +65,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      https.get e = "https://koding.com/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
   processes.run
     name    : 'webterm'
@@ -83,7 +75,7 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      https.get e = "https://koding.com/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/-/status/processIsDead/#{name}"
 
   processes.run
     name    : "databases cake"
@@ -93,4 +85,4 @@ task 'cl0', 'runs prod kites',(options)->
     stderr  : process.stderr
     verbose : yes
     onExit  : (pid,name)->
-      https.get e = "https://koding.com/status/processIsDead/#{name}"
+      https.get e = "https://koding.com/-/status/processIsDead/#{name}"

@@ -1,9 +1,9 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
-  
+
   {daisy} = require 'bongo'
-  
+
   csvParser = require 'csv'
 
   @share()

@@ -4,16 +4,12 @@ class ProfileLinkView extends LinkView
 
     super options, data
 
-    # nickname = data?.profile?.nickname
-    # @$().attr "href","/#!/member/#{nickname}" if nickname
     @setClass "profile"
 
   render:->
 
     nickname = @getData().profile?.nickname
-    if nickname
-      @$().attr "href","/#!/member/#{nickname}"
-      # @updateTooltip title : "@#{nickname}"
+    @$().attr "href", "/#{nickname}"  if nickname
     super
 
   pistachio:->
@@ -22,7 +18,8 @@ class ProfileLinkView extends LinkView
 
   click:(event)->
 
-    appManager.tell "Members", "createContentDisplay", @getData()
+    #appManager.tell "Members", "createContentDisplay", @getData()
+    KD.getSingleton('router')?.handleRoute "/#{@getData().profile.nickname}"
     event.preventDefault()
     event.stopPropagation()
     no

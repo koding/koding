@@ -21,12 +21,20 @@ module.exports = deepFreeze
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
+  uploads       :
+    distribution: 'https://d2mehr5c6bceom.cloudfront.net'
+    s3          :
+      awsAccountId        : '616271189586'
+      awsAccessKeyId      : 'AKIAJO74E23N33AFRGAQ'
+      awsSecretAccessKey  : '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'
+      bucket              : 'koding-uploads'
   basicAuth     :
     username    : 'koding'
     password    : '314159'
   social        :
     numberOfWorkers: 10
   client        :
+    pistachios  : yes
     version     : version
     minify      : no
     js          : "./website/js/kd.#{version}.js"
@@ -43,7 +51,7 @@ module.exports = deepFreeze
       broker    :
         apiKey  : 'a6f121a130a44c7f5325'
         sockJS  : 'https://mq.koding.com/subscribe'
-        auth    : 'https://dev.koding.com/auth'
+        auth    : 'https://dev.koding.com/Auth'
         vhost   : '/'
       apiUri    : 'https://dev-api.koding.com'
       appsUri   : 'https://dev-app.koding.com'

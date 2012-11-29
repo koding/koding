@@ -36,7 +36,7 @@ class FSItem extends KDObject
 
   @doesExist:(path, callback) ->
     KD.getSingleton('kiteController').run "test -d #{escapeFilePath path}", (err, stderr, stdout)=>
-      unless err isnt ""
+      if err?.code > 0
         callback null, no
       else
         callback err, yes

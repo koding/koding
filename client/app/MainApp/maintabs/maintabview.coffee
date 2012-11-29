@@ -19,6 +19,15 @@ class MainTabView extends KDTabView
       KDEventTypes : 'FileChanged'
       callback     : @fileChanged
 
+  # temp fix sinan 27 Nov 12
+  handleClicked:(index,event)->
+    pane = @getPaneByIndex index
+    if $(event.target).hasClass "close-tab"
+      @_removePane pane
+      return no
+
+    @showPane pane
+
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
     @handlesHidden = no
@@ -78,6 +87,9 @@ class MainTabView extends KDTabView
         @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
 
     @emit "PaneRemoved"
+    if appPanes.length is 0
+      @emit "AllPanesClosed"
+
 
   removePane:(pane)->
     pane.getData().handleEvent type: 'ViewClosed'
@@ -85,10 +97,11 @@ class MainTabView extends KDTabView
 
   showPaneByView:(options,view)->
     viewId = view
-    unless (@getPaneByView view)?
-      @createTabPane options,view
+    pane = @getPaneByView view
+    if pane?
+      @showPane pane
     else
-      @showPane @getPaneByView view
+      @createTabPane options, view
 
   removePaneByView:(view)->
     return unless (pane = @getPaneByView view)
@@ -113,7 +126,6 @@ class MainTabView extends KDTabView
       class        : KDView
     ,options
     paneInstance = new MainTabPane options,mainView
-    # debugger
     # log 'options', options
     paneInstance.on "viewAppended", =>
       # if options.controller  #dont need that anymore as tabHandle could be controlled by application
