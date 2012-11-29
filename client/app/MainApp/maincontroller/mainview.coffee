@@ -132,6 +132,9 @@ class MainView extends KDView
       delegate      : @
     , {}
 
+    @mainTabView.on "AllPanesClosed", ->
+      @getSingleton('router').handleRoute "/Activity"
+
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
     @contentPanel.addSubView @videoButton

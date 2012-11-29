@@ -133,7 +133,7 @@ class ApplicationManager extends KDObject
 
     # fake require (code is concatenated in codebase)
     app = @fakeRequire path
-    
+
     if app?
       @addAppInstance path, app
       callback app
