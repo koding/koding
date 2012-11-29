@@ -23,7 +23,7 @@ module.exports = deepFreeze
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   version       : version
   webserver     :
-    port        : [3050..3052]
+    port        : [3020..3030]
   mongo         : mongo
   misc          :
     updateAllSlugs : no
@@ -37,11 +37,11 @@ module.exports = deepFreeze
   runGoBroker   : yes
   configureBroker: no
   buildClient   : no
-  # loadBalancer  :
-  #  port        : 3020
-  #  heartbeat   : 5000
-  #  httpRedirect:
-  #    port      : 80 # requires sudo on macs
+  loadBalancer  :
+   port        : 8080
+   heartbeat   : 5000
+   httpRedirect:
+     port      : 80 # requires sudo on macs
   social        :
     numberOfWorkers: 1
   feeder        :

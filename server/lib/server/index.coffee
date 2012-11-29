@@ -25,8 +25,8 @@ processMonitor = (require 'processes-monitor').start
     after: "non-overlapping, random, 3 digits prime-number of minutes"
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
-  mixpanel:
-    key : KONFIG.mixpanel.key
+  # mixpanel:
+  #   key : KONFIG.mixpanel.key
 
 # if webPort is 3002
 #   foo = []
