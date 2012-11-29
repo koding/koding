@@ -6,7 +6,7 @@ class FeederFacetsController extends KDViewController
     @facetTypes = ['filter', 'sort']
     @state = {}
 
-  onfacetchange:-> KD.getSingleton('router').handleQuery @state
+  facetChange:-> KD.getSingleton('router').handleQuery @state
 
   loadView:(mainView)->
     options = @getOptions()
@@ -27,7 +27,7 @@ class FeederFacetsController extends KDViewController
       if controller.getData().items.length > 1
         controller.on 'NavItemReceivedClick', (item)=>
           @state[item.action] = item.type
-          @onfacetchange()
+          @facetChange()
         view.addSubView controller.getView()
 
     view.addSubView new HelpBox @getOptions().help

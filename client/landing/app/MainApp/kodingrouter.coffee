@@ -136,12 +136,14 @@ class KodingRouter extends KDRouter
     mainController = KD.getSingleton 'mainController'
 
     content = createLinks(
-      'Activity Apps Groups Members Topics'
+      # 'Activity Apps Groups Members Topics'
+      'Activity Apps Members Topics'
       (sec)=> @createContentDisplayHandler sec
     )
 
     nouns = createLinks(
-      'Account Activity Apps Groups Members StartTab Topics'
+      # 'Account Activity Apps Groups Members StartTab Topics'
+      'Account Activity Apps Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -158,7 +160,7 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})-> mainController.doRecover name
 
       # nouns
-      '/:name?/Groups'                  : nouns.Groups
+      # '/:name?/Groups'                  : nouns.Groups
       '/:name?/Activity'                : nouns.Activity
       '/:name?/Members'                 : nouns.Members
       '/:name?/Topics'                  : nouns.Topics
@@ -230,7 +232,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model, status_404)->
           switch model?.bongo_?.constructorName
             when 'JAccount' then content.Members routeInfo, model
-            when 'JGroup'   then content.Groups  routeInfo, model
+            # when 'JGroup'   then content.Groups  routeInfo, model
             when 'JTopic'   then content.Topics  routeInfo, model
             else status_404()
 
