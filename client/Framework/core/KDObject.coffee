@@ -1,5 +1,7 @@
 class KDObject extends KDEventEmitter
 
+  READY = 1
+
   utils: __utils
 
   constructor:(options = {}, data)->
@@ -12,6 +14,7 @@ class KDObject extends KDEventEmitter
     @subscriptionCountByListenerId = {}
     @listeningTo = []
     super
+    @once 'ready', => @readyState = READY
 
 
   if KD.MODE is 'development'
@@ -19,6 +22,13 @@ class KDObject extends KDEventEmitter
     o:(o)-> @interfere o
   else
     o:(o)->o
+
+  bound:(method, rest...)->
+    => @[method] rest...
+
+  ready:(listener)->
+    if @readyState > 0 then listener()
+    else @once 'ready', listener
 
   inheritanceChain:(options)->
     #need to detect () to know whether to call as function or get value as parameter
@@ -36,7 +46,7 @@ class KDObject extends KDEventEmitter
   chainNames:(options)->
     options.chain
     options.newLink
-    options.chain + ".#{options.newLink}"
+    "#{options.chain}.#{options.newLink}"
 
   listenToOnce:(KDEventTypes,callback,obj)->
     options = @_listenToAdapter KDEventTypes, callback, obj

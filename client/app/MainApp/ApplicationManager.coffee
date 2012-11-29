@@ -1,7 +1,7 @@
 # uncomplicate this - Sinan 7/2012
 class ApplicationManager extends KDObject
   constructor: ->
-    @controllers            = {}
+    # @controllers            = {}
     @openedInstances        = {}
     @appInstances           = []
     @appViews2d             = []
@@ -48,6 +48,18 @@ class ApplicationManager extends KDObject
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
+  isAppUnderDevelop:(app)->
+    {openedInstances} = this
+    appsWithCustomRoutes = [
+      'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
+      'Account','Chat','Demos'
+    ]
+    for appPath in Object.keys openedInstances
+      appName = (/(?:\/)(\w+)(?:\.kdapplication$)/.exec appPath)?[1]
+      if openedInstances[appName] is app and appName in appsWithCustomRoutes
+        return no
+    return yes
+
   openApplication:do->
 
     openAppHandler =(app, path, doBringToFront, callback)->
@@ -55,6 +67,18 @@ class ApplicationManager extends KDObject
       if doBringToFront
         appManager.setFrontApp path
         app.bringToFront()
+
+        # # TODO: this is a quick hack
+        # appName = path.split(/(?:\/)|(?:\.kdapplication$)/).slice(-2,-1)[0]
+
+        # router = @getSingleton('router')
+        # appsWithCustomRoutes = [
+        #   'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
+        #   'Account','Chat','Demos'
+        # ]
+        # isBlacklisted = appName not in appsWithCustomRoutes
+        # if isBlacklisted and 'Develop' isnt router?.getCurrentPath()
+        #   router.handleRoute '/Develop', suppressListeners: yes
 
     openApplication =(path, doBringToFront, callback)->
       [callback, doBringToFront] = [doBringToFront, callback]  unless callback
@@ -107,12 +131,10 @@ class ApplicationManager extends KDObject
       "./client/app/Applications/StartTab.kdapplication"    : StartTab12345
       "./client/app/Applications/Home.kdapplication"        : Home12345
       "./client/app/Applications/Account.kdapplication"     : Account12345
-      "./client/app/Applications/Environment.kdapplication" : Environment12345
       "./client/app/Applications/Apps.kdapplication"        : Apps12345
       "./client/app/Applications/Inbox.kdapplication"       : Inbox12345
       "./client/app/Applications/Demos.kdapplication"       : Demos12345
       "./client/app/Applications/Ace.kdapplication"         : Ace12345
-      "./client/app/Applications/Chat.kdapplication"        : Chat12345
       "./client/app/Applications/Viewer.kdapplication"      : Viewer12345
       "./client/app/Applications/WebTerm.kdapplication"     : WebTermController
       "./client/app/Applications/Groups.kdapplication"      : GroupsController

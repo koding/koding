@@ -39,8 +39,8 @@ processMonitor = (require 'processes-monitor').start
     #       callback null
     #     ,10*1000
     middlewareTimeout : 15000
-  mixpanel:
-    key : KONFIG.mixpanel.key
+  # mixpanel:
+  #   key : KONFIG.mixpanel.key
 
 koding = new Bongo
   root        : __dirname
@@ -71,7 +71,7 @@ koding.connect ->
   if KONFIG.misc?.updateAllSlugs
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'
-      require './models/messages/statusupdate'
+      require './models/app'
       require './models/messages/codesnip'
       require './models/messages/discussion'
       require './models/messages/tutorial'

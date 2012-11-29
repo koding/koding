@@ -165,11 +165,17 @@ KD.error = error = noop
         KD.log 'success', inflated
         KD.log Date.now()-start
 
-  enableLogs:->
-    KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
-    KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
-    KD.error = error = if console?.error then console.error.bind(console) else noop
-    return "Logs are enabled now."
+  enableLogs:do->
+    oldConsole = window.console
+    window.console = {}
+    console[method] = noop  for method in ['log','warn','error','trace']
+    
+    enableLogs =->
+      window.console = oldConsole
+      KD.log   = log   = if console?.log   then console.log.bind(console)   else noop
+      KD.warn  = warn  = if console?.warn  then console.warn.bind(console)  else noop
+      KD.error = error = if console?.error then console.error.bind(console) else noop
+      return "Logs are enabled now."
 
   exportKDFramework:->
     (window[item] = KD.classes[item] for item of KD.classes)

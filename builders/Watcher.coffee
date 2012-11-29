@@ -133,7 +133,9 @@ class Watcher extends EventEmitter
             do (section,subSection,pkg,key,path) =>
               @watchlist.order.__watch[path] ?= {}
               file = @watchlist.order.__watch[path]
-              fs.stat path,(err,stat)=>                
+              fs.stat path,(err,stat)=>
+                unless stat?
+                  throw new Error "File not found! #{path}"
                 mtime = Date.parse(stat.mtime)
                 cacheP = cacheFilePath(path)
                 fs.stat cacheP,(err,stat)=>              

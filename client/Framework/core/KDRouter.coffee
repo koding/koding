@@ -57,8 +57,11 @@ class KDRouter extends KDObject
   getCurrentPath:-> @currentPath
 
   handleNotFound:(route)->
-    console.trace()
-    log "The route #{route} was not found!"
+    delete @userRoute
+    @clear()
+    if location.hostname is "koding.com"
+      log "The route #{route} was not found!"
+      new KDNotificationView title: "404 Not found! #{route}"
 
   routeWithoutEdgeAtIndex =(route, i)->
     "/#{route.slice(0, i).concat(route.slice i + 1).join '/'}"
@@ -91,7 +94,7 @@ class KDRouter extends KDObject
 
     query = @utils.parseQuery query.join '&'
 
-    {shouldPushState, replaceState, state} = options
+    {shouldPushState, replaceState, state, suppressListeners} = options
     shouldPushState ?= yes
 
     objRef = createObjectRef state
@@ -109,7 +112,7 @@ class KDRouter extends KDObject
     qs = @utils.stringifyQuery query
     path += "?#{qs}"  if qs.length
 
-    if shouldPushState and not replaceState and path is @currentPath
+    if not suppressListeners and shouldPushState and not replaceState and path is @currentPath
       @emit 'AlreadyHere', path
       return
 
@@ -131,9 +134,10 @@ class KDRouter extends KDObject
 
     routeInfo = {params, query}
 
-    listeners = node[listenerKey]
-    if listeners?.length
-      listener.call @, routeInfo, state, path  for listener in listeners
+    unless suppressListeners
+      listeners = node[listenerKey]
+      if listeners?.length
+        listener.call @, routeInfo, state, path  for listener in listeners
 
   handleQuery:(query)->
     query = @utils.stringifyQuery query  unless 'string' is typeof query
