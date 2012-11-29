@@ -4,7 +4,7 @@ class MainTabView extends KDTabView
     @totalSize      = 0
     @paneViewIndex  = {}
     super options,data
-    
+
     @listenTo
       KDEventTypes : 'ApplicationWantsToBeShown'
       callback     :(app, {options, data})->
@@ -18,6 +18,15 @@ class MainTabView extends KDTabView
     @listenTo
       KDEventTypes : 'FileChanged'
       callback     : @fileChanged
+
+  # temp fix sinan 27 Nov 12
+  handleClicked:(index,event)->
+    pane = @getPaneByIndex index
+    if $(event.target).hasClass "close-tab"
+      @_removePane pane
+      return no
+
+    @showPane pane
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
