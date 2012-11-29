@@ -67,9 +67,11 @@ __aceSettings =
       { title: 'Solarized Light',       value: 'solarized_light' }
       { title: 'TextMate',              value: 'textmate' }
       { title: 'Tomorrow',              value: 'tomorrow' }
+      { title: 'XCode',                 value: 'xcode' }
     ].sort (a, b) -> if a.title < b.title then -1 else 1
 
     Dark : [
+      { title: 'Ambiance',              value: 'ambiance' }
       { title: 'Clouds Midnight',       value: 'clouds_midnight' }
       { title: 'Cobalt',                value: 'cobalt' }
       { title: 'Idle Fingers',          value: 'idle_fingers' }
@@ -91,17 +93,23 @@ __aceSettings =
 
   syntaxAssociations :
 
+    abap        : ["ABAP"         , "abap"]
+    asciidoc    : ["ASCIIDoc"     , "AsciiDoc"]
     coffee      : ["CoffeeScript" , "coffee|Cakefile"]
     coldfusion  : ["ColdFusion"   , "cfm"]
     csharp      : ["C#"           , "cs"]
     css         : ["CSS"          , "css"]
+    dart        : ["Dart"         , "dart"]
     diff        : ["Diff"         , "diff|patch"]
     golang      : ["Go"           , "go"]
+    glsl        : ["GLSL"         , "glsl"]
     groovy      : ["Groovy"       , "groovy"]
     haxe        : ["haXe"         , "hx"]
+    haml        : ["HAML"         , "haml"]
     html        : ["HTML"         , "htm|html|xhtml"]
     c_cpp       : ["C/C++"        , "c|cc|cpp|cxx|h|hh|hpp"]
     clojure     : ["Clojure"      , "clj"]
+    jade        : ["Jade"         , "jade"]
     java        : ["Java"         , "java"]
     javascript  : ["JavaScript"   , "js"]
     json        : ["JSON"         , "json|manifest|kdapp"]
@@ -109,24 +117,33 @@ __aceSettings =
     latex       : ["LaTeX"        , "latex|tex|ltx|bib"]
     less        : ["LESS"         , "less"]
     liquid      : ["Liquid"       , "liquid"]
+    lisp        : ["Lisp"         , "lisp"]
+    lucene      : ["Lucene"       , "cfs"]
     lua         : ["Lua"          , "lua"]
     luapage     : ["LuaPage"      , "lp"]
+    makefile    : ["MAKEFILE"     , "makefile"]
     markdown    : ["Markdown"     , "md|markdown"]
     ocaml       : ["OCaml"        , "ml|mli"]
     perl        : ["Perl"         , "pl|pm"]
     pgsql       : ["pgSQL"        , "pgsql"]
     php         : ["PHP"          , "php|phtml"]
+    rhtml       : ["RHTML"        , "rhtml"]
+    r           : ["R"            , "r"]
+    rdoc        : ["RDOC"         , "rdoc"]
     powershell  : ["Powershell"   , "ps1"]
     python      : ["Python"       , "py"]
     ruby        : ["Ruby"         , "ru|gemspec|rake|rb"]
     scad        : ["OpenSCAD"     , "scad"]
     scala       : ["Scala"        , "scala"]
     scss        : ["SCSS"         , "scss|sass"]
+    stylus      : ["Stylus"       , "styl"]
     sh          : ["SH"           , "sh|bash|bat"]
     sql         : ["SQL"          , "sql"]
     svg         : ["SVG"          , "svg"]
+    tex         : ["TeX"          , "tex"]
     text        : ["Text"         , "txt"]
     textile     : ["Textile"      , "textile"]
+    typescript  : ["Typescript"   , "ts"]
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
     yaml        : ["YAML"         , "yaml"]
@@ -148,33 +165,41 @@ __aceSettings =
     csharp      : "cs"
     css         : "css"
     diff        : "diff"
+    dart        : "dart"
     golang      : "go"
     # groovy      : null
     # haxe        : null
+    haml        : "haml"
     html        : "xml"
     c_cpp       : "cpp"
     # clojure     : null
+    jade        : "jade"
     java        : "java"
     javascript  : "javascript"
     json        : "javascript"
     # json        : "json"
     latex       : "tex"
     less        : "css"
+    lisp        : "lisp"
     # liquid      : null
     lua         : "lua"
-    # markdown    : "markdown"
-    # ocaml       : null
+    markdown    : "markdown"
+    ocaml       : "ocaml"
     perl        : "perl"
     pgsql       : "sql"
     php         : "php"
     powershell  : "bash"
     python      : "python"
+    r           : "r"
+    rhtml       : "rhtml"
     ruby        : "ruby"
     # scad        : null
     scala       : "scala"
     scss        : "css"
+    stylus      : "stylus"
     sh          : "bash"
     sql         : "sql"
+    typescript  : "ts"
     # svg         : null
     # text        : null
     # textile     : null

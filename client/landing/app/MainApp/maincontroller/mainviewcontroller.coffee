@@ -22,12 +22,14 @@ class MainViewController extends KDViewController
         @mainTabPaneChanged mainView, data.pane
 
   mainTabPaneChanged:(mainView, pane)->
-
     {sidebarController} = @
     sidebar             = sidebarController.getView()
     paneType            = pane.options.type
     paneName            = pane.options.name
     navItemName         = paneName
+
+    if appManager.isAppUnderDevelop pane.getData().getDelegate()
+      @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
 
     if paneType is 'application'
       mainView.setViewState 'application'
@@ -44,7 +46,7 @@ class MainViewController extends KDViewController
       mainView.setViewState 'default'
 
     if sidebar.navController.selectItemByName navItemName
-      sidebar.accNavController.selectItem()
+      # sidebar.accNavController.selectItem()
     else
-      sidebar.navController.selectItem()
+      # sidebar.navController.selectItem()
       sidebar.accNavController.selectItemByName navItemName

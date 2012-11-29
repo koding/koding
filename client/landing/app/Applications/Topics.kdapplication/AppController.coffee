@@ -16,11 +16,8 @@ class Topics12345 extends AppController
         name : 'Topics'
       data : @getView()
 
-  initAndBringToFront:(options,callback)->
-    @bringToFront()
-    callback()
-
   createFeed:(view)->
+    {JTag} = KD.remote.api
     appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass          : @listItemClass
       limitPerPage          : 20
@@ -40,9 +37,18 @@ class Topics12345 extends AppController
           dataSource        : (selector, options, callback)=>
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              KD.remote.api.JTag.byRelevance @_searchValue, options, callback
+              JTag.byRelevance @_searchValue, options, callback
             else
-              KD.remote.api.JTag.someWithRelationship selector, options, callback
+              JTag.streamModels selector, options, callback
+          dataEnd           : ({resultsController}, ids)->
+            JTag.fetchMyFollowees ids, (err, followees)->
+              if err then error err
+              else
+                {everything} = resultsController.listControllers
+                everything.forEachItemByIndex followees, ({followButton})->
+                  followButton.setState 'Following'
+                  followButton.redecorateState()
+
         following           :
           title             : "Following"
           noItemFoundText   : "There is no topics that you follow."
@@ -66,9 +72,11 @@ class Topics12345 extends AppController
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
+      @feedController = controller
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
+      @emit 'ready'
 
   loadView:(mainView, firstRun = yes)->
 
@@ -149,7 +157,7 @@ class Topics12345 extends AppController
                 type              : "textarea"
                 itemClass         : KDInputView
                 name              : "body"
-                defaultValue      : Encoder.htmlDecode topic.body or ""
+                defaultValue      : topic.body or ""
 
   fetchSomeTopics:(options = {}, callback)->
 
@@ -162,7 +170,7 @@ class Topics12345 extends AppController
     if selector
       KD.remote.api.JTag.byRelevance selector, options, callback
     else
-      KD.remote.api.JTag.someWithRelationship {}, options, callback
+      KD.remote.api.JTag.some {}, options, callback
 
   # addATopic:(formData)->
   #   # log formData,"controller"
@@ -171,9 +179,6 @@ class Topics12345 extends AppController
   #       warn err,"there was an error creating topic!"
   #     else
   #       log tag,"created topic #{tag.title}"
-
-  createContentDisplay:(tag,doShow = yes)->
-    @showContentDisplay tag
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -187,11 +192,12 @@ class Topics12345 extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".activityhead").html title
 
-  showContentDisplay:(content)->
+  showContentDisplay:(content, callback=->)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerTopic null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
+    callback contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->
 
