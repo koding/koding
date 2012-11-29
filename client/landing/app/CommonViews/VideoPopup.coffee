@@ -115,13 +115,13 @@ class VideoPopupListItem extends KDListItemView
 
     @focusWindowBar = new KDView
       cssClass : "overlay-bar focus"
-      partial : "Focus"
+      partial : "<span class='overlay-text'>Focus</span>"
       click : =>
         @getDelegate().emit "FocusWindow", @getData().name
 
     @closeWindowBar = new KDView
       cssClass : "overlay-bar close"
-      partial : "Close"
+      partial : "<span class='overlay-text'>Close</span>"
       click : =>
         @getDelegate().emit "CloseWindow", @getData().name
 
