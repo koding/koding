@@ -14,6 +14,8 @@ type VM struct {
 	MAC net.HardwareAddr
 }
 
+const VMROOT_ID = 1000000
+
 var templates *template.Template
 
 func init() {
@@ -78,6 +80,7 @@ func (vm *VM) Prepare() {
 	// create directories
 	vm.MkdirAll("", false)
 	vm.MkdirAll("overlayfs-upperdir/etc", true)
+	vm.MkdirAll("overlayfs-upperdir/home/"+vm.Username(), true)
 	vm.MkdirAll("rootfs", true)
 
 	// write LXC files
@@ -87,15 +90,17 @@ func (vm *VM) Prepare() {
 	vm.GenerateFile("fstab", false)
 
 	// write hostname file
-	hostname, err := os.Open(vm.File("overlayfs-upperdir/etc/hostname"))
+	hostnameFile := vm.File("overlayfs-upperdir/etc/hostname")
+	hostname, err := os.Create(hostnameFile)
 	if err != nil {
 		panic(err)
 	}
 	hostname.Write([]byte(vm.Username() + ".koding.com"))
 	hostname.Close()
+	os.Chown(hostnameFile, VMROOT_ID, VMROOT_ID)
 
 	// write passwd file
-	passwdFile := fmt.Sprintf(vm.File("overlayfs-upperdir/etc/passwd"))
+	passwdFile := vm.File("overlayfs-upperdir/etc/passwd")
 	users, _ := ReadPasswd(passwdFile) // error ignored
 
 	lowerUsers, err := ReadPasswd("/var/lib/lxc/vmroot/rootfs/etc/passwd")
@@ -111,9 +116,10 @@ func (vm *VM) Prepare() {
 	if err != nil {
 		panic(err)
 	}
+	os.Chown(passwdFile, VMROOT_ID, VMROOT_ID)
 
 	// write group file
-	groupFile := fmt.Sprintf(vm.File("overlayfs-upperdir/etc/group"))
+	groupFile := vm.File("overlayfs-upperdir/etc/group")
 	groups, _ := ReadGroup(groupFile) // error ignored
 
 	lowerGroups, err := ReadGroup("/var/lib/lxc/vmroot/rootfs/etc/group")
@@ -137,13 +143,14 @@ func (vm *VM) Prepare() {
 	if err != nil {
 		panic(err)
 	}
+	os.Chown(groupFile, VMROOT_ID, VMROOT_ID)
 }
 
 func (vm *VM) MkdirAll(path string, chown bool) {
 	fullPath := fmt.Sprintf("/var/lib/lxc/%s/%s", vm, path)
 	os.MkdirAll(fullPath, 0755)
 	if chown {
-		os.Chown(fullPath, vm.Uid(), vm.Uid())
+		os.Chown(fullPath, VMROOT_ID, VMROOT_ID)
 	}
 }
 

@@ -82,7 +82,7 @@ func ReadGroup(fileName string) (map[int]*Group, error) {
 		group.Name = readUntil(r, ':')
 		readUntil(r, ':') // skip
 		gid := atoi(readUntil(r, ':'))
-		for _, user := range strings.Split(readUntil(r, ':'), ",") {
+		for _, user := range strings.Split(readUntil(r, '\n'), ",") {
 			group.Users[user] = true
 		}
 		groups[gid] = &group
