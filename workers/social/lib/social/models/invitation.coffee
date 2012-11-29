@@ -90,7 +90,7 @@ module.exports = class JInvitation extends jraphical.Module
       return callback new KodingError "not authorized"
     else
       if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:-1},(err,emails)->
+        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:1},(err,emails)->
           daisy queue = emails.map (item)->
             ->
               continueLooping = ->
@@ -121,7 +121,7 @@ module.exports = class JInvitation extends jraphical.Module
       if err
         console.log err
       else if invite?
-        url = "#{KONFIG.uri.address}/invitation/#{invite.code}"
+        url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
         personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
 
         emailerObj =
@@ -263,7 +263,7 @@ module.exports = class JInvitation extends jraphical.Module
                     subject   : customMessage.subject
                     body      : customMessage.body
                     inviter   : delegate.getFullName()
-                    url       : "#{protocol}//#{host}/invitation/#{encodeURIComponent code}"
+                    url       : "#{protocol}//#{host}/Invitation/#{encodeURIComponent code}"
 
                   JUser = require './user'
                   JUser.fetchUser client,(err,user)=>
