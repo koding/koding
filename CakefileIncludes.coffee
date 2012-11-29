@@ -501,7 +501,7 @@ Includes =
         sharedRoutes                : "./routes/index.coffee"
         kodingrouter                : "./client/app/MainApp/kodingrouter.coffee"
         #broker                      : "./broker/apps/broker/priv/www/js/broker.js"
-        sockjs                      : "./client/libs/sockjs-0.3.js"
+        sockjs                      : "./client/libs/sockjs-0.3-patched.js"
         broker                      : "./node_modules/broker-client/browser/broker.js"
         bongojs                     : "./node_modules/bongo-client/browser/bongo.js"
         bongo_mq                    : "./client/app/MainApp/mq.config.coffee"
