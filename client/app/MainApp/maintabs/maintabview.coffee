@@ -87,6 +87,9 @@ class MainTabView extends KDTabView
         @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
 
     @emit "PaneRemoved"
+    if appPanes.length is 0
+      @emit "AllPanesClosed"
+
 
   removePane:(pane)->
     pane.getData().handleEvent type: 'ViewClosed'
