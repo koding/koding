@@ -71,7 +71,7 @@ koding.connect ->
   if KONFIG.misc?.updateAllSlugs
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'
-      require './models/messages/statusupdate'
+      require './models/app'
       require './models/messages/codesnip'
       require './models/messages/discussion'
       require './models/messages/tutorial'
