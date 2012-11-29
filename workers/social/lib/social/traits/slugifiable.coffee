@@ -76,8 +76,9 @@ module.exports = class Slugifiable
 
   @updateSlugsByBatch =(batchSize, konstructors)->
     konstructors = [konstructors]  unless Array.isArray konstructors
-    counter = 0
     konstructors.forEach (konstructor)->
+      counter = 0
+      console.log konstructor.name
       konstructor.updateAllSlugs {batchSize}, (err,slug)->
         if ++counter is batchSize
           process.nextTick -> updateSlugsByBatch batchSize, konstructor
