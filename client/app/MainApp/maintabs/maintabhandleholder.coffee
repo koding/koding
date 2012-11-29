@@ -60,6 +60,7 @@ class MainTabHandleHolder extends KDView
       # appManager.newFileWithApplication "Ace"
     else
       appManager.openApplication "StartTab"
+      # @getSingleton('router').handleRoute "/Develop"
 
   _repositionPlusHandle:(event)->
 
