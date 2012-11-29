@@ -9,11 +9,9 @@ func main() {
 	//vm, err := virt.FromIP(10, 1, 0, 0)
 	vm, err := virt.FromUsername("neelance")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
-	fmt.Println(vm.Username())
-
-	//vm.Setup()
 
 	//packages := vm.ReadDpkgStatus("/var/lib/dpkg/status")
 	//vm.WriteDpkgStatus(packages, "out")
@@ -21,7 +19,8 @@ func main() {
 	//users := vm.ReadPasswd("/etc/passwd")
 	//vm.WritePasswd(users, "out")
 
-	//vm.Start()
+	vm.Prepare()
+	vm.Start()
 	//vm.Stop()
 	//vm.Shutdown()
 }

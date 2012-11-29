@@ -11,15 +11,17 @@ lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
 lxc.utsname = {{.Hostname}}
 
 lxc.devttydir = lxc
-lxc.tty = 4
+#lxc.tty = 4
 lxc.pts = 1024
 lxc.mount  = /var/lib/lxc/{{.}}/fstab
 lxc.arch = amd64
 lxc.cap.drop = sys_module mac_admin mac_override
 lxc.pivotdir = lxc_putold
 
-lxc.id_map = U 100000 0 100
-lxc.id_map = G 100000 0 100
+lxc.id_map = U 1000000 0 1000
+lxc.id_map = U {{.Uid}} 1000 256
+lxc.id_map = G 1000000 0 1000
+lxc.id_map = G {{.Uid}} 1000 256
 
 lxc.cgroup.devices.deny = a
 # Allow any mknod (but not using the node)
@@ -29,8 +31,8 @@ lxc.cgroup.devices.allow = b *:* m
 lxc.cgroup.devices.allow = c 1:3 rwm
 lxc.cgroup.devices.allow = c 1:5 rwm
 # consoles
-lxc.cgroup.devices.allow = c 5:1 rwm
-lxc.cgroup.devices.allow = c 5:0 rwm
+#lxc.cgroup.devices.allow = c 5:1 rwm
+#lxc.cgroup.devices.allow = c 5:0 rwm
 #lxc.cgroup.devices.allow = c 4:0 rwm
 #lxc.cgroup.devices.allow = c 4:1 rwm
 # /dev/{,u}random
