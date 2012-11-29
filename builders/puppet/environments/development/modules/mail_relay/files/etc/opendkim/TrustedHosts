@@ -1,0 +1,6 @@
+# To use this file, uncomment the #ExternalIgnoreList and/or the #InternalHosts
+# option in /etc/opendkim.conf then restart OpenDKIM. Additional hosts
+# may be added on separate lines (IP addresses, hostnames, or CIDR ranges).
+# The localhost IP (127.0.0.1) should be the first entry in this file.
+127.0.0.1
+10.0.0.0/8

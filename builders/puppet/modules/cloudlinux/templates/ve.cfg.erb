@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+<lveconfig>
+        <system>
+                <ubc enabled="true"/>
+        </system>
+        <defaults>
+                <cpu limit="<%= 32/processorcount.to_i %>"/>
+                <ncpu limit="1"/>
+                <io limit="0"/>
+                <other maxentryprocs="20"/>
+                <pmem limit="65536"/>
+                <nproc limit="0"/>
+                <vmem limit="262144"/>
+        </defaults>
+</lveconfig>

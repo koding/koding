@@ -1,0 +1,11 @@
+check process BongoServer
+	with pidfile /var/run/node/BongoServer.pid
+	start program = "/bin/su -l node -c '/etc/monit.d/scripts/BongoServer.sh start'"
+		with timeout 120 seconds
+	stop program = "/bin/su -l node -c '/etc/monit.d/scripts/BongoServer.sh stop'"
+		with timeout 45 seconds
+
+	if changed pid then alert
+	if totalcpu > 15% for 2 cycles then alert
+	if totalmem > 750 MB for 2 cycles then alert
+	if 3 restarts within 5 cycles then timeout

@@ -1,0 +1,11 @@
+check process SharedHosting
+	with pidfile /var/run/node/SharedHosting.pid
+	start program = "/etc/monit.d/scripts/SharedHosting.sh start"
+		with timeout 30 seconds
+	stop program = "/etc/monit.d/scripts/SharedHosting.sh stop"
+		with timeout 30 seconds
+
+	if changed pid then alert
+	if totalcpu > 15% for 2 cycles then alert
+	if totalmem > 150 MB for 2 cycles then alert
+	if 3 restarts within 5 cycles then timeout

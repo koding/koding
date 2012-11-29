@@ -49,8 +49,13 @@ class hosting_configs {
         source => "puppet:///modules/hosting_configs/etc/yum.conf",
     }
 
-
-
+   file { "/Users":
+        ensure => directory,
+        owner => "root",
+        group => "secure",
+        mode => 0755,
+        require => Group["secure"],
+  }
     
     
 }
