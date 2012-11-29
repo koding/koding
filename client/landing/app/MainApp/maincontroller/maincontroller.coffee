@@ -20,7 +20,7 @@ class MainController extends KDController
 
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
-      KD.registerSingleton "bottomPanelController", new BottomPanelController
+      #KD.registerSingleton "bottomPanelController", new BottomPanelController
 
     @setFailTimer()
     @putGlobalEventListeners()
