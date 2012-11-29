@@ -180,6 +180,7 @@ module.exports = class JAccount extends jraphical.Module
               count++
               if err then callback err
               else
+                callback err, nickname
                 if count is options.limit
                   options.skip += options.limit
                   @reserveNames options, callback
