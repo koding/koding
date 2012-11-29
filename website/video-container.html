@@ -50,12 +50,11 @@ function moveWindowTowardsTop (newCoordinates) {
       width  : screen.availWidth,
     }
   }
-  // Calculates the height of the Windows Title/Address Bar
+  // Calculates the height of the Windows title/Address Bar
   var topOffset = coordinates.browser.topOffset;
   if(window.navigator.userAgent.indexOf("Chrome")>0){
     topOffset+=22
   }
-  // alert(this.innerHeight+"/"+this.outerHeight+"/"+topOffset+"/"+this.screenX+"/"+this.screenY);
 
   // Unless the Popup is touching the screen bottom
   if(coordinates.browser.occupiedHeight < coordinates.screen.height){
@@ -66,9 +65,7 @@ function moveWindowTowardsTop (newCoordinates) {
 }
 
 window.onload = function(){
-  // console.log("hm");
   window.setTimeout(function(){
-    // console.log("timing!");
     moveWindowTowardsTop(null);
   },200);
 }
