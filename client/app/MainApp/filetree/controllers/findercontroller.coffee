@@ -38,6 +38,11 @@ class NFinderController extends KDViewController
     @viewLoaded = yes
     @utils.killWait @loadDefaultStructureTimer
 
+
+    # temp hack, if page opens in develop section.
+    @utils.wait 2500, =>
+      @getSingleton("mainView").sidebar._windowDidResize()
+
 #    if @treeController.getOptions().useStorage
 #      appManager.on "AppManagerOpensAnApplication", (appInst)=>
 #        if appInst instanceof StartTab12345 and not @defaultStructureLoaded

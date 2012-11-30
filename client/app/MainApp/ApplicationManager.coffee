@@ -48,17 +48,14 @@ class ApplicationManager extends KDObject
     if /\.kdapplication$/.test path then path
     else "./client/app/Applications/#{path}.kdapplication"
 
-  isAppUnderDevelop:(app)->
-    {openedInstances} = this
+  isAppUnderDevelop:(appName)->
+
     appsWithCustomRoutes = [
       'Activity','Topics','Groups','Apps','Members','Inbox','Feeder'
       'Account','Chat','Demos'
     ]
-    for appPath in Object.keys openedInstances
-      appName = (/(?:\/)(\w+)(?:\.kdapplication$)/.exec appPath)?[1]
-      if openedInstances[appName] is app and appName in appsWithCustomRoutes
-        return no
-    return yes
+
+    return !(appName in appsWithCustomRoutes)
 
   openApplication:do->
 

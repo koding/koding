@@ -125,6 +125,7 @@ class KDTabViewController extends KDScrollView
   getHandleByIndex:(index)-> @handles[index]
 
   getPaneIndex:(aPane)->
+    return unless aPane
     result = 0
     for pane,index in @panes
       result = index if pane is aPane

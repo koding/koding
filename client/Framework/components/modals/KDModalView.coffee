@@ -19,11 +19,15 @@ class KDModalView extends KDView
 
     super options, data
 
+    @setClass "initial"
     @putOverlay options.overlay                   if options.overlay
     @setClass "fx"                                if options.fx
     @setTitle options.title                       if options.title
     @setContent options.content                   if options.content
     @addSubView options.view,".kdmodal-content"   if options.view
+
+    @on "viewAppended", =>
+      @utils.wait 500, => @unsetClass "initial"
 
     KDView.appendToDOMBody @
 
@@ -43,16 +47,17 @@ class KDModalView extends KDView
     @_windowDidResize()
 
     # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
-    $(window).on "keydown.modal",(e)=>
+    $(window).one "keydown.modal",(e)=>
       @destroy() if e.which is 27
 
     @on "childAppended", @setPositions.bind @
+
     @listenWindowResize()
 
   setDomElement:(cssClass)->
 
     @domElement = $ "
-    <div class='kdmodal initial #{cssClass}'>
+    <div class='kdmodal #{cssClass}'>
       <div class='kdmodal-shadow'>
         <div class='kdmodal-inner'>
           <span class='close-icon closeModal'></span>
@@ -116,8 +121,6 @@ class KDModalView extends KDView
       newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
       @$().css newPosition
       @$().css opacity : 1
-      @utils.wait 500, =>
-        @unsetClass "initial"
 
   _windowDidResize:->
     @setPositions()
