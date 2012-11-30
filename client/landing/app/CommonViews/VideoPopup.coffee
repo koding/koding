@@ -160,14 +160,17 @@ class VideoPopup extends KDView
     # log "New VideoPopup", options, data
 
   openVideoPopup:->
-    h=@getDelegate().getHeight()
-    w=@getDelegate().getWidth()
-    t=@getDelegate().$().offset()
+    minH = 185
+    minW = 240
+    h = if @getDelegate().getHeight() > minH then @getDelegate().getHeight() else minH
+    w = if @getDelegate().getWidth() > minW then @getDelegate().getWidth() else minW
+    t = @getDelegate().$().offset()
     @videoPopup?.close()
 
     popupUrl = "/video-container.html"
 
-    @videoPopup = @controller.newPopup popupUrl, "KodingVideo_"+Math.random().toString(36).substring(7), "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
+    @videoPopup = @controller.newPopup popupUrl, "KodingVideo_"+Math.random().toString(36).substring(7),
+      "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
 
     @utils.wait 1500, =>          # give the popup some time to open
 
