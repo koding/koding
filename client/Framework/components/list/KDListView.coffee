@@ -52,10 +52,10 @@ class KDListView extends KDView
 
   removeItem:(itemInstance, itemData, index)->
 
-    if index
+    if index?
       @emit 'ItemIsBeingDestroyed', { view : @items[index], index : index }
-      @items.splice index,1
-      item.destroy()
+      item = @items.splice index,1
+      item[0].destroy()
       return
     else
       for item,i in @items

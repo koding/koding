@@ -54,6 +54,8 @@ class Activity12345 extends AppController
     mainController = @getSingleton('mainController')
     account        = KD.whoami()
 
+    # mainController.popupController = new VideoPopupController
+
     unless localStorage.welcomeMessageClosed?
       mainView.addSubView header = new WelcomeHeader
         type      : "big"

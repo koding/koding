@@ -18,12 +18,14 @@ var oldData;
 
 function receiveMessage(event)
 {
-  if(event.data.embed!=oldData){
-    oldData = event.data.embed
-    var targetDiv = document.getElementById("placeholder");
-    var sourceDiv = document.createElement('div');
-    sourceDiv.innerHTML = event.data.embed
-    targetDiv.innerHTML = sourceDiv.firstChild.nodeValue;
+  if(event.data.type=="embed"){
+    if(event.data.embed!=oldData){
+      oldData = event.data.embed
+      var targetDiv = document.getElementById("placeholder");
+      var sourceDiv = document.createElement('div');
+      sourceDiv.innerHTML = event.data.embed
+      targetDiv.innerHTML = sourceDiv.firstChild.nodeValue;
+    }
   }
 }
 
@@ -50,7 +52,8 @@ function moveWindowTowardsTop (newCoordinates) {
       width  : screen.availWidth,
     }
   }
-  // Calculates the height of the Windows title/Address Bar
+
+  // Calculates the height of the Windows Title/Address Bar
   var topOffset = coordinates.browser.topOffset;
   if(window.navigator.userAgent.indexOf("Chrome")>0){
     topOffset+=22
