@@ -258,7 +258,7 @@ class EmbedBoxLinkViewImageSwitch extends KDView
           @getDelegate().embedImage.setSrc @utils.proxifyUrl imgSrc
         else
           # imgSrc is undefined - this would be the place for a default
-          fallBackImgSrc="https://koding.com/images/service_icons/Koding.png"
+          fallBackImgSrc = "https://koding.com/images/service_icons/Koding.png"
           @getDelegate().embedImage.setSrc fallBackImgSrc
 
         # Either way, set the embedImageIndex to the appropriate nr

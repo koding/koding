@@ -1,3 +1,150 @@
+class VideoPopupController extends KDController
+  constructor:(options,data)->
+    super options,data
+    # if not @getSingleton("windowController").videoPopups?
+    #   @getSingleton("windowController").videoPopups = []
+
+    @videoPopups = []
+    # log "VideoPopupController initialized"
+
+  newPopup:(url, windowTitle, optionString, imageTitle, imageThumb)->
+    # log "Arguments in newPopup",arguments
+    newWindow = window.open url, windowTitle, optionString
+    newWindow.onbeforeunload = (newWindowEvent)=>
+      # log "VideoPopupController newPopup Window received onbeforeunload",newWindow
+      newWindow.onbeforeunload = noop
+      @closePopup newWindow
+      undefined
+    @videoPopups.push newWindow
+    # log "VideoPopupController added window to stack"
+    @emit "PopupOpened",newWindow,
+      title : imageTitle
+      thumb : imageThumb
+    return newWindow
+
+  listPopups:()->
+    @videoPopups
+
+  countPopups:()->
+    @videoPopups.length
+
+  focusWindowByName:(windowName,callback=noop)->
+    for video in @videoPopups
+      if video.name is windowName
+        video.focus()
+
+  closeWindowByName:(windowName,callback=noop)->
+    for video in @videoPopups
+      if video?.name is windowName
+        @closePopup video
+
+  closePopup:(popupWindow)->
+    # log "VideoPopupController closePopup called"
+    for videoPopup,i in @videoPopups
+      if popupWindow is videoPopup
+        @videoPopups.splice i,1
+        @emit "PopupClosed",popupWindow.name,i
+    popupWindow?.close()
+    # log "VideoPopup Controller closed a window"
+
+
+class VideoPopupList extends KDListView
+  constructor:(options,data)->
+    super options,data
+    @setClass "video-popup-list"
+
+    @controller = @getSingleton("mainController").popupController
+
+    @controller.on "PopupOpened", (popup,data) =>
+      # log "VideoPopupList adding item",popup
+      @addItem
+        delegate : @
+        name : popup.name or "New Window"
+        title : data.title
+        thumb : data.thumb
+      @resizeView()
+
+    @controller.on "PopupClosed", (popupName,index) =>
+      # log "VideoPopupList removing item",popupName,index
+      @removeItem {},{},index
+      # @utils.wait => log "VideoPopupList items are",@items
+      @resizeView()
+
+    @on "FocusWindow", (windowName)=>
+      @controller.focusWindowByName windowName, =>
+        @resizeView()
+    @on "CloseWindow", (windowName)=>
+      @controller.closeWindowByName windowName, =>
+        @resizeView()
+
+    @hasNoItems = new KDView
+      cssClass : "has-no-video"
+      partial : "There are no open Videos"
+
+    @addSubView @hasNoItems
+
+
+  resizeView:->
+    switch @controller.countPopups()
+      when 0
+        @hasNoItems.show()
+        @getSingleton("mainView")?.videoButton?.unsetClass "has-videos"
+        @unsetClass "layout1x1"
+        @unsetClass "layout2x2"
+        @unsetClass "layout3x3"
+      when 1
+        @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        @setClass "layout1x1"
+        @unsetClass "layout2x2"
+        @unsetClass "layout3x3"
+      when 2,3,4
+        @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        @unsetClass "layout1x1"
+        @setClass "layout2x2"
+        @unsetClass "layout3x3"
+      else
+        @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        @unsetClass "layout1x1"
+        @unsetClass "layout2x2"
+        @setClass "layout3x3"
+
+
+class VideoPopupListItem extends KDListItemView
+  constructor:(options,data)->
+    super options,data
+    @setClass "video-popup-list-item"
+
+    @focusWindowBar = new KDView
+      cssClass : "overlay-bar focus"
+      partial : "<span class='overlay-text'>Focus</span>"
+      click : =>
+        @getDelegate().emit "FocusWindow", @getData().name
+
+    @closeWindowBar = new KDView
+      cssClass : "overlay-bar close"
+      partial : "<span class='overlay-text'>Close</span>"
+      click : =>
+        @getDelegate().emit "CloseWindow", @getData().name
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  # click:()->
+  #   @getDelegate().emit "FocusWindow", @getData().name
+
+  pistachio:->
+    """
+    <img title="#{@getData().title}" src="#{@utils.proxifyUrl @getData().thumb}" />
+    {{> @focusWindowBar}}
+    {{> @closeWindowBar}}
+    """
+
+
+
 class VideoPopup extends KDView
 
 # THIS NEEDS A DELEGATE
@@ -5,10 +152,12 @@ class VideoPopup extends KDView
   constructor:(options,data)->
     super options,data
     @setClass "hidden invisible"
-    @videoPopup = @getSingleton("windowController").videoPopup
+
     @embedData = data
     @options = options
+    @controller = @getSingleton("mainController").popupController
 
+    # log "New VideoPopup", options, data
 
   openVideoPopup:->
     h=@getDelegate().getHeight()
@@ -16,10 +165,9 @@ class VideoPopup extends KDView
     t=@getDelegate().$().offset()
     @videoPopup?.close()
 
-    popupUrl = "video-container.html"
+    popupUrl = "/video-container.html"
 
-    @videoPopup = window.open popupUrl, "KodingVideo", "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}"
-    @getSingleton("windowController").videoPopup = @videoPopup
+    @videoPopup = @controller.newPopup popupUrl, "KodingVideo_"+Math.random().toString(36).substring(7), "menubar=no,location=no,resizable=yes,titlebar=no,scrollbars=no,status=no,innerHeight=#{h},width=#{w},left=#{t.left+window.screenX},top=#{window.screenY+t.top+(window.outerHeight - window.innerHeight)}", @options.title, @options.thumb
 
     @utils.wait 1500, =>          # give the popup some time to open
 
@@ -62,17 +210,15 @@ class VideoPopup extends KDView
               window.clearInterval countdownInterval
 
               unless userChoice
-                @videoPopup?.close()
+                @controller.closePopup @videoPopup
                 modal.destroy()
 
-      embed =
-        embed : @embedData
+      command =
+        type   : "embed"
+        embed  : @embedData
         coordinates :
           left : @options.popup?.left or t.left+window.screenX or 100
-          top : @options.popup?.top or window.screenY+t.top+(window.outerHeight - window.innerHeight) or 100
-          # height : @options.popup?.height or h or 100
-          # width : @options.popup?.width or w or 100
+          top  : @options.popup?.top or window.screenY+t.top+(window.outerHeight - window.innerHeight) or 100
 
-      if embed and @videoPopup
-        @videoPopup.postMessage embed, "*"
-      else @videoPopup?.close()
+      if command and @videoPopup
+        @videoPopup.postMessage command, "*"

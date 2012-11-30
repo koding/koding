@@ -51,13 +51,13 @@ class ActivityStatusUpdateWidget extends KDFormView
       # the request lock should circumvent this problem.
 
       blur:=>
-        @requestEmbed()
+        @utils.wait 1000, =>
+          @requestEmbed()
 
       keyup:=>
         # this needs to be refactored, this will only capture URLS when the user
-        # adds a space after them
-
-        if ($(event.which)[0] is 32) # when space key is hit, URL is usually complete
+        # adds a space after them or tabs out
+        if ($(event.which)[0] is 32) or ($(event.which)[0] is 9) # when space key is hit, URL is usually complete
           @requestEmbed()
 
     @cancelBtn = new KDButtonView
@@ -79,6 +79,23 @@ class ActivityStatusUpdateWidget extends KDFormView
         no
 
     @embedBox = new EmbedBox embedOptions, data
+
+    @embedUnhideLink = new KDCustomHTMLView
+      cssClass : 'unhide-embed-link'
+      tagName : "a"
+      partial : "Re-enable embedding URLs"
+      attributes :
+        href : ""
+      click :(event)=>
+        event.preventDefault()
+        event.stopPropagation()
+        @embedBox.show()
+        @embedBox.removeEmbedHiddenItem "embed"
+        @embedUnhideLink.hide()
+
+    @embedUnhideLink.hide()
+    @embedBox.on "EmbedIsHidden", =>
+      @embedUnhideLink.show()
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -150,7 +167,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @largeInput.setValue @sanitizeUrls @largeInput.getValue()
 
-    unless @requestEmbedLock is on
+    unless "embed" in @embedBox.getEmbedHiddenItems() or @requestEmbedLock is on
 
       @requestEmbedLock = on
 
@@ -174,6 +191,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
               @requestEmbedLock = off
               @previousURL = firstUrl?[0]
+
           else
             @requestEmbedLock = off
         else
@@ -233,6 +251,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       # when in edit mode, show the embed and remove any "embed" from hidden
       @embedBox.embedExistingData link.link_embed, {forceShow:yes}, =>
         @embedBox.show()
+        @embedUnhideLink.hide()
       , link.link_cache
     else
       @embedBox.hide()
@@ -287,7 +306,13 @@ class ActivityStatusUpdateWidget extends KDFormView
   pistachio:->
     """
     <div class="small-input">{{> @smallInput}}</div>
-    <div class="large-input">{{> @largeInput}}{{> @inputLinkInfoBox}}</div>
+    <div class="large-input">
+      {{> @largeInput}}
+      {{> @inputLinkInfoBox}}
+      <div class="unhide-embed">
+      {{> @embedUnhideLink}}
+      </div>
+    </div>
     <div class="formline">
     {{> @embedBox}}
     </div>
@@ -334,6 +359,9 @@ class InfoBox extends KDView
 
       callback:(state)=>
         @getDelegate().appStorage.setValue 'UrlSanitizerCheckboxIsChecked', state, =>
+          if state
+            @getDelegate().largeInput.setValue @getDelegate().sanitizeUrls @getDelegate().largeInput.getValue()
+
 
     @inputLinkInfoBoxCloseButton = new KDButtonView
       name: "hide-info-box"

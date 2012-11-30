@@ -113,12 +113,37 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "AllApplicationPanesClosed", =>
-      if @mainTabView.panes.length is 0
-        @getSingleton('router').handleRoute "/Activity"
+    mainController = @getSingleton('mainController')
+    mainController.popupController = new VideoPopupController
+
+    @videoButton = new KDButtonView
+      cssClass : "video-popup-button"
+      icon : yes
+      title : "Video"
+      callback :=>
+        unless @popupList.$().hasClass "hidden"
+          @videoButton.unsetClass "active"
+          @popupList.hide()
+        else
+          @videoButton.setClass "active"
+          @popupList.show()
+
+    @videoButton.hide()
+
+    @popupList = new VideoPopupList
+      cssClass      : "hidden"
+      type          : "videos"
+      itemClass     : VideoPopupListItem
+      delegate      : @
+    , {}
+
+    @mainTabView.on "AllPanesClosed", ->
+      @getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
+    @contentPanel.addSubView @videoButton
+    @contentPanel.addSubView @popupList
 
   createSideBar:->
 
