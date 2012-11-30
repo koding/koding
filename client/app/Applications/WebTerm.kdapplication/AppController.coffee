@@ -13,7 +13,14 @@ class WebTermController extends AppController
       @propagateEvent
        KDEventType  : "ApplicationWantsToClose"
        globalEvent  : yes
-      , {options: null, data: view}
+      , data: view
+
+    view.on 'ViewClosed', =>
+      @propagateEvent
+        KDEventType : 'ApplicationWantsToClose'
+        globalEvent : yes
+      ,
+        data : view
 
   bringToFront: ->
 

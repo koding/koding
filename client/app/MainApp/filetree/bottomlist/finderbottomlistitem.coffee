@@ -22,7 +22,7 @@ class FinderBottomControlsListItem extends KDListItemView
     super
 
     data = @getData()
-    unless data.path or data.action
+    unless data.appPath or data.action
       @$().twipsy
         title     : "<p class='login-tip'>Coming Soon</p>"
         placement : "right"

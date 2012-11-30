@@ -80,4 +80,13 @@ koding.connect ->
       require './models/messages/tutorial'
     ]
 
+  if KONFIG.misc?.debugConnectionErrors then
+    # console.log 'ffaafafafaf'
+    # TEST AMQP WITH THIS CODE. IT THROWS THE CHANNEL ERROR.
+    # koding.disconnect ->
+    #   console.log "[SOCIAL WORKER #{name}] is reached end of its life, will die in 10 secs."
+    #   setTimeout ->
+    #     process.exit()
+    #   ,10*1000
+
 console.log 'Koding Social Worker has started.'

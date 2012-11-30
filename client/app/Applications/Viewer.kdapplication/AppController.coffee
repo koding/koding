@@ -26,9 +26,9 @@ class Viewer12345 extends KDViewController
     callback()
 
   openFile: (path, options = {})=>
-    document = @createNewDocument() unless (document = @getFrontDocument())?.isDocumentClean()
-    @bringToFront document, path, ->
-      document.openPath path
+    doc = @createNewDocument() unless (doc = @getFrontDocument())?.isDocumentClean()
+    @bringToFront doc, path, ->
+      doc.openPath path
 
   doesOpenDocumentsExist:()->
     if @openDocuments.length > 0 then yes else no
@@ -40,30 +40,30 @@ class Viewer12345 extends KDViewController
     [backDocuments...,frontDocument] = @getOpenDocuments()
     frontDocument
 
-  addOpenDocument:(document)->
-    appManager.addOpenTab document, 'Viewer.kdApplication'
-    @openDocuments.push document
+  addOpenDocument:(doc)->
+    appManager.addOpenTab doc, 'Viewer.kdApplication'
+    @openDocuments.push doc
 
-  removeOpenDocument:(document)->
-    appManager.removeOpenTab document, @
-    @openDocuments.splice (@openDocuments.indexOf document), 1
+  removeOpenDocument:(doc)->
+    appManager.removeOpenTab doc, @
+    @openDocuments.splice (@openDocuments.indexOf doc), 1
 
   createNewDocument:()->
-    document = new PreviewerView()
-    document.on "viewAppended", @loadDocumentView.bind @
-    document.registerListener KDEventTypes:'ViewClosed', listener:@, callback:@closeDocument
-    @addOpenDocument document
-    document
+    doc = new PreviewerView()
+    doc.on "viewAppended", @loadDocumentView.bind @
+    doc.on 'ViewClosed', => @closeDocument doc
+    @addOpenDocument doc
+    return doc
 
-  closeDocument:(document)->
-    document.parent.removeSubView document
-    @removeOpenDocument document
-    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : document
-    document.destroy()
+  closeDocument:(doc)->
+    doc.parent.removeSubView doc
+    @removeOpenDocument doc
+    @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent : yes), data : doc
+    doc.destroy()
 
-  loadDocumentView:(documentView)->
-    if (file = documentView.file)?
-      document.openPath file.path
+  loadDocumentView:(docView)->
+    if (file = docView.file)?
+      doc.openPath file.path
 
 class PreviewerView extends KDView
 
