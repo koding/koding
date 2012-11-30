@@ -29,6 +29,7 @@ module.exports = deepFreeze
   buildClient   : no
   misc          :
     claimGlobalNamesForUsers: no
+    # debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no
     distribution: 'https://d2mehr5c6bceom.cloudfront.net'
