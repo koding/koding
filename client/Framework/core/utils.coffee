@@ -137,8 +137,8 @@ __utils =
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '
-    text = @expandUrls @expandUsernames text
     text = __utils.putShowMore text if shorten
+    text = @expandUrls @expandUsernames text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
@@ -232,17 +232,16 @@ __utils =
       maxLength : l + Math.floor(l/10)
       suffix    : ''
 
-    log "Length comparison", shortenedText.length-(Encoder.htmlEncode(shortenedText).length)
-
-    text = if text.length > shortenedText.length
-      morePart  = "<span class='collapsedtext hide'>"
+    # log "[#{text.length}:#{Encoder.htmlEncode(text).length}/#{shortenedText.length}:#{Encoder.htmlEncode(shortenedText).length}]"
+    text = if Encoder.htmlEncode(text).length > Encoder.htmlEncode(shortenedText).length
+      morePart = "<span class='collapsedtext hide'>"
       morePart += "<a href='#' class='more-link' title='Show more...'>···</a>"
-      morePart += text.substr shortenedText.length
+      morePart += Encoder.htmlEncode(text).substr Encoder.htmlEncode(shortenedText).length
       morePart += "<a href='#' class='less-link' title='Show less...'>···</a>"
       morePart += "</span>"
-      shortenedText + morePart
+      Encoder.htmlEncode(shortenedText) + morePart
     else
-      shortenedText
+      Encoder.htmlEncode shortenedText
 
   shortenText:do ->
     tryToShorten = (longText, optimalBreak = ' ', suffix)->
