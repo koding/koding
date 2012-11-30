@@ -97,11 +97,11 @@ class AboutView extends JView
         nickname  : 'gokmen'
         job       : 'Software Engineer'
         image     : '../images/people/gokmen.jpg'
-      ,
-        name      : 'Son Tran-Nguyen'
-        nickname  : 'sntran'
-        job       : 'Software Engineer'
-        image     : '../images/people/son.jpg'
+      # ,
+      #   name      : 'Son Tran-Nguyen'
+      #   nickname  : 'sntran'
+      #   job       : 'Software Engineer'
+      #   image     : '../images/people/son.jpg'
       ,
         name      : 'Arvid Kahl'
         nickname  : 'arvidkahl'

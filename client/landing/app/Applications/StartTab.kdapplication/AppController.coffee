@@ -17,25 +17,20 @@ class StartTab12345 extends AppController
         controller    : @
       data : frontTab
 
-    @setViewListeners frontTab
+    # @setViewListeners frontTab
 
-  setViewListeners:(view)->
-    @listenTo
-      KDEventTypes       : 'ViewClosed',
-      listenedToInstance : view
-      callback           : (tab)=>
-        @removeOpenTab tab
-        @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : tab
-        tab.destroy()
+  # setViewListeners:(view)->
+  #   view.on 'ViewClosed', =>
+  #     @removeOpenTab view
+  #     @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : view
+  #     view.destroy()
 
   createNewTab:->
     appController = @
-    tab = new StartTabMainView
-      delegate  : @
-    # tab.listenTo KDEventTypes:'ViewClosed', callback:@closeTab
+    tab = new StartTabMainView delegate  : @
+    tab.on 'ViewClosed', => @closeTab tab
     @addOpenTab tab
-
-    tab
+    return tab
 
   addOpenTab:(tab)->
     appManager.addOpenTab tab, @
