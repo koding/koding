@@ -68,6 +68,9 @@ koding.on 'auth', (exchange, sessionToken)->
     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 
 koding.connect ->
+  if KONFIG.misc?.claimGlobalNamesForUsers
+    require('./models/account').reserveNames console.log
+
   if KONFIG.misc?.updateAllSlugs
     require('./traits/slugifiable').updateSlugsByBatch 100, [
       require './models/tag'

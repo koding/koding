@@ -43,7 +43,7 @@ module.exports = class JAccount extends jraphical.Module
       static      : [
         'one', 'some', 'someWithRelationship'
         'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion'
+        'byRelevance', 'fetchVersion','reserveNames'
       ]
       instance    : [
         'modify','follow','unfollow','fetchFollowersWithRelationship'
@@ -161,6 +161,29 @@ module.exports = class JAccount extends jraphical.Module
       feed         :
         as          : "owner"
         targetType  : "JFeed"
+
+  @reserveNames =(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+    options.limit ?= 100
+    options.skip ?= 0
+    JName = require './name'
+    @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
+      if err then callback err
+      else
+        count = 0
+        cursor.each (err, account)=>
+          if err then callback err
+          else if account?
+            {nickname} = account.profile
+            JName.claim nickname, 'JUser', 'profile.nickname', (err, name)=>
+              count++
+              if err then callback err
+              else
+                callback err, nickname
+                if count is options.limit
+                  options.skip += options.limit
+                  @reserveNames options, callback
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
