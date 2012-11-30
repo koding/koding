@@ -52,7 +52,7 @@ module.exports = class JInvitation extends jraphical.Module
       redeemer      :
         targetType  : JAccount
         as          : 'redeemer'
-
+  
   createBetaInvite = (options, callback)->
     {inviterUsername, inviteeEmail, inviteType} = options
     inviterUsername ?= "devrim"
@@ -216,12 +216,33 @@ module.exports = class JInvitation extends jraphical.Module
   @getInviteMessage =({inviter, url, message})->
     message or= "#{inviter} has invited you to Koding!"
     """
-    Hi there,
+    Hi there, we hope this is good news :) because,
 
     #{message}
 
-    This URL will allow you to create an account:
+    This link will allow you to create an account:
     #{url}
+
+    If you reply to this email, it will go back to your friend who invited you.
+    
+    Enjoy! :)
+    
+    ------------------
+    If you're curious, here is a bit about Koding, http://techcrunch.com/2012/07/24/koding-launch/
+
+    In very short, Koding lets you code, share and have fun.
+
+    notes:
+    - of course you can mail us back if you like... (hello@koding.com)
+    - this is still beta, expect bugs, please don’t be surprised if you spot one.
+    - if you already have an account, you can forward this to a friend.
+    - no matter how you signed up, you will not receive any mailings, newsletters and other crap.
+    - if you’ve never signed up (sometimes people type emails wrong, and it happens to be yours), please let us know.
+    - take a look at http://wiki.koding.com for things you can do.
+    - if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
+
+    Whole Koding Team welcomes you, 
+    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson    
     """
 
   @byCode = (code, callback)-> @one {code}, callback
@@ -241,6 +262,39 @@ module.exports = class JInvitation extends jraphical.Module
       else
         invite.addInvitedBy delegate, callback
 
+
+  @sendInviteEmail = (invite,client,customMessage,limit,callback) ->
+    {delegate} = client.connection
+    {host, protocol} = require('../config').email
+    protocol = if host is 'localhost' then 'http:' else 'https:'
+    protocol ?= protocol.split(':').shift()+':'
+    messageOptions =
+      subject   : customMessage.subject
+      body      : customMessage.body
+      inviter   : delegate.getFullName()
+      url       : "#{protocol}//#{host}/Invitation/#{encodeURIComponent invite.code}"
+
+    JUser = require './user'
+    JUser.fetchUser client,(err,inviter)=>
+
+      Emailer.send
+        From      : @getInviteEmail()
+        To        : invite.inviteeEmail
+        Subject   : @getInviteSubject(messageOptions)
+        TextBody  : @getInviteMessage(messageOptions)
+        ReplyTo   : inviter.email
+      ,(err) ->
+        unless err
+          callback null
+          console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
+          limit.update {$inc: usage: 1}, (err)-> console.log err if err
+          invite.update {$set: status: "sent"}, (err)-> console.log err if err
+        else
+          limit.update  {$inc: usage: 1}, (err)-> console.log err if err
+          invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
+          callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
+
+
   @create = secure (client, options, callback)->
     {delegate} = client.connection
     {emails, subject, customMessage, type} = options
@@ -250,54 +304,31 @@ module.exports = class JInvitation extends jraphical.Module
       else if !limit? or limit? and emails.length > limit.getValue()
         callback new KodingError "You don't have enough invitation quota"
       else
-        emails.forEach (email)=>
-          code = crypto
-            .createHmac('sha1', 'kodingsecret')
-            .update(email)
-            .digest('hex')
-          invite = new JInvitation {
-            code
-            customMessage
-            maxUses       : 1
-            inviteeEmail  : email
-            origin        : ObjectRef(delegate)
-          }
-          invite.save (err)=>
-            if err
-              callback err
+        emails.forEach (email)=>          
+          JInvitation.one {"inviteeEmail":email},(err,inv)=>
+            unless err
+              @sendInviteEmail inv,client,customMessage,limit,callback
             else
-              invite.addInvitedBy delegate, (err)=>
-                if err
-                  callback err
+              code = crypto
+                .createHmac('sha1', 'kodingsecret')
+                .update(email)
+                .digest('hex')
+              invite = new JInvitation {
+                code
+                customMessage
+                maxUses       : 1
+                inviteeEmail  : email
+                origin        : ObjectRef(delegate)
+              }
+              invite.save (err)=>
+                if err then callback err
                 else
-                  {host, protocol} = require('../config').email
-                  protocol = if host is 'localhost' then 'http:' else 'https:'
-                  protocol ?= protocol.split(':').shift()+':'
-                  messageOptions =
-                    subject   : customMessage.subject
-                    body      : customMessage.body
-                    inviter   : delegate.getFullName()
-                    url       : "#{protocol}//#{host}/Invitation/#{encodeURIComponent code}"
+                  invite.addInvitedBy delegate, (err)=>
+                    if err then callback err
+                    else 
+                      @sendInviteEmail invite,client,customMessage,limit,callback
 
-                  JUser = require './user'
-                  JUser.fetchUser client,(err,user)=>
-                    inviterEmail = user.email
 
-                    Emailer.send
-                      From      : @getInviteEmail()
-                      To        : email
-                      Subject   : @getInviteSubject(messageOptions)
-                      TextBody  : @getInviteMessage(messageOptions)
-                      ReplyTo   : inviterEmail
-                    , (err)->
-                      unless err
-                        callback null
-                        limit.update {$inc: usage: 1}, (err)-> console.log err if err
-                        invite.update {$set: status: "sent"}, (err)-> console.log err if err
-                      else
-                        limit.update  {$inc: usage: 1}, (err)-> console.log err if err
-                        invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
-                        callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}
