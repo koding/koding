@@ -137,8 +137,8 @@ __utils =
     return null unless text
     # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
     text = text.replace /&#10;/g, ' '
+    text = @expandUrls @expandUsernames text
     text = __utils.putShowMore text if shorten
-    @expandUrls @expandUsernames text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
@@ -230,7 +230,9 @@ __utils =
     shortenedText = __utils.shortenText text,
       minLength : l
       maxLength : l + Math.floor(l/10)
-      suffix    : ' '
+      suffix    : ''
+
+    log "Length comparison", shortenedText.length-(Encoder.htmlEncode(shortenedText).length)
 
     text = if text.length > shortenedText.length
       morePart  = "<span class='collapsedtext hide'>"
@@ -254,17 +256,31 @@ __utils =
       suffix    = options.suffix     ? '...'
 
       longTextLength  = Encoder.htmlDecode(longText).length
-
-      return longText if longTextLength < minLength or longTextLength < maxLength
-
       longText = Encoder.htmlDecode longText
-      longText = longText.substr 0, maxLength
+
+      tempText = longText.slice 0, maxLength
+      lastClosingTag = tempText.lastIndexOf "</a"
+      lastOpeningTag = tempText.lastIndexOf "<a"
+
+
+      if lastOpeningTag <= lastClosingTag
+        finalMaxLength = maxLength
+      else
+        finalMaxLength = lastOpeningTag
+
+      return longText if longText.replace(/(<([^>]+)>)/ig,"").length < minLength or longText.replace(/(<([^>]+)>)/ig,"").length < maxLength
+
+      longText = longText.substr 0, finalMaxLength
 
       # prefer to end the teaser at the end of a sentence (a period).
       # failing that prefer to end the teaser at the end of a word (a space).
       candidate = tryToShorten(longText, '. ', suffix) or tryToShorten longText, ' ', suffix
 
-      Encoder.htmlEncode \
+      # Encoder.htmlDecode Encoder.htmlEncode \
+      #   if candidate?.length > minLength then candidate
+      #   else longText
+
+      return \
         if candidate?.length > minLength then candidate
         else longText
 
