@@ -2043,18 +2043,32 @@ div.show-tutorial-embed
 .scrollable-y
   overflow-y scroll!important
 
+.scroll-highlight
+    animation-name: flashOrange
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-direction: alternate;
+    animation-timing-function: ease-in-out;
+
 .scrollable-x
   overflow-x scroll!important
+
+@keyframes flashOrange
+    10%
+      border-color #ff9200
 
 .scrollable
   overflow-x scroll
   overflow-y scroll
+
+
+
 .scrolling-both
-    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4) \,inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+    vendor box-shadow, inset 0 10px 10px -10px rgba(0,0,0,0.15) \,inset 0 -10px 10px -10px rgba(0,0,0,0.15)
 .scrolling-up
-    vendor box-shadow, inset 0 10px 20px -10px rgba(0,0,0,0.4)
+    vendor box-shadow, inset 0 10px 10px -10px rgba(0,0,0,0.15)
 .scrolling-down
-    vendor box-shadow, inset 0 -10px 20px -10px rgba(0,0,0,0.4)
+    vendor box-shadow, inset 0 -10px 10px -10px rgba(0,0,0,0.15)
 
 .scrolling-up-outset
     vendor box-shadow, 0 5px 15px -5px rgba(0,0,0,0.1)
