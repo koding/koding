@@ -147,6 +147,7 @@ class TutorialActivityItemView extends ActivityItemChild
         @checkForCompleteAnimationInterval = window.setInterval =>
           if (parseInt(@scrollAreaOverlay.$().css("top"),10)+@$("div.tutorial div.body").scrollTop()) >= @scrollAreaOverlay.$().height()
             @scrollAreaOverlay.hide()
+            @$("div.tutorial").addClass "scroll-highlight"
             @$("div.tutorial div.body").addClass "scrollable-y"
             @$("div.tutorial div.body").removeClass "no-scroll"
             clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
@@ -156,6 +157,7 @@ class TutorialActivityItemView extends ActivityItemChild
         clearTimeout @transitionStart if @transitionStart?
         clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         @scrollAreaOverlay.$().css top:"0px"
+        @$("div.tutorial").removeClass "scroll-highlight"
         @$("div.tutorial div.body").removeClass "scrollable-y"
         @$("div.tutorial div.body").addClass "no-scroll"
         @scrollAreaOverlay.show()
