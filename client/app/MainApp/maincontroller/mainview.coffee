@@ -128,6 +128,8 @@ class MainView extends KDView
           @videoButton.setClass "active"
           @popupList.show()
 
+    @videoButton.hide()
+
     @popupList = new VideoPopupList
       cssClass      : "hidden"
       type          : "videos"
