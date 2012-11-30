@@ -88,21 +88,25 @@ class VideoPopupList extends KDListView
     switch @controller.countPopups()
       when 0
         @hasNoItems.show()
+        @getSingleton("mainView")?.videoButton?.unsetClass "has-videos"
         @unsetClass "layout1x1"
         @unsetClass "layout2x2"
         @unsetClass "layout3x3"
       when 1
         @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @setClass "layout1x1"
         @unsetClass "layout2x2"
         @unsetClass "layout3x3"
       when 2,3,4
         @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @unsetClass "layout1x1"
         @setClass "layout2x2"
         @unsetClass "layout3x3"
       else
         @hasNoItems.hide()
+        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @unsetClass "layout1x1"
         @unsetClass "layout2x2"
         @setClass "layout3x3"

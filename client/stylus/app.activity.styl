@@ -2140,16 +2140,72 @@ div.activity-content-container
   margin 10px
   line-height 150%
 
-.video-popup-button
+.video-popup-button.kdbutton.with-icon
   position absolute
   top -25px
   right 0px
   z-index: 10
 
+  rounded(3px 0px 0px 0px)
+  color             rgba(255,255,255,0.85)
+  line-height       23px
+  font-size         11px
+  padding           0 5px 0 10px
+  height            25px
+  border            1px solid rgba(255,255,255,.15)
+  border-right      1px solid transparent
+  overflow          hidden
+  cursor            pointer
+  text-shadow       0 -1px 0 rgba(0,0,0,.61)
+  bg                color,rgba(255,255,255,.2)
+  gradient          rgba(0,0,0,.11),rgba(255,255,255,.04)
+  shadow            inset 0 -5px 5px -5px rgba(0,0,0,0.4)
+
+  span.icon
+    margin      1px 0px 0 -5px
+    size        15px,20px
+    sprite()
+    bg          position,-0px -140px
+    fl()
+
+  span.button-title
+      margin-right    20px
+      z-index       0
+      font-weight   normal
+      text-overflow ellipsis
+      white-space   nowrap
+      overflow      hidden
+      width         auto
+      margin-right  0
+      display       block
+
+  &.has-videos
+    span.icon
+      margin      1px 5px 0 -10px
+      bg          position,-15px -140px
+
+
+  &:hover
+    bg          color,rgba(255,255,255,.3)
+
+  &.active
+    color         black
+    text-shadow   none
+    bg            color,white
+    gradient      white,white
+    shadow        none
+    span.close-tab
+      bg          color,transparent
+    span.error
+      color         red
+
+
 .video-popup-list
   borderBox()
   padding 10px 5px
-  border 1px solid black
+  border 1px solid #e8e8e8
+  border-top transparent
+  border-right transparent
   background-color white
   position: absolute
   top 0px
@@ -2158,7 +2214,11 @@ div.activity-content-container
   width auto
   max-width 550px
   vendor transition, all 0.5s linear
-  vendor box-shadow, 0px 0px 10px black
+  vendor box-shadow, -5px 5px 10px -5px rgba(0,0,0,0.1)
+
+  .has-no-video
+    padding 5px 10px
+    font-size 12px
 
   &.layout1x1
     max-width 230px
