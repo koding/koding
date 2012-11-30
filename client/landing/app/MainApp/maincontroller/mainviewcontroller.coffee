@@ -28,8 +28,14 @@ class MainViewController extends KDViewController
     paneName            = pane.options.name
     navItemName         = paneName
 
-    if appManager.isAppUnderDevelop pane.getData().getDelegate()
+
+    if appManager.isAppUnderDevelop pane.name
       @getSingleton('router').handleRoute '/Develop', suppressListeners: yes
+    else
+      if pane.name isnt @getSingleton('router').getCurrentPath()
+        @getSingleton('router').handleRoute "/#{pane.name}", suppressListeners: yes
+
+    log pane.name, @getSingleton('router').getCurrentPath()
 
     if paneType is 'application'
       mainView.setViewState 'application'
