@@ -64,6 +64,8 @@ class KodingAppsController extends KDController
 
     @kiteController = @getSingleton('kiteController')
 
+    appManager.addAppInstance "KodingAppsController", @
+
   # #
   # FETCHERS
   # #
@@ -281,12 +283,28 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-          mainView = @getSingleton('mainView')
-          mainView.mainTabView.showPaneByView
-            name         : manifest.name
-            hiddenHandle : no
-            type         : "application"
-          , (appView = new KDView)
+          # mainView = @getSingleton('mainView')
+          # mainView.mainTabView.showPaneByView
+          #   name         : manifest.name
+          #   hiddenHandle : no
+          #   type         : "application"
+          # , (appView = new KDView)
+
+          @propagateEvent
+            KDEventType     : 'ApplicationWantsToBeShown'
+            globalEvent     : yes
+          ,
+            options         :
+              name          : manifest.name
+              hiddenHandle  : no
+              type          : 'application'
+            data            : appView = new KDView
+
+          appView.on 'ViewClosed', =>
+            @propagateEvent (KDEventType : 'ApplicationWantsToClose', globalEvent: yes), data : appView
+            appManager.removeOpenTab appView
+            appView.destroy()
+
           try
             # security please!
             do (appView)->

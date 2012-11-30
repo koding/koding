@@ -113,8 +113,9 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "AllPanesClosed", ->
-      @getSingleton('router').handleRoute "/Activity"
+    @mainTabView.on "AllApplicationPanesClosed", =>
+      if @mainTabView.panes.length is 0
+        @getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
