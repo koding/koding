@@ -135,10 +135,20 @@ __utils =
 
   applyTextExpansions: (text, shorten)->
     return null unless text
-    # @expandWwwDotDomains @expandUrls @expandUsernames @expandTags text
+
     text = text.replace /&#10;/g, ' '
+    text = @expandUsernames text
+
+    # Expand URLs with intention to replace them after putShowMore
+    {links,text} = @expandUrls text, yes
+
     text = __utils.putShowMore text if shorten
-    text = @expandUrls @expandUsernames text
+
+    # Reinsert URLs into text
+    if links? then for link,i in links
+      text = text.replace "[tempLink#{i}]", link
+
+    return text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 
   expandWwwDotDomains: (text) ->
@@ -179,21 +189,11 @@ __utils =
       tag = t.replace "#", ""
       "<a href='#!/topic/#{tag}' class='ttag'><span>#{tag}</span></a>"
 
-  expandUrls: (text) ->
+  expandUrls: (text,replaceAndYieldLinks=no) ->
     return null unless text
 
-    # urlGrabber = ///
-    #   (\s|^)                              # Start after a whitespace or string[0]
-    #   ([a-zA-Z]+\://)?                    # Captures any protocol (just not //)
-    #   (\w+:\w+@)?                         # Username:Password
-    #   ([a-zA-Z\d-]|[a-zA-Z\d-]\.)*        # Subdomains
-    #   [a-zA-Z\d-]{2,}                     # Domain name
-    #   \.                                  # THE DOT
-    #   ([a-zA-Z]{2,4}(:\d+)?)              # Domain Extension with Port
-    #   ([/\?\#][\S/]*)*                    # Some Request, greedy capture
-    #   \b                                  # Last word boundary
-    #   /?                                 # Optional trailing Slash
-    # ///g
+    links = []
+    linkCount = 0
 
     urlGrabber = ///
     (?!\s)                                                      # leading spaces
@@ -208,15 +208,17 @@ __utils =
     (?!\S)
     ///g
 
-    # used to be /(\s|^)([a-zA-Z]+\:\/\/)?(\w+:\w+@)?([a-zA-Z\d-]|[a-zA-Z\d-]\.)*[a-zA-Z\d-]{2,}\.([a-zA-Z]{2,4}(:\d+)?)([\/\?#][\S\/]*)*\b\/?/g
-    text.replace urlGrabber, (url) ->
+
+    # This will change the original string to either a fully replaced version
+    # or a version with temporary replacement strings that will later be replaced
+    # with the expanded html tags
+    text = text.replace urlGrabber, (url) ->
 
       url = url.trim()
       originalUrl = url
 
       # remove protocol and trailing path
       visibleUrl = url.replace(/(ht|f)tp(s)?\:\/\//,"").replace(/\/.*/,"")
-
       checkForPostSlash = /.*(\/\/)+.*\/.+/.test originalUrl # test for // ... / ...
 
       if not /[A-Za-z]+:\/\//.test url
@@ -224,7 +226,23 @@ __utils =
         # url has no protocol
         url = '//'+url
 
-      "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+      # Just yield a placeholder string for replacement later on
+      # this is needed if the text should get shortened, add expanded
+      # string to array at corresponding index
+      if replaceAndYieldLinks
+        links.push "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+        "[tempLink#{linkCount++}]"
+      else
+        # yield the replacement inline (good for non-shortened text)
+        "<a href='#{url}' data-original-url='#{originalUrl}' target='_blank' >#{visibleUrl}#{if checkForPostSlash then "/…" else ""}<span class='expanded-link'></span></a>"
+
+    if replaceAndYieldLinks
+      {
+        links
+        text
+      }
+    else
+      text
 
   putShowMore: (text, l = 500)->
     shortenedText = __utils.shortenText text,
@@ -258,16 +276,15 @@ __utils =
       longText = Encoder.htmlDecode longText
 
       tempText = longText.slice 0, maxLength
-      lastClosingTag = tempText.lastIndexOf "</a"
-      lastOpeningTag = tempText.lastIndexOf "<a"
-
+      lastClosingTag = tempText.lastIndexOf "]"
+      lastOpeningTag = tempText.lastIndexOf "["
 
       if lastOpeningTag <= lastClosingTag
         finalMaxLength = maxLength
       else
         finalMaxLength = lastOpeningTag
 
-      return longText if longText.replace(/(<([^>]+)>)/ig,"").length < minLength or longText.replace(/(<([^>]+)>)/ig,"").length < maxLength
+      return longText if longText.length < minLength or longText.length < maxLength
 
       longText = longText.substr 0, finalMaxLength
 
