@@ -9,7 +9,7 @@ var properties = {
     "priority"        : 9,
     "correlationId"   : "test for correlationId",
     "replyTo"         : "test for replyTo",
-    "expiration"      : "test for expiration",
+    "expiration"      : "10000",
     "messageId"       : "test for messageId",
     "timestamp"       : parseInt(Date.now() / 1000, 10),
     "type"            : "test for type",
