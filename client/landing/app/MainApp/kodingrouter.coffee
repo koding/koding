@@ -143,7 +143,7 @@ class KodingRouter extends KDRouter
 
     nouns = createLinks(
       # 'Account Activity Apps Groups Members StartTab Topics'
-      'Account Activity Apps Members StartTab Topics'
+      'Account Activity Apps Inbox Members StartTab Topics'
       (sec)-> ({params:{name}, query})-> @go sec, name, query
     )
 
@@ -167,6 +167,7 @@ class KodingRouter extends KDRouter
       '/:name?/Develop'                 : nouns.StartTab
       '/:name?/Apps'                    : nouns.Apps
       '/:name?/Account'                 : nouns.Account
+      '/:name?/Inbox'                   : nouns.Inbox
 
       # content displays:
       '/:name?/Topics/:topicSlug'       : content.Topics
