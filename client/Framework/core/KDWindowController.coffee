@@ -106,32 +106,30 @@ class KDWindowController extends KDController
         for pane in @getSingleton('mainView').mainTabView.panes
           msg = no
 
-          # Checking the Activity widgets for non-reset Input Fields
-          if pane.getOptions().type is "content" and pane.getOptions().name is "Activity"
-
-              # This cssClass needs to be added to the KDInputView OR
-              # to the wrapper (for ace)
-              pane.data.$(".warn-on-unsaved-data").each (i,element) =>
-
-                checkForUnsavedData = (el)=>
-                  foundUnsavedData = no
-
-                  # ACE-specific content check
-                  $(el).find(".ace_editor div.ace_line > span").each (i,e)=>
-                    if $(e).text()
-                      foundUnsavedData = yes
-
-                  foundUnsavedData
-
-                # If the View is a KDInputview, we don"t need to look
-                # further than the .val(). For ACE and others, we call
-                # the checkForUnsavedData function above
-                if ($(element).hasClass("kdinput") and $(element).val() or checkForUnsavedData(element))
-                  msg = "You may lose some input that you filled in."
-
           # For open Tabs (apps, editors)
-          else if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
+          if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
             msg = "Please make sure that you saved all your work."
+
+          # This cssClass needs to be added to the KDInputView OR
+          # to the wrapper (for ace)
+          pane.data.$(".warn-on-unsaved-data").each (i,element) =>
+
+            checkForUnsavedData = (el)=>
+              foundUnsavedData = no
+
+              # ACE-specific content check
+              $(el).find(".ace_editor div.ace_line > span").each (i,e)=>
+                if $(e).text()
+                  foundUnsavedData = yes
+
+              foundUnsavedData
+
+            # If the View is a KDInputview, we don"t need to look
+            # further than the .val(). For ACE and others, we call
+            # the checkForUnsavedData function above
+            if ($(element).hasClass("kdinput") and $(element).val() or checkForUnsavedData(element))
+              msg = "You may lose some input that you filled in."
+
 
       if msg # has to be created in the above checks
         event or= window.event

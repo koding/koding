@@ -381,6 +381,12 @@ class EmbedBoxLinkViewImage extends KDView
         src : "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
         alt      : @imageAltText
         title    : @imageAltText
+      click      : (event)=>
+        if @videoPopup?
+          event.stopPropagation()
+          event.preventDefault()
+          @videoPopup.openVideoPopup()
+
 
   # this will get called from the image-switch click events to update the preview
   # images when browsing the available embed links
@@ -391,6 +397,13 @@ class EmbedBoxLinkViewImage extends KDView
     super()
     @setTemplate @pistachio()
     @template.update()
+
+    if @getData().link_embed?.object?.type is "video"
+      @videoPopup = new VideoPopup
+        delegate : @imageView
+        title : @getData().link_embed?.title or "Untitled Video"
+        thumb : @getData().link_embed?.images?[0]?.url
+      ,@getData().link_embed?.object?.html
 
   pistachio:->
     """

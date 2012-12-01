@@ -52,6 +52,16 @@ class CodesnipActivityItemView extends ActivityItemChild
     @setTemplate @pistachio()
     @template.update()
 
+    @codeSnippetView.$().hover =>
+      @enableScrolling = setTimeout =>
+        @codeSnippetView.codeView.setClass 'scrollable-y'
+        @codeSnippetView.$("pre.subview").addClass 'scroll-highlight'
+
+      ,500
+    , =>
+      clearTimeout @enableScrolling
+      @codeSnippetView.codeView.unsetClass 'scrollable-y'
+      @codeSnippetView.$("pre.subview").removeClass 'scroll-highlight'
 
   pistachio:->
     # {{> @codeShareBoxView}}
@@ -146,7 +156,7 @@ class CodeSnippetView extends KDCustomHTMLView
       title : "Allow Scrolling"
       cssClass : "dark"
       callback :=>
-        @codeView.setClass "scrollable-y"
+        @codeView.setClass "scrollable-y scroll-highlight"
         @scrollEnableButton.destroy()
 
 
