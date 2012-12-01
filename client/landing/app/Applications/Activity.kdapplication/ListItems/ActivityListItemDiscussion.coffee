@@ -146,7 +146,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         @checkForCompleteAnimationInterval = setInterval =>
           if (parseInt(@scrollAreaOverlay.$().css("top"),10)+@$("div.discussion").scrollTop()) >= @scrollAreaOverlay.$().height()
             @scrollAreaOverlay.hide()
-            @$("div.discussion").addClass "scrollable-y"
+            @$("div.discussion").addClass "scrollable-y scroll-highlight"
             @$("div.discussion").removeClass "no-scroll"
             clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         ,50
@@ -155,7 +155,7 @@ class DiscussionActivityItemView extends ActivityItemChild
         clearTimeout @transitionStart if @transitionStart?
         clearInterval @checkForCompleteAnimationInterval if @checkForCompleteAnimationInterval?
         @scrollAreaOverlay.$().css top:"0px"
-        @$("div.discussion").removeClass "scrollable-y"
+        @$("div.discussion").removeClass "scrollable-y scroll-highlight"
         @$("div.discussion").addClass "no-scroll"
         @scrollAreaOverlay.show()
 
