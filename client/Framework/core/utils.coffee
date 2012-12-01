@@ -137,7 +137,6 @@ __utils =
     return null unless text
 
     text = text.replace /&#10;/g, ' '
-    text = @expandUsernames text
 
     # Expand URLs with intention to replace them after putShowMore
     {links,text} = @expandUrls text, yes
@@ -148,6 +147,7 @@ __utils =
     if links? then for link,i in links
       text = text.replace "[tempLink#{i}]", link
 
+    text = @expandUsernames text
     return text
     # @expandWwwDotDomains @expandUrls @expandUsernames text
 

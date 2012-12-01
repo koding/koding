@@ -48,15 +48,14 @@ class CommentListItemView extends KDListItemView
     @likeView = new LikeViewClean { tooltipPosition : 'sw' }, data
 
   applyTooltips:->
-    @$("p.comment-body > span.data > a").each (i,element)=>
+    @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
 
       twOptions = (title) ->
          title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
-      unless /^(#!)/.test href
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
 
-      element
+      if $(element).attr("target") is "_blank"
+        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
 
   render:->
     if @getData().getAt 'deletedAt'

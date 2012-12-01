@@ -42,17 +42,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
-  attachTooltipAndEmbedInteractivity:=>
-    @$("p.status-body > span.data > a").each (i,element)=>
-      href = $(element).attr("data-original-url") or $(element).attr("href") or ""
-
-      twOptions = (title) ->
-         title : title, placement : "above", offset : 3, delayIn : 300, html : yes, animate : yes, className : "link-expander"
-
-      unless /^(#!)/.test href
-        $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
-      element
-
+  attachTooltipAndEmbedInteractivity: CommentListItemView::attachTooltipAndEmbedInteractivity
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CStatusActivity
