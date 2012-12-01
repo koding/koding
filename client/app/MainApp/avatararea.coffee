@@ -18,7 +18,9 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     else
       @$('.count').addClass "in"
 
-  click:->
+  click:(event)->
+    event.preventDefault()
+    event.stopPropagation()
     popup = @getDelegate()
     popup.show()
 
