@@ -34,6 +34,8 @@ KD.error = error = noop
 
 @KD = $.extend (KD), do ->
 
+  create:(constructorName, options, data)->
+    new @classes[constructorName] options, data
   # private member for tracking z-indexes
   zIndexContexts  = {}
   debugStates     : {}
