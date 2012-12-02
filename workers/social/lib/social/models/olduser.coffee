@@ -33,7 +33,7 @@ module.exports = class JOldUser extends jraphical.Module
         type              : String
         enum              : [
           'invalid status type', [
-            'unregistered','registered','confirmed'
+            'unregistered','registered','confirmed','failed'
           ]
         ]
         default           : 'unregistered'
@@ -133,6 +133,7 @@ module.exports = class JOldUser extends jraphical.Module
                   , (err)-> console.error if err
               else
                 errors.push {error, user}
+                user.update $set: status: 'failed', ->
 
               if index < users.length
                 register users, index+1, cb
@@ -161,7 +162,7 @@ module.exports = class JOldUser extends jraphical.Module
   @getTextBody = ({requestedAt, url, firstName, lastName, nickname})->
     """
     Hello,
-    
+
     TL;DR: Your KODINGEN account is now a brand new KODING account - and it is ready for you!
 
 
@@ -178,8 +179,8 @@ module.exports = class JOldUser extends jraphical.Module
     Your username: #{nickname} (you've registered this to Kodingen)
     #{url}
 
-    
-    Now, go, code, share and have fun! 
+
+    Now, go, code, share and have fun!
     (Please take a look at http://wiki.koding.com for the things you can do)
 
     Whole Koding Team welcomes you,
@@ -194,7 +195,7 @@ module.exports = class JOldUser extends jraphical.Module
     - if you want to change your username, just send yourself an invite from the platform, and register a new account.
 
     - IMPORTANT: We did NOT migrate your files or databases at Kodingen just yet, we will provide an app for that soon, or you can do it yourself (ftp, ftps, curl, wget etc.)
-    
+
     *if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
 
 
@@ -217,4 +218,4 @@ module.exports = class JOldUser extends jraphical.Module
 
 
 
-    
+
