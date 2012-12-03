@@ -55,13 +55,13 @@ class CodesnipActivityItemView extends ActivityItemChild
     @codeSnippetView.$().hover =>
       @enableScrolling = setTimeout =>
         @codeSnippetView.codeView.setClass 'scrollable-y'
-        @codeSnippetView.$("pre.subview").addClass 'scroll-highlight'
+        @codeSnippetView.setClass 'scroll-highlight out'
 
-      ,500
+      ,1000
     , =>
       clearTimeout @enableScrolling
       @codeSnippetView.codeView.unsetClass 'scrollable-y'
-      @codeSnippetView.$("pre.subview").removeClass 'scroll-highlight'
+      @codeSnippetView.unsetClass 'scroll-highlight out'
 
   pistachio:->
     # {{> @codeShareBoxView}}
