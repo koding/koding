@@ -51,6 +51,9 @@ class KDButtonView extends KDView
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
 
+  hideIcon:()->
+    @unsetClass "with-icon"
+    @$('span.icon').addClass 'hidden'
 
   setIconClass:(iconClass)->
     @$('.icon').attr 'class','icon'
@@ -89,12 +92,16 @@ class KDButtonView extends KDView
     @loader.hide()
 
   showLoader:->
+    {icon, iconOnly} = @getOptions()
     @setClass "loading"
     @loader.show()
+    @hideIcon() if icon and not iconOnly
 
   hideLoader:->
+    {icon, iconOnly} = @getOptions()
     @unsetClass "loading"
     @loader.hide()
+    @showIcon() if icon and not iconOnly
 
   disable:-> @$().attr "disabled",yes
 
