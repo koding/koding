@@ -151,6 +151,7 @@ module.exports = class JOldUser extends jraphical.Module
                 , delay
               else
                 clearTimeout @_migrateDelayTimer
+                @_migrateDelayTimer = null
                 cb()
 
         if old_users.length is 0
@@ -179,6 +180,7 @@ module.exports = class JOldUser extends jraphical.Module
     else
       if @_migrateDelayTimer
         clearTimeout @_migrateDelayTimer
+        @_migrateDelayTimer = null
         callback @_errors, "Migrate operation cancelled."
       else
         callback @_errors, "No such migrate in progress."
