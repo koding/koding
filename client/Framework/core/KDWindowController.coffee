@@ -120,23 +120,14 @@ class KDWindowController extends KDController
           msg = "Please make sure that you saved all your work."
 
         # This cssClass needs to be added to the KDInputView OR
-        # to the wrapper (for ace)
+        # a shadow KDInputView
         pane.data.$(".warn-on-unsaved-data").each (i,element) =>
 
-          checkForUnsavedData = (el)=>
-            foundUnsavedData = no
-
-            # ACE-specific content check
-            $(el).find(".ace_editor div.ace_line > span").each (i,e)=>
-              if $(e).text()
-                foundUnsavedData = yes
-
-            foundUnsavedData
 
           # If the View is a KDInputview, we don"t need to look
-          # further than the .val(). For ACE and others, we call
-          # the checkForUnsavedData function above
-          if ($(element).hasClass("kdinput") and $(element).val() or checkForUnsavedData(element))
+          # further than the .val(). For ACE and others, we have
+          # to implement content shadowing in the widgets/inputs
+          if $(element).hasClass("kdinput") and $(element).val()
             msg = "You may lose some input that you filled in."
 
 
