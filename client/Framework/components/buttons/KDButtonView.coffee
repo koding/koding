@@ -21,7 +21,7 @@ class KDButtonView extends KDView
     @setCallback options.callback
     @setTitle options.title
     @setIconClass options.iconClass if options.iconClass
-    @unhideIcon()                   if options.icon
+    @showIcon()                     if options.icon
     @setIconOnly options.iconOnly   if options.iconOnly
     @disable()                      if options.disabled
 
@@ -47,7 +47,7 @@ class KDButtonView extends KDView
 
   getCallback:()-> @buttonCallback
 
-  unhideIcon:()->
+  showIcon:()->
     @setClass "with-icon"
     @$('span.icon').removeClass 'hidden'
 
