@@ -45,7 +45,7 @@ class ActivityTutorialWidget extends KDFormView
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
       label         : @labelEmbedLink
-      cssClass      : "warn-on-unsaved-data"
+      cssClass      : "warn-on-unsaved-data tutorial-embed-link"
       placeholder   : "Please enter a URL to a video..."
 
       keyup :=>
