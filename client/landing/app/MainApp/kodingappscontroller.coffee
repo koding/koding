@@ -139,7 +139,7 @@ class KodingAppsController extends KDController
           callback new Error "There are no apps in the app storage."
 
       if not shortcuts
-        @putDefaultShortcutsToAppStorage =>
+        @putDefaultShortcutsBack =>
           justFetchApps()
       else
         justFetchApps()
@@ -173,7 +173,7 @@ class KodingAppsController extends KDController
       @appStorage.setValue 'shortcuts', shortcuts, (err)=>
         callback err
 
-  putDefaultShortcutsToAppStorage:(callback)->
+  putDefaultShortcutsBack:(callback)->
 
     shortcuts       =
       Ace           :
