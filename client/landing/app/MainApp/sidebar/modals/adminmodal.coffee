@@ -44,15 +44,13 @@ class AdminModal extends KDModalViewWithForms
                   diameter    : 12
                 callback      : =>
                   form = @modalTabs.forms["Migrate Kodingen Users"]
-                  button = form.buttons.Migrate
-                  status = form.inputs.statusInfo
-                  status.updatePartial 'Working on it...'
+                  form.inputs.statusInfo.updatePartial 'Working on it...'
                   KD.remote.api.JOldUser.__migrateKodingenUsers
                     limit     : parseInt form.inputs.Count.getValue(), 10
                     delay     : parseInt form.inputs.Delay.getValue(), 10
                   , (err, res)->
-                    button.hideLoader()
-                    status.updatePartial res
+                    form.buttons.Migrate.hideLoader()
+                    form.inputs.statusInfo.updatePartial res
                     console.log res, err
               Stop            :
                 title         : "Stop"
@@ -62,14 +60,11 @@ class AdminModal extends KDModalViewWithForms
                   diameter    : 12
                 callback      : =>
                   form = @modalTabs.forms["Migrate Kodingen Users"]
-                  buttonM = form.buttons.Migrate
-                  buttonS = form.buttons.Stop
-                  status = form.inputs.statusInfo
-                  status.updatePartial 'Trying to stop...'
+                  form.inputs.statusInfo.updatePartial 'Trying to stop...'
                   KD.remote.api.JOldUser.__stopMigrate (err, res)->
-                    buttonS.hideLoader()
-                    buttonM.hideLoader()
-                    status.updatePartial res
+                    form.buttons.Stop.hideLoader()
+                    form.buttons.Migrate.hideLoader()
+                    form.inputs.statusInfo.updatePartial res
                     console.log res, err
             fields            :
               Information     :
