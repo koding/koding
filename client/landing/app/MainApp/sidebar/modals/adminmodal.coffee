@@ -44,14 +44,27 @@ class AdminModal extends KDModalViewWithForms
                   diameter    : 12
                 callback      : =>
                   form = @modalTabs.forms["Migrate Kodingen Users"]
-                  button = form.buttons.Migrate
-                  status = form.inputs.statusInfo
-                  status.updatePartial 'Working on it...'
+                  form.inputs.statusInfo.updatePartial 'Working on it...'
                   KD.remote.api.JOldUser.__migrateKodingenUsers
                     limit     : parseInt form.inputs.Count.getValue(), 10
+                    delay     : parseInt form.inputs.Delay.getValue(), 10
                   , (err, res)->
-                    button.hideLoader()
-                    status.updatePartial res
+                    form.buttons.Migrate.hideLoader()
+                    form.inputs.statusInfo.updatePartial res
+                    console.log res, err
+              Stop            :
+                title         : "Stop"
+                style         : "modal-clean-red"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : =>
+                  form = @modalTabs.forms["Migrate Kodingen Users"]
+                  form.inputs.statusInfo.updatePartial 'Trying to stop...'
+                  KD.remote.api.JOldUser.__stopMigrate (err, res)->
+                    form.buttons.Stop.hideLoader()
+                    form.buttons.Migrate.hideLoader()
+                    form.inputs.statusInfo.updatePartial res
                     console.log res, err
             fields            :
               Information     :
@@ -69,6 +82,17 @@ class AdminModal extends KDModalViewWithForms
                 name          : "nofusers"
                 defaultValue  : 10
                 placeholder   : "how many users do you want to Migrate?"
+                validate      :
+                  rules       :
+                    regExp    : /\d+/i
+                  messages    :
+                    regExp    : "numbers only please"
+              Delay           :
+                label         : "Delay between migrates (in sec.):"
+                type          : "text"
+                name          : "delay"
+                defaultValue  : 60
+                placeholder   : "how many seconds do you need before create new user?"
                 validate      :
                   rules       :
                     regExp    : /\d+/i
