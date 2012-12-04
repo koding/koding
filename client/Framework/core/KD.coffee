@@ -33,9 +33,22 @@ KD.warn  = warn  = noop
 KD.error = error = noop
 
 @KD = $.extend (KD), do ->
-
   # private member for tracking z-indexes
   zIndexContexts  = {}
+
+  create = (constructorName, options, data)->
+    konstructor = @classes[constructorName] \
+                ? @classes["KD#{constructorName}"]
+    new konstructor options, data  if konstructor?
+
+  create    : create
+  new       : create
+
+  testKDML:->
+    {KDMLParser} = Bongo.KDML
+    kdml = new KDMLParser @classes
+    debugger
+
   debugStates     : {}
   instances       : {}
   singletons      : {}

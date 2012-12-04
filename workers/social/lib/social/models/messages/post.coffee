@@ -218,8 +218,8 @@ module.exports = class JPost extends jraphical.Message
         => @remove -> queue.fin()
       ]
       dash queue, =>
-        @emit 'PostIsDeleted', 1
         callback null
+        @emit 'PostIsDeleted', 1
     else
       callback new KodingError 'Access denied!'
 
