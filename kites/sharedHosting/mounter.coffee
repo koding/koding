@@ -10,11 +10,11 @@ log    = log4js.getLogger("[#{config.name}]")
 
 
 
-mounter = 
-  
+mounter =
+
   remountVE: (options, callback)->
 
-    # remount user's ve 
+    # remount user's ve
 
     # options =
     #   username : String # koding username
@@ -31,15 +31,15 @@ mounter =
 
 
    createMountpoint : (options, callback)->
-   
+
      # create mount point for remote resource
      # /Users/<username>/RemoteDrive/<remote_hostname>
-      
+
      # options =
      #  mountpoint : String # mountpoint for remount drive
 
      {mountpoint} = options
-     
+
      fs.stat mountpoint, (err,stats)->
        if stats
          log.info info = "[OK] #{mountpoint} already exists"
@@ -57,17 +57,17 @@ mounter =
 
       # mount FTP to the users home directory
 
-      # options = 
+      # options =
       #   username : String # koding username
       #   remoteuser  : String # FTP username
       #   remotepass  : String # FTP password
       #   remotehost  : String # FTP server address
       #
       {username, remoteuser, remotepass, remotehost} = options
-      
+
       options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
       ftpfsopts = "#{config.ftpfs.opts},uid=`/usr/bin/id -u #{username}`,gid=`/usr/bin/id -g #{username}`,fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-      
+
       @createMountpoint options,(err,res)=>
         if err
           callback err
@@ -84,9 +84,9 @@ mounter =
                   callback null,res
 
     mountSshDrive : (options, callback)->
-      
+
       # mount SSHfs to the user's home directory
-      
+
       # options =
       #   username : String # koding username
       #   remoteuser : String # SSH username
@@ -97,7 +97,7 @@ mounter =
       {username, remoteuser, remotepass, remotehost, sshkey} = options
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
-      
+
       if sshkey?
         sshopts = "#{config.sshfs.optsWithKey},fsname=#{remotehost}"
         sshcmd  = "#{config.sshfs.sshfscmd} -o #{sshopts} #{remoteuser}@#{remotehost}:/ #{options.mountpoint}"
@@ -121,7 +121,7 @@ mounter =
                   callback null, res
 
     umountDrive : (options, callback)->
-      
+
       # umount FTP from user's home directory
 
       # options =
