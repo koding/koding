@@ -17,7 +17,7 @@ task 'run','run sharedHosting',(options)->
 
   options.config ?= "config-dev"
 
-  processes.fork
+  processes.spawn
     name    : "sharedHosting"
     cmd     : "run -c #{options.config} --sharedHosting"
     restart : yes
