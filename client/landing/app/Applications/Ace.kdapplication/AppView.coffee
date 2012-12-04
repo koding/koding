@@ -162,7 +162,7 @@ class AceView extends JView
             name   = @inputFileName.getValue()
 
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              @_message 'Wrong file name', "Please type valid file name"
+              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
 
