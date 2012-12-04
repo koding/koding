@@ -116,7 +116,7 @@ class FSHelper
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 
   @isEscapedPath = (path) ->
-    return /^ \"/.test path
+    return /^\s\"/.test path
 
   @escapeFilePath = (name) ->
 
