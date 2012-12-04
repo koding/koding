@@ -16,7 +16,6 @@ class KDObject extends KDEventEmitter
     super
     @once 'ready', => @readyState = READY
 
-
   if KD.MODE is 'development'
     interfere:(o)-> o
     o:(o)-> @interfere o
@@ -24,7 +23,7 @@ class KDObject extends KDEventEmitter
     o:(o)->o
 
   bound:(method, rest...)->
-    => @[method] rest...
+    @["__bound__#{method}"] ?= => @[method] rest...
 
   ready:(listener)->
     if @readyState > 0 then listener()

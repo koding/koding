@@ -21,14 +21,13 @@ module.exports = deepFreeze
   version       : version
   webserver     :
     port        : [3001..3004]
-  misc          :
-    updateAllSlugs : no
   mongo         : mongo
   runBroker     : no
   configureBroker: no
   buildClient   : no
   misc          :
     claimGlobalNamesForUsers: no
+    updateAllSlugs : no
     # debugConnectionErrors: yes
   uploads       :
     enableStreamingUploads: no

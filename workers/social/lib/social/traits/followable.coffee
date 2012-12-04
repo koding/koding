@@ -62,7 +62,7 @@ module.exports = class Followable
             as        : 'follower'
           }, (err, count)->
             if err then callback err
-            else 
+            else
               model.followee = count > 0
               callback null, model
 
@@ -121,7 +121,6 @@ module.exports = class Followable
           else
             Module::update.call @, $set: 'counts.followers': count, (err)->
               if err then log err
-            # callback err, count
             action = "follow"
             @emit 'FollowCountChanged'
               followerCount   : @getAt('counts.followers')
@@ -135,6 +134,9 @@ module.exports = class Followable
               action  : action
 
             follower.updateFollowingCount @, action
+
+            callback err, count
+
             Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
@@ -143,11 +145,11 @@ module.exports = class Followable
                 if emitActivity
                   CBucket.addActivities relationship, @, follower, (err)->
                     if err
-                      # console.log "An Error occured: ", err
-                      callback err
-                    else
-                      callback null, count
-                else callback null, count
+                      console.log "An Error occured: ", err
+                      # callback err
+                #     else
+                #       callback null, count
+                # else callback null, count
 
   unfollow: secure (client,callback)->
     JAccount = require '../models/account'

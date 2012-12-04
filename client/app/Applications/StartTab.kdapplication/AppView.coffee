@@ -30,8 +30,10 @@ class StartTabMainView extends JView
         width : 16
 
     @refreshButton = new KDButtonView
-      cssClass    : "editor-button"
+      cssClass    : "editor-button refresh-apps-button"
       title       : "Refresh Apps"
+      icon        : yes
+      iconClass   : "refresh"
       loader      :
         diameter  : 16
       callback    : =>
@@ -42,9 +44,9 @@ class StartTabMainView extends JView
           @refreshButton.hideLoader()
 
     @addAnAppButton = new KDButtonView
-      cssClass    : "editor-button"
-      # icon        : yes
-      # iconClass   : "make-an-app"
+      cssClass    : "editor-button new-app-button"
+      icon        : yes
+      iconClass   : "plus-black"
       title       : "Make a new App"
       callback    : =>
         appsController.makeNewApp()
