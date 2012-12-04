@@ -21,51 +21,45 @@ class AppsListItemView extends KDListItemView
         src       : thumb
 
   click:(event)->
-    if $(event.target).is ".appdetails h3 a"
-      event.stopPropagation()
-      event.preventDefault()
-      list = @getDelegate()
-      app  = @getData()
-      list.propagateEvent KDEventType : "AppWantsToExpand", app
+    event.stopPropagation()
+    event.preventDefault()
+    list = @getDelegate()
+    app  = @getData()
+    list.propagateEvent KDEventType : "AppWantsToExpand", app
 
   viewAppended:->
 
-    # for i in [0,1]
-    #   titleView = new KDCustomHTMLView opts
-    #   @["title#{i}"] = titleView
-
-    @setClass "waits-approve"  if not @getData().approved
+    @setClass "waits-approve" if not @getData().approved
 
     @setTemplate @pistachio()
     @template.update()
 
+  #   if @getData().installedA
+  #     @alreadyInstalledText()
+  #   else
+  #     @createInstallButton()
 
-    if @getData().installed
-      @alreadyInstalledText()
-    else
-      @createInstallButton()
+  # createInstallButton:->
+  #   app = @getData()
 
-  createInstallButton:->
-    app = @getData()
+  #   @installButton.destroy() if @installButton?
+  #   @installButton = new KDButtonView
+  #     title : "Install"
+  #     icon  : no
+  #     callback: =>
+  #       list = @getDelegate()
+  #       list.propagateEvent KDEventType : "AppWantsToExpand", app
 
-    @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView
-      title : "Install"
-      icon  : no
-      callback: =>
-        list = @getDelegate()
-        list.propagateEvent KDEventType : "AppWantsToExpand", app
+  #   @addSubView @installButton, '.button-container'
 
-    @addSubView @installButton, '.button-container'
+  # alreadyInstalledText:->
 
-  alreadyInstalledText:->
-
-    @installButton.destroy() if @installButton?
-    @installButton = new KDButtonView
-      title     : "Installed"
-      icon      : no
-      disabled  : yes
-    @addSubView @installButton, '.button-container'
+  #   @installButton.destroy() if @installButton?
+  #   @installButton = new KDButtonView
+  #     title     : "Installed"
+  #     icon      : no
+  #     disabled  : yes
+  #   @addSubView @installButton, '.button-container'
 
   pistachio:->
     """
@@ -88,7 +82,6 @@ class AppsListItemView extends KDListItemView
     <div class="appdetails">
       <h3>{a[href="#"]{#(title)}}</h3>
       <article>{{@utils.shortenText #(body)}}</article>
-      <div class="button-container">
-      </div>
+      <a href="/Apps/#{@getData().slug}">Application Page →</a>
     </div>
     """
