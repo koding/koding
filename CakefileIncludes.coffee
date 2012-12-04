@@ -621,6 +621,7 @@ Includes =
         NFinderItemDeleteDialog       : "./client/app/MainApp/filetree/itemsubviews/finderitemdeletedialog.coffee"
         NFinderItemRenameView         : "./client/app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee"
         NSetPermissionsView           : "./client/app/MainApp/filetree/itemsubviews/setpermissionsview.coffee"
+        NCopyUrlView                  : "./client/app/MainApp/filetree/itemsubviews/copyurlview.coffee"
         # re-used files
         FinderBottomControlsListItem  : "./client/app/MainApp/filetree/bottomlist/finderbottomlist.coffee"
         FinderBottomControls          : "./client/app/MainApp/filetree/bottomlist/finderbottomlistitem.coffee"

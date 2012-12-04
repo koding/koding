@@ -83,6 +83,10 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
         action                    : 'download'
         disabled                  : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new  NCopyUrlView {}, fileData
+        separator                 : yes
       'New File'                  :
         action                    : 'createFile'
       'New Folder'                :
@@ -142,6 +146,10 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : "download"
+        separator                 : yes
+      'Copy Public URL'           :
+        children                  :
+          customView              : new NCopyUrlView {}, fileData
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
