@@ -12,8 +12,7 @@ log    = log4js.getLogger("[#{config.name}]")
 
 
 
-#mounter = 
-class mounter
+mounter = 
   
   # this module provides functions for mount remote FTP and SSH servers with fuse-curlftpfs and fuse-sshfs
   
@@ -181,11 +180,9 @@ class mounter
       wrapperData = ""
       wrapper.stdout.on 'data',(data)->
         wrapperData += data
-      wrapper.once 'error', (err)->
-        callback err
 
       wrapper.on 'exit',(code)->
-        if code is not 0
+        if code isnt 0
           log.error err = "[ERROR] command error: #{wrapperErr}"
           callback err
         else
@@ -217,7 +214,7 @@ class mounter
         callback null, info
 
 
-   createMountpoint : (options, callback)->
+   createMountpoint = (options, callback)->
    
      # create mount point for remote resource
      # /Users/<username>/RemoteDrive/<remote_hostname>
@@ -273,7 +270,7 @@ class mounter
         else
           log.info "[OK] user ID for user #{username} is #{res}"
           ftpfsopts = "#{config.ftpfs.opts},uid=#{res},gid=#{res},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-          @createMountpoint options,(err,res)=>
+          createMountpoint options,(err,res)=>
             if err
               callback err
             else
@@ -290,7 +287,45 @@ class mounter
                       callback null,res
                
 
-    mountSshDrive : (options, callback)->
+    mountSshDriveWithKey: (options, callback)->
+      # mount SSHfs to the user's home directory
+   
+      # return 
+      #   callback error 
+      #   callback null, result (information message)
+
+   
+      # options =
+      #   username : String # koding username
+      #   type : String # type of mount (ftp,ssh)
+      #   remoteuser : String # SSH username
+      #   remotepass : String # SSH password
+      #   remotehost : String # SSH server address
+      #   sshkey     : Bool # auth with key true/false
+
+      {username, remoteuser, remotepass, remotehost, sshkey} = options
+
+      options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
+      keyPath = path.join config.usersPath,username,'.ssh','koding.pem'
+      sshopts = [ "-d", "-o", "#{config.sshfs.optsWithKey},fsname=#{remotehost} -i #{keyPath}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
+      console.log sshopts  
+      createMountpoint options, (err, res)=>
+        if err
+          callback err
+        else
+          spawnWrapper config.sshfs.sshfscmd, sshopts, (err, res)=>
+            if err?
+              log.error error = "[ERROR] couldn't mount remote SSH server #{remotehost}: #{err}"
+              callback error
+            else
+              @remountVE options, (err,res)=>
+                if err
+                  callback err
+                else
+                  @updateMountCfg options,(err,res)->
+                  callback null, res
+
+    mountSshDriveWithPass : (options, callback)->
       
       # mount SSHfs to the user's home directory
    
@@ -311,23 +346,74 @@ class mounter
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
       
-      sshopts = [ "-o", "#{config.sshfs.optsWithKey},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
-        
-      @createMountpoint options, (err, res)=>
+      sshopts = [ "-o", "#{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
+      console.log sshopts  
+      createMountpoint options, (err, res)=>
         if err
           callback err
         else
-          spawnWrapper config.sshfs.sshfscmd, sshopts, (err, res)=>
-            if err?
-              log.error error = "[ERROR] couldn't mount remote SSH server #{remotehost}: #{err}"
-              callback error
-            else
+          pw  = spawn '/bin/echo', [remotepass]
+          ssh = spawn config.sshfs.sshfscmd, sshopts
+
+          pw.stdout.on "data", (data) ->
+            ssh.stdin.write data
+
+          pw.stderr.on "data", (data) ->
+            pwerror = "pw stderr: #{data}"
+
+          pw.on "exit", (code) ->
+            if code isnt 0
+              log.error pwcb = "[ERROR] pw process exited with code #{code}, #{pwerror}"  
+              callback pwcb
+
+          ssh.stdout.on "data", (data) ->
+            log.info data
+          
+          ssherror = ''
+          ssh.stderr.on "data", (data) ->
+            ssherror += "ssh stderr: #{data}"
+
+          ssh.on "exit", (code) =>
+            if code isnt 0
+              log.error  "[ERROR] ssh process exited with code #{code}: #{ssherror}"
+              callback "[ERROR] couldn't mount ssh fs"
+            else      
               @remountVE options, (err,res)=>
                 if err
                   callback err
                 else
                   @updateMountCfg options,(err,res)->
                   callback null, res
+
+    mountSshDrive: (options, callback)->
+      
+      # mount SSHfs to the user's home directory
+   
+      # return 
+      #   callback error 
+      #   callback null, result (information message)
+
+   
+      # options =
+      #   username : String # koding username
+      #   type : String # type of mount (ftp,ssh)
+      #   remoteuser : String # SSH username
+      #   remotepass : String # SSH password
+      #   remotehost : String # SSH server address
+      #   sshkey     : Bool # auth with key true/false
+      
+      {sshkey} = options
+
+      if sshkey?
+        @mountSshDriveWithKey options,(err,res)->
+          callback err if err?
+          callback null, res if res?
+      else
+        @mountSshDriveWithPass options,(err,res)->
+          callback err if err?
+          callback null, res if res?
+
+
 
     umountDrive : (options, callback)->
       
@@ -360,15 +446,5 @@ class mounter
               callback null,res
 
 
-#module.exports = mounter
-m = new mounter
-options = 
-  username : 'aleksey-m' # koding usern
-  type: 'ftp'
-  remoteuser  : 'aleksey-m' # FTP username
-  remotepass  : '35acb84L_koding' # FTP password
-  remotehost  : 'ftp.koding.com' # FTP server address
+module.exports = mounter
 
-  
-m.mountFtpDrive options, (err,res)->
-  console.log err,res
