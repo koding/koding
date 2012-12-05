@@ -24,6 +24,8 @@ module.exports = new Kite 'sharedHosting'
 
   executeCommand: require './executecommand'
 
+  mounter: require './mounter'
+
   fetchSafeFileName:(options,callback)->
     {filePath}    = options
     original      = filePath+""

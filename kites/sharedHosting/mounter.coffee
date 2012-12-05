@@ -173,22 +173,22 @@ mounter =
             callback null, info
 
   spawnWrapper = (command, args , callback)->
-      wrapper = spawn command,args
-      wrapperErr = ""
-      wrapper.stderr.on 'data',(data)->
-        wrapperErr += data
-      wrapperData = ""
-      wrapper.stdout.on 'data',(data)->
-        wrapperData += data
+    wrapper = spawn command,args
+    wrapperErr = ""
+    wrapper.stderr.on 'data',(data)->
+      wrapperErr += data
+    wrapperData = ""
+    wrapper.stdout.on 'data',(data)->
+      wrapperData += data
 
-      wrapper.on 'exit',(code)->
-        if code isnt 0
-          log.error err = "[ERROR] command error: #{wrapperErr}"
-          callback err
-        else
-          log.info res = wrapperData.toString("utf-8", 0, 12)
-          log.info info = "[OK] command executed successfully output: #{res}"
-          callback null, res
+    wrapper.on 'exit',(code)->
+      if code isnt 0
+        log.error err = "[ERROR] command error: #{wrapperErr}"
+        callback err
+      else
+        log.info res = wrapperData.toString("utf-8", 0, 12)
+        log.info info = "[OK] command executed successfully output: #{res}"
+        callback null, res
 
   remountVE: (options, callback)->
 
@@ -307,7 +307,7 @@ mounter =
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
       keyPath = path.join config.usersPath,username,'.ssh','koding.pem'
-      sshopts = [ "-d", "-o", "#{config.sshfs.optsWithKey},fsname=#{remotehost} -i #{keyPath}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
+      sshopts = [ "-o", "ssh_command=/usr/bin/ssh -i #{keyPath} -o #{config.sshfs.optsWithKey},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
       console.log sshopts  
       createMountpoint options, (err, res)=>
         if err
@@ -346,7 +346,7 @@ mounter =
 
       options.mountpoint =  path.join config.usersPath, username, config.baseMountDir, remotehost
       
-      sshopts = [ "-o", "#{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
+      sshopts = [ "-o", "ssh_command=/usr/bin/ssh -o #{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
       console.log sshopts  
       createMountpoint options, (err, res)=>
         if err

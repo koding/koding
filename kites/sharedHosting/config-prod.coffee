@@ -29,8 +29,8 @@ module.exports =
     opts                : "connect_timeout=15,direct_io,allow_other"
   sshfs                 :
     sshfscmd            : '/usr/bin/sshfs'
-    opts                : 'ssh_command=/usr/bin/ssh -o UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,password_stdin,intr,allow_other,direct_io'
-    optsWithKey         : 'ssh_command=/usr/bin/ssh -o PubkeyAuthentication=yes,UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,intr,allow_other,direct_io'
+    opts                : 'UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,password_stdin,intr,allow_other,direct_io'
+    optsWithKey         : 'PubkeyAuthentication=yes,PasswordAuthentication=no,UserKnownHostsFile=/dev/null,StrictHostKeyChecking=no,intr,allow_other,direct_io'
   lsws                  :
     baseDir             : '/Users'
     controllerPath      : '/opt/lsws/bin/lswsctrl'
