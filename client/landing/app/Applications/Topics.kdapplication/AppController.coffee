@@ -19,7 +19,7 @@ class Topics12345 extends AppController
   createFeed:(view)->
     {JTag} = KD.remote.api
     appManager.tell 'Feeder', 'createContentFeedController', {
-      itemClass          : @listItemClass
+      itemClass             : @listItemClass
       limitPerPage          : 20
       noItemFoundText       : "There is no topics."
       # feedMessage           :
@@ -89,14 +89,13 @@ class Topics12345 extends AppController
 
       mainView.createCommons()
 
-    KD.whoami().fetchRole? (err, role) =>
-      if role is "super-admin"
-        @listItemClass = TopicsListItemViewEditable
-        if firstRun
-          @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
-            @updateTopic topicItem
+    if KD.checkFlag ['super-admin', 'editor']
+      @listItemClass = TopicsListItemViewEditable
+      if firstRun
+        @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+          @updateTopic topicItem
 
-      @createFeed mainView
+    @createFeed mainView
     # mainView.on "AddATopicFormSubmitted",(formData)=> @addATopic formData
 
   updateTopic:(topicItem)->
