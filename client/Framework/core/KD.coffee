@@ -47,7 +47,6 @@ KD.error = error = noop
   testKDML:->
     {KDMLParser} = Bongo.KDML
     kdml = new KDMLParser @classes
-    debugger
 
   debugStates     : {}
   instances       : {}
@@ -182,7 +181,7 @@ KD.error = error = noop
     oldConsole = window.console
     window.console = {}
     console[method] = noop  for method in ['log','warn','error','trace']
-    
+
     enableLogs =->
       window.console = oldConsole
       KD.log   = log   = if console?.log   then console.log.bind(console)   else noop

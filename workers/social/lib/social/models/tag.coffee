@@ -2,6 +2,7 @@
 jraphical = require 'jraphical'
 CActivity = require './activity'
 JAccount  = require './account'
+KodingError = require '../error'
 
 module.exports = class JTag extends jraphical.Module
 
