@@ -1,15 +1,24 @@
 # mount remote filesystem kites
 
-config = require './config'
+config   = require './config'
 
-path   = require "path"
-fs     = require "fs"
-mkdirp = require 'mkdirp'
-_      = require "underscore"
-log4js = require 'log4js'
-log    = log4js.getLogger("[#{config.name}]")
-{exec} = require "child_process"
-{spawn}= require "child_process"
+path     = require "path"
+fs       = require "fs"
+mkdirp   = require 'mkdirp'
+_        = require "underscore"
+log4js   = require 'log4js'
+log      = log4js.getLogger("[#{config.name}]")
+{exec}   = require "child_process"
+{spawn}  = require "child_process"
+nodePath = require 'path'
+
+safeForUser = (username, path)-> path?.indexOf("/Users/#{username}/#{config.baseMountDir}/") is 0
+escapePath  = (path, keepSpaces = no)->
+  if path
+    path = nodePath.normalize path.replace(/[^a-zA-Z0-9\/\-. ]/g, '')
+    if keepSpaces then return path
+    path.replace(/\\/g, '')
+        .replace(/\s/g, '\\ ')
 
 mounter =
 
@@ -106,7 +115,7 @@ mounter =
            else
              trigger = 0
              for obj in res
-               if _.isEqual obj,newConf
+               if _.isEqual obj, newConf
                  trigger += 1
                  break
              if trigger is 0
@@ -431,11 +440,20 @@ mounter =
 
       {username, remotehost} = options
 
-      options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
+      unless remotehost
+        callback "Remote host is not given"
+        return no
 
-      spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
+      options.mountpoint = escapePath path.join config.usersPath, username, config.baseMountDir, remotehost
+
+      unless safeForUser username, options.mountpoint
+        console.error "User [#{username}] is trying to make something bad: ", options.mountpoint
+        callback "You are not authorized to do this."
+        return no
+
+      @spawnWrapper '/bin/umount', [options.mountpoint],(err, res)=>
         if err?
-          log.error error = "[ERROR] can't umount #{options.mountpoint}: #{stderr}"
+          log.error error = "[ERROR] can't umount #{options.mountpoint}: #{err}"
           callback error
         else
           log.info info = "[OK] directory #{options.mountpoint} umounted"
