@@ -1,5 +1,7 @@
-JPost = require './post'
-JComment = require './comment'
+
+JPost       = require './post'
+JComment    = require './comment'
+KodingError = require '../../error'
 
 module.exports = class JPrivateMessage extends JPost
 
@@ -60,8 +62,14 @@ module.exports = class JPrivateMessage extends JPost
 
     secure (client, data, callback)->
       {delegate} = client.connection
-      {to, subject, body} = data
+
       JAccount = require '../account'
+
+      unless delegate instanceof JAccount
+        callback new KodingError 'Access denied.'
+        return no
+
+      {to, subject, body} = data
       if 'string' is typeof to
         to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ') # accept virtaully any non-wordchar delimiters for now.
       JAccount.all 'profile.nickname': $in: to, (err, recipients)->
