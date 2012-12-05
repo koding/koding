@@ -172,7 +172,7 @@ mounter =
             log.info info = "[OK] config successfully updated"
             callback null, info
 
-  spawnWrapper = (command, args , callback)->
+  spawnWrapper : (command, args , callback)->
     wrapper = spawn command,args
     wrapperErr = ""
     wrapper.stderr.on 'data',(data)->
@@ -205,7 +205,7 @@ mounter =
 
     {username} = options
     args = ['-m', username]
-    spawnWrapper config.cagefsctl, args ,(err, res)->
+    @spawnWrapper config.cagefsctl, args ,(err, res)->
       if err?
         log.error error = "[ERROR] Couldn't remount user's VE - username #{username}: #{stderr}"
         callback error
@@ -214,7 +214,7 @@ mounter =
         callback null, info
 
 
-   createMountpoint = (options, callback)->
+   createMountpoint : (options, callback)->
    
      # create mount point for remote resource
      # /Users/<username>/RemoteDrive/<remote_hostname>
@@ -263,18 +263,18 @@ mounter =
       options.mountpoint = path.join config.usersPath, username, config.baseMountDir, remotehost
       
       # fetch user ID for curlftfs command
-      spawnWrapper '/usr/bin/id', ['-u',username], (err,res)=>
+      @spawnWrapper '/usr/bin/id', ['-u',username], (err,res)=>
         if err?
           log.error error = "[ERROR] Can't find user ID: #{err}"
           callback error
         else
           log.info "[OK] user ID for user #{username} is #{res}"
           ftpfsopts = "#{config.ftpfs.opts},uid=#{res},gid=#{res},fsname=#{remotehost},user=#{remoteuser}:#{remotepass}"
-          createMountpoint options,(err,res)=>
+          @createMountpoint options,(err,res)=>
             if err
               callback err
             else
-              spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
+              @spawnWrapper config.ftpfs.curlftpfs,['-o', ftpfsopts, remotehost, options.mountpoint] , (err, res)=>
                 if err?
                   log.error error = "[ERROR] couldn't mount remote FTP server #{remotehost}: #{err}"
                   callback error
@@ -309,11 +309,11 @@ mounter =
       keyPath = path.join config.usersPath,username,'.ssh','koding.pem'
       sshopts = [ "-o", "ssh_command=/usr/bin/ssh -i #{keyPath} -o #{config.sshfs.optsWithKey},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
       console.log sshopts  
-      createMountpoint options, (err, res)=>
+      @createMountpoint options, (err, res)=>
         if err
           callback err
         else
-          spawnWrapper config.sshfs.sshfscmd, sshopts, (err, res)=>
+          @spawnWrapper config.sshfs.sshfscmd, sshopts, (err, res)=>
             if err?
               log.error error = "[ERROR] couldn't mount remote SSH server #{remotehost}: #{err}"
               callback error
@@ -348,7 +348,7 @@ mounter =
       
       sshopts = [ "-o", "ssh_command=/usr/bin/ssh -o #{config.sshfs.opts},fsname=#{remotehost}", "#{remoteuser}@#{remotehost}:/", options.mountpoint]
       console.log sshopts  
-      createMountpoint options, (err, res)=>
+      @createMountpoint options, (err, res)=>
         if err
           callback err
         else
